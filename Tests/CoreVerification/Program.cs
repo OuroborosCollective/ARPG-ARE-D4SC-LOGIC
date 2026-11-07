@@ -22,6 +22,7 @@ internal static class Program
             TestCombatLootAndCooldown();
             TestAiAndDeath();
             TestGameOverPickupGate();
+            ProgressionTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }
