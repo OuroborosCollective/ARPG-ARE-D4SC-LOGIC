@@ -21,6 +21,7 @@ internal static class Program
             TestCollisionAndMovement();
             TestCombatLootAndCooldown();
             TestAiAndDeath();
+            TestGameOverPickupGate();
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }
@@ -116,4 +117,24 @@ internal static class Program
         Require(world.GameOver && world.PlayerHealth == 0, "game-over-at-zero-hp");
         Require(!world.ActivateSkill(0).Activated, "cannot-attack-when-dead");
     }
+    private static void TestGameOverPickupGate()
+    {
+        var world = new ArenaSimulation(78);
+        MonsterState first = world.Monsters[0];
+        first.Xmm = 1000;
+        first.Zmm = 0;
+        first.Health = 1;
+        Require(world.ActivateSkill(0).Kills == 1 && world.GroundLoot.Count == 1,
+            "dead-pickup-fixture-has-real-drop");
+        world.Monsters[1].Xmm = 1200;
+        world.Monsters[1].Zmm = 0;
+        world.Monsters[2].Xmm = -1200;
+        world.Monsters[2].Zmm = 0;
+        for (int i = 0; i < 300 && !world.GameOver; i++) world.Step();
+        Require(world.GameOver, "dead-pickup-fixture-reaches-real-death");
+        Require(!world.TryCollectLoot(), "dead-player-cannot-collect-loot");
+        Require(world.GroundLoot.Count == 1 && world.LootCollected == 0 && world.WeaponBonus == 0,
+            "dead-pickup-cannot-change-loot-state");
+    }
+
 }
