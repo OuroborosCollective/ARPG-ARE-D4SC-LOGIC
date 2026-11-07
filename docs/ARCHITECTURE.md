@@ -44,3 +44,7 @@ The integer-only authoritative core owns mastery allocation. `CharacterProgressi
 ## Crypt continuation state
 
 The immutable run identity is the explicit positive `BigInteger CryptDepth`, included in the canonical `ComputeWorldHash()` as length-prefixed little-endian bytes. `TryAdvanceCrypt()` is fail-closed unless the run is won and all spawned loot has been collected, returning a fresh simulation reusing the same `CharacterProgression`. Enemy HP grows by a depth multiplier capped at 10,000; arithmetic remains within int limits at arbitrarily large depth. This singleplayer run depth is currently **session-local**; `CharacterProgression` remains the only saved character state. No asynchronous or network authority is implied.
+
+## AC3 chapter checkpoint boundary
+
+`CharacterProgression` now owns a positive arbitrary-precision unlocked chapter depth, included as field 9 (before the checksum) in AC3 records; AC1/AC2 load with depth 1. The chapter transition deep-copies canonical character state, checks consecutive depth and writes the next checkpoint through Unity's existing validated PlayerPrefs path *before* swapping the active world. Prior world receipts are left unchanged. This is a local checkpoint, not an online account, atomic filesystem transaction or entire simulation snapshot. Android cold-start persistence remains unverified.

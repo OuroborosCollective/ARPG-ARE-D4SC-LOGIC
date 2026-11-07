@@ -50,7 +50,8 @@ namespace AreArpg.UnityClient
                 _message = "Character save is invalid. Back it up before recovery; gameplay locked.";
                 Debug.LogError("ARPG character save could not be validated; refusing to overwrite character progress.");
             }
-            _game = new ArenaSimulation(DemoSeed, saved);
+            _game = new ArenaSimulation(DemoSeed, saved,
+                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One);
             BuildWorld();
         }
 
@@ -72,17 +73,22 @@ namespace AreArpg.UnityClient
 
         private void SaveCharacter()
         {
-            if (_storageFault || _game == null) return;
+            if (_game != null) SaveCharacter(_game.Progression);
+        }
+
+        private void SaveCharacter(CharacterProgression progress)
+        {
+            if (_storageFault || progress == null) return;
             string primary = PlayerPrefs.GetString(CharacterSaveKey, "");
             CharacterProgression previous;
             if (CharacterProgression.TryLoad(primary, out previous))
                 PlayerPrefs.SetString(CharacterBackupKey, primary);
-            string next = _game.Progression.SaveString();
+            string next = progress.SaveString();
             PlayerPrefs.SetString(CharacterSaveKey, next);
             PlayerPrefs.Save();
             CharacterProgression verified;
             if (!CharacterProgression.TryLoad(PlayerPrefs.GetString(CharacterSaveKey, ""), out verified) ||
-                verified.StableHash != _game.Progression.StableHash)
+                verified.StableHash != progress.StableHash)
             {
                 _storageFault = true;
                 Debug.LogError("ARPG character save readback failed; no further overwrites allowed.");
@@ -354,10 +360,11 @@ namespace AreArpg.UnityClient
                 _message = "Pick up all loot before entering the next crypt.";
                 return;
             }
-            SaveCharacter();
-            if (_storageFault) return;
             ArenaSimulation next = _game.TryAdvanceCrypt();
             if (next == null) return;
+            // Commit and read back the new checkpoint before changing the active world.
+            SaveCharacter(next.Progression);
+            if (_storageFault) return;
             InstallNewRun(next, "Crypt depth " + next.CryptDepth + " - enemies grow stronger.");
         }
 

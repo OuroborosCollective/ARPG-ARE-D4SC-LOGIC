@@ -184,8 +184,13 @@ namespace AreArpg.Core
         /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
         public ArenaSimulation TryAdvanceCrypt()
         {
-            if (!CryptCleared || GroundLoot.Count != 0) return null;
-            return new ArenaSimulation(_runSeed, Progression, CryptDepth + System.Numerics.BigInteger.One);
+            if (!CryptCleared || GroundLoot.Count != 0 ||
+                CryptDepth != Progression.UnlockedCryptDepth) return null;
+            CharacterProgression nextProgress;
+            if (!CharacterProgression.TryLoad(Progression.SaveString(), out nextProgress) ||
+                !nextProgress.TryUnlockNextCryptDepth(CryptDepth)) return null;
+            return new ArenaSimulation(_runSeed, nextProgress,
+                nextProgress.UnlockedCryptDepth);
         }
 
         private static MonsterState NewMonster(int id, int kind, long x, long z, int health)

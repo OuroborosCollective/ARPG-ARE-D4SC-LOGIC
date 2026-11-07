@@ -8,7 +8,7 @@ namespace AreArpg.Core
     public enum MasteryPath { Might = 0, Vitality = 1, Resolve = 2 }
 
     /// <summary>
-    /// Permanent progress, no season clock, no level cap. AC1 is read-only legacy; new writes use AC2.
+    /// Permanent progress, no season clock, no level cap. AC1/AC2 are read-only legacy; AC3 includes unlocked chapter depth.
     /// The checksum detects accidental damage, not malicious tampering or cloud ownership.
     /// </summary>
     public sealed class CharacterProgression
@@ -22,6 +22,7 @@ namespace AreArpg.Core
         public BigInteger MightRank { get; private set; }
         public BigInteger VitalityRank { get; private set; }
         public BigInteger ResolveRank { get; private set; }
+        public BigInteger UnlockedCryptDepth { get; private set; } = BigInteger.One;
         public BigInteger Level { get { return LevelForExperience(TotalExperience); } }
         public BigInteger SpentMasteryPoints { get { return MightRank + VitalityRank + ResolveRank; } }
         public BigInteger UnspentMasteryPoints { get { return Level - BigInteger.One - SpentMasteryPoints; } }
@@ -71,6 +72,14 @@ namespace AreArpg.Core
         public int VitalityHealthBonus { get { return (int)BigInteger.Min(VitalityRank, 1000) * 20; } }
         public int ResolveHealBonus { get { return (int)BigInteger.Min(ResolveRank, 1000) * 10; } }
 
+        /// <summary>Record only the consecutively cleared depth, never an arbitrary skip.</summary>
+        internal bool TryUnlockNextCryptDepth(BigInteger clearedDepth)
+        {
+            if (clearedDepth != UnlockedCryptDepth) return false;
+            UnlockedCryptDepth += BigInteger.One;
+            return true;
+        }
+
         public void RecordKill() { LifetimeKills += BigInteger.One; }
         public void AddWeaponUpgrade(int amount)
         {
@@ -81,13 +90,14 @@ namespace AreArpg.Core
 
         private string Payload()
         {
-            return "AC2|" + TotalExperience.ToString(CultureInfo.InvariantCulture) +
+            return "AC3|" + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
                 "|" + LootCollected.ToString(CultureInfo.InvariantCulture) +
                 "|" + LifetimeKills.ToString(CultureInfo.InvariantCulture) +
                 "|" + MightRank.ToString(CultureInfo.InvariantCulture) +
                 "|" + VitalityRank.ToString(CultureInfo.InvariantCulture) +
-                "|" + ResolveRank.ToString(CultureInfo.InvariantCulture);
+                "|" + ResolveRank.ToString(CultureInfo.InvariantCulture) +
+                "|" + UnlockedCryptDepth.ToString(CultureInfo.InvariantCulture);
         }
 
         private static ulong HashText(string payload)
@@ -116,7 +126,9 @@ namespace AreArpg.Core
             if (string.IsNullOrEmpty(saved)) return false;
             string[] parts = saved.Split('|');
             bool legacy = parts[0] == "AC1" && parts.Length == 6;
-            bool current = parts[0] == "AC2" && parts.Length == 9;
+            bool ac2 = parts[0] == "AC2" && parts.Length == 9;
+            bool ac3 = parts[0] == "AC3" && parts.Length == 10;
+            bool current = ac2 || ac3;
             if (!legacy && !current) return false;
             int last = parts.Length - 1;
             if (parts[last].Length != 16) return false;
@@ -129,6 +141,9 @@ namespace AreArpg.Core
             if (current && (!CanonicalNonNegative(parts[5], out might) ||
                 !CanonicalNonNegative(parts[6], out vitality) ||
                 !CanonicalNonNegative(parts[7], out resolve))) return false;
+            BigInteger unlockedDepth = BigInteger.One;
+            if (ac3 && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
+                unlockedDepth < BigInteger.One)) return false;
             // A valid checksum is necessary but does not make an invalid progression valid.
             ulong checksum;
             if (!ulong.TryParse(parts[last], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out checksum) ||
@@ -138,7 +153,8 @@ namespace AreArpg.Core
             progress = new CharacterProgression {
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LifetimeKills = kills,
-                MightRank = might, VitalityRank = vitality, ResolveRank = resolve
+                MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
+                UnlockedCryptDepth = unlockedDepth
             };
             return true;
         }
