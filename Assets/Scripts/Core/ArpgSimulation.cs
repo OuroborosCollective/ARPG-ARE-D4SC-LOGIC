@@ -92,6 +92,9 @@ namespace AreArpg.Core
         public int MaxHealth;
         public int AttackCooldownTicks;
         public bool LootGranted;
+        // The ember-warden's countdown is part of the authoritative replay state.
+        public int BossWindupTicks;
+        public int BossPulseCooldownTicks;
         public bool IsDead { get { return Health <= 0; } }
     }
 
@@ -125,6 +128,8 @@ namespace AreArpg.Core
         private readonly DeterministicRng _rng;
         private readonly ulong _runSeed;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
+        public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
+        public string ChapterName { get { return ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"; } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
         private long _directionXbp;
         private long _directionZbp;
@@ -161,9 +166,19 @@ namespace AreArpg.Core
             _rng = new DeterministicRng(seed);
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
             int depthScale = (int)System.Numerics.BigInteger.Min(cryptDepth - 1, 10000);
-            Monsters.Add(NewMonster(1, 0, 3600, 2400, 320 + depthScale * 25));
-            Monsters.Add(NewMonster(2, 1, -4800, 2400, 650 + depthScale * 55));
-            Monsters.Add(NewMonster(3, 2, 0, 8000, 2400 + depthScale * 200));
+            if (ChapterId == 1)
+            {
+                Monsters.Add(NewMonster(1, 0, 3600, 2400, 320));
+                Monsters.Add(NewMonster(2, 1, -4800, 2400, 650));
+                Monsters.Add(NewMonster(3, 2, 0, 8000, 2400));
+            }
+            else
+            {
+                // New chapter: ash hunter, ember knight and a distinct channeling boss.
+                Monsters.Add(NewMonster(1, 0, -5000, 5500, 420 + depthScale * 25));
+                Monsters.Add(NewMonster(2, 1, 6000, 4500, 770 + depthScale * 55));
+                Monsters.Add(NewMonster(3, 3, 0, 12000, 2800 + depthScale * 200));
+            }
         }
 
         /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
@@ -235,12 +250,31 @@ namespace AreArpg.Core
             {
                 if (enemy.IsDead) continue;
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
+                if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
                 if (distance2 > FixedMath.Square(14000)) continue;
+                if (ChapterId == 2 && enemy.Kind == 3)
+                {
+                    // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.
+                    if (enemy.BossWindupTicks > 0)
+                    {
+                        enemy.BossWindupTicks--;
+                        if (enemy.BossWindupTicks == 0 &&
+                            DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(4000))
+                            PlayerHealth = Math.Max(0, PlayerHealth - 190);
+                        continue;
+                    }
+                    if (enemy.BossPulseCooldownTicks == 0 && distance2 <= FixedMath.Square(10000))
+                    {
+                        enemy.BossWindupTicks = 8;
+                        enemy.BossPulseCooldownTicks = 55;
+                        continue;
+                    }
+                }
                 if (distance2 > FixedMath.Square(1650))
                 {
                     long distance = Math.Max(1, FixedMath.IntegerSqrt(distance2));
-                    long speed = enemy.Kind == 2 ? 190 : MonsterSpeedMmPerTick;
+                    long speed = enemy.Kind >= 2 ? 190 : MonsterSpeedMmPerTick;
                     long nx = enemy.Xmm + (PlayerXmm - enemy.Xmm) * speed / distance;
                     long nz = enemy.Zmm + (PlayerZmm - enemy.Zmm) * speed / distance;
                     if (CanStand(nx, nz)) { enemy.Xmm = nx; enemy.Zmm = nz; }
@@ -249,8 +283,8 @@ namespace AreArpg.Core
                 }
                 else if (enemy.AttackCooldownTicks == 0)
                 {
-                    enemy.AttackCooldownTicks = enemy.Kind == 2 ? 12 : 17;
-                    PlayerHealth = Math.Max(0, PlayerHealth - (enemy.Kind == 2 ? 105 : (enemy.Kind == 1 ? 60 : 40)));
+                    enemy.AttackCooldownTicks = enemy.Kind >= 2 ? 12 : 17;
+                    PlayerHealth = Math.Max(0, PlayerHealth - (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40)));
                     if (GameOver) break;
                 }
             }
@@ -274,7 +308,7 @@ namespace AreArpg.Core
             bool crit;
             long damage = FixedMath.Damage(95 + WeaponBonus, powerBp, 190,
                 2000 + Progression.MightDamageBonusBp,
-                enemy.Kind == 2 ? 4000 : (enemy.Kind == 1 ? 2200 : 1000), 1900, _rng, out crit);
+                enemy.Kind >= 2 ? 4000 : (enemy.Kind == 1 ? 2200 : 1000), 1900, _rng, out crit);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
             result.TotalDamage += (int)damage;
             result.Hits++;
@@ -285,9 +319,9 @@ namespace AreArpg.Core
                 Kills++;
                 Progression.RecordKill();
                 Progression.EarnExperience(new System.Numerics.BigInteger(
-                    enemy.Kind == 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
+                    enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
                 GroundLoot.Add(new LootState { Id = _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
-                    WeaponBonus = enemy.Kind == 2 ? 34 : (enemy.Kind == 1 ? 17 : 8) });
+                    WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8) });
             }
         }
 
@@ -362,6 +396,7 @@ namespace AreArpg.Core
                 Mix(ref h, (ulong)enemy.PreviousXmm); Mix(ref h, (ulong)enemy.PreviousZmm);
                 Mix(ref h, (ulong)enemy.Health); Mix(ref h, (ulong)enemy.MaxHealth);
                 Mix(ref h, (ulong)enemy.AttackCooldownTicks); Mix(ref h, enemy.LootGranted ? 1UL : 0UL);
+                Mix(ref h, (ulong)enemy.BossWindupTicks); Mix(ref h, (ulong)enemy.BossPulseCooldownTicks);
             }
             Mix(ref h, (ulong)GroundLoot.Count);
             foreach (LootState loot in GroundLoot)

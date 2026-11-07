@@ -67,3 +67,11 @@ The AC2 save schema persists mastery ranks and validates that allocated points n
 ## Repeatable crypt loop (prototype)
 
 After clearing all monsters, collect all ground loot and select **NEXT CRYPT** on Android/desktop or press **N** on keyboard. The next run creates fresh enemies with bounded deterministic HP scaling, while the same permanent character retains all XP, levels, mastery allocations, lifetime kills and upgrades. **R/RESTART** retries the current depth, preserving progress. The on-screen depth is **run-local**, not yet stored between app restarts. It is not a persistent dungeon checkpoint or a cloud save. The Unity UI and Android behavior remain unverified until an actual licensed Unity runner and device test execute.
+
+## Chapter II — Ember Rift / Glutklamm
+
+After defeating the Ashen Crypt guardian and collecting the last drop, the **NEXT CRYPT** gate opens into a new location, **Ember Rift** (German working name **Glutklamm**). This is not a duplicate room: chapter 2 switches to ember-lit stone, basalt columns, fissures, a ruined gateway, a central causeway and a ritual dais. Geometry is built entirely from original Unity primitives in the projection and stays within the mobile-friendly prototype budget.
+
+The encounter is different: ash hunter and ember knight protect the **Ember Warden**, a unique chapter boss (kind 3). It channels a **0.8-second warning** before a 4-meter radius fire pulse; walking beyond that radius avoids pulse damage. This timing and damage are 100-ms **integer core state** and included in the deterministic world hash. Unity only displays the telegraph. Chapter-2 depth progression remains unbounded; finite combat stats are saturated intentionally. No new engine authority, proprietary assets, procedural client-owned combat or seasonal wipe.
+
+**Acceptance:** repeatable core replay and damage/telegraph regressions, real Unity chapter scene and Android touch walkthrough later. **Current state:** source and C# CI can verify core semantics, but Unity rendering/PlayMode and Android APK remain UNVERIFIED. The new scenery is visual only; invisible pits/hazards are deliberately not introduced without canonical collision logic.

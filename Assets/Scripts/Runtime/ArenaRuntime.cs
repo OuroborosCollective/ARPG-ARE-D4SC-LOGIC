@@ -19,6 +19,10 @@ namespace AreArpg.UnityClient
         private Transform _hero;
         private Transform _cameraTarget;
         private Camera _camera;
+        private readonly List<Transform> _chapterScenery = new List<Transform>();
+        private Light _sun;
+        private Transform _bossWarning;
+        private bool _bossWarningVisible;
         private readonly Dictionary<int, Transform> _monsterVisuals = new Dictionary<int, Transform>();
         private readonly Dictionary<int, Transform> _lootVisuals = new Dictionary<int, Transform>();
         private readonly Queue<int> _pendingSkills = new Queue<int>();
@@ -129,24 +133,7 @@ namespace AreArpg.UnityClient
             RenderSettings.fogColor = new Color(0.055f, 0.067f, 0.09f);
             RenderSettings.fogMode = FogMode.Exponential;
             RenderSettings.fogDensity = 0.014f;
-            Shape(PrimitiveType.Cube, "Cracked Crypt Floor", new Vector3(0f, -0.42f, 0f),
-                new Vector3(57f, 0.6f, 57f), new Color(0.16f, 0.18f, 0.20f));
-            for (int x = -24; x <= 24; x += 8)
-                Shape(PrimitiveType.Cube, "Stone inlay", new Vector3(x, -0.105f, 0f),
-                    new Vector3(0.13f, 0.025f, 54f), new Color(0.24f, 0.26f, 0.28f));
-            for (int z = -24; z <= 24; z += 8)
-                Shape(PrimitiveType.Cube, "Stone inlay", new Vector3(0f, -0.103f, z),
-                    new Vector3(54f, 0.025f, 0.13f), new Color(0.24f, 0.26f, 0.28f));
-            foreach (int x in new[] { -7, 7 })
-                foreach (int z in new[] { -7, 7 })
-                {
-                    Shape(PrimitiveType.Cylinder, "Pillar", new Vector3(x, 2.2f, z),
-                        new Vector3(2.2f, 2.2f, 2.2f), new Color(0.25f, 0.25f, 0.28f));
-                    Shape(PrimitiveType.Cylinder, "Pillar capital", new Vector3(x, 4.48f, z),
-                        new Vector3(2.7f, 0.23f, 2.7f), new Color(0.36f, 0.34f, 0.33f));
-                }
-            Shape(PrimitiveType.Cylinder, "Crypt Altar", new Vector3(0f, 0.65f, 12.8f),
-                new Vector3(3f, 0.7f, 3f), new Color(0.31f, 0.18f, 0.18f));
+            BuildChapterScenery();
 
             var lightGo = new GameObject("ARE Moonlight");
             Light sun = lightGo.AddComponent<Light>();
@@ -154,6 +141,7 @@ namespace AreArpg.UnityClient
             sun.color = new Color(0.65f, 0.76f, 1f);
             sun.intensity = 1.15f;
             sun.transform.rotation = Quaternion.Euler(50f, -28f, 0f);
+            _sun = sun;
 
             _hero = Shape(PrimitiveType.Capsule, "Wanderer", new Vector3(0f, 1.05f, 0f),
                 new Vector3(0.85f, 1.05f, 0.85f), new Color(0.20f, 0.54f, 0.71f), 0.65f);
@@ -180,16 +168,110 @@ namespace AreArpg.UnityClient
             _cameraTarget = _hero;
         }
 
+        private Transform ChapterShape(PrimitiveType primitive, string label, Vector3 position,
+            Vector3 scale, Color color)
+        {
+            Transform shape = Shape(primitive, label, position, scale, color);
+            _chapterScenery.Add(shape);
+            return shape;
+        }
+
+        /// <summary>Only changes projection. Core collision rules remain canonical and unchanged.</summary>
+        private void BuildChapterScenery()
+        {
+            foreach (Transform part in _chapterScenery)
+                if (part != null) Destroy(part.gameObject);
+            _chapterScenery.Clear();
+
+            bool ember = _game.ChapterId == 2;
+            RenderSettings.ambientLight = ember ? new Color(0.45f, 0.20f, 0.14f) :
+                new Color(0.27f, 0.30f, 0.39f);
+            RenderSettings.fogColor = ember ? new Color(0.21f, 0.07f, 0.055f) :
+                new Color(0.055f, 0.067f, 0.09f);
+            RenderSettings.fogDensity = ember ? 0.022f : 0.014f;
+            if (_sun != null)
+            {
+                _sun.color = ember ? new Color(1f, 0.52f, 0.31f) : new Color(0.65f, 0.76f, 1f);
+                _sun.intensity = ember ? 1.35f : 1.15f;
+            }
+
+            if (!ember)
+            {
+                ChapterShape(PrimitiveType.Cube, "Cracked Crypt Floor", new Vector3(0f, -0.42f, 0f),
+                    new Vector3(57f, 0.6f, 57f), new Color(0.16f, 0.18f, 0.20f));
+                for (int x = -24; x <= 24; x += 8)
+                    ChapterShape(PrimitiveType.Cube, "Stone inlay", new Vector3(x, -0.105f, 0f),
+                        new Vector3(0.13f, 0.025f, 54f), new Color(0.24f, 0.26f, 0.28f));
+                for (int z = -24; z <= 24; z += 8)
+                    ChapterShape(PrimitiveType.Cube, "Stone inlay", new Vector3(0f, -0.103f, z),
+                        new Vector3(54f, 0.025f, 0.13f), new Color(0.24f, 0.26f, 0.28f));
+                foreach (int x in new[] { -7, 7 })
+                    foreach (int z in new[] { -7, 7 })
+                    {
+                        ChapterShape(PrimitiveType.Cylinder, "Pillar", new Vector3(x, 2.2f, z),
+                            new Vector3(2.2f, 2.2f, 2.2f), new Color(0.25f, 0.25f, 0.28f));
+                        ChapterShape(PrimitiveType.Cylinder, "Pillar capital", new Vector3(x, 4.48f, z),
+                            new Vector3(2.7f, 0.23f, 2.7f), new Color(0.36f, 0.34f, 0.33f));
+                    }
+                ChapterShape(PrimitiveType.Cylinder, "Crypt Altar", new Vector3(0f, 0.65f, 12.8f),
+                    new Vector3(3f, 0.7f, 3f), new Color(0.31f, 0.18f, 0.18f));
+                return;
+            }
+
+            // Chapter II: glowing fracture lines, obsidian columns, ruined gate and boss dais.
+            ChapterShape(PrimitiveType.Cube, "Ember_Rift_Ground", new Vector3(0f, -0.42f, 0f),
+                new Vector3(57f, 0.6f, 57f), new Color(0.12f, 0.105f, 0.115f));
+            ChapterShape(PrimitiveType.Cube, "Ember_Rift_Causeway", new Vector3(0f, -0.1f, 0f),
+                new Vector3(10f, 0.12f, 52f), new Color(0.26f, 0.19f, 0.17f));
+            for (int i = -3; i <= 3; i++)
+            {
+                ChapterShape(PrimitiveType.Cube, "Ember_Rift_Fissure_" + i,
+                    new Vector3(i * 7.3f, -0.09f, 17f - (i % 2) * 9f),
+                    new Vector3(0.24f, 0.055f, 13f), new Color(0.98f, 0.20f, 0.07f));
+            }
+            foreach (int x in new[] { -7, 7 })
+                foreach (int z in new[] { -7, 7 })
+                {
+                    ChapterShape(PrimitiveType.Cylinder, "Ember_Rift_Basalt_" + x + "_" + z,
+                        new Vector3(x, 2.5f, z), new Vector3(2.25f, 2.6f, 2.25f),
+                        new Color(0.19f, 0.17f, 0.19f));
+                    ChapterShape(PrimitiveType.Cube, "Ember_Rift_Glow_" + x + "_" + z,
+                        new Vector3(x, 4.8f, z), new Vector3(1.9f, 0.22f, 1.9f),
+                        new Color(1f, 0.31f, 0.09f));
+                }
+            ChapterShape(PrimitiveType.Cylinder, "Ember_Rift_Boss_Dais",
+                new Vector3(0f, 0.22f, 12f), new Vector3(4.5f, 0.33f, 4.5f),
+                new Color(0.38f, 0.15f, 0.13f));
+            ChapterShape(PrimitiveType.Cube, "Ember_Rift_Gate",
+                new Vector3(0f, 3.2f, 24f), new Vector3(7f, 0.8f, 0.9f),
+                new Color(0.24f, 0.20f, 0.19f));
+            ChapterShape(PrimitiveType.Cube, "Ember_Rift_Gate_Left",
+                new Vector3(-3.5f, 1.4f, 24f), new Vector3(0.85f, 3.6f, 0.85f),
+                new Color(0.24f, 0.20f, 0.19f));
+            ChapterShape(PrimitiveType.Cube, "Ember_Rift_Gate_Right",
+                new Vector3(3.5f, 1.4f, 24f), new Vector3(0.85f, 3.6f, 0.85f),
+                new Color(0.24f, 0.20f, 0.19f));
+        }
+
         private void SpawnMonster(MonsterState monster)
         {
-            PrimitiveType primitive = monster.Kind == 2 ? PrimitiveType.Capsule : PrimitiveType.Sphere;
-            Vector3 scale = monster.Kind == 2 ? new Vector3(2.5f, 2.1f, 2.5f) :
+            PrimitiveType primitive = monster.Kind >= 2 ? PrimitiveType.Capsule : PrimitiveType.Sphere;
+            Vector3 scale = monster.Kind >= 2 ? new Vector3(2.5f, 2.1f, 2.5f) :
                 (monster.Kind == 1 ? new Vector3(1.8f, 1.8f, 1.8f) : Vector3.one * 1.45f);
-            Color color = monster.Kind == 2 ? new Color(0.55f, 0.13f, 0.14f) :
-                (monster.Kind == 1 ? new Color(0.50f, 0.39f, 0.18f) : new Color(0.35f, 0.65f, 0.32f));
+            Color color = monster.Kind == 3 ? new Color(0.95f, 0.33f, 0.14f) :
+                (monster.Kind == 2 ? new Color(0.55f, 0.13f, 0.14f) :
+                (monster.Kind == 1 ? new Color(0.50f, 0.39f, 0.18f) : new Color(0.35f, 0.65f, 0.32f)));
             Transform root = Shape(primitive, "Enemy_" + monster.Id,
                 new Vector3(monster.Xmm / 1000f, scale.y * 0.6f, monster.Zmm / 1000f), scale, color);
             _monsterVisuals.Add(monster.Id, root);
+            if (monster.Kind == 3)
+            {
+                Transform crown = Shape(PrimitiveType.Cylinder, "Ember_Warden_Crown",
+                    Vector3.zero, new Vector3(1.3f, 0.12f, 1.3f),
+                    new Color(1f, 0.68f, 0.2f));
+                crown.SetParent(root, false);
+                crown.localPosition = new Vector3(0f, 0.75f, 0f);
+            }
         }
 
         private static Rect SkillRect(int i)
@@ -282,16 +364,20 @@ namespace AreArpg.UnityClient
         private void InstallNewRun(ArenaSimulation next, string message)
         {
             _game = next;
+            BuildChapterScenery();
             _pendingSkills.Clear();
             _pendingMastery.Clear();
             _pendingPickup = false;
             _accumulator = 0f;
+            if (_bossWarning != null) Destroy(_bossWarning.gameObject);
+            _bossWarning = null;
+            _bossWarningVisible = false;
             foreach (Transform t in _monsterVisuals.Values) if (t != null) Destroy(t.gameObject);
             foreach (Transform t in _lootVisuals.Values) if (t != null) Destroy(t.gameObject);
             _monsterVisuals.Clear();
             _lootVisuals.Clear();
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
-            _message = message;
+            _message = message + " / " + next.ChapterName;
         }
 
         private void Update()
@@ -347,6 +433,24 @@ namespace AreArpg.UnityClient
             }
             foreach (MonsterState enemy in _game.Monsters)
             {
+                // The warning ring is presentation of real BossWindupTicks, not client-owned damage.
+                if (enemy.Kind == 3 && enemy.BossWindupTicks > 0)
+                {
+                    if (!_bossWarningVisible)
+                    {
+                        if (_bossWarning == null)
+                            _bossWarning = Shape(PrimitiveType.Cylinder, "Ember_Warden_Telegraph",
+                                new Vector3(enemy.Xmm / 1000f, 0.025f, enemy.Zmm / 1000f),
+                                new Vector3(8f, 0.015f, 8f), new Color(0.95f, 0.12f, 0.05f));
+                        _bossWarningVisible = true;
+                    }
+                    if (_bossWarning != null)
+                    {
+                        _bossWarning.gameObject.SetActive(true);
+                        _bossWarning.position = new Vector3(enemy.Xmm / 1000f, 0.025f, enemy.Zmm / 1000f);
+                    }
+                }
+                else if (_bossWarning != null) _bossWarning.gameObject.SetActive(false);
                 Transform visual;
                 if (!_monsterVisuals.TryGetValue(enemy.Id, out visual) || visual == null) continue;
                 visual.gameObject.SetActive(!enemy.IsDead);
@@ -401,7 +505,8 @@ namespace AreArpg.UnityClient
                 "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
                 "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
             GUI.Label(new Rect(20, 67, 460, 24),
-                "Crypt " + _game.CryptDepth + "   Kills " + _game.Kills +
+                "Chapter " + _game.ChapterId + "  " + _game.ChapterName + "  | Depth " +
+                _game.CryptDepth + "   Kills " + _game.Kills +
                 "   Loot " + _game.LootCollected + "   Tick " + _game.CurrentTick, _smallStyle);
             GUI.Label(new Rect(20, 92, 540, 24),
                 "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
