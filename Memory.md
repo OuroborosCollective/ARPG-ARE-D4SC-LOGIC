@@ -1,3 +1,5 @@
 # ARPG-ARE-D4SC-LOGIC — Memory
 
 - 2026-11-07: Eigenständige Unity-Arena mit C#-Kern, Bewegungs-/Kampf-/Loot-Loop, Touchdarstellung und separaten Core-Tests im Branch `feat/ashen-crypt-vertical-slice` angelegt. Erkenntnis: Original-Fenris-Behauptungen sind keine Engine-Evidenz; Unity-Laufzeit und APK bleiben bis zum echten Build ausdrücklich unbestätigt. Evidence: Ausgangscommit `259242996b9b9455b86040049b4ab76af4d9b37d`, Implementationscommit `eb9ad5b81a676f188ed4a57518b772dd57f8d0e1`, Mathematikreferenz Wolfram-Kernel 2026-11-07 (152 Schadenspunkte, sqrt-Grenzwert 3037000499); CI-Run und Unity-Runtime noch offen.
+
+- 2026-11-07: Unbegrenzte BigInteger-XP/Level-Progression und Mastery-Punkte, einmalige Kill-XP, persistente Ausrüstung und versionierte AC1-PlayerPrefs-Sicherung ergänzt. Erkenntnis: Level und Langzeitfortschritt sind unbegrenzt modelliert, aber Unity/Android-Persistenz bleibt bis zum echten Editor-/Gerätelauf unbelegt. Evidence: TDD-RED `20329c3aaad22675595e68c1d92fe3e9c68a7e67` (CI 42342716687, failure), GREEN `8e028814058c2df24e246e4abc92665f00aeaf64` (Run 42342850516, 325/325 Core-Assertions, Job 128314152742).
