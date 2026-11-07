@@ -131,8 +131,8 @@ namespace AreArpg.Core
         public long PlayerZmm { get; private set; }
         public long PrevPlayerXmm { get; private set; }
         public long PrevPlayerZmm { get; private set; }
-        public int PlayerHealth { get; private set; } = 1200;
-        public int MaxPlayerHealth { get { return 1200; } }
+        public int PlayerHealth { get; private set; }
+        public int MaxPlayerHealth { get { return 1200 + Progression.VitalityHealthBonus; } }
         public int Resource { get; private set; } = 100;
         public CharacterProgression Progression { get; private set; }
         public int WeaponBonus { get { return Progression.WeaponBonus; } }
@@ -146,6 +146,7 @@ namespace AreArpg.Core
         public ArenaSimulation(ulong seed, CharacterProgression progression = null)
         {
             Progression = progression ?? new CharacterProgression();
+            PlayerHealth = MaxPlayerHealth;
             _rng = new DeterministicRng(seed);
             Monsters.Add(NewMonster(1, 0, 3600, 2400, 320));
             Monsters.Add(NewMonster(2, 1, -4800, 2400, 650));
@@ -251,7 +252,8 @@ namespace AreArpg.Core
         private void DealDamage(MonsterState enemy, int powerBp, SkillResult result)
         {
             bool crit;
-            long damage = FixedMath.Damage(95 + WeaponBonus, powerBp, 190, 2000,
+            long damage = FixedMath.Damage(95 + WeaponBonus, powerBp, 190,
+                2000 + Progression.MightDamageBonusBp,
                 enemy.Kind == 2 ? 4000 : (enemy.Kind == 1 ? 2200 : 1000), 1900, _rng, out crit);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
             result.TotalDamage += (int)damage;
@@ -278,7 +280,7 @@ namespace AreArpg.Core
             if (slot == 1 && Resource < 25) { result.Message = "Insufficient focus"; return result; }
             if (slot == 2)
             {
-                PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + 170);
+                PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + 170 + Progression.ResolveHealBonus);
                 Cooldowns[2] = 50;
                 result.Activated = true;
                 result.Message = "Guard: restored 170 HP";

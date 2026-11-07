@@ -55,3 +55,11 @@ The current single-player prototype now keeps **character level, lifetime XP, li
 On Android and desktop the Unity client stores a versioned/checksummed `AC1` character string in PlayerPrefs, including a prior valid backup. It saves on kills, loot pickup, restart, pause and quit. An invalid primary falls back to the backup; if neither validates, gameplay is locked instead of silently overwriting the user's character. **PlayerPrefs is a local prototype store, not a cloud save or tamper-resistant security boundary.** Uninstalling or clearing application data may destroy progress; external backup/restore and device migration are future tasks.
 
 This progression is independent of `Echoes_of_Aurion` and remains a **singleplayer local prototype**. Core regression tests include XP and level values beyond 64-bit range, canonical save roundtrip, negative and corrupt save refusal, no duplicate XP, permanent equipment, and world-hash changes.
+
+## Permanent mastery (no seasonal resets)
+
+Earn one mastery point per character level above level 1. Allocate points permanently via **F5/F6/F7** (desktop) or the three visible **+ MIGHT / + VITALITY / + RESOLVE** buttons (touch). Might improves damage by 1% per rank up to 100 ranks, Vitality grants 20 HP per rank up to 1,000, and Resolve adds 10 to healing per rank up to 1,000. Ranks continue growing beyond these gameplay effect caps; character levels and XP are arbitrarily large while combat arithmetic remains finite.
+
+The AC2 save schema persists mastery ranks and validates that allocated points never exceed earned points. Existing checksummed AC1 saves migrate on load, retaining XP, loot, equipment and lifetime kills; subsequent writes use AC2. This is **local single-player storage** with checksum and backup only (no authentication, encryption, cloud sync or season-reset code).
+
+**Unity/Android editor build remains UNVERIFIED:** the connected VPS has Docker but no Unity binary or verified Unity license file. No APK or device run is asserted by the pure C# test workflow.

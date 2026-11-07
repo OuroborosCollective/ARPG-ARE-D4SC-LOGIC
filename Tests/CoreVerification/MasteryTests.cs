@@ -25,7 +25,7 @@ internal static class MasteryTests
         require(fresh.StableHash == beforeDenied, "mastery-rejection-does-not-mutate-character");
 
         string ac2 = fresh.SaveString();
-        CharacterProgression loaded;
+        CharacterProgression loaded = null;
         require(ac2.StartsWith("AC2|", StringComparison.Ordinal) &&
             CharacterProgression.TryLoad(ac2, out loaded), "mastery-ac2-save-validated");
         require(loaded.MightRank == BigInteger.One && loaded.VitalityRank == BigInteger.One &&

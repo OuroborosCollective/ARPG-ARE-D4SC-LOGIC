@@ -23,6 +23,7 @@ namespace AreArpg.UnityClient
         private readonly Dictionary<int, Transform> _lootVisuals = new Dictionary<int, Transform>();
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
+        private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
         private bool _storageFault;
         private string _message = "Explore the crypt. Survive the guardian.";
         private GUIStyle _labelStyle;
@@ -246,6 +247,9 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.Alpha3)) _pendingSkills.Enqueue(2);
             if (Input.GetKeyDown(KeyCode.Alpha4)) _pendingSkills.Enqueue(3);
             if (Input.GetKeyDown(KeyCode.E)) _pendingPickup = true;
+            if (Input.GetKeyDown(KeyCode.F5)) _pendingMastery.Enqueue(MasteryPath.Might);
+            if (Input.GetKeyDown(KeyCode.F6)) _pendingMastery.Enqueue(MasteryPath.Vitality);
+            if (Input.GetKeyDown(KeyCode.F7)) _pendingMastery.Enqueue(MasteryPath.Resolve);
             if (Input.GetKeyDown(KeyCode.R)) Restart();
         }
 
@@ -257,6 +261,7 @@ namespace AreArpg.UnityClient
             if (_storageFault) return;
             _game = new ArenaSimulation(DemoSeed, persistent);
             _pendingSkills.Clear();
+            _pendingMastery.Clear();
             _pendingPickup = false;
             _accumulator = 0f;
             foreach (Transform t in _monsterVisuals.Values) if (t != null) Destroy(t.gameObject);
@@ -277,6 +282,13 @@ namespace AreArpg.UnityClient
             {
                 _accumulator -= TickSeconds;
                 steps++;
+                while (_pendingMastery.Count > 0)
+                {
+                    MasteryPath path = _pendingMastery.Dequeue();
+                    bool spent = _game.Progression.TrySpendMastery(path);
+                    _message = spent ? "Mastery allocated: " + path : "No mastery points available";
+                    if (spent) SaveCharacter();
+                }
                 while (_pendingSkills.Count > 0)
                 {
                     SkillResult outcome = _game.ActivateSkill(_pendingSkills.Dequeue());
@@ -373,6 +385,17 @@ namespace AreArpg.UnityClient
                 " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
             GUI.Label(new Rect(20, 115, 540, 24), _message, _smallStyle);
             GUI.Box(new Rect(25, Screen.height - 194, 170, 170), "MOVE\nWASD / TOUCH");
+            if (_game.Progression.UnspentMasteryPoints > 0)
+            {
+                float buttonWidth = Mathf.Clamp(Screen.width * 0.13f, 72f, 125f);
+                string[] masteryLabels = { "+ MIGHT", "+ VITALITY", "+ RESOLVE" };
+                for (int i = 0; i < masteryLabels.Length; i++)
+                {
+                    Rect masteryRect = new Rect(12 + i * (buttonWidth + 5), 146, buttonWidth, 42);
+                    if (GUI.Button(masteryRect, masteryLabels[i]))
+                        _pendingMastery.Enqueue((MasteryPath)i);
+                }
+            }
 
             string[] labels = { "1 STRIKE", "2 HEAVY", "3 GUARD", "4 RUIN" };
             for (int i = 0; i < labels.Length; i++)
