@@ -134,16 +134,18 @@ namespace AreArpg.Core
         public int PlayerHealth { get; private set; } = 1200;
         public int MaxPlayerHealth { get { return 1200; } }
         public int Resource { get; private set; } = 100;
-        public int WeaponBonus { get; private set; }
+        public CharacterProgression Progression { get; private set; }
+        public int WeaponBonus { get { return Progression.WeaponBonus; } }
         public int Kills { get; private set; }
-        public int LootCollected { get; private set; }
+        public System.Numerics.BigInteger LootCollected { get { return Progression.LootCollected; } }
         public bool GameOver { get { return PlayerHealth == 0; } }
         public readonly List<MonsterState> Monsters = new List<MonsterState>();
         public readonly List<LootState> GroundLoot = new List<LootState>();
         public readonly int[] Cooldowns = new int[4];
 
-        public ArenaSimulation(ulong seed)
+        public ArenaSimulation(ulong seed, CharacterProgression progression = null)
         {
+            Progression = progression ?? new CharacterProgression();
             _rng = new DeterministicRng(seed);
             Monsters.Add(NewMonster(1, 0, 3600, 2400, 320));
             Monsters.Add(NewMonster(2, 1, -4800, 2400, 650));
@@ -259,6 +261,9 @@ namespace AreArpg.Core
                 enemy.LootGranted = true;
                 result.Kills++;
                 Kills++;
+                Progression.RecordKill();
+                Progression.EarnExperience(new System.Numerics.BigInteger(
+                    enemy.Kind == 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
                 GroundLoot.Add(new LootState { Id = _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
                     WeaponBonus = enemy.Kind == 2 ? 34 : (enemy.Kind == 1 ? 17 : 8) });
             }
@@ -305,8 +310,7 @@ namespace AreArpg.Core
             {
                 LootState item = GroundLoot[i];
                 if (DistanceSquared(PlayerXmm, PlayerZmm, item.Xmm, item.Zmm) > FixedMath.Square(PickupRadiusMm)) continue;
-                WeaponBonus += item.WeaponBonus;
-                LootCollected++;
+                Progression.AddWeaponUpgrade(item.WeaponBonus);
                 GroundLoot.RemoveAt(i);
                 return true;
             }
@@ -322,7 +326,7 @@ namespace AreArpg.Core
             Mix(ref h, (ulong)PrevPlayerXmm); Mix(ref h, (ulong)PrevPlayerZmm);
             Mix(ref h, (ulong)_directionXbp); Mix(ref h, (ulong)_directionZbp);
             Mix(ref h, (ulong)PlayerHealth); Mix(ref h, (ulong)Resource);
-            Mix(ref h, (ulong)WeaponBonus); Mix(ref h, (ulong)Kills); Mix(ref h, (ulong)LootCollected);
+            Mix(ref h, Progression.StableHash); Mix(ref h, (ulong)Kills);
             Mix(ref h, (ulong)_nextLootId);
             foreach (int cooldown in Cooldowns) Mix(ref h, (ulong)cooldown);
             Mix(ref h, (ulong)Monsters.Count);

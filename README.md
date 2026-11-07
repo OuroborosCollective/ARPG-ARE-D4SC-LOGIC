@@ -47,3 +47,11 @@ The owner does not need a Unity Editor installed on Android. Development is done
 3. **Android APK/device** – trigger `Unity Android build (manual, Unity license required)`, inspect the APK artifact and checksum, and install/test on Android. Neither step is currently verified.
 
 The next creative decisions can come through chat: describe location, combat feeling, enemy behavior, mobile HUD or reference media, and we implement them as reviewable source changes.
+
+## Permanent progression (no character resets by season)
+
+The current single-player prototype now keeps **character level, lifetime XP, lifetime kills and weapon upgrades** across arena restarts. Killing a ghoul, knight, or guardian awards 160, 410, or 1200 XP once; weapon upgrades are awarded only through a real loot pickup. Every level grants a currently unspent mastery point (mastery spending and talent trees will come later). There is **no max level**, no season counter and no season rollover. A quadratic XP threshold scales to arbitrary-size integers (`System.Numerics.BigInteger`); finite in-arena combat stats are explicitly not infinite.
+
+On Android and desktop the Unity client stores a versioned/checksummed `AC1` character string in PlayerPrefs, including a prior valid backup. It saves on kills, loot pickup, restart, pause and quit. An invalid primary falls back to the backup; if neither validates, gameplay is locked instead of silently overwriting the user's character. **PlayerPrefs is a local prototype store, not a cloud save or tamper-resistant security boundary.** Uninstalling or clearing application data may destroy progress; external backup/restore and device migration are future tasks.
+
+This progression is independent of `Echoes_of_Aurion` and remains a **singleplayer local prototype**. Core regression tests include XP and level values beyond 64-bit range, canonical save roundtrip, negative and corrupt save refusal, no duplicate XP, permanent equipment, and world-hash changes.

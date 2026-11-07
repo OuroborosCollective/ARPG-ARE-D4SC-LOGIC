@@ -29,3 +29,10 @@ All simulation game-state transitions use integers, millimeter positions, explic
 `Assets/Tests/PlayMode/ArenaBootSmokeTests.cs` compiles against the real Core and Unity Runtime assemblies and checks that the runtime actually builds a scene with hero, boss, and camera. The manually dispatched `.github/workflows/unity-playmode-smoke.yml` runs the official Unity play-mode test runner through GameCI and **fails if valid Unity credentials are unavailable**. It must not be mistaken for an Android-device test.
 
 The Android build lane remains separate: a successful APK compilation would need artifact hashing and installation on a physical Android device before any mobile-runtime claim.
+
+## Permanent character boundary
+
+- `CharacterProgression` is the persistent character owner: arbitrary-precision total XP, level derived deterministically using binary search over `75 * (L-1) * L`, unspent mastery points, lifetime kills and collected loot, finite weapon upgrade bonus. No season resets or forced rebirth.
+- `ArenaSimulation` owns one transient battle run, receives the progression object explicitly and awards XP *once* at monster death; returning to arena never resets progression. World hash mixes the canonical progression hash, avoiding platform-dependent `GetHashCode()` semantics.
+- `ArenaRuntime` owns Android/desktop `PlayerPrefs` persistence only; Unity presentation does not calculate XP. Saves use versioned `AC1` canonical decimal fields and FNV-1a validation with a valid prior backup and readback, not a cryptographic signature. Missing save means first-run; corrupt primary/backup means gameplay stops instead of overwriting unknown state.
+- Numeric ability coefficients and physical statistics are intentionally finite. Arbitrary-precision XP does not imply physically infinite damage/HP, nor an automatic online database or cloud account. Device deletion and data loss are not yet covered by a remote backup service.

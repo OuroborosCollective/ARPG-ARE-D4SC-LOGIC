@@ -9,6 +9,8 @@ namespace AreArpg.UnityClient
     public sealed class ArenaRuntime : MonoBehaviour
     {
         private const ulong DemoSeed = 0xA11CE2026UL;
+        private const string CharacterSaveKey = "ARE_ARPG_character_ac1";
+        private const string CharacterBackupKey = "ARE_ARPG_character_ac1_backup";
         private const int CatchUpLimit = 5;
         private const float TickSeconds = ArenaSimulation.TickMs / 1000f;
 
@@ -21,6 +23,7 @@ namespace AreArpg.UnityClient
         private readonly Dictionary<int, Transform> _lootVisuals = new Dictionary<int, Transform>();
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
+        private bool _storageFault;
         private string _message = "Explore the crypt. Survive the guardian.";
         private GUIStyle _labelStyle;
         private GUIStyle _smallStyle;
@@ -35,8 +38,60 @@ namespace AreArpg.UnityClient
         private void Awake()
         {
             Application.targetFrameRate = 60;
-            _game = new ArenaSimulation(DemoSeed);
+            CharacterProgression saved;
+            if (!TryLoadCharacter(out saved))
+            {
+                _storageFault = true;
+                _message = "Character save is invalid. Back it up before recovery; gameplay locked.";
+                Debug.LogError("ARPG character save could not be validated; refusing to overwrite character progress.");
+            }
+            _game = new ArenaSimulation(DemoSeed, saved);
             BuildWorld();
+        }
+
+        private static bool TryLoadCharacter(out CharacterProgression saved)
+        {
+            saved = null;
+            string primary = PlayerPrefs.GetString(CharacterSaveKey, "");
+            string backup = PlayerPrefs.GetString(CharacterBackupKey, "");
+            if (string.IsNullOrEmpty(primary) && string.IsNullOrEmpty(backup))
+            {
+                saved = new CharacterProgression();
+                return true;
+            }
+            if (CharacterProgression.TryLoad(primary, out saved)) return true;
+            if (CharacterProgression.TryLoad(backup, out saved)) return true;
+            saved = null;
+            return false;
+        }
+
+        private void SaveCharacter()
+        {
+            if (_storageFault || _game == null) return;
+            string primary = PlayerPrefs.GetString(CharacterSaveKey, "");
+            CharacterProgression previous;
+            if (CharacterProgression.TryLoad(primary, out previous))
+                PlayerPrefs.SetString(CharacterBackupKey, primary);
+            string next = _game.Progression.SaveString();
+            PlayerPrefs.SetString(CharacterSaveKey, next);
+            PlayerPrefs.Save();
+            CharacterProgression verified;
+            if (!CharacterProgression.TryLoad(PlayerPrefs.GetString(CharacterSaveKey, ""), out verified) ||
+                verified.StableHash != _game.Progression.StableHash)
+            {
+                _storageFault = true;
+                Debug.LogError("ARPG character save readback failed; no further overwrites allowed.");
+            }
+        }
+
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused) SaveCharacter();
+        }
+
+        private void OnApplicationQuit()
+        {
+            SaveCharacter();
         }
 
         private static Material Material(Color color, float metallic = 0f)
@@ -196,7 +251,11 @@ namespace AreArpg.UnityClient
 
         private void Restart()
         {
-            _game = new ArenaSimulation(DemoSeed);
+            if (_storageFault) return;
+            CharacterProgression persistent = _game.Progression;
+            SaveCharacter();
+            if (_storageFault) return;
+            _game = new ArenaSimulation(DemoSeed, persistent);
             _pendingSkills.Clear();
             _pendingPickup = false;
             _accumulator = 0f;
@@ -210,6 +269,7 @@ namespace AreArpg.UnityClient
 
         private void Update()
         {
+            if (_storageFault) return;
             PollInputs();
             _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
             int steps = 0;
@@ -221,10 +281,13 @@ namespace AreArpg.UnityClient
                 {
                     SkillResult outcome = _game.ActivateSkill(_pendingSkills.Dequeue());
                     _message = outcome.Message;
+                    if (outcome.Kills > 0) SaveCharacter();
                 }
                 if (_pendingPickup)
                 {
-                    _message = _game.TryCollectLoot() ? "Equipment upgraded!" : "No loot nearby";
+                    bool pickedUp = _game.TryCollectLoot();
+                    _message = pickedUp ? "Equipment upgraded!" : "No loot nearby";
+                    if (pickedUp) SaveCharacter();
                     _pendingPickup = false;
                 }
                 _game.Step();
@@ -285,6 +348,12 @@ namespace AreArpg.UnityClient
         private void OnGUI()
         {
             if (_game == null) return;
+            if (_storageFault)
+            {
+                GUI.Box(new Rect(16, 16, Screen.width - 32, 116),
+                    "SAVE VERIFICATION FAILED\nYour character was not overwritten.\nRestore a valid save before playing.");
+                return;
+            }
             if (_labelStyle == null)
             {
                 _labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 19, fontStyle = FontStyle.Bold };
@@ -292,14 +361,17 @@ namespace AreArpg.UnityClient
                 _smallStyle = new GUIStyle(GUI.skin.label) { fontSize = 15, wordWrap = true };
                 _smallStyle.normal.textColor = new Color(0.86f, 0.88f, 0.92f);
             }
-            GUI.Box(new Rect(8, 8, Mathf.Min(520, Screen.width * 0.72f), 108), "");
+            GUI.Box(new Rect(8, 8, Mathf.Min(600, Screen.width * 0.80f), 132), "");
             GUI.Label(new Rect(20, 15, 460, 28), "ARE / ASHEN CRYPT  |  ALPHA VERTICAL SLICE", _labelStyle);
             GUI.Label(new Rect(20, 43, 460, 24),
                 "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
                 "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
             GUI.Label(new Rect(20, 67, 460, 24),
                 "Kills " + _game.Kills + "    Loot " + _game.LootCollected + "    Tick " + _game.CurrentTick, _smallStyle);
-            GUI.Label(new Rect(20, 92, 460, 24), _message, _smallStyle);
+            GUI.Label(new Rect(20, 92, 540, 24),
+                "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
+                " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
+            GUI.Label(new Rect(20, 115, 540, 24), _message, _smallStyle);
             GUI.Box(new Rect(25, Screen.height - 194, 170, 170), "MOVE\nWASD / TOUCH");
 
             string[] labels = { "1 STRIKE", "2 HEAVY", "3 GUARD", "4 RUIN" };
