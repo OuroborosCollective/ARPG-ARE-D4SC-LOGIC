@@ -40,3 +40,7 @@ The Android build lane remains separate: a successful APK compilation would need
 ## Mastery contract
 
 The integer-only authoritative core owns mastery allocation. `CharacterProgression.TrySpendMastery` rejects invalid paths and insufficient earned points without mutating state. Earned points = level - 1. AC1 legacy files load without allocations, AC2 persists three arbitrary-precision ranks and rejects overspending even with a matching checksum. Mastery effects are bounded to 100 ranks for Might and 1000 ranks for Vitality/Resolve so finite hitpoint/damage calculations cannot silently overflow. UI only queues decisions for application during the next 100ms simulation step; the resulting progress is locally persisted by the Unity adapter. No seasonal reset implementation exists.
+
+## Crypt continuation state
+
+The immutable run identity is the explicit positive `BigInteger CryptDepth`, included in the canonical `ComputeWorldHash()` as length-prefixed little-endian bytes. `TryAdvanceCrypt()` is fail-closed unless the run is won and all spawned loot has been collected, returning a fresh simulation reusing the same `CharacterProgression`. Enemy HP grows by a depth multiplier capped at 10,000; arithmetic remains within int limits at arbitrarily large depth. This singleplayer run depth is currently **session-local**; `CharacterProgression` remains the only saved character state. No asynchronous or network authority is implied.

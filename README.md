@@ -63,3 +63,7 @@ Earn one mastery point per character level above level 1. Allocate points perman
 The AC2 save schema persists mastery ranks and validates that allocated points never exceed earned points. Existing checksummed AC1 saves migrate on load, retaining XP, loot, equipment and lifetime kills; subsequent writes use AC2. This is **local single-player storage** with checksum and backup only (no authentication, encryption, cloud sync or season-reset code).
 
 **Unity/Android editor build remains UNVERIFIED:** the connected VPS has Docker but no Unity binary or verified Unity license file. No APK or device run is asserted by the pure C# test workflow.
+
+## Repeatable crypt loop (prototype)
+
+After clearing all monsters, collect all ground loot and select **NEXT CRYPT** on Android/desktop or press **N** on keyboard. The next run creates fresh enemies with bounded deterministic HP scaling, while the same permanent character retains all XP, levels, mastery allocations, lifetime kills and upgrades. **R/RESTART** retries the current depth, preserving progress. The on-screen depth is **run-local**, not yet stored between app restarts. It is not a persistent dungeon checkpoint or a cloud save. The Unity UI and Android behavior remain unverified until an actual licensed Unity runner and device test execute.

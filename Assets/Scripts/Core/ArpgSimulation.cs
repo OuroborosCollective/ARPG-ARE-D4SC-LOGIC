@@ -123,6 +123,9 @@ namespace AreArpg.Core
         public const long PickupRadiusMm = 1600L;
 
         private readonly DeterministicRng _rng;
+        private readonly ulong _runSeed;
+        public System.Numerics.BigInteger CryptDepth { get; private set; }
+        public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
         private long _directionXbp;
         private long _directionZbp;
         private int _nextLootId = 1;
@@ -144,13 +147,30 @@ namespace AreArpg.Core
         public readonly int[] Cooldowns = new int[4];
 
         public ArenaSimulation(ulong seed, CharacterProgression progression = null)
+            : this(seed, progression, System.Numerics.BigInteger.One) { }
+
+        public ArenaSimulation(ulong seed, CharacterProgression progression,
+            System.Numerics.BigInteger cryptDepth)
         {
+            if (cryptDepth < System.Numerics.BigInteger.One)
+                throw new ArgumentOutOfRangeException(nameof(cryptDepth));
+            _runSeed = seed;
+            CryptDepth = cryptDepth;
             Progression = progression ?? new CharacterProgression();
             PlayerHealth = MaxPlayerHealth;
             _rng = new DeterministicRng(seed);
-            Monsters.Add(NewMonster(1, 0, 3600, 2400, 320));
-            Monsters.Add(NewMonster(2, 1, -4800, 2400, 650));
-            Monsters.Add(NewMonster(3, 2, 0, 8000, 2400));
+            // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
+            int depthScale = (int)System.Numerics.BigInteger.Min(cryptDepth - 1, 10000);
+            Monsters.Add(NewMonster(1, 0, 3600, 2400, 320 + depthScale * 25));
+            Monsters.Add(NewMonster(2, 1, -4800, 2400, 650 + depthScale * 55));
+            Monsters.Add(NewMonster(3, 2, 0, 8000, 2400 + depthScale * 200));
+        }
+
+        /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
+        public ArenaSimulation TryAdvanceCrypt()
+        {
+            if (!CryptCleared || GroundLoot.Count != 0) return null;
+            return new ArenaSimulation(_runSeed, Progression, CryptDepth + System.Numerics.BigInteger.One);
         }
 
         private static MonsterState NewMonster(int id, int kind, long x, long z, int health)
@@ -324,6 +344,9 @@ namespace AreArpg.Core
         {
             ulong h = 14695981039346656037UL;
             Mix(ref h, CurrentTick); Mix(ref h, _rng.S0); Mix(ref h, _rng.S1);
+            byte[] depthBytes = CryptDepth.ToByteArray();
+            Mix(ref h, (ulong)depthBytes.Length);
+            foreach (byte depthByte in depthBytes) Mix(ref h, depthByte);
             Mix(ref h, (ulong)PlayerXmm); Mix(ref h, (ulong)PlayerZmm);
             Mix(ref h, (ulong)PrevPlayerXmm); Mix(ref h, (ulong)PrevPlayerZmm);
             Mix(ref h, (ulong)_directionXbp); Mix(ref h, (ulong)_directionZbp);

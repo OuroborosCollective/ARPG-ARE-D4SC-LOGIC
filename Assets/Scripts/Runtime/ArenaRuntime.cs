@@ -251,15 +251,37 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.F6)) _pendingMastery.Enqueue(MasteryPath.Vitality);
             if (Input.GetKeyDown(KeyCode.F7)) _pendingMastery.Enqueue(MasteryPath.Resolve);
             if (Input.GetKeyDown(KeyCode.R)) Restart();
+            if (Input.GetKeyDown(KeyCode.N) && _game.CryptCleared) AdvanceCrypt();
         }
 
         private void Restart()
         {
             if (_storageFault) return;
-            CharacterProgression persistent = _game.Progression;
             SaveCharacter();
             if (_storageFault) return;
-            _game = new ArenaSimulation(DemoSeed, persistent);
+            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth),
+                "Crypt restarted - character progression retained.");
+        }
+
+        private void AdvanceCrypt()
+        {
+            if (_storageFault || !_game.CryptCleared)
+                return;
+            if (_game.GroundLoot.Count != 0)
+            {
+                _message = "Pick up all loot before entering the next crypt.";
+                return;
+            }
+            SaveCharacter();
+            if (_storageFault) return;
+            ArenaSimulation next = _game.TryAdvanceCrypt();
+            if (next == null) return;
+            InstallNewRun(next, "Crypt depth " + next.CryptDepth + " - enemies grow stronger.");
+        }
+
+        private void InstallNewRun(ArenaSimulation next, string message)
+        {
+            _game = next;
             _pendingSkills.Clear();
             _pendingMastery.Clear();
             _pendingPickup = false;
@@ -269,7 +291,7 @@ namespace AreArpg.UnityClient
             _monsterVisuals.Clear();
             _lootVisuals.Clear();
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
-            _message = "A new run begins.";
+            _message = message;
         }
 
         private void Update()
@@ -379,7 +401,8 @@ namespace AreArpg.UnityClient
                 "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
                 "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
             GUI.Label(new Rect(20, 67, 460, 24),
-                "Kills " + _game.Kills + "    Loot " + _game.LootCollected + "    Tick " + _game.CurrentTick, _smallStyle);
+                "Crypt " + _game.CryptDepth + "   Kills " + _game.Kills +
+                "   Loot " + _game.LootCollected + "   Tick " + _game.CurrentTick, _smallStyle);
             GUI.Label(new Rect(20, 92, 540, 24),
                 "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
                 " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
@@ -415,9 +438,18 @@ namespace AreArpg.UnityClient
                 GUI.Box(rect, "DEFEATED\nPress R to restart");
                 if (GUI.Button(new Rect(rect.x, rect.y + 90, rect.width, 40), "RESTART")) Restart();
             }
-            else if (_game.Monsters.TrueForAll(m => m.IsDead))
-                GUI.Box(new Rect(Screen.width * 0.32f, Screen.height * 0.40f,
-                    Screen.width * 0.36f, 70f), "CRYPT CLEARED!\nCollect your loot.");
+            else if (_game.CryptCleared)
+            {
+                Rect victoryRect = new Rect(Screen.width * 0.24f, Screen.height * 0.32f,
+                    Screen.width * 0.52f, 126f);
+                GUI.Box(victoryRect, "CRYPT CLEARED!\nDepth " + _game.CryptDepth);
+                if (_game.GroundLoot.Count != 0)
+                    GUI.Label(new Rect(victoryRect.x + 12f, victoryRect.y + 55f,
+                        victoryRect.width - 24f, 32f), "Collect remaining loot before continuing.");
+                else if (GUI.Button(new Rect(victoryRect.x + 12f, victoryRect.y + 72f,
+                    victoryRect.width - 24f, 45f), "NEXT CRYPT  (N)"))
+                    AdvanceCrypt();
+            }
         }
     }
 }
