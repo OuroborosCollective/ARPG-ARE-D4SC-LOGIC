@@ -26,3 +26,6 @@ jobs:
           test -f Assets/Editor/ArpgBuildTools.cs
           test -f ProjectSettings/ProjectVersion.txt
           grep -Fq '[RuntimeInitializeOnLoadMethod' Assets/Scripts/Runtime/ArenaRuntime.cs
+
+      - name: Run static Unity package and APK contract tests (not Editor execution)
+        run: python3 -m unittest discover -s Tests/Preflight -v
