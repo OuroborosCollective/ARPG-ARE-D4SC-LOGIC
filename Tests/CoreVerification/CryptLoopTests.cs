@@ -37,7 +37,7 @@ internal static class CryptLoopTests
             "crypt-next-depth-started");
         require(world.CryptDepth == BigInteger.One && world.ComputeWorldHash() == oldHash,
             "crypt-advance-does-not-rewrite-prior-world-state");
-        require(object.ReferenceEquals(next.Progression, world.Progression) &&
+        require(!object.ReferenceEquals(next.Progression, world.Progression) &&
             next.Progression.TotalExperience == new BigInteger(1770) &&
             next.LootCollected == new BigInteger(3),
             "crypt-next-depth-keeps-permanent-character");

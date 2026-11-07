@@ -24,10 +24,10 @@ internal static class MasteryTests
             "mastery-overspend-and-unknown-path-rejected");
         require(fresh.StableHash == beforeDenied, "mastery-rejection-does-not-mutate-character");
 
-        string ac2 = fresh.SaveString();
+        string ac3 = fresh.SaveString();
         CharacterProgression loaded = null;
-        require(ac2.StartsWith("AC2|", StringComparison.Ordinal) &&
-            CharacterProgression.TryLoad(ac2, out loaded), "mastery-ac2-save-validated");
+        require(ac3.StartsWith("AC3|", StringComparison.Ordinal) &&
+            CharacterProgression.TryLoad(ac3, out loaded), "mastery-ac3-save-validated");
         require(loaded.MightRank == BigInteger.One && loaded.VitalityRank == BigInteger.One &&
             loaded.ResolveRank == BigInteger.One && loaded.UnspentMasteryPoints == BigInteger.Zero,
             "mastery-ac2-roundtrip-preserves-spent-points");

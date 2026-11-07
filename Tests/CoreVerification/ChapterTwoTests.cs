@@ -71,7 +71,8 @@ internal static class ChapterTwoTests
         var entered = first.TryAdvanceCrypt();
         require(entered != null && entered.ChapterId == 2 && entered.Monsters[2].Kind == 3,
             "transition-loads-unique-ember-rift-boss");
-        require(object.ReferenceEquals(entered.Progression, first.Progression),
+        require(!object.ReferenceEquals(entered.Progression, first.Progression) &&
+            entered.Progression.TotalExperience == first.Progression.TotalExperience,
             "chapter-transition-preserves-uncapped-progression");
     }
 }

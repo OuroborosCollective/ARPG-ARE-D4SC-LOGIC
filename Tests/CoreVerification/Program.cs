@@ -26,6 +26,7 @@ internal static class Program
             MasteryTests.Run(Require);
             CryptLoopTests.Run(Require);
             ChapterTwoTests.Run(Require);
+            CheckpointTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }
