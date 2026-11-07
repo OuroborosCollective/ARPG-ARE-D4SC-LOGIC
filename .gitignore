@@ -1,0 +1,26 @@
+# Unity artifacts
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+*.csproj
+*.sln
+*.user
+*.tmp
+*.apk
+*.aab
+*.keystore
+*.jks
+# Exception: standalone .NET test project is source-controlled
+!Tests/**/*.csproj
+# Secrets
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+.DS_Store

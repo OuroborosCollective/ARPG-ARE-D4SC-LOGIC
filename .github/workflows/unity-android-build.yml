@@ -1,0 +1,29 @@
+name: Unity Android build (manual, Unity license required)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: Android
+          unityVersion: '2022.3.62f1'
+          buildMethod: AreArpg.EditorTools.ArpgBuildTools.BuildAndroidApk
+          versioning: None
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ARE-Ashen-Crypt-Android
+          path: Builds/*.apk
+          if-no-files-found: error
