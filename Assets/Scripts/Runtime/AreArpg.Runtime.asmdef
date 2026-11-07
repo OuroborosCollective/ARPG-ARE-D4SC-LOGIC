@@ -1,0 +1,6 @@
+{
+  "name": "AreArpg.Runtime",
+  "rootNamespace": "AreArpg.UnityClient",
+  "references": ["AreArpg.Core"],
+  "autoReferenced": true
+}

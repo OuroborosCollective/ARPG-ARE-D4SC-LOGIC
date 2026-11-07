@@ -1,0 +1,10 @@
+{
+  "name": "AreArpg.PlayMode.Tests",
+  "rootNamespace": "AreArpg.PlayMode.Tests",
+  "references": ["AreArpg.Core", "AreArpg.Runtime"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}

@@ -300,6 +300,7 @@ namespace AreArpg.Core
 
         public bool TryCollectLoot()
         {
+            if (GameOver) return false;
             for (int i = 0; i < GroundLoot.Count; i++)
             {
                 LootState item = GroundLoot[i];

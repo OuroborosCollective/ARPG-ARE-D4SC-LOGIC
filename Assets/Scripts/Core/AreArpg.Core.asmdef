@@ -1,0 +1,7 @@
+{
+  "name": "AreArpg.Core",
+  "rootNamespace": "AreArpg.Core",
+  "references": [],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

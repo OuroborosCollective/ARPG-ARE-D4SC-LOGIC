@@ -37,3 +37,13 @@ The test runner links the **actual `Assets/Scripts/Core/ArpgSimulation.cs`** use
 This is **not** a Diablo IV replica and **not** an MMO. Missing: animations, art, music, quests, inventory UI, persistent saves, class-specific trees, dungeons, production netcode, multiplayer, professional PBR assets, true Unity Editor runtime verification and a signed/install-tested APK. Start with correctness and feel, then expand system-by-system; never declare mocked/synthetic tests to be live runtime proof.
 
 For the authority boundary and verification status, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/EVIDENCE.md](docs/EVIDENCE.md).
+
+## Development controlled from an Android tablet
+
+The owner does not need a Unity Editor installed on Android. Development is done through GitHub changes and chat instructions; the owner reviews gameplay changes and eventually installs build artifacts on their tablet. To keep this honest, three checks are separate:
+
+1. **Core** – automatic .NET tests on pull requests, including real state and replay checks.
+2. **Unity Play Mode** – run the `Unity PlayMode smoke (licensed runner)` workflow after provisioning a Unity-compatible license; it creates actual Unity objects and checks hero/boss/camera.
+3. **Android APK/device** – trigger `Unity Android build (manual, Unity license required)`, inspect the APK artifact and checksum, and install/test on Android. Neither step is currently verified.
+
+The next creative decisions can come through chat: describe location, combat feeling, enemy behavior, mobile HUD or reference media, and we implement them as reviewable source changes.

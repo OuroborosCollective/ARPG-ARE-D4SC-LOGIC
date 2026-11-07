@@ -23,3 +23,9 @@ All simulation game-state transitions use integers, millimeter positions, explic
 - The runtime consumes keyboard/touch commands at the next simulation step, but no network protocol, anti-cheat authority or real multiplayer exists.
 - No original commercial assets are bundled. Programmatically constructed primitive geometry is prototype art, not a reconstructed proprietary pipeline.
 - GPU hardware-specific optimizations, including AMD GPU/CPU measurements, are not claimed without benchmark hardware and receipts.
+
+## Play Mode verification gate
+
+`Assets/Tests/PlayMode/ArenaBootSmokeTests.cs` compiles against the real Core and Unity Runtime assemblies and checks that the runtime actually builds a scene with hero, boss, and camera. The manually dispatched `.github/workflows/unity-playmode-smoke.yml` runs the official Unity play-mode test runner through GameCI and **fails if valid Unity credentials are unavailable**. It must not be mistaken for an Android-device test.
+
+The Android build lane remains separate: a successful APK compilation would need artifact hashing and installation on a physical Android device before any mobile-runtime claim.
