@@ -24,3 +24,9 @@
 *.p12
 *.pfx
 .DS_Store
+
+# Private Asset Store packages, cache and entitlement metadata
+*.unitypackage
+private-asset-catalog.json
+asset-intake-receipts/
+.asset-store-cache/
