@@ -12,6 +12,14 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class UnityContractTests(unittest.TestCase):
+    def test_pinned_unity_editor_has_no_nonexistent_input_package(self):
+        # Verified against installed Unity 2022.3.62f1 BuiltInPackages and real UPM failure.
+        # UnityEngine.Input exists in InputLegacyModule.dll; there is no com.unity.modules.input.
+        import json
+        dependencies = json.loads((ROOT / "Packages/manifest.json").read_text(encoding="utf-8"))["dependencies"]
+        self.assertNotIn("com.unity.modules.input", dependencies,
+                         "Unity 2022.3.62f1 package manager cannot resolve com.unity.modules.input@1.0.0")
+
     def test_repository_ready_for_licensed_unity_runner(self):
         self.assertEqual([], inspect_project(ROOT))
 
