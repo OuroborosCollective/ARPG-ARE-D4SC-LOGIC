@@ -33,3 +33,30 @@ After a package has been acquired and downloaded using the **official** Unity in
 The Python planner and its synthetic test fixtures prove **selection logic only**, not access to purchased assets, correctness of their content, a Unity import, or a device build.
 
 Unity legal reference: https://unity.com/legal/terms-of-service and https://unity.com/legal/as-terms (2026 restrictions on automated asset-store access).
+
+
+## Reviewed visual bindings (VPS-only licensed content)
+
+The Unity runtime can now prefer reviewed, passive mesh prefabs in private
+`Assets/Resources/ARE/Visuals/*.prefab` while retaining its original
+primitive visuals as an explicit, visible fallback. This directory is ignored
+by Git because store-owned content must not be redistributed publicly.
+
+- `Hero`, `Sword`, `Enemy0`, `Enemy1`, `Enemy2`, `Enemy3`
+- `CryptFloor`, `CryptPillar`, `CryptPillarCapital`, `CryptAltar`
+- `EmberFloor`, `EmberCauseway`, `EmberBasalt`, `EmberBossDais`, `EmberGate`
+
+Only explicitly reviewed prefabs containing transforms, meshes, mesh renderers,
+LOD groups or animators are accepted. Anything with scripts, physics,
+cameras, lights or broken component references is rejected **before**
+instantiation. Animator root motion is forcibly disabled. The existing
+placeholder remains the owner of the server-independent deterministic
+single-player coordinates; materials and animation are cosmetic only.
+Artists must align scale and pivot inside each private visual prefab because
+the host transform retains its gameplay position and scale.
+
+A Unity Store package is **not** proven imported just because a slot exists.
+The explicit gates remain: authenticated official My Assets entitlement,
+license review, package SHA256, clean private project import, visual review,
+Unity PlayMode, Android APK and physical-device capture. These PlayMode
+binding tests use test-only generated mesh fixtures, not real store packages.

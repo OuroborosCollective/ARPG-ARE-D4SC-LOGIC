@@ -151,11 +151,13 @@ namespace AreArpg.UnityClient
 
             _hero = Shape(PrimitiveType.Capsule, "Wanderer", new Vector3(0f, 1.05f, 0f),
                 new Vector3(0.85f, 1.05f, 0.85f), new Color(0.20f, 0.54f, 0.71f), 0.65f);
+            PassiveArtVisuals.TryBind(_hero, "Hero");
             Transform blade = Shape(PrimitiveType.Cube, "Wanderer's sword", Vector3.zero,
                 new Vector3(0.16f, 1.2f, 0.14f), new Color(0.83f, 0.77f, 0.59f), 0.7f);
             blade.SetParent(_hero, false);
             blade.localPosition = new Vector3(0.85f, 0.12f, 0.1f);
             blade.localRotation = Quaternion.Euler(0f, 0f, -22f);
+            PassiveArtVisuals.TryBind(blade, "Sword");
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
 
             _camera = Camera.main;
@@ -179,6 +181,21 @@ namespace AreArpg.UnityClient
         {
             Transform shape = Shape(primitive, label, position, scale, color);
             _chapterScenery.Add(shape);
+            string key = null;
+            switch (label)
+            {
+                case "Cracked Crypt Floor": key = "CryptFloor"; break;
+                case "Pillar": key = "CryptPillar"; break;
+                case "Pillar capital": key = "CryptPillarCapital"; break;
+                case "Crypt Altar": key = "CryptAltar"; break;
+                case "Ember_Rift_Ground": key = "EmberFloor"; break;
+                case "Ember_Rift_Causeway": key = "EmberCauseway"; break;
+                case "Ember_Rift_Boss_Dais": key = "EmberBossDais"; break;
+                case "Ember_Rift_Gate": key = "EmberGate"; break;
+            }
+            if (label.StartsWith("Ember_Rift_Basalt_", StringComparison.Ordinal))
+                key = "EmberBasalt";
+            if (key != null) PassiveArtVisuals.TryBind(shape, key);
             return shape;
         }
 
@@ -270,6 +287,7 @@ namespace AreArpg.UnityClient
             Transform root = Shape(primitive, "Enemy_" + monster.Id,
                 new Vector3(monster.Xmm / 1000f, scale.y * 0.6f, monster.Zmm / 1000f), scale, color);
             _monsterVisuals.Add(monster.Id, root);
+            PassiveArtVisuals.TryBind(root, "Enemy" + monster.Kind);
             if (monster.Kind == 3)
             {
                 Transform crown = Shape(PrimitiveType.Cylinder, "Ember_Warden_Crown",

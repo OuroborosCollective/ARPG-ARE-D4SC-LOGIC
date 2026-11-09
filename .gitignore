@@ -30,3 +30,6 @@
 private-asset-catalog.json
 asset-intake-receipts/
 .asset-store-cache/
+
+# Account-owned models stay private and are never redistributed through this public repo
+/Assets/Resources/ARE/Visuals/
