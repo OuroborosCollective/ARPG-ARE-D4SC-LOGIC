@@ -9,5 +9,6 @@
   <ItemGroup>
     <Compile Include="../../Assets/Scripts/Core/ArpgSimulation.cs" Link="ArpgSimulation.cs" />
     <Compile Include="../../Assets/Scripts/Core/CharacterProgression.cs" Link="CharacterProgression.cs" />
+    <Compile Include="../../Assets/Scripts/Core/NpcRelations.cs" Link="NpcRelations.cs" />
   </ItemGroup>
 </Project>
