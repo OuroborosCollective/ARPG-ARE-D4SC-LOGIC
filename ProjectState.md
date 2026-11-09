@@ -1,13 +1,26 @@
 # ARE Ashen Crypt — Projektzustand
 
-Stand: 2026-11-09T18:47:33.586Z. Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 bleibt Draft.
+Stand: 2026-11-09T20:56:00Z. Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 bleibt Draft.
 
-- phase: VERTICAL_SLICE
-- current_goal: Arena-Szeneneingaben versionieren und danach SHA-gebundene Prüfungen ausführen — abgeschlossen.
-- approved: Eigenständiges Unity-Android-ARPG; Unity 6000.6.8f1 und offizielle Pipeline 0.10.0-exp.1 erhalten; integerbasierter 100-ms-Core; Unity projiziert; bestehende AC1/AC2/AC3-Persistenz erhalten. Keine Aurion-Anbindung.
-- open_decisions: Auswahl und verifizierte Berechtigung hochwertiger Account-Assets; physische Spielerabnahme steht aus.
-- blocked: Kein Android-Gerät am VPS-ADB sichtbar. Account-Entitlements und tatsächliche Storepakete in diesem Arbeitsblock nicht neu verifiziert.
-- next: Vorhandene Unity6-Test-APK auf dem Owner-Tablet als Update installieren und Kaltstart, Kamera/Touch, Kampf, Kapitelwechsel und Save/Restore am exakten APK-Digest prüfen. Danach lizenzierte Visuals separat integrieren. Merge und Unity2022-Abbau bleiben an die bestehende vollständige Handoff-Abnahme gebunden.
+- phase: VERTICAL_SLICE / CONTENT_INTEGRATION
+- current_goal: Vorhandenen Slice mit den ausgewählten Unity-Account-Assets weiterentwickeln. Zuerst passive Gegnergrafik, danach passende Umgebung und geprüfte Inventar-/Skill-Adapter.
+- approved: Eigenständiges Unity-Android-ARPG; Unity 6000.6.8f1 und offizielle Pipeline 0.10.0-exp.1; integerbasierter 100-ms-Core; Unity projiziert; bestehende AC1/AC2/AC3-Persistenz erhalten. Keine Aurion-Anbindung. Owner erlaubt am 09.11.2026 dauerhaft, seine ausgewählten Account-Pakete bei Bedarf ohne erneute Paketfreigabe zu installieren und zu integrieren.
+- direction: Director führt technische Planung, Implementierung, Integration und Prüfung aus. Owner entscheidet über prägende Produktfragen, Lore und Art Direction anhand konkreter Alternativen. Die Paketfreigabe ist keine Kauf-, Lizenzzustimmungs- oder Releasefreigabe.
+- open_decisions: Endgültige Art Direction und Lore-Erweiterungen bei konkretem Bedarf; physische Spielerabnahme steht aus.
+- blocked: Reale Android-Geräteabnahme vor dem bestehenden Handoff-Mergegate weiterhin offen. Grafik-/Toolentwicklung wird deshalb nicht auf einen erneuten APK-Handoff verschoben.
+- next: Skeleton-Ghost-Originalmodelle privat über die bestehende PassiveArtVisuals-Brücke als reine Gegnergrafik integrieren und in Unity prüfen; anschließend Umgebungsassets auswählen sowie Inventar und Skills gegen den bestehenden Core-/Save-Vertrag prüfen. Keine parallele Spielstandsautorität aus Paketdemos übernehmen.
+
+## Account-Inhalte und aktuelle Arbeit
+
+Im privaten Unity-6-Intake sind Monster04 (72 Prefabs, 72 PNG) und Skeleton Ghost (4 Prefabs, 19 PNG) tatsächlich importiert. Das ist keine Aussage über fertige Animationen oder Android-Leistung. Die Skelettdateien wurden zusätzlich in den gitignorierten Visual-Root des eigentlichen Spiels übernommen; ihre Physikkomponenten werden nur in separaten Grafik-Kopien entfernt. Der native Unity-Import läuft zum Zeitpunkt dieses Eintrags; fertige Bindings und ein sichtbarer Spieltest sind noch nicht bestätigt.
+
+Neun Pakete liegen im privaten Downloadcache, darunter Smart Inventory System, Skill System, 3D Game Kit, Map Tile Grid Creator und Runtime Performance Monitor Lite. Cache, Projektimport und funktionierende Gameplay-Integration sind unterschiedliche Zustände. Inventar-/Skill-Pakete sind hier noch nicht mit dem bestehenden Spielstand integriert. Rohassets bleiben außerhalb dieses öffentlichen Repositorys.
+
+Der erste grafische Intake wurde beim Import durch sein eigenes 4-GB-Speicherlimit beendet. Die Dateien blieben erhalten; der Desktop wurde mit 6-GB-Limit wiederhergestellt. Ein sichtbarer alter Unity-2022-Intake ist kein Nachweis, dass unser Spiel mit 2022 entwickelt wird. Der aktuelle native Grafik-Import nutzt ausschließlich 6000.6.8f1. Alte Installation und Test-APK bleiben erhalten.
+
+## Historischer Prüfabschnitt vom 09.11.2026, 18:47 UTC
+
+Die folgenden Nachweise gelten für ihre ausdrücklich genannten Revisionen. Sie bestätigen nicht automatisch die laufende private Account-Integration.
 
 ## Abgeschlossener Schritt und Flächen
 
