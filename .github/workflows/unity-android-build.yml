@@ -30,7 +30,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: Android
-          unityVersion: '2022.3.62f1'
+          unityVersion: '6000.6.8f1'
           buildMethod: AreArpg.EditorTools.ArpgBuildTools.BuildAndroidApk
           versioning: None
       - name: Inspect real APK and bind artifact digest to Git commit
@@ -43,7 +43,7 @@ jobs:
             --apk Builds/ARE-Ashen-Crypt.apk \
             --receipt Builds/apk-receipt.json \
             --source-sha "$SOURCE_SHA" \
-            --unity-version 2022.3.62f1 \
+            --unity-version 6000.6.8f1 \
             --run-id "$ACTION_RUN_ID"
       - uses: actions/upload-artifact@v4
         with:

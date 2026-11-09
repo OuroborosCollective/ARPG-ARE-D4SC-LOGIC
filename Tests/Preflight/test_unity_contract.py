@@ -91,7 +91,7 @@ class ApkReceiptUnitTests(unittest.TestCase):
                 fake.writestr('lib/arm64-v8a/libunity.so', b'test-fixture-not-runtime')
                 fake.writestr('padding.bin', b'0' * 1024 * 1024)
             report = root / 'receipt.json'
-            info = create_apk_receipt(fixture, report, 'a' * 40, '2022.3.62f1', '123456')
+            info = create_apk_receipt(fixture, report, 'a' * 40, '6000.6.8f1', '123456')
             self.assertEqual(64, len(info['apk_sha256']))
             self.assertEqual('a' * 40, info['source_commit_sha'])
             self.assertEqual('not-verified', info['signature_status'])

@@ -4,7 +4,7 @@ The private Unity account, purchase catalog and actual paid/free `.unitypackage`
 
 ## Verified architecture
 
-- The production-independent Unity project targets Editor 2022.3.62f1.
+- The production-independent Unity project targets Editor 6000.6.8f1.
 - A private, **partial** 25-title catalog is present under `/var/lib/unityarpg/.local/share/are-arpg/private-asset-catalog.json`. It originated in the owner's My Assets excerpt, **not** an authenticated Unity Store inventory endpoint.
 - Unity Personal and the Unity Editor have been verified in the `unityarpg` VPS environment; these account observations are not a guarantee that any specific Store package is available or compatible.
 - Downloads of Unity Asset Store packages occur only through Unity-authorized interfaces (Hub/Editor > Window > Package Manager > My Assets). We do **not** scrape account endpoints, automate the private Store UI, bypass authentication or accept legal terms on the owner's behalf.

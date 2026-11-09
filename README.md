@@ -16,7 +16,7 @@ This repository starts from the design ideas in the user-provided `bbbgai_studio
 
 ## How to run in Unity
 
-1. Open this repository's root folder as a project in **Unity 2022.3.62f1** (Android Build Support + IL2CPP + SDK/NDK only needed for APK builds).
+1. Open this repository's root folder as a project in **Unity 6000.6.8f1** (Android Build Support + IL2CPP + SDK/NDK only needed for APK builds).
 2. Wait for source import. Use **ARE ARPG > 1. Prepare Demo Scene** to generate `Assets/Scenes/Arena.unity` and add it to Build Settings.
 3. Press **Play**. `ArenaRuntime` creates the demo world on loading an empty scene; nothing is imported from proprietary games.
 4. Move with **WASD/arrows**, attack with **1–4**, collect dropped loot using **E**, restart with **R**. On Android use bottom-left movement area and four bottom-right skills.

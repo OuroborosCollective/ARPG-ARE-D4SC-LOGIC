@@ -11,7 +11,7 @@ from pathlib import Path
 import re
 import zipfile
 
-VERSION = '2022.3.62f1'
+VERSION = '6000.6.8f1'
 REQUIRED_FILES = (
     'ProjectSettings/ProjectVersion.txt',
     'Packages/manifest.json',
