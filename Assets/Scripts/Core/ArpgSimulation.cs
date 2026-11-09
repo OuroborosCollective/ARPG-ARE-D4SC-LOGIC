@@ -124,6 +124,22 @@ namespace AreArpg.Core
         public const long MonsterSpeedMmPerTick = 260L;
         public const long PlayerRadiusMm = 450L;
         public const long PickupRadiusMm = 1600L;
+        public const long PassageXmm = 0L;
+        public const long PassageZmm = 24000L;
+        public const long PassageRadiusMm = 1800L;
+        public bool AtWorldPassage { get { return DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
+
+        public ArenaSimulation TryTraversePassage()
+        {
+            if (!AtWorldPassage) return null;
+            ArenaSimulation next = TryAdvanceCrypt();
+            if (next == null) return null;
+            next.PlayerHealth = Math.Min(PlayerHealth, next.MaxPlayerHealth);
+            next.Resource = Resource;
+            for (int i = 0; i < Cooldowns.Length; i++) next.Cooldowns[i] = Cooldowns[i];
+            next.PlayerZmm = next.PrevPlayerZmm = -23000L;
+            return next;
+        }
 
         private readonly DeterministicRng _rng;
         private readonly ulong _runSeed;
@@ -308,13 +324,15 @@ namespace AreArpg.Core
             return target;
         }
 
-        private void DealDamage(MonsterState enemy, int powerBp, SkillResult result)
+        private void DealDamage(MonsterState enemy, int powerBp, int slot, SkillResult result)
         {
             bool crit;
             long damage = FixedMath.Damage(95 + WeaponBonus, powerBp, 190,
-                2000 + Progression.MightDamageBonusBp,
+                2000 + Progression.MightDamageBonusBp + Progression.PracticeDamageBonusBp(slot),
                 enemy.Kind >= 2 ? 4000 : (enemy.Kind == 1 ? 2200 : 1000), 1900, _rng, out crit);
+            int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
+            Progression.RecordPractice(slot, Math.Max(1, appliedDamage / 10));
             result.TotalDamage += (int)damage;
             result.Hits++;
             if (enemy.IsDead && !enemy.LootGranted)
@@ -339,10 +357,13 @@ namespace AreArpg.Core
             if (slot == 1 && Resource < 25) { result.Message = "Insufficient focus"; return result; }
             if (slot == 2)
             {
-                PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + 170 + Progression.ResolveHealBonus);
+                int previousHealth = PlayerHealth;
+                PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + 170 + Progression.ResolveHealBonus + Progression.PracticeHealingBonus);
+                int restored = PlayerHealth - previousHealth;
+                if (restored > 0) Progression.RecordPractice(2, Math.Max(1, restored / 10));
                 Cooldowns[2] = 50;
                 result.Activated = true;
-                result.Message = "Guard: restored 170 HP";
+                result.Message = "Guard: restored " + restored + " HP";
                 return result;
             }
             long range = slot == 0 ? 3100 : (slot == 1 ? 4300 : 6500);
@@ -356,9 +377,9 @@ namespace AreArpg.Core
             {
                 foreach (MonsterState enemy in Monsters)
                     if (!enemy.IsDead && DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(range))
-                        DealDamage(enemy, 30000, result);
+                        DealDamage(enemy, 30000, slot, result);
             }
-            else DealDamage(nearest, slot == 1 ? 16000 : 10000, result);
+            else DealDamage(nearest, slot == 1 ? 16000 : 10000, slot, result);
             result.Message = (slot == 3 ? "Ruin Storm" : (slot == 1 ? "Heavy Strike" : "Strike")) +
                 ": " + result.TotalDamage + " damage / " + result.Kills + " kills";
             return result;
@@ -425,3 +446,4 @@ namespace AreArpg.Core
         }
     }
 }
+

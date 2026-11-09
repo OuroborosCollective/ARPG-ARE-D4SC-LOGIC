@@ -29,7 +29,10 @@ namespace AreArpg.UnityClient
         private bool _pendingPickup;
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
         private bool _storageFault;
-        private string _message = "Explore the crypt. Survive the guardian.";
+        private Transform _worldPassage;
+        private bool _passageAnnounced;
+        private float _regionFade;
+        private string _message = "Erkunde die Krypta. Was du tust, darin wirst du besser.";
         private GUIStyle _labelStyle;
         private GUIStyle _smallStyle;
 
@@ -205,6 +208,15 @@ namespace AreArpg.UnityClient
             foreach (Transform part in _chapterScenery)
                 if (part != null) Destroy(part.gameObject);
             _chapterScenery.Clear();
+            _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
+                new Vector3(ArenaSimulation.PassageXmm / 1000f, 0.02f, ArenaSimulation.PassageZmm / 1000f),
+                new Vector3(3.6f, 0.02f, 3.6f), new Color(0.25f, 0.68f, 0.72f));
+            _worldPassage.gameObject.SetActive(false);
+            ChapterShape(PrimitiveType.Cube, "Passage_Arch", new Vector3(0f, 3.2f, 24f),
+                new Vector3(5.2f, 0.55f, 0.65f), new Color(0.27f, 0.29f, 0.30f));
+            foreach (int side in new[] { -1, 1 })
+                ChapterShape(PrimitiveType.Cube, "Passage_Stone", new Vector3(side * 2.6f, 1.5f, 24f),
+                    new Vector3(0.65f, 3f, 0.65f), new Color(0.27f, 0.29f, 0.30f));
 
             bool ember = _game.ChapterId == 2;
             RenderSettings.ambientLight = ember ? new Color(0.45f, 0.20f, 0.14f) :
@@ -357,7 +369,6 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.F6)) _pendingMastery.Enqueue(MasteryPath.Vitality);
             if (Input.GetKeyDown(KeyCode.F7)) _pendingMastery.Enqueue(MasteryPath.Resolve);
             if (Input.GetKeyDown(KeyCode.R)) Restart();
-            if (Input.GetKeyDown(KeyCode.N) && _game.CryptCleared) AdvanceCrypt();
         }
 
         private void Restart()
@@ -371,24 +382,29 @@ namespace AreArpg.UnityClient
 
         private void AdvanceCrypt()
         {
-            if (_storageFault || !_game.CryptCleared)
+            if (_storageFault || !_game.CryptCleared || !_game.AtWorldPassage)
                 return;
             if (_game.GroundLoot.Count != 0)
             {
-                _message = "Pick up all loot before entering the next crypt.";
+                _message = "Deine Beute liegt noch hier. Sichere sie vor dem Durchgang.";
                 return;
             }
-            ArenaSimulation next = _game.TryAdvanceCrypt();
+            ArenaSimulation next = _game.TryTraversePassage();
             if (next == null) return;
             // Commit and read back the new checkpoint before changing the active world.
             SaveCharacter(next.Progression);
             if (_storageFault) return;
-            InstallNewRun(next, "Crypt depth " + next.CryptDepth + " - enemies grow stronger.");
+            InstallNewRun(next, "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
+            _regionFade = 1f;
+            _hero.position = new Vector3(next.PlayerXmm / 1000f, 1.05f, next.PlayerZmm / 1000f);
+            if (_camera != null)
+                _camera.transform.position = _hero.position - Quaternion.Euler(52f, 0f, 0f) * Vector3.forward * 22f;
         }
 
         private void InstallNewRun(ArenaSimulation next, string message)
         {
             _game = next;
+            _passageAnnounced = false;
             BuildChapterScenery();
             _pendingSkills.Clear();
             _pendingMastery.Clear();
@@ -408,6 +424,7 @@ namespace AreArpg.UnityClient
         private void Update()
         {
             if (_storageFault) return;
+            _regionFade = Mathf.Max(0f, _regionFade - Time.deltaTime / 0.75f);
             PollInputs();
             _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
             int steps = 0;
@@ -424,9 +441,13 @@ namespace AreArpg.UnityClient
                 }
                 while (_pendingSkills.Count > 0)
                 {
-                    SkillResult outcome = _game.ActivateSkill(_pendingSkills.Dequeue());
+                    int slot = _pendingSkills.Dequeue();
+                    System.Numerics.BigInteger previousRank = _game.Progression.PracticeLevel(slot);
+                    SkillResult outcome = _game.ActivateSkill(slot);
                     _message = outcome.Message;
-                    if (outcome.Kills > 0) SaveCharacter();
+                    bool learned = _game.Progression.PracticeLevel(slot) > previousRank;
+                    if (learned) _message += " / Durch Uebung gewachsen: Rang " + _game.Progression.PracticeLevel(slot);
+                    if (outcome.Kills > 0 || learned) SaveCharacter();
                 }
                 if (_pendingPickup)
                 {
@@ -436,12 +457,25 @@ namespace AreArpg.UnityClient
                     _pendingPickup = false;
                 }
                 _game.Step();
+                if (_game.CryptCleared && _game.AtWorldPassage)
+                {
+                    AdvanceCrypt();
+                    if (_storageFault) break;
+                }
             }
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
         }
 
         private void UpdatePresentation(float alpha)
         {
+            if (_worldPassage != null)
+                _worldPassage.gameObject.SetActive(_game.CryptCleared && _game.GroundLoot.Count == 0);
+            if (_game.CryptCleared && !_passageAnnounced)
+            {
+                _passageAnnounced = true;
+                _message = _game.GroundLoot.Count == 0 ? "Ein Luftzug streicht durch den Nordbogen. Folge dem Weg." :
+                    "Die Krypta wird still. Sichere deine Beute; der Nordbogen fuehrt weiter.";
+            }
             if (_hero != null)
             {
                 float x = Mathf.Lerp(_game.PrevPlayerXmm, _game.PlayerXmm, alpha) / 1000f;
@@ -525,14 +559,13 @@ namespace AreArpg.UnityClient
                 _smallStyle.normal.textColor = new Color(0.86f, 0.88f, 0.92f);
             }
             GUI.Box(new Rect(8, 8, Mathf.Min(600, Screen.width * 0.80f), 132), "");
-            GUI.Label(new Rect(20, 15, 460, 28), "ARE / ASHEN CRYPT  |  ALPHA VERTICAL SLICE", _labelStyle);
+            GUI.Label(new Rect(20, 15, 460, 28), "ARE / ASHEN CRYPT", _labelStyle);
             GUI.Label(new Rect(20, 43, 460, 24),
                 "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
                 "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
             GUI.Label(new Rect(20, 67, 460, 24),
-                "Chapter " + _game.ChapterId + "  " + _game.ChapterName + "  | Depth " +
-                _game.CryptDepth + "   Kills " + _game.Kills +
-                "   Loot " + _game.LootCollected + "   Tick " + _game.CurrentTick, _smallStyle);
+                _game.ChapterName + "  | Weg in die Tiefe: " + _game.CryptDepth +
+                "   Beute " + _game.LootCollected, _smallStyle);
             GUI.Label(new Rect(20, 92, 540, 24),
                 "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
                 " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
@@ -550,11 +583,13 @@ namespace AreArpg.UnityClient
                 }
             }
 
-            string[] labels = { "1 STRIKE", "2 HEAVY", "3 GUARD", "4 RUIN" };
+            string[] labels = { "1 KLINGE", "2 WUCHT", "3 SCHUTZ", "4 RUIN" };
             for (int i = 0; i < labels.Length; i++)
             {
                 Rect rect = SkillRect(i);
-                string title = labels[i] + (_game.Cooldowns[i] > 0 ? " (" + _game.Cooldowns[i] + ")" : "");
+                string title = labels[i] + " R" + _game.Progression.PracticeLevel(i) +
+                    "\n" + _game.Progression.PracticeExperience(i) + " XP" +
+                    (_game.Cooldowns[i] > 0 ? " (" + _game.Cooldowns[i] + ")" : "");
                 if (Application.isMobilePlatform) GUI.Box(rect, title);
                 else if (GUI.Button(rect, title)) _pendingSkills.Enqueue(i);
             }
@@ -568,18 +603,14 @@ namespace AreArpg.UnityClient
                 GUI.Box(rect, "DEFEATED\nPress R to restart");
                 if (GUI.Button(new Rect(rect.x, rect.y + 90, rect.width, 40), "RESTART")) Restart();
             }
-            else if (_game.CryptCleared)
+            if (_regionFade > 0f)
             {
-                Rect victoryRect = new Rect(Screen.width * 0.24f, Screen.height * 0.32f,
-                    Screen.width * 0.52f, 126f);
-                GUI.Box(victoryRect, "CRYPT CLEARED!\nDepth " + _game.CryptDepth);
-                if (_game.GroundLoot.Count != 0)
-                    GUI.Label(new Rect(victoryRect.x + 12f, victoryRect.y + 55f,
-                        victoryRect.width - 24f, 32f), "Collect remaining loot before continuing.");
-                else if (GUI.Button(new Rect(victoryRect.x + 12f, victoryRect.y + 72f,
-                    victoryRect.width - 24f, 45f), "NEXT CRYPT  (N)"))
-                    AdvanceCrypt();
+                Color previous = GUI.color;
+                GUI.color = new Color(0f, 0f, 0f, _regionFade);
+                GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
+                GUI.color = previous;
             }
         }
     }
 }
+

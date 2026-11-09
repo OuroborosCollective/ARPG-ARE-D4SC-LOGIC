@@ -54,6 +54,11 @@ internal static class PracticeWorldTests
         string ac3 = Signed("AC3|160|8|1|1|1|0|0|2");
         require(CharacterProgression.TryLoad(ac3, out loaded) && loaded.UnlockedCryptDepth == 2 && loaded.MightRank == 1 && loaded.PracticeExperience(0).IsZero, "practice-ac3-migration-keeps-progress-with-zero-new-training");
         require(!CharacterProgression.TryLoad(Signed("AC4|0|0|0|0|0|0|0|1|-1|0|0|0"), out loaded), "practice-negative-save-rejected-even-with-valid-checksum");
+        var trained = new CharacterProgression(); trained.RecordPractice(0, 100000);
+        var noviceFight = new ArenaSimulation(118); var trainedFight = new ArenaSimulation(118, trained);
+        foreach (var fight in new[] { noviceFight, trainedFight })
+        { fight.Monsters[0].Xmm = 1000; fight.Monsters[0].Zmm = 0; fight.Monsters[0].Health = 10000; }
+        require(trainedFight.ActivateSkill(0).TotalDamage > noviceFight.ActivateSkill(0).TotalDamage, "practice-rank-increases-real-matching-skill-damage");
         var a = new CharacterProgression(); var b = new CharacterProgression();
         b.RecordPractice(1, 1);
         require(a.StableHash != b.StableHash, "practice-hash-binds-discipline-state");
@@ -81,3 +86,4 @@ internal static class PracticeWorldTests
         require(next.TryTraversePassage() == null, "passage-cannot-loop-without-new-encounter");
     }
 }
+

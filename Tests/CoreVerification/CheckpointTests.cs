@@ -44,8 +44,8 @@ internal static class CheckpointTests
             "checkpoint-new-run-preserves-progress-as-copy");
 
         string saved = second.Progression.SaveString();
-        require(saved.StartsWith("AC3|", StringComparison.Ordinal),
-            "checkpoint-save-format-ac3");
+        require(saved.StartsWith("AC4|", StringComparison.Ordinal),
+            "checkpoint-save-format-ac4");
         CharacterProgression loaded;
         require(CharacterProgression.TryLoad(saved, out loaded) &&
             loaded.UnlockedCryptDepth == new BigInteger(2),
@@ -102,3 +102,4 @@ internal static class CheckpointTests
         return h.ToString("X16", System.Globalization.CultureInfo.InvariantCulture);
     }
 }
+
