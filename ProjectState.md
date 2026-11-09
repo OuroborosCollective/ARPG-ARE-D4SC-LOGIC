@@ -1,14 +1,14 @@
 # ARE Ashen Crypt — Projektzustand
 
-Stand: 2026-11-09T20:57:00Z. Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 bleibt Draft.
+Stand: 2026-11-09T21:24:00Z. Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 bleibt Draft.
 
-- phase: VERTICAL_SLICE / CONTENT_INTEGRATION
-- current_goal: Vorhandenen Slice mit den ausgewählten Unity-Account-Assets weiterentwickeln. Zuerst passive Gegnergrafik, danach passende Umgebung und geprüfte Inventar-/Skill-Adapter.
-- approved: Eigenständiges Unity-Android-ARPG; Unity 6000.6.8f1 und offizielle Pipeline 0.10.0-exp.1; integerbasierter 100-ms-Core; Unity projiziert; bestehende AC1/AC2/AC3-Persistenz erhalten. Keine Aurion-Anbindung. Owner erlaubt am 09.11.2026 dauerhaft, seine ausgewählten Account-Pakete bei Bedarf ohne erneute Paketfreigabe zu installieren und zu integrieren.
+- phase: VERTICAL_SLICE / GAMEPLAY_EXPANSION
+- current_goal: Erster Learn-by-doing-Spielblock und begehbare Gebietsübergänge umgesetzt und geprüft; vorhandene Grafik-/Gameplaystruktur fortführen.
+- approved: Eigenständiges Unity-Android-ARPG; Unity 6000.6.8f1 und offizielle Pipeline 0.10.0-exp.1; integerbasierter 100-ms-Core; Unity projiziert; bestehende AC1/AC2/AC3-Persistenz erhalten. Keine Aurion-Anbindung. Owner erlaubt am 09.11.2026 dauerhaft, seine ausgewählten Account-Pakete bei Bedarf ohne erneute Paketfreigabe zu installieren und zu integrieren. Neuer Owner-Auftrag: kein Levelcap, Lernen durch Tätigkeiten und Gebietsdurchgänge im Spielfluss statt Level-complete-Menüs.
 - direction: Director führt technische Planung, Implementierung, Integration und Prüfung aus. Owner entscheidet über prägende Produktfragen, Lore und Art Direction anhand konkreter Alternativen. Die Paketfreigabe ist keine Kauf-, Lizenzzustimmungs- oder Releasefreigabe.
 - open_decisions: Endgültige Art Direction und Lore-Erweiterungen bei konkretem Bedarf; physische Spielerabnahme steht aus.
 - blocked: Reale Android-Geräteabnahme vor dem bestehenden Handoff-Mergegate weiterhin offen. Grafik-/Toolentwicklung wird deshalb nicht auf einen erneuten APK-Handoff verschoben.
-- next: Skeleton-Ghost-Originalmodelle privat über die bestehende PassiveArtVisuals-Brücke als reine Gegnergrafik integrieren und in Unity prüfen; anschließend Umgebungsassets auswählen sowie Inventar und Skills gegen den bestehenden Core-/Save-Vertrag prüfen. Keine parallele Spielstandsautorität aus Paketdemos übernehmen.
+- next: Gerenderte Unity6-Spielansicht, Animationen und Übergangslesbarkeit prüfen; danach echte Sammel-/Handwerksaktionen und Inventar-/Skill-Adapter zum bestehenden Core/Save ergänzen. Prägende Welt-/Loreentscheidungen mit konkreten Alternativen beim Owner.
 
 ## Account-Inhalte und aktuelle Arbeit
 
@@ -62,3 +62,11 @@ Smart Inventory enthält eigene JSON-/PlayerPrefs-Persistenz sowie automatische 
 Die vier zentralen Dateien ArpgSimulation.cs, CharacterProgression.cs, ArenaRuntime.cs und PassiveArtVisuals.cs sind am09.11.2026 tatsächlich bytegleich zur Handoff-Basis57bbf677cfaab4cdad82df33cc4f214abe50e70a geprüft. Kampf/Loot/Kapitel, XP/Mastery/AC3 und Eingabe-/Save-Projektion werden weiterverwendet. Inventar-/Skill-Pakete sind nicht bereits in diese Autorität integriert.
 
 CI42697835110 reproduzierte nach413bestandenen Core-Assertions einen echten Clone-Fehler: Visuals.meta hatte ohne privaten Ordner keinen Zielpfad. Ein öffentlicher README-Anker mit Meta erhält diesen Ordner; sämtliche Account-Inhalte bleiben ignoriert. Keine Prüfung abgeschaltet.
+
+## Learn-by-doing und Weltfluss — neuer Spielblock
+
+Die vier Tätigkeiten Klingenführung, Wucht, Schutz und Ruinmagie wachsen unabhängig durch wirksame Treffer bzw tatsächlich wiederhergestellte HP. BigInteger-XP und Ränge bleiben ungecappt; die endlichen Kampfboni sind im ersten Balancingpass begrenzt. Fehlschläge, Cooldown-Ablehnungen und Overkill erzeugen keinen zusätzlichen Übungsfortschritt. AC4 erweitert den vorhandenen Save-Vertrag; AC1/AC2/AC3 werden ohne Verlust des bisherigen Fortschritts gelesen. Vor dem nativen Test wurde das vorhandene Owner-Profil privat gesichert.
+
+Nach Sieg und Beutesicherung führt der begehbare Nordbogen ins Folgegebiet. Der Core prüft den Abstand, der Runtime-Adapter speichert/readbackt vor dem Wechsel. HP/Fokus/Cooldowns und Fortschritt bleiben erhalten; kurzer Fade statt Abschlussfenster. Kein NextCrypt-Knopf/N-Fernwechsel mehr. Gebietstausch ist implementiert, Open-World-Streaming und vielfältige neue Biome noch nicht.
+
+Source1dde63549cd8ffb8d205d5d716d8a8767ac10f48, Treebff55cf3dd5a7d613f3c15c53b0171e10cde0272:449 deterministische Core-Assertions bestanden,21Preflights bestanden, [Core-CI42701423292](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/42701423292) success. DirectorUnity6-Job20261109T212041Z-5b0ca5aae788 bestand7/7Tests,0Skips, einschließlich echtemClient-Ticking undDurchgangsgeometrie sowieAC4-Roundtrip. XML-SHA25607a43ef09e61c1c77b2b0c8365933a8ed2af688f5f2166fabf200b90db076760. GitHubUnity42701423329 skipped ist keinPASS. Kein neuerAndroid-/sichtbarerArt-/Releasebeleg. Designvertrag: [LEARN_BY_DOING](docs/LEARN_BY_DOING.md).
