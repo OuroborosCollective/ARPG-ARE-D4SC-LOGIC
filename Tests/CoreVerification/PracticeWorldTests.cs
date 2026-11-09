@@ -48,7 +48,7 @@ internal static class PracticeWorldTests
         require(rejected && p.PracticeExperience(0) == huge, "practice-negative-award-rejected-without-mutation");
         string save = p.SaveString();
         CharacterProgression loaded;
-        require(save.StartsWith("AC4|") && CharacterProgression.TryLoad(save, out loaded), "practice-ac4-roundtrip-loads");
+        require(save.StartsWith("AC5|") && CharacterProgression.TryLoad(save, out loaded), "practice-ac4-roundtrip-loads");
         require(CharacterProgression.TryLoad(save, out loaded) && loaded.PracticeExperience(0) == huge && loaded.StableHash == p.StableHash, "practice-save-preserves-unbounded-training-and-hash");
         require(!CharacterProgression.TryLoad(save.Replace(huge.ToString(), "01"), out loaded), "practice-corrupt-counter-rejected");
         string ac3 = Signed("AC3|160|8|1|1|1|0|0|2");
@@ -86,4 +86,5 @@ internal static class PracticeWorldTests
         require(next.TryTraversePassage() == null, "passage-cannot-loop-without-new-encounter");
     }
 }
+
 

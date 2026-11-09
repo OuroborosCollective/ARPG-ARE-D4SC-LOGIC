@@ -127,6 +127,9 @@ namespace AreArpg.Core
         public const long PassageXmm = 0L;
         public const long PassageZmm = 24000L;
         public const long PassageRadiusMm = 1800L;
+        public const long CampXmm = -4500L;
+        public const long CampZmm = -6000L;
+        public const long NpcInteractionRadiusMm = 2400L;
         public bool AtWorldPassage { get { return DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
 
         public ArenaSimulation TryTraversePassage()
@@ -165,6 +168,7 @@ namespace AreArpg.Core
         public bool GameOver { get { return PlayerHealth == 0; } }
         public readonly List<MonsterState> Monsters = new List<MonsterState>();
         public readonly List<LootState> GroundLoot = new List<LootState>();
+        public readonly List<NpcAgent> Npcs = new List<NpcAgent>();
         public readonly int[] Cooldowns = new int[4];
 
         public ArenaSimulation(ulong seed, CharacterProgression progression = null)
@@ -180,6 +184,13 @@ namespace AreArpg.Core
             Progression = progression ?? new CharacterProgression();
             PlayerHealth = MaxPlayerHealth;
             _rng = new DeterministicRng(seed);
+            if (ChapterId == 1)
+            {
+                Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -3600, -3400));
+                Npcs.Add(new NpcAgent(1, Progression.Social.GetMemory(1), -5500, -6000));
+                Npcs.Add(new NpcAgent(2, Progression.Social.GetMemory(2), -6500, -3500));
+            }
+            else Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -2000, -21000));
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
             int depthScale = (int)System.Numerics.BigInteger.Min(cryptDepth - 1, 10000);
             if (ChapterId == 1)
@@ -226,6 +237,122 @@ namespace AreArpg.Core
             _directionZbp = zbp * 10000 / magnitude;
         }
 
+        public NpcAgent NearestNpc()
+        {
+            NpcAgent found = null;
+            long distance = FixedMath.Square(NpcInteractionRadiusMm);
+            foreach (NpcAgent npc in Npcs)
+            {
+                long d = DistanceSquared(PlayerXmm, PlayerZmm, npc.Xmm, npc.Zmm);
+                if (d < distance) { found = npc; distance = d; }
+            }
+            return found;
+        }
+
+        public SocialResult InteractNpc(int id, NpcAction action)
+        {
+            var result = new SocialResult();
+            if (GameOver || action < NpcAction.Greet || action > NpcAction.Rob) return result;
+            NpcAgent npc = Npcs.Find(n => n.Id == id);
+            if (npc == null || npc.InteractionCooldownTicks > 0 ||
+                DistanceSquared(PlayerXmm, PlayerZmm, npc.Xmm, npc.Zmm) > FixedMath.Square(NpcInteractionRadiusMm)) return result;
+            if (npc.Memory.Health == 0 && action != NpcAction.Rob && action != NpcAction.Help)
+            { result.Text = "Diese Person ist bewusstlos."; return result; }
+            switch (action)
+            {
+                case NpcAction.Greet:
+                    npc.Memory.Record(action, 0); result.Text = npc.Greeting(); break;
+                case NpcAction.Help:
+                    if (!Progression.Social.Help(id)) { result.Text = "Kein Bedarf oder kein Proviant."; return result; }
+                    result.Text = "Du teilst Proviant und versorgst " + npc.Role + "."; break;
+                case NpcAction.Attack:
+                    if (Cooldowns[0] > 0) return result;
+                    bool crit;
+                    int damage = (int)Math.Min(npc.Memory.Health,
+                        FixedMath.Damage(95L + WeaponBonus, 10000, 190, 2000, 1000, 1900, _rng, out crit));
+                    npc.Memory.Health -= damage;
+                    if (npc.Memory.Health == 0) npc.Memory.RecoveryTicks = 300;
+                    npc.Memory.Record(action, npc.Memory.Health == 0 ? 3 : 1);
+                    Cooldowns[0] = 2;
+                    result.Text = "Uebergriff: " + damage + " Schaden. Diese Tat bleibt in Erinnerung."; break;
+                case NpcAction.Rob:
+                    if (!Progression.Social.Rob(id)) { result.Text = "Der Beutel ist leer."; return result; }
+                    result.Text = "Du raubst den vorhandenen Muenzbeutel. Vertrauen zerbricht."; break;
+            }
+            npc.InteractionCooldownTicks = 10;
+            result.Accepted = true;
+            return result;
+        }
+
+        private void MoveNpc(NpcAgent npc, long targetX, long targetZ, long speed)
+        {
+            long dx = targetX - npc.Xmm, dz = targetZ - npc.Zmm;
+            long distance = FixedMath.IntegerSqrt(dx * dx + dz * dz);
+            if (distance == 0) return;
+            long step = Math.Min(speed, distance);
+            long nx = npc.Xmm + dx * step / distance, nz = npc.Zmm + dz * step / distance;
+            if (CanStand(nx, nz)) { npc.Xmm = nx; npc.Zmm = nz; }
+            else if (CanStand(nx, npc.Zmm)) npc.Xmm = nx;
+            else if (CanStand(npc.Xmm, nz)) npc.Zmm = nz;
+        }
+
+        private void StepNpcs()
+        {
+            foreach (NpcAgent npc in Npcs)
+            {
+                npc.PreviousXmm = npc.Xmm; npc.PreviousZmm = npc.Zmm;
+                if (npc.AttackCooldownTicks > 0) npc.AttackCooldownTicks--;
+                if (npc.InteractionCooldownTicks > 0) npc.InteractionCooldownTicks--;
+                if (npc.Memory.Health == 0)
+                {
+                    npc.Behavior = NpcBehavior.Downed;
+                    if (npc.Memory.RecoveryTicks > 0) npc.Memory.RecoveryTicks--;
+                    if (npc.Memory.RecoveryTicks == 0)
+                    { npc.Memory.Health = NpcMemory.MaxHealth / 4; npc.Memory.Fatigue = 800; }
+                    continue;
+                }
+                if (CurrentTick % 20 == 0) npc.Memory.Hunger = Math.Min(1000, npc.Memory.Hunger + 1);
+                long distance = DistanceSquared(npc.Xmm, npc.Zmm, PlayerXmm, PlayerZmm);
+                bool hostile = npc.Memory.Disposition(npc.Personality) == NpcDisposition.Hostile;
+                if (hostile && distance < FixedMath.Square(14000))
+                {
+                    if (npc.Personality != NpcPersonality.Brave || npc.Memory.Health < NpcMemory.MaxHealth / 4)
+                    {
+                        npc.Behavior = NpcBehavior.Flee;
+                        MoveNpc(npc, npc.Xmm + (npc.Xmm == PlayerXmm ? 1000 : npc.Xmm - PlayerXmm),
+                            npc.Zmm + (npc.Zmm - PlayerZmm), 300);
+                    }
+                    else
+                    {
+                        npc.Behavior = NpcBehavior.Attack;
+                        if (distance > FixedMath.Square(1500)) MoveNpc(npc, PlayerXmm, PlayerZmm, 240);
+                        else if (npc.AttackCooldownTicks == 0)
+                        { PlayerHealth = Math.Max(0, PlayerHealth - 40); npc.AttackCooldownTicks = 15; }
+                    }
+                }
+                else if (npc.Memory.Hunger >= 700)
+                {
+                    npc.Behavior = NpcBehavior.SeekFood;
+                    if (DistanceSquared(npc.Xmm, npc.Zmm, CampXmm, CampZmm) <= FixedMath.Square(500) &&
+                        Progression.Social.EatAtCamp(npc.Memory)) npc.Behavior = NpcBehavior.Eat;
+                    else MoveNpc(npc, CampXmm, CampZmm, 170);
+                }
+                else if (npc.Memory.Fatigue >= 700 || (npc.Behavior == NpcBehavior.Rest && npc.Memory.Fatigue > 100))
+                { npc.Behavior = NpcBehavior.Rest; npc.Memory.Fatigue = Math.Max(0, npc.Memory.Fatigue - 3);
+                    npc.Memory.Health = Math.Min(NpcMemory.MaxHealth, npc.Memory.Health + 1); }
+                else if (npc.Id == 0)
+                {
+                    npc.Behavior = NpcBehavior.Travel;
+                    long targetZ = npc.PatrolIndex == 0 ? -3000 : -9000;
+                    if (DistanceSquared(npc.Xmm, npc.Zmm, -2500, targetZ) < FixedMath.Square(300)) npc.PatrolIndex = 1 - npc.PatrolIndex;
+                    MoveNpc(npc, -2500, targetZ, 170);
+                    if (CurrentTick % 10 == 0) npc.Memory.Fatigue = Math.Min(1000, npc.Memory.Fatigue + 1);
+                }
+                else { npc.Behavior = NpcBehavior.Rest; npc.Memory.Fatigue = Math.Max(0, npc.Memory.Fatigue - 1); }
+                if (GameOver) break;
+            }
+        }
+
         private static long DistanceSquared(long ax, long az, long bx, long bz)
         {
             return FixedMath.Square(ax - bx) + FixedMath.Square(az - bz);
@@ -266,6 +393,8 @@ namespace AreArpg.Core
                 if (Cooldowns[i] > 0) Cooldowns[i]--;
             if (GameOver) return;
             MovePlayer();
+            StepNpcs();
+            if (GameOver) return;
 
             foreach (MonsterState enemy in Monsters)
             {
@@ -413,6 +542,14 @@ namespace AreArpg.Core
             Mix(ref h, (ulong)PlayerHealth); Mix(ref h, (ulong)Resource);
             Mix(ref h, Progression.StableHash); Mix(ref h, (ulong)Kills);
             Mix(ref h, (ulong)_nextLootId);
+            Mix(ref h, (ulong)Npcs.Count);
+            foreach (NpcAgent npc in Npcs)
+            {
+                Mix(ref h, (ulong)npc.Id); Mix(ref h, (ulong)npc.Xmm); Mix(ref h, (ulong)npc.Zmm);
+                Mix(ref h, (ulong)npc.PreviousXmm); Mix(ref h, (ulong)npc.PreviousZmm);
+                Mix(ref h, (ulong)npc.Behavior); Mix(ref h, (ulong)npc.PatrolIndex);
+                Mix(ref h, (ulong)npc.AttackCooldownTicks); Mix(ref h, (ulong)npc.InteractionCooldownTicks);
+            }
             foreach (int cooldown in Cooldowns) Mix(ref h, (ulong)cooldown);
             Mix(ref h, (ulong)Monsters.Count);
             foreach (MonsterState enemy in Monsters)
@@ -446,4 +583,5 @@ namespace AreArpg.Core
         }
     }
 }
+
 

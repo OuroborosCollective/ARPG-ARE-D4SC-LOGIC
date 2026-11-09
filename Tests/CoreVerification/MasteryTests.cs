@@ -26,7 +26,7 @@ internal static class MasteryTests
 
         string ac3 = fresh.SaveString();
         CharacterProgression loaded = null;
-        require(ac3.StartsWith("AC4|", StringComparison.Ordinal) &&
+        require(ac3.StartsWith("AC5|", StringComparison.Ordinal) &&
             CharacterProgression.TryLoad(ac3, out loaded), "mastery-ac3-save-validated");
         require(loaded.MightRank == BigInteger.One && loaded.VitalityRank == BigInteger.One &&
             loaded.ResolveRank == BigInteger.One && loaded.UnspentMasteryPoints == BigInteger.Zero,
@@ -102,4 +102,5 @@ internal static class MasteryTests
             "mastery-huge-level-preserves-spent-rank-on-save");
     }
 }
+
 

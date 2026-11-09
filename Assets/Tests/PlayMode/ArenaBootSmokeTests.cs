@@ -58,10 +58,37 @@ namespace AreArpg.PlayMode.Tests
             var progress = new CharacterProgression();
             progress.EarnExperience(System.Numerics.BigInteger.Pow(10, 50));
             string saved = progress.SaveString();
-            Assert.IsTrue(saved.StartsWith("AC4|"));
+            Assert.IsTrue(saved.StartsWith("AC5|"));
             Assert.IsTrue(CharacterProgression.TryLoad(saved, out var loaded));
             Assert.AreEqual(progress.StableHash, loaded.StableHash);
             Assert.Greater(loaded.Level, new System.Numerics.BigInteger(ulong.MaxValue));
         }
+
+        [UnityTest]
+        public IEnumerator ClientProjectsAnAutonomousNpc()
+        {
+            var runtime = Object.FindObjectOfType<ArenaRuntime>();
+            if (runtime == null) runtime = new GameObject("ARE_ARPG_NPC_Smoke").AddComponent<ArenaRuntime>();
+            yield return null;
+            Assert.IsNotNull(GameObject.Find("ARE_NPC_0"));
+            var field = typeof(ArenaRuntime).GetField("_game", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var game = (ArenaSimulation)field.GetValue(runtime);
+            var npc = game.Npcs[0];
+            long x = npc.Xmm, z = npc.Zmm;
+            yield return new WaitForSeconds(0.35f);
+            Assert.IsTrue(npc.Xmm != x || npc.Zmm != z, "The real client must advance the adventurer's own activity");
+        }
+
+        [Test]
+        public void PersonalNpcMemoryRoundTripsInUnity()
+        {
+            var world = new ArenaSimulation(137);
+            world.Npcs[0].Xmm = 1000; world.Npcs[0].Zmm = 0;
+            Assert.IsTrue(world.InteractNpc(0, NpcAction.Help).Accepted);
+            Assert.IsTrue(CharacterProgression.TryLoad(world.Progression.SaveString(), out var loaded));
+            Assert.AreEqual(new System.Numerics.BigInteger(8), loaded.Social.GetMemory(0).PositivePoints);
+            Assert.AreEqual(world.Progression.StableHash, loaded.StableHash);
+        }
     }
 }
+

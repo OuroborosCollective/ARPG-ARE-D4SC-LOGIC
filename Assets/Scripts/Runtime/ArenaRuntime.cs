@@ -25,6 +25,8 @@ namespace AreArpg.UnityClient
         private bool _bossWarningVisible;
         private readonly Dictionary<int, Transform> _monsterVisuals = new Dictionary<int, Transform>();
         private readonly Dictionary<int, Transform> _lootVisuals = new Dictionary<int, Transform>();
+        private readonly Dictionary<int, Transform> _npcVisuals = new Dictionary<int, Transform>();
+        private readonly Queue<KeyValuePair<int, NpcAction>> _pendingNpcActions = new Queue<KeyValuePair<int, NpcAction>>();
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
@@ -162,6 +164,7 @@ namespace AreArpg.UnityClient
             blade.localRotation = Quaternion.Euler(0f, 0f, -22f);
             PassiveArtVisuals.TryBind(blade, "Sword");
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
+            BuildNpcVisuals();
 
             _camera = Camera.main;
             if (_camera == null)
@@ -219,6 +222,18 @@ namespace AreArpg.UnityClient
                     new Vector3(0.65f, 3f, 0.65f), new Color(0.27f, 0.29f, 0.30f));
 
             bool ember = _game.ChapterId == 2;
+            ChapterShape(PrimitiveType.Cube, "ARE_Camp_Supply", new Vector3(ArenaSimulation.CampXmm / 1000f, 0.4f, ArenaSimulation.CampZmm / 1000f),
+                new Vector3(1.1f, 0.8f, 0.8f), new Color(0.44f, 0.31f, 0.18f));
+            if (!ember)
+            {
+                ChapterShape(PrimitiveType.Cube, "ARE_Outpost_Platform", new Vector3(-5f, -0.08f, -6f),
+                    new Vector3(8f, 0.12f, 6f), new Color(0.30f, 0.26f, 0.20f));
+                foreach (int side in new[] { -1, 1 })
+                    ChapterShape(PrimitiveType.Cube, "ARE_Outpost_Post", new Vector3(-5f + side * 3f, 1.5f, -8.5f),
+                        new Vector3(0.3f, 3f, 0.3f), new Color(0.32f, 0.24f, 0.17f));
+                ChapterShape(PrimitiveType.Cube, "ARE_Outpost_Canopy", new Vector3(-5f, 3f, -8.5f),
+                    new Vector3(7f, 0.14f, 2f), new Color(0.34f, 0.43f, 0.38f));
+            }
             RenderSettings.ambientLight = ember ? new Color(0.45f, 0.20f, 0.14f) :
                 new Color(0.27f, 0.30f, 0.39f);
             RenderSettings.fogColor = ember ? new Color(0.21f, 0.07f, 0.055f) :
@@ -325,6 +340,42 @@ namespace AreArpg.UnityClient
             return new Rect(Screen.width * 0.43f, Screen.height - 72f, Screen.width * 0.16f, 52f);
         }
 
+        private static Rect NpcActionRect(int action)
+        {
+            float width = Mathf.Min(300f, Screen.width - 24f);
+            return new Rect(Screen.width - width - 10f + (action % 2) * (width / 2f),
+                266f + (action / 2) * 42f, width / 2f - 5f, 38f);
+        }
+
+        private void QueueNpcAction(NpcAction action)
+        {
+            NpcAgent npc = _game.NearestNpc();
+            if (npc != null) _pendingNpcActions.Enqueue(new KeyValuePair<int, NpcAction>(npc.Id, action));
+        }
+
+        private bool QueueNpcTouch(Vector2 position)
+        {
+            if (_game.NearestNpc() == null) return false;
+            for (int i = 0; i < 4; i++)
+                if (NpcActionRect(i).Contains(position)) { QueueNpcAction((NpcAction)i); return true; }
+            return false;
+        }
+
+        private void BuildNpcVisuals()
+        {
+            foreach (Transform visual in _npcVisuals.Values) if (visual != null) Destroy(visual.gameObject);
+            _npcVisuals.Clear();
+            foreach (NpcAgent npc in _game.Npcs)
+            {
+                Color color = npc.Id == 0 ? new Color(0.24f, 0.55f, 0.53f) :
+                    (npc.Id == 1 ? new Color(0.65f, 0.49f, 0.23f) : new Color(0.40f, 0.45f, 0.65f));
+                Transform visual = Shape(PrimitiveType.Capsule, "ARE_NPC_" + npc.Id,
+                    new Vector3(npc.Xmm / 1000f, 1f, npc.Zmm / 1000f), new Vector3(0.8f, 1f, 0.8f), color);
+                PassiveArtVisuals.TryBind(visual, "Npc" + npc.Id);
+                _npcVisuals.Add(npc.Id, visual);
+            }
+        }
+
         private void PollInputs()
         {
             long x = 0, z = 0;
@@ -348,8 +399,8 @@ namespace AreArpg.UnityClient
                 else if (touch.phase == TouchPhase.Began)
                 {
                     Vector2 guiPos = new Vector2(pos.x, Screen.height - pos.y);
-                    bool foundSkill = false;
-                    for (int ability = 0; ability < 4; ability++)
+                    bool foundSkill = QueueNpcTouch(guiPos);
+                    for (int ability = 0; ability < 4 && !foundSkill; ability++)
                         if (SkillRect(ability).Contains(guiPos))
                         {
                             _pendingSkills.Enqueue(ability);
@@ -369,6 +420,10 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.F6)) _pendingMastery.Enqueue(MasteryPath.Vitality);
             if (Input.GetKeyDown(KeyCode.F7)) _pendingMastery.Enqueue(MasteryPath.Resolve);
             if (Input.GetKeyDown(KeyCode.R)) Restart();
+            if (Input.GetKeyDown(KeyCode.F)) QueueNpcAction(NpcAction.Greet);
+            if (Input.GetKeyDown(KeyCode.V)) QueueNpcAction(NpcAction.Help);
+            if (Input.GetKeyDown(KeyCode.B)) QueueNpcAction(NpcAction.Attack);
+            if (Input.GetKeyDown(KeyCode.H)) QueueNpcAction(NpcAction.Rob);
         }
 
         private void Restart()
@@ -409,6 +464,7 @@ namespace AreArpg.UnityClient
             _pendingSkills.Clear();
             _pendingMastery.Clear();
             _pendingPickup = false;
+            _pendingNpcActions.Clear();
             _accumulator = 0f;
             if (_bossWarning != null) Destroy(_bossWarning.gameObject);
             _bossWarning = null;
@@ -418,6 +474,7 @@ namespace AreArpg.UnityClient
             _monsterVisuals.Clear();
             _lootVisuals.Clear();
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
+            BuildNpcVisuals();
             _message = message + " / " + next.ChapterName;
         }
 
@@ -432,6 +489,15 @@ namespace AreArpg.UnityClient
             {
                 _accumulator -= TickSeconds;
                 steps++;
+                while (_pendingNpcActions.Count > 0)
+                {
+                    KeyValuePair<int, NpcAction> request = _pendingNpcActions.Dequeue();
+                    SocialResult result = _game.InteractNpc(request.Key, request.Value);
+                    if (!string.IsNullOrEmpty(result.Text)) _message = result.Text;
+                    if (result.Accepted) SaveCharacter();
+                    if (_storageFault) break;
+                }
+                if (_storageFault) break;
                 while (_pendingMastery.Count > 0)
                 {
                     MasteryPath path = _pendingMastery.Dequeue();
@@ -468,6 +534,14 @@ namespace AreArpg.UnityClient
 
         private void UpdatePresentation(float alpha)
         {
+            foreach (NpcAgent npc in _game.Npcs)
+            {
+                Transform visual;
+                if (!_npcVisuals.TryGetValue(npc.Id, out visual) || visual == null) continue;
+                visual.position = new Vector3(Mathf.Lerp(npc.PreviousXmm, npc.Xmm, alpha) / 1000f,
+                    npc.Memory.Health > 0 ? 1f : 0.25f, Mathf.Lerp(npc.PreviousZmm, npc.Zmm, alpha) / 1000f);
+                visual.rotation = npc.Memory.Health > 0 ? Quaternion.identity : Quaternion.Euler(90f, 0f, 0f);
+            }
             if (_worldPassage != null)
                 _worldPassage.gameObject.SetActive(_game.CryptCleared && _game.GroundLoot.Count == 0);
             if (_game.CryptCleared && !_passageAnnounced)
@@ -570,6 +644,29 @@ namespace AreArpg.UnityClient
                 "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
                 " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
             GUI.Label(new Rect(20, 115, 540, 24), _message, _smallStyle);
+            NpcAgent nearby = _game.NearestNpc();
+            if (nearby != null)
+            {
+                float width = Mathf.Min(300f, Screen.width - 24f);
+                float left = Screen.width - width - 10f;
+                NpcDisposition mood = nearby.Memory.Disposition(nearby.Personality);
+                string moodText = mood == NpcDisposition.Friendly ? "freundlich" :
+                    (mood == NpcDisposition.Wary ? "misstrauisch" : (mood == NpcDisposition.Hostile ? "feindselig" : "neutral"));
+                GUI.Box(new Rect(left - 5f, 144f, width + 5f, 210f), "");
+                GUI.Label(new Rect(left, 148f, width, 25f), nearby.Role + " / " + moodText, _labelStyle);
+                GUI.Label(new Rect(left, 177f, width, 26f), "Gute Taten +" + nearby.Memory.PositivePoints + "  Uebergriffe -" + nearby.Memory.NegativePoints, _smallStyle);
+                GUI.Label(new Rect(left, 205f, width, 26f), "Hunger " + nearby.Memory.Hunger + "  Erschoepfung " + nearby.Memory.Fatigue, _smallStyle);
+                GUI.Label(new Rect(left, 231f, width, 28f), "Proviant " + _game.Progression.Social.Provisions + "  Muenzen " + _game.Progression.Social.Coins, _smallStyle);
+                string[] actions = { "F GRUESSEN", "V VERSORGEN", "B ANGREIFEN", "H AUSRAUBEN" };
+                Color previousColor = GUI.color;
+                for (int i = 0; i < actions.Length; i++)
+                {
+                    GUI.color = i >= 2 ? new Color(1f, 0.68f, 0.62f) : previousColor;
+                    if (Application.isMobilePlatform) GUI.Box(NpcActionRect(i), actions[i]);
+                    else if (GUI.Button(NpcActionRect(i), actions[i])) QueueNpcAction((NpcAction)i);
+                }
+                GUI.color = previousColor;
+            }
             GUI.Box(new Rect(25, Screen.height - 194, 170, 170), "MOVE\nWASD / TOUCH");
             if (_game.Progression.UnspentMasteryPoints > 0)
             {
@@ -613,4 +710,5 @@ namespace AreArpg.UnityClient
         }
     }
 }
+
 

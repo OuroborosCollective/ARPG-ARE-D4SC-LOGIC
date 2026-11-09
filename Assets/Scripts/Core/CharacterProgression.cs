@@ -8,7 +8,7 @@ namespace AreArpg.Core
     public enum MasteryPath { Might = 0, Vitality = 1, Resolve = 2 }
 
     /// <summary>
-    /// Permanent progress without a level cap. AC4 adds four use-trained disciplines; AC1/AC2/AC3 remain readable.
+    /// Permanent progress without a level cap. AC5 adds local NPC memory; AC1/AC2/AC3/AC4 remain readable.
     /// The checksum detects accidental damage, not malicious tampering or cloud ownership.
     /// </summary>
     public sealed class CharacterProgression
@@ -16,6 +16,7 @@ namespace AreArpg.Core
         private const ulong Offset = 14695981039346656037UL;
         private const ulong Prime = 1099511628211UL;
         private readonly BigInteger[] _practice = new BigInteger[4];
+        public SocialLedger Social { get; private set; } = new SocialLedger();
 
         private static void ValidateSlot(int slot)
         {
@@ -108,11 +109,12 @@ namespace AreArpg.Core
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
             WeaponBonus = amount > int.MaxValue - WeaponBonus ? int.MaxValue : WeaponBonus + amount;
             LootCollected += BigInteger.One;
+            Social.ProvisionFromLoot();
         }
 
         private string Payload()
         {
-            return "AC4|" + TotalExperience.ToString(CultureInfo.InvariantCulture) +
+            return "AC5|" + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
                 "|" + LootCollected.ToString(CultureInfo.InvariantCulture) +
                 "|" + LifetimeKills.ToString(CultureInfo.InvariantCulture) +
@@ -123,7 +125,8 @@ namespace AreArpg.Core
                 "|" + _practice[0].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[1].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[2].ToString(CultureInfo.InvariantCulture) +
-                "|" + _practice[3].ToString(CultureInfo.InvariantCulture);
+                "|" + _practice[3].ToString(CultureInfo.InvariantCulture) +
+                "|" + Social.Token();
         }
 
         private static ulong HashText(string payload)
@@ -155,7 +158,8 @@ namespace AreArpg.Core
             bool ac2 = parts[0] == "AC2" && parts.Length == 9;
             bool ac3 = parts[0] == "AC3" && parts.Length == 10;
             bool ac4 = parts[0] == "AC4" && parts.Length == 14;
-            bool current = ac2 || ac3 || ac4;
+            bool ac5 = parts[0] == "AC5" && parts.Length == 15;
+            bool current = ac2 || ac3 || ac4 || ac5;
             if (!legacy && !current) return false;
             int last = parts.Length - 1;
             if (parts[last].Length != 16) return false;
@@ -169,12 +173,14 @@ namespace AreArpg.Core
                 !CanonicalNonNegative(parts[6], out vitality) ||
                 !CanonicalNonNegative(parts[7], out resolve))) return false;
             BigInteger unlockedDepth = BigInteger.One;
-            if ((ac3 || ac4) && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
+            if ((ac3 || ac4 || ac5) && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
                 unlockedDepth < BigInteger.One)) return false;
             var practice = new BigInteger[4];
-            if (ac4)
+            if (ac4 || ac5)
                 for (int slot = 0; slot < practice.Length; slot++)
                     if (!CanonicalNonNegative(parts[9 + slot], out practice[slot])) return false;
+            SocialLedger social = new SocialLedger();
+            if (ac5 && !SocialLedger.TryRead(parts[13], out social)) return false;
             // A valid checksum is necessary but does not make an invalid progression valid.
             ulong checksum;
             if (!ulong.TryParse(parts[last], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out checksum) ||
@@ -185,11 +191,12 @@ namespace AreArpg.Core
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LifetimeKills = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
-                UnlockedCryptDepth = unlockedDepth
+                UnlockedCryptDepth = unlockedDepth, Social = social
             };
             for (int slot = 0; slot < practice.Length; slot++) progress._practice[slot] = practice[slot];
             return true;
         }
     }
 }
+
 

@@ -26,6 +26,8 @@ internal static class NpcSocialTests
         require(world.InteractNpc(0, NpcAction.Help).Accepted, "npc-real-need-can-be-helped");
         require(world.Progression.Social.Provisions == 2 && npc.Memory.PositivePoints == 8, "npc-help-consumes-provision-and-records-positive-account");
         require(npc.Memory.Disposition(npc.Personality) == NpcDisposition.Friendly, "npc-helped-person-becomes-friendly");
+        require(CharacterProgression.TryLoad(world.Progression.SaveString(), out var grateful) &&
+            new ArenaSimulation(121, grateful).Npcs[0].Greeting().Contains("Beistand"), "npc-gratitude-and-recognition-survive-reload");
         require(other.Memory.PositivePoints.IsZero, "npc-personal-memory-is-not-global-reputation");
         for (int i = 0; i < 10; i++) world.Step();
         npc.Xmm = 1000; npc.Zmm = 0;
@@ -57,6 +59,20 @@ internal static class NpcSocialTests
         foreach (var m in guardWorld.Monsters) { m.Xmm = 25000; m.Zmm = 25000; }
         guardWorld.Step();
         require(guard.Behavior == NpcBehavior.Attack && guardWorld.PlayerHealth < hp, "npc-brave-hostile-person-retaliates-through-real-core");
+        var knockdown = new ArenaSimulation(131);
+        var victim = knockdown.Npcs[2]; victim.Xmm = 1000; victim.Zmm = 0; victim.Memory.Health = 1;
+        require(knockdown.InteractNpc(2, NpcAction.Attack).Accepted && victim.Memory.Health == 0 &&
+            victim.Memory.RecoveryTicks == 300, "npc-knockdown-has-deterministic-recovery-not-unapproved-permadeath");
+        for (int i = 0; i < 10; i++) knockdown.Step();
+        require(knockdown.InteractNpc(2, NpcAction.Rob).Accepted, "npc-downed-person-can-actually-be-robbed");
+        require(CharacterProgression.TryLoad(knockdown.Progression.SaveString(), out loaded) &&
+            loaded.Social.GetMemory(2).RecoveryTicks == 290, "npc-recovery-and-robbery-survive-save");
+        var recovered = new ArenaSimulation(131, loaded);
+        foreach (var m in recovered.Monsters) { m.Xmm = 25000; m.Zmm = 25000; }
+        for (int i = 0; i < 290; i++) recovered.Step();
+        var survivor = recovered.Npcs[2];
+        require(survivor.Memory.Health > 0 && survivor.Memory.Purse == 0 && survivor.Memory.NegativePoints > 0,
+            "npc-recovers-without-erasing-harm-or-regenerating-stolen-coins");
         var fleeWorld = new ArenaSimulation(123);
         var coward = fleeWorld.Npcs[0]; coward.Xmm = 1000; coward.Zmm = 0;
         coward.Memory.Record(NpcAction.Attack, 3);
@@ -70,6 +86,11 @@ internal static class NpcSocialTests
         hungry.Memory.Fatigue = 900; hungry.Memory.Hunger = 0;
         needs.Step();
         require(hungry.Behavior == NpcBehavior.Rest && hungry.Memory.Fatigue < 900, "npc-fatigue-drives-rest");
+        while (needs.Progression.Social.CampProvisions > 0)
+        { hungry.Memory.Hunger = 900; needs.Progression.Social.EatAtCamp(hungry.Memory); }
+        hungry.Memory.Hunger = 900;
+        require(!needs.Progression.Social.EatAtCamp(hungry.Memory) && hungry.Memory.Hunger == 900,
+            "npc-empty-food-cache-does-not-invent-meals");
         var explorer = new ArenaSimulation(125);
         long x = explorer.Npcs[0].Xmm, z = explorer.Npcs[0].Zmm;
         explorer.Step();
@@ -85,10 +106,14 @@ internal static class NpcSocialTests
         string old = Signed("AC4|160|8|1|1|1|0|0|2|150|0|0|0");
         require(CharacterProgression.TryLoad(old, out loaded) && loaded.PracticeExperience(0) == 150 &&
             loaded.UnlockedCryptDepth == 2 && loaded.Social.GetMemory(0).Meetings.IsZero, "npc-ac4-migration-keeps-training-without-invented-relationships");
-        require(!CharacterProgression.TryLoad(save.Replace("|3,", "|-1,"), out loaded) || !save.Contains("|3,"), "npc-corrupted-social-state-rejected");
+        string[] fields = save.Split('|'); string[] chunks = fields[13].Split(';');
+        string[] header = chunks[0].Split(','); header[0] = "-1"; chunks[0] = string.Join(",", header);
+        fields[13] = string.Join(";", chunks);
+        require(!CharacterProgression.TryLoad(Signed(string.Join("|", fields, 0, 14)), out loaded), "npc-negative-provisions-rejected-even-with-valid-checksum");
         var a = new ArenaSimulation(128); var b = new ArenaSimulation(128);
         for (int i = 0; i < 150; i++) { a.Step(); b.Step(); require(a.ComputeWorldHash() == b.ComputeWorldHash(), "npc-replay-tick-" + i); }
         b.Progression.Social.GetMemory(0).Record(NpcAction.Attack, 2);
         require(a.ComputeWorldHash() != b.ComputeWorldHash(), "npc-replay-hash-binds-personal-memory");
     }
 }
+
