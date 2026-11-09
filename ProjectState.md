@@ -1,6 +1,6 @@
 # ARE Ashen Crypt — Projektzustand
 
-Stand: 2026-11-09T20:56:00Z. Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 bleibt Draft.
+Stand: 2026-11-09T20:57:00Z. Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 bleibt Draft.
 
 - phase: VERTICAL_SLICE / CONTENT_INTEGRATION
 - current_goal: Vorhandenen Slice mit den ausgewählten Unity-Account-Assets weiterentwickeln. Zuerst passive Gegnergrafik, danach passende Umgebung und geprüfte Inventar-/Skill-Adapter.
@@ -12,7 +12,7 @@ Stand: 2026-11-09T20:56:00Z. Repository: github.com/ouroboroscollective/arpg-are
 
 ## Account-Inhalte und aktuelle Arbeit
 
-Im privaten Unity-6-Intake sind Monster04 (72 Prefabs, 72 PNG) und Skeleton Ghost (4 Prefabs, 19 PNG) tatsächlich importiert. Das ist keine Aussage über fertige Animationen oder Android-Leistung. Die Skelettdateien wurden zusätzlich in den gitignorierten Visual-Root des eigentlichen Spiels übernommen; ihre Physikkomponenten werden nur in separaten Grafik-Kopien entfernt. Der native Unity-Import läuft zum Zeitpunkt dieses Eintrags; fertige Bindings und ein sichtbarer Spieltest sind noch nicht bestätigt.
+Im privaten Unity-6-Intake sind Monster04 (72 Prefabs, 72 PNG) und Skeleton Ghost (4 Prefabs, 19 PNG) tatsächlich importiert. Das ist keine Aussage über fertige Animationen oder Android-Leistung. Die Skelettdateien wurden zusätzlich in den gitignorierten Visual-Root des eigentlichen Spiels übernommen; ihre Physikkomponenten werden nur in separaten Grafik-Kopien entfernt. Vier separate passive Bindings Enemy0 bis Enemy3 wurden mit Unity 6000.6.8f1 erstellt und durch den unveränderten Binder geprüft. Je Vorlage wurden Rigidbody und Collider entfernt, lokale Modellhöhe auf 1,5 Einheiten und Füße auf den Boden der bisherigen Projektion gesetzt. Materialien und Shaderreferenzen bestanden die native Importprüfung. Alle 5 vorhandenen PlayMode-Tests bestanden mit dem privaten Overlay (0 Fehler/Skips). Eine sichtbare Art-Abnahme, abgestimmte Lauf-/Kampfanimationen und Android-Leistung bleiben ungeprüft.
 
 Neun Pakete liegen im privaten Downloadcache, darunter Smart Inventory System, Skill System, 3D Game Kit, Map Tile Grid Creator und Runtime Performance Monitor Lite. Cache, Projektimport und funktionierende Gameplay-Integration sind unterschiedliche Zustände. Inventar-/Skill-Pakete sind hier noch nicht mit dem bestehenden Spielstand integriert. Rohassets bleiben außerhalb dieses öffentlichen Repositorys.
 
@@ -50,3 +50,9 @@ Andere Unity-generierte ProjectSettings bleiben außerhalb des versionierten Tre
 Der eigene MCP-Editor wurde für den Test gezielt beendet und anschließend wieder gestartet (ActiveState active, SubState running). Keine zweite Editorinstanz wurde gestartet. Die separate Android-APK und Unity2022 bleiben erhalten. Headless-Tests liefern keinen visuellen Android- oder Leistungsnachweis.
 
 Diese Datei ist der datierte Produktionszustand. Ältere Verifikationsaussagen in README und Memory sind historische Beobachtungen; der vollständige Dokumentationshead und dessen finale CI werden im privaten Übergabeprotokoll separat festgehalten.
+
+## Private Grafik-Integration — geprüfte Grenze
+
+Source: `8e4cfc6a1d27fe79760636b001c33fe10bad1b41`, dazu privates Overlaymanifest SHA256 `2aa5cf2c3b0490ff80dad8a56be041c64c17e7e9c7bf7072df5c8ec622ddbbc5`. Alle getrackten Source-Dateien waren beim nativen Test unverändert. Unity-PlayMode Ende 2026-11-09T20:55:46Z: 5 bestanden, 0 fehlgeschlagen, 0 übersprungen; XML SHA256 `60f07f12a41481307282bd8f97604a2edba1835b28a58217fc84d9a04a60bf7f`. Private Rezepte, Prefabs und Rohassets sind nicht Teil des öffentlichen Git-Trees. Die drei neuen Ordner-Meta-Dateien halten die GUIDs der vorhandenen Visual-Brücke stabil.
+
+Smart Inventory enthält eigene JSON-/PlayerPrefs-Persistenz sowie automatische UI-Initialisierung. Diese Grenzen wurden im Quelltext gefunden; daraus folgt noch keine kompatible Integration. Der nächste Grafikschritt ist eine echte gerenderte Spielansicht mit den Skeletten und die Auswahl passender vorhandener Animationen/Umgebung. Die Android-Geräteabnahme bleibt ein späterer separater Handoff.
