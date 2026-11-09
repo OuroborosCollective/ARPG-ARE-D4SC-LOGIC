@@ -56,3 +56,9 @@ Diese Datei ist der datierte Produktionszustand. Ältere Verifikationsaussagen i
 Source: `8e4cfc6a1d27fe79760636b001c33fe10bad1b41`, dazu privates Overlaymanifest SHA256 `2aa5cf2c3b0490ff80dad8a56be041c64c17e7e9c7bf7072df5c8ec622ddbbc5`. Alle getrackten Source-Dateien waren beim nativen Test unverändert. Unity-PlayMode Ende 2026-11-09T20:55:46Z: 5 bestanden, 0 fehlgeschlagen, 0 übersprungen; XML SHA256 `60f07f12a41481307282bd8f97604a2edba1835b28a58217fc84d9a04a60bf7f`. Private Rezepte, Prefabs und Rohassets sind nicht Teil des öffentlichen Git-Trees. Die drei neuen Ordner-Meta-Dateien halten die GUIDs der vorhandenen Visual-Brücke stabil.
 
 Smart Inventory enthält eigene JSON-/PlayerPrefs-Persistenz sowie automatische UI-Initialisierung. Diese Grenzen wurden im Quelltext gefunden; daraus folgt noch keine kompatible Integration. Der nächste Grafikschritt ist eine echte gerenderte Spielansicht mit den Skeletten und die Auswahl passender vorhandener Animationen/Umgebung. Die Android-Geräteabnahme bleibt ein späterer separater Handoff.
+
+## Handoff-Abgleich und Clone-Korrektur
+
+Die vier zentralen Dateien ArpgSimulation.cs, CharacterProgression.cs, ArenaRuntime.cs und PassiveArtVisuals.cs sind am09.11.2026 tatsächlich bytegleich zur Handoff-Basis57bbf677cfaab4cdad82df33cc4f214abe50e70a geprüft. Kampf/Loot/Kapitel, XP/Mastery/AC3 und Eingabe-/Save-Projektion werden weiterverwendet. Inventar-/Skill-Pakete sind nicht bereits in diese Autorität integriert.
+
+CI42697835110 reproduzierte nach413bestandenen Core-Assertions einen echten Clone-Fehler: Visuals.meta hatte ohne privaten Ordner keinen Zielpfad. Ein öffentlicher README-Anker mit Meta erhält diesen Ordner; sämtliche Account-Inhalte bleiben ignoriert. Keine Prüfung abgeschaltet.

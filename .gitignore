@@ -32,4 +32,6 @@ asset-intake-receipts/
 .asset-store-cache/
 
 # Account-owned models stay private and are never redistributed through this public repo
-/Assets/Resources/ARE/Visuals/
+/Assets/Resources/ARE/Visuals/*
+!/Assets/Resources/ARE/Visuals/README.md
+!/Assets/Resources/ARE/Visuals/README.md.meta
