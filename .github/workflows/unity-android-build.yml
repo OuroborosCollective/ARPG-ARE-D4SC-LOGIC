@@ -1,0 +1,54 @@
+name: Unity Android build (manual, licensed runner)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail closed if Unity credentials are missing
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        shell: bash
+        run: |
+          if [ -z "$UNITY_LICENSE" ] && { [ -z "$UNITY_EMAIL" ] || [ -z "$UNITY_PASSWORD" ]; }; then
+            echo 'Android build unavailable: set UNITY_LICENSE or UNITY_EMAIL and UNITY_PASSWORD.' >&2
+            exit 1
+          fi
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: Android
+          unityVersion: '6000.6.8f1'
+          buildMethod: AreArpg.EditorTools.ArpgBuildTools.BuildAndroidApk
+          versioning: None
+      - name: Inspect real APK and bind artifact digest to Git commit
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+          ACTION_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 scripts/ci/unity_contract.py apk-receipt \
+            --apk Builds/ARE-Ashen-Crypt.apk \
+            --receipt Builds/apk-receipt.json \
+            --source-sha "$SOURCE_SHA" \
+            --unity-version 6000.6.8f1 \
+            --run-id "$ACTION_RUN_ID"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ARE-Ashen-Crypt-Android
+          path: |
+            Builds/ARE-Ashen-Crypt.apk
+            Builds/apk-receipt.json
+          if-no-files-found: error

@@ -1,0 +1,44 @@
+name: Unity PlayMode smoke (licensed runner)
+
+# A real Unity engine test. On PRs this job only runs when deliberately enabled.
+# Skips mean NOT VERIFIED, never evidence of successful Unity gameplay.
+on:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unity-playmode:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.UNITY_CI_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail closed if Unity credentials are missing
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        shell: bash
+        run: |
+          if [ -z "$UNITY_LICENSE" ] && { [ -z "$UNITY_EMAIL" ] || [ -z "$UNITY_PASSWORD" ]; }; then
+            echo 'Unity PlayMode test unavailable: configure Unity license/authentication secrets.' >&2
+            exit 1
+          fi
+      - uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: '6000.6.8f1'
+          testMode: playmode
+          artifactsPath: artifacts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unity-playmode-smoke-results
+          path: artifacts/
+          if-no-files-found: warn

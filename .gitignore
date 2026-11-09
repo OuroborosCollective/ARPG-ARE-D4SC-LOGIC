@@ -1,0 +1,37 @@
+# Unity artifacts
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+*.csproj
+*.sln
+*.user
+*.tmp
+*.apk
+*.aab
+*.keystore
+*.jks
+# Exception: standalone .NET test project is source-controlled
+!Tests/**/*.csproj
+# Secrets
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+.DS_Store
+
+# Private Asset Store packages, cache and entitlement metadata
+*.unitypackage
+private-asset-catalog.json
+asset-intake-receipts/
+.asset-store-cache/
+
+# Account-owned models stay private and are never redistributed through this public repo
+/Assets/Resources/ARE/Visuals/*
+!/Assets/Resources/ARE/Visuals/README.md
+!/Assets/Resources/ARE/Visuals/README.md.meta
