@@ -20,6 +20,8 @@ namespace AreArpg.UnityClient
         private Transform _cameraTarget;
         private Camera _camera;
         private readonly List<Transform> _chapterScenery = new List<Transform>();
+        // Read-only projection index; SocialLedger exclusively owns the stock.
+        private readonly List<Transform> _campRationVisuals = new List<Transform>();
         private Light _sun;
         private Transform _bossWarning;
         private bool _bossWarningVisible;
@@ -46,6 +48,7 @@ namespace AreArpg.UnityClient
             new GameObject("ARE_ARPG_Runtime").AddComponent<ArenaRuntime>();
         }
 
+        /// <summary>Load only an independently verified character save and install its real chapter projection.</summary>
         private void Awake()
         {
             Application.targetFrameRate = 60;
@@ -139,6 +142,7 @@ namespace AreArpg.UnityClient
             return go.transform;
         }
 
+        /// <summary>Build passive Unity scenery around the single canonical ArenaSimulation.</summary>
         private void BuildWorld()
         {
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
@@ -214,6 +218,7 @@ namespace AreArpg.UnityClient
             foreach (Transform part in _chapterScenery)
                 if (part != null) Destroy(part.gameObject);
             _chapterScenery.Clear();
+            _campRationVisuals.Clear();
             _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
                 new Vector3(ArenaSimulation.PassageXmm / 1000f, 0.02f, ArenaSimulation.PassageZmm / 1000f),
                 new Vector3(3.6f, 0.02f, 3.6f), new Color(0.25f, 0.68f, 0.72f));
@@ -334,10 +339,17 @@ namespace AreArpg.UnityClient
             // It is not evidence that any particular person committed a theft.
             ChapterShape(PrimitiveType.Cube, "Aschengrenze_Missing_Rations",
                 new Vector3(-9.2f, 0.34f, -11.1f), new Vector3(1.8f, 0.25f, 0.65f), ashstone);
-            for (int occupied = 0; occupied < 3; occupied++)
-                ChapterShape(PrimitiveType.Cube, "Aschengrenze_Stored_Ration_" + occupied,
-                    new Vector3(-9.9f + occupied * 0.5f, 0.61f, -11.1f),
-                    new Vector3(0.28f, 0.28f, 0.38f), timber);
+            for (int occupied = 0; occupied < SocialLedger.CampCapacity; occupied++)
+            {
+                int column = occupied % 5;
+                int row = occupied / 5;
+                Transform ration = ChapterShape(PrimitiveType.Cube,
+                    "Aschengrenze_Stored_Ration_" + occupied,
+                    new Vector3(-9.85f + column * 0.32f, 0.61f, -11.32f + row * 0.46f),
+                    new Vector3(0.23f, 0.28f, 0.28f), timber);
+                ration.gameObject.SetActive(occupied < _game.Progression.Social.CampProvisions);
+                _campRationVisuals.Add(ration);
+            }
             Transform leftRoof = ChapterShape(PrimitiveType.Cube, "Aschengrenze_Hall_Roof_Left",
                 new Vector3(-13.95f, 3.15f, -8.7f), new Vector3(3.4f, 0.22f, 5.8f), roof);
             leftRoof.rotation = Quaternion.Euler(0f, 0f, 22f);
@@ -472,11 +484,13 @@ namespace AreArpg.UnityClient
             }
         }
 
+        /// <summary>One touch/desktop donation region; the Core validates the queued request.</summary>
         private static Rect SupplyDonationRect()
         {
             return new Rect(12f, 249f, Mathf.Min(290f, Screen.width * 0.40f), 37f);
         }
 
+        /// <summary>Queue inputs for the authoritative fixed simulation tick.</summary>
         private void PollInputs()
         {
             long x = 0, z = 0;
@@ -500,21 +514,21 @@ namespace AreArpg.UnityClient
                 else if (touch.phase == TouchPhase.Began)
                 {
                     Vector2 guiPos = new Vector2(pos.x, Screen.height - pos.y);
-                    bool foundSkill = QueueNpcTouch(guiPos);
-                    for (int ability = 0; ability < 4 && !foundSkill; ability++)
+                    bool handledByUi = QueueNpcTouch(guiPos);
+                    for (int ability = 0; ability < 4 && !handledByUi; ability++)
                         if (SkillRect(ability).Contains(guiPos))
                         {
                             _pendingSkills.Enqueue(ability);
-                            foundSkill = true;
+                            handledByUi = true;
                             break;
                         }
-                    if (!foundSkill && _game.ChapterId == 1 &&
+                    if (!handledByUi && _game.ChapterId == 1 &&
                         SupplyDonationRect().Contains(guiPos))
                     {
                         _pendingCampDonation = true;
-                        foundSkill = true;
+                        handledByUi = true;
                     }
-                    if (!foundSkill && PickupRect().Contains(guiPos)) _pendingPickup = true;
+                    if (!handledByUi && PickupRect().Contains(guiPos)) _pendingPickup = true;
                 }
             }
             _game.SetMoveInput(x, z);
@@ -650,8 +664,16 @@ namespace AreArpg.UnityClient
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
         }
 
+        /// <summary>Project actual game state as visuals; never create a second stock owner.</summary>
         private void UpdatePresentation(float alpha)
         {
+            for (int index = 0; index < _campRationVisuals.Count; index++)
+            {
+                Transform ration = _campRationVisuals[index];
+                bool visible = index < _game.Progression.Social.CampProvisions;
+                if (ration != null && ration.gameObject.activeSelf != visible)
+                    ration.gameObject.SetActive(visible);
+            }
             foreach (NpcAgent npc in _game.Npcs)
             {
                 Transform visual;
@@ -734,6 +756,20 @@ namespace AreArpg.UnityClient
             foreach (int id in removed) _lootVisuals.Remove(id);
         }
 
+        /// <summary>Describe a donation control appropriately on touch or keyboard devices.</summary>
+        public static string DonationButtonLabel(bool isMobile)
+        {
+            return isMobile ? "RATION AN MARA" : "G: RATION AN MARA";
+        }
+
+        /// <summary>Translate a Core chapter to a display label without changing its identity or save.</summary>
+        public static string DisplayChapterName(ArenaSimulation game)
+        {
+            if (game == null) throw new ArgumentNullException(nameof(game));
+            return game.ChapterId == 1 ? "Die Aschengrenze" : game.ChapterName;
+        }
+
+        /// <summary>Render read-only gameplay data and queue player actions; never own game rules.</summary>
         private void OnGUI()
         {
             if (_game == null) return;
@@ -757,7 +793,7 @@ namespace AreArpg.UnityClient
                 "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
                 "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
             GUI.Label(new Rect(20, 67, 460, 24),
-                _game.ChapterName + "  | Weg in die Tiefe: " + _game.CryptDepth +
+                DisplayChapterName(_game) + "  | Weg in die Tiefe: " + _game.CryptDepth +
                 "   Beute " + _game.LootCollected, _smallStyle);
             GUI.Label(new Rect(20, 92, 540, 24),
                 "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
@@ -765,16 +801,16 @@ namespace AreArpg.UnityClient
             GUI.Label(new Rect(20, 115, 540, 24), _message, _smallStyle);
             if (_game.ChapterId == 1)
             {
-                int missing = 10 - _game.Progression.Social.CampProvisions;
+                int missing = SocialLedger.CampCapacity - _game.Progression.Social.CampProvisions;
                 GUI.Box(new Rect(8f, 148f, Mathf.Min(310f, Screen.width * 0.43f), 145f), "");
                 GUI.Label(new Rect(17f, 155f, 285f, 24f), "DIE GESTOHLENEN VORRAETE", _smallStyle);
                 GUI.Label(new Rect(17f, 181f, 285f, 25f),
-                    "Maras Lager: " + _game.Progression.Social.CampProvisions + "/10  Fehlbestand: " + missing, _smallStyle);
+                    "Maras Lager: " + _game.Progression.Social.CampProvisions + "/" + SocialLedger.CampCapacity + "  Fehlbestand: " + missing, _smallStyle);
                 GUI.Label(new Rect(17f, 205f, 285f, 43f),
                     missing > 0 ? "Ilyan hungert. Niemand kennt den Taeter." :
                     "Das Lager ist versorgt. Die Schuldfrage bleibt offen.", _smallStyle);
-                if (Application.isMobilePlatform) GUI.Box(SupplyDonationRect(), "G: RATION AN MARA");
-                else if (GUI.Button(SupplyDonationRect(), "G: RATION AN MARA"))
+                if (Application.isMobilePlatform) GUI.Box(SupplyDonationRect(), DonationButtonLabel(true));
+                else if (GUI.Button(SupplyDonationRect(), DonationButtonLabel(false)))
                     _pendingCampDonation = true;
             }
             NpcAgent nearby = _game.NearestNpc();

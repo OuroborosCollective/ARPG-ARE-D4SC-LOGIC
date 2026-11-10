@@ -6,6 +6,7 @@ using AreArpg.Core;
 
 internal static class SupplyTheftTests
 {
+    /// <summary>Compute the existing AC5 FNV checksum for a validated negative test fixture.</summary>
     private static string Resign(string payload)
     {
         ulong hash = 14695981039346656037UL;
@@ -13,6 +14,7 @@ internal static class SupplyTheftTests
         return payload + "|" + hash.ToString("X16", CultureInfo.InvariantCulture);
     }
 
+    /// <summary>Exercise real Core ration transfer, personal memory, save integrity and replay outcomes.</summary>
     public static void Run(Action<bool, string> require)
     {
         var world = new ArenaSimulation(151);
@@ -91,6 +93,48 @@ internal static class SupplyTheftTests
         ulong regionHash = nextRegion.ComputeWorldHash();
         require(!nextRegion.DonateCampRation().Accepted && nextRegion.ComputeWorldHash() == regionHash,
                 "supply-case-outside-first-region-has-no-second-authority");
+        require(SocialLedger.CampCapacity == 10 && SocialLedger.MaraNpcId == 1,
+                "supply-review-capacity-and-mara-identity-are-canonical-constants");
+        require(!remote.Accepted && remote.Text.Contains("direkt bei Mara"),
+                "supply-review-out-of-range-message-must-not-hide-other-rejections");
+        world.Npcs[1].Xmm = 1000; world.Npcs[1].Zmm = 0;
+        // A fully supplied, eligible camp must not display a cooldown or distance warning.
+        require(!world.DonateCampRation().Accepted && world.DonateCampRation().Text.Contains("voll"),
+                "supply-review-full-camp-has-specific-reason");
+        var cooldown = new ArenaSimulation(157);
+        cooldown.Npcs[SocialLedger.MaraNpcId].Xmm = 1000;
+        cooldown.Npcs[SocialLedger.MaraNpcId].Zmm = 0;
+        require(cooldown.DonateCampRation().Accepted &&
+                cooldown.DonateCampRation().Text.Contains("Warte"),
+                "supply-review-cooldown-is-not-misreported-as-distance");
+        var unconscious = new ArenaSimulation(158);
+        unconscious.Npcs[SocialLedger.MaraNpcId].Xmm = 1000;
+        unconscious.Npcs[SocialLedger.MaraNpcId].Zmm = 0;
+        unconscious.Npcs[SocialLedger.MaraNpcId].Memory.Health = 0;
+        ulong deadHash = unconscious.ComputeWorldHash();
+        SocialResult deadResponse = unconscious.DonateCampRation();
+        require(!deadResponse.Accepted && deadResponse.Text.Contains("bewusstlos") &&
+                unconscious.ComputeWorldHash() == deadHash,
+                "supply-review-unconscious-mara-never-consumes-resources");
+        string[] zeroFields = new CharacterProgression().SaveString().Split('|');
+        string[] zeroSocial = zeroFields[13].Split(';');
+        string[] zeroHeader = zeroSocial[0].Split(',');
+        zeroHeader[0] = "0";
+        zeroSocial[0] = string.Join(",", zeroHeader);
+        zeroFields[13] = string.Join(";", zeroSocial);
+        string emptySave = Resign(string.Join("|", zeroFields, 0, 14));
+        require(CharacterProgression.TryLoad(emptySave, out var emptyProgress) &&
+                emptyProgress.Social.Provisions.IsZero,
+                "supply-review-zero-ration-fixture-is-real-validated-ac5-load");
+        var empty = new ArenaSimulation(159, emptyProgress);
+        empty.Npcs[SocialLedger.MaraNpcId].Xmm = 1000;
+        empty.Npcs[SocialLedger.MaraNpcId].Zmm = 0;
+        ulong emptyHash = empty.ComputeWorldHash();
+        SocialResult emptyResponse = empty.DonateCampRation();
+        require(!emptyResponse.Accepted && emptyResponse.Text.Contains("keinen Proviant") &&
+                empty.ComputeWorldHash() == emptyHash,
+                "supply-review-zero-player-rations-reject-with-explicit-reason");
+
         var a = new ArenaSimulation(156); var b = new ArenaSimulation(156);
         a.Npcs[1].Xmm = b.Npcs[1].Xmm = 1000;
         a.Npcs[1].Zmm = b.Npcs[1].Zmm = 0;

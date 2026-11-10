@@ -94,6 +94,10 @@ namespace AreArpg.Core
     /// <summary>Persistent local social state, owned and checksummed by CharacterProgression.</summary>
     public sealed class SocialLedger
     {
+        /// <summary>Maximum real camp stock: one canonical capacity for Core and Unity projection.</summary>
+        public const int CampCapacity = 10;
+        /// <summary>The established supplier NPC's canonical ID; not a separate social owner.</summary>
+        public const int MaraNpcId = 1;
         private readonly NpcMemory[] _people = new NpcMemory[3];
         public BigInteger Provisions { get; private set; } = 3;
         public BigInteger Coins { get; private set; }
@@ -139,10 +143,10 @@ namespace AreArpg.Core
         /// <summary>One real player ration becomes one camp ration. Exact transaction and direct memory.</summary>
         internal bool DonateCampRation(int npcId)
         {
-            if (npcId != 1 || Provisions.IsZero || CampProvisions >= 10) return false;
+            if (npcId != MaraNpcId || Provisions.IsZero || CampProvisions >= CampCapacity) return false;
             Provisions--;
             CampProvisions++;
-            _people[1].Record(NpcAction.Help, 0);
+            GetMemory(MaraNpcId).Record(NpcAction.Help, 0);
             return true;
         }
 
