@@ -57,6 +57,8 @@ namespace AreArpg.UnityClient
             }
             _game = new ArenaSimulation(DemoSeed, saved,
                 saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One);
+            if (_game.ChapterId == 1)
+                _message = "Aschengrenze: Lager, Wache und Nordpass. Deine Taten bleiben in Erinnerung.";
             BuildWorld();
         }
 
@@ -265,6 +267,7 @@ namespace AreArpg.UnityClient
                     }
                 ChapterShape(PrimitiveType.Cylinder, "Crypt Altar", new Vector3(0f, 0.65f, 12.8f),
                     new Vector3(3f, 0.7f, 3f), new Color(0.31f, 0.18f, 0.18f));
+                BuildAschengrenzeScenery();
                 return;
             }
 
@@ -301,6 +304,90 @@ namespace AreArpg.UnityClient
             ChapterShape(PrimitiveType.Cube, "Ember_Rift_Gate_Right",
                 new Vector3(3.5f, 1.4f, 24f), new Vector3(0.85f, 3.6f, 0.85f),
                 new Color(0.24f, 0.20f, 0.19f));
+        }
+
+        /// <summary>
+        /// Die Aschengrenze, first arrival. Projection-only scenery; core positions,
+        /// NPC behavior, interaction, passage and save authority are never modified.
+        /// All pieces are registered through ChapterShape for cleanup on zone transfer.
+        /// </summary>
+        private void BuildAschengrenzeScenery()
+        {
+            Color ashstone = new Color(0.26f, 0.25f, 0.26f);
+            Color iron = new Color(0.20f, 0.21f, 0.23f);
+            Color timber = new Color(0.30f, 0.19f, 0.14f);
+            Color roof = new Color(0.37f, 0.22f, 0.19f);
+            Color pavement = new Color(0.36f, 0.31f, 0.26f);
+
+            // The road follows the established camp and north passage anchors.
+            // No mesh/collider is permitted to decide navigation or combat here.
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_Approach_Road",
+                new Vector3(-2.5f, -0.085f, -7.7f), new Vector3(3.2f, 0.055f, 17f), pavement);
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_North_Road",
+                new Vector3(0f, -0.083f, 11f), new Vector3(2.8f, 0.06f, 25f), pavement);
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_Market_Square",
+                new Vector3(-6.8f, -0.067f, -10.5f), new Vector3(8f, 0.09f, 7f), ashstone);
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_Supply_Hall",
+                new Vector3(-12.5f, 1.4f, -8.7f), new Vector3(5.4f, 2.8f, 5f), timber);
+            Transform leftRoof = ChapterShape(PrimitiveType.Cube, "Aschengrenze_Hall_Roof_Left",
+                new Vector3(-13.95f, 3.15f, -8.7f), new Vector3(3.4f, 0.22f, 5.8f), roof);
+            leftRoof.rotation = Quaternion.Euler(0f, 0f, 22f);
+            Transform rightRoof = ChapterShape(PrimitiveType.Cube, "Aschengrenze_Hall_Roof_Right",
+                new Vector3(-11.05f, 3.15f, -8.7f), new Vector3(3.4f, 0.22f, 5.8f), roof);
+            rightRoof.rotation = Quaternion.Euler(0f, 0f, -22f);
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_Hall_Door",
+                new Vector3(-9.76f, 0.9f, -8.7f), new Vector3(0.13f, 1.8f, 1.35f), iron);
+
+            // The original supplier's camp is beside the building, not replaced.
+            for (int index = 0; index < 3; index++)
+                ChapterShape(PrimitiveType.Cube, "Aschengrenze_Provision_Crate_" + index,
+                    new Vector3(-7.4f + index * 0.85f, 0.37f, -7.3f),
+                    new Vector3(0.72f, 0.74f, 0.72f), timber);
+            ChapterShape(PrimitiveType.Cylinder, "Aschengrenze_Stone_Well",
+                new Vector3(-5.8f, 0.55f, -12.4f), new Vector3(1.35f, 0.65f, 1.35f), ashstone);
+            for (int stall = 0; stall < 2; stall++)
+            {
+                float x = -9.2f + 5.1f * stall;
+                ChapterShape(PrimitiveType.Cube, "Aschengrenze_Market_Counter_" + stall,
+                    new Vector3(x, 0.82f, -13f), new Vector3(2.7f, 0.9f, 0.9f), timber);
+                ChapterShape(PrimitiveType.Cube, "Aschengrenze_Market_Canopy_" + stall,
+                    new Vector3(x, 2.38f, -13f), new Vector3(3.2f, 0.22f, 2f),
+                    stall == 0 ? roof : new Color(0.32f, 0.36f, 0.28f));
+                for (int side = -1; side <= 1; side += 2)
+                    ChapterShape(PrimitiveType.Cube,
+                        "Aschengrenze_Market_Post_" + stall + "_" + side,
+                        new Vector3(x + 1.3f * side, 1.1f, -13.6f),
+                        new Vector3(0.17f, 2.2f, 0.17f), timber);
+            }
+
+            // The watch is a visible warning at the edge of the settled area.
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_Watchtower",
+                new Vector3(-14.5f, 3.8f, -1.8f), new Vector3(4.1f, 0.45f, 4.1f), timber);
+            for (int dx = -1; dx <= 1; dx += 2)
+                for (int dz = -1; dz <= 1; dz += 2)
+                    ChapterShape(PrimitiveType.Cube,
+                        "Aschengrenze_Watch_Post_" + dx + "_" + dz,
+                        new Vector3(-14.5f + 1.7f * dx, 1.8f, -1.8f + 1.7f * dz),
+                        new Vector3(0.38f, 3.6f, 0.38f), timber);
+            ChapterShape(PrimitiveType.Cylinder, "Aschengrenze_Signal_Beacon",
+                new Vector3(-14.5f, 4.55f, -1.8f), new Vector3(0.9f, 0.5f, 0.9f),
+                new Color(0.95f, 0.45f, 0.17f));
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_Watch_Fence_West",
+                new Vector3(-18.5f, 1.05f, 1.2f), new Vector3(6f, 2.1f, 0.33f), iron);
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_Watch_Fence_East",
+                new Vector3(11.0f, 1.05f, 1.2f), new Vector3(10f, 2.1f, 0.33f), iron);
+
+            // Existing Passage_Arch at Z=24 stays the sole real travel portal.
+            foreach (int side in new[] { -1, 1 })
+            {
+                ChapterShape(PrimitiveType.Cube, "Aschengrenze_North_Banner_" + side,
+                    new Vector3(side * 4.1f, 2.5f, 21.3f),
+                    new Vector3(0.55f, 2.1f, 0.10f),
+                    new Color(0.53f, 0.23f, 0.16f));
+                ChapterShape(PrimitiveType.Cylinder, "Aschengrenze_North_Stone_" + side,
+                    new Vector3(side * 4.1f, 0.55f, 20.6f),
+                    new Vector3(1.05f, 0.55f, 1.05f), ashstone);
+            }
         }
 
         private void SpawnMonster(MonsterState monster)
@@ -633,7 +720,8 @@ namespace AreArpg.UnityClient
                 _smallStyle.normal.textColor = new Color(0.86f, 0.88f, 0.92f);
             }
             GUI.Box(new Rect(8, 8, Mathf.Min(600, Screen.width * 0.80f), 132), "");
-            GUI.Label(new Rect(20, 15, 460, 28), "ARE / ASHEN CRYPT", _labelStyle);
+            GUI.Label(new Rect(20, 15, 540, 28),
+                _game.ChapterId == 1 ? "ARE / DIE ASCHENGRENZE" : "ARE / ASHEN CRYPT", _labelStyle);
             GUI.Label(new Rect(20, 43, 460, 24),
                 "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
                 "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
@@ -653,7 +741,9 @@ namespace AreArpg.UnityClient
                 string moodText = mood == NpcDisposition.Friendly ? "freundlich" :
                     (mood == NpcDisposition.Wary ? "misstrauisch" : (mood == NpcDisposition.Hostile ? "feindselig" : "neutral"));
                 GUI.Box(new Rect(left - 5f, 144f, width + 5f, 210f), "");
-                GUI.Label(new Rect(left, 148f, width, 25f), nearby.Role + " / " + moodText, _labelStyle);
+                string characterName = nearby.Id == 0 ? "Ilyan (Pfadleser)" :
+                    (nearby.Id == 1 ? "Mara (Versorgerin)" : "Dorn (Wache)");
+                GUI.Label(new Rect(left, 148f, width, 25f), characterName + " / " + moodText, _labelStyle);
                 GUI.Label(new Rect(left, 177f, width, 26f), "Gute Taten +" + nearby.Memory.PositivePoints + "  Uebergriffe -" + nearby.Memory.NegativePoints, _smallStyle);
                 GUI.Label(new Rect(left, 205f, width, 26f), "Hunger " + nearby.Memory.Hunger + "  Erschoepfung " + nearby.Memory.Fatigue, _smallStyle);
                 GUI.Label(new Rect(left, 231f, width, 28f), "Proviant " + _game.Progression.Social.Provisions + "  Muenzen " + _game.Progression.Social.Coins, _smallStyle);
