@@ -3,12 +3,12 @@
 Stand: 2026-11-10 (Aschengrenze-Entwicklung). Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 ist als Merge-Commit e607c609c2ed7f02223689de3aa6cab7aedda3bc auf main.
 
 - phase: VERTICAL_SLICE / GAMEPLAY_EXPANSION
-- current_goal: Die gestohlenen Vorraete in der Aschengrenze als echtes AC5-gebundenes Entscheidungsspiel: Maras Lager spenden, Ilyan helfen oder angreifen; persoesnliche Konsequenzen und live sichtbaren Lagerbestand mit einer Autoritaet pruefen.
+- current_goal: Unity-6-IMGUI-HUD auf kleinen GameViews und Android-SafeAreas ohne Überlagerung/Touch-Fehlausloesung; Issue #9 isoliert testen und als Draft-PR zur visuellen Abnahme stellen.
 - approved: Eigenständiges Unity-Android-ARPG; Unity 6000.6.8f1 und offizielle Pipeline 0.10.0-exp.1; integerbasierter 100-ms-Core; Unity projiziert; bestehende AC1/AC2/AC3-Persistenz erhalten. Keine Aurion-Anbindung. Owner erlaubt am 09.11.2026 dauerhaft, seine ausgewählten Account-Pakete bei Bedarf ohne erneute Paketfreigabe zu installieren und zu integrieren. Neuer Owner-Auftrag: kein Levelcap, Lernen durch Tätigkeiten und Gebietsdurchgänge im Spielfluss statt Level-complete-Menüs.
 - direction: Director führt technische Planung, Implementierung, Integration und Prüfung aus. Owner entscheidet über prägende Produktfragen, Lore und Art Direction anhand konkreter Alternativen. Die Paketfreigabe ist keine Kauf-, Lizenzzustimmungs- oder Releasefreigabe.
 - open_decisions: Die Aschengrenze als Region vom Owner am 10.11.2026 gewaehlt; finale Art-Pakete, grosse Storyzweige und Releases bleiben Owner-Entscheidungen. Physische Spielerabnahme steht aus.
-- blocked: Neue Android-APK und physischer Touch-/Save-Test bleiben offen; GitHub-Unity-Workflow skipped (VPS Unity6-PlayMode separat real ausgefuehrt). Reale Android-Geräteabnahme vor dem bestehenden Handoff-Mergegate weiterhin offen. Grafik-/Toolentwicklung wird deshalb nicht auf einen erneuten APK-Handoff verschoben.
-- next: Den aktuell geprueften PR8-Reviewfix auf GitHub CI/Reviews/Tree readback pruefen und bei erfuellten Gates mergen; danach AC6 Issue #2 vor Zeugenschaft/Policies #3–#6 implementieren. Aschengrenze-GameView und Charakteranimationen separat pruefen. Inventar-/Skill-Adapter spaeter nur mit bestehendem Core/Save. Praegende Loreentscheidungen mit konkreten Alternativen beim Owner.
+- blocked: Neue GUI-GameView-Abnahme auf HUD-Head blockiert (Unity-Pipeline ObjectDisposed nach PlayMode-Domain-Reload und anschliessend isolierter Editor oom-kill bei 3-GiB-Limit und voll genutztem Swap). Neue Android-APK, physischer Touch-/Save-Test und finales Art-Profil bleiben offen; Unity-6-PlayMode auf HUD-Codehead separat bestanden. Keine Core-/NPC-Authority-Aenderung.
+- next: HUD-Issue #9 als Draft PR publizieren und GitHub-CI/Reviews/Tree pruefen; den isolierten Unity-GUI-oom-kill ursächlich untersuchen, vor erneutem GUI-Readback erst reale Speicherreserve herstellen. Danach echte GameView/Tablet-Abnahme und erst dann Merge/Issue-Schliessung. AC6 Issue #2 bleibt eigene Kern-Aufgabe vor Zeugenschaft/Policies #3–#6; keine doppelten Authorities.
 
 ## Account-Inhalte und aktuelle Arbeit
 
@@ -76,3 +76,8 @@ Source1dde63549cd8ffb8d205d5d716d8a8767ac10f48, Treebff55cf3dd5a7d613f3c15c53b01
 - `approved`: Owner wählte `story.aschengrenze.supplies.v1` als nächsten Konflikt. Bestehender Ilyan-Hilfe-/Angriffspfad und Maras Ressourcenkern werden wiederverwendet.
 - `next`: TDD RED/GREEN, echte Unity-6-PlayMode- und .NET-GitHub-CI, unabhängiger Save-/Replay-Readback, visueller GameView, danach getrennt Android-Build/Gerät. AC6 und Zeugenschaft bleiben bei #2–#6.
 - `blocked`: Keine Wahrheitsbehauptung zu Täter, Zeugen oder abgeschlossener vollständiger Ermittlungsquest. Android-Device-Gate und finale Art bleiben separat offen.
+
+## HUD-SafeArea-Testgrenze - 10.11.2026
+
+- Verantwortlicher Branch: feat/ashen-crypt-hud-issue9; Core, soziale Beziehungsdaten und Persistenz sind unveraendert. PlayMode-RED eeaff5172dfb41ff53888ceb4b1afd38bedea2e3 -> GREEN 92feca803e0ffe5c093b3bad39079f223be88835, 17/17 bestanden (XML-SHA256 5a25d61eb224b161d92c104b6eda81ac0ca3b7b4e29784bb4bbff03792a4e988). 21 Preflights, 661 echte Core-Assertions. Wolfram bestaetigte fuer 720x405 den alten Mastery/Camp-Konflikt und dessen getrennte Anordnung; der Unity-Headless-Test belegt die implementierten Koordinaten-/HitTest-Methoden.
+- Separate Grafikgrenze: Echter Editor startete PlayMode, verlor aber Pipeline-Verbindung nach Domain-Reload und wurde durch systemd (oom-kill/Status9) beendet; keine neue GameView-Bilddatei, daher visuelle Abnahme UNVERIFIED. Privates Display beendet, Owner-PlayerPrefs SHA-identisch. Android-Gerät/Signatur auf HUD-Head weiterhin UNVERIFIED.

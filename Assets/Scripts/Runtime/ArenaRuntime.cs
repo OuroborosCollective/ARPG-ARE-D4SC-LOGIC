@@ -433,40 +433,15 @@ namespace AreArpg.UnityClient
             }
         }
 
-        private static Rect SkillRect(int i)
+        private static ArenaHudLayout CurrentHudLayout()
         {
-            float width = Mathf.Clamp(Screen.width * 0.125f, 74f, 145f);
-            float height = Mathf.Clamp(Screen.height * 0.13f, 48f, 67f);
-            int col = i % 2;
-            int row = i / 2;
-            return new Rect(Screen.width - (2 - col) * (width + 10f) - 12f,
-                Screen.height - (2 - row) * (height + 9f) - 16f, width, height);
-        }
-
-        private static Rect PickupRect()
-        {
-            return new Rect(Screen.width * 0.43f, Screen.height - 72f, Screen.width * 0.16f, 52f);
-        }
-
-        private static Rect NpcActionRect(int action)
-        {
-            float width = Mathf.Min(300f, Screen.width - 24f);
-            return new Rect(Screen.width - width - 10f + (action % 2) * (width / 2f),
-                266f + (action / 2) * 42f, width / 2f - 5f, 38f);
+            return new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
         }
 
         private void QueueNpcAction(NpcAction action)
         {
             NpcAgent npc = _game.NearestNpc();
             if (npc != null) _pendingNpcActions.Enqueue(new KeyValuePair<int, NpcAction>(npc.Id, action));
-        }
-
-        private bool QueueNpcTouch(Vector2 position)
-        {
-            if (_game.NearestNpc() == null) return false;
-            for (int i = 0; i < 4; i++)
-                if (NpcActionRect(i).Contains(position)) { QueueNpcAction((NpcAction)i); return true; }
-            return false;
         }
 
         private void BuildNpcVisuals()
@@ -484,15 +459,28 @@ namespace AreArpg.UnityClient
             }
         }
 
-        /// <summary>One touch/desktop donation region; the Core validates the queued request.</summary>
-        private static Rect SupplyDonationRect()
-        {
-            return new Rect(12f, 249f, Mathf.Min(290f, Screen.width * 0.40f), 37f);
-        }
-
         /// <summary>Queue inputs for the authoritative fixed simulation tick.</summary>
         private void PollInputs()
         {
+            ArenaHudLayout layout = CurrentHudLayout();
+            if (_game.GameOver)
+            {
+                for (int i = 0; i < Input.touchCount; i++)
+                {
+                    Touch touch = Input.GetTouch(i);
+                    if (touch.phase != TouchPhase.Began || !layout.IsWithinSafeArea(touch.position))
+                        continue;
+                    if (layout.HitTest(layout.ToGuiTouch(touch.position), true, false, false, false)
+                        == ArenaHudControl.Restart)
+                    {
+                        Restart();
+                        return;
+                    }
+                }
+                if (Input.GetKeyDown(KeyCode.R)) Restart();
+                return;
+            }
+
             long x = 0, z = 0;
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) x -= 10000;
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) x += 10000;
@@ -502,35 +490,37 @@ namespace AreArpg.UnityClient
             for (int i = 0; i < Input.touchCount; i++)
             {
                 Touch touch = Input.GetTouch(i);
-                Vector2 pos = touch.position; // Input touch y grows from the bottom.
-                if (pos.x < Screen.width * 0.34f && pos.y < Screen.height * 0.46f &&
+                if (!layout.IsWithinSafeArea(touch.position)) continue;
+                Vector2 guiPoint = layout.ToGuiTouch(touch.position);
+                ArenaHudControl control = layout.HitTest(guiPoint, false,
+                    _game.NearestNpc() != null, _game.ChapterId == 1,
+                    _game.Progression.UnspentMasteryPoints > 0);
+
+                if (control == ArenaHudControl.Move &&
                     touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled)
                 {
-                    Vector2 center = new Vector2(110f, 110f);
-                    Vector2 direction = Vector2.ClampMagnitude((pos - center) / 75f, 1f);
+                    Vector2 bottomLeft = new Vector2(guiPoint.x, layout.Height - guiPoint.y);
+                    Vector2 direction = Vector2.ClampMagnitude(
+                        (bottomLeft - new Vector2(110f, 110f)) / 75f, 1f);
                     x = (long)(direction.x * 10000f);
                     z = (long)(direction.y * 10000f);
                 }
                 else if (touch.phase == TouchPhase.Began)
                 {
-                    Vector2 guiPos = new Vector2(pos.x, Screen.height - pos.y);
-                    bool handledByUi = QueueNpcTouch(guiPos);
-                    for (int ability = 0; ability < 4 && !handledByUi; ability++)
-                        if (SkillRect(ability).Contains(guiPos))
-                        {
-                            _pendingSkills.Enqueue(ability);
-                            handledByUi = true;
-                            break;
-                        }
-                    if (!handledByUi && _game.ChapterId == 1 &&
-                        SupplyDonationRect().Contains(guiPos))
-                    {
+                    if (control >= ArenaHudControl.NpcGreet && control <= ArenaHudControl.NpcRob)
+                        QueueNpcAction((NpcAction)((int)control - (int)ArenaHudControl.NpcGreet));
+                    else if (control >= ArenaHudControl.Skill0 && control <= ArenaHudControl.Skill3)
+                        _pendingSkills.Enqueue((int)control - (int)ArenaHudControl.Skill0);
+                    else if (control >= ArenaHudControl.MasteryMight &&
+                        control <= ArenaHudControl.MasteryResolve)
+                        _pendingMastery.Enqueue((MasteryPath)((int)control - (int)ArenaHudControl.MasteryMight));
+                    else if (control == ArenaHudControl.Donate)
                         _pendingCampDonation = true;
-                        handledByUi = true;
-                    }
-                    if (!handledByUi && PickupRect().Contains(guiPos)) _pendingPickup = true;
+                    else if (control == ArenaHudControl.Pickup)
+                        _pendingPickup = true;
                 }
             }
+
             _game.SetMoveInput(x, z);
             if (Input.GetKeyDown(KeyCode.Alpha1)) _pendingSkills.Enqueue(0);
             if (Input.GetKeyDown(KeyCode.Alpha2)) _pendingSkills.Enqueue(1);
@@ -773,110 +763,139 @@ namespace AreArpg.UnityClient
         private void OnGUI()
         {
             if (_game == null) return;
-            if (_storageFault)
+            ArenaHudLayout layout = CurrentHudLayout();
+            Matrix4x4 previousMatrix = GUI.matrix;
+            GUI.matrix = layout.GuiMatrix;
+            try
             {
-                GUI.Box(new Rect(16, 16, Screen.width - 32, 116),
-                    "SAVE VERIFICATION FAILED\nYour character was not overwritten.\nRestore a valid save before playing.");
-                return;
-            }
-            if (_labelStyle == null)
-            {
-                _labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 19, fontStyle = FontStyle.Bold };
-                _labelStyle.normal.textColor = new Color(0.96f, 0.92f, 0.82f);
-                _smallStyle = new GUIStyle(GUI.skin.label) { fontSize = 15, wordWrap = true };
-                _smallStyle.normal.textColor = new Color(0.86f, 0.88f, 0.92f);
-            }
-            GUI.Box(new Rect(8, 8, Mathf.Min(600, Screen.width * 0.80f), 132), "");
-            GUI.Label(new Rect(20, 15, 540, 28),
-                _game.ChapterId == 1 ? "ARE / DIE ASCHENGRENZE" : "ARE / ASHEN CRYPT", _labelStyle);
-            GUI.Label(new Rect(20, 43, 460, 24),
-                "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
-                "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
-            GUI.Label(new Rect(20, 67, 460, 24),
-                DisplayChapterName(_game) + "  | Weg in die Tiefe: " + _game.CryptDepth +
-                "   Beute " + _game.LootCollected, _smallStyle);
-            GUI.Label(new Rect(20, 92, 540, 24),
-                "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
-                " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
-            GUI.Label(new Rect(20, 115, 540, 24), _message, _smallStyle);
-            if (_game.ChapterId == 1)
-            {
-                int missing = SocialLedger.CampCapacity - _game.Progression.Social.CampProvisions;
-                GUI.Box(new Rect(8f, 148f, Mathf.Min(310f, Screen.width * 0.43f), 145f), "");
-                GUI.Label(new Rect(17f, 155f, 285f, 24f), "DIE GESTOHLENEN VORRAETE", _smallStyle);
-                GUI.Label(new Rect(17f, 181f, 285f, 25f),
-                    "Maras Lager: " + _game.Progression.Social.CampProvisions + "/" + SocialLedger.CampCapacity + "  Fehlbestand: " + missing, _smallStyle);
-                GUI.Label(new Rect(17f, 205f, 285f, 43f),
-                    missing > 0 ? "Ilyan hungert. Niemand kennt den Taeter." :
-                    "Das Lager ist versorgt. Die Schuldfrage bleibt offen.", _smallStyle);
-                if (Application.isMobilePlatform) GUI.Box(SupplyDonationRect(), DonationButtonLabel(true));
-                else if (GUI.Button(SupplyDonationRect(), DonationButtonLabel(false)))
-                    _pendingCampDonation = true;
-            }
-            NpcAgent nearby = _game.NearestNpc();
-            if (nearby != null)
-            {
-                float width = Mathf.Min(300f, Screen.width - 24f);
-                float left = Screen.width - width - 10f;
-                NpcDisposition mood = nearby.Memory.Disposition(nearby.Personality);
-                string moodText = mood == NpcDisposition.Friendly ? "freundlich" :
-                    (mood == NpcDisposition.Wary ? "misstrauisch" : (mood == NpcDisposition.Hostile ? "feindselig" : "neutral"));
-                GUI.Box(new Rect(left - 5f, 144f, width + 5f, 210f), "");
-                string characterName = nearby.Id == 0 ? "Ilyan (Pfadleser)" :
-                    (nearby.Id == 1 ? "Mara (Versorgerin)" : "Dorn (Wache)");
-                GUI.Label(new Rect(left, 148f, width, 25f), characterName + " / " + moodText, _labelStyle);
-                GUI.Label(new Rect(left, 177f, width, 26f), "Gute Taten +" + nearby.Memory.PositivePoints + "  Uebergriffe -" + nearby.Memory.NegativePoints, _smallStyle);
-                GUI.Label(new Rect(left, 205f, width, 26f), "Hunger " + nearby.Memory.Hunger + "  Erschoepfung " + nearby.Memory.Fatigue, _smallStyle);
-                GUI.Label(new Rect(left, 231f, width, 28f), "Proviant " + _game.Progression.Social.Provisions + "  Muenzen " + _game.Progression.Social.Coins, _smallStyle);
-                string[] actions = { "F GRUESSEN", "V VERSORGEN", "B ANGREIFEN", "H AUSRAUBEN" };
-                Color previousColor = GUI.color;
-                for (int i = 0; i < actions.Length; i++)
+                if (_storageFault)
                 {
-                    GUI.color = i >= 2 ? new Color(1f, 0.68f, 0.62f) : previousColor;
-                    if (Application.isMobilePlatform) GUI.Box(NpcActionRect(i), actions[i]);
-                    else if (GUI.Button(NpcActionRect(i), actions[i])) QueueNpcAction((NpcAction)i);
+                    GUI.Box(new Rect(16f, 16f, layout.Width - 32f, 116f),
+                        "SAVE VERIFICATION FAILED\nYour character was not overwritten.\nRestore a valid save before playing.");
+                    return;
                 }
-                GUI.color = previousColor;
-            }
-            GUI.Box(new Rect(25, Screen.height - 194, 170, 170), "MOVE\nWASD / TOUCH");
-            if (_game.Progression.UnspentMasteryPoints > 0)
-            {
-                float buttonWidth = Mathf.Clamp(Screen.width * 0.13f, 72f, 125f);
-                string[] masteryLabels = { "+ MIGHT", "+ VITALITY", "+ RESOLVE" };
-                for (int i = 0; i < masteryLabels.Length; i++)
+
+                if (_labelStyle == null)
                 {
-                    Rect masteryRect = new Rect(12 + i * (buttonWidth + 5), 146, buttonWidth, 42);
-                    if (GUI.Button(masteryRect, masteryLabels[i]))
-                        _pendingMastery.Enqueue((MasteryPath)i);
+                    _labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 19, fontStyle = FontStyle.Bold };
+                    _labelStyle.normal.textColor = new Color(0.96f, 0.92f, 0.82f);
+                    _smallStyle = new GUIStyle(GUI.skin.label) { fontSize = 15, wordWrap = true };
+                    _smallStyle.normal.textColor = new Color(0.86f, 0.88f, 0.92f);
+                }
+
+                if (!ArenaHudLayout.ShowGameplayControls(_game.GameOver))
+                {
+                    GUI.Box(layout.DefeatPanelRect, "DEFEATED\nPress R to restart");
+                    if (Application.isMobilePlatform) GUI.Box(layout.RestartRect, "RESTART");
+                    else if (GUI.Button(layout.RestartRect, "RESTART")) Restart();
+                    return;
+                }
+
+                GUI.Box(layout.StatusPanelRect, "");
+                GUI.Label(new Rect(20f, 15f, 540f, 28f),
+                    _game.ChapterId == 1 ? "ARE / DIE ASCHENGRENZE" : "ARE / ASHEN CRYPT", _labelStyle);
+                GUI.Label(new Rect(20f, 43f, 460f, 24f),
+                    "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
+                    "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
+                GUI.Label(new Rect(20f, 67f, 460f, 24f),
+                    DisplayChapterName(_game) + "  | Weg in die Tiefe: " + _game.CryptDepth +
+                    "   Beute " + _game.LootCollected, _smallStyle);
+                GUI.Label(new Rect(20f, 92f, 540f, 24f),
+                    "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
+                    " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
+                GUI.Label(new Rect(20f, 115f, 540f, 24f), _message, _smallStyle);
+
+                if (_game.ChapterId == 1)
+                {
+                    int missing = SocialLedger.CampCapacity - _game.Progression.Social.CampProvisions;
+                    GUI.Box(layout.CampPanelRect, "");
+                    GUI.Label(new Rect(17f, 155f, 285f, 24f), "DIE GESTOHLENEN VORRAETE", _smallStyle);
+                    GUI.Label(new Rect(17f, 181f, 285f, 25f),
+                        "Maras Lager: " + _game.Progression.Social.CampProvisions + "/" +
+                        SocialLedger.CampCapacity + "  Fehlbestand: " + missing, _smallStyle);
+                    GUI.Label(new Rect(17f, 205f, 285f, 43f),
+                        missing > 0 ? "Ilyan hungert. Niemand kennt den Taeter." :
+                        "Das Lager ist versorgt. Die Schuldfrage bleibt offen.", _smallStyle);
+                    if (Application.isMobilePlatform) GUI.Box(layout.DonationRect, DonationButtonLabel(true));
+                    else if (GUI.Button(layout.DonationRect, DonationButtonLabel(false)))
+                        _pendingCampDonation = true;
+                }
+
+                NpcAgent nearby = _game.NearestNpc();
+                if (nearby != null)
+                {
+                    Rect npcPanel = layout.NpcPanelRect;
+                    float left = npcPanel.x + 5f;
+                    float width = npcPanel.width - 5f;
+                    NpcDisposition mood = nearby.Memory.Disposition(nearby.Personality);
+                    string moodText = mood == NpcDisposition.Friendly ? "freundlich" :
+                        (mood == NpcDisposition.Wary ? "misstrauisch" :
+                        (mood == NpcDisposition.Hostile ? "feindselig" : "neutral"));
+                    GUI.Box(npcPanel, "");
+                    string characterName = nearby.Id == 0 ? "Ilyan (Pfadleser)" :
+                        (nearby.Id == 1 ? "Mara (Versorgerin)" : "Dorn (Wache)");
+                    GUI.Label(new Rect(left, 148f, width, 25f),
+                        characterName + " / " + moodText, _labelStyle);
+                    GUI.Label(new Rect(left, 177f, width, 26f),
+                        "Gute Taten +" + nearby.Memory.PositivePoints + "  Uebergriffe -" +
+                        nearby.Memory.NegativePoints, _smallStyle);
+                    GUI.Label(new Rect(left, 205f, width, 26f),
+                        "Hunger " + nearby.Memory.Hunger + "  Erschoepfung " +
+                        nearby.Memory.Fatigue, _smallStyle);
+                    GUI.Label(new Rect(left, 231f, width, 28f),
+                        "Proviant " + _game.Progression.Social.Provisions +
+                        "  Muenzen " + _game.Progression.Social.Coins, _smallStyle);
+                    string[] actions = { "F GRUESSEN", "V VERSORGEN", "B ANGREIFEN", "H AUSRAUBEN" };
+                    Color previousColor = GUI.color;
+                    for (int i = 0; i < actions.Length; i++)
+                    {
+                        GUI.color = i >= 2 ? new Color(1f, 0.68f, 0.62f) : previousColor;
+                        if (Application.isMobilePlatform) GUI.Box(layout.NpcActionRect(i), actions[i]);
+                        else if (GUI.Button(layout.NpcActionRect(i), actions[i]))
+                            QueueNpcAction((NpcAction)i);
+                    }
+                    GUI.color = previousColor;
+                }
+
+                GUI.Box(layout.MoveRect, "MOVE\nWASD / TOUCH");
+                if (_game.Progression.UnspentMasteryPoints > 0)
+                {
+                    string[] masteryLabels = { "+ MIGHT", "+ VITALITY", "+ RESOLVE" };
+                    for (int i = 0; i < masteryLabels.Length; i++)
+                    {
+                        Rect masteryRect = layout.MasteryRect(i);
+                        if (Application.isMobilePlatform) GUI.Box(masteryRect, masteryLabels[i]);
+                        else if (GUI.Button(masteryRect, masteryLabels[i]))
+                            _pendingMastery.Enqueue((MasteryPath)i);
+                    }
+                }
+
+                string[] labels = { "1 KLINGE", "2 WUCHT", "3 SCHUTZ", "4 RUIN" };
+                for (int i = 0; i < labels.Length; i++)
+                {
+                    Rect rect = layout.SkillRect(i);
+                    string title = labels[i] + " R" + _game.Progression.PracticeLevel(i) +
+                        "\n" + _game.Progression.PracticeExperience(i) + " XP" +
+                        (_game.Cooldowns[i] > 0 ? " (" + _game.Cooldowns[i] + ")" : "");
+                    if (Application.isMobilePlatform) GUI.Box(rect, title);
+                    else if (GUI.Button(rect, title)) _pendingSkills.Enqueue(i);
+                }
+
+                if (Application.isMobilePlatform) GUI.Box(layout.PickupRect, "PICK UP");
+                else if (GUI.Button(layout.PickupRect, "PICK UP (E)")) _pendingPickup = true;
+
+                if (_regionFade > 0f)
+                {
+                    Color previous = GUI.color;
+                    GUI.color = new Color(0f, 0f, 0f, _regionFade);
+                    GUI.DrawTexture(new Rect(0f, 0f, layout.Width, layout.Height),
+                        Texture2D.whiteTexture);
+                    GUI.color = previous;
                 }
             }
-
-            string[] labels = { "1 KLINGE", "2 WUCHT", "3 SCHUTZ", "4 RUIN" };
-            for (int i = 0; i < labels.Length; i++)
+            finally
             {
-                Rect rect = SkillRect(i);
-                string title = labels[i] + " R" + _game.Progression.PracticeLevel(i) +
-                    "\n" + _game.Progression.PracticeExperience(i) + " XP" +
-                    (_game.Cooldowns[i] > 0 ? " (" + _game.Cooldowns[i] + ")" : "");
-                if (Application.isMobilePlatform) GUI.Box(rect, title);
-                else if (GUI.Button(rect, title)) _pendingSkills.Enqueue(i);
-            }
-            if (Application.isMobilePlatform) GUI.Box(PickupRect(), "PICK UP");
-            else if (GUI.Button(PickupRect(), "PICK UP (E)")) _pendingPickup = true;
-
-            if (_game.GameOver)
-            {
-                Rect rect = new Rect(Screen.width * 0.3f, Screen.height * 0.38f,
-                    Screen.width * 0.4f, 90f);
-                GUI.Box(rect, "DEFEATED\nPress R to restart");
-                if (GUI.Button(new Rect(rect.x, rect.y + 90, rect.width, 40), "RESTART")) Restart();
-            }
-            if (_regionFade > 0f)
-            {
-                Color previous = GUI.color;
-                GUI.color = new Color(0f, 0f, 0f, _regionFade);
-                GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-                GUI.color = previous;
+                GUI.matrix = previousMatrix;
             }
         }
     }
