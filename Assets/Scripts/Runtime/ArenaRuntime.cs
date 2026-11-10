@@ -45,6 +45,7 @@ namespace AreArpg.UnityClient
             new GameObject("ARE_ARPG_Runtime").AddComponent<ArenaRuntime>();
         }
 
+        /// <summary>Load only an independently verified character save and install its real chapter projection.</summary>
         private void Awake()
         {
             Application.targetFrameRate = 60;
@@ -138,6 +139,7 @@ namespace AreArpg.UnityClient
             return go.transform;
         }
 
+        /// <summary>Build passive Unity scenery around the single canonical ArenaSimulation.</summary>
         private void BuildWorld()
         {
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
@@ -703,6 +705,14 @@ namespace AreArpg.UnityClient
             foreach (int id in removed) _lootVisuals.Remove(id);
         }
 
+        /// <summary>Translate a Core chapter to a display label without changing its identity or save.</summary>
+        public static string DisplayChapterName(ArenaSimulation game)
+        {
+            if (game == null) throw new ArgumentNullException(nameof(game));
+            return game.ChapterId == 1 ? "Die Aschengrenze" : game.ChapterName;
+        }
+
+        /// <summary>Render read-only gameplay data and queue player actions; never own game rules.</summary>
         private void OnGUI()
         {
             if (_game == null) return;
@@ -726,7 +736,7 @@ namespace AreArpg.UnityClient
                 "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
                 "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
             GUI.Label(new Rect(20, 67, 460, 24),
-                _game.ChapterName + "  | Weg in die Tiefe: " + _game.CryptDepth +
+                DisplayChapterName(_game) + "  | Weg in die Tiefe: " + _game.CryptDepth +
                 "   Beute " + _game.LootCollected, _smallStyle);
             GUI.Label(new Rect(20, 92, 540, 24),
                 "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
