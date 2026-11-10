@@ -29,6 +29,7 @@ internal static class Program
             CheckpointTests.Run(Require);
             PracticeWorldTests.Run(Require);
             NpcSocialTests.Run(Require);
+            SupplyTheftTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

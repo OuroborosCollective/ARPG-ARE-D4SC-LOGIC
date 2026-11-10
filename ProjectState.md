@@ -3,12 +3,12 @@
 Stand: 2026-11-10 (Aschengrenze-Entwicklung). Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 ist als Merge-Commit e607c609c2ed7f02223689de3aa6cab7aedda3bc auf main.
 
 - phase: VERTICAL_SLICE / GAMEPLAY_EXPANSION
-- current_goal: Erste Regionsidentitaet Die Aschengrenze mit sichtbarem Dorf, persoenlich benannten NPCs, bestehendem Camp/Nordbogen und unveraenderter Social-/Kampf-Authority im Unity-6-Vertical-Slice abnehmen.
+- current_goal: Die gestohlenen Vorraete in der Aschengrenze als echtes AC5-gebundenes Entscheidungsspiel: Maras Lager spenden, Ilyan helfen oder angreifen; persoesnliche Konsequenzen und live sichtbaren Lagerbestand mit einer Autoritaet pruefen.
 - approved: Eigenständiges Unity-Android-ARPG; Unity 6000.6.8f1 und offizielle Pipeline 0.10.0-exp.1; integerbasierter 100-ms-Core; Unity projiziert; bestehende AC1/AC2/AC3-Persistenz erhalten. Keine Aurion-Anbindung. Owner erlaubt am 09.11.2026 dauerhaft, seine ausgewählten Account-Pakete bei Bedarf ohne erneute Paketfreigabe zu installieren und zu integrieren. Neuer Owner-Auftrag: kein Levelcap, Lernen durch Tätigkeiten und Gebietsdurchgänge im Spielfluss statt Level-complete-Menüs.
 - direction: Director führt technische Planung, Implementierung, Integration und Prüfung aus. Owner entscheidet über prägende Produktfragen, Lore und Art Direction anhand konkreter Alternativen. Die Paketfreigabe ist keine Kauf-, Lizenzzustimmungs- oder Releasefreigabe.
 - open_decisions: Die Aschengrenze als Region vom Owner am 10.11.2026 gewaehlt; finale Art-Pakete, grosse Storyzweige und Releases bleiben Owner-Entscheidungen. Physische Spielerabnahme steht aus.
-- blocked: Reale Android-Geräteabnahme vor dem bestehenden Handoff-Mergegate weiterhin offen. Grafik-/Toolentwicklung wird deshalb nicht auf einen erneuten APK-Handoff verschoben.
-- next: Aschengrenze-GameView und Charakteranimationen separat pruefen, dann kanonische SocialEvents/AC6 gem. Issue #2 vor Zeugenschaft/Policies #3–#6 implementieren. Inventar-/Skill-Adapter spaeter nur mit bestehendem Core/Save. Praegende Loreentscheidungen mit konkreten Alternativen beim Owner.
+- blocked: Neue Android-APK und physischer Touch-/Save-Test bleiben offen; GitHub-Unity-Workflow skipped (VPS Unity6-PlayMode separat real ausgefuehrt). Reale Android-Geräteabnahme vor dem bestehenden Handoff-Mergegate weiterhin offen. Grafik-/Toolentwicklung wird deshalb nicht auf einen erneuten APK-Handoff verschoben.
+- next: Den aktuell geprueften PR8-Reviewfix auf GitHub CI/Reviews/Tree readback pruefen und bei erfuellten Gates mergen; danach AC6 Issue #2 vor Zeugenschaft/Policies #3–#6 implementieren. Aschengrenze-GameView und Charakteranimationen separat pruefen. Inventar-/Skill-Adapter spaeter nur mit bestehendem Core/Save. Praegende Loreentscheidungen mit konkreten Alternativen beim Owner.
 
 ## Account-Inhalte und aktuelle Arbeit
 
@@ -70,3 +70,9 @@ Die vier Tätigkeiten Klingenführung, Wucht, Schutz und Ruinmagie wachsen unabh
 Nach Sieg und Beutesicherung führt der begehbare Nordbogen ins Folgegebiet. Der Core prüft den Abstand, der Runtime-Adapter speichert/readbackt vor dem Wechsel. HP/Fokus/Cooldowns und Fortschritt bleiben erhalten; kurzer Fade statt Abschlussfenster. Kein NextCrypt-Knopf/N-Fernwechsel mehr. Gebietstausch ist implementiert, Open-World-Streaming und vielfältige neue Biome noch nicht.
 
 Source1dde63549cd8ffb8d205d5d716d8a8767ac10f48, Treebff55cf3dd5a7d613f3c15c53b0171e10cde0272:449 deterministische Core-Assertions bestanden,21Preflights bestanden, [Core-CI42701423292](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/42701423292) success. DirectorUnity6-Job20261109T212041Z-5b0ca5aae788 bestand7/7Tests,0Skips, einschließlich echtemClient-Ticking undDurchgangsgeometrie sowieAC4-Roundtrip. XML-SHA25607a43ef09e61c1c77b2b0c8365933a8ed2af688f5f2166fabf200b90db076760. GitHubUnity42701423329 skipped ist keinPASS. Kein neuerAndroid-/sichtbarerArt-/Releasebeleg. Designvertrag: [LEARN_BY_DOING](docs/LEARN_BY_DOING.md).
+
+## Folgeblock — Die gestohlenen Vorräte (10.11.2026)
+- `current_goal`: Eine reale Vorratslücke im kanonischen AC5-SocialLedger, eine spielbare Abgabe an Mara und sichtbare kollisionsfreie Lagerhinweise. Keine zweite Quest-/NPC-Authority.
+- `approved`: Owner wählte `story.aschengrenze.supplies.v1` als nächsten Konflikt. Bestehender Ilyan-Hilfe-/Angriffspfad und Maras Ressourcenkern werden wiederverwendet.
+- `next`: TDD RED/GREEN, echte Unity-6-PlayMode- und .NET-GitHub-CI, unabhängiger Save-/Replay-Readback, visueller GameView, danach getrennt Android-Build/Gerät. AC6 und Zeugenschaft bleiben bei #2–#6.
+- `blocked`: Keine Wahrheitsbehauptung zu Täter, Zeugen oder abgeschlossener vollständiger Ermittlungsquest. Android-Device-Gate und finale Art bleiben separat offen.

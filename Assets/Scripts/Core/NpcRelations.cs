@@ -94,10 +94,16 @@ namespace AreArpg.Core
     /// <summary>Persistent local social state, owned and checksummed by CharacterProgression.</summary>
     public sealed class SocialLedger
     {
+        /// <summary>Maximum real camp stock: one canonical capacity for Core and Unity projection.</summary>
+        public const int CampCapacity = 10;
+        /// <summary>The established supplier NPC's canonical ID; not a separate social owner.</summary>
+        public const int MaraNpcId = 1;
         private readonly NpcMemory[] _people = new NpcMemory[3];
         public BigInteger Provisions { get; private set; } = 3;
         public BigInteger Coins { get; private set; }
-        public int CampProvisions { get; private set; } = 10;
+        // Only newly created first-region profiles begin with a real two-ration shortage.
+        // Existing AC5 saves retain their exact stored camp stock without migration.
+        public int CampProvisions { get; private set; } = 8;
 
         public SocialLedger()
         {
@@ -131,6 +137,16 @@ namespace AreArpg.Core
             if (m.Purse == 0) return false;
             Coins += m.Purse; m.Purse = 0;
             m.Record(NpcAction.Rob, 2);
+            return true;
+        }
+
+        /// <summary>One real player ration becomes one camp ration. Exact transaction and direct memory.</summary>
+        internal bool DonateCampRation(int npcId)
+        {
+            if (npcId != MaraNpcId || Provisions.IsZero || CampProvisions >= CampCapacity) return false;
+            Provisions--;
+            CampProvisions++;
+            GetMemory(MaraNpcId).Record(NpcAction.Help, 0);
             return true;
         }
 

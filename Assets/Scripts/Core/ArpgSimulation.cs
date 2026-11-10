@@ -249,6 +249,58 @@ namespace AreArpg.Core
             return found;
         }
 
+        /// <summary>
+        /// The stolen supplies scene reuses canonical camp stock, direct Mara memory and
+        /// the existing NPC cooldown/proximity contract. No independent quest ledger.
+        /// </summary>
+        public SocialResult DonateCampRation()
+        {
+            var result = new SocialResult();
+            if (ChapterId != 1)
+            {
+                result.Text = "Nur in der Aschengrenze gibt es Maras Lager.";
+                return result;
+            }
+            if (GameOver)
+            {
+                result.Text = "Du bist kampfunfaehig und kannst nichts abgeben.";
+                return result;
+            }
+            NpcAgent mara = Npcs.Find(n => n.Id == SocialLedger.MaraNpcId);
+            if (mara == null)
+            {
+                result.Text = "Mara ist hier nicht anzutreffen.";
+                return result;
+            }
+            if (mara.Memory.Health == 0)
+            {
+                result.Text = "Mara ist bewusstlos und kann nichts annehmen.";
+                return result;
+            }
+            if (mara.InteractionCooldownTicks > 0)
+            {
+                result.Text = "Warte, Mara braucht einen Moment vor der naechsten Uebergabe.";
+                return result;
+            }
+            if (DistanceSquared(PlayerXmm, PlayerZmm, mara.Xmm, mara.Zmm) >
+                FixedMath.Square(NpcInteractionRadiusMm))
+            {
+                result.Text = "Nur direkt bei Mara kannst du eine Lagerration abgeben.";
+                return result;
+            }
+            if (!Progression.Social.DonateCampRation(SocialLedger.MaraNpcId))
+            {
+                result.Text = Progression.Social.CampProvisions >= SocialLedger.CampCapacity ?
+                    "Maras Lager ist voll. Keine Ration verbraucht." :
+                    "Du hast keinen Proviant zum Uebergeben.";
+                return result;
+            }
+            mara.InteractionCooldownTicks = 10;
+            result.Accepted = true;
+            result.Text = "Mara nimmt eine echte Ration an. Das Lager wird sicherer; sie merkt sich deine Hilfe.";
+            return result;
+        }
+
         public SocialResult InteractNpc(int id, NpcAction action)
         {
             var result = new SocialResult();
