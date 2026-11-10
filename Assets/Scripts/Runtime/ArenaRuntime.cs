@@ -33,6 +33,7 @@ namespace AreArpg.UnityClient
         private bool _pendingPickup;
         private bool _pendingCampDonation;
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
+        private readonly ArenaHudTouchCapture _movementTouch = new ArenaHudTouchCapture();
         private bool _storageFault;
         private Transform _worldPassage;
         private bool _passageAnnounced;
@@ -433,6 +434,7 @@ namespace AreArpg.UnityClient
             }
         }
 
+        /// <summary>Read the current physical viewport once per input or drawing pass.</summary>
         private static ArenaHudLayout CurrentHudLayout()
         {
             return new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
@@ -465,6 +467,7 @@ namespace AreArpg.UnityClient
             ArenaHudLayout layout = CurrentHudLayout();
             if (_game.GameOver)
             {
+                _movementTouch.Reset();
                 for (int i = 0; i < Input.touchCount; i++)
                 {
                     Touch touch = Input.GetTouch(i);
@@ -487,25 +490,31 @@ namespace AreArpg.UnityClient
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) z += 10000;
             if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) z -= 10000;
 
+            bool capturedFingerPresent = false;
             for (int i = 0; i < Input.touchCount; i++)
             {
                 Touch touch = Input.GetTouch(i);
-                if (!layout.IsWithinSafeArea(touch.position)) continue;
+                bool insideSafeArea = layout.IsWithinSafeArea(touch.position);
                 Vector2 guiPoint = layout.ToGuiTouch(touch.position);
-                ArenaHudControl control = layout.HitTest(guiPoint, false,
-                    _game.NearestNpc() != null, _game.ChapterId == 1,
-                    _game.Progression.UnspentMasteryPoints > 0);
+                // Only a new touch can select a button. The held movement
+                // finger keeps its ownership outside MOVE and SafeArea.
+                ArenaHudControl control = touch.phase == TouchPhase.Began && insideSafeArea
+                    ? layout.HitTest(guiPoint, false,
+                        _game.NearestNpc() != null, _game.ChapterId == 1,
+                        _game.Progression.UnspentMasteryPoints > 0)
+                    : ArenaHudControl.None;
 
-                if (control == ArenaHudControl.Move &&
-                    touch.phase != TouchPhase.Ended && touch.phase != TouchPhase.Canceled)
+                Vector2 direction;
+                if (_movementTouch.TryMove(touch.fingerId, touch.phase, guiPoint,
+                    layout, control, out direction))
                 {
-                    Vector2 bottomLeft = new Vector2(guiPoint.x, layout.Height - guiPoint.y);
-                    Vector2 direction = Vector2.ClampMagnitude(
-                        (bottomLeft - new Vector2(110f, 110f)) / 75f, 1f);
+                    capturedFingerPresent = true;
                     x = (long)(direction.x * 10000f);
                     z = (long)(direction.y * 10000f);
+                    continue;
                 }
-                else if (touch.phase == TouchPhase.Began)
+
+                if (touch.phase == TouchPhase.Began && insideSafeArea)
                 {
                     if (control >= ArenaHudControl.NpcGreet && control <= ArenaHudControl.NpcRob)
                         QueueNpcAction((NpcAction)((int)control - (int)ArenaHudControl.NpcGreet));
@@ -520,6 +529,9 @@ namespace AreArpg.UnityClient
                         _pendingPickup = true;
                 }
             }
+
+            // Release if the OS dropped the tracked finger without Ended/Canceled.
+            if (_movementTouch.IsCaptured && !capturedFingerPresent) _movementTouch.Reset();
 
             _game.SetMoveInput(x, z);
             if (Input.GetKeyDown(KeyCode.Alpha1)) _pendingSkills.Enqueue(0);
@@ -578,6 +590,7 @@ namespace AreArpg.UnityClient
             _pendingPickup = false;
             _pendingCampDonation = false;
             _pendingNpcActions.Clear();
+            _movementTouch.Reset();
             _accumulator = 0f;
             if (_bossWarning != null) Destroy(_bossWarning.gameObject);
             _bossWarning = null;
@@ -759,6 +772,12 @@ namespace AreArpg.UnityClient
             return game.ChapterId == 1 ? "Die Aschengrenze" : game.ChapterName;
         }
 
+        /// <summary>Keep defeat instructions accurate for touch and keyboard devices.</summary>
+        public static string DefeatPrompt(bool isMobile)
+        {
+            return isMobile ? "DEFEATED\nTap RESTART" : "DEFEATED\nPress R to restart";
+        }
+
         /// <summary>Render read-only gameplay data and queue player actions; never own game rules.</summary>
         private void OnGUI()
         {
@@ -785,7 +804,7 @@ namespace AreArpg.UnityClient
 
                 if (!ArenaHudLayout.ShowGameplayControls(_game.GameOver))
                 {
-                    GUI.Box(layout.DefeatPanelRect, "DEFEATED\nPress R to restart");
+                    GUI.Box(layout.DefeatPanelRect, DefeatPrompt(Application.isMobilePlatform));
                     if (Application.isMobilePlatform) GUI.Box(layout.RestartRect, "RESTART");
                     else if (GUI.Button(layout.RestartRect, "RESTART")) Restart();
                     return;

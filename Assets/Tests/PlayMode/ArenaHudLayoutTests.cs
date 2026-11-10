@@ -141,5 +141,64 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse(ArenaHudLayout.ShowGameplayControls(true));
             Assert.IsTrue(ArenaHudLayout.ShowGameplayControls(false));
         }
+
+        [Test] public void CapturedMoveContinuesOutsideVisibleRectUntilRelease()
+        {
+            ArenaHudLayout layout = FullView(960f, 540f);
+            var move = new ArenaHudTouchCapture();
+            Vector2 direction;
+            Assert.IsTrue(move.TryMove(17, TouchPhase.Began, layout.MoveRect.center,
+                layout, ArenaHudControl.Move, out direction));
+            Assert.AreEqual(0f, direction.magnitude, 0.00001f,
+                "A finger starting at the visual center must produce no movement.");
+
+            Vector2 outside = new Vector2(layout.MoveRect.xMax + 85f, layout.MoveRect.center.y);
+            Assert.AreEqual(ArenaHudControl.None,
+                layout.HitTest(outside, false, false, false, false));
+            Assert.IsTrue(move.TryMove(17, TouchPhase.Moved, outside,
+                layout, ArenaHudControl.None, out direction),
+                "A captured finger must keep driving movement outside MOVE.");
+            Assert.AreEqual(1f, direction.x, 0.0001f,
+                "Dragging outside the box must clamp to the joystick maximum.");
+            Assert.AreEqual(0f, direction.y, 0.0001f);
+            Assert.IsTrue(move.IsCaptured);
+
+            Assert.IsFalse(move.TryMove(17, TouchPhase.Ended, outside,
+                layout, ArenaHudControl.None, out direction));
+            Assert.IsFalse(move.IsCaptured);
+            Assert.IsFalse(move.TryMove(17, TouchPhase.Moved, outside,
+                layout, ArenaHudControl.None, out direction),
+                "Once ended, movement must not resume without a new MOVE start.");
+        }
+
+        [Test] public void MoveCaptureIgnoresSecondFingerAndCanceledTouchReleases()
+        {
+            ArenaHudLayout layout = FullView(1007f, 601f);
+            var move = new ArenaHudTouchCapture();
+            Vector2 direction;
+            Assert.IsFalse(move.TryMove(14, TouchPhase.Began, layout.NpcActionRect(0).center,
+                layout, ArenaHudControl.NpcGreet, out direction));
+            Assert.IsFalse(move.IsCaptured);
+            Assert.IsTrue(move.TryMove(4, TouchPhase.Began, layout.MoveRect.center,
+                layout, ArenaHudControl.Move, out direction));
+            Assert.IsFalse(move.TryMove(6, TouchPhase.Began, layout.MoveRect.center,
+                layout, ArenaHudControl.Move, out direction));
+            Assert.IsFalse(move.TryMove(6, TouchPhase.Moved, layout.MoveRect.center,
+                layout, ArenaHudControl.None, out direction));
+            Assert.IsTrue(move.TryMove(4, TouchPhase.Stationary, layout.MoveRect.center,
+                layout, ArenaHudControl.None, out direction));
+            Assert.IsFalse(move.TryMove(4, TouchPhase.Canceled, layout.MoveRect.center,
+                layout, ArenaHudControl.None, out direction));
+            Assert.IsFalse(move.IsCaptured);
+            Assert.IsFalse(move.TryMove(4, TouchPhase.Stationary, layout.MoveRect.center,
+                layout, ArenaHudControl.None, out direction));
+        }
+
+        [Test] public void MobileDefeatInstructionsMatchTouchRestartAction()
+        {
+            Assert.AreEqual("DEFEATED\nTap RESTART", ArenaRuntime.DefeatPrompt(true));
+            Assert.AreEqual("DEFEATED\nPress R to restart", ArenaRuntime.DefeatPrompt(false));
+        }
+
     }
 }

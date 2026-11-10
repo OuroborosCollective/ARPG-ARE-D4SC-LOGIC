@@ -24,6 +24,45 @@ namespace AreArpg.UnityClient
     }
 
     /// <summary>
+    /// Captures only a MOVE-initiated touch finger until release/cancel; keeps UI
+    /// hit testing separate from the one authoritative game movement input.
+    /// </summary>
+    public sealed class ArenaHudTouchCapture
+    {
+        private int _fingerId = -1;
+
+        public bool IsCaptured { get { return _fingerId >= 0; } }
+        public int FingerId { get { return _fingerId; } }
+
+        /// <summary>Release a held finger when the game resets or focus/touch disappears.</summary>
+        public void Reset() { _fingerId = -1; }
+
+        /// <summary>
+        /// Accept MOVE only at TouchPhase.Began, then retain that finger even
+        /// beyond MOVE and the safe area. The visible MOVE center is neutral.
+        /// Returns false for other fingers and all released/canceled input.
+        /// </summary>
+        public bool TryMove(int fingerId, TouchPhase phase, Vector2 guiPoint,
+            ArenaHudLayout layout, ArenaHudControl controlAtStart, out Vector2 direction)
+        {
+            direction = Vector2.zero;
+            if (phase == TouchPhase.Ended || phase == TouchPhase.Canceled)
+            {
+                if (_fingerId == fingerId) Reset();
+                return false;
+            }
+
+            if (!IsCaptured && phase == TouchPhase.Began && controlAtStart == ArenaHudControl.Move)
+                _fingerId = fingerId;
+            if (_fingerId != fingerId) return false;
+
+            Vector2 offset = guiPoint - layout.MoveRect.center;
+            direction = Vector2.ClampMagnitude(new Vector2(offset.x, -offset.y) / 75f, 1f);
+            return true;
+        }
+    }
+
+    /// <summary>
     /// Immutable layout in GUI top-left coordinates, including a single affine mapping
     /// from Unity's bottom-left physical touch coordinates. Gameplay stays in ArenaSimulation.
     /// </summary>
@@ -67,17 +106,20 @@ namespace AreArpg.UnityClient
             }
         }
 
+        /// <summary>Reject new touches in system-notched and noninteractive screen regions.</summary>
         public bool IsWithinSafeArea(Vector2 screenPoint)
         {
             return SafeArea.Contains(screenPoint);
         }
 
+        /// <summary>Convert physical bottom-left touch pixels into scaled GUI coordinates.</summary>
         public Vector2 ToGuiTouch(Vector2 screenPoint)
         {
             return new Vector2((screenPoint.x - SafeArea.xMin) / Scale,
                 (SafeArea.yMax - screenPoint.y) / Scale);
         }
 
+        /// <summary>Map the same GUI targets back to physical bottom-left touch pixels.</summary>
         public Vector2 ToScreenTouch(Vector2 guiPoint)
         {
             return new Vector2(SafeArea.xMin + guiPoint.x * Scale,
@@ -99,6 +141,7 @@ namespace AreArpg.UnityClient
             }
         }
 
+        /// <summary>Place one of four NPC controls in the top-right HUD panel.</summary>
         public Rect NpcActionRect(int action)
         {
             float w = Mathf.Min(300f, Width - 24f);
@@ -106,12 +149,14 @@ namespace AreArpg.UnityClient
                 266f + (action / 2) * 42f, w / 2f - 5f, 38f);
         }
 
+        /// <summary>Keep each mastery button clear of the supply and NPC panels.</summary>
         public Rect MasteryRect(int mastery)
         {
             // Vertical center column; no button can cover Mara's supply panel.
             return new Rect(CampPanelRect.xMax + 12f, 148f + mastery * 62f, 124f, 56f);
         }
 
+        /// <summary>Compute the four mobile skill targets in one shared layout.</summary>
         public Rect SkillRect(int skill)
         {
             float w = Mathf.Clamp(Width * 0.125f, 74f, 145f);
