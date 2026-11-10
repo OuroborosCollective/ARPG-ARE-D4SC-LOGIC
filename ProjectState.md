@@ -70,3 +70,9 @@ Die vier Tätigkeiten Klingenführung, Wucht, Schutz und Ruinmagie wachsen unabh
 Nach Sieg und Beutesicherung führt der begehbare Nordbogen ins Folgegebiet. Der Core prüft den Abstand, der Runtime-Adapter speichert/readbackt vor dem Wechsel. HP/Fokus/Cooldowns und Fortschritt bleiben erhalten; kurzer Fade statt Abschlussfenster. Kein NextCrypt-Knopf/N-Fernwechsel mehr. Gebietstausch ist implementiert, Open-World-Streaming und vielfältige neue Biome noch nicht.
 
 Source1dde63549cd8ffb8d205d5d716d8a8767ac10f48, Treebff55cf3dd5a7d613f3c15c53b0171e10cde0272:449 deterministische Core-Assertions bestanden,21Preflights bestanden, [Core-CI42701423292](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/42701423292) success. DirectorUnity6-Job20261109T212041Z-5b0ca5aae788 bestand7/7Tests,0Skips, einschließlich echtemClient-Ticking undDurchgangsgeometrie sowieAC4-Roundtrip. XML-SHA25607a43ef09e61c1c77b2b0c8365933a8ed2af688f5f2166fabf200b90db076760. GitHubUnity42701423329 skipped ist keinPASS. Kein neuerAndroid-/sichtbarerArt-/Releasebeleg. Designvertrag: [LEARN_BY_DOING](docs/LEARN_BY_DOING.md).
+
+## Folgeblock — Die gestohlenen Vorräte (10.11.2026)
+- `current_goal`: Eine reale Vorratslücke im kanonischen AC5-SocialLedger, eine spielbare Abgabe an Mara und sichtbare kollisionsfreie Lagerhinweise. Keine zweite Quest-/NPC-Authority.
+- `approved`: Owner wählte `story.aschengrenze.supplies.v1` als nächsten Konflikt. Bestehender Ilyan-Hilfe-/Angriffspfad und Maras Ressourcenkern werden wiederverwendet.
+- `next`: TDD RED/GREEN, echte Unity-6-PlayMode- und .NET-GitHub-CI, unabhängiger Save-/Replay-Readback, visueller GameView, danach getrennt Android-Build/Gerät. AC6 und Zeugenschaft bleiben bei #2–#6.
+- `blocked`: Keine Wahrheitsbehauptung zu Täter, Zeugen oder abgeschlossener vollständiger Ermittlungsquest. Android-Device-Gate und finale Art bleiben separat offen.

@@ -97,7 +97,9 @@ namespace AreArpg.Core
         private readonly NpcMemory[] _people = new NpcMemory[3];
         public BigInteger Provisions { get; private set; } = 3;
         public BigInteger Coins { get; private set; }
-        public int CampProvisions { get; private set; } = 10;
+        // Only newly created first-region profiles begin with a real two-ration shortage.
+        // Existing AC5 saves retain their exact stored camp stock without migration.
+        public int CampProvisions { get; private set; } = 8;
 
         public SocialLedger()
         {
@@ -131,6 +133,16 @@ namespace AreArpg.Core
             if (m.Purse == 0) return false;
             Coins += m.Purse; m.Purse = 0;
             m.Record(NpcAction.Rob, 2);
+            return true;
+        }
+
+        /// <summary>One real player ration becomes one camp ration. Exact transaction and direct memory.</summary>
+        internal bool DonateCampRation(int npcId)
+        {
+            if (npcId != 1 || Provisions.IsZero || CampProvisions >= 10) return false;
+            Provisions--;
+            CampProvisions++;
+            _people[1].Record(NpcAction.Help, 0);
             return true;
         }
 

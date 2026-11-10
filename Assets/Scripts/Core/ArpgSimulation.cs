@@ -249,6 +249,31 @@ namespace AreArpg.Core
             return found;
         }
 
+        /// <summary>
+        /// The stolen supplies scene reuses canonical camp stock, direct Mara memory and
+        /// the existing NPC cooldown/proximity contract. No independent quest ledger.
+        /// </summary>
+        public SocialResult DonateCampRation()
+        {
+            var result = new SocialResult();
+            if (ChapterId != 1 || GameOver) return result;
+            NpcAgent mara = Npcs.Find(n => n.Id == 1);
+            if (mara == null || mara.Memory.Health == 0 || mara.InteractionCooldownTicks > 0 ||
+                DistanceSquared(PlayerXmm, PlayerZmm, mara.Xmm, mara.Zmm) >
+                    FixedMath.Square(NpcInteractionRadiusMm)) return result;
+            if (!Progression.Social.DonateCampRation(1))
+            {
+                result.Text = Progression.Social.CampProvisions >= 10 ?
+                    "Maras Lager ist voll. Keine Ration verbraucht." :
+                    "Du hast keinen Proviant zum Uebergeben.";
+                return result;
+            }
+            mara.InteractionCooldownTicks = 10;
+            result.Accepted = true;
+            result.Text = "Mara nimmt eine echte Ration an. Das Lager wird sicherer; sie merkt sich deine Hilfe.";
+            return result;
+        }
+
         public SocialResult InteractNpc(int id, NpcAction action)
         {
             var result = new SocialResult();

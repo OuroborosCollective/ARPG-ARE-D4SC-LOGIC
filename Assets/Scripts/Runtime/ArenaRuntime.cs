@@ -29,6 +29,7 @@ namespace AreArpg.UnityClient
         private readonly Queue<KeyValuePair<int, NpcAction>> _pendingNpcActions = new Queue<KeyValuePair<int, NpcAction>>();
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
+        private bool _pendingCampDonation;
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
         private bool _storageFault;
         private Transform _worldPassage;
@@ -329,6 +330,14 @@ namespace AreArpg.UnityClient
                 new Vector3(-6.8f, -0.067f, -10.5f), new Vector3(8f, 0.09f, 7f), ashstone);
             ChapterShape(PrimitiveType.Cube, "Aschengrenze_Supply_Hall",
                 new Vector3(-12.5f, 1.4f, -8.7f), new Vector3(5.4f, 2.8f, 5f), timber);
+            // An unfilled shelf illustrates the canonical missing stock (8/10 on new saves).
+            // It is not evidence that any particular person committed a theft.
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_Missing_Rations",
+                new Vector3(-9.2f, 0.34f, -11.1f), new Vector3(1.8f, 0.25f, 0.65f), ashstone);
+            for (int occupied = 0; occupied < 3; occupied++)
+                ChapterShape(PrimitiveType.Cube, "Aschengrenze_Stored_Ration_" + occupied,
+                    new Vector3(-9.9f + occupied * 0.5f, 0.61f, -11.1f),
+                    new Vector3(0.28f, 0.28f, 0.38f), timber);
             Transform leftRoof = ChapterShape(PrimitiveType.Cube, "Aschengrenze_Hall_Roof_Left",
                 new Vector3(-13.95f, 3.15f, -8.7f), new Vector3(3.4f, 0.22f, 5.8f), roof);
             leftRoof.rotation = Quaternion.Euler(0f, 0f, 22f);
@@ -463,6 +472,11 @@ namespace AreArpg.UnityClient
             }
         }
 
+        private static Rect SupplyDonationRect()
+        {
+            return new Rect(12f, 249f, Mathf.Min(290f, Screen.width * 0.40f), 37f);
+        }
+
         private void PollInputs()
         {
             long x = 0, z = 0;
@@ -494,6 +508,12 @@ namespace AreArpg.UnityClient
                             foundSkill = true;
                             break;
                         }
+                    if (!foundSkill && _game.ChapterId == 1 &&
+                        SupplyDonationRect().Contains(guiPos))
+                    {
+                        _pendingCampDonation = true;
+                        foundSkill = true;
+                    }
                     if (!foundSkill && PickupRect().Contains(guiPos)) _pendingPickup = true;
                 }
             }
@@ -511,6 +531,7 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.V)) QueueNpcAction(NpcAction.Help);
             if (Input.GetKeyDown(KeyCode.B)) QueueNpcAction(NpcAction.Attack);
             if (Input.GetKeyDown(KeyCode.H)) QueueNpcAction(NpcAction.Rob);
+            if (Input.GetKeyDown(KeyCode.G)) _pendingCampDonation = true;
         }
 
         private void Restart()
@@ -551,6 +572,7 @@ namespace AreArpg.UnityClient
             _pendingSkills.Clear();
             _pendingMastery.Clear();
             _pendingPickup = false;
+            _pendingCampDonation = false;
             _pendingNpcActions.Clear();
             _accumulator = 0f;
             if (_bossWarning != null) Destroy(_bossWarning.gameObject);
@@ -585,6 +607,15 @@ namespace AreArpg.UnityClient
                     if (_storageFault) break;
                 }
                 if (_storageFault) break;
+                if (_pendingCampDonation)
+                {
+                    _pendingCampDonation = false;
+                    SocialResult donation = _game.DonateCampRation();
+                    _message = !string.IsNullOrEmpty(donation.Text) ? donation.Text :
+                        "Nur direkt bei Mara kannst du eine Lagerration abgeben.";
+                    if (donation.Accepted) SaveCharacter();
+                    if (_storageFault) break;
+                }
                 while (_pendingMastery.Count > 0)
                 {
                     MasteryPath path = _pendingMastery.Dequeue();
@@ -732,6 +763,20 @@ namespace AreArpg.UnityClient
                 "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
                 " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
             GUI.Label(new Rect(20, 115, 540, 24), _message, _smallStyle);
+            if (_game.ChapterId == 1)
+            {
+                int missing = 10 - _game.Progression.Social.CampProvisions;
+                GUI.Box(new Rect(8f, 148f, Mathf.Min(310f, Screen.width * 0.43f), 145f), "");
+                GUI.Label(new Rect(17f, 155f, 285f, 24f), "DIE GESTOHLENEN VORRAETE", _smallStyle);
+                GUI.Label(new Rect(17f, 181f, 285f, 25f),
+                    "Maras Lager: " + _game.Progression.Social.CampProvisions + "/10  Fehlbestand: " + missing, _smallStyle);
+                GUI.Label(new Rect(17f, 205f, 285f, 43f),
+                    missing > 0 ? "Ilyan hungert. Niemand kennt den Taeter." :
+                    "Das Lager ist versorgt. Die Schuldfrage bleibt offen.", _smallStyle);
+                if (Application.isMobilePlatform) GUI.Box(SupplyDonationRect(), "G: RATION AN MARA");
+                else if (GUI.Button(SupplyDonationRect(), "G: RATION AN MARA"))
+                    _pendingCampDonation = true;
+            }
             NpcAgent nearby = _game.NearestNpc();
             if (nearby != null)
             {
