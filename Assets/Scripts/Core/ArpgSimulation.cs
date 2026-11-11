@@ -161,7 +161,7 @@ namespace AreArpg.Core
         public long PrevPlayerXmm { get; private set; }
         public long PrevPlayerZmm { get; private set; }
         public int PlayerHealth { get; private set; }
-        public int MaxPlayerHealth { get { return 1200 + Progression.VitalityHealthBonus; } }
+        public int MaxPlayerHealth { get { return CombatRules.MaximumHealth(Progression); } }
         public int Resource { get; private set; } = 100;
         public CharacterProgression Progression { get; private set; }
         public int WeaponBonus { get { return Progression.WeaponBonus; } }
@@ -517,13 +517,12 @@ namespace AreArpg.Core
         private void DealDamage(MonsterState enemy, int powerBp, int slot, SkillResult result)
         {
             bool crit;
-            long damage = FixedMath.Damage(95 + WeaponBonus, powerBp, 190,
-                2000 + Progression.MightDamageBonusBp + Progression.PracticeDamageBonusBp(slot),
-                enemy.Kind >= 2 ? 4000 : (enemy.Kind == 1 ? 2200 : 1000), 1900, _rng, out crit);
+            var stats = new CombatStats(Progression, slot);
+            long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
             int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
             Progression.RecordPractice(slot, Math.Max(1, appliedDamage / 10));
-            result.TotalDamage += (int)damage;
+            result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
             result.Hits++;
             if (enemy.IsDead && !enemy.LootGranted)
             {
