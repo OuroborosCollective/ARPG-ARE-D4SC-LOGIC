@@ -75,6 +75,8 @@ namespace AreArpg.UnityClient
                     _roadBear = Shape(PrimitiveType.Cube, "ARE_Road_Bear", Vector3.zero, Vector3.one, new Color(.32f, .19f, .09f));
                     PassiveArtVisuals.TryBindGrounded(_roadBear, "RoadBear", 0);
                     _roadBearAnimator = _roadBear.GetComponentInChildren<Animator>();
+                    // This single encounter must project the current pose before its first camera render.
+                    if (_roadBearAnimator != null) _roadBearAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                     _roadHunter = Shape(PrimitiveType.Capsule, "ARE_Road_Hunter", new Vector3(2, 1, 9), new Vector3(.8f, 1, .8f), new Color(.27f, .45f, .25f));
                     PassiveArtVisuals.TryBindGrounded(_roadHunter, "RoadHunter", 0);
                     _roadWarning = Shape(PrimitiveType.Cylinder, "ARE_Bear_Swipe_Warning", Vector3.zero, new Vector3(4.8f, .012f, 4.8f), new Color(.9f, .12f, .06f));
