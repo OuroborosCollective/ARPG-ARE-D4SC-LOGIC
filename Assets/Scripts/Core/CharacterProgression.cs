@@ -51,9 +51,9 @@ namespace AreArpg.Core
         public BigInteger PracticeLevel(int slot) { return LevelForExperience(PracticeExperience(slot)); }
         public int PracticeDamageBonusBp(int slot)
         {
-            return (int)BigInteger.Min(PracticeLevel(slot) - BigInteger.One, 50) * 100;
+            return PracticeRules.DamageBonusBp(PracticeLevel(slot));
         }
-        public int PracticeHealingBonus { get { return (int)BigInteger.Min(PracticeLevel(2) - BigInteger.One, 100) * 2; } }
+        public int PracticeHealingBonus { get { return PracticeRules.HealingBonus(PracticeLevel(2)); } }
 
         // Only simulation-confirmed effective damage/healing calls this; UI cannot award training.
         internal void RecordPractice(int slot, BigInteger amount)

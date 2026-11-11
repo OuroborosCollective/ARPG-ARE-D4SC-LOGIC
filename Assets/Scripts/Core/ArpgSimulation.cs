@@ -521,7 +521,7 @@ namespace AreArpg.Core
             long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
             int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
-            Progression.RecordPractice(slot, Math.Max(1, appliedDamage / 10));
+            Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
             result.Hits++;
             if (enemy.IsDead && !enemy.LootGranted)
@@ -553,7 +553,7 @@ namespace AreArpg.Core
                 int previousHealth = PlayerHealth;
                 PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + skill.BaseHealing + Progression.ResolveHealBonus + Progression.PracticeHealingBonus);
                 int restored = PlayerHealth - previousHealth;
-                if (restored > 0) Progression.RecordPractice(slot, Math.Max(1, restored / 10));
+                if (restored > 0) Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(restored));
                 Cooldowns[slot] = skill.CooldownTicks;
                 result.Activated = true;
                 result.Message = skill.DisplayName + ": restored " + restored + " HP";
