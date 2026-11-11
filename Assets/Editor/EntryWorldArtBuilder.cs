@@ -16,12 +16,13 @@ namespace AreArpg.EditorTools
         [MenuItem("ARE ARPG/Art/Build Entry Worlds")]
         public static void Build()
         {
+            EntryCombatArtBuilder.Prepare();
             AreVillageArtBuilder.Build();
             _materials = EntryMaterialBaker.Build();
             Save("EntryCryptWorld", Crypt);
             Save("EntryVillageWorld", Village);
             Save("EntryRation", root => Fit(root, "AshCrate", "Supply parcel", Vector3.zero, new Vector3(.28f, .23f, .28f)));
-            Save("EntryHero", root => Actor(root, "Hero", "Hero", 1.9f));
+            Save("EntryHero", root => Actor(root, EntryCombatArtBuilder.HeroKey, "Hero", 1.9f));
             for (int i = 0; i < 3; i++)
             {
                 int id = i;
@@ -46,13 +47,14 @@ namespace AreArpg.EditorTools
                     animator.runtimeAnimatorController = AssetDatabase.LoadAssetAtPath<GameObject>(Output + "Hero.prefab").GetComponentInChildren<Animator>(true).runtimeAnimatorController;
                 animator.applyRootMotion = false;
             }
-            if (_materials.TryGetValue(paletteKey, out var material))
+            if (!(paletteKey == "Hero" && EntryCombatArtBuilder.HasHero) && _materials.TryGetValue(paletteKey, out var material))
                 foreach (Renderer renderer in art.GetComponentsInChildren<Renderer>(true))
                 {
                     var slots = renderer.sharedMaterials;
                     for (int i = 0; i < slots.Length; i++) slots[i] = material;
                     renderer.sharedMaterials = slots;
                 }
+            if (paletteKey == "Hero") EntryCombatArtBuilder.BindHero(art);
             Bounds bounds = RenderBounds(art);
             art.transform.localScale *= height / bounds.size.y;
             bounds = RenderBounds(art);
@@ -88,18 +90,18 @@ namespace AreArpg.EditorTools
         {
             for (int x = -4; x <= 4; x++)
                 for (int z = -4; z <= 4; z++)
-                    Fit(root, "AshStoneFloor", "Vault paving", new Vector3(x * 6f, -.3f, z * 6f), new Vector3(6f, .28f, 6f));
+                    Fit(root, EntryCombatArtBuilder.Key("Floor", "AshStoneFloor"), "Vault paving", new Vector3(x * 6f, -.3f, z * 6f), new Vector3(6f, .28f, 6f));
             for (int segment = -3; segment <= 3; segment++)
             {
-                Fit(root, "AshStoneWall", "West vault wall", new Vector3(-28f, 0f, segment * 8f), new Vector3(1.2f, 4.2f, 8f));
-                Fit(root, "AshStoneWall", "East vault wall", new Vector3(28f, 0f, segment * 8f), new Vector3(1.2f, 4.2f, 8f));
-                Fit(root, "AshStoneWall", "South vault wall", new Vector3(segment * 8f, 0f, -28f), new Vector3(8f, 4.2f, 1.2f));
-                if (segment != 0) Fit(root, "AshStoneWall", "North vault wall", new Vector3(segment * 8f, 0f, 28f), new Vector3(8f, 4.2f, 1.2f));
+                Fit(root, EntryCombatArtBuilder.Key("Wall", "AshStoneWall"), "West vault wall", new Vector3(-28f, 0f, segment * 8f), new Vector3(1.2f, 4.2f, 8f), EntryCombatArtBuilder.WallYaw);
+                Fit(root, EntryCombatArtBuilder.Key("Wall", "AshStoneWall"), "East vault wall", new Vector3(28f, 0f, segment * 8f), new Vector3(1.2f, 4.2f, 8f), EntryCombatArtBuilder.WallYaw);
+                Fit(root, EntryCombatArtBuilder.Key("Wall", "AshStoneWall"), "South vault wall", new Vector3(segment * 8f, 0f, -28f), new Vector3(8f, 4.2f, 1.2f));
+                if (segment != 0) Fit(root, EntryCombatArtBuilder.Key("Wall", "AshStoneWall"), "North vault wall", new Vector3(segment * 8f, 0f, 28f), new Vector3(8f, 4.2f, 1.2f));
             }
             foreach (int x in new[] { -7, 7 })
                 foreach (int z in new[] { -7, 7 })
-                    Fit(root, "AshMonument", "Vault monument", new Vector3(x, 0, z), new Vector3(2.4f, 3.8f, 2.4f));
-            Fit(root, "AshRuin", "Crypt exit arch", new Vector3(0, 0, 25), new Vector3(5.5f, 4f, 2f));
+                    Fit(root, EntryCombatArtBuilder.Key("Pillar", "AshMonument"), "Vault monument", new Vector3(x, 0, z), new Vector3(2.4f, 3.8f, 2.4f));
+            Fit(root, EntryCombatArtBuilder.Key("Arch", "AshRuin"), "Crypt exit arch", new Vector3(0, 0, 25), new Vector3(5.5f, 4f, 2f));
             foreach (int side in new[] { -1, 1 })
                 Fit(root, "AshLantern", "Exit lantern", new Vector3(side * 3.2f, 0, 23), new Vector3(.6f, 1.7f, .6f));
         }
@@ -144,7 +146,7 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>Normalize rendered bounds into the designated presentation volume without physics.</summary>
-        private static void Fit(Transform parent, string key, string label, Vector3 foot, Vector3 size)
+        private static void Fit(Transform parent, string key, string label, Vector3 foot, Vector3 size, float yaw = 0f)
         {
             GameObject source = AssetDatabase.LoadAssetAtPath<GameObject>(Output + key + ".prefab");
             if (source == null) throw new InvalidOperationException("Missing private entry asset: " + key);
@@ -152,7 +154,7 @@ namespace AreArpg.EditorTools
             holder.transform.SetParent(parent, false);
             GameObject art = UnityEngine.Object.Instantiate(source, holder.transform, false);
             art.transform.localPosition = Vector3.zero;
-            art.transform.localRotation = Quaternion.identity;
+            art.transform.localRotation = Quaternion.Euler(0, yaw, 0);
             if (_materials.TryGetValue(key, out var material))
                 foreach (Renderer renderer in art.GetComponentsInChildren<Renderer>(true))
                 {
