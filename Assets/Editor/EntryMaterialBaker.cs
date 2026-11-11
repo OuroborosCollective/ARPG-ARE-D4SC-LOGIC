@@ -9,7 +9,11 @@ namespace AreArpg.EditorTools
     /// <summary>Convert privately configured palette masks into ordinary URP materials without vendor runtime shaders.</summary>
     public static class EntryMaterialBaker
     {
-        [Serializable] private sealed class Layer { public string mask; public int channel = -1; public Color match; public Color color; }
+        [Serializable] private sealed class Layer
+        {
+            public string mask; public int channel = -1; public Color match; public Color color;
+            public bool matchChannel; public float channelValue; public float channelTolerance = .058f;
+        }
         [Serializable] private sealed class Definition { public string id; public string texture; public Layer[] layers; }
         [Serializable] private sealed class Catalog { public Definition[] materials; }
         private const string Output = "Assets/Resources/ARE/Visuals/EntryMaterials/";
@@ -81,7 +85,8 @@ namespace AreArpg.EditorTools
                         for (int i = 0; i < weights.Length; i++)
                         {
                             Color v = weights[i];
-                            float weight = layer.channel >= 0 && layer.channel <= 3 ? v[layer.channel] :
+                            float weight = layer.channel >= 0 && layer.channel <= 3 ?
+                                (layer.matchChannel ? (Mathf.Abs(v[layer.channel] - layer.channelValue) <= layer.channelTolerance ? 1f : 0f) : v[layer.channel]) :
                                 (new Vector3(v.r - layer.match.r, v.g - layer.match.g, v.b - layer.match.b).sqrMagnitude <= .01f ? 1f : 0f);
                             colors[i] = Color.Lerp(colors[i], layer.color.gamma, weight);
                         }

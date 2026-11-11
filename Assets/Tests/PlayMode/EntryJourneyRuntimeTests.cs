@@ -101,10 +101,37 @@ namespace AreArpg.PlayMode.Tests
             _runtime.enabled = true;
             yield return new WaitForSeconds(0.8f);
             yield return Capture("act2-supply-square.png");
+            _runtime.enabled = false;
+            var mara = Game.Npcs.Find(n => n.Id == SocialLedger.MaraNpcId);
+            for (int tick = 0; tick < 60; tick++)
+            {
+                long dx = mara.Xmm - Game.PlayerXmm, dz = mara.Zmm - Game.PlayerZmm;
+                if (dx * dx + dz * dz <= 1800L * 1800L) break;
+                Game.SetMoveInput(System.Math.Sign(dx) * 10000, System.Math.Sign(dz) * 10000);
+                Game.Step();
+            }
+            Game.SetMoveInput(0, 0);
+            int stock = Game.Progression.Social.CampProvisions;
+            var provisions = Game.Progression.Social.Provisions;
+            typeof(ArenaRuntime).GetField("_pendingTakeRation", Flags).SetValue(_runtime, true);
+            _runtime.enabled = true;
+            for (int frame = 0; frame < 120 && Game.Progression.Social.CampProvisions == stock; frame++)
+                yield return null;
+            _runtime.enabled = false;
+            Assert.AreEqual(stock - 1, Game.Progression.Social.CampProvisions,
+                "The real Unity action queue must execute the Core ration transaction");
+            Assert.AreEqual(provisions + 1, Game.Progression.Social.Provisions);
+            Assert.AreEqual(System.Numerics.BigInteger.One, mara.Memory.HostileActions);
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var afterTheft));
+            Assert.AreEqual(stock - 1, afterTheft.Social.CampProvisions);
+            Assert.AreEqual(provisions + 1, afterTheft.Social.Provisions);
+            Assert.AreEqual(System.Numerics.BigInteger.One, afterTheft.Social.GetMemory(1).HostileActions);
             typeof(ArenaRuntime).GetMethod("Restart", Flags).Invoke(_runtime, null);
             Assert.AreEqual(2, Game.Progression.EntryAct);
             Assert.AreEqual(0, Game.Monsters.Count);
             Assert.AreEqual(3, Game.Progression.Items.Count);
+            Assert.AreEqual(stock - 1, Game.Progression.Social.CampProvisions);
+            Assert.AreEqual(System.Numerics.BigInteger.One, Game.Progression.Social.GetMemory(1).HostileActions);
         }
 
         /// <summary>Search only the owned fixture scene, never another test's projection.</summary>

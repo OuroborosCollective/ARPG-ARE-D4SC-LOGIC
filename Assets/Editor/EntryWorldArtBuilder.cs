@@ -132,6 +132,13 @@ namespace AreArpg.EditorTools
             for (int i = 0; i < 8; i++)
                 AreVillageArtBuilder.Piece(root, "tree.01",
                     new Vector3(i % 2 == 0 ? -31 : 31, 0, -25 + (i / 2) * 14), i * 37, .5f);
+            // Low, traversable undergrowth dresses the road without inventing solid obstacles.
+            Vector2[] shrubs = { new Vector2(-6, -21), new Vector2(-7, -16), new Vector2(5, -19),
+                new Vector2(7, -9), new Vector2(9, 7), new Vector2(-18, -14), new Vector2(-18, 4),
+                new Vector2(5, -24), new Vector2(-4, -25), new Vector2(7, 3), new Vector2(-5, 3) };
+            for (int i = 0; i < shrubs.Length; i++)
+                AreVillageArtBuilder.Piece(root, i % 2 == 0 ? "bush.01" : "bush.02",
+                    new Vector3(shrubs[i].x, 0, shrubs[i].y), i * 41f, .48f);
             Fit(root, "AshCrate", "Mara supply chest",
                 new Vector3(ArenaSimulation.CampXmm / 1000f + 1.5f, 0, ArenaSimulation.CampZmm / 1000f + .5f), new Vector3(1.4f, .5f, 1.2f));
         }
