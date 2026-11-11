@@ -25,6 +25,7 @@ namespace AreArpg.UnityClient
         private HungerAction[] HungerActions()
         {
             var p = _game.Progression;
+            if (p.Investigation.Active) return InvestigationActions();
             if (p.EntryAct == 2 && p.HungerStage == 0) return new[] { HungerAction.HearIlyan };
             if (p.EntryAct == 3 && p.HungerStage == 1) return new[] { HungerAction.InspectTrail };
             if (p.EntryAct == 4 && p.HungerStage == 2) return new[] { HungerAction.InspectShelter };
@@ -47,7 +48,15 @@ namespace AreArpg.UnityClient
                 case HungerAction.Protect: return "BEI ILYAN: Schweigen zusagen - Fehlbestand bleibt";
                 case HungerAction.Replace: return "BEI MARA: Geheimnis bewahren, Lager auffuellen (" +
                     (SocialLedger.CampCapacity - _game.Progression.Social.CampProvisions) + " Rationen)";
-                default: return "AN DEN BETTEN: Das Verschwinden untersuchen";
+                case HungerAction.InspectBeds: return "AN DEN BETTEN: Das Verschwinden untersuchen";
+                case HungerAction.StoreBandage: return "AM WESTLICHEN VERBAND: Stoff und Knoten untersuchen";
+                case HungerAction.StoreTracks: return "AN DER SCHLEIFSPUR: Fugen und Staub untersuchen";
+                case HungerAction.InspectSeal: return "AM SIEGEL: Mechanismus und Gefahr untersuchen";
+                case HungerAction.OpenSeal: return "SIEGEL ENTLASTEN: Zugang kontrolliert oeffnen";
+                case HungerAction.BreakSeal: return "SIEGEL BRECHEN: Gefahr durch lose Deckensteine!";
+                case HungerAction.InspectCryptTrace: return "AN DER INNEREN TUER: Frische Spuren untersuchen";
+                case HungerAction.ReportCrypt: return "BEI ILYAN: Persoenlich von der Krypta berichten";
+                default: return "Unbekannte Handlung";
             }
         }
 

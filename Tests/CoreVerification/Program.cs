@@ -37,6 +37,7 @@ internal static class Program
             EntryJourneyTests.Run(Require);
             HungerJourneyTests.Run(Require);
             HunterEncounterTests.Run(Require);
+            InvestigationJourneyTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

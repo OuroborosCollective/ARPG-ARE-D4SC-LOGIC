@@ -374,6 +374,10 @@ namespace AreArpg.PlayMode.Tests
         /// <summary>Real adapter queues, native checkpoints and scene reload across the road/mill supply branch.</summary>
         [UnityTest]
         public IEnumerator HungerJourneyReturnsAndPersistsReplacement()
+        { yield return CompleteSupplyJourney(); }
+
+        /// <summary>Reach the missing-patients checkpoint through real story actions before each crypt branch.</summary>
+        private IEnumerator CompleteSupplyJourney()
         {
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
@@ -442,6 +446,104 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(4, Game.Progression.HungerStage);
             Assert.AreEqual(HungerChoice.Replace, Game.Progression.SupplyChoice);
             Assert.IsNotNull(Find("OldMill_House"));
+        }
+
+        /// <summary>Investigate all clues through the shipped action queue, then return the discovery to Ilyan.</summary>
+        [UnityTest]
+        public IEnumerator CryptInvestigationOpensSafelyAndReportsLocally()
+        {
+            yield return CompleteSupplyJourney();
+            MoveStory(0, 24000); TravelStory();
+            Assert.AreEqual(5, Game.Progression.EntryAct);
+            MoveStory(0, 0); MoveStory(-6500, 0);
+            yield return StoryAction(HungerAction.StoreBandage);
+            MoveStory(0, 0); MoveStory(0, -3000); MoveStory(6500, -3000);
+            yield return StoryAction(HungerAction.StoreTracks);
+            MoveStory(0, -3000); MoveStory(0, 18000);
+            yield return StoryAction(HungerAction.InspectSeal);
+            Assert.AreEqual(7, Game.Progression.Investigation.Clues);
+            Assert.IsTrue(Find("OldStore_SealedGate").activeSelf);
+            Assert.IsFalse(Game.CanStand(0, 21000));
+            Assert.AreEqual(4, Find("OldStore_SealedGate").transform.localScale.x);
+            Assert.AreEqual(6, Find("OldStore_Floor").transform.localScale.x);
+            AssertInvestigationArt("OldStore_Crates_0", 4f, 4f);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            yield return Capture("act5-store-seal.png");
+            yield return StoryAction(HungerAction.OpenSeal);
+            Assert.IsFalse(Find("OldStore_SealedGate").activeSelf);
+            Assert.AreEqual(SealApproach.Investigated, Game.Progression.Investigation.Approach);
+            MoveStory(0, 24000); TravelStory();
+            Assert.AreEqual(6, Game.Progression.EntryAct);
+            int hp = Game.PlayerHealth;
+            MoveStory(0, -3000); for (int i = 0; i < 15; i++) Game.Step();
+            Assert.AreEqual(hp, Game.PlayerHealth);
+            Assert.AreEqual(0, Game.Progression.Investigation.TrapTicks);
+            AssertInvestigationArt("HiddenCrypt_Sarcophagus_0", 3f, 5.6f);
+            MoveStory(0, 15000); yield return StoryAction(HungerAction.InspectCryptTrace);
+            Assert.IsTrue(Game.Progression.Investigation.TraceFound);
+            Assert.IsFalse(Game.Progression.Investigation.Reported);
+            Assert.IsFalse(Game.HungerForwardOpen);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            yield return Capture("act6-inner-door.png");
+            for (int act = 6; act >= 3; act--) { MoveStory(0, -24000); TravelStory(); }
+            Assert.AreEqual(2, Game.Progression.EntryAct);
+            Assert.IsFalse(Game.ActOnHunger(HungerAction.ReportCrypt).Accepted);
+            var ilyan = Game.Npcs.Find(n => n.Id == 0);
+            ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm; ilyan.InteractionCooldownTicks = 0;
+            yield return StoryAction(HungerAction.ReportCrypt);
+            Assert.IsTrue(Game.Progression.Investigation.Reported);
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
+            Assert.IsTrue(saved.Investigation.Reported);
+        }
+
+        /// <summary>The forced route exposes a native warning, actual damage and an unchanged reloaded checkpoint.</summary>
+        [UnityTest]
+        public IEnumerator CryptSealBreakPersistsWarningDamageAndSpentTrap()
+        {
+            yield return CompleteSupplyJourney();
+            MoveStory(0, 24000); TravelStory(); MoveStory(0, 18000);
+            yield return StoryAction(HungerAction.InspectSeal);
+            var actions = (HungerAction[])typeof(ArenaRuntime).GetMethod("HungerActions", Flags).Invoke(_runtime, null);
+            CollectionAssert.Contains(actions, HungerAction.BreakSeal);
+            CollectionAssert.DoesNotContain(actions, HungerAction.OpenSeal);
+            yield return StoryAction(HungerAction.BreakSeal);
+            MoveStory(0, 24000); TravelStory();
+            MoveStory(0, -3000);
+            Assert.Greater(Game.Progression.Investigation.TrapTicks, 0);
+            typeof(ArenaRuntime).GetMethod("UpdateInvestigationPresentation", Flags).Invoke(_runtime, null);
+            typeof(ArenaRuntime).GetMethod("UpdatePresentation", Flags).Invoke(_runtime, new object[] { 1f });
+            Assert.IsTrue(Find("HiddenCrypt_FallWarning").activeSelf);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            yield return Capture("act6-fall-warning.png");
+            int hp = Game.PlayerHealth;
+            for (int i = 0; i < 15; i++) Game.Step();
+            Assert.AreEqual(hp - 320, Game.PlayerHealth);
+            Assert.AreEqual(-1, Game.Progression.Investigation.TrapTicks);
+            typeof(ArenaRuntime).GetMethod("SaveCharacter", Flags, null, new[] { typeof(CharacterProgression) }, null).Invoke(_runtime, new object[] { Game.Progression });
+            long x = Game.PlayerXmm, z = Game.PlayerZmm;
+            foreach (var root in _scene.GetRootGameObjects()) Object.Destroy(root);
+            yield return null;
+            _runtime = new GameObject("Reload_Crypt_Runtime").AddComponent<ArenaRuntime>(); _runtime.enabled = false;
+            Assert.AreEqual(6, Game.Progression.EntryAct);
+            Assert.AreEqual(hp - 320, Game.PlayerHealth);
+            Assert.AreEqual(x, Game.PlayerXmm); Assert.AreEqual(z, Game.PlayerZmm);
+            Assert.IsFalse(Find("HiddenCrypt_FallWarning").activeSelf);
+            Assert.IsTrue(Find("HiddenCrypt_SpentFall").activeSelf);
+            for (int i = 0; i < 20; i++) Game.Step();
+            Assert.AreEqual(hp - 320, Game.PlayerHealth);
+        }
+
+        /// <summary>Require the reviewed passive mesh to fit the same footprint as the Core obstacle.</summary>
+        private void AssertInvestigationArt(string name, float width, float depth)
+        {
+            var root = Find(name); Assert.IsNotNull(root);
+            Bounds bounds = new Bounds(); bool first = true;
+            foreach (var renderer in root.GetComponentsInChildren<Renderer>())
+                if (renderer.enabled) { if (first) { bounds = renderer.bounds; first = false; } else bounds.Encapsulate(renderer.bounds); }
+            Assert.IsFalse(first); Assert.AreEqual(width, bounds.size.x, .03f); Assert.AreEqual(depth, bounds.size.z, .03f);
+            Assert.AreEqual(0, bounds.min.y, .03f);
+            if (!string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.IsFalse(root.GetComponent<Renderer>().enabled, "Native art acceptance must bind the reviewed private mesh");
         }
 
         /// <summary>Play the road encounter through actual Core attacks, Unity projections, the action queue and PlayerPrefs.</summary>
