@@ -75,6 +75,7 @@ namespace AreArpg.UnityClient
             BuildWorld();
         }
 
+        /// <summary>Load only the selected entry or legacy slot through the existing verified persistence contract.</summary>
         private bool TryLoadCharacter(out CharacterProgression saved)
         {
             saved = null;
@@ -91,11 +92,13 @@ namespace AreArpg.UnityClient
             return false;
         }
 
+        /// <summary>Persist the active Core progression; gameplay data never comes from visual state.</summary>
         private void SaveCharacter()
         {
             if (_game != null) SaveCharacter(_game.Progression);
         }
 
+        /// <summary>Verify the stored checkpoint before permitting a world transition.</summary>
         private void SaveCharacter(CharacterProgression progress)
         {
             if (_storageFault || progress == null) return;
@@ -137,6 +140,7 @@ namespace AreArpg.UnityClient
             return material;
         }
 
+        /// <summary>Create a projection host and remove its physics component; Core collision remains authoritative.</summary>
         private static Transform Shape(PrimitiveType primitive, string label, Vector3 position,
             Vector3 size, Color color, float metallic = 0f)
         {
@@ -233,6 +237,7 @@ namespace AreArpg.UnityClient
             if (moving) root.rotation = Quaternion.LookRotation(new Vector3(dx, 0, dz));
         }
 
+        /// <summary>Track a chapter projection for cleanup and optionally bind reviewed private cosmetic art.</summary>
         private Transform ChapterShape(PrimitiveType primitive, string label, Vector3 position,
             Vector3 scale, Color color)
         {
@@ -264,6 +269,7 @@ namespace AreArpg.UnityClient
             _chapterScenery.Clear();
             _campRationVisuals.Clear();
             if (_game.Progression.EntryAct > 0 && BuildEntryArt()) return;
+            if (_game.Progression.EntryAct == 2) { BuildEntryVillageFallback(); return; }
             _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
                 new Vector3(ArenaSimulation.PassageXmm / 1000f, 0.02f, ArenaSimulation.PassageZmm / 1000f),
                 new Vector3(3.6f, 0.02f, 3.6f), new Color(0.25f, 0.68f, 0.72f));
@@ -516,18 +522,39 @@ namespace AreArpg.UnityClient
             if (_game.IsVillage)
             {
                 for (int i = 0; i < SocialLedger.CampCapacity; i++)
-                {
-                    var ration = new GameObject("Aschengrenze_Stored_Ration_" + i);
-                    ration.transform.position = new Vector3(ArenaSimulation.CampXmm / 1000f + 1.05f + i % 5 * 0.32f,
-                        0.50f, ArenaSimulation.CampZmm / 1000f + .28f + i / 5 * 0.46f);
-                    PassiveArtVisuals.TryBind(ration.transform, "EntryRation");
-                    ration.SetActive(i < _game.Progression.Social.CampProvisions);
-                    _campRationVisuals.Add(ration.transform); _chapterScenery.Add(ration.transform);
-                }
+                    CreateEntryRation(i, "EntryRation");
             }
             return true;
         }
 
+        /// <summary>Visible development-only geometry follows every Core footprint; it is not finished world art.</summary>
+        private void BuildEntryVillageFallback()
+        {
+            _worldPassage = null;
+            for (int i = 0; i < EntryWorldLayout.BuildingCount; i++)
+            {
+                var b = EntryWorldLayout.Building(i);
+                ChapterShape(PrimitiveType.Cube, "Entry_Footprint_" + b.Id,
+                    new Vector3(b.X / 1000f, 1.5f, b.Z / 1000f),
+                    new Vector3(b.HalfWidth * 2 / 1000f, 3f, b.HalfDepth * 2 / 1000f), new Color(.42f, .36f, .29f));
+            }
+            for (int i = 0; i < SocialLedger.CampCapacity; i++) CreateEntryRation(i, "EntryRation");
+        }
+
+        /// <summary>Keep real stock visible if its optional private mesh is absent; the Core owns the count.</summary>
+        private Transform CreateEntryRation(int index, string visualKey)
+        {
+            var ration = ChapterShape(PrimitiveType.Cube, "Aschengrenze_Stored_Ration_" + index,
+                new Vector3(ArenaSimulation.CampXmm / 1000f + 1.05f + index % 5 * .32f,
+                    .50f, ArenaSimulation.CampZmm / 1000f + .28f + index / 5 * .46f),
+                Vector3.one, new Color(.44f, .31f, .18f));
+            if (!PassiveArtVisuals.TryBind(ration, visualKey)) ration.localScale = new Vector3(.23f, .28f, .28f);
+            ration.gameObject.SetActive(index < _game.Progression.Social.CampProvisions);
+            _campRationVisuals.Add(ration);
+            return ration;
+        }
+
+        /// <summary>Build a visual for one existing Core monster and register its movement animator.</summary>
         private void SpawnMonster(MonsterState monster)
         {
             PrimitiveType primitive = monster.Kind >= 2 ? PrimitiveType.Capsule : PrimitiveType.Sphere;
@@ -564,6 +591,7 @@ namespace AreArpg.UnityClient
             if (npc != null) _pendingNpcActions.Enqueue(new KeyValuePair<int, NpcAction>(npc.Id, action));
         }
 
+        /// <summary>Rebuild the three existing social actors from their Core identities and persistent memories.</summary>
         private void BuildNpcVisuals()
         {
             foreach (Transform visual in _npcVisuals.Values) if (visual != null) Destroy(visual.gameObject);
@@ -683,6 +711,7 @@ namespace AreArpg.UnityClient
                 "Crypt restarted - character progression retained.");
         }
 
+        /// <summary>Commit and read back the next Core-approved checkpoint before switching its presentation.</summary>
         private void AdvanceCrypt()
         {
             if (_storageFault || !_game.CryptCleared || !_game.AtWorldPassage)
@@ -706,6 +735,7 @@ namespace AreArpg.UnityClient
                 _camera.transform.position = _hero.position - Quaternion.Euler(52f, 0f, 0f) * Vector3.forward * 22f;
         }
 
+        /// <summary>Install an already-created Core world, discard queued old-world inputs and rebuild projections.</summary>
         private void InstallNewRun(ArenaSimulation next, string message)
         {
             _game = next;
@@ -734,6 +764,7 @@ namespace AreArpg.UnityClient
             _message = message + " / " + next.ChapterName;
         }
 
+        /// <summary>Consume ordered player requests on the established 100-ms tick, then interpolate presentation.</summary>
         private void Update()
         {
             if (_storageFault) return;
@@ -875,6 +906,7 @@ namespace AreArpg.UnityClient
                     float x = Mathf.Lerp(enemy.PreviousXmm, enemy.Xmm, alpha) / 1000f;
                     float z = Mathf.Lerp(enemy.PreviousZmm, enemy.Zmm, alpha) / 1000f;
                     visual.position = new Vector3(x, visual.localScale.y * 0.6f, z);
+                    AnimateActor(visual, enemy.Xmm - enemy.PreviousXmm, enemy.Zmm - enemy.PreviousZmm);
                 }
             }
             foreach (LootState item in _game.GroundLoot)

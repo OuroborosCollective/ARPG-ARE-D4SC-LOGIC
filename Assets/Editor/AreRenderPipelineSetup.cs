@@ -25,6 +25,7 @@ namespace AreArpg.EditorTools
             "Packages/com.unity.render-pipelines.universal/Runtime/Data/PostProcessData.asset";
 
         [MenuItem("ARE ARPG/Rendering/Apply Project URP Pipeline")]
+        /// <summary>Create or reuse project-owned URP settings and restore the previously selected quality tier.</summary>
         public static void Apply()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
@@ -98,6 +99,7 @@ namespace AreArpg.EditorTools
             Debug.Log("ARE ARPG: project URP pipeline active: " + AssetDatabase.GetAssetPath(pipeline));
         }
 
+        /// <summary>Move an existing project asset only when its destination is not already occupied.</summary>
         private static void MoveIfPresent(string from, string to)
         {
             if (!File.Exists(from) || File.Exists(to)) return;
@@ -105,6 +107,7 @@ namespace AreArpg.EditorTools
             if (!string.IsNullOrEmpty(error)) throw new InvalidOperationException(error);
         }
 
+        /// <summary>Set a serialized renderer integer only when that property exists in the installed Unity version.</summary>
         private static void Set(SerializedObject target, string property, int value)
         {
             var found = target.FindProperty(property);

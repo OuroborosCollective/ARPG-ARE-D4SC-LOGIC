@@ -17,6 +17,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [Test]
+        /// <summary>Hide a development detail only when its corresponding complete landmark has successfully bound.</summary>
         public void BlockoutPartsAreAbsorbedOnlyByTheirOwnLandmark()
         {
             Assert.AreEqual("Aschengrenze_Supply_Hall", AschengrenzeArt.OwnerOf("Aschengrenze_Hall_Roof_Left"));
@@ -29,6 +30,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [Test]
+        /// <summary>Leave supplies, passage and actor hosts outside cosmetic landmark replacement.</summary>
         public void CoreOwnedProjectionsAreNeverReplacedOrAbsorbed()
         {
             string[] coreProjections =

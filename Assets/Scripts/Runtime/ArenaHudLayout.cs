@@ -78,6 +78,7 @@ namespace AreArpg.UnityClient
         public float Width { get; }
         public float Height { get; }
 
+        /// <summary>Map the physical safe area into one logical canvas shared by drawing and touch hit testing.</summary>
         public ArenaHudLayout(float screenWidth, float screenHeight, Rect safeArea)
         {
             float w = Mathf.Max(screenWidth, 1f);

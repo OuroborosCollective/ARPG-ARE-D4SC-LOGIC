@@ -135,6 +135,80 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>Search only the owned fixture scene, never another test's projection.</summary>
+        [UnityTest]
+        public IEnumerator EnemyFacesItsAcceptedCoreDisplacement()
+        {
+            _runtime.enabled = false;
+            var enemy = Game.Monsters[0];
+            enemy.PreviousXmm = 2000; enemy.Xmm = 1000;
+            enemy.PreviousZmm = enemy.Zmm = 0;
+            typeof(ArenaRuntime).GetMethod("UpdatePresentation", Flags).Invoke(_runtime, new object[] { 1f });
+            Assert.Greater(Vector3.Dot(Find("Enemy_" + enemy.Id).transform.forward, Vector3.left), .99f);
+            yield return null;
+        }
+
+        /// <summary>Development geometry must expose exactly the Core footprints, even without private world art.</summary>
+        [UnityTest]
+        public IEnumerator DevelopmentVillageShowsEveryCanonicalBuilding()
+        {
+            _runtime.enabled = false;
+            var method = typeof(ArenaRuntime).GetMethod("BuildEntryVillageFallback", Flags);
+            Assert.IsNotNull(method, "Entry needs its own geometry fallback instead of legacy crypt pillars");
+            method.Invoke(_runtime, null);
+            for (int i = 0; i < EntryWorldLayout.BuildingCount; i++)
+            {
+                var b = EntryWorldLayout.Building(i);
+                var visual = Find("Entry_Footprint_" + b.Id);
+                Assert.IsNotNull(visual);
+                var bounds = visual.GetComponent<Renderer>().bounds;
+                Assert.AreEqual(b.X / 1000f, bounds.center.x, .001f);
+                Assert.AreEqual(b.Z / 1000f, bounds.center.z, .001f);
+                Assert.AreEqual(b.HalfWidth * 2 / 1000f, bounds.size.x, .001f);
+                Assert.AreEqual(b.HalfDepth * 2 / 1000f, bounds.size.z, .001f);
+            }
+            yield return null;
+        }
+
+        /// <summary>A missing cosmetic ration cannot hide real stock from the player.</summary>
+        [UnityTest]
+        public IEnumerator MissingRationAssetStillShowsStock()
+        {
+            _runtime.enabled = false;
+            var method = typeof(ArenaRuntime).GetMethod("CreateEntryRation", Flags);
+            Assert.IsNotNull(method);
+            var ration = (Transform)method.Invoke(_runtime, new object[] { 0, "DefinitelyMissingEntryRation" });
+            Assert.IsTrue(ration.GetComponent<Renderer>().enabled);
+            Assert.IsTrue(ration.gameObject.activeSelf);
+            yield return null;
+        }
+
+#if UNITY_EDITOR
+        /// <summary>Missing private ground input must fail before the material is touched.</summary>
+        [UnityTest]
+        public IEnumerator MissingGroundTextureRejectsTheArtBuild()
+        {
+            _runtime.enabled = false;
+            System.Type builder = null;
+            foreach (var assembly in System.AppDomain.CurrentDomain.GetAssemblies())
+                if ((builder = assembly.GetType("AreArpg.EditorTools.AreVillageArtBuilder")) != null) break;
+            Assert.IsNotNull(builder);
+            var inputs = (System.Collections.Generic.Dictionary<string, string>)builder.GetField("Inputs", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var saved = new System.Collections.Generic.Dictionary<string, string>(inputs);
+            var root = new GameObject("MissingGroundFixture");
+            try
+            {
+                inputs["ground.base"] = "Assets/PrivateArt/DefinitelyMissingGround.png";
+                inputs["ground.normal"] = "Assets/PrivateArt/DefinitelyMissingNormal.png";
+                var error = Assert.Throws<TargetInvocationException>(() => builder.GetMethod("Ground", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { root.transform }));
+                Assert.IsInstanceOf<System.InvalidOperationException>(error.InnerException);
+                Assert.AreEqual(0, root.transform.childCount);
+            }
+            finally { inputs.Clear(); foreach (var pair in saved) inputs.Add(pair.Key, pair.Value); Object.Destroy(root); }
+            yield return null;
+        }
+#endif
+
+        /// <summary>Search only the owned fixture scene, never another test's projection.</summary>
         private GameObject Find(string name)
         {
             foreach (var root in _scene.GetRootGameObjects())

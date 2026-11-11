@@ -28,6 +28,7 @@ namespace AreArpg.EditorTools
         }
 
         [MenuItem("ARE ARPG/1. Prepare Demo Scene")]
+        /// <summary>Create the legacy arena scene if absent while preserving existing authored scene content.</summary>
         public static void PrepareDemoScene()
         {
             if (!Directory.Exists("Assets/Scenes")) Directory.CreateDirectory("Assets/Scenes");
@@ -38,6 +39,7 @@ namespace AreArpg.EditorTools
         }
 
         [MenuItem("ARE ARPG/2. Build Android APK")]
+        /// <summary>Build both entry and legacy scenes using the configured Android target and inspect the real build result.</summary>
         public static void BuildAndroidApk()
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("Exit Play Mode before building.");
@@ -54,6 +56,7 @@ namespace AreArpg.EditorTools
         }
 
         // Fail closed: an emitted APK path alone does not prove that a build succeeded.
+        /// <summary>Fail the batch build unless Unity reports a successful player build.</summary>
         private static void BuildReportGuard(UnityEditor.Build.Reporting.BuildReport report)
         {
             if (report.summary.result != UnityEditor.Build.Reporting.BuildResult.Succeeded)

@@ -42,6 +42,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [Test]
+        /// <summary>Verify real instantiated mesh scale and ground position despite a stretched projection host.</summary>
         public void GroundedBindKeepsArtAtWorldScaleOnTheGround()
         {
             // Building placeholders are stretched cubes; real meshes must not inherit that stretch.
@@ -67,6 +68,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [Test]
+        /// <summary>Reject a physics-bearing prefab before any grounded visual is instantiated.</summary>
         public void GroundedBindRejectsNonPassivePrefabsLikeTheNormalBind()
         {
             GameObject host = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -81,6 +83,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [Test]
+        /// <summary>A rejected physics prefab must leave the existing visible host untouched.</summary>
         public void PrefabWithColliderIsRejectedBeforeInstantiation()
         {
             GameObject host = GameObject.CreatePrimitive(PrimitiveType.Cube);

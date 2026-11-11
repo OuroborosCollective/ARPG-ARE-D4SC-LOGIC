@@ -115,6 +115,8 @@ namespace AreArpg.EditorTools
         /// <summary>Trodden earth over the crypt slab; just below the road strips.</summary>
         internal static void Ground(Transform root)
         {
+            Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(InputPath("ground.base"));
+            if (texture == null) throw new System.InvalidOperationException("Missing required ground texture");
             string materialPath = Output + "Village/VillageGround.mat";
             Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
             if (material == null)
@@ -122,7 +124,7 @@ namespace AreArpg.EditorTools
                 material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
                 AssetDatabase.CreateAsset(material, materialPath);
             }
-            material.mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(InputPath("ground.base"));
+            material.mainTexture = texture;
             material.mainTextureScale = new Vector2(22f, 22f);
             Texture2D normal = AssetDatabase.LoadAssetAtPath<Texture2D>(InputPath("ground.normal"));
             if (normal != null)

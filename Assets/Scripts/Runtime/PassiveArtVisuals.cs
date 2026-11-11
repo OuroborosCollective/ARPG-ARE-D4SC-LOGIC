@@ -62,6 +62,7 @@ namespace AreArpg.UnityClient
             return prefab != null && TryBindGroundedPrefab(placeholder, prefab, groundY);
         }
 
+        /// <summary>Bind a passive prefab at authored world scale while preserving the Core projection host.</summary>
         public static bool TryBindGroundedPrefab(Transform placeholder, GameObject prefab, float groundY)
         {
             if (!TryBindPrefab(placeholder, prefab)) return false;
@@ -103,6 +104,7 @@ namespace AreArpg.UnityClient
             }
         }
 
+        /// <summary>Cache an instance-owned pipeline conversion without changing the source material asset.</summary>
         private static Material AdapterFor(Material source, RenderPipelineAsset pipeline)
         {
             if (PipelineAdapters.TryGetValue(source, out Material cached) && cached != null) return cached;
@@ -125,6 +127,7 @@ namespace AreArpg.UnityClient
             return adapter;
         }
 
+        /// <summary>Prefer explicit base maps, then known texture naming hints for cosmetic conversion.</summary>
         private static Texture FindBaseMap(Material source)
         {
             if (source.HasProperty("_MainTex") && source.GetTexture("_MainTex") != null) return source.GetTexture("_MainTex");
@@ -141,6 +144,7 @@ namespace AreArpg.UnityClient
             return first;
         }
 
+        /// <summary>Reject executable or physics components before any prefab instance can awaken.</summary>
         private static bool IsPassiveVisual(GameObject prefab)
         {
             bool hasMeshRenderer = false;

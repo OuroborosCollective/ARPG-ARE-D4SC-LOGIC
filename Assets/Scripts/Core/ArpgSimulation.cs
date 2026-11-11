@@ -133,6 +133,7 @@ namespace AreArpg.Core
         public const long NpcInteractionRadiusMm = 2400L;
         public bool AtWorldPassage { get { return DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
 
+        /// <summary>Use the existing passage gate and carry surviving player resources into the next approved world.</summary>
         public ArenaSimulation TryTraversePassage()
         {
             if (!AtWorldPassage) return null;
@@ -458,6 +459,7 @@ namespace AreArpg.Core
         }
 
         // The same obstacle specification is used by player and monster movement.
+        /// <summary>Apply arena bounds and the active chapter collision model using integer coordinates.</summary>
         public bool CanStand(long x, long z)
         {
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
