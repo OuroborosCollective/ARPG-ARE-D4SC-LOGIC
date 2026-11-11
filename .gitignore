@@ -35,3 +35,12 @@ asset-intake-receipts/
 /Assets/Resources/ARE/Visuals/*
 !/Assets/Resources/ARE/Visuals/README.md
 !/Assets/Resources/ARE/Visuals/README.md.meta
+
+# Private Kingdom source stays outside public Git. Only the directory anchor is public.
+/Assets/PrivateArt/*
+!/Assets/PrivateArt/README.md
+!/Assets/PrivateArt/README.md.meta
+
+# Dependencies of privately staged models; never part of the public source tree.
+/Assets/PrivateVendor/
+/Assets/PrivateVendor.meta

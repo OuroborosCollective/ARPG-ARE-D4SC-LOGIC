@@ -41,6 +41,17 @@ namespace AreArpg.Core
             return b.ToString();
         }
         public SocialLedger Social { get; private set; } = new SocialLedger();
+        /// <summary>Zero retains legacy chapter semantics; entry revision 1 has Crypt=1 and Village=2.</summary>
+        public int EntryAct { get; private set; }
+        /// <summary>Create a separate explicit entry profile; never reinterpret an existing save.</summary>
+        public static CharacterProgression CreateEntryProfile() { return new CharacterProgression { EntryAct = 1 }; }
+        /// <summary>Only the canonical cleared-crypt transition may advance this checkpoint once.</summary>
+        internal bool EnterVillage()
+        {
+            if (EntryAct != 1) return false;
+            EntryAct = 2;
+            return true;
+        }
 
         private static void ValidateSlot(int slot)
         {
@@ -136,10 +147,10 @@ namespace AreArpg.Core
             Social.ProvisionFromLoot();
         }
 
-        /// <summary>Keep the exact AC5 payload for legacy profiles; add AC7 receipts only when present.</summary>
+        /// <summary>Keep legacy AC5/AC7 bytes; explicit entry profiles bind revision/act and receipts in AC8.</summary>
         private string Payload()
         {
-            return (_items.Count == 0 ? "AC5|" : "AC7|") + TotalExperience.ToString(CultureInfo.InvariantCulture) +
+            return (EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
                 "|" + LootCollected.ToString(CultureInfo.InvariantCulture) +
                 "|" + LifetimeKills.ToString(CultureInfo.InvariantCulture) +
@@ -151,7 +162,8 @@ namespace AreArpg.Core
                 "|" + _practice[1].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[2].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[3].ToString(CultureInfo.InvariantCulture) +
-                "|" + Social.Token() + (_items.Count == 0 ? "" : "|" + ItemToken());
+                "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|1," + EntryAct.ToString(CultureInfo.InvariantCulture) :
+                    (_items.Count == 0 ? "" : "|" + ItemToken()));
         }
 
         private static ulong HashText(string payload)
@@ -174,7 +186,7 @@ namespace AreArpg.Core
             return BigInteger.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value) && value >= BigInteger.Zero;
         }
 
-        /// <summary>Validate supported checkpoint checksums and invariants before replacing the caller profile; AC6 is reserved.</summary>
+        /// <summary>Validate checkpoint version, checksum, entry revision and item invariants; AC6 remains reserved.</summary>
         public static bool TryLoad(string saved, out CharacterProgression progress)
         {
             progress = null;
@@ -186,7 +198,8 @@ namespace AreArpg.Core
             bool ac4 = parts[0] == "AC4" && parts.Length == 14;
             bool ac5 = parts[0] == "AC5" && parts.Length == 15;
             bool ac7 = parts[0] == "AC7" && parts.Length == 16;
-            bool current = ac2 || ac3 || ac4 || ac5 || ac7;
+            bool ac8 = parts[0] == "AC8" && parts.Length == 17;
+            bool current = ac2 || ac3 || ac4 || ac5 || ac7 || ac8;
             if (!legacy && !current) return false;
             int last = parts.Length - 1;
             if (parts[last].Length != 16) return false;
@@ -200,14 +213,20 @@ namespace AreArpg.Core
                 !CanonicalNonNegative(parts[6], out vitality) ||
                 !CanonicalNonNegative(parts[7], out resolve))) return false;
             BigInteger unlockedDepth = BigInteger.One;
-            if ((ac3 || ac4 || ac5 || ac7) && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
+            if ((ac3 || ac4 || ac5 || ac7 || ac8) && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
                 unlockedDepth < BigInteger.One)) return false;
             var practice = new BigInteger[4];
-            if (ac4 || ac5 || ac7)
+            if (ac4 || ac5 || ac7 || ac8)
                 for (int slot = 0; slot < practice.Length; slot++)
                     if (!CanonicalNonNegative(parts[9 + slot], out practice[slot])) return false;
             SocialLedger social = new SocialLedger();
-            if ((ac5 || ac7) && !SocialLedger.TryRead(parts[13], out social)) return false;
+            if ((ac5 || ac7 || ac8) && !SocialLedger.TryRead(parts[13], out social)) return false;
+            int entryAct = 0;
+            if (ac8)
+            {
+                if (!unlockedDepth.IsOne || (parts[15] != "1,1" && parts[15] != "1,2")) return false;
+                entryAct = parts[15] == "1,1" ? 1 : 2;
+            }
             // A valid checksum is necessary but does not make an invalid progression valid.
             ulong checksum;
             if (!ulong.TryParse(parts[last], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out checksum) ||
@@ -215,7 +234,7 @@ namespace AreArpg.Core
                 checksum.ToString("X16", CultureInfo.InvariantCulture) != parts[last]) return false;
             if (might + vitality + resolve >= LevelForExperience(xp)) return false;
             var items = new List<LootItem>();
-            if (ac7)
+            if (ac7 || (ac8 && parts[14].Length != 0))
             {
                 BigInteger previousOrdinal = BigInteger.Zero;
                 BigInteger receiptPoints = BigInteger.Zero;
@@ -231,7 +250,7 @@ namespace AreArpg.Core
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LifetimeKills = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
-                UnlockedCryptDepth = unlockedDepth, Social = social
+                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct
             };
             for (int slot = 0; slot < practice.Length; slot++) progress._practice[slot] = practice[slot];
             progress._items.AddRange(items);

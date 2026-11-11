@@ -133,6 +133,7 @@ namespace AreArpg.Core
         public const long NpcInteractionRadiusMm = 2400L;
         public bool AtWorldPassage { get { return DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
 
+        /// <summary>Use the existing passage gate and carry surviving player resources into the next approved world.</summary>
         public ArenaSimulation TryTraversePassage()
         {
             if (!AtWorldPassage) return null;
@@ -150,7 +151,9 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"; } }
+        public string ChapterName { get { return Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
+        public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
         private long _directionXbp;
         private long _directionZbp;
@@ -190,15 +193,22 @@ namespace AreArpg.Core
             _lootCatalog = lootCatalog;
             CryptDepth = cryptDepth;
             Progression = progression ?? new CharacterProgression();
+            if (Progression.EntryAct > 0 && !cryptDepth.IsOne)
+                throw new ArgumentOutOfRangeException(nameof(cryptDepth), "Entry revision 1 uses its own two-act checkpoint.");
             PlayerHealth = MaxPlayerHealth;
             _rng = new DeterministicRng(seed);
-            if (ChapterId == 1)
+            if (IsVillage)
             {
                 Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -3600, -3400));
                 Npcs.Add(new NpcAgent(1, Progression.Social.GetMemory(1), -5500, -6000));
                 Npcs.Add(new NpcAgent(2, Progression.Social.GetMemory(2), -6500, -3500));
             }
-            else Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -2000, -21000));
+            else if (Progression.EntryAct == 0) Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -2000, -21000));
+            if (Progression.EntryAct == 2)
+            {
+                PlayerZmm = PrevPlayerZmm = -23000L;
+                return;
+            }
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
             int depthScale = (int)System.Numerics.BigInteger.Min(cryptDepth - 1, 10000);
             if (ChapterId == 1)
@@ -219,11 +229,17 @@ namespace AreArpg.Core
         /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
         public ArenaSimulation TryAdvanceCrypt()
         {
+            if (Progression.EntryAct == 2) return null; // End of the agreed entry slice, not a fabricated third act.
             if (!CryptCleared || GroundLoot.Count != 0 ||
                 CryptDepth != Progression.UnlockedCryptDepth) return null;
             CharacterProgression nextProgress;
-            if (!CharacterProgression.TryLoad(Progression.SaveString(), out nextProgress) ||
-                !nextProgress.TryUnlockNextCryptDepth(CryptDepth)) return null;
+            if (!CharacterProgression.TryLoad(Progression.SaveString(), out nextProgress)) return null;
+            if (Progression.EntryAct == 1)
+            {
+                if (!nextProgress.EnterVillage()) return null;
+                return new ArenaSimulation(_runSeed, nextProgress, CryptDepth, _lootCatalog);
+            }
+            if (!nextProgress.TryUnlockNextCryptDepth(CryptDepth)) return null;
             return new ArenaSimulation(_runSeed, nextProgress,
                 nextProgress.UnlockedCryptDepth, _lootCatalog);
         }
@@ -264,7 +280,7 @@ namespace AreArpg.Core
         public SocialResult DonateCampRation()
         {
             var result = new SocialResult();
-            if (ChapterId != 1)
+            if (!IsVillage)
             {
                 result.Text = "Nur in der Aschengrenze gibt es Maras Lager.";
                 return result;
@@ -306,6 +322,30 @@ namespace AreArpg.Core
             mara.InteractionCooldownTicks = 10;
             result.Accepted = true;
             result.Text = "Mara nimmt eine echte Ration an. Das Lager wird sicherer; sie merkt sich deine Hilfe.";
+            return result;
+        }
+
+        /// <summary>Entry-only direct ration theft with the supplier's existing cooldown and local guard perception.</summary>
+        public SocialResult TakeCampRation()
+        {
+            var result = new SocialResult();
+            if (Progression.EntryAct != 2 || GameOver) return result;
+            NpcAgent mara = Npcs.Find(n => n.Id == SocialLedger.MaraNpcId);
+            if (mara == null || mara.InteractionCooldownTicks > 0 || mara.Memory.Health == 0 ||
+                DistanceSquared(PlayerXmm, PlayerZmm, mara.Xmm, mara.Zmm) > FixedMath.Square(NpcInteractionRadiusMm) ||
+                !EntryWorldLayout.HasSight(PlayerXmm, PlayerZmm, mara.Xmm, mara.Zmm))
+            { result.Text = "Nur unmittelbar bei Mara kannst du nach ihren Vorräten greifen."; return result; }
+            if (!Progression.Social.TakeCampRation())
+            { result.Text = "Das Lager ist leer. Du nimmst nichts."; return result; }
+            mara.InteractionCooldownTicks = 10;
+            result.Accepted = true;
+            NpcAgent guard = Npcs.Find(n => n.Id == 2);
+            bool witnessed = guard != null && guard.Memory.Health > 0 &&
+                DistanceSquared(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm) <= FixedMath.Square(8000) &&
+                EntryWorldLayout.HasSight(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm);
+            if (witnessed) Progression.Social.WitnessRationTheft(guard.Id);
+            result.Text = witnessed ? "Du nimmst eine Ration. Mara protestiert; Dorn hat den Diebstahl gesehen und greift ein." :
+                "Du nimmst eine Ration. Mara merkt sich den Übergriff; Dorn hat ihn nicht gesehen.";
             return result;
         }
 
@@ -419,9 +459,11 @@ namespace AreArpg.Core
         }
 
         // The same obstacle specification is used by player and monster movement.
+        /// <summary>Apply arena bounds and the active chapter collision model using integer coordinates.</summary>
         public bool CanStand(long x, long z)
         {
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
+            if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);
             long[] coordinates = { -7000, 7000 };
             foreach (long px in coordinates)
                 foreach (long pz in coordinates)

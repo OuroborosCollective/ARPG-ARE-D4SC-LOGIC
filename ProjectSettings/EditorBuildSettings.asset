@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/AshenEntry.unity
+    guid: a362ca0f2bc34795bf28e63b380cb001
+  - enabled: 1
     path: Assets/Scenes/Arena.unity
     guid: e26aeb01d9aaab0b1ab79c9ab672be7e
   m_configObjects: {}

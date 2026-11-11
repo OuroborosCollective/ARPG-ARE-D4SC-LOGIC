@@ -92,6 +92,34 @@ namespace AreArpg.PlayMode.Tests
                 foreach (Collider collider in landmark.GetComponentsInChildren<Collider>(true))
                     Assert.IsFalse(collider.enabled, "Projection-only landmark cannot own collision: " + name);
             }
+            // Village art is optional private presentation. Whichever state this checkout has,
+            // it must be consistent: either the reviewed mesh replaces the blockout parts, or
+            // the complete primitive fallback stays visible. Never both, never neither.
+            GameObject hall = FindInIsolatedScene("Aschengrenze_Supply_Hall");
+            bool hallHasArt = hall.transform.childCount > 0;
+            Assert.AreNotEqual(hallHasArt, hall.GetComponent<Renderer>().enabled);
+            foreach (string part in new[] { "Aschengrenze_Hall_Roof_Left", "Aschengrenze_Hall_Roof_Right", "Aschengrenze_Hall_Door" })
+                Assert.AreNotEqual(hallHasArt, FindInIsolatedScene(part).GetComponent<Renderer>().enabled, part);
+            if (hallHasArt)
+            {
+                Transform art = hall.transform.GetChild(0);
+                Assert.That(UnityEngine.Vector3.Distance(art.lossyScale, UnityEngine.Vector3.one), Is.LessThan(1e-3f), "art keeps its authored scale");
+                Assert.That(art.position.y, Is.EqualTo(AschengrenzeArt.GroundY).Within(1e-3f));
+            }
+            GameObject backdrop = FindInIsolatedScene(AschengrenzeArt.BackdropLabel);
+            Assert.IsNotNull(backdrop, "backdrop anchor exists with or without private art");
+            foreach (Collider collider in backdrop.GetComponentsInChildren<Collider>(true))
+                Assert.Fail("Backdrop art cannot own collision: " + collider.name);
+            // The stolen-supplies shelf is Core truth and may never be swallowed by decoration.
+            int visibleRations = 0;
+            for (int slot = 0; slot < SocialLedger.CampCapacity; slot++)
+            {
+                GameObject ration = FindInIsolatedScene("Aschengrenze_Stored_Ration_" + slot);
+                Assert.IsNotNull(ration);
+                if (ration.activeSelf && ration.GetComponent<Renderer>().enabled) visibleRations++;
+            }
+            Assert.AreEqual(new ArenaSimulation(17).Progression.Social.CampProvisions, visibleRations);
+            Assert.IsTrue(FindInIsolatedScene("Aschengrenze_Missing_Rations").GetComponent<Renderer>().enabled);
             Assert.IsNotNull(FindInIsolatedScene("Passage_Arch"));
             for (int id = 0; id < 3; id++)
                 Assert.IsNotNull(FindInIsolatedScene("ARE_NPC_" + id), "Missing canonical NPC " + id);

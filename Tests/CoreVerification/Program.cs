@@ -34,6 +34,7 @@ internal static class Program
             SkillContractTests.Run(Require);
             CombatStatsTests.Run(Require);
             PracticeRuleTests.Run(Require);
+            EntryJourneyTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }
