@@ -14,7 +14,7 @@ AC1–AC5 werden weiterhin gelesen; Profile ohne neue Itembelege behalten exakt 
 
 **Checkpoint, kein vollständiger Kampfsnapshot:** Bestehende Saves speichern Charakter und Kapitel. HP, Gegnerzustände und ungesammelte Bodendrops werden beim Neustart weiterhin neu begonnen. Der Slice verspricht keine Wiederaufnahme eines laufenden Kampfes. Gesammelte Instanzen/Upgrades bleiben erhalten; erneute Kills erhalten durch LifetimeKills neue IDs. Derselbe Anfangscheckpoint plus dieselben Eingaben liefert denselben Replay. Ein Rollback alter AC5-Binaries kann AC7 nicht lesen; vorhandene Saves nicht überschreiben oder deinstallieren.
 
-Alte Core-Konstruktoren bleiben ausdrücklich im Legacy-Modus. Unity bindet v1 am vorhandenen Awake-Entry-Point; Kapitelwechsel übernehmen denselben Katalog. Neue World-Hashes binden Kataloginhalt, Seed und Itembelege. Legacy-Goldenwerte gegen main ebef21e61246f4b72198c9f385c4858a6c6c3af4: Spawn 778990259245021324, Kill 12708209387939169364, Pickup 4613376337469592607.
+Alte Core-Konstruktoren bleiben ausdrücklich im Legacy-Modus. Unity bindet v1 am vorhandenen Awake-Entry-Point und beim Restart; Kapitelwechsel übernehmen denselben Katalog. Neue World-Hashes binden Kataloginhalt, Seed und Itembelege. Legacy-Goldenwerte gegen main ebef21e61246f4b72198c9f385c4858a6c6c3af4: Spawn 778990259245021324, Kill 12708209387939169364, Pickup 4613376337469592607.
 
 ## Speicher / Threading / Skalierung
 
@@ -27,3 +27,9 @@ TDD-Core RED e36bcae (fehlende Verträge), GREEN 803 Assertions; 21 Python-Prefl
 ## Folgeintegration
 
 Skills, Combat, Stats und Learn-by-Doing müssen die bestehenden Skill-Slots, FixedMath-/Basispoint-Konventionen und RecordPractice-Regeln erweitern. NPC Memory/Policies gehören weiterhin NpcRelations/SocialLedger; der aktive AC6-Branch darf nicht durch einen zweiten Ereignis- oder Speicherowner ersetzt werden. PRs #10/#11 und die private Fantasy-Kingdom-Grafikarbeit bleiben getrennt.
+
+### Review-Regression und finaler Code
+
+Ein erweiterter echter PlayMode-Test auf b8ac2fed4e43a3b22a1191417494c01027aa80f6 reproduzierte den Verlust des Katalogs nach Restart: 11/12, XML2929a80dd50976dcf8f11aaa1a06ac967e8c5581521fa6b7a9a477b80272961f. Fix auf04b0ab6f4b4ae4f2a7b84875754fee53c77f8d6a: PlayMode12/12, XML93d3c90b12bb586c4368927028c4d273ba58cb4b397c071b7d5573812a75bfb1; EditMode3/3, XML9430be8ab952dc6b2b667197ca1126a940574a373ecd0cbe176de245a144c722. Jeweils Exit0,0Skips; Receipts und XML separat gelesen. 816 Core-Assertions und22 Preflights; CI42981698603/Job130393372363 bestanden auf720d252 (Runtime und Tests bytegleich, private Auditdoku entfernt). Weitere Dokumentationscommits veraendern diese ausgefuehrten Runtime-Dateien nicht.
+
+Die natuerliche Abnahme nutzt unveraendert gespawnte Gegner und echte Bewegungs-/Skill-Eingaben: SeedBEEF, Killtick6, Item loot.1,000000000000BEEF,1,6,1,0,1, Rare, weapon.upgrade=8; Aufnahme bis Tick7. Zwei Welten liefern pro Tick gleiche Hashes, Save/Load erhaelt die Instanz. Checksum-gueltige Saves mit zu kleinem Waffenbonus werden abgewiesen. Die Audit-CLI bewahrt UTF-8-Bytes und SHA-basierte Quellidentitaeten auch bei gleichen Dateinamen; private Exportinhalte gehoeren nicht in dieses Repository.
