@@ -70,6 +70,12 @@ eigene URP-Materialkopien und einen Idle/Move/Melee-Controller; die Originale
 bleiben erhalten. Kopierte Clips enthalten keine AnimationEvents, Root Motion
 bleibt ausgeschaltet. Die Waffe folgt einem konfigurierten Socket der rechten
 Hand; ihre Haltung ist Teil der privaten visuellen Abnahme.
+Alle drei Quellclips werden vor Änderung des vorhandenen Controllers validiert.
+Materialkopien verwenden Asset-GUID und lokale Datei-ID, damit eingebettete
+Materialien ihre eigenen Texturen behalten. Beim Abflachen von Dungeon-Meshes
+werden untere LOD-Stufen ausgeschlossen; gemeinsam mit LOD0 verwendete Renderer
+bleiben erhalten. Native Editor-Fixtures prüfen diese Authoring-Grenzen getrennt
+von den PlayMode-Prüfungen mit den tatsächlichen privaten Charakterassets.
 
 Nur ein vom vorhandenen Core bestätigter Treffer von Strike oder Heavy Strike
 löst die kosmetische Schlaganimation aus. Zurückgewiesene Aktivierungen,

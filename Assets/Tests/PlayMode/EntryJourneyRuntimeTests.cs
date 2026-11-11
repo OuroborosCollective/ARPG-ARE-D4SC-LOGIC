@@ -150,7 +150,7 @@ namespace AreArpg.PlayMode.Tests
             queue.Enqueue(0);
             TickOnce();
             animator.Update(.05f);
-            Assert.IsFalse(animator.GetCurrentAnimatorStateInfo(0).IsName("Melee"), "Rejected out-of-range attacks must not animate");
+            Assert.AreNotEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash, "Rejected out-of-range attacks must not animate");
             var target = Game.Monsters[0]; target.Xmm = Game.PlayerXmm + 1000; target.Zmm = Game.PlayerZmm; target.Health = 1000;
             queue.Enqueue(0);
             TickOnce();
@@ -159,7 +159,7 @@ namespace AreArpg.PlayMode.Tests
             // The first evaluation consumes the trigger; a second advances the fixed-duration blend.
             animator.Update(0f);
             animator.Update(.15f);
-            Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Melee"),
+            Assert.AreEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash,
                 "Accepted Core hit must enter Melee after its 40 ms transition");
             Assert.IsFalse(animator.applyRootMotion);
             var weapon = Find("Wanderer's sword");
@@ -171,7 +171,7 @@ namespace AreArpg.PlayMode.Tests
             yield return Capture("hero-strike-detail.png", true);
             animator.speed = 1f;
             animator.Update(2f); animator.Update(.2f);
-            Assert.IsFalse(animator.GetCurrentAnimatorStateInfo(0).IsName("Melee"), "Melee must return to locomotion");
+            Assert.AreNotEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash, "Melee must return to locomotion");
             Assert.AreEqual(position, hero.transform.position);
             Assert.AreEqual(hash, Game.ComputeWorldHash(), "Animation may not write canonical state");
             yield return Capture("act1-melee-ready.png");

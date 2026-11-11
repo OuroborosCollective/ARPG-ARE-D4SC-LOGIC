@@ -92,7 +92,19 @@ namespace AreArpg.EditorTools
             var root = new GameObject(key);
             try
             {
-                var meshes = source.GetComponentsInChildren<MeshFilter>(true);
+                var highest = new System.Collections.Generic.HashSet<Renderer>();
+                var lower = new System.Collections.Generic.HashSet<Renderer>();
+                foreach (var group in source.GetComponentsInChildren<LODGroup>(true))
+                {
+                    var lods = group.GetLODs();
+                    for (int level = 0; level < lods.Length; level++)
+                        foreach (var renderer in lods[level].renderers)
+                            if (renderer != null) (level == 0 ? highest : lower).Add(renderer);
+                }
+                // A renderer may be shared between levels; retain anything explicitly used at LOD0.
+                lower.ExceptWith(highest);
+                var meshes = source.GetComponentsInChildren<MeshFilter>(true)
+                    .Where(m => m.GetComponent<MeshRenderer>() != null && !lower.Contains(m.GetComponent<MeshRenderer>())).ToArray();
                 if (meshes.Length == 0) throw new InvalidOperationException("Empty dungeon mesh: " + key);
                 foreach (var mesh in meshes)
                 {
@@ -115,6 +127,13 @@ namespace AreArpg.EditorTools
         /// <summary>Keep the existing movement parameter contract, with the selected rig's own clips.</summary>
         private static void BuildController(Inputs input)
         {
+            // Validate every source before touching clips or a controller already used by the hero.
+            var idleSource = SourceClip(input.idle, input.idleClip, "EntryIdle");
+            var moveSource = SourceClip(input.move, input.moveClip, "EntryMove");
+            var attackSource = SourceClip(input.melee, input.meleeClip, "EntryStrike");
+            var idleClip = Clip(idleSource, "EntryIdle", true);
+            var moveClip = Clip(moveSource, "EntryMove", true);
+            var attackClip = Clip(attackSource, "EntryStrike", false);
             string path = Output + "EntryMelee.controller";
             _controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
             if (_controller == null) _controller = AnimatorController.CreateAnimatorControllerAtPath(path);
@@ -124,9 +143,9 @@ namespace AreArpg.EditorTools
             _controller.parameters = new AnimatorControllerParameter[0];
             _controller.AddParameter("MoveMagnitude", AnimatorControllerParameterType.Float);
             _controller.AddParameter("Melee", AnimatorControllerParameterType.Trigger);
-            var idle = machine.AddState("Idle"); idle.motion = Clip(input.idle, input.idleClip, "EntryIdle", true);
-            var move = machine.AddState("Move"); move.motion = Clip(input.move, input.moveClip, "EntryMove", true);
-            var attack = machine.AddState("Melee"); attack.motion = Clip(input.melee, input.meleeClip, "EntryStrike", false);
+            var idle = machine.AddState("Idle"); idle.motion = idleClip;
+            var move = machine.AddState("Move"); move.motion = moveClip;
+            var attack = machine.AddState("Melee"); attack.motion = attackClip;
             machine.defaultState = idle;
             var walk = idle.AddTransition(move); walk.AddCondition(AnimatorConditionMode.Greater, .1f, "MoveMagnitude");
             var stop = move.AddTransition(idle); stop.AddCondition(AnimatorConditionMode.Less, .1f, "MoveMagnitude");
@@ -141,18 +160,24 @@ namespace AreArpg.EditorTools
             EditorUtility.SetDirty(_controller);
         }
 
-        /// <summary>Preserve private clip identities and strip events that could execute vendor gameplay.</summary>
-        private static AnimationClip Clip(string sourcePath, string sourceName, string key, bool loop)
+        /// <summary>Resolve exactly the reviewed humanoid take without writing any generated asset.</summary>
+        private static AnimationClip SourceClip(string sourcePath, string sourceName, string key)
         {
             if (string.IsNullOrEmpty(sourceName)) throw new InvalidOperationException("Missing reviewed clip name: " + key);
             var clips = AssetDatabase.LoadAllAssetsAtPath(sourcePath).OfType<AnimationClip>()
                 .Where(c => string.Equals(c.name, sourceName, StringComparison.Ordinal)).ToArray();
             if (clips.Length != 1 || !clips[0].humanMotion)
                 throw new InvalidOperationException("Expected exactly one humanoid clip: " + key);
+            return clips[0];
+        }
+
+        /// <summary>Preserve private clip identities and strip events that could execute vendor gameplay.</summary>
+        private static AnimationClip Clip(AnimationClip source, string key, bool loop)
+        {
             string path = Output + key + ".anim";
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
             if (clip == null) { clip = new AnimationClip(); AssetDatabase.CreateAsset(clip, path); }
-            EditorUtility.CopySerialized(clips[0], clip);
+            EditorUtility.CopySerialized(source, clip);
             clip.name = key;
             AnimationUtility.SetAnimationEvents(clip, new AnimationEvent[0]);
             var settings = AnimationUtility.GetAnimationClipSettings(clip);
@@ -230,9 +255,9 @@ namespace AreArpg.EditorTools
         private static Material HeroMaterial(Material source)
         {
             if (source == null || source.mainTexture == null) throw new InvalidOperationException("Hero material requires its real base texture");
-            string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(source));
-            if (string.IsNullOrEmpty(guid)) throw new InvalidOperationException("Hero material has no stable source identity");
-            string path = Output + "EntryHeroMaterial_" + guid + ".mat";
+            if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(source, out string guid, out long localId) || string.IsNullOrEmpty(guid))
+                throw new InvalidOperationException("Hero material has no stable source identity");
+            string path = Output + "EntryHeroMaterial_" + guid + "_" + localId.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".mat";
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
             var shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) throw new InvalidOperationException("Missing pinned URP Lit shader");
