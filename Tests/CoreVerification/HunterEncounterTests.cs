@@ -101,6 +101,15 @@ internal static class HunterEncounterTests
             FightTick(continuous,true); FightTick(resumed,true);
             check(continuous.Progression.SaveString()==resumed.Progression.SaveString(),"hunter-midfight-resume-same-future-"+i);
         }
+        var healed = Road(); Move(healed, 0, 3000);
+        check(healed.ActivateSkill(3).Activated, "hunter-heal-fixture-draws-aggro");
+        for (int i = 0; i < 100 && healed.PlayerHealth == healed.MaxPlayerHealth; i++) healed.Step();
+        check(healed.PlayerHealth > 0 && healed.PlayerHealth < healed.MaxPlayerHealth, "hunter-heal-fixture-takes-real-damage");
+        check(healed.ActivateSkill(2).Activated, "hunter-self-heal-activates");
+        var afterHeal = new ArenaSimulation(123, Load(healed), BigInteger.One, LootCatalog.Version1);
+        check(afterHeal.PlayerHealth == healed.PlayerHealth && afterHeal.Cooldowns[2] == healed.Cooldowns[2],
+            "hunter-immediate-heal-save-preserves-health-and-cooldown-before-next-tick");
+
         var tank=Road(); Move(tank,0,3000);
         for(int i=0;i<700 && !tank.GameOver && !tank.Progression.Road.Bear.IsDead;i++) FightTick(tank,false);
         check(tank.GameOver || tank.PlayerHealth < a.PlayerHealth,"hunter-facetanking-costlier-than-tactics");

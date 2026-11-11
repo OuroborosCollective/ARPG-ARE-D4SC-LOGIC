@@ -465,9 +465,29 @@ namespace AreArpg.PlayMode.Tests
                 Assert.IsFalse(animator.applyRootMotion);
                 foreach (var clip in animator.runtimeAnimatorController.animationClips)
                 {
-                    Assert.Greater(clip.length, .25f, "A bind-pose clip is not an animation");
+                    Assert.Greater(clip.length, .25f, "Encounter clips must have usable duration");
                     Assert.AreEqual(0, clip.events.Length, "Vendor events must not execute gameplay");
                 }
+                var bones = bearArt.GetComponentInChildren<SkinnedMeshRenderer>().bones;
+                Assert.IsNotEmpty(bones);
+                var positions = new Vector3[bones.Length];
+                var rotations = new Quaternion[bones.Length];
+                foreach (string state in new[] { "Run", "Attack", "Death" })
+                {
+                    animator.Play(state, 0, 0f); animator.Update(0f);
+                    for (int i = 0; i < bones.Length; i++)
+                    { positions[i] = bones[i].localPosition; rotations[i] = bones[i].localRotation; }
+                    bool moved = false;
+                    foreach (float time in new[] { .25f, .5f, .75f, .95f })
+                    {
+                        animator.Play(state, 0, time); animator.Update(0f);
+                        for (int i = 0; i < bones.Length; i++)
+                            moved |= Vector3.Distance(positions[i], bones[i].localPosition) > .001f ||
+                                Quaternion.Angle(rotations[i], bones[i].localRotation) > .5f;
+                    }
+                    Assert.IsTrue(moved, state + " must move real model bones, not hold a bind pose");
+                }
+                animator.Play("Idle", 0, 0f); animator.Update(0f);
             }
             bool arrow = false, warning = false;
             for (int tick = 0; tick < 600 && !Game.GameOver && !Game.Progression.Road.Bear.IsDead; tick++)

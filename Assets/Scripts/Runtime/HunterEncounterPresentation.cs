@@ -44,7 +44,7 @@ namespace AreArpg.UnityClient
             if (_hungerJournalOpen || _game.Progression.EntryAct != 3) return;
             var h = _game.Progression.Road;
             if (h.Started && !h.Bear.IsDead && h.HunterHealth > 0)
-                GUI.Box(new Rect(layout.Width * .25f, 105f, layout.Width * .5f, 62f),
+                GUI.Box(new Rect(layout.Width * .25f, layout.StatusPanelRect.yMax + 8f, layout.Width * .5f, 62f),
                     "JAEGER IN GEFAHR  " + h.HunterHealth + "/700  |  BAER  " + h.Bear.Health + "/" + h.Bear.MaxHealth +
                     "\nAngreifen lenkt ihn ab. Dem roten Prankenhieb ausweichen!");
             if (!CanShowHunterAction()) return;

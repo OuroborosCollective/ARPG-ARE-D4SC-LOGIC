@@ -616,6 +616,7 @@ namespace AreArpg.Core
                 Cooldowns[slot] = skill.CooldownTicks;
                 result.Activated = true;
                 result.Message = skill.DisplayName + ": restored " + restored + " HP";
+                SaveRoadPlayer();
                 return result;
             }
             long range = skill.RangeMm;
