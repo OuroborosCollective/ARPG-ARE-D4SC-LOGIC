@@ -73,6 +73,7 @@ namespace AreArpg.UnityClient
                 _message = "AKT I: Verlasse die Krypta. Besiege ihre Waechter und sichere die Beute.";
             if (_game.Progression.EntryAct == 2)
                 _message = "AKT II: Folge dem Dorfweg. Ilyan hungert; Mara und Dorn erwarten dich.";
+            if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
             BuildWorld();
         }
 
@@ -296,7 +297,8 @@ namespace AreArpg.UnityClient
             }
             if (label.StartsWith("Ember_Rift_Basalt_", StringComparison.Ordinal))
                 key = "EmberBasalt";
-            if (key != null) PassiveArtVisuals.TryBind(shape, key);
+            if (visualKey != null) FitHungerArt(shape, visualKey);
+            else if (key != null) PassiveArtVisuals.TryBind(shape, key);
             return shape;
         }
 
@@ -797,7 +799,7 @@ namespace AreArpg.UnityClient
             // Commit and read back the new checkpoint before changing the active world.
             SaveCharacter(next.Progression);
             if (_storageFault) return;
-            InstallNewRun(next, next.Progression.EntryAct == 2 ?
+            InstallNewRun(next, next.Progression.HungerStage > 0 ? next.HungerObjective : next.Progression.EntryAct == 2 ?
                 "AKT II: Folge dem Dorfweg zu Ilyan, Mara und Dorn. Zwei Rationen fehlen." :
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;

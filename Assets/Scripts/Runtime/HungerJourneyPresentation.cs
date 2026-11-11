@@ -107,6 +107,34 @@ namespace AreArpg.UnityClient
         { return choice == HungerChoice.Reveal ? "Offengelegt" : choice == HungerChoice.Protect ? "Ilyan geschuetzt" :
             choice == HungerChoice.Replace ? "Ersatzversorgung" : "Noch offen"; }
 
+        /// <summary>Fit reviewed passive art into the existing projection volume without moving its Core-owned host.</summary>
+        private static void FitHungerArt(Transform host, string key)
+        {
+            if (!PassiveArtVisuals.TryBindGrounded(host, key, 0f)) return;
+            Transform art = host.GetChild(host.childCount - 1);
+            Renderer[] renderers = art.GetComponentsInChildren<Renderer>();
+            if (renderers.Length == 0)
+            {
+                Destroy(art.gameObject);
+                host.GetComponent<Renderer>().enabled = true;
+                return;
+            }
+            Bounds bounds = renderers[0].bounds;
+            foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
+            Vector3 targetSize = host.lossyScale;
+            if (bounds.size.x <= 0f || bounds.size.y <= 0f || bounds.size.z <= 0f)
+            {
+                Destroy(art.gameObject);
+                host.GetComponent<Renderer>().enabled = true;
+                return;
+            }
+            art.localScale = Vector3.Scale(art.localScale, new Vector3(targetSize.x / bounds.size.x,
+                targetSize.y / bounds.size.y, targetSize.z / bounds.size.z));
+            bounds = renderers[0].bounds;
+            foreach (var renderer in renderers) bounds.Encapsulate(renderer.bounds);
+            art.position += host.position - bounds.center;
+        }
+
         /// <summary>Project two real returnable regions using existing passive materials and one Core mill footprint.</summary>
         private void BuildHungerScenery()
         {
@@ -144,8 +172,16 @@ namespace AreArpg.UnityClient
             ChapterShape(PrimitiveType.Cube, "OldMill_Medical_Supplies", new Vector3(-4, .3f, -2),
                 new Vector3(1.2f, .6f, .8f), new Color(.54f, .43f, .3f), "AshCrate");
             for (int i = 0; i < 3; i++)
-                ChapterShape(PrimitiveType.Cube, "OldMill_Empty_Bed_" + i, new Vector3(-4 - i * 2.5f, .15f, 5),
+            {
+                ChapterShape(PrimitiveType.Cube, "OldMill_Bed_" + i, new Vector3(-4 - i * 2.5f, .15f, 5),
                     new Vector3(1.5f, .3f, 2.4f), new Color(.55f, .52f, .44f));
+                if (i >= 3 - _game.HungerShelterPatients)
+                {
+                    Transform patient = ChapterShape(PrimitiveType.Capsule, "OldMill_Patient_" + i,
+                        new Vector3(-4 - i * 2.5f, .58f, 5), new Vector3(.55f, .85f, .55f), new Color(.46f, .4f, .35f));
+                    patient.rotation = Quaternion.Euler(90, 0, 0);
+                }
+            }
             ChapterShape(PrimitiveType.Cube, "OldMill_Torn_Bandage", new Vector3(-4, .32f, 5),
                 new Vector3(.7f, .02f, .2f), new Color(.82f, .78f, .65f));
         }

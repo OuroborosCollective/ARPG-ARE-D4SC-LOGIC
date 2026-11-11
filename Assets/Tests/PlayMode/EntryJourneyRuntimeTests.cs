@@ -394,7 +394,17 @@ namespace AreArpg.PlayMode.Tests
             yield return StoryAction(HungerAction.InspectShelter);
             yield return null;
             Assert.IsNotNull(Find("OldMill_House"));
+            var millRenderers = Find("OldMill_House").GetComponentsInChildren<Renderer>();
+            Bounds millBounds = new Bounds(); bool firstRenderer = true;
+            foreach (var renderer in millRenderers)
+                if (renderer.enabled)
+                { if (firstRenderer) { millBounds = renderer.bounds; firstRenderer = false; } else millBounds.Encapsulate(renderer.bounds); }
+            Assert.IsFalse(firstRenderer);
+            Assert.AreEqual(7f, millBounds.size.x, .02f, "Mill art width must match the Core footprint");
+            Assert.AreEqual(11f, millBounds.size.z, .02f, "Mill art depth must match the Core footprint");
+            Assert.AreEqual(0f, millBounds.min.y, .02f, "The mill must stand on the visible ground");
             Assert.IsNotNull(Find("ARE_Return_Passage"));
+            Assert.IsNotNull(Find("OldMill_Patient_0"));
             yield return Capture("act4-old-mill.png");
             MoveStory(0, -2000); MoveStory(0, -24000); TravelStory();
             Assert.AreEqual(3, Game.Progression.EntryAct);
@@ -413,13 +423,16 @@ namespace AreArpg.PlayMode.Tests
             MoveStory(0, 24000); TravelStory();
             MoveStory(0, 24000); TravelStory();
             MoveStory(0, 5000); MoveStory(-4000, 5000);
+            yield return null;
+            Assert.IsNull(Find("OldMill_Patient_0"));
+            Assert.IsNotNull(Find("OldMill_Patient_1"));
             yield return StoryAction(HungerAction.InspectBeds);
             Assert.AreEqual(4, Game.Progression.HungerStage);
             string checkpoint = PlayerPrefs.GetString(_keys[0]);
             Assert.IsTrue(CharacterProgression.TryLoad(checkpoint, out var final));
             Assert.AreEqual(4, final.EntryAct);
             Assert.AreEqual(4, final.HungerStage);
-            Object.Destroy(_runtime.gameObject);
+            foreach (var root in _scene.GetRootGameObjects()) Object.Destroy(root);
             yield return null;
             _runtime = new GameObject("Reload_Hunger_Runtime").AddComponent<ArenaRuntime>();
             _runtime.enabled = false;

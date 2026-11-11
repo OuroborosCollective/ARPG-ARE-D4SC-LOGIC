@@ -30,6 +30,7 @@ internal static class HungerJourneyTests
             Move(road, 0, 24000);
             var mill = road.TryTraversePassage();
             check(mill != null && mill.Progression.EntryAct == 4 && mill.Monsters.Count == 0 && mill.Npcs.Count == 0, "hunger-no-duplicate-crypt-or-npc-at-mill");
+            check(mill.HungerShelterPatients == 3, "hunger-three-patients-on-first-visit");
             check(!mill.CanStand(10500, 5000) && mill.CanStand(0, 5000), "hunger-mill-footprint-core");
             Move(mill, 0, -2000); Move(mill, -4000, -2000);
             check(mill.ActOnHunger(HungerAction.InspectShelter).Accepted, "hunger-shelter-evidence");
@@ -63,6 +64,7 @@ internal static class HungerJourneyTests
             Move(w, 0, 24000); road = w.TryTraversePassage();
             Move(road, 0, 24000); mill = road.TryTraversePassage();
             Move(mill, 0, 5000); Move(mill, -4000, 5000);
+            check(mill.HungerShelterPatients == 2, "hunger-one-missing-on-return-" + decision);
             check(mill.ActOnHunger(HungerAction.InspectBeds).Accepted && mill.Progression.HungerStage == 4, "hunger-missing-patients-discovered-" + decision);
             check(CharacterProgression.TryLoad(mill.Progression.SaveString(), out _), "hunger-final-checkpoint-loadable");
             Move(mill, 0, 5000); Move(mill, 0, 24000);

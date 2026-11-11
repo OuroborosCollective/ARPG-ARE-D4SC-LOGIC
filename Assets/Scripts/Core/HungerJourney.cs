@@ -51,6 +51,9 @@ namespace AreArpg.Core
         public bool AtReturnPassage { get { return Progression.EntryAct >= 3 &&
             DistanceSquared(PlayerXmm, PlayerZmm, 0, ReturnPassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
         public bool AtAnyPassage { get { return AtWorldPassage || AtReturnPassage; } }
+        /// <summary>Authored shelter encounter: one patient is missing on the return visit, on every supply branch.</summary>
+        public int HungerShelterPatients { get { return Progression.EntryAct != 4 ? 0 :
+            Progression.SupplyChoice == HungerChoice.Undecided ? 3 : 2; } }
         public bool HungerForwardOpen { get { return Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
             Progression.EntryAct == 3 && Progression.HungerStage >= 2; } }
 
@@ -138,7 +141,7 @@ namespace AreArpg.Core
                 DistanceSquared(PlayerXmm, PlayerZmm, -4000, 5000) <= FixedMath.Square(NpcInteractionRadiusMm))
             {
                 Progression.DiscoverHungerClue();
-                result.Text = "Leere Lager. Ein zerrissener Verband und Schleifspuren weisen zum alten Speicher. Was holt die Verletzten?";
+                result.Text = "Eine Lagerstatt ist leer. Die anderen berichten von weiteren Vermissten. Verband und Schleifspuren weisen zum alten Speicher.";
             }
             else return result;
             if (contact != null) contact.InteractionCooldownTicks = 10;
