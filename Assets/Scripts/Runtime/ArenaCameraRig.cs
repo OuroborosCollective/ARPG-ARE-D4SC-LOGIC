@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AreArpg.UnityClient
@@ -18,6 +19,7 @@ namespace AreArpg.UnityClient
         }
         private Finger _first = new Finger { Id = -1 };
         private Finger _second = new Finger { Id = -1 };
+        private readonly List<Finger> _started = new List<Finger>(4);
         private float _previousSpan;
         private bool _hasSpan;
         public float Distance { get; private set; }
@@ -49,6 +51,7 @@ namespace AreArpg.UnityClient
         /// <summary>Release gestures after a pause, focus loss or region transition, retaining chosen zoom.</summary>
         public void ClearTouches()
         {
+            _started.Clear();
             _first.Id = _second.Id = -1;
             _first.Seen = _second.Seen = false;
             _hasSpan = false;
@@ -57,6 +60,7 @@ namespace AreArpg.UnityClient
         /// <summary>Every held finger must be observed again; disappearing OS touches cannot remain captured.</summary>
         public void BeginTouchFrame()
         {
+            _started.Clear();
             _first.Seen = _second.Seen = false;
         }
 
@@ -73,10 +77,8 @@ namespace AreArpg.UnityClient
             if (_first.Id == id) { _first.Position = position; _first.Seen = true; return; }
             if (_second.Id == id) { _second.Position = position; _second.Seen = true; return; }
             if (phase != TouchPhase.Began || !canStart) return;
-            if (_first.Id < 0) _first = new Finger { Id = id, Position = position, Seen = true };
-            else if (_second.Id < 0) _second = new Finger { Id = id, Position = position, Seen = true };
-            else return;
-            _hasSpan = false;
+            // Selection waits until releases and absent contacts have freed their slots.
+            _started.Add(new Finger { Id = id, Position = position, Seen = true });
         }
 
         /// <summary>Apply one pinch ratio after reading both fingers, independent of input enumeration order.</summary>
@@ -84,6 +86,15 @@ namespace AreArpg.UnityClient
         {
             if (!_first.Seen) { _first.Id = -1; _hasSpan = false; }
             if (!_second.Seen) { _second.Id = -1; _hasSpan = false; }
+            foreach (Finger finger in _started)
+            {
+                if (finger.Id == _first.Id || finger.Id == _second.Id) continue;
+                if (_first.Id < 0) _first = finger;
+                else if (_second.Id < 0) _second = finger;
+                else break;
+                _hasSpan = false;
+            }
+            _started.Clear();
             if (_first.Id < 0 || _second.Id < 0) { _hasSpan = false; return; }
             float span = Vector2.Distance(_first.Position, _second.Position);
             if (!Finite(span) || span < 8f) { _hasSpan = false; return; }

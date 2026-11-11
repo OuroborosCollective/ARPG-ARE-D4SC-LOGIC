@@ -96,6 +96,43 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(11.5f, _rig.Distance);
         }
 
+        /// <summary>A replacement starts after release processing regardless of the OS contact order.</summary>
+        [TestCase(true, TouchPhase.Ended)]
+        [TestCase(false, TouchPhase.Ended)]
+        [TestCase(true, TouchPhase.Canceled)]
+        [TestCase(false, TouchPhase.Canceled)]
+        public void ReplacementFingerCanContinuePinching(bool replacementFirst, TouchPhase release)
+        {
+            CheckReplacementFinger(replacementFirst, release, true);
+        }
+
+        /// <summary>An omitted OS contact also frees its slot before new contacts are selected.</summary>
+        [Test] public void ReplacementFingerCanReplaceAMissingContact()
+        {
+            CheckReplacementFinger(true, TouchPhase.Ended, false);
+        }
+
+        /// <summary>Exercise a live camera component over an initial, replacement and spread frame.</summary>
+        private void CheckReplacementFinger(bool replacementFirst, TouchPhase release, bool reportRelease)
+        {
+            _rig.BeginTouchFrame();
+            _rig.ObserveTouch(1, TouchPhase.Began, new Vector2(400f, 200f), true);
+            _rig.ObserveTouch(2, TouchPhase.Began, new Vector2(600f, 200f), true);
+            _rig.EndTouchFrame();
+            _rig.BeginTouchFrame();
+            if (replacementFirst) _rig.ObserveTouch(3, TouchPhase.Began, new Vector2(300f, 200f), true);
+            if (reportRelease) _rig.ObserveTouch(1, release, new Vector2(400f, 200f), true);
+            if (!replacementFirst) _rig.ObserveTouch(3, TouchPhase.Began, new Vector2(300f, 200f), true);
+            _rig.ObserveTouch(2, TouchPhase.Stationary, new Vector2(600f, 200f), true);
+            _rig.EndTouchFrame();
+            Assert.AreEqual(11.5f, _rig.Distance, "Replacement must establish a fresh span without jumping.");
+            _rig.BeginTouchFrame();
+            _rig.ObserveTouch(3, TouchPhase.Moved, new Vector2(150f, 200f), true);
+            _rig.ObserveTouch(2, TouchPhase.Stationary, new Vector2(600f, 200f), true);
+            _rig.EndTouchFrame();
+            Assert.AreEqual(7.666667f, _rig.Distance, .001f, "Replacement must be adopted on its Began frame.");
+        }
+
         /// <summary>Coincident fingers do not divide by zero or reuse an invalid pinch baseline.</summary>
         [Test] public void CollapsedPinchRebasesWithoutInvalidDistance()
         {
