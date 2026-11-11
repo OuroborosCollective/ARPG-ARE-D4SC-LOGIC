@@ -283,7 +283,12 @@ namespace AreArpg.EditorTools
             try { receipt.receiptSha256 = null; return Hash(Encoding.UTF8.GetBytes(JsonUtility.ToJson(receipt))); }
             finally { receipt.receiptSha256 = saved; }
         }
-        private static string FileHash(string path) { return Hash(File.ReadAllBytes(path)); }
+        private static string FileHash(string path)
+        {
+            using (var stream = File.OpenRead(path))
+            using (var sha = SHA256.Create())
+                return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+        }
         private static string Hash(byte[] bytes)
         {
             using (var sha = SHA256.Create())
