@@ -60,6 +60,17 @@ namespace AreArpg.PlayMode.Tests
             PlayerPrefs.Save();
         }
 
+        /// <summary>The entry camera frames the actual hero more closely without a separate gameplay world.</summary>
+        [UnityTest]
+        public IEnumerator EntryCameraStartsAtTheCloserHeroDistance()
+        {
+            yield return new WaitForSeconds(0.9f);
+            var hero = Find("Wanderer");
+            Assert.IsNotNull(hero);
+            Assert.AreEqual(11.5f, Vector3.Distance(Camera.main.transform.position, hero.transform.position), 0.1f,
+                "The entry profile should frame the hero at 11.5 m instead of the old 16 m overview");
+        }
+
         /// <summary>Travel through canonical kill/pickup/passage, real PlayerPrefs and private village projection.</summary>
         [UnityTest]
         public IEnumerator CryptLeadsToVillageAndResumesItsCheckpoint()
