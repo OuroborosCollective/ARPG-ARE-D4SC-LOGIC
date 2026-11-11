@@ -22,6 +22,7 @@ namespace AreArpg.Core
         private ReadOnlyCollection<LootItem> _itemsView;
         /// <summary>Collected upgrade receipts; only the existing progression owner can mutate them.</summary>
         public ReadOnlyCollection<LootItem> Items { get { return _itemsView ?? (_itemsView = _items.AsReadOnly()); } }
+        /// <summary>Accept each confirmed kill ordinal once, retain stable order and apply the existing upgrade path.</summary>
         internal bool CollectItem(LootItem item)
         {
             if (item == null || item.KillOrdinal > LifetimeKills) return false;
@@ -32,6 +33,7 @@ namespace AreArpg.Core
             AddWeaponUpgrade(item.AffixValue);
             return true;
         }
+        /// <summary>Join acquired receipts in canonical kill order for checkpoint persistence.</summary>
         private string ItemToken()
         {
             var b = new StringBuilder();
@@ -134,6 +136,7 @@ namespace AreArpg.Core
             Social.ProvisionFromLoot();
         }
 
+        /// <summary>Keep the exact AC5 payload for legacy profiles; add AC7 receipts only when present.</summary>
         private string Payload()
         {
             return (_items.Count == 0 ? "AC5|" : "AC7|") + TotalExperience.ToString(CultureInfo.InvariantCulture) +
@@ -171,6 +174,7 @@ namespace AreArpg.Core
             return BigInteger.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value) && value >= BigInteger.Zero;
         }
 
+        /// <summary>Validate supported checkpoint checksums and invariants before replacing the caller profile; AC6 is reserved.</summary>
         public static bool TryLoad(string saved, out CharacterProgression progress)
         {
             progress = null;
@@ -214,12 +218,14 @@ namespace AreArpg.Core
             if (ac7)
             {
                 BigInteger previousOrdinal = BigInteger.Zero;
+                BigInteger receiptPoints = BigInteger.Zero;
                 foreach (string token in parts[14].Split(';'))
                 {
                     if (!LootItem.TryRead(token, out var item) || item.KillOrdinal <= previousOrdinal || item.KillOrdinal > kills) return false;
                     items.Add(item); previousOrdinal = item.KillOrdinal;
+                    receiptPoints += item.AffixValue;
                 }
-                if (items.Count > loot) return false;
+                if (items.Count > loot || BigInteger.Min(receiptPoints, int.MaxValue) > weapon) return false;
             }
             progress = new CharacterProgression {
                 TotalExperience = xp, WeaponBonus = (int)weapon,

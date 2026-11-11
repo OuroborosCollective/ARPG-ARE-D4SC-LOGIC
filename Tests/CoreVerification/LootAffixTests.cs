@@ -6,11 +6,13 @@ using AreArpg.Core;
 
 internal static class LootAffixTests
 {
+    /// <summary>Create an explicitly catalog-enabled Core test world with a stable seed.</summary>
     private static ArenaSimulation World(ulong seed = 123)
     {
         return new ArenaSimulation(seed, null, BigInteger.One, LootCatalog.Version1);
     }
 
+    /// <summary>Arrange a close low-health test enemy, then require a real canonical kill transition.</summary>
     private static void KillFirst(ArenaSimulation world)
     {
         world.Monsters[0].Xmm = 1000;
@@ -19,6 +21,7 @@ internal static class LootAffixTests
         if (world.ActivateSkill(0).Kills != 1) throw new Exception("fixture must use canonical kill");
     }
 
+    /// <summary>Build checksum-valid malformed test inputs to exercise semantic save validation.</summary>
     private static string Rechecksum(string payload)
     {
         ulong h = 14695981039346656037UL;
@@ -26,6 +29,7 @@ internal static class LootAffixTests
         return payload + "|" + h.ToString("X16", CultureInfo.InvariantCulture);
     }
 
+    /// <summary>Verify kill causality, deterministic ordering, legacy hashes, migration rejection and natural-world acceptance.</summary>
     public static void Run(Action<bool, string> require)
     {
         var a = World(); var b = World();
@@ -77,6 +81,15 @@ internal static class LootAffixTests
         fields = save.Split('|'); fields[14] = fields[14].Replace("ash.shard", "unknown.item");
         require(!CharacterProgression.TryLoad(Rechecksum(string.Join("|", fields, 0, 15)), out _),
             "affix-valid-checksum-does-not-allow-unknown-item");
+        fields = save.Split('|'); fields[2] = "0";
+        require(!CharacterProgression.TryLoad(Rechecksum(string.Join("|", fields, 0, 15)), out _),
+            "affix-receipts-cannot-exceed-persisted-weapon-upgrades");
+        fields = save.Split('|'); fields[14] = "";
+        require(!CharacterProgression.TryLoad(Rechecksum(string.Join("|", fields, 0, 15)), out _), "affix-empty-ac7-rejected");
+        fields = save.Split('|'); fields[14] = "2" + fields[14].Substring(1);
+        require(!CharacterProgression.TryLoad(Rechecksum(string.Join("|", fields, 0, 15)), out _), "affix-unknown-catalog-rejected");
+        fields = save.Split('|'); fields[14] = fields[14].Substring(0, fields[14].LastIndexOf(',') + 1) + "99";
+        require(!CharacterProgression.TryLoad(Rechecksum(string.Join("|", fields, 0, 15)), out _), "affix-invalid-value-rejected");
         var replayA = World(); var replayB = World();
         KillFirst(replayA); KillFirst(replayB); replayA.TryCollectLoot(); replayB.TryCollectLoot();
         for (int tick = 0; tick < 100; tick++)
@@ -122,6 +135,28 @@ internal static class LootAffixTests
         try { new LootDropTable(new LootDropDefinition("bad", 0, "ash.shard", ItemRarity.Magic, 0, 8)); }
         catch (ArgumentException) { rejected = true; }
         require(rejected, "affix-zero-weight-rejected");
+        var naturalA = World(0xBEEF); var naturalB = World(0xBEEF);
+        for (int t = 0; t < 120 && naturalA.Progression.Items.Count == 0; t++)
+        {
+            foreach (var world in new[] { naturalA, naturalB })
+            {
+                long x = world.Monsters[0].Xmm, z = world.Monsters[0].Zmm;
+                if (world.GroundLoot.Count > 0) { x = world.GroundLoot[0].Xmm; z = world.GroundLoot[0].Zmm; }
+                long dx = x - world.PlayerXmm, dz = z - world.PlayerZmm;
+                bool near = dx * dx + dz * dz < 1000000;
+                world.SetMoveInput(near ? 0 : dx, near ? 0 : dz);
+                world.ActivateSkill(0); world.ActivateSkill(2); world.TryCollectLoot(); world.Step();
+            }
+            require(naturalA.ComputeWorldHash() == naturalB.ComputeWorldHash(), "affix-unmodified-world-replay-" + t);
+        }
+        require(naturalA.Progression.Items.Count > 0 && naturalA.Progression.LifetimeKills > 0,
+            "affix-unmodified-world-real-movement-combat-kill-pickup");
+        require(CharacterProgression.TryLoad(naturalA.Progression.SaveString(), out var naturalLoaded) &&
+            naturalLoaded.Items[0].InstanceId == naturalA.Progression.Items[0].InstanceId,
+            "affix-unmodified-world-save-load-instance");
+        Console.WriteLine("ACCEPTANCE_ITEM " + naturalA.Progression.Items[0].InstanceId + " " +
+            naturalA.Progression.Items[0].Rarity + " " + naturalA.Progression.Items[0].AffixId + "=" +
+            naturalA.Progression.Items[0].AffixValue + " tick=" + naturalA.CurrentTick);
         require(ArenaSimulation.TickMs == 100, "affix-keeps-ten-hz");
     }
 }

@@ -19,18 +19,21 @@ namespace AreArpg.Core
         public BigInteger KillOrdinal { get; }
         internal LootItem(string context, string definitionId, ItemRarity rarity, int value, BigInteger killOrdinal)
         { _context = context; DefinitionId = definitionId; Rarity = rarity; AffixValue = value; KillOrdinal = killOrdinal; }
+        /// <summary>Encode the complete canonical kill identity without culture-sensitive formatting.</summary>
         internal static string Context(int revision, ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger ordinal)
         {
             return revision.ToString(CultureInfo.InvariantCulture) + "," + seed.ToString("X16", CultureInfo.InvariantCulture) + "," +
                 depth.ToString(CultureInfo.InvariantCulture) + "," + tick.ToString(CultureInfo.InvariantCulture) + "," +
                 enemyId.ToString(CultureInfo.InvariantCulture) + "," + kind.ToString(CultureInfo.InvariantCulture) + "," + ordinal.ToString(CultureInfo.InvariantCulture);
         }
+        /// <summary>Serialize the kill context and immutable selected item and affix for replay validation.</summary>
         internal string Token()
         {
             return _context + "," + DefinitionId + "," + ((int)Rarity).ToString(CultureInfo.InvariantCulture) + "," + AffixId + "," +
                 AffixValue.ToString(CultureInfo.InvariantCulture);
         }
         public ulong StableHash { get { return LootCatalog.HashText(Token()); } }
+        /// <summary>Regenerate revision-one loot and reject unknown or noncanonical persisted receipts.</summary>
         internal static bool TryRead(string token, out LootItem item)
         {
             item = null;

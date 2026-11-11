@@ -90,6 +90,15 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(item.InstanceId, loaded.Items[0].InstanceId);
             Assert.AreEqual(8, loaded.WeaponBonus);
             Assert.AreEqual(100, ArenaSimulation.TickMs);
+            typeof(ArenaRuntime).GetMethod("Restart", flags).Invoke(runtime, null);
+            var restarted = (ArenaSimulation)typeof(ArenaRuntime).GetField("_game", flags).GetValue(runtime);
+            Assert.AreNotSame(game, restarted);
+            restarted.Monsters[0].Xmm = 1000; restarted.Monsters[0].Zmm = 0; restarted.Monsters[0].Health = 1;
+            Assert.AreEqual(1, restarted.ActivateSkill(0).Kills);
+            var nextItem = restarted.GroundLoot[0].Item;
+            Assert.IsNotNull(nextItem, "Restart must preserve the Core loot catalog");
+            Assert.AreNotEqual(item.InstanceId, nextItem.InstanceId);
+
         }
     }
 }

@@ -17,6 +17,7 @@ namespace AreArpg.Core
         public ItemRarity Rarity { get; }
         public int Weight { get; }
         public int WeaponPoints { get; }
+        /// <summary>Validate stable IDs, supported rarity and positive integer weights and rewards.</summary>
         public LootDropDefinition(string id, int monsterKind, string itemId, ItemRarity rarity, int weight, int weaponPoints)
         {
             if (!LootCatalog.ValidId(id) || !LootCatalog.ValidId(itemId) || monsterKind < 0 || monsterKind > 3 ||
@@ -31,6 +32,7 @@ namespace AreArpg.Core
     {
         private readonly LootDropDefinition[] _entries;
         private readonly uint[] _totals = new uint[4];
+        /// <summary>Copy caller definitions, sort ordinal IDs and reject duplicates or overflowing per-kind weights.</summary>
         public LootDropTable(params LootDropDefinition[] entries)
         {
             if (entries == null || entries.Length == 0) throw new ArgumentException("Empty drop table");
@@ -62,6 +64,7 @@ namespace AreArpg.Core
             }
             throw new InvalidOperationException("Inconsistent drop table");
         }
+        /// <summary>Serialize ordered definitions with culture-invariant numbers for the catalog hash.</summary>
         internal string Token()
         {
             var b = new StringBuilder();
@@ -81,6 +84,7 @@ namespace AreArpg.Core
         public int Revision { get { return 1; } }
         public ulong StableHash { get; }
         private readonly LootDropTable _table;
+        /// <summary>Freeze revision-one drop weights and the existing 8/17/34-point reward balance.</summary>
         private LootCatalog()
         {
             var entries = new LootDropDefinition[8];
@@ -95,12 +99,14 @@ namespace AreArpg.Core
             _table = new LootDropTable(entries);
             StableHash = HashText("loot.v1;affix.weapon.upgrade.v1;" + _table.Token());
         }
+        /// <summary>Accept only nonempty lowercase ASCII identifiers with digits and dots.</summary>
         internal static bool ValidId(string value)
         {
             if (string.IsNullOrEmpty(value)) return false;
             foreach (char c in value) if (!(c >= 'a' && c <= 'z') && !(c >= '0' && c <= '9') && c != '.') return false;
             return true;
         }
+        /// <summary>Compute stable UTF-8 FNV-1a; this is a replay hash, not an authentication signature.</summary>
         internal static ulong HashText(string value)
         {
             ulong h = 14695981039346656037UL;

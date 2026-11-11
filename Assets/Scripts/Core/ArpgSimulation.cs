@@ -513,6 +513,7 @@ namespace AreArpg.Core
             return target;
         }
 
+        /// <summary>Resolve existing combat rewards; only a transition to dead generates a catalog item.</summary>
         private void DealDamage(MonsterState enemy, int powerBp, int slot, SkillResult result)
         {
             bool crit;
@@ -576,6 +577,7 @@ namespace AreArpg.Core
             return result;
         }
 
+        /// <summary>Collect reachable drops through the canonical progression owner, preserving legacy rewards.</summary>
         public bool TryCollectLoot()
         {
             if (GameOver) return false;
@@ -595,6 +597,7 @@ namespace AreArpg.Core
         }
 
         // Stable FNV-1a over every field that currently affects future simulation outcomes.
+        /// <summary>Hash canonical simulation state; catalog mode additionally binds its revision, seed and ground receipts.</summary>
         public ulong ComputeWorldHash()
         {
             ulong h = 14695981039346656037UL;

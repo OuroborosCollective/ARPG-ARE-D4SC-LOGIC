@@ -548,12 +548,13 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.G)) _pendingCampDonation = true;
         }
 
+        /// <summary>Restart the checkpoint using the shipped catalog while retaining acquired progression.</summary>
         private void Restart()
         {
             if (_storageFault) return;
             SaveCharacter();
             if (_storageFault) return;
-            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth),
+            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version1),
                 "Crypt restarted - character progression retained.");
         }
 
