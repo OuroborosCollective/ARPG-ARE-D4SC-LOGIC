@@ -100,7 +100,9 @@ internal static class InvestigationJourneyTests
         }
         var dodge = Mill(HungerChoice.Protect); Move(dodge, 0, 24000); dodge = dodge.TryTraversePassage(); Move(dodge, 0, 18000);
         dodge.ActOnHunger(HungerAction.InspectSeal); dodge.ActOnHunger(HungerAction.BreakSeal); Move(dodge, 0, 24000); dodge = dodge.TryTraversePassage();
-        while (dodge.Progression.Investigation.TrapTicks == 0) { dodge.SetMoveInput(0, 10000); dodge.Step(); }
+        for (int tick = 0; tick < 100 && dodge.Progression.Investigation.TrapTicks == 0; tick++)
+        { dodge.SetMoveInput(0, 10000); dodge.Step(); }
+        check(dodge.Progression.Investigation.TrapTicks > 0, "crypt-warning-arms-within-bounded-approach");
         int full = dodge.PlayerHealth; dodge.SetMoveInput(10000, 0); for (int i = 0; i < 10; i++) dodge.Step(); dodge.SetMoveInput(0, 0);
         check(dodge.Progression.Investigation.TrapTicks == -1 && dodge.PlayerHealth == full, "crypt-warning-is-avoidable-by-real-movement");
     }
