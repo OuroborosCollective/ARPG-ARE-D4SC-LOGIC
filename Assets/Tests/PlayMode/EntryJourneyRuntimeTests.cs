@@ -387,6 +387,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(3, Game.Progression.EntryAct);
             MoveStory(0, -2000);
             yield return StoryAction(HungerAction.InspectTrail);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
             yield return Capture("act3-ash-road.png");
             MoveStory(0, 24000); TravelStory();
             Assert.AreEqual(4, Game.Progression.EntryAct);
@@ -405,6 +406,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(0f, millBounds.min.y, .02f, "The mill must stand on the visible ground");
             Assert.IsNotNull(Find("ARE_Return_Passage"));
             Assert.IsNotNull(Find("OldMill_Patient_0"));
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
             yield return Capture("act4-old-mill.png");
             MoveStory(0, -2000); MoveStory(0, -24000); TravelStory();
             Assert.AreEqual(3, Game.Progression.EntryAct);
