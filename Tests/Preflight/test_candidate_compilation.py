@@ -15,7 +15,10 @@ class CandidateCompilationTests(unittest.TestCase):
         timed = module.run_bounded([sys.executable, '-c', 'import time; time.sleep(1)'], 0.01)
         self.assertEqual('timeout', timed['status'])
         self.assertIsNone(timed['exit_code'])
-        next_result = module.run_bounded([sys.executable, '-c', 'print("ä")'], 5)
+        record = {'classification': 'ausführbarer Quellcode'}
+        module.apply_outcome(record, timed)
+        self.assertEqual('unbestätigt: Compiler-Timeout', record['classification'])
+        next_result = module.run_bounded([sys.executable, '-c', 'import sys; sys.stdout.buffer.write(bytes([0xc3, 0xa4]))'], 5)
         self.assertEqual('completed', next_result['status'])
         self.assertEqual(0, next_result['exit_code'])
         self.assertIn('ä', next_result['log'])
