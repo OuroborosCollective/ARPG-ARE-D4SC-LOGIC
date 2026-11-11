@@ -310,6 +310,8 @@ namespace AreArpg.UnityClient
             _chapterScenery.Clear();
             _campRationVisuals.Clear();
             _returnPassage = null;
+            _investigationGate = _cryptWarning = _cryptDebris = null;
+            if (_game.Progression.EntryAct >= 5) { BuildInvestigationScenery(); return; }
             if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); return; }
             if (_game.Progression.EntryAct > 0 && BuildEntryArt()) return;
             if (_game.Progression.EntryAct == 2) { BuildEntryVillageFallback(); return; }
@@ -781,6 +783,7 @@ namespace AreArpg.UnityClient
         {
             if (_storageFault) return;
             _game.Progression.Road.RestartPlayer();
+            _game.Progression.Investigation.RestartPlayer();
             SaveCharacter();
             if (_storageFault) return;
             InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version1),
@@ -924,7 +927,7 @@ namespace AreArpg.UnityClient
                     _pendingPickup = false;
                 }
                 _game.Step();
-                if (_game.Progression.Road.Started && _game.CurrentTick % 10 == 0) SaveCharacter();
+                if ((_game.Progression.Road.Started || _game.Progression.Investigation.Active) && _game.CurrentTick % 10 == 0) SaveCharacter();
                 if ((_game.Progression.EntryAct >= 2 || _game.CryptCleared) && _game.AtAnyPassage)
                 {
                     AdvanceCrypt();
@@ -932,6 +935,7 @@ namespace AreArpg.UnityClient
                 }
             }
             UpdateRoadPresentation();
+            UpdateInvestigationPresentation();
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
         }
 

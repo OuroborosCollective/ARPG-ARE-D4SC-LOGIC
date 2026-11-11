@@ -147,6 +147,7 @@ namespace AreArpg.Core
             for (int i = 0; i < Cooldowns.Length; i++) next.Cooldowns[i] = Cooldowns[i];
             next.PlayerZmm = next.PrevPlayerZmm = next.Progression.HungerStage > 0 ?
                 (next.Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
+            next.SaveRoadPlayer(); next.SaveInvestigationPlayer();
             return next;
         }
 
@@ -155,7 +156,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -212,6 +213,7 @@ namespace AreArpg.Core
             {
                 PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
                 InitializeRoadEncounter();
+                InitializeInvestigation();
                 return;
             }
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
@@ -470,6 +472,7 @@ namespace AreArpg.Core
         {
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);
+            if (Progression.EntryAct >= 5) return CanStandInInvestigation(Progression.EntryAct, Progression.Investigation.Approach, x, z);
             if (Progression.EntryAct >= 3) return CanStandInHungerRegion(Progression.EntryAct, x, z);
             long[] coordinates = { -7000, 7000 };
             foreach (long px in coordinates)
@@ -500,10 +503,11 @@ namespace AreArpg.Core
             }
             for (int i = 0; i < Cooldowns.Length; i++)
                 if (Cooldowns[i] > 0) Cooldowns[i]--;
-            if (GameOver) { StepRoadEncounter(); return; }
+            if (GameOver) { StepRoadEncounter(); SaveInvestigationPlayer(); return; }
             MovePlayer();
             StepNpcs();
             StepRoadEncounter();
+            StepInvestigation();
             if (GameOver) return;
 
             foreach (MonsterState enemy in Monsters)
@@ -616,7 +620,7 @@ namespace AreArpg.Core
                 Cooldowns[slot] = skill.CooldownTicks;
                 result.Activated = true;
                 result.Message = skill.DisplayName + ": restored " + restored + " HP";
-                SaveRoadPlayer();
+                SaveRoadPlayer(); SaveInvestigationPlayer();
                 return result;
             }
             long range = skill.RangeMm;

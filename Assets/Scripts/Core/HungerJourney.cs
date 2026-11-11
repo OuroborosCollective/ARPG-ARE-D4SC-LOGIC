@@ -4,7 +4,7 @@ using System.Globalization;
 namespace AreArpg.Core
 {
     public enum HungerChoice { Undecided = 0, Reveal = 1, Protect = 2, Replace = 3 }
-    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6 }
+    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13 }
 
     public sealed partial class CharacterProgression
     {
@@ -20,7 +20,7 @@ namespace AreArpg.Core
         internal void ChooseHungerSupply(HungerChoice choice) { SupplyChoice = choice; }
 
         /// <summary>Change only the cloned entry checkpoint for a validated adjacent passage.</summary>
-        internal void TravelHunger(int act, bool fromNorth) { EntryAct = act; EntryFromNorth = fromNorth; Road.ResumePlayer = false; }
+        internal void TravelHunger(int act, bool fromNorth) { EntryAct = act; EntryFromNorth = fromNorth; Road.ResumePlayer = false; Investigation.RestartPlayer(); if (act >= 5) Investigation.Active = true; }
 
         /// <summary>AC9 leaves every unused AC8/legacy profile byte-stable until the first story action.</summary>
         private string HungerToken()
@@ -30,15 +30,16 @@ namespace AreArpg.Core
         }
 
         /// <summary>Reject impossible paths and noncanonical numbers even under a valid checksum.</summary>
-        private static bool ReadHungerToken(string text, out int act, out bool north, out int stage, out HungerChoice choice)
+        private static bool ReadHungerToken(string text, out int act, out bool north, out int stage, out HungerChoice choice, bool extended = false)
         {
             act = 0; north = false; stage = 0; choice = HungerChoice.Undecided;
             string[] f = text.Split(',');
             if (f.Length != 5 || f[0] != "1" || f[1].Length != 1 || f[2].Length != 1 ||
                 f[3].Length != 1 || f[4].Length != 1) return false;
             act = f[1][0] - '0'; stage = f[3][0] - '0'; int decision = f[4][0] - '0';
-            if (act < 2 || act > 4 || (f[2] != "0" && f[2] != "1") || stage < 1 || stage > 4 ||
-                decision < 0 || decision > 3 || (act == 4 && (stage < 2 || f[2] == "1")) ||
+            if (act < 2 || act > (extended ? 6 : 4) || (f[2] != "0" && f[2] != "1") || stage < 1 || stage > 4 ||
+                decision < 0 || decision > 3 || (act == 4 && (stage < 2 || (f[2] == "1" && (!extended || stage != 4)))) ||
+                (act >= 5 && stage != 4) || (act == 6 && f[2] == "1") ||
                 (stage < 3 && decision != 0) || (stage == 4 && decision == 0)) return false;
             north = f[2] == "1"; choice = (HungerChoice)decision;
             return true;
@@ -55,7 +56,9 @@ namespace AreArpg.Core
         public int HungerShelterPatients { get { return Progression.EntryAct != 4 ? 0 :
             Progression.SupplyChoice == HungerChoice.Undecided ? 3 : 2; } }
         public bool HungerForwardOpen { get { return Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
-            Progression.EntryAct == 3 && Progression.HungerStage >= 2; } }
+            Progression.EntryAct == 3 ? Progression.HungerStage >= 2 :
+            Progression.EntryAct == 4 ? Progression.HungerStage == 4 :
+            Progression.EntryAct == 5 && Progression.Investigation.Approach != SealApproach.Undecided; } }
 
         /// <summary>Return edges remain open; forward edges require the clue in the actual region.</summary>
         private ArenaSimulation TraverseHunger(bool backwards)
@@ -86,6 +89,7 @@ namespace AreArpg.Core
         /// <summary>Apply one versioned story action at its real location; repeated requests cannot duplicate effects.</summary>
         public SocialResult ActOnHunger(HungerAction action)
         {
+            if (action >= HungerAction.StoreBandage) return ActOnInvestigation(action);
             var result = new SocialResult { Text = "Hier gibt es dafuer noch keinen neuen Hinweis." };
             if (GameOver || Progression.EntryAct < 2 || Progression.EntryAct > 4) return result;
             int stage = Progression.HungerStage;
@@ -162,7 +166,7 @@ namespace AreArpg.Core
                     case 3: return Progression.SupplyChoice == HungerChoice.Undecided ?
                         "Kehre ins Dorf zurueck: Mara informieren, Ilyan schuetzen oder Maras Fehlbestand aus eigenem Proviant ersetzen." :
                         "Kehre zur Muehle zurueck. Untersuche die verlassenen Lagerstaetten nordwestlich des Weges.";
-                    default: return "Verletzte fehlen. Die Spur fuehrt zum alten Speicher und einer verborgenen Krypta. Dieser Weg wird als Naechstes erschlossen.";
+                    default: return InvestigationObjective;
                 }
             }
         }

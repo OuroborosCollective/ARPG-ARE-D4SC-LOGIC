@@ -68,7 +68,7 @@ internal static class HungerJourneyTests
             check(mill.ActOnHunger(HungerAction.InspectBeds).Accepted && mill.Progression.HungerStage == 4, "hunger-missing-patients-discovered-" + decision);
             check(CharacterProgression.TryLoad(mill.Progression.SaveString(), out _), "hunger-final-checkpoint-loadable");
             Move(mill, 0, 5000); Move(mill, 0, 24000);
-            check(mill.TryTraversePassage() == null, "hunger-no-invented-store-or-creature-yet");
+            check(mill.TryTraversePassage()?.Progression.EntryAct == 5, "hunger-missing-patients-open-store-passage");
             foreach (string invalid in new[] { "1,5,0,4,1", "1,4,1,3,0", "1,4,0,1,0", "1,3,0,2,2", "1,2,0,4,0", "1,02,0,3,0", "2,2,0,3,0" })
             {
                 var f = chosen.Split('|'); f[15] = invalid;
