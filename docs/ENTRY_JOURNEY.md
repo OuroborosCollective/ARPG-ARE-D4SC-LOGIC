@@ -62,6 +62,22 @@ Fehlende erforderliche Eingaben lassen den Bau abbrechen.
 Der allgemeine Laufzeit-Fallback ist nur für Entwicklung ohne private Assets
 bestimmt; er erfüllt keine visuelle Abnahme.
 
+Ein optionaler privater Katalog `Assets/PrivateArt/entry-combat-art.json`
+konfiguriert modulare Krypta-Meshes und ein passives humanoides Spieler-Prefab.
+Animationen werden über Dateipfad **und** exakten Clipnamen ausgewählt, weil
+eine FBX-Datei zusätzlich eine T-Pose enthalten kann. Der Builder erzeugt
+eigene URP-Materialkopien und einen Idle/Move/Melee-Controller; die Originale
+bleiben erhalten. Kopierte Clips enthalten keine AnimationEvents, Root Motion
+bleibt ausgeschaltet. Die Waffe folgt einem konfigurierten Socket der rechten
+Hand; ihre Haltung ist Teil der privaten visuellen Abnahme.
+
+Nur ein vom vorhandenen Core bestätigter Treffer von Strike oder Heavy Strike
+löst die kosmetische Schlaganimation aus. Zurückgewiesene Aktivierungen,
+Guard und Ruin lösen sie nicht aus. Beide Nahkampfaktionen verwenden zunächst
+denselben ausgewählten Clip. Animationen entscheiden weder Schaden noch
+Trefferzeitpunkt, Position, Cooldown oder Loot und ergänzen kein Save-Feld.
+Ohne optionalen Katalog bleibt die vorherige Darstellung verfügbar.
+
 ## Nachweise
 
 `EntryJourneyTests` prüft die echte Core-Abfolge, getrennte Altprofile,
@@ -71,6 +87,10 @@ Adapter einschließlich PlayerPrefs und Szenenprojektion aus. Arrangierte
 Gegnerpositionen/HP sind explizite Testfixtures, kein unbeaufsichtigter
 Spieler-Durchlauf. Optionale Kameraaufnahmen sind echte Unity-Renderings,
 enthalten aber nicht die über OnGUI gezeichnete Bedienoberfläche.
+Zusätzliche Detailaufnahmen versetzen ausschließlich die Testkamera zur
+Beurteilung von Materialien und Waffenhaltung; sie zeigen keine neue
+Spielkamera. Die private Nahkampf-Prüfung muss mit dem konfigurierten Overlay
+laufen; ein Skip im öffentlichen Projekt ohne diese Assets ist kein Nachweis.
 
 Revisionsgebundene Ausführungsnachweise stehen im privaten Evidenzlog.
 Ein bestandener Core-Test allein belegt weder Unity-Grafik noch Android-

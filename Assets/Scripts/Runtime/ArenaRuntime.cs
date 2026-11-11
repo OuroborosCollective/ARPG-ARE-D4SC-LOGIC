@@ -31,6 +31,7 @@ namespace AreArpg.UnityClient
         private readonly Dictionary<int, Transform> _npcVisuals = new Dictionary<int, Transform>();
         private readonly Dictionary<Transform, Animator[]> _actorAnimations = new Dictionary<Transform, Animator[]>();
         private readonly Queue<KeyValuePair<int, NpcAction>> _pendingNpcActions = new Queue<KeyValuePair<int, NpcAction>>();
+        private Animator[] _heroMeleeAnimations = new Animator[0];
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
         private bool _pendingCampDonation;
@@ -185,7 +186,19 @@ namespace AreArpg.UnityClient
             blade.SetParent(_hero, false);
             blade.localPosition = new Vector3(0.85f, 0.12f, 0.1f);
             blade.localRotation = Quaternion.Euler(0f, 0f, -22f);
-            PassiveArtVisuals.TryBind(blade, "Sword");
+            bool handWeapon = _entryProfile && _heroMeleeAnimations.Length > 0 && PassiveArtVisuals.TryBind(blade, "EntryWeapon");
+            if (!handWeapon) PassiveArtVisuals.TryBind(blade, "Sword");
+            if (_entryProfile && _heroMeleeAnimations.Length > 0)
+                foreach (var socket in _hero.GetComponentsInChildren<Transform>(true))
+                    if (socket.name == "EntryWeaponSocket")
+                    {
+                        Vector3 size = handWeapon ? Vector3.one : blade.lossyScale;
+                        blade.SetParent(socket, false);
+                        blade.localPosition = Vector3.zero; blade.localRotation = Quaternion.identity;
+                        Vector3 parentScale = socket.lossyScale;
+                        blade.localScale = new Vector3(size.x / parentScale.x, size.y / parentScale.y, size.z / parentScale.z);
+                        break;
+                    }
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
             BuildNpcVisuals();
 
@@ -224,6 +237,15 @@ namespace AreArpg.UnityClient
                     if (parameter.name == "MoveMagnitude" && parameter.type == AnimatorControllerParameterType.Float)
                     { supported.Add(animator); break; }
             _actorAnimations[root] = supported.ToArray();
+            if (root == _hero)
+            {
+                var melee = new List<Animator>();
+                foreach (var animator in root.GetComponentsInChildren<Animator>(true))
+                    foreach (var parameter in animator.parameters)
+                        if (parameter.name == "Melee" && parameter.type == AnimatorControllerParameterType.Trigger)
+                        { melee.Add(animator); break; }
+                _heroMeleeAnimations = melee.ToArray();
+            }
         }
 
         /// <summary>Project accepted Core displacement into animation and facing; root motion remains disabled.</summary>
@@ -814,6 +836,9 @@ namespace AreArpg.UnityClient
                     int slot = _pendingSkills.Dequeue();
                     System.Numerics.BigInteger previousRank = _game.Progression.PracticeLevel(slot);
                     SkillResult outcome = _game.ActivateSkill(slot);
+                    if (_entryProfile && outcome.Activated && outcome.Hits > 0 && (slot == 0 || slot == 1))
+                        foreach (var animator in _heroMeleeAnimations)
+                            if (animator != null) { animator.ResetTrigger("Melee"); animator.SetTrigger("Melee"); }
                     _message = outcome.Message;
                     bool learned = _game.Progression.PracticeLevel(slot) > previousRank;
                     if (learned) _message += " / Durch Uebung gewachsen: Rang " + _game.Progression.PracticeLevel(slot);

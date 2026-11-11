@@ -134,6 +134,57 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(System.Numerics.BigInteger.One, Game.Progression.Social.GetMemory(1).HostileActions);
         }
 
+        /// <summary>Native private rig consumes only accepted melee results; posing cannot change Core hashes.</summary>
+        [UnityTest]
+        public IEnumerator MeleeAnimationRequiresAnAcceptedCoreStrike()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private character and animation overlay");
+            _runtime.enabled = false;
+            var hero = Find("Wanderer");
+            var animator = hero.GetComponentInChildren<Animator>();
+            Assert.IsNotNull(animator);
+            Assert.IsTrue(animator.HasState(0, Animator.StringToHash("Melee")), "Reviewed melee state is missing");
+            var queue = (System.Collections.Generic.Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills", Flags).GetValue(_runtime);
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 20000; enemy.Zmm = 20000; }
+            queue.Enqueue(0);
+            TickOnce();
+            animator.Update(.05f);
+            Assert.IsFalse(animator.GetCurrentAnimatorStateInfo(0).IsName("Melee"), "Rejected out-of-range attacks must not animate");
+            var target = Game.Monsters[0]; target.Xmm = Game.PlayerXmm + 1000; target.Zmm = Game.PlayerZmm; target.Health = 1000;
+            queue.Enqueue(0);
+            TickOnce();
+            Assert.Less(target.Health, 1000, "A real Core hit must precede the visual");
+            ulong hash = Game.ComputeWorldHash();
+            // The first evaluation consumes the trigger; a second advances the fixed-duration blend.
+            animator.Update(0f);
+            animator.Update(.15f);
+            Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Melee"),
+                "Accepted Core hit must enter Melee after its 40 ms transition");
+            Assert.IsFalse(animator.applyRootMotion);
+            var weapon = Find("Wanderer's sword");
+            Assert.IsTrue(weapon.transform.IsChildOf(animator.GetBoneTransform(HumanBodyBones.RightHand)), "Weapon must follow the animated hand");
+            Assert.IsNotNull(Find("Art_EntryWeapon"), "Private melee acceptance requires the fitted weapon mesh");
+            var position = hero.transform.position;
+            animator.speed = 0f;
+            yield return Capture("act1-melee-strike.png");
+            yield return Capture("hero-strike-detail.png", true);
+            animator.speed = 1f;
+            animator.Update(2f); animator.Update(.2f);
+            Assert.IsFalse(animator.GetCurrentAnimatorStateInfo(0).IsName("Melee"), "Melee must return to locomotion");
+            Assert.AreEqual(position, hero.transform.position);
+            Assert.AreEqual(hash, Game.ComputeWorldHash(), "Animation may not write canonical state");
+            yield return Capture("act1-melee-ready.png");
+            yield return Capture("hero-ready-detail.png", true);
+        }
+
+        /// <summary>Exercise the real input queue on a scheduled tick without wall-clock waiting.</summary>
+        private void TickOnce()
+        {
+            typeof(ArenaRuntime).GetField("_accumulator", Flags).SetValue(_runtime, .1f);
+            typeof(ArenaRuntime).GetMethod("Update", Flags).Invoke(_runtime, null);
+        }
+
         /// <summary>Search only the owned fixture scene, never another test's projection.</summary>
         [UnityTest]
         public IEnumerator EnemyFacesItsAcceptedCoreDisplacement()
@@ -218,7 +269,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>Optional real camera render for private visual inspection; never a gameplay input.</summary>
-        private IEnumerator Capture(string name)
+        private IEnumerator Capture(string name, bool heroDetail = false)
         {
             string directory = System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
             if (string.IsNullOrEmpty(directory)) yield break;
@@ -237,11 +288,20 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
             var camera = (Camera)typeof(ArenaRuntime).GetField("_camera", Flags).GetValue(_runtime);
             var previous = camera.targetTexture;
+            Vector3 previousPosition = camera.transform.position;
+            Quaternion previousRotation = camera.transform.rotation;
             var active = RenderTexture.active;
             var target = new RenderTexture(1280, 720, 24);
             var pixels = new Texture2D(1280, 720, TextureFormat.RGB24, false);
             try
             {
+                if (heroDetail)
+                {
+                    Vector3 focus = Find("Wanderer").transform.position;
+                    focus.y = 1f;
+                    camera.transform.position = focus + new Vector3(3f, 1.2f, 4f);
+                    camera.transform.LookAt(focus);
+                }
                 camera.targetTexture = target;
                 camera.Render();
                 RenderTexture.active = target;
@@ -250,7 +310,12 @@ namespace AreArpg.PlayMode.Tests
                 System.IO.Directory.CreateDirectory(directory);
                 System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, name), pixels.EncodeToPNG());
             }
-            finally { camera.targetTexture = previous; RenderTexture.active = active; Object.Destroy(pixels); target.Release(); Object.Destroy(target); }
+            finally
+            {
+                camera.transform.SetPositionAndRotation(previousPosition, previousRotation);
+                camera.targetTexture = previous; RenderTexture.active = active;
+                Object.Destroy(pixels); target.Release(); Object.Destroy(target);
+            }
         }
     }
 }
