@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "id": "crypt-three-rooms",
+  "cellMm": 4000,
+  "rooms": [
+    {
+      "id": "hall",
+      "x": 0,
+      "z": 0,
+      "width": 2,
+      "length": 4
+    },
+    {
+      "id": "west",
+      "x": -3,
+      "z": 1,
+      "width": 3,
+      "length": 3
+    },
+    {
+      "id": "east",
+      "x": 2,
+      "z": 1,
+      "width": 3,
+      "length": 3
+    }
+  ],
+  "doors": [
+    {
+      "a": "hall",
+      "b": "",
+      "axis": "x",
+      "x": 0,
+      "z": 0
+    },
+    {
+      "a": "hall",
+      "b": "west",
+      "axis": "z",
+      "x": 0,
+      "z": 2
+    },
+    {
+      "a": "hall",
+      "b": "east",
+      "axis": "z",
+      "x": 2,
+      "z": 2
+    }
+  ]
+}
