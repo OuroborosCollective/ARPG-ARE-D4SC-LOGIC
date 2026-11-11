@@ -463,6 +463,11 @@ namespace AreArpg.PlayMode.Tests
                 var animator = bearArt.GetComponentInChildren<Animator>(); Assert.IsNotNull(animator);
                 foreach (string state in new[] { "Idle", "Run", "Attack", "Death" }) Assert.IsTrue(animator.HasState(0, Animator.StringToHash(state)), state);
                 Assert.IsFalse(animator.applyRootMotion);
+                foreach (var clip in animator.runtimeAnimatorController.animationClips)
+                {
+                    Assert.Greater(clip.length, .25f, "A bind-pose clip is not an animation");
+                    Assert.AreEqual(0, clip.events.Length, "Vendor events must not execute gameplay");
+                }
             }
             bool arrow = false, warning = false;
             for (int tick = 0; tick < 600 && !Game.GameOver && !Game.Progression.Road.Bear.IsDead; tick++)
