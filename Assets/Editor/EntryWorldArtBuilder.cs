@@ -12,6 +12,35 @@ namespace AreArpg.EditorTools
         private const string Output = "Assets/Resources/ARE/Visuals/";
         private static System.Collections.Generic.Dictionary<string, Material> _materials;
 
+        /// <summary>Build a private authoring preview; this never replaces the Core-backed entry worlds.</summary>
+        public static string BuildDungeonPreview(string json) { return DungeonPreviewBuilder.Build(json); }
+
+        /// <summary>Select a blueprint and reveal the private output without changing the open scene.</summary>
+        [MenuItem("ARE ARPG/Art/Preview Dungeon Blueprint...")]
+        public static void BuildDungeonPreviewFromMenu()
+        {
+            string path = EditorUtility.OpenFilePanel("Dungeon blueprint", "docs/examples", "json");
+            if (string.IsNullOrEmpty(path)) return;
+            string output = BuildDungeonPreview(File.ReadAllText(path));
+            Selection.activeObject = AssetDatabase.LoadAssetAtPath<GameObject>(output);
+            EditorGUIUtility.PingObject(Selection.activeObject);
+        }
+
+        /// <summary>CLI entrypoint requiring one explicit -blueprint file; errors propagate as build failures.</summary>
+        public static void BuildDungeonPreviewFile()
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            string path = null;
+            for (int i = 0; i < args.Length; i++)
+                if (args[i] == "-blueprint")
+                {
+                    if (path != null || i + 1 >= args.Length) throw new ArgumentException("One -blueprint file required");
+                    path = args[++i];
+                }
+            if (string.IsNullOrEmpty(path) || !File.Exists(path)) throw new FileNotFoundException("Blueprint file missing", path);
+            Debug.Log("ARE_DUNGEON_PREVIEW " + BuildDungeonPreview(File.ReadAllText(path)));
+        }
+
         /// <summary>Fail on missing reviewed inputs instead of publishing a partial blockout.</summary>
         [MenuItem("ARE ARPG/Art/Build Entry Worlds")]
         public static void Build()
