@@ -18,8 +18,8 @@ namespace AreArpg.UnityClient
         private ArenaSimulation _game;
         private float _accumulator;
         private Transform _hero;
-        private Transform _cameraTarget;
         private Camera _camera;
+        private ArenaCameraRig _cameraRig;
         private readonly List<Transform> _chapterScenery = new List<Transform>();
         // Read-only projection index; SocialLedger exclusively owns the stock.
         private readonly List<Transform> _campRationVisuals = new List<Transform>();
@@ -213,9 +213,9 @@ namespace AreArpg.UnityClient
             _camera.fieldOfView = 48f;
             _camera.clearFlags = CameraClearFlags.SolidColor;
             _camera.backgroundColor = new Color(0.055f, 0.067f, 0.09f);
-            _camera.transform.rotation = Quaternion.Euler(52f, 0f, 0f);
-            _camera.transform.position = new Vector3(0f, 17f, -18f);
-            _cameraTarget = _hero;
+            _cameraRig = _camera.GetComponent<ArenaCameraRig>();
+            if (_cameraRig == null) _cameraRig = _camera.gameObject.AddComponent<ArenaCameraRig>();
+            _cameraRig.Configure(_hero, _entryProfile);
         }
 
         /// <summary>Lighting is presentation only, with a warm village and readable cool vault.</summary>
@@ -754,8 +754,7 @@ namespace AreArpg.UnityClient
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;
             _hero.position = new Vector3(next.PlayerXmm / 1000f, 1.05f, next.PlayerZmm / 1000f);
-            if (_camera != null)
-                _camera.transform.position = _hero.position - Quaternion.Euler(52f, 0f, 0f) * Vector3.forward * 22f;
+            if (_cameraRig != null) _cameraRig.SnapToTarget();
         }
 
         /// <summary>Install an already-created Core world, discard queued old-world inputs and rebuild projections.</summary>
@@ -895,14 +894,6 @@ namespace AreArpg.UnityClient
                 float z = Mathf.Lerp(_game.PrevPlayerZmm, _game.PlayerZmm, alpha) / 1000f;
                 _hero.position = new Vector3(x, 1.05f, z);
                 AnimateActor(_hero, _game.PlayerXmm - _game.PrevPlayerXmm, _game.PlayerZmm - _game.PrevPlayerZmm);
-                if (_camera != null)
-                {
-                    Quaternion rotation = Quaternion.Euler(52f, 0f, 0f);
-                    Vector3 desired = _hero.position - rotation * Vector3.forward * (_entryProfile ? 16f : 22f);
-                    _camera.transform.position = Vector3.Lerp(_camera.transform.position, desired,
-                        1f - Mathf.Exp(-8f * Time.deltaTime));
-                    _camera.transform.rotation = rotation;
-                }
             }
             foreach (MonsterState enemy in _game.Monsters)
             {
