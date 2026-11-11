@@ -13,7 +13,7 @@ namespace AreArpg.Core
     /// Permanent progress without a level cap. AC5 adds local NPC memory; AC1/AC2/AC3/AC4 remain readable.
     /// The checksum detects accidental damage, not malicious tampering or cloud ownership.
     /// </summary>
-    public sealed class CharacterProgression
+    public sealed partial class CharacterProgression
     {
         private const ulong Offset = 14695981039346656037UL;
         private const ulong Prime = 1099511628211UL;
@@ -150,7 +150,7 @@ namespace AreArpg.Core
         /// <summary>Keep legacy AC5/AC7 bytes; explicit entry profiles bind revision/act and receipts in AC8.</summary>
         private string Payload()
         {
-            return (EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
+            return (HungerStage > 0 ? "AC9|" : EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
                 "|" + LootCollected.ToString(CultureInfo.InvariantCulture) +
                 "|" + LifetimeKills.ToString(CultureInfo.InvariantCulture) +
@@ -162,7 +162,7 @@ namespace AreArpg.Core
                 "|" + _practice[1].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[2].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[3].ToString(CultureInfo.InvariantCulture) +
-                "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|1," + EntryAct.ToString(CultureInfo.InvariantCulture) :
+                "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|" + (HungerStage > 0 ? HungerToken() : "1," + EntryAct.ToString(CultureInfo.InvariantCulture)) :
                     (_items.Count == 0 ? "" : "|" + ItemToken()));
         }
 
@@ -199,7 +199,8 @@ namespace AreArpg.Core
             bool ac5 = parts[0] == "AC5" && parts.Length == 15;
             bool ac7 = parts[0] == "AC7" && parts.Length == 16;
             bool ac8 = parts[0] == "AC8" && parts.Length == 17;
-            bool current = ac2 || ac3 || ac4 || ac5 || ac7 || ac8;
+            bool ac9 = parts[0] == "AC9" && parts.Length == 17;
+            bool current = ac2 || ac3 || ac4 || ac5 || ac7 || ac8 || ac9;
             if (!legacy && !current) return false;
             int last = parts.Length - 1;
             if (parts[last].Length != 16) return false;
@@ -213,15 +214,18 @@ namespace AreArpg.Core
                 !CanonicalNonNegative(parts[6], out vitality) ||
                 !CanonicalNonNegative(parts[7], out resolve))) return false;
             BigInteger unlockedDepth = BigInteger.One;
-            if ((ac3 || ac4 || ac5 || ac7 || ac8) && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
+            if ((ac3 || ac4 || ac5 || ac7 || ac8 || ac9) && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
                 unlockedDepth < BigInteger.One)) return false;
             var practice = new BigInteger[4];
-            if (ac4 || ac5 || ac7 || ac8)
+            if (ac4 || ac5 || ac7 || ac8 || ac9)
                 for (int slot = 0; slot < practice.Length; slot++)
                     if (!CanonicalNonNegative(parts[9 + slot], out practice[slot])) return false;
             SocialLedger social = new SocialLedger();
-            if ((ac5 || ac7 || ac8) && !SocialLedger.TryRead(parts[13], out social)) return false;
-            int entryAct = 0;
+            if ((ac5 || ac7 || ac8 || ac9) && !SocialLedger.TryRead(parts[13], out social)) return false;
+            int entryAct = 0, hungerStage = 0;
+            bool entryFromNorth = false;
+            HungerChoice supplyChoice = HungerChoice.Undecided;
+            if (ac9 && (!unlockedDepth.IsOne || !ReadHungerToken(parts[15], out entryAct, out entryFromNorth, out hungerStage, out supplyChoice))) return false;
             if (ac8)
             {
                 if (!unlockedDepth.IsOne || (parts[15] != "1,1" && parts[15] != "1,2")) return false;
@@ -234,7 +238,7 @@ namespace AreArpg.Core
                 checksum.ToString("X16", CultureInfo.InvariantCulture) != parts[last]) return false;
             if (might + vitality + resolve >= LevelForExperience(xp)) return false;
             var items = new List<LootItem>();
-            if (ac7 || (ac8 && parts[14].Length != 0))
+            if (ac7 || ((ac8 || ac9) && parts[14].Length != 0))
             {
                 BigInteger previousOrdinal = BigInteger.Zero;
                 BigInteger receiptPoints = BigInteger.Zero;
@@ -250,7 +254,8 @@ namespace AreArpg.Core
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LifetimeKills = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
-                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct
+                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct,
+                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth
             };
             for (int slot = 0; slot < practice.Length; slot++) progress._practice[slot] = practice[slot];
             progress._items.AddRange(items);
@@ -258,5 +263,6 @@ namespace AreArpg.Core
         }
     }
 }
+
 
 
