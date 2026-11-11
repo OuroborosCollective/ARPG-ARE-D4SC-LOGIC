@@ -12,5 +12,6 @@
     <Compile Include="../../Assets/Scripts/Core/NpcRelations.cs" Link="NpcRelations.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootCatalog.cs" Link="LootCatalog.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootItem.cs" Link="LootItem.cs" />
+    <Compile Include="../../Assets/Scripts/Core/SkillCatalog.cs" Link="SkillCatalog.cs" />
   </ItemGroup>
 </Project>
