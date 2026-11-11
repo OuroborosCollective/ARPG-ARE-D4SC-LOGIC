@@ -123,13 +123,13 @@ Bedienung, Framerate, Speicherbudget oder Release-Reife.
 
 ## Kamera und manueller Zoom
 
-Der Einstieg startet mit11,5m Kameraabstand statt16m; das Altprofil bleibt bei22m.
-`ArenaCameraRig` folgt ausschließlich dem projizierten Helden inLateUpdate.
-Zwei auf freier Weltfläche begonnene Finger steuern den Abstand im Bereich7–22m;
-Finger-IDs statt Touch-Arrayreihenfolge bestimmen die Geste. Kontakte aufMOVE,
+Der Einstieg startet mit 11,5 m Kameraabstand statt 16 m; das Altprofil bleibt bei 22 m.
+`ArenaCameraRig` folgt ausschließlich dem projizierten Helden in `LateUpdate`.
+Zwei auf freier Weltfläche begonnene Finger steuern den Abstand im Bereich 7–22 m;
+Finger-IDs statt Touch-Arrayreihenfolge bestimmen die Geste. Kontakte auf MOVE,
 Fähigkeiten und sichtbaren HUD-Panels können nicht nachträglich in eine Zoomgeste
 wechseln. Fehlende/abgebrochene Finger setzen die Geste ohne Distanzsprung neu an.
-Alternativ stehenPlus/Minus/Reset sowie amDesktop das Mausrad zur Verfügung.
+Alternativ stehen Plus/Minus/Reset sowie am Desktop das Mausrad zur Verfügung.
 Gebietswechsel behalten die gewählte Entfernung; Reset stellt den Profilstandard
 wieder her. Fokusverlust/Pause verwerfen Fingerbindung, nicht den Zoom.
 Der Abstand ist eine sitzungslokale Darstellungspräferenz und kein Save-Feld.
