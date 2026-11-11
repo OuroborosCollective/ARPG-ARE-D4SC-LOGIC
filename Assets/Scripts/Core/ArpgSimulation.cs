@@ -540,39 +540,40 @@ namespace AreArpg.Core
             }
         }
 
+        /// <summary>Execute a shipped skill contract using the existing cooldown, resource and target owners.</summary>
         public SkillResult ActivateSkill(int slot)
         {
             var result = new SkillResult();
             if (GameOver) { result.Message = "Defeated - restart (R)"; return result; }
-            if (slot < 0 || slot >= 4) { result.Message = "Unknown ability"; return result; }
+            if (slot < 0 || slot >= SkillCatalog.Count) { result.Message = "Unknown ability"; return result; }
+            var skill = SkillCatalog.Get(slot);
             if (Cooldowns[slot] > 0) { result.Message = "Ability cooling down"; return result; }
-            if (slot == 1 && Resource < 25) { result.Message = "Insufficient focus"; return result; }
-            if (slot == 2)
+            if (Resource < skill.FocusCost) { result.Message = "Insufficient focus"; return result; }
+            if (skill.Target == SkillTarget.Self)
             {
                 int previousHealth = PlayerHealth;
-                PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + 170 + Progression.ResolveHealBonus + Progression.PracticeHealingBonus);
+                PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + skill.BaseHealing + Progression.ResolveHealBonus + Progression.PracticeHealingBonus);
                 int restored = PlayerHealth - previousHealth;
-                if (restored > 0) Progression.RecordPractice(2, Math.Max(1, restored / 10));
-                Cooldowns[2] = 50;
+                if (restored > 0) Progression.RecordPractice(slot, Math.Max(1, restored / 10));
+                Cooldowns[slot] = skill.CooldownTicks;
                 result.Activated = true;
-                result.Message = "Guard: restored " + restored + " HP";
+                result.Message = skill.DisplayName + ": restored " + restored + " HP";
                 return result;
             }
-            long range = slot == 0 ? 3100 : (slot == 1 ? 4300 : 6500);
+            long range = skill.RangeMm;
             MonsterState nearest = NearestMonster(range);
             if (nearest == null) { result.Message = "No enemy within reach"; return result; }
-            if (slot == 0) { Resource = Math.Min(100, Resource + 12); Cooldowns[0] = 2; }
-            if (slot == 1) { Resource -= 25; Cooldowns[1] = 4; }
-            if (slot == 3) Cooldowns[3] = 100;
+            Resource = Math.Min(100, Resource - skill.FocusCost + skill.FocusGain);
+            Cooldowns[slot] = skill.CooldownTicks;
             result.Activated = true;
-            if (slot == 3)
+            if (skill.Target == SkillTarget.Area)
             {
                 foreach (MonsterState enemy in Monsters)
                     if (!enemy.IsDead && DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(range))
-                        DealDamage(enemy, 30000, slot, result);
+                        DealDamage(enemy, skill.PowerBp, slot, result);
             }
-            else DealDamage(nearest, slot == 1 ? 16000 : 10000, slot, result);
-            result.Message = (slot == 3 ? "Ruin Storm" : (slot == 1 ? "Heavy Strike" : "Strike")) +
+            else DealDamage(nearest, skill.PowerBp, slot, result);
+            result.Message = skill.DisplayName +
                 ": " + result.TotalDamage + " damage / " + result.Kills + " kills";
             return result;
         }
