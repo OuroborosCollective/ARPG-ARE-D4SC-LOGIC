@@ -22,6 +22,15 @@ def run_bounded(command, timeout):
                 'log': decode(error.stdout) + decode(error.stderr) + '\nCOMPILER_TIMEOUT\n'}
 
 
+def apply_outcome(record, outcome):
+    """Replace stale compilation claims; a timeout never inherits an earlier success."""
+    record['compilation'] = outcome
+    if outcome['status'] == 'completed':
+        record['classification'] = 'ausführbarer Quellcode' if outcome['exit_code'] == 0 else 'unvollständiger Quellcode'
+    else:
+        record['classification'] = 'unbestätigt: Compiler-Timeout'
+
+
 def main():
     """Audit each source independently and persist all completed/timeout outcomes as UTF-8."""
     parser = argparse.ArgumentParser()
@@ -59,10 +68,7 @@ def main():
     for record in manifest['records']:
         outcome = results.get(record['sha256'])
         if outcome:
-            record['compilation'] = outcome
-            if outcome['status'] == 'completed':
-                record['classification'] = 'ausführbarer Quellcode' if outcome['exit_code'] == 0 else 'unvollständiger Quellcode'
-            # A timeout is an unverified compilation boundary, never a source rejection.
+            apply_outcome(record, outcome)
         if record['filename'] == 'json':
             try:
                 json.loads((audit/record['extracted_file']).read_text(encoding='utf-8'))
