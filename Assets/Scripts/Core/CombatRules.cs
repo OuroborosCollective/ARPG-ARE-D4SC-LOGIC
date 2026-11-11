@@ -37,7 +37,7 @@ namespace AreArpg.Core
         public static long Damage(CombatStats stats, int powerBp, int enemyKind, DeterministicRng rng, out bool critical)
         {
             if (rng == null) throw new ArgumentNullException(nameof(rng));
-            if (powerBp < 0 || enemyKind < 0 || enemyKind > 3) throw new ArgumentOutOfRangeException();
+            if (powerBp < 0 || enemyKind < 0 || enemyKind > 4) throw new ArgumentOutOfRangeException();
             return FixedMath.Damage(stats.WeaponPoints, powerBp, 190, stats.AdditiveDamageBp,
                 enemyKind >= 2 ? 4000 : (enemyKind == 1 ? 2200 : 1000), 1900, rng, out critical);
         }

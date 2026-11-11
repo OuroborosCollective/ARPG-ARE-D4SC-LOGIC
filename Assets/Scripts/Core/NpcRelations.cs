@@ -92,7 +92,7 @@ namespace AreArpg.Core
     }
 
     /// <summary>Persistent local social state, owned and checksummed by CharacterProgression.</summary>
-    public sealed class SocialLedger
+    public sealed partial class SocialLedger
     {
         /// <summary>Maximum real camp stock: one canonical capacity for Core and Unity projection.</summary>
         public const int CampCapacity = 10;
@@ -224,4 +224,3 @@ namespace AreArpg.Core
         }
     }
 }
-

@@ -601,6 +601,7 @@ namespace AreArpg.UnityClient
         /// <summary>Build a visual for one existing Core monster and register its movement animator.</summary>
         private void SpawnMonster(MonsterState monster)
         {
+            if (monster.Kind == 4) return;
             PrimitiveType primitive = monster.Kind >= 2 ? PrimitiveType.Capsule : PrimitiveType.Sphere;
             Vector3 scale = monster.Kind >= 2 ? new Vector3(2.5f, 2.1f, 2.5f) :
                 (monster.Kind == 1 ? new Vector3(1.8f, 1.8f, 1.8f) : Vector3.one * 1.45f);
@@ -676,6 +677,7 @@ namespace AreArpg.UnityClient
                 return;
             }
 
+            if (PollRoadInput(layout)) return;
             if (PollHungerInput(layout)) return;
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
@@ -778,6 +780,7 @@ namespace AreArpg.UnityClient
         private void Restart()
         {
             if (_storageFault) return;
+            _game.Progression.Road.RestartPlayer();
             SaveCharacter();
             if (_storageFault) return;
             InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version1),
@@ -787,7 +790,7 @@ namespace AreArpg.UnityClient
         /// <summary>Commit and read back the next Core-approved checkpoint before switching its presentation.</summary>
         private void AdvanceCrypt()
         {
-            if (_storageFault || !_game.CryptCleared || !_game.AtAnyPassage)
+            if (_storageFault || (_game.Progression.EntryAct < 2 && !_game.CryptCleared) || !_game.AtAnyPassage)
                 return;
             if (_game.GroundLoot.Count != 0)
             {
@@ -823,6 +826,9 @@ namespace AreArpg.UnityClient
             _pendingTakeRation = false;
             _pendingNpcActions.Clear();
             _pendingHungerAction = -1;
+            _pendingHunterAction = -1;
+            ClearRoadVisuals();
+            _roadVisualAct = -1;
             _hungerJournalOpen = false;
             ReleasePresentationTouches();
             _accumulator = 0f;
@@ -850,6 +856,12 @@ namespace AreArpg.UnityClient
             {
                 _accumulator -= TickSeconds;
                 steps++;
+                if (_pendingHunterAction >= 0)
+                {
+                    var hunter = _game.InteractHunter(_pendingHunterAction == 1); _pendingHunterAction = -1;
+                    _message = hunter.Accepted ? hunter.Text : "Gehe direkt zum Jaeger.";
+                    if (hunter.Accepted) SaveCharacter();
+                }
                 if (_pendingHungerAction >= 0)
                 {
                     var story = _game.ActOnHunger((HungerAction)_pendingHungerAction);
@@ -912,12 +924,14 @@ namespace AreArpg.UnityClient
                     _pendingPickup = false;
                 }
                 _game.Step();
-                if (_game.CryptCleared && _game.AtAnyPassage)
+                if (_game.Progression.Road.Started && _game.CurrentTick % 10 == 0) SaveCharacter();
+                if ((_game.Progression.EntryAct >= 2 || _game.CryptCleared) && _game.AtAnyPassage)
                 {
                     AdvanceCrypt();
                     if (_storageFault) break;
                 }
             }
+            UpdateRoadPresentation();
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
         }
 
@@ -1059,6 +1073,7 @@ namespace AreArpg.UnityClient
                     return;
                 }
 
+                DrawRoadHud(layout);
                 if (DrawHungerJournal(layout)) return;
                 GUI.Box(layout.StatusPanelRect, "");
                 GUI.Label(new Rect(20f, 15f, 540f, 28f),
@@ -1188,6 +1203,3 @@ namespace AreArpg.UnityClient
         }
     }
 }
-
-
-

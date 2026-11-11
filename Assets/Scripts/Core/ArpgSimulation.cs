@@ -28,6 +28,9 @@ namespace AreArpg.Core
             }
         }
 
+        internal void Restore(ulong a, ulong b)
+        { if ((a | b) == 0) throw new ArgumentException("Empty RNG state"); S0 = a; S1 = b; }
+
         public ulong Next64()
         {
             unchecked
@@ -208,6 +211,7 @@ namespace AreArpg.Core
             if (Progression.EntryAct >= 2)
             {
                 PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
+                InitializeRoadEncounter();
                 return;
             }
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
@@ -362,7 +366,8 @@ namespace AreArpg.Core
             switch (action)
             {
                 case NpcAction.Greet:
-                    npc.Memory.Record(action, 0); result.Text = npc.Greeting(); break;
+                    npc.Memory.Record(action, 0); result.Text = npc.Greeting();
+                    string rumor = Progression.Social.RoadRumor(id); if (rumor.Length > 0) result.Text += " " + rumor; break;
                 case NpcAction.Help:
                     if (!Progression.Social.Help(id)) { result.Text = "Kein Bedarf oder kein Proviant."; return result; }
                     result.Text = "Du teilst Proviant und versorgst " + npc.Role + "."; break;
@@ -495,14 +500,15 @@ namespace AreArpg.Core
             }
             for (int i = 0; i < Cooldowns.Length; i++)
                 if (Cooldowns[i] > 0) Cooldowns[i]--;
-            if (GameOver) return;
+            if (GameOver) { StepRoadEncounter(); return; }
             MovePlayer();
             StepNpcs();
+            StepRoadEncounter();
             if (GameOver) return;
 
             foreach (MonsterState enemy in Monsters)
             {
-                if (enemy.IsDead) continue;
+                if (enemy.IsDead || enemy.Kind == 4) continue;
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
@@ -550,7 +556,7 @@ namespace AreArpg.Core
             MonsterState target = null;
             foreach (MonsterState enemy in Monsters)
             {
-                if (enemy.IsDead) continue;
+                if (enemy.IsDead || (enemy.Kind == 4 && !Progression.Road.Started)) continue;
                 long d2 = DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm);
                 if (d2 <= bestDistance2) { bestDistance2 = d2; target = enemy; }
             }
@@ -568,6 +574,15 @@ namespace AreArpg.Core
             Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
             result.Hits++;
+            if (enemy.Kind == 4)
+            {
+                var h = Progression.Road; h.Started = true; h.AggroTicks = 80;
+                h.PlayerDamage = Math.Min(HunterEncounter.BearMaximumHealth, h.PlayerDamage + appliedDamage);
+                // A real hit interrupts a swipe aimed at the hunter and turns the bear toward its attacker.
+                if (!h.StrikePlayer) enemy.BossWindupTicks = 0;
+                bool firstKill = enemy.IsDead && !enemy.LootGranted;
+                FinishBear(); if (firstKill) result.Kills++; SaveRoadPlayer(); return;
+            }
             if (enemy.IsDead && !enemy.LootGranted)
             {
                 enemy.LootGranted = true;
@@ -601,6 +616,7 @@ namespace AreArpg.Core
                 Cooldowns[slot] = skill.CooldownTicks;
                 result.Activated = true;
                 result.Message = skill.DisplayName + ": restored " + restored + " HP";
+                SaveRoadPlayer();
                 return result;
             }
             long range = skill.RangeMm;
@@ -701,6 +717,3 @@ namespace AreArpg.Core
         }
     }
 }
-
-
-
