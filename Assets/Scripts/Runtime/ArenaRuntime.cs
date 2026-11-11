@@ -245,6 +245,7 @@ namespace AreArpg.UnityClient
                         if (parameter.name == "Melee" && parameter.type == AnimatorControllerParameterType.Trigger)
                         { melee.Add(animator); break; }
                 _heroMeleeAnimations = melee.ToArray();
+                foreach (var animator in _heroMeleeAnimations) EntryWeaponGrip.TryAttach(animator);
             }
         }
 

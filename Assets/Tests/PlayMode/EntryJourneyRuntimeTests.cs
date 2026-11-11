@@ -178,6 +178,72 @@ namespace AreArpg.PlayMode.Tests
             yield return Capture("hero-ready-detail.png", true);
         }
 
+        /// <summary>The real private rig keeps a steady sword grip while running without moving the Core.</summary>
+        [UnityTest]
+        public IEnumerator ArmedRunKeepsTheReviewedGrip()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private character and animation overlay");
+            _runtime.enabled = false;
+            var hero = Find("Wanderer");
+            var animator = hero.GetComponentInChildren<Animator>();
+            var target = Find("EntryReadyGrip");
+            Assert.IsNotNull(target, "Armed locomotion needs a reviewed grip target on the torso");
+            var hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            Assert.IsFalse(target.transform.IsChildOf(hand), "A target cannot follow the hand it solves");
+            ulong hash = Game.ComputeWorldHash();
+            var position = hero.transform.position;
+            animator.SetFloat("MoveMagnitude", 1f);
+            animator.Update(0f); animator.Update(.2f);
+            float maxDistance = 0f, maxAngle = 0f;
+            for (int frame = 0; frame < 12; frame++)
+            {
+                animator.Update(.04f);
+                maxDistance = Mathf.Max(maxDistance, Vector3.Distance(hand.position, target.transform.position));
+                maxAngle = Mathf.Max(maxAngle, Quaternion.Angle(hand.rotation, target.transform.rotation));
+            }
+            Assert.AreEqual(position, hero.transform.position);
+            Assert.AreEqual(hash, Game.ComputeWorldHash());
+            animator.speed = 0f;
+            yield return Capture("hero-armed-run.png", true);
+            animator.speed = 1f;
+            Assert.Less(maxDistance, .04f, "The sword wrist must stay within 4 cm of the authored running grip");
+            Assert.Less(maxAngle, 5f, "The sword grip rotation must not swing with the unarmed run");
+        }
+
+        /// <summary>A confirmed strike releases the running grip and returns straight to continued locomotion.</summary>
+        [UnityTest]
+        public IEnumerator StrikeReleasesGripAndResumesRunning()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private character and animation overlay");
+            _runtime.enabled = false;
+            var animator = Find("Wanderer").GetComponentInChildren<Animator>();
+            animator.SetFloat("MoveMagnitude", 1f);
+            animator.Update(0f); animator.Update(.2f);
+            var enemy = Game.Monsters[0];
+            enemy.Xmm = Game.PlayerXmm + 1000; enemy.Zmm = Game.PlayerZmm; enemy.Health = 1000;
+            var queue = (System.Collections.Generic.Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills", Flags).GetValue(_runtime);
+            queue.Enqueue(0); TickOnce();
+            Assert.Less(enemy.Health, 1000);
+            ulong hash = Game.ComputeWorldHash();
+            // Hold the presentation movement input while independently inspecting this animation boundary.
+            animator.SetFloat("MoveMagnitude", 1f);
+            animator.Update(0f); animator.Update(.15f);
+            Assert.AreEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash);
+            Assert.Less(Mathf.Abs(animator.GetFloat("EntryGripWeight")), .001f,
+                "A fully entered strike must release the locomotion constraint");
+            var hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            Assert.Greater(Vector3.Distance(hand.position, Find("EntryReadyGrip").transform.position), .08f,
+                "The real striking hand must leave the held running pose");
+            float duration = animator.GetCurrentAnimatorClipInfo(0)[0].clip.length;
+            animator.Update(duration); animator.Update(.09f);
+            Assert.AreEqual(Animator.StringToHash("Move"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash,
+                "Continued movement must not detour through Idle after the strike");
+            Assert.AreEqual(hash, Game.ComputeWorldHash());
+            yield return null;
+        }
+
         /// <summary>Exercise the real input queue on a scheduled tick without wall-clock waiting.</summary>
         private void TickOnce()
         {
