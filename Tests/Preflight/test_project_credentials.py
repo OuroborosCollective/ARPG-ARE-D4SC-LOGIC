@@ -6,6 +6,12 @@ from unittest.mock import patch
 
 
 class ProjectCredentialTests(unittest.TestCase):
+    def test_serialized_apple_team_id_is_checked(self):
+        """Inspect Unity's actual YAML field rather than the editor API's property name."""
+        with patch.object(Path, 'read_text', return_value='  appleDeveloperTeamID: test-only-team-id\n'):
+            with self.assertRaises(AssertionError):
+                self.test_platform_credentials_are_empty_in_public_settings()
+
     def test_duplicate_credential_cannot_hide_behind_empty_entry(self):
         with patch.object(Path, 'read_text', return_value='  ps4Passcode:\n  ps4Passcode: test-only-sensitive-value\n'):
             with self.assertRaises(AssertionError):
@@ -23,7 +29,7 @@ class ProjectCredentialTests(unittest.TestCase):
     def test_platform_credentials_are_empty_in_public_settings(self):
         text = Path('ProjectSettings/ProjectSettings.asset').read_text()
         for key in ('ps4Passcode', 'ps4NPTitleSecret', 'metroCertificatePassword',
-                    'AndroidKeystorePass', 'AndroidKeyaliasPass', 'iosAppleDeveloperTeamID'):
+                    'AndroidKeystorePass', 'AndroidKeyaliasPass', 'appleDeveloperTeamID'):
             matches = re.finditer(r'^[ \t]*' + re.escape(key) + r':([^\n]*)$', text, re.MULTILINE)
             for match in matches:
                 self.assertTrue(match.group(1).strip() in ('', '""', "''"), key + ' must remain private')
