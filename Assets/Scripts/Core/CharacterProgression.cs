@@ -150,7 +150,7 @@ namespace AreArpg.Core
         /// <summary>Keep legacy AC5/AC7 bytes; explicit entry profiles bind revision/act and receipts in AC8.</summary>
         private string Payload()
         {
-            return (HungerStage > 0 ? "AC9|" : EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
+            return (Road.Started ? "AC10|" : HungerStage > 0 ? "AC9|" : EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
                 "|" + LootCollected.ToString(CultureInfo.InvariantCulture) +
                 "|" + LifetimeKills.ToString(CultureInfo.InvariantCulture) +
@@ -163,7 +163,8 @@ namespace AreArpg.Core
                 "|" + _practice[2].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[3].ToString(CultureInfo.InvariantCulture) +
                 "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|" + (HungerStage > 0 ? HungerToken() : "1," + EntryAct.ToString(CultureInfo.InvariantCulture)) :
-                    (_items.Count == 0 ? "" : "|" + ItemToken()));
+                    (_items.Count == 0 ? "" : "|" + ItemToken())) +
+                (Road.Started ? "|" + Road.Token() + "|" + Social.RoadSocialToken() : "");
         }
 
         private static ulong HashText(string payload)
@@ -199,7 +200,8 @@ namespace AreArpg.Core
             bool ac5 = parts[0] == "AC5" && parts.Length == 15;
             bool ac7 = parts[0] == "AC7" && parts.Length == 16;
             bool ac8 = parts[0] == "AC8" && parts.Length == 17;
-            bool ac9 = parts[0] == "AC9" && parts.Length == 17;
+            bool ac10 = parts[0] == "AC10" && parts.Length == 19;
+            bool ac9 = (parts[0] == "AC9" && parts.Length == 17) || ac10;
             bool current = ac2 || ac3 || ac4 || ac5 || ac7 || ac8 || ac9;
             if (!legacy && !current) return false;
             int last = parts.Length - 1;
@@ -231,6 +233,9 @@ namespace AreArpg.Core
                 if (!unlockedDepth.IsOne || (parts[15] != "1,1" && parts[15] != "1,2")) return false;
                 entryAct = parts[15] == "1,1" ? 1 : 2;
             }
+            HunterEncounter road = new HunterEncounter();
+            if (ac10 && (!HunterEncounter.TryRead(parts[16], out road) || !road.Started || !social.ReadRoadSocial(parts[17]) ||
+                (road.ResumePlayer && entryAct != 3))) return false;
             // A valid checksum is necessary but does not make an invalid progression valid.
             ulong checksum;
             if (!ulong.TryParse(parts[last], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out checksum) ||
@@ -255,14 +260,17 @@ namespace AreArpg.Core
                 LootCollected = loot, LifetimeKills = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
                 UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct,
-                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth
+                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road
             };
+            if (ac10 && (road.SavedHealth > CombatRules.MaximumHealth(progress) ||
+                (social.RoadEventId(RoadFact.Rescue) > 0) != road.Rescued ||
+                (social.RoadEventId(RoadFact.Death) > 0) != (road.HunterHealth == 0) ||
+                (social.RoadEventId(RoadFact.RefusedHelp) > 0 && (road.HunterHealth > 0 || road.WitnessOpportunity < 30)) ||
+                (social.RoadEventId(RoadFact.CorpseTheft) > 0) != (road.HunterHealth == 0 && road.Purse == 0)))
+            { progress = null; return false; }
             for (int slot = 0; slot < practice.Length; slot++) progress._practice[slot] = practice[slot];
             progress._items.AddRange(items);
             return true;
         }
     }
 }
-
-
-

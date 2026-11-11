@@ -17,6 +17,6 @@
     <Compile Include="../../Assets/Scripts/Core/PracticeRules.cs" Link="PracticeRules.cs" />
     <Compile Include="../../Assets/Scripts/Core/EntryWorldLayout.cs" Link="EntryWorldLayout.cs" />
     <Compile Include="../../Assets/Scripts/Core/HungerJourney.cs" Link="HungerJourney.cs" />
+    <Compile Include="../../Assets/Scripts/Core/HunterEncounter.cs" Link="HunterEncounter.cs" />
   </ItemGroup>
 </Project>
-

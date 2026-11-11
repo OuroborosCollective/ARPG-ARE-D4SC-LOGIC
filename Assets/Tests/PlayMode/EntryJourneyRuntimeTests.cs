@@ -444,6 +444,63 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNotNull(Find("OldMill_House"));
         }
 
+        /// <summary>Play the road encounter through actual Core attacks, Unity projections, the action queue and PlayerPrefs.</summary>
+        [UnityTest]
+        public IEnumerator HunterBearRescuePersistsAndProjectsReviewedAnimations()
+        {
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
+            yield return StoryAction(HungerAction.HearIlyan);
+            MoveStory(0, 24000); TravelStory(); MoveStory(0, 3000);
+            typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
+            var bearArt = Find("ARE_Road_Bear"); Assert.IsNotNull(bearArt);
+            if (!string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+            {
+                Assert.IsNotEmpty(bearArt.GetComponentsInChildren<SkinnedMeshRenderer>(), "Owned bear model is required for art acceptance");
+                var animator = bearArt.GetComponentInChildren<Animator>(); Assert.IsNotNull(animator);
+                foreach (string state in new[] { "Idle", "Run", "Attack", "Death" }) Assert.IsTrue(animator.HasState(0, Animator.StringToHash(state)), state);
+                Assert.IsFalse(animator.applyRootMotion);
+            }
+            bool arrow = false, warning = false;
+            for (int tick = 0; tick < 600 && !Game.GameOver && !Game.Progression.Road.Bear.IsDead; tick++)
+            {
+                var h = Game.Progression.Road; var bear = h.Bear;
+                if (bear.BossWindupTicks > 0 && h.StrikePlayer)
+                    Game.SetMoveInput(Game.PlayerXmm >= h.StrikeX ? 10000 : -10000, 0);
+                else
+                {
+                    long dx = bear.Xmm - Game.PlayerXmm, dz = bear.Zmm - Game.PlayerZmm;
+                    Game.SetMoveInput(dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dx) * 10000 : 0,
+                        dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dz) * 10000 : 0);
+                }
+                Game.ActivateSkill(0); Game.ActivateSkill(1); Game.ActivateSkill(3);
+                if (Game.PlayerHealth < 1000) Game.ActivateSkill(2);
+                Game.Step(); typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
+                typeof(ArenaRuntime).GetMethod("UpdatePresentation", Flags).Invoke(_runtime, new object[] { 1f });
+                if (!warning && h.Bear.BossWindupTicks > 0)
+                {
+                    warning = true; Assert.IsTrue(Find("ARE_Bear_Swipe_Warning").activeSelf);
+                    Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget(); yield return Capture("hunter-bear-telegraph.png");
+                }
+                arrow |= h.ArrowFlash > 0;
+            }
+            Assert.IsFalse(Game.GameOver); Assert.IsTrue(Game.Progression.Road.Rescued); Assert.IsTrue(arrow && warning);
+            MoveStory(2000, 9000);
+            typeof(ArenaRuntime).GetField("_pendingHunterAction", Flags).SetValue(_runtime, 0);
+            TickOnce();
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
+            Assert.IsTrue(saved.Road.Rescued && saved.Road.FavorClaimed); Assert.AreEqual(0, saved.Road.Purse);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget(); yield return Capture("hunter-bear-rescued.png");
+            foreach (var root in _scene.GetRootGameObjects()) Object.Destroy(root);
+            yield return null;
+            _runtime = new GameObject("Reload_Hunter_Runtime").AddComponent<ArenaRuntime>(); yield return null; _runtime.enabled = false;
+            Assert.IsTrue(Game.Progression.Road.Rescued && Game.Progression.Road.FavorClaimed);
+            Assert.IsFalse(Game.InteractHunter(false).Accepted);
+        }
+
         /// <summary>Use fixed-tick input to reach an interaction or portal; no player teleport fixtures.</summary>
         private void MoveStory(long x, long z)
         {
@@ -534,4 +591,3 @@ namespace AreArpg.PlayMode.Tests
         }
     }
 }
-

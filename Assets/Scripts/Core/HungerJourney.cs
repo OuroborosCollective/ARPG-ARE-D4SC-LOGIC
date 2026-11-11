@@ -20,7 +20,7 @@ namespace AreArpg.Core
         internal void ChooseHungerSupply(HungerChoice choice) { SupplyChoice = choice; }
 
         /// <summary>Change only the cloned entry checkpoint for a validated adjacent passage.</summary>
-        internal void TravelHunger(int act, bool fromNorth) { EntryAct = act; EntryFromNorth = fromNorth; }
+        internal void TravelHunger(int act, bool fromNorth) { EntryAct = act; EntryFromNorth = fromNorth; Road.ResumePlayer = false; }
 
         /// <summary>AC9 leaves every unused AC8/legacy profile byte-stable until the first story action.</summary>
         private string HungerToken()
