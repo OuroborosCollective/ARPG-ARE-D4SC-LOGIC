@@ -121,7 +121,23 @@ namespace AreArpg.UnityClient
 
         private void OnApplicationPause(bool paused)
         {
-            if (paused) SaveCharacter();
+            if (paused)
+            {
+                ReleasePresentationTouches();
+                SaveCharacter();
+            }
+        }
+
+        private void OnApplicationFocus(bool focused)
+        {
+            if (!focused) ReleasePresentationTouches();
+        }
+
+        /// <summary>Discard interrupted gestures without changing chosen zoom or character progression.</summary>
+        private void ReleasePresentationTouches()
+        {
+            _movementTouch.Reset();
+            if (_cameraRig != null) _cameraRig.ClearTouches();
         }
 
         private void OnApplicationQuit()
@@ -638,7 +654,7 @@ namespace AreArpg.UnityClient
             ArenaHudLayout layout = CurrentHudLayout();
             if (_game.GameOver)
             {
-                _movementTouch.Reset();
+                ReleasePresentationTouches();
                 for (int i = 0; i < Input.touchCount; i++)
                 {
                     Touch touch = Input.GetTouch(i);
@@ -656,6 +672,18 @@ namespace AreArpg.UnityClient
             }
 
             long x = 0, z = 0;
+            bool nearNpc = _game.NearestNpc() != null;
+            bool hasMastery = _game.Progression.UnspentMasteryPoints > 0;
+            bool canTakeRation = _game.Progression.EntryAct == 2;
+            if (_cameraRig != null)
+            {
+                if (!Application.isMobilePlatform && Input.mouseScrollDelta.y != 0f &&
+                    layout.IsWithinSafeArea(Input.mousePosition) &&
+                    !layout.BlocksCameraGesture(layout.ToGuiTouch(Input.mousePosition), false,
+                        nearNpc, _game.IsVillage, hasMastery, canTakeRation))
+                    _cameraRig.ZoomSteps(Input.mouseScrollDelta.y);
+                _cameraRig.BeginTouchFrame();
+            }
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) x -= 10000;
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) x += 10000;
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) z += 10000;
@@ -671,9 +699,13 @@ namespace AreArpg.UnityClient
                 // finger keeps its ownership outside MOVE and SafeArea.
                 ArenaHudControl control = touch.phase == TouchPhase.Began && insideSafeArea
                     ? layout.HitTest(guiPoint, false,
-                        _game.NearestNpc() != null, _game.IsVillage,
-                        _game.Progression.UnspentMasteryPoints > 0, _game.Progression.EntryAct == 2)
+                        nearNpc, _game.IsVillage, hasMastery, canTakeRation)
                     : ArenaHudControl.None;
+
+                if (_cameraRig != null)
+                    _cameraRig.ObserveTouch(touch.fingerId, touch.phase, guiPoint,
+                        insideSafeArea && !layout.BlocksCameraGesture(guiPoint, false,
+                            nearNpc, _game.IsVillage, hasMastery, canTakeRation));
 
                 Vector2 direction;
                 if (_movementTouch.TryMove(touch.fingerId, touch.phase, guiPoint,
@@ -687,7 +719,9 @@ namespace AreArpg.UnityClient
 
                 if (touch.phase == TouchPhase.Began && insideSafeArea)
                 {
-                    if (control >= ArenaHudControl.NpcGreet && control <= ArenaHudControl.NpcRob)
+                    if (control >= ArenaHudControl.CameraCloser && control <= ArenaHudControl.CameraReset)
+                        ApplyCameraControl((int)control - (int)ArenaHudControl.CameraCloser);
+                    else if (control >= ArenaHudControl.NpcGreet && control <= ArenaHudControl.NpcRob)
                         QueueNpcAction((NpcAction)((int)control - (int)ArenaHudControl.NpcGreet));
                     else if (control >= ArenaHudControl.Skill0 && control <= ArenaHudControl.Skill3)
                         _pendingSkills.Enqueue((int)control - (int)ArenaHudControl.Skill0);
@@ -705,6 +739,7 @@ namespace AreArpg.UnityClient
 
             // Release if the OS dropped the tracked finger without Ended/Canceled.
             if (_movementTouch.IsCaptured && !capturedFingerPresent) _movementTouch.Reset();
+            if (_cameraRig != null) _cameraRig.EndTouchFrame();
 
             _game.SetMoveInput(x, z);
             if (Input.GetKeyDown(KeyCode.Alpha1)) _pendingSkills.Enqueue(0);
@@ -722,6 +757,15 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.H)) QueueNpcAction(NpcAction.Rob);
             if (Input.GetKeyDown(KeyCode.T) && _game.Progression.EntryAct == 2) _pendingTakeRation = true;
             if (Input.GetKeyDown(KeyCode.G)) _pendingCampDonation = true;
+        }
+
+        /// <summary>Shared button routing changes only the cosmetic camera; nothing enters the Core action queue.</summary>
+        private void ApplyCameraControl(int control)
+        {
+            if (_cameraRig == null) return;
+            if (control == 0) _cameraRig.ZoomSteps(1f);
+            else if (control == 1) _cameraRig.ZoomSteps(-1f);
+            else if (control == 2) _cameraRig.ResetZoom();
         }
 
         /// <summary>Restart the checkpoint using the shipped catalog while retaining acquired progression.</summary>
@@ -772,7 +816,7 @@ namespace AreArpg.UnityClient
             _pendingCampDonation = false;
             _pendingTakeRation = false;
             _pendingNpcActions.Clear();
-            _movementTouch.Reset();
+            ReleasePresentationTouches();
             _accumulator = 0f;
             if (_bossWarning != null) Destroy(_bossWarning.gameObject);
             _bossWarning = null;
@@ -1012,6 +1056,19 @@ namespace AreArpg.UnityClient
                     "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
                     " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
                 GUI.Label(new Rect(20f, 115f, 540f, 24f), _message, _smallStyle);
+
+                if (_cameraRig != null)
+                {
+                    GUI.Box(layout.CameraPanelRect, "KAMERA");
+                    string[] cameraLabels = { "+", "-", "RESET" };
+                    for (int i = 0; i < cameraLabels.Length; i++)
+                    {
+                        if (Application.isMobilePlatform) GUI.Box(layout.CameraZoomRect(i), cameraLabels[i]);
+                        else if (GUI.Button(layout.CameraZoomRect(i), cameraLabels[i])) ApplyCameraControl(i);
+                    }
+                    GUI.Label(new Rect(layout.CameraPanelRect.x + 9f, 79f, 175f, 20f),
+                        Application.isMobilePlatform ? "Zwei Finger: Zoom" : "Mausrad: Zoom");
+                }
 
                 if (_game.IsVillage)
                 {

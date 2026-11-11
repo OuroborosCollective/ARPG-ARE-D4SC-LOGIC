@@ -120,3 +120,21 @@ laufen; ein Skip im öffentlichen Projekt ohne diese Assets ist kein Nachweis.
 Revisionsgebundene Ausführungsnachweise stehen im privaten Evidenzlog.
 Ein bestandener Core-Test allein belegt weder Unity-Grafik noch Android-
 Bedienung, Framerate, Speicherbudget oder Release-Reife.
+
+## Kamera und manueller Zoom
+
+Der Einstieg startet mit11,5m Kameraabstand statt16m; das Altprofil bleibt bei22m.
+`ArenaCameraRig` folgt ausschließlich dem projizierten Helden inLateUpdate.
+Zwei auf freier Weltfläche begonnene Finger steuern den Abstand im Bereich7–22m;
+Finger-IDs statt Touch-Arrayreihenfolge bestimmen die Geste. Kontakte aufMOVE,
+Fähigkeiten und sichtbaren HUD-Panels können nicht nachträglich in eine Zoomgeste
+wechseln. Fehlende/abgebrochene Finger setzen die Geste ohne Distanzsprung neu an.
+Alternativ stehenPlus/Minus/Reset sowie amDesktop das Mausrad zur Verfügung.
+Gebietswechsel behalten die gewählte Entfernung; Reset stellt den Profilstandard
+wieder her. Fokusverlust/Pause verwerfen Fingerbindung, nicht den Zoom.
+Der Abstand ist eine sitzungslokale Darstellungspräferenz und kein Save-Feld.
+Es gibt keine neue Physikabfrage, Kamera-Autorität oder automatische Storykamera.
+Native Tests prüfen reale Kamera-Projektion sowie unveränderte Core-Hashes und
+Save-Strings während Zoom; Eingabesamples bleiben ausdrücklich Testeingaben.
+Ein weiterer Gerätetest wird auf Owner-Wunsch erst mit mehreren fertig
+ausgearbeiteten Spielabschnitten und Storyfortschritt gebündelt.

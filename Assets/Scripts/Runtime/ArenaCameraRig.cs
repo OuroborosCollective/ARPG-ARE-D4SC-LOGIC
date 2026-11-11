@@ -38,6 +38,14 @@ namespace AreArpg.UnityClient
             ClearTouches();
         }
 
+        /// <summary>Positive button or wheel steps move closer; invalid input cannot poison camera transforms.</summary>
+        public void ZoomSteps(float steps)
+        {
+            if (!Finite(steps)) return;
+            Distance = Mathf.Clamp(Distance * Mathf.Pow(.85f, Mathf.Clamp(steps, -32f, 32f)), 7f, 22f);
+            ClearTouches();
+        }
+
         /// <summary>Release gestures after a pause, focus loss or region transition, retaining chosen zoom.</summary>
         public void ClearTouches()
         {
