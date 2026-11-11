@@ -493,7 +493,10 @@ namespace AreArpg.PlayMode.Tests
                 arrow |= h.ArrowFlash > 0;
             }
             Assert.IsFalse(Game.GameOver); Assert.IsTrue(Game.Progression.Road.Rescued); Assert.IsTrue(arrow && warning);
+            MoveStory(2000, -5000);
+            Assert.IsFalse((bool)typeof(ArenaRuntime).GetMethod("CanShowHunterAction", Flags).Invoke(_runtime, null));
             MoveStory(2000, 9000);
+            Assert.IsTrue((bool)typeof(ArenaRuntime).GetMethod("CanShowHunterAction", Flags).Invoke(_runtime, null));
             typeof(ArenaRuntime).GetField("_pendingHunterAction", Flags).SetValue(_runtime, 0);
             TickOnce();
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));

@@ -790,7 +790,7 @@ namespace AreArpg.UnityClient
         /// <summary>Commit and read back the next Core-approved checkpoint before switching its presentation.</summary>
         private void AdvanceCrypt()
         {
-            if (_storageFault || !_game.CryptCleared || !_game.AtAnyPassage)
+            if (_storageFault || (_game.Progression.EntryAct < 2 && !_game.CryptCleared) || !_game.AtAnyPassage)
                 return;
             if (_game.GroundLoot.Count != 0)
             {

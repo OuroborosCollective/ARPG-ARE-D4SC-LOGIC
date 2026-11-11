@@ -18,7 +18,11 @@ namespace AreArpg.UnityClient
         private bool CanShowHunterAction()
         {
             var h = _game.Progression.Road;
-            return _game.Progression.EntryAct == 3 && (h.HunterHealth == 0 || h.Rescued) && h.Purse > 0;
+            long dx = _game.PlayerXmm - HunterEncounter.HunterX;
+            long dz = _game.PlayerZmm - HunterEncounter.HunterZ;
+            return _game.Progression.EntryAct == 3 && !_game.GameOver &&
+                dx * dx + dz * dz <= FixedMath.Square(2400) &&
+                (h.HunterHealth == 0 || h.Rescued) && h.Purse > 0;
         }
 
         private bool PollRoadInput(ArenaHudLayout layout)
