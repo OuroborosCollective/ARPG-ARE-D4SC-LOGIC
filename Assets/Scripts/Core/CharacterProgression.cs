@@ -1,5 +1,7 @@
 using System;
 using System.Globalization;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Numerics;
 using System.Text;
 
@@ -16,6 +18,28 @@ namespace AreArpg.Core
         private const ulong Offset = 14695981039346656037UL;
         private const ulong Prime = 1099511628211UL;
         private readonly BigInteger[] _practice = new BigInteger[4];
+        private readonly List<LootItem> _items = new List<LootItem>();
+        private ReadOnlyCollection<LootItem> _itemsView;
+        /// <summary>Collected upgrade receipts; only the existing progression owner can mutate them.</summary>
+        public ReadOnlyCollection<LootItem> Items { get { return _itemsView ?? (_itemsView = _items.AsReadOnly()); } }
+        /// <summary>Accept each confirmed kill ordinal once, retain stable order and apply the existing upgrade path.</summary>
+        internal bool CollectItem(LootItem item)
+        {
+            if (item == null || item.KillOrdinal > LifetimeKills) return false;
+            foreach (var existing in _items) if (existing.KillOrdinal == item.KillOrdinal) return false;
+            int index = 0;
+            while (index < _items.Count && _items[index].KillOrdinal < item.KillOrdinal) index++;
+            _items.Insert(index, item);
+            AddWeaponUpgrade(item.AffixValue);
+            return true;
+        }
+        /// <summary>Join acquired receipts in canonical kill order for checkpoint persistence.</summary>
+        private string ItemToken()
+        {
+            var b = new StringBuilder();
+            foreach (var item in _items) { if (b.Length != 0) b.Append(';'); b.Append(item.Token()); }
+            return b.ToString();
+        }
         public SocialLedger Social { get; private set; } = new SocialLedger();
 
         private static void ValidateSlot(int slot)
@@ -112,9 +136,10 @@ namespace AreArpg.Core
             Social.ProvisionFromLoot();
         }
 
+        /// <summary>Keep the exact AC5 payload for legacy profiles; add AC7 receipts only when present.</summary>
         private string Payload()
         {
-            return "AC5|" + TotalExperience.ToString(CultureInfo.InvariantCulture) +
+            return (_items.Count == 0 ? "AC5|" : "AC7|") + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
                 "|" + LootCollected.ToString(CultureInfo.InvariantCulture) +
                 "|" + LifetimeKills.ToString(CultureInfo.InvariantCulture) +
@@ -126,7 +151,7 @@ namespace AreArpg.Core
                 "|" + _practice[1].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[2].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[3].ToString(CultureInfo.InvariantCulture) +
-                "|" + Social.Token();
+                "|" + Social.Token() + (_items.Count == 0 ? "" : "|" + ItemToken());
         }
 
         private static ulong HashText(string payload)
@@ -149,6 +174,7 @@ namespace AreArpg.Core
             return BigInteger.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value) && value >= BigInteger.Zero;
         }
 
+        /// <summary>Validate supported checkpoint checksums and invariants before replacing the caller profile; AC6 is reserved.</summary>
         public static bool TryLoad(string saved, out CharacterProgression progress)
         {
             progress = null;
@@ -159,7 +185,8 @@ namespace AreArpg.Core
             bool ac3 = parts[0] == "AC3" && parts.Length == 10;
             bool ac4 = parts[0] == "AC4" && parts.Length == 14;
             bool ac5 = parts[0] == "AC5" && parts.Length == 15;
-            bool current = ac2 || ac3 || ac4 || ac5;
+            bool ac7 = parts[0] == "AC7" && parts.Length == 16;
+            bool current = ac2 || ac3 || ac4 || ac5 || ac7;
             if (!legacy && !current) return false;
             int last = parts.Length - 1;
             if (parts[last].Length != 16) return false;
@@ -173,20 +200,33 @@ namespace AreArpg.Core
                 !CanonicalNonNegative(parts[6], out vitality) ||
                 !CanonicalNonNegative(parts[7], out resolve))) return false;
             BigInteger unlockedDepth = BigInteger.One;
-            if ((ac3 || ac4 || ac5) && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
+            if ((ac3 || ac4 || ac5 || ac7) && (!CanonicalNonNegative(parts[8], out unlockedDepth) ||
                 unlockedDepth < BigInteger.One)) return false;
             var practice = new BigInteger[4];
-            if (ac4 || ac5)
+            if (ac4 || ac5 || ac7)
                 for (int slot = 0; slot < practice.Length; slot++)
                     if (!CanonicalNonNegative(parts[9 + slot], out practice[slot])) return false;
             SocialLedger social = new SocialLedger();
-            if (ac5 && !SocialLedger.TryRead(parts[13], out social)) return false;
+            if ((ac5 || ac7) && !SocialLedger.TryRead(parts[13], out social)) return false;
             // A valid checksum is necessary but does not make an invalid progression valid.
             ulong checksum;
             if (!ulong.TryParse(parts[last], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out checksum) ||
                 checksum != HashText(string.Join("|", parts, 0, last)) ||
                 checksum.ToString("X16", CultureInfo.InvariantCulture) != parts[last]) return false;
             if (might + vitality + resolve >= LevelForExperience(xp)) return false;
+            var items = new List<LootItem>();
+            if (ac7)
+            {
+                BigInteger previousOrdinal = BigInteger.Zero;
+                BigInteger receiptPoints = BigInteger.Zero;
+                foreach (string token in parts[14].Split(';'))
+                {
+                    if (!LootItem.TryRead(token, out var item) || item.KillOrdinal <= previousOrdinal || item.KillOrdinal > kills) return false;
+                    items.Add(item); previousOrdinal = item.KillOrdinal;
+                    receiptPoints += item.AffixValue;
+                }
+                if (items.Count > loot || BigInteger.Min(receiptPoints, int.MaxValue) > weapon) return false;
+            }
             progress = new CharacterProgression {
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LifetimeKills = kills,
@@ -194,6 +234,7 @@ namespace AreArpg.Core
                 UnlockedCryptDepth = unlockedDepth, Social = social
             };
             for (int slot = 0; slot < practice.Length; slot++) progress._practice[slot] = practice[slot];
+            progress._items.AddRange(items);
             return true;
         }
     }

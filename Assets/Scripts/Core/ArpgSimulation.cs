@@ -100,6 +100,7 @@ namespace AreArpg.Core
 
     public sealed class LootState
     {
+        public LootItem Item { get; internal set; }
         public int Id;
         public long Xmm;
         public long Zmm;
@@ -146,6 +147,7 @@ namespace AreArpg.Core
 
         private readonly DeterministicRng _rng;
         private readonly ulong _runSeed;
+        private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
         public string ChapterName { get { return ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"; } }
@@ -176,10 +178,16 @@ namespace AreArpg.Core
 
         public ArenaSimulation(ulong seed, CharacterProgression progression,
             System.Numerics.BigInteger cryptDepth)
+            : this(seed, progression, cryptDepth, null) { }
+
+        /// <summary>Explicit versioned loot opt-in preserves the legacy simulation and hash contract.</summary>
+        public ArenaSimulation(ulong seed, CharacterProgression progression,
+            System.Numerics.BigInteger cryptDepth, LootCatalog lootCatalog)
         {
             if (cryptDepth < System.Numerics.BigInteger.One)
                 throw new ArgumentOutOfRangeException(nameof(cryptDepth));
             _runSeed = seed;
+            _lootCatalog = lootCatalog;
             CryptDepth = cryptDepth;
             Progression = progression ?? new CharacterProgression();
             PlayerHealth = MaxPlayerHealth;
@@ -217,7 +225,7 @@ namespace AreArpg.Core
             if (!CharacterProgression.TryLoad(Progression.SaveString(), out nextProgress) ||
                 !nextProgress.TryUnlockNextCryptDepth(CryptDepth)) return null;
             return new ArenaSimulation(_runSeed, nextProgress,
-                nextProgress.UnlockedCryptDepth);
+                nextProgress.UnlockedCryptDepth, _lootCatalog);
         }
 
         private static MonsterState NewMonster(int id, int kind, long x, long z, int health)
@@ -505,6 +513,7 @@ namespace AreArpg.Core
             return target;
         }
 
+        /// <summary>Resolve existing combat rewards; only a transition to dead generates a catalog item.</summary>
         private void DealDamage(MonsterState enemy, int powerBp, int slot, SkillResult result)
         {
             bool crit;
@@ -525,7 +534,9 @@ namespace AreArpg.Core
                 Progression.EarnExperience(new System.Numerics.BigInteger(
                     enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
                 GroundLoot.Add(new LootState { Id = _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
-                    WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8) });
+                    WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8),
+                    Item = _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
+                        CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) });
             }
         }
 
@@ -566,6 +577,7 @@ namespace AreArpg.Core
             return result;
         }
 
+        /// <summary>Collect reachable drops through the canonical progression owner, preserving legacy rewards.</summary>
         public bool TryCollectLoot()
         {
             if (GameOver) return false;
@@ -573,7 +585,11 @@ namespace AreArpg.Core
             {
                 LootState item = GroundLoot[i];
                 if (DistanceSquared(PlayerXmm, PlayerZmm, item.Xmm, item.Zmm) > FixedMath.Square(PickupRadiusMm)) continue;
-                Progression.AddWeaponUpgrade(item.WeaponBonus);
+                if (item.Item != null)
+                {
+                    if (!Progression.CollectItem(item.Item)) return false;
+                }
+                else Progression.AddWeaponUpgrade(item.WeaponBonus);
                 GroundLoot.RemoveAt(i);
                 return true;
             }
@@ -581,6 +597,7 @@ namespace AreArpg.Core
         }
 
         // Stable FNV-1a over every field that currently affects future simulation outcomes.
+        /// <summary>Hash canonical simulation state; catalog mode additionally binds its revision, seed and ground receipts.</summary>
         public ulong ComputeWorldHash()
         {
             ulong h = 14695981039346656037UL;
@@ -618,6 +635,11 @@ namespace AreArpg.Core
             {
                 Mix(ref h, (ulong)loot.Id); Mix(ref h, (ulong)loot.Xmm);
                 Mix(ref h, (ulong)loot.Zmm); Mix(ref h, (ulong)loot.WeaponBonus);
+            }
+            if (_lootCatalog != null)
+            {
+                Mix(ref h, 1); Mix(ref h, _lootCatalog.StableHash); Mix(ref h, _runSeed);
+                foreach (LootState loot in GroundLoot) Mix(ref h, loot.Item == null ? 0 : loot.Item.StableHash);
             }
             return h;
         }

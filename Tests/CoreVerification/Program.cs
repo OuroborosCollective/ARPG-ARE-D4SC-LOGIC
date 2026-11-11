@@ -30,6 +30,7 @@ internal static class Program
             PracticeWorldTests.Run(Require);
             NpcSocialTests.Run(Require);
             SupplyTheftTests.Run(Require);
+            LootAffixTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

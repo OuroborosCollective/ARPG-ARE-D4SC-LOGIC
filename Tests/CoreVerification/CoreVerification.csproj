@@ -10,5 +10,7 @@
     <Compile Include="../../Assets/Scripts/Core/ArpgSimulation.cs" Link="ArpgSimulation.cs" />
     <Compile Include="../../Assets/Scripts/Core/CharacterProgression.cs" Link="CharacterProgression.cs" />
     <Compile Include="../../Assets/Scripts/Core/NpcRelations.cs" Link="NpcRelations.cs" />
+    <Compile Include="../../Assets/Scripts/Core/LootCatalog.cs" Link="LootCatalog.cs" />
+    <Compile Include="../../Assets/Scripts/Core/LootItem.cs" Link="LootItem.cs" />
   </ItemGroup>
 </Project>
