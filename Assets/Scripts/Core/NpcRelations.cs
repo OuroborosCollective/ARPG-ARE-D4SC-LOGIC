@@ -151,6 +151,17 @@ namespace AreArpg.Core
         }
 
         internal void ProvisionFromLoot() { Provisions++; }
+        /// <summary>Direct theft from the supplier transfers one existing ration; no currency or quest reward is minted.</summary>
+        internal bool TakeCampRation()
+        {
+            if (CampProvisions <= 0) return false;
+            CampProvisions--; Provisions++;
+            GetMemory(MaraNpcId).Record(NpcAction.Rob, 1);
+            return true;
+        }
+
+        /// <summary>Record one actually perceived theft in the existing personal aggregate memory, not a new event ledger.</summary>
+        internal void WitnessRationTheft(int id) { GetMemory(id).Record(NpcAction.Rob, 1); }
         internal bool EatAtCamp(NpcMemory m)
         {
             if (CampProvisions == 0 || m.Hunger < 700) return false;
