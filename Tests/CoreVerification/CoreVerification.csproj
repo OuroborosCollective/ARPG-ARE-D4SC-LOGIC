@@ -13,5 +13,6 @@
     <Compile Include="../../Assets/Scripts/Core/LootCatalog.cs" Link="LootCatalog.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootItem.cs" Link="LootItem.cs" />
     <Compile Include="../../Assets/Scripts/Core/SkillCatalog.cs" Link="SkillCatalog.cs" />
+    <Compile Include="../../Assets/Scripts/Core/CombatRules.cs" Link="CombatRules.cs" />
   </ItemGroup>
 </Project>
