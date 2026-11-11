@@ -60,7 +60,7 @@ namespace AreArpg.UnityClient
                 Debug.LogError("ARPG character save could not be validated; refusing to overwrite character progress.");
             }
             _game = new ArenaSimulation(DemoSeed, saved,
-                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One);
+                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1);
             if (_game.ChapterId == 1)
                 _message = "Aschengrenze: Lager, Wache und Nordpass. Deine Taten bleiben in Erinnerung.";
             BuildWorld();

@@ -1,0 +1,1 @@
+{"name":"AreArpg.EditMode.Tests","rootNamespace":"AreArpg.EditMode.Tests","references":["AreArpg.Core"],"optionalUnityReferences":["TestAssemblies"],"includePlatforms":["Editor"],"autoReferenced":false,"defineConstraints":["UNITY_INCLUDE_TESTS"]}
