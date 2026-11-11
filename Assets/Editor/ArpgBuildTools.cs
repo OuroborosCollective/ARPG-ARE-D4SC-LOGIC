@@ -27,8 +27,8 @@ namespace AreArpg.EditorTools
                 new EditorBuildSettingsScene(ScenePath, true) };
         }
 
+        /// <summary>Explicitly rebuild the legacy demo scene when that editor command is chosen.</summary>
         [MenuItem("ARE ARPG/1. Prepare Demo Scene")]
-        /// <summary>Create the legacy arena scene if absent while preserving existing authored scene content.</summary>
         public static void PrepareDemoScene()
         {
             if (!Directory.Exists("Assets/Scenes")) Directory.CreateDirectory("Assets/Scenes");
@@ -38,8 +38,8 @@ namespace AreArpg.EditorTools
             Debug.Log("ARE ARPG: Empty scene prepared. ArenaRuntime creates the arena at Play.");
         }
 
-        [MenuItem("ARE ARPG/2. Build Android APK")]
         /// <summary>Build both entry and legacy scenes using the configured Android target and inspect the real build result.</summary>
+        [MenuItem("ARE ARPG/2. Build Android APK")]
         public static void BuildAndroidApk()
         {
             if (EditorApplication.isPlaying) throw new InvalidOperationException("Exit Play Mode before building.");

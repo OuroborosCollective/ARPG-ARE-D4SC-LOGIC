@@ -24,8 +24,8 @@ namespace AreArpg.EditorTools
         private const string DefaultPostProcessData =
             "Packages/com.unity.render-pipelines.universal/Runtime/Data/PostProcessData.asset";
 
-        [MenuItem("ARE ARPG/Rendering/Apply Project URP Pipeline")]
         /// <summary>Create or reuse project-owned URP settings and restore the previously selected quality tier.</summary>
+        [MenuItem("ARE ARPG/Rendering/Apply Project URP Pipeline")]
         public static void Apply()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode)
