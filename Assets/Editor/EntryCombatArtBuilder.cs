@@ -20,6 +20,7 @@ namespace AreArpg.EditorTools
             public Vector3 weaponEuler;
             public Vector3 weaponModelEuler;
             public float weaponLength, weaponGripFromBase;
+            public bool stabilizeWeaponGrip;
         }
         private static bool _enabled;
         private static AnimatorController _controller;
@@ -143,6 +144,14 @@ namespace AreArpg.EditorTools
             _controller.parameters = new AnimatorControllerParameter[0];
             _controller.AddParameter("MoveMagnitude", AnimatorControllerParameterType.Float);
             _controller.AddParameter("Melee", AnimatorControllerParameterType.Trigger);
+            var layers = _controller.layers;
+            layers[0].iKPass = input.stabilizeWeaponGrip;
+            _controller.layers = layers;
+            if (input.stabilizeWeaponGrip)
+            {
+                _controller.AddParameter(AreArpg.UnityClient.EntryWeaponGrip.WeightParameter, AnimatorControllerParameterType.Float);
+                GripCurve(idleClip, 0f); GripCurve(moveClip, 1f); GripCurve(attackClip, 0f);
+            }
             var idle = machine.AddState("Idle"); idle.motion = idleClip;
             var move = machine.AddState("Move"); move.motion = moveClip;
             var attack = machine.AddState("Melee"); attack.motion = attackClip;
@@ -155,9 +164,21 @@ namespace AreArpg.EditorTools
             enter.AddCondition(AnimatorConditionMode.If, 0, "Melee");
             enter.hasExitTime = false; enter.duration = .04f; enter.hasFixedDuration = true;
             enter.canTransitionToSelf = true;
+            var resume = attack.AddTransition(move);
+            resume.AddCondition(AnimatorConditionMode.Greater, .1f, "MoveMagnitude");
             var leave = attack.AddTransition(idle);
-            leave.hasExitTime = true; leave.exitTime = .9f; leave.duration = .08f; leave.hasFixedDuration = true;
+            foreach (var transition in new[] { resume, leave })
+            { transition.hasExitTime = true; transition.exitTime = .9f; transition.duration = .08f; transition.hasFixedDuration = true; }
             EditorUtility.SetDirty(_controller);
+        }
+
+        /// <summary>Animation owns only the visual IK blend; no clock or animation event enters gameplay.</summary>
+        private static void GripCurve(AnimationClip clip, float weight)
+        {
+            AnimationUtility.SetEditorCurve(clip,
+                EditorCurveBinding.FloatCurve("", typeof(Animator), AreArpg.UnityClient.EntryWeaponGrip.WeightParameter),
+                AnimationCurve.Constant(0f, clip.length, weight));
+            EditorUtility.SetDirty(clip);
         }
 
         /// <summary>Resolve exactly the reviewed humanoid take without writing any generated asset.</summary>
@@ -245,10 +266,38 @@ namespace AreArpg.EditorTools
                 var socket = new GameObject("EntryWeaponSocket").transform;
                 socket.SetParent(hand, false); socket.localPosition = input.weaponPosition;
                 socket.localRotation = Quaternion.Euler(input.weaponEuler);
+                if (input.stabilizeWeaponGrip) BuildReadyGrip(root, animator);
                 if (PrefabUtility.SaveAsPrefabAsset(root, Output + "EntryCombatHero.prefab") == null)
                     throw new IOException("Could not save configured hero");
             }
             finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+
+        /// <summary>Author torso-relative targets from the reviewed humanoid idle, then restore the source pose.</summary>
+        private static void BuildReadyGrip(GameObject root, Animator animator)
+        {
+            var chest = animator.GetBoneTransform(HumanBodyBones.UpperChest) ?? animator.GetBoneTransform(HumanBodyBones.Chest);
+            var hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+            var elbow = animator.GetBoneTransform(HumanBodyBones.RightLowerArm);
+            if (chest == null || hand == null || elbow == null)
+                throw new InvalidOperationException("Armed projection requires chest, hand and elbow bones");
+            var transforms = root.GetComponentsInChildren<Transform>(true);
+            var positions = transforms.Select(t => t.localPosition).ToArray();
+            var rotations = transforms.Select(t => t.localRotation).ToArray();
+            var scales = transforms.Select(t => t.localScale).ToArray();
+            try
+            {
+                AssetDatabase.LoadAssetAtPath<AnimationClip>(Output + "EntryIdle.anim").SampleAnimation(root, 0f);
+                var grip = new GameObject("EntryReadyGrip").transform;
+                grip.SetParent(chest, false); grip.SetPositionAndRotation(hand.position, hand.rotation);
+                var hint = new GameObject("EntryReadyElbow").transform;
+                hint.SetParent(chest, false); hint.position = elbow.position;
+            }
+            finally
+            {
+                for (int i = 0; i < transforms.Length; i++)
+                { transforms[i].localPosition = positions[i]; transforms[i].localRotation = rotations[i]; transforms[i].localScale = scales[i]; }
+            }
         }
 
         /// <summary>Persist URP copies of the source's base, normal, metal and occlusion maps without altering originals.</summary>

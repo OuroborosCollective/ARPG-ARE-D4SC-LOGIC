@@ -84,6 +84,25 @@ denselben ausgewählten Clip. Animationen entscheiden weder Schaden noch
 Trefferzeitpunkt, Position, Cooldown oder Loot und ergänzen kein Save-Feld.
 Ohne optionalen Katalog bleibt die vorherige Darstellung verfügbar.
 
+`stabilizeWeaponGrip` aktiviert optional eine kosmetische rechte Handkorrektur.
+Der Builder nimmt Griff und Ellbogen aus dem ausgewählten Bereitschaftsclip
+und speichert sie als Transform-Marker am Oberkörper. Die privaten Prefabs
+bleiben passiv; erst der eigene Runtime-Adapter hängt `EntryWeaponGrip` an das
+validierte humanoide Rig. Ziele unter dem zu lösenden Arm werden abgelehnt.
+Die Laufanimation blendet den IK-Einfluss ein; Idle und Melee besitzen Gewicht
+null. Die Abweichung zwischen Avatar-Handknochen und Unitys IK-Palmenachsen wird
+vor dem ersten eigenen IK-Schreibzugriff am tatsächlichen Animator kalibriert.
+Bei weiterlaufender Bewegung führt der Schlag direkt zurück in Move; sonst
+kehrt er in Idle zurück. Ein zusätzlicher Idle-Zwischenschritt entfällt.
+Der native Animator löst die Handhaltung, während der Core weiterhin
+alle Spielentscheidungen besitzt. Fehlende Marker oder alte Controller
+aktivieren keinen Adapter. Der IK-Helper-Paketcode wird nicht öffentlich
+kopiert und nicht als ungeprüftes Vendor-Verhalten in Prefabs zugelassen.
+
+API-Grundlage: Unity-6 `Animator.SetIKPosition` / `OnAnimatorIK` sowie
+`AnimatorControllerLayer.iKPass`. Die tatsächliche Wirkung muss am privaten
+Rig geprüft werden; statische Konfiguration allein genügt nicht.
+
 ## Nachweise
 
 `EntryJourneyTests` prüft die echte Core-Abfolge, getrennte Altprofile,
