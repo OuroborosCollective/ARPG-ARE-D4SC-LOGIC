@@ -239,8 +239,9 @@ namespace AreArpg.UnityClient
         private void ApplyEntryLighting()
         {
             if (!_entryProfile || _sun == null) return;
-            _sun.color = _game.IsVillage ? new Color(1f, .91f, .76f) : new Color(.63f, .73f, 1f);
-            _sun.intensity = _game.IsVillage ? 1.6f : .9f;
+            bool warm = _game.IsVillage || _game.Progression.EntryAct == 5;
+            _sun.color = warm ? new Color(1f, .91f, .76f) : new Color(.63f, .73f, 1f);
+            _sun.intensity = _game.IsVillage ? 1.6f : _game.Progression.EntryAct >= 5 ? 1.2f : .9f;
             _sun.shadows = LightShadows.Soft;
         }
 

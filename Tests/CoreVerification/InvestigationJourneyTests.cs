@@ -51,7 +51,7 @@ internal static class InvestigationJourneyTests
             check(w.ActOnHunger(HungerAction.StoreTracks).Accepted, "crypt-local-tracks-" + branch);
             Move(w, 0, -3000); Move(w, 0, 18000);
             check(w.ActOnHunger(force ? HungerAction.BreakSeal : HungerAction.OpenSeal).Accepted, "crypt-seal-choice-" + branch);
-            check(w.HungerForwardOpen && w.CanStand(0, 21000), "crypt-gate-opens-in-authority-" + branch);
+            check(w.HungerForwardOpen && w.CanStand(0, 21000) && !w.CanStand(7000, 21000), "crypt-gate-opens-in-authority-" + branch);
             untouched = w.Progression.SaveString();
             check(!w.ActOnHunger(force ? HungerAction.OpenSeal : HungerAction.BreakSeal).Accepted && untouched == w.Progression.SaveString(), "crypt-choice-cannot-switch-" + branch);
             Move(w, 0, 24000); w = w.TryTraversePassage();

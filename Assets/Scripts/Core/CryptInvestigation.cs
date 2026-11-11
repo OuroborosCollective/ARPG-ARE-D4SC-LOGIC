@@ -133,6 +133,7 @@ namespace AreArpg.Core
             }
             if ((act == 6 || approach == SealApproach.Undecided) &&
                 z > 20500 - PlayerRadiusMm) return false;
+            if (z >= 20500 - PlayerRadiusMm && z <= 21500 + PlayerRadiusMm && Math.Abs(x) >= 2000 - PlayerRadiusMm) return false;
             return true;
         }
 

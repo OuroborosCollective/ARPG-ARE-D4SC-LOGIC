@@ -35,8 +35,9 @@ namespace AreArpg.UnityClient
             ChapterShape(PrimitiveType.Cube, prefix + "Ground", new Vector3(0, -.35f, 0),
                 new Vector3(25, .5f, 54), new Color(.24f, .23f, .21f));
             for (int z = -24; z <= 24; z += 6)
-                ChapterShape(PrimitiveType.Cube, prefix + "Floor", new Vector3(0, -.06f, z),
-                    new Vector3(24, .12f, 6), new Color(.34f, .34f, .32f), "AshStoneFloor");
+                for (int x = -9; x <= 9; x += 6)
+                    ChapterShape(PrimitiveType.Cube, prefix + "Floor", new Vector3(x, -.06f, z),
+                        new Vector3(6, .12f, 6), new Color(.34f, .34f, .32f), "AshStoneFloor");
             for (int side = -1; side <= 1; side += 2)
                 for (int z = -24; z <= 24; z += 6)
                     ChapterShape(PrimitiveType.Cube, prefix + "Wall", new Vector3(side * 12.5f, 1.5f, z),
@@ -55,8 +56,7 @@ namespace AreArpg.UnityClient
             {
                 _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage", new Vector3(0, .035f, 24),
                     new Vector3(3.6f, .02f, 3.6f), new Color(.2f, .65f, .72f));
-                _investigationGate = ChapterShape(PrimitiveType.Cube, "OldStore_SealedGate", new Vector3(0, 1.7f, 21),
-                    new Vector3(24, 3.4f, 1), new Color(.30f, .32f, .33f), "AshStoneWall");
+                _investigationGate = BuildInvestigationDoor("OldStore_SealedGate", false);
                 ChapterShape(PrimitiveType.Cube, "OldStore_Bandage", new Vector3(-6.5f, .05f, 0),
                     new Vector3(1.1f, .08f, .35f), new Color(.85f, .78f, .61f));
                 for (int i = 0; i < 7; i++)
@@ -69,8 +69,7 @@ namespace AreArpg.UnityClient
             else
             {
                 _worldPassage = null;
-                ChapterShape(PrimitiveType.Cube, "HiddenCrypt_InnerDoor", new Vector3(0, 1.7f, 21),
-                    new Vector3(24, 3.4f, 1), new Color(.24f, .29f, .32f), "AshStoneWall");
+                BuildInvestigationDoor("HiddenCrypt_InnerDoor", true);
                 ChapterShape(PrimitiveType.Cube, "HiddenCrypt_FreshBandage", new Vector3(0, .05f, 15),
                     new Vector3(1.3f, .08f, .4f), new Color(.9f, .8f, .65f));
                 ClueMark("HiddenCrypt_TraceMark", 0, 15);
@@ -80,6 +79,27 @@ namespace AreArpg.UnityClient
                     new Vector3(3.7f, .06f, 3.4f), new Color(.22f, .22f, .23f));
             }
             UpdateInvestigationPresentation();
+        }
+
+        /// <summary>Build a recognizable four-metre doorway within permanent flanking walls.</summary>
+        private Transform BuildInvestigationDoor(string label, bool crypt)
+        {
+            for (int side = -1; side <= 1; side += 2)
+                for (int section = 0; section < 2; section++)
+                    ChapterShape(PrimitiveType.Cube, label + "_Flank", new Vector3(side * (4.5f + section * 5f), 1.7f, 21),
+                        new Vector3(5, 3.4f, 1), new Color(.3f, .31f, .32f), "AshStoneWall");
+            var door = ChapterShape(PrimitiveType.Cube, label, new Vector3(0, 1.6f, 21),
+                new Vector3(4, 3.2f, 1), crypt ? new Color(.18f, .24f, .27f) : new Color(.34f, .23f, .13f));
+            for (int side = -1; side <= 1; side += 2)
+            {
+                var edge = ChapterShape(PrimitiveType.Cube, label + "_Binding", new Vector3(side * 1.75f, 1.6f, 20.45f),
+                    new Vector3(.16f, 3, .12f), new Color(.58f, .47f, .25f));
+                edge.SetParent(door, true);
+            }
+            var seal = ChapterShape(PrimitiveType.Cylinder, label + "_Seal", new Vector3(0, 1.7f, 20.43f),
+                new Vector3(.8f, .06f, .8f), crypt ? new Color(.21f, .57f, .65f) : new Color(.75f, .44f, .16f));
+            seal.rotation = Quaternion.Euler(90, 0, 0); seal.SetParent(door, true);
+            return door;
         }
 
         /// <summary>Flat clue markers are cosmetic and create no collision or quest state.</summary>

@@ -464,6 +464,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(7, Game.Progression.Investigation.Clues);
             Assert.IsTrue(Find("OldStore_SealedGate").activeSelf);
             Assert.IsFalse(Game.CanStand(0, 21000));
+            Assert.AreEqual(4, Find("OldStore_SealedGate").transform.localScale.x);
+            Assert.AreEqual(6, Find("OldStore_Floor").transform.localScale.x);
             AssertInvestigationArt("OldStore_Crates_0", 4f, 4f);
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
             yield return Capture("act5-store-seal.png");
