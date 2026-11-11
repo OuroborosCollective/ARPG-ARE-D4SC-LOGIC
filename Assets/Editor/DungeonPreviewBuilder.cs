@@ -6,6 +6,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -28,7 +30,7 @@ namespace AreArpg.EditorTools
         [Serializable] public sealed class Door { public string a, b, axis; public int x, z; }
         [Serializable] public sealed class Receipt
         {
-            public string schema, blueprintId, planSha256, catalogSha256, prefabSha256, prefabPath;
+            public string schema, blueprintId, planSha256, catalogSha256, prefabSha256, prefabPath, receiptSha256;
             public int floorCount, wallCount, doorwayCount;
         }
         private sealed class Edge { public int x, z; public string axis; public readonly List<string> rooms = new List<string>(); }
@@ -71,7 +73,8 @@ namespace AreArpg.EditorTools
                     throw new InvalidOperationException("Unowned or incomplete preview output: " + path);
                 var previous = JsonUtility.FromJson<Receipt>(File.ReadAllText(receiptPath));
                 if (previous == null || previous.schema != Owner || previous.blueprintId != plan.input.id ||
-                    previous.prefabPath != path || previous.prefabSha256 != FileHash(path))
+                    previous.prefabPath != path || previous.prefabSha256 != FileHash(path) ||
+                    previous.receiptSha256 != ReceiptHash(previous))
                     throw new InvalidOperationException("Preview was changed externally; preserve it: " + path);
                 if (previous.planSha256 == plan.hash && previous.catalogSha256 == catalog) return path;
             }
@@ -107,7 +110,7 @@ namespace AreArpg.EditorTools
         private static Plan Compile(string json)
         {
             if (json == null || json.Length > 65536) throw new ArgumentException("Blueprint size limit");
-            var bp = JsonUtility.FromJson<Blueprint>(json);
+            Blueprint bp = ReadBlueprint(json);
             if (bp == null || bp.version != 1 || bp.cellMm != 4000 || !ValidId(bp.id) ||
                 bp.rooms == null || bp.rooms.Length == 0 || bp.rooms.Length > 16 ||
                 bp.doors == null || bp.doors.Length == 0 || bp.doors.Length > 64)
@@ -187,6 +190,41 @@ namespace AreArpg.EditorTools
             return plan;
         }
 
+        /// <summary>Require every field explicitly; absent coordinates must never silently become zero.</summary>
+        private static Blueprint ReadBlueprint(string json)
+        {
+            try
+            {
+                using (var reader = new JsonTextReader(new StringReader(json)) { MaxDepth = 8, DateParseHandling = DateParseHandling.None })
+                {
+                    var root = JObject.Load(reader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+                    if (reader.Read()) throw new ArgumentException("Trailing blueprint data");
+                    RequireFields(root, "version:int,id:string,cellMm:int,rooms:array,doors:array");
+                    foreach (var room in (JArray)root["rooms"])
+                        RequireFields(room as JObject, "id:string,x:int,z:int,width:int,length:int");
+                    foreach (var door in (JArray)root["doors"])
+                        RequireFields(door as JObject, "a:string,b:string,axis:string,x:int,z:int");
+                    return JsonUtility.FromJson<Blueprint>(root.ToString(Formatting.None));
+                }
+            }
+            catch (JsonException error) { throw new ArgumentException("Invalid blueprint JSON", error); }
+        }
+
+        private static void RequireFields(JObject value, string contract)
+        {
+            string[] fields = contract.Split(',');
+            if (value == null || value.Count != fields.Length) throw new ArgumentException("Unexpected blueprint fields");
+            foreach (string field in fields)
+            {
+                string[] pair = field.Split(':'); JToken token = value[pair[0]];
+                JTokenType type = pair[1] == "int" ? JTokenType.Integer : pair[1] == "array" ? JTokenType.Array : JTokenType.String;
+                int integer;
+                if (token == null || token.Type != type || (type == JTokenType.Integer &&
+                    !int.TryParse(token.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out integer)))
+                    throw new ArgumentException("Missing or invalid blueprint field: " + pair[0]);
+            }
+        }
+
         /// <summary>Keep identity and output filenames within one portable, bounded namespace.</summary>
         private static bool ValidId(string id) { return id != null && Regex.IsMatch(id, @"\A[a-z][a-z0-9-]{0,47}\z"); }
         private static string Key(string axis, int x, int z)
@@ -221,13 +259,29 @@ namespace AreArpg.EditorTools
             var files = new SortedSet<string>(StringComparer.Ordinal);
             foreach (string p in AssetDatabase.GetDependencies(paths, true))
             {
-                if (!File.Exists(p)) throw new IOException("Missing source dependency: " + p);
+                string physical = PhysicalPath(p);
+                if (!File.Exists(physical)) throw new IOException("Missing source dependency: " + p);
                 files.Add(p);
-                if (File.Exists(p + ".meta")) files.Add(p + ".meta");
+                if (File.Exists(physical + ".meta")) files.Add(p + ".meta");
             }
             var canonical = new StringBuilder();
-            foreach (string f in files) canonical.Append(f).Append(':').Append(FileHash(f)).Append('\n');
+            foreach (string f in files) canonical.Append(f).Append(':').Append(FileHash(PhysicalPath(f))).Append('\n');
             return Hash(Encoding.UTF8.GetBytes(canonical.ToString()));
+        }
+        private static string PhysicalPath(string assetPath)
+        {
+            if (!assetPath.StartsWith("Packages/", StringComparison.Ordinal)) return assetPath;
+            var package = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(assetPath);
+            if (package == null || !assetPath.StartsWith(package.assetPath + "/", StringComparison.Ordinal))
+                throw new IOException("Cannot resolve source package: " + assetPath);
+            return Path.Combine(package.resolvedPath, assetPath.Substring(package.assetPath.Length + 1));
+        }
+        /// <summary>Detect accidental edits to every emitted receipt field, including derived counts.</summary>
+        private static string ReceiptHash(Receipt receipt)
+        {
+            string saved = receipt.receiptSha256;
+            try { receipt.receiptSha256 = null; return Hash(Encoding.UTF8.GetBytes(JsonUtility.ToJson(receipt))); }
+            finally { receipt.receiptSha256 = saved; }
         }
         private static string FileHash(string path) { return Hash(File.ReadAllBytes(path)); }
         private static string Hash(byte[] bytes)
@@ -249,6 +303,7 @@ namespace AreArpg.EditorTools
                     throw new IOException("Preview readback mismatch");
                 RequirePassive(loaded);
                 receipt.prefabSha256 = FileHash(path);
+                receipt.receiptSha256 = ReceiptHash(receipt);
                 File.WriteAllText(receiptPath, JsonUtility.ToJson(receipt, true));
                 AssetDatabase.ImportAsset(receiptPath, ImportAssetOptions.ForceUpdate);
                 if (JsonUtility.FromJson<Receipt>(File.ReadAllText(receiptPath)).prefabSha256 != FileHash(path))

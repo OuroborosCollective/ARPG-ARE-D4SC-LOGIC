@@ -15,6 +15,7 @@ Voraussetzung: bereits geprüfte passive `DungeonFloor`, `DungeonWall` und `Dung
 Vorschauversion1 verwendet originale 4-m-Bauteile ohne Skalierung. Abweichende Maße werden abgelehnt. Die spielbare Krypta und ihre bisherigen Einbaumaße werden nicht verändert.
 
 ## Schema v1
+- Alle aufgeführten Felder sind erforderlich, auch Koordinaten mit Wert 0 und das leere `b` bei Außentüren. Unbekannte oder doppelte JSON-Felder werden abgelehnt. Der bereits vorhandene Newtonsoft-JSON-Pin wird als direkte Editor-Abhängigkeit deklariert.
 - `version:1`, `cellMm:4000`; `id` beginnt mit einem Kleinbuchstaben und enthält maximal48 ASCII-Kleinbuchstaben, Ziffern oder Bindestriche.
 - `rooms`: eindeutige `id`, linke untere Ecke `x,z` in Rasterzellen, positive `width,length`. Achsenparallel, keine impliziten Eltern oder Reihenfolgenabhängigkeit.
 - `doors`: `a,b` sind die angrenzenden Raum-IDs. Leeres `b` bezeichnet eine Außentür. `axis:x` bezeichnet eine waagerechte Wandkante von(x,z) nach(x+1,z), `axis:z` von(x,z) nach(x,z+1).
@@ -28,6 +29,8 @@ Ergebnis unter `Assets/PrivateArt/DungeonPreviews/<id>.prefab` mit zugehörigem 
 Raum-/Platzierungsreihenfolge wird ordinal normalisiert, Geometrie in ganzzahligen Millimetern berechnet. Der Receipt bindet den kanonischen Plan, private Quelldateien/Metadaten und das gespeicherte Prefab an Prüfsummen. Ein identischer Plan mit identischen Assets verwendet dasselbe unveränderte Ergebnis. Andere Reihenfolge der Eingabe-Arrays erzeugt keine Duplikate. Ein eigener vorhandener Output wird nur bei gültigem Eigentumsreceipt und unverändertem Dateihash ersetzt; fremde oder manuell veränderte Ergebnisse bleiben erhalten. Ungültige Eingaben werden vor dem Schreiben abgelehnt. Bei Speicher-/Readbackfehlern werden die vorherigen eigenen Dateien restauriert.
 
 Aktive Szenen, EntryCryptWorld, Core-Kollisionen, 100-ms-Tick, XP/Mastery, Loot und AC-Saveformat werden nicht geändert. Ein Editor-Undo für eine aktive Szene ist nicht notwendig, weil die Szene nicht mutiert wird. Das erzeugte Prefab kann separat im Prefab-Modus betrachtet werden.
+
+Registry-, lokale und eingebaute Paketabhängigkeiten werden über Unitys tatsächlichen Paketpfad gelesen; der Kataloghash verwendet weiterhin projektrelative Assetnamen. Ein eigener Receipt-Hash erkennt versehentliche Feldänderungen einschließlich der Bauteilzahlen. Er ist keine digitale Signatur. Alte unversiegelte Vorschauen werden erhalten und abgelehnt; für sie einen neuen Bauplan-Namen verwenden.
 
 ## Abnahme
 Das Beispiel hat3Räume,26Bodenmodule,27Wandmodule und3Bögen, also56Teile.

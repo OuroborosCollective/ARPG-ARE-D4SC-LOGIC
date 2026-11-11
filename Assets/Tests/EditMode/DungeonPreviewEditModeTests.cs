@@ -79,6 +79,10 @@ namespace AreArpg.EditMode.Tests
         [TestCase("wrong-version")]
         [TestCase("path-traversal")]
         [TestCase("unknown-dimensions")]
+        [TestCase("missing-room-x")]
+        [TestCase("missing-room-z")]
+        [TestCase("missing-door-x")]
+        [TestCase("missing-door-z")]
         public void InvalidPlanPreservesTheReviewedPreview(string fault)
         {
             string path = Build(_json);
@@ -93,6 +97,10 @@ namespace AreArpg.EditMode.Tests
                 case "wrong-version": bad = bad.Replace("\"version\":1", "\"version\":2"); break;
                 case "path-traversal": bad = bad.Replace("test-preview", "../escape"); break;
                 case "unknown-dimensions": bad = bad.Replace("\"width\":", "\"widthInTiles\":"); break;
+                case "missing-room-x": bad = bad.Replace("\"id\":\"hall\",\"x\":0,", "\"id\":\"hall\","); break;
+                case "missing-room-z": bad = bad.Replace("\"x\":0,\"z\":0,\"width\"", "\"x\":0,\"width\""); break;
+                case "missing-door-x": bad = bad.Replace("\"axis\":\"x\",\"x\":0,", "\"axis\":\"x\","); break;
+                case "missing-door-z": bad = bad.Replace("\"axis\":\"x\",\"x\":0,\"z\":0", "\"axis\":\"x\",\"x\":0"); break;
             }
             var e = Assert.Throws<TargetInvocationException>(() => Build(bad));
             Assert.IsInstanceOf<ArgumentException>(e.InnerException);
@@ -109,6 +117,39 @@ namespace AreArpg.EditMode.Tests
             var e = Assert.Throws<TargetInvocationException>(() => Build(_json));
             Assert.IsInstanceOf<InvalidOperationException>(e.InnerException);
             CollectionAssert.AreEqual(manual, File.ReadAllBytes(path));
+        }
+
+        /// <summary>Receipt edits must not become trusted evidence through the repeat-build shortcut.</summary>
+        [TestCase("floorCount", "26", "25")]
+        [TestCase("wallCount", "27", "26")]
+        [TestCase("doorwayCount", "3", "2")]
+        public void ManualReceiptChangesArePreservedAndRejected(string field, string before, string after)
+        {
+            string path = Build(_json), receiptPath = PathPrefix + ".receipt.json";
+            byte[] prefab = File.ReadAllBytes(path);
+            string original = File.ReadAllText(receiptPath);
+            string changed = original.Replace("\"" + field + "\": " + before, "\"" + field + "\": " + after);
+            Assert.AreNotEqual(original, changed, "The test must alter the actual generated receipt");
+            File.WriteAllText(receiptPath, changed);
+            var error = Assert.Throws<TargetInvocationException>(() => Build(_json));
+            Assert.IsInstanceOf<InvalidOperationException>(error.InnerException);
+            Assert.AreEqual(changed, File.ReadAllText(receiptPath));
+            CollectionAssert.AreEqual(prefab, File.ReadAllBytes(path));
+        }
+
+        /// <summary>Hash a real registry-package file through Unity's virtual Packages path.</summary>
+        [Test]
+        public void CatalogHashResolvesARealRegistryPackage()
+        {
+            const string path = "Packages/com.unity.nuget.newtonsoft-json/package.json";
+            var package = UnityEditor.PackageManager.PackageInfo.FindForAssetPath(path);
+            Assert.IsNotNull(package, "The pinned dependency must really be installed");
+            Assert.IsTrue(File.Exists(System.IO.Path.Combine(package.resolvedPath, "package.json")));
+            var type = _build.DeclaringType.Assembly.GetType("AreArpg.EditorTools.DungeonPreviewBuilder");
+            var method = type.GetMethod("CatalogHash", BindingFlags.Static | BindingFlags.NonPublic);
+            string hash = (string)method.Invoke(null, new object[] { new[] { path } });
+            Assert.That(hash, Does.Match("^[0-9a-f]{64}$"));
+            Assert.AreEqual(hash, method.Invoke(null, new object[] { new[] { path } }));
         }
 
         /// <summary>Capture the actual imported meshes in a temporary, isolated Editor preview scene.</summary>
