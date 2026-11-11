@@ -371,6 +371,109 @@ namespace AreArpg.PlayMode.Tests
         }
 #endif
 
+        /// <summary>Real adapter queues, native checkpoints and scene reload across the road/mill supply branch.</summary>
+        [UnityTest]
+        public IEnumerator HungerJourneyReturnsAndPersistsReplacement()
+        {
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3);
+            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            var ilyan = Game.Npcs.Find(n => n.Id == 0);
+            ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
+            yield return StoryAction(HungerAction.HearIlyan);
+            MoveStory(0, 24000); TravelStory();
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            MoveStory(0, -2000);
+            yield return StoryAction(HungerAction.InspectTrail);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            yield return Capture("act3-ash-road.png");
+            MoveStory(0, 24000); TravelStory();
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            MoveStory(0, -2000); MoveStory(-4000, -2000);
+            yield return StoryAction(HungerAction.InspectShelter);
+            yield return null;
+            Assert.IsNotNull(Find("OldMill_House"));
+            var millRenderers = Find("OldMill_House").GetComponentsInChildren<Renderer>();
+            Bounds millBounds = new Bounds(); bool firstRenderer = true;
+            foreach (var renderer in millRenderers)
+                if (renderer.enabled)
+                { if (firstRenderer) { millBounds = renderer.bounds; firstRenderer = false; } else millBounds.Encapsulate(renderer.bounds); }
+            Assert.IsFalse(firstRenderer);
+            Assert.AreEqual(7f, millBounds.size.x, .02f, "Mill art width must match the Core footprint");
+            Assert.AreEqual(11f, millBounds.size.z, .02f, "Mill art depth must match the Core footprint");
+            Assert.AreEqual(0f, millBounds.min.y, .02f, "The mill must stand on the visible ground");
+            Assert.IsNotNull(Find("ARE_Return_Passage"));
+            Assert.IsNotNull(Find("OldMill_Patient_0"));
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            yield return Capture("act4-old-mill.png");
+            MoveStory(0, -2000); MoveStory(0, -24000); TravelStory();
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            Assert.IsFalse(Game.AtAnyPassage, "A return arrival must not bounce into the next region");
+            MoveStory(0, -24000); TravelStory();
+            Assert.AreEqual(2, Game.Progression.EntryAct);
+            var mara = Game.Npcs.Find(n => n.Id == 1);
+            mara.Xmm = Game.PlayerXmm + 1000; mara.Zmm = Game.PlayerZmm;
+            var before = Game.Progression.Social.Provisions;
+            int missing = SocialLedger.CampCapacity - Game.Progression.Social.CampProvisions;
+            yield return StoryAction(HungerAction.Replace);
+            Assert.AreEqual(before - missing, Game.Progression.Social.Provisions);
+            Assert.AreEqual(HungerChoice.Replace, Game.Progression.SupplyChoice);
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
+            Assert.AreEqual(HungerChoice.Replace, saved.SupplyChoice);
+            MoveStory(0, 24000); TravelStory();
+            MoveStory(0, 24000); TravelStory();
+            MoveStory(0, 5000); MoveStory(-4000, 5000);
+            yield return null;
+            Assert.IsNull(Find("OldMill_Patient_0"));
+            Assert.IsNotNull(Find("OldMill_Patient_1"));
+            yield return StoryAction(HungerAction.InspectBeds);
+            Assert.AreEqual(4, Game.Progression.HungerStage);
+            string checkpoint = PlayerPrefs.GetString(_keys[0]);
+            Assert.IsTrue(CharacterProgression.TryLoad(checkpoint, out var final));
+            Assert.AreEqual(4, final.EntryAct);
+            Assert.AreEqual(4, final.HungerStage);
+            foreach (var root in _scene.GetRootGameObjects()) Object.Destroy(root);
+            yield return null;
+            _runtime = new GameObject("Reload_Hunger_Runtime").AddComponent<ArenaRuntime>();
+            _runtime.enabled = false;
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            Assert.AreEqual(4, Game.Progression.HungerStage);
+            Assert.AreEqual(HungerChoice.Replace, Game.Progression.SupplyChoice);
+            Assert.IsNotNull(Find("OldMill_House"));
+        }
+
+        /// <summary>Use fixed-tick input to reach an interaction or portal; no player teleport fixtures.</summary>
+        private void MoveStory(long x, long z)
+        {
+            for (int tick = 0; tick < 150; tick++)
+            {
+                long dx = x - Game.PlayerXmm, dz = z - Game.PlayerZmm;
+                if (System.Math.Abs(dx) < 600 && System.Math.Abs(dz) < 600) { Game.SetMoveInput(0, 0); return; }
+                Game.SetMoveInput(System.Math.Abs(dx) < 500 ? 0 : System.Math.Sign(dx) * 10000,
+                    System.Math.Abs(dz) < 500 ? 0 : System.Math.Sign(dz) * 10000); Game.Step();
+            }
+            Assert.Fail("Story movement did not reach its target");
+        }
+
+        /// <summary>Invoke the real travel adapter, including checkpoint write/readback and projection replacement.</summary>
+        private void TravelStory()
+        { typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null); }
+
+        /// <summary>Feed the same request queue used by touch/GUI, then wait for an actual Unity tick and save.</summary>
+        private IEnumerator StoryAction(HungerAction action)
+        {
+            typeof(ArenaRuntime).GetField("_pendingHungerAction", Flags).SetValue(_runtime, (int)action);
+            _runtime.enabled = true;
+            for (int frame = 0; frame < 120 && (int)typeof(ArenaRuntime).GetField("_pendingHungerAction", Flags).GetValue(_runtime) >= 0; frame++)
+                yield return null;
+            _runtime.enabled = false;
+            Assert.AreEqual(-1, (int)typeof(ArenaRuntime).GetField("_pendingHungerAction", Flags).GetValue(_runtime));
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
+            Assert.AreEqual(Game.Progression.HungerStage, saved.HungerStage);
+        }
+
         /// <summary>Search only the owned fixture scene, never another test's projection.</summary>
         private GameObject Find(string name)
         {
@@ -431,3 +534,4 @@ namespace AreArpg.PlayMode.Tests
         }
     }
 }
+

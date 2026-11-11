@@ -6,7 +6,7 @@ using UnityEngine;
 namespace AreArpg.UnityClient
 {
     /// <summary>Presentation and input only. The Unity physics engine never decides gameplay outcomes.</summary>
-    public sealed class ArenaRuntime : MonoBehaviour
+    public sealed partial class ArenaRuntime : MonoBehaviour
     {
         private const ulong DemoSeed = 0xA11CE2026UL;
         private bool _entryProfile;
@@ -73,6 +73,7 @@ namespace AreArpg.UnityClient
                 _message = "AKT I: Verlasse die Krypta. Besiege ihre Waechter und sichere die Beute.";
             if (_game.Progression.EntryAct == 2)
                 _message = "AKT II: Folge dem Dorfweg. Ilyan hungert; Mara und Dorn erwarten dich.";
+            if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
             BuildWorld();
         }
 
@@ -278,11 +279,11 @@ namespace AreArpg.UnityClient
 
         /// <summary>Track a chapter projection for cleanup and optionally bind reviewed private cosmetic art.</summary>
         private Transform ChapterShape(PrimitiveType primitive, string label, Vector3 position,
-            Vector3 scale, Color color)
+            Vector3 scale, Color color, string visualKey = null)
         {
             Transform shape = Shape(primitive, label, position, scale, color);
             _chapterScenery.Add(shape);
-            string key = null;
+            string key = visualKey;
             switch (label)
             {
                 case "Cracked Crypt Floor": key = "CryptFloor"; break;
@@ -296,7 +297,8 @@ namespace AreArpg.UnityClient
             }
             if (label.StartsWith("Ember_Rift_Basalt_", StringComparison.Ordinal))
                 key = "EmberBasalt";
-            if (key != null) PassiveArtVisuals.TryBind(shape, key);
+            if (visualKey != null) FitHungerArt(shape, visualKey);
+            else if (key != null) PassiveArtVisuals.TryBind(shape, key);
             return shape;
         }
 
@@ -307,6 +309,8 @@ namespace AreArpg.UnityClient
                 if (part != null) Destroy(part.gameObject);
             _chapterScenery.Clear();
             _campRationVisuals.Clear();
+            _returnPassage = null;
+            if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); return; }
             if (_game.Progression.EntryAct > 0 && BuildEntryArt()) return;
             if (_game.Progression.EntryAct == 2) { BuildEntryVillageFallback(); return; }
             _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
@@ -569,7 +573,8 @@ namespace AreArpg.UnityClient
         /// <summary>Visible development-only geometry follows every Core footprint; it is not finished world art.</summary>
         private void BuildEntryVillageFallback()
         {
-            _worldPassage = null;
+            _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage", new Vector3(0, .03f, 24),
+                new Vector3(3.6f, .02f, 3.6f), new Color(.25f, .68f, .72f));
             for (int i = 0; i < EntryWorldLayout.BuildingCount; i++)
             {
                 var b = EntryWorldLayout.Building(i);
@@ -671,6 +676,7 @@ namespace AreArpg.UnityClient
                 return;
             }
 
+            if (PollHungerInput(layout)) return;
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
             bool hasMastery = _game.Progression.UnspentMasteryPoints > 0;
@@ -781,7 +787,7 @@ namespace AreArpg.UnityClient
         /// <summary>Commit and read back the next Core-approved checkpoint before switching its presentation.</summary>
         private void AdvanceCrypt()
         {
-            if (_storageFault || !_game.CryptCleared || !_game.AtWorldPassage)
+            if (_storageFault || !_game.CryptCleared || !_game.AtAnyPassage)
                 return;
             if (_game.GroundLoot.Count != 0)
             {
@@ -793,7 +799,7 @@ namespace AreArpg.UnityClient
             // Commit and read back the new checkpoint before changing the active world.
             SaveCharacter(next.Progression);
             if (_storageFault) return;
-            InstallNewRun(next, next.Progression.EntryAct == 2 ?
+            InstallNewRun(next, next.Progression.HungerStage > 0 ? next.HungerObjective : next.Progression.EntryAct == 2 ?
                 "AKT II: Folge dem Dorfweg zu Ilyan, Mara und Dorn. Zwei Rationen fehlen." :
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;
@@ -816,6 +822,8 @@ namespace AreArpg.UnityClient
             _pendingCampDonation = false;
             _pendingTakeRation = false;
             _pendingNpcActions.Clear();
+            _pendingHungerAction = -1;
+            _hungerJournalOpen = false;
             ReleasePresentationTouches();
             _accumulator = 0f;
             if (_bossWarning != null) Destroy(_bossWarning.gameObject);
@@ -842,6 +850,14 @@ namespace AreArpg.UnityClient
             {
                 _accumulator -= TickSeconds;
                 steps++;
+                if (_pendingHungerAction >= 0)
+                {
+                    var story = _game.ActOnHunger((HungerAction)_pendingHungerAction);
+                    _pendingHungerAction = -1;
+                    _message = story.Text;
+                    if (story.Accepted) SaveCharacter();
+                    if (_storageFault) break;
+                }
                 while (_pendingNpcActions.Count > 0)
                 {
                     KeyValuePair<int, NpcAction> request = _pendingNpcActions.Dequeue();
@@ -896,7 +912,7 @@ namespace AreArpg.UnityClient
                     _pendingPickup = false;
                 }
                 _game.Step();
-                if (_game.CryptCleared && _game.AtWorldPassage)
+                if (_game.CryptCleared && _game.AtAnyPassage)
                 {
                     AdvanceCrypt();
                     if (_storageFault) break;
@@ -925,8 +941,8 @@ namespace AreArpg.UnityClient
                 if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
             }
             if (_worldPassage != null)
-                _worldPassage.gameObject.SetActive(_game.Progression.EntryAct != 2 && _game.CryptCleared && _game.GroundLoot.Count == 0);
-            if (_game.Progression.EntryAct != 2 && _game.CryptCleared && !_passageAnnounced)
+                _worldPassage.gameObject.SetActive((_game.Progression.EntryAct >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && _game.GroundLoot.Count == 0);
+            if (_game.Progression.EntryAct < 2 && _game.CryptCleared && !_passageAnnounced)
             {
                 _passageAnnounced = true;
                 _message = _game.GroundLoot.Count == 0 ? "Ein Luftzug streicht durch den Nordbogen. Folge dem Weg." :
@@ -1043,9 +1059,10 @@ namespace AreArpg.UnityClient
                     return;
                 }
 
+                if (DrawHungerJournal(layout)) return;
                 GUI.Box(layout.StatusPanelRect, "");
                 GUI.Label(new Rect(20f, 15f, 540f, 28f),
-                    _game.IsVillage ? "ARE / DIE ASCHENGRENZE" : "ARE / ASHEN CRYPT", _labelStyle);
+                    "ARE / " + DisplayChapterName(_game).ToUpperInvariant(), _labelStyle);
                 GUI.Label(new Rect(20f, 43f, 460f, 24f),
                     "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
                     "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
@@ -1079,7 +1096,7 @@ namespace AreArpg.UnityClient
                         "Maras Lager: " + _game.Progression.Social.CampProvisions + "/" +
                         SocialLedger.CampCapacity + "  Fehlbestand: " + missing, _smallStyle);
                     GUI.Label(new Rect(17f, 205f, 285f, 43f),
-                        missing > 0 ? "Ilyan hungert. Niemand kennt den Taeter." :
+                        _game.Progression.HungerStage > 0 ? "Ilyan hilft Verletzten. Mehr unter Spuren / Entscheidung." : missing > 0 ? "Ilyan hungert. Niemand kennt den Taeter." :
                         "Das Lager ist versorgt. Die Schuldfrage bleibt offen.", _smallStyle);
                     if (Application.isMobilePlatform) GUI.Box(layout.DonationRect, DonationButtonLabel(true));
                     else if (GUI.Button(layout.DonationRect, DonationButtonLabel(false)))
@@ -1171,5 +1188,6 @@ namespace AreArpg.UnityClient
         }
     }
 }
+
 
 

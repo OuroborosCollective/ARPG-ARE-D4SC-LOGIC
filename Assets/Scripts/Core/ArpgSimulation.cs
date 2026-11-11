@@ -117,7 +117,7 @@ namespace AreArpg.Core
     }
 
     /// <summary>Standalone single-player simulation. Not a network server or a clone of any proprietary engine.</summary>
-    public sealed class ArenaSimulation
+    public sealed partial class ArenaSimulation
     {
         public const int TickMs = 100;
         public const long ArenaLimitMm = 27000L;
@@ -136,13 +136,14 @@ namespace AreArpg.Core
         /// <summary>Use the existing passage gate and carry surviving player resources into the next approved world.</summary>
         public ArenaSimulation TryTraversePassage()
         {
-            if (!AtWorldPassage) return null;
-            ArenaSimulation next = TryAdvanceCrypt();
+            if (!AtAnyPassage || GameOver) return null;
+            ArenaSimulation next = Progression.EntryAct >= 2 ? TraverseHunger(AtReturnPassage) : TryAdvanceCrypt();
             if (next == null) return null;
             next.PlayerHealth = Math.Min(PlayerHealth, next.MaxPlayerHealth);
             next.Resource = Resource;
             for (int i = 0; i < Cooldowns.Length; i++) next.Cooldowns[i] = Cooldowns[i];
-            next.PlayerZmm = next.PrevPlayerZmm = -23000L;
+            next.PlayerZmm = next.PrevPlayerZmm = next.Progression.HungerStage > 0 ?
+                (next.Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
             return next;
         }
 
@@ -151,7 +152,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -204,9 +205,9 @@ namespace AreArpg.Core
                 Npcs.Add(new NpcAgent(2, Progression.Social.GetMemory(2), -6500, -3500));
             }
             else if (Progression.EntryAct == 0) Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -2000, -21000));
-            if (Progression.EntryAct == 2)
+            if (Progression.EntryAct >= 2)
             {
-                PlayerZmm = PrevPlayerZmm = -23000L;
+                PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
                 return;
             }
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
@@ -229,7 +230,7 @@ namespace AreArpg.Core
         /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
         public ArenaSimulation TryAdvanceCrypt()
         {
-            if (Progression.EntryAct == 2) return null; // End of the agreed entry slice, not a fabricated third act.
+            if (Progression.EntryAct >= 2) return null; // Story travel uses adjacent, location-gated passages instead.
             if (!CryptCleared || GroundLoot.Count != 0 ||
                 CryptDepth != Progression.UnlockedCryptDepth) return null;
             CharacterProgression nextProgress;
@@ -464,6 +465,7 @@ namespace AreArpg.Core
         {
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);
+            if (Progression.EntryAct >= 3) return CanStandInHungerRegion(Progression.EntryAct, x, z);
             long[] coordinates = { -7000, 7000 };
             foreach (long px in coordinates)
                 foreach (long pz in coordinates)
@@ -699,5 +701,6 @@ namespace AreArpg.Core
         }
     }
 }
+
 
 
