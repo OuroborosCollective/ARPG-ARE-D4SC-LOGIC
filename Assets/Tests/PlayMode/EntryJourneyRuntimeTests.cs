@@ -60,6 +60,45 @@ namespace AreArpg.PlayMode.Tests
             PlayerPrefs.Save();
         }
 
+        /// <summary>The entry camera frames the actual hero more closely without a separate gameplay world.</summary>
+        [UnityTest]
+        public IEnumerator EntryCameraStartsAtTheCloserHeroDistance()
+        {
+            yield return new WaitForSeconds(0.9f);
+            var hero = Find("Wanderer");
+            Assert.IsNotNull(hero);
+            Assert.AreEqual(11.5f, Vector3.Distance(Camera.main.transform.position, hero.transform.position), 0.1f,
+                "The entry profile should frame the hero at 11.5 m instead of the old 16 m overview");
+        }
+
+        /// <summary>The real native camera magnifies the hero while the actual Core and save bytes remain untouched.</summary>
+        [UnityTest]
+        public IEnumerator CameraZoomChangesProjectionWithoutChangingTheCore()
+        {
+            _runtime.enabled = false;
+            var hero = Find("Wanderer");
+            var camera = Camera.main;
+            var rig = camera.GetComponent<ArenaCameraRig>();
+            ulong hash = Game.ComputeWorldHash();
+            string save = Game.Progression.SaveString();
+            float before = Vector2.Distance(camera.WorldToViewportPoint(hero.transform.position),
+                camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
+            yield return Capture("camera-default.png");
+            rig.ZoomSteps(100f);
+            yield return new WaitForSeconds(.9f);
+            float after = Vector2.Distance(camera.WorldToViewportPoint(hero.transform.position),
+                camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
+            Assert.Greater(after, before * 1.4f, "The actual projection must visibly magnify the hero");
+            Assert.AreEqual(7f, Vector3.Distance(camera.transform.position, hero.transform.position), .05f);
+            yield return Capture("camera-close.png");
+            rig.ZoomSteps(-100f);
+            yield return new WaitForSeconds(.9f);
+            Assert.AreEqual(22f, Vector3.Distance(camera.transform.position, hero.transform.position), .05f);
+            Assert.AreEqual(hash, Game.ComputeWorldHash());
+            Assert.AreEqual(save, Game.Progression.SaveString());
+            yield return Capture("camera-overview.png");
+        }
+
         /// <summary>Travel through canonical kill/pickup/passage, real PlayerPrefs and private village projection.</summary>
         [UnityTest]
         public IEnumerator CryptLeadsToVillageAndResumesItsCheckpoint()
@@ -71,6 +110,9 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNull(Find("Aschengrenze_Supply_Hall"), "Village must not appear inside act-one crypt");
             yield return Capture("act1-crypt.png");
             _runtime.enabled = false;
+            var cameraRig = Camera.main.GetComponent<ArenaCameraRig>();
+            cameraRig.ZoomSteps(1f);
+            float chosenCameraDistance = cameraRig.Distance;
             // Test-only arrangement; each kill/drop/pickup still uses the actual Core implementation.
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
             Assert.AreEqual(3, Game.ActivateSkill(3).Kills);
@@ -80,6 +122,10 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(Game.AtWorldPassage);
             typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
             Assert.AreEqual(2, Game.Progression.EntryAct);
+            Assert.AreEqual(chosenCameraDistance, cameraRig.Distance);
+            Assert.AreEqual(chosenCameraDistance,
+                Vector3.Distance(Camera.main.transform.position, Find("Wanderer").transform.position), .01f,
+                "The region transition must retain the chosen zoom without a 22 m snap");
             Assert.AreEqual(0, Game.Monsters.Count);
             Assert.AreEqual(3, Game.Npcs.Count);
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var loaded));

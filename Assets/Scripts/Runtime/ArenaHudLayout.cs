@@ -21,7 +21,10 @@ namespace AreArpg.UnityClient
         MasteryVitality,
         MasteryResolve,
         Restart,
-        TakeRation
+        TakeRation,
+        CameraCloser,
+        CameraFarther,
+        CameraReset
     }
 
     /// <summary>
@@ -134,6 +137,23 @@ namespace AreArpg.UnityClient
         public Rect TakeRationRect { get { return new Rect(12f, 294f, Mathf.Min(290f, Width * 0.40f), 37f); } }
         public Rect MoveRect { get { return new Rect(25f, Height - 194f, 170f, 170f); } }
         public Rect PickupRect { get { return new Rect(Width * 0.43f, Height - 72f, Width * 0.16f, 60f); } }
+        public Rect CameraPanelRect { get { return new Rect(Width - 198f, 8f, 190f, 94f); } }
+
+        /// <summary>Three presentation-only controls, outside the status and NPC panels.</summary>
+        public Rect CameraZoomRect(int control)
+        {
+            return new Rect(Width - 192f + control * 60f, 35f, 55f, 42f);
+        }
+
+        /// <summary>Pinches can start only in free world space, never in visible HUD panels or gameplay controls.</summary>
+        public bool BlocksCameraGesture(Vector2 point, bool gameOver, bool nearNpc,
+            bool chapterOne, bool hasMastery, bool canTakeRation = false)
+        {
+            if (gameOver || StatusPanelRect.Contains(point) || CameraPanelRect.Contains(point)) return true;
+            if (nearNpc && NpcPanelRect.Contains(point)) return true;
+            if (chapterOne && CampPanelRect.Contains(point)) return true;
+            return HitTest(point, false, nearNpc, chapterOne, hasMastery, canTakeRation) != ArenaHudControl.None;
+        }
 
         public Rect NpcPanelRect
         {
@@ -193,6 +213,10 @@ namespace AreArpg.UnityClient
         {
             if (gameOver)
                 return RestartRect.Contains(point) ? ArenaHudControl.Restart : ArenaHudControl.None;
+
+            for (int i = 0; i < 3; i++)
+                if (CameraZoomRect(i).Contains(point))
+                    return (ArenaHudControl)((int)ArenaHudControl.CameraCloser + i);
 
             if (nearNpc)
             {
