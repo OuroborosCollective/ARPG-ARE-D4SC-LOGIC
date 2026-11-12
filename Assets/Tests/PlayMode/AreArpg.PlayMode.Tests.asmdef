@@ -1,7 +1,7 @@
 {
   "name": "AreArpg.PlayMode.Tests",
   "rootNamespace": "AreArpg.PlayMode.Tests",
-  "references": ["AreArpg.Core", "AreArpg.Runtime"],
+  "references": ["AreArpg.Core", "AreArpg.Runtime", "UnityEngine.UI"],
   "optionalUnityReferences": ["TestAssemblies"],
   "includePlatforms": [],
   "excludePlatforms": [],

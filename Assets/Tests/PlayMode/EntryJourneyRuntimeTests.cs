@@ -60,15 +60,23 @@ namespace AreArpg.PlayMode.Tests
             PlayerPrefs.Save();
         }
 
-        /// <summary>The entry camera frames the actual hero more closely without a separate gameplay world.</summary>
+        /// <summary>The entry keeps its close default and uses the existing combat framing when enemies threaten.</summary>
         [UnityTest]
         public IEnumerator EntryCameraStartsAtTheCloserHeroDistance()
         {
             yield return new WaitForSeconds(0.9f);
             var hero = Find("Wanderer");
             Assert.IsNotNull(hero);
-            Assert.AreEqual(6.5f, Camera.main.GetComponent<ArenaCameraRig>().Distance, 0.1f,
-                "The entry profile must start from the approved closer 6.5 m framing");
+            var rig = Camera.main.GetComponent<ArenaCameraRig>();
+            Assert.AreEqual(4.2f, rig.Distance, 0.01f, "The entry profile must start from the close third-person framing");
+            Assert.AreEqual(HeroFraming.Combat, rig.Framing, "Nearby crypt enemies activate the existing combat framing");
+            Assert.AreEqual(5.4f, Vector3.Distance(Camera.main.transform.position, rig.FocusPoint), .06f,
+                "The actual camera must reach its reviewed combat distance while retaining the 4.2-m default");
+            Assert.Less(Camera.main.transform.eulerAngles.x, 25f, "The camera looks along the ground, not down from above.");
+            Assert.Less(Camera.main.transform.position.y, hero.transform.position.y + 2.5f);
+            Vector3 view = Camera.main.WorldToViewportPoint(hero.transform.position);
+            Assert.AreEqual(.5f, view.x, .05f, "The hero stays in the horizontal centre.");
+            Assert.Less(view.y, .5f, "The hero stands in the lower half so the way ahead is visible.");
         }
 
         /// <summary>The real native camera magnifies the hero while the actual Core and save bytes remain untouched.</summary>
@@ -89,14 +97,20 @@ namespace AreArpg.PlayMode.Tests
             float after = Vector2.Distance(camera.WorldToViewportPoint(hero.transform.position),
                 camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
             Assert.Greater(after, before * 1.4f, "The actual projection must visibly magnify the hero");
-            Assert.AreEqual(2.8f, Vector3.Distance(camera.transform.position, hero.transform.position), .1f);
+            Assert.AreEqual(2.2f, rig.Distance);
+            Assert.LessOrEqual(Vector3.Distance(camera.transform.position, rig.FocusPoint), 2.25f);
             yield return Capture("camera-close.png");
             rig.ZoomSteps(-100f);
             yield return new WaitForSeconds(.9f);
-            Assert.AreEqual(22f, Vector3.Distance(camera.transform.position, hero.transform.position), .05f);
+            Assert.AreEqual(9f, rig.Distance, "The entry camera never returns to the far overview.");
+            Assert.LessOrEqual(Vector3.Distance(camera.transform.position, rig.FocusPoint), 9.05f);
+            yield return Capture("camera-overview.png");
+            // Without scenery in the way the camera stands exactly at the chosen distance.
+            rig.SetOccluders(null);
+            yield return new WaitForSeconds(1.2f);
+            Assert.AreEqual(9f, Vector3.Distance(camera.transform.position, rig.FocusPoint), .05f);
             Assert.AreEqual(hash, Game.ComputeWorldHash());
             Assert.AreEqual(save, Game.Progression.SaveString());
-            yield return Capture("camera-overview.png");
         }
 
         /// <summary>Travel through canonical kill/pickup/passage, real PlayerPrefs and private village projection.</summary>
@@ -123,9 +137,11 @@ namespace AreArpg.PlayMode.Tests
             typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
             Assert.AreEqual(2, Game.Progression.EntryAct);
             Assert.AreEqual(chosenCameraDistance, cameraRig.Distance);
-            Assert.AreEqual(chosenCameraDistance,
-                Vector3.Distance(Camera.main.transform.position, Find("Wanderer").transform.position), .01f,
-                "The region transition must retain the chosen zoom without a 22 m snap");
+            Assert.LessOrEqual(Vector3.Distance(Camera.main.transform.position, cameraRig.FocusPoint), chosenCameraDistance + .01f,
+                "The region transition must retain the chosen zoom without snapping away");
+            Assert.AreEqual(0f, Vector3.Distance(cameraRig.FocusPoint,
+                Find("Wanderer").transform.position + Vector3.up * ArenaCameraRig.HeadHeight), .01f,
+                "The camera arrives with the hero instead of gliding in from the old region");
             Assert.AreEqual(0, Game.Monsters.Count);
             Assert.AreEqual(3, Game.Npcs.Count);
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var loaded));

@@ -10,8 +10,9 @@ namespace AreArpg.UnityClient
         private Transform _returnPassage;
 
         /// <summary>Keep the journal control separate from movement, combat, pickup and camera targets.</summary>
+        /// <summary>The journal button sits at the right end of the quest tracker.</summary>
         public static Rect HungerToggleRect(ArenaHudLayout layout)
-        { return new Rect(layout.Width * .35f, layout.Height - 130f, layout.Width * .28f, 45f); }
+        { Rect q = layout.QuestTrackerRect; return new Rect(q.xMax - 98f, q.y + 6f, 92f, q.height - 12f); }
 
         /// <summary>One modal layout is shared by desktop drawing and physical Android touch routing.</summary>
         private static Rect HungerPanel(ArenaHudLayout layout)
@@ -92,7 +93,7 @@ namespace AreArpg.UnityClient
         private bool DrawHungerJournal(ArenaHudLayout layout)
         {
             if (_game.Progression.EntryAct < 2) return false;
-            string toggle = _hungerJournalOpen ? "SCHLIESSEN" : (Application.isMobilePlatform ? "SPUREN / ENTSCHEIDUNG" : "J: SPUREN / ENTSCHEIDUNG");
+            string toggle = _hungerJournalOpen ? "SCHLIESSEN" : (Application.isMobilePlatform ? "SPUREN" : "SPUREN (J)");
             if (Application.isMobilePlatform) GUI.Box(HungerToggleRect(layout), toggle);
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;
             if (!_hungerJournalOpen) return false;

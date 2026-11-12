@@ -76,6 +76,7 @@ namespace AreArpg.UnityClient
                 _message = "AKT II: Folge dem Dorfweg. Ilyan hungert; Mara und Dorn erwarten dich.";
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
             BuildWorld();
+            BuildHud();
         }
 
         /// <summary>Load only the selected entry or legacy slot through the existing verified persistence contract.</summary>
@@ -174,7 +175,8 @@ namespace AreArpg.UnityClient
             Collider collider = go.GetComponent<Collider>();
             if (collider != null) collider.enabled = false; // Collision is handled by ArenaSimulation.
             Renderer renderer = go.GetComponent<Renderer>();
-            if (renderer != null) renderer.sharedMaterial = Material(color, metallic);
+            if (renderer != null && !WorldSurfacePresentation.TryApply(renderer, label))
+                renderer.sharedMaterial = Material(color, metallic);
             return go.transform;
         }
 
@@ -233,6 +235,7 @@ namespace AreArpg.UnityClient
                 camGo.AddComponent<AudioListener>();
             }
             _camera.fieldOfView = 48f;
+            _camera.nearClipPlane = _entryProfile ? 0.12f : 0.3f;
             _camera.clearFlags = CameraClearFlags.SolidColor;
             _camera.backgroundColor = new Color(0.055f, 0.067f, 0.09f);
             _cameraRig = _camera.GetComponent<ArenaCameraRig>();
@@ -634,8 +637,21 @@ namespace AreArpg.UnityClient
         }
 
         /// <summary>Read the current physical viewport once per input or drawing pass.</summary>
+        /// <summary>
+        /// Presentation test hook: when set, HUD/menu geometry uses this full-screen size instead of the
+        /// device screen (for deterministic phone/tablet captures in batch runs). Never affects gameplay.
+        /// </summary>
+        public static Vector2? HudScreenOverride;
+        private static float HudScreenWidth { get { return HudScreenOverride.HasValue ? HudScreenOverride.Value.x : Screen.width; } }
+        private static float HudScreenHeight { get { return HudScreenOverride.HasValue ? HudScreenOverride.Value.y : Screen.height; } }
+
         private static ArenaHudLayout CurrentHudLayout()
         {
+            if (HudScreenOverride.HasValue)
+            {
+                Vector2 s = HudScreenOverride.Value;
+                return new ArenaHudLayout(s.x, s.y, new Rect(0f, 0f, s.x, s.y));
+            }
             return new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
         }
 
@@ -682,11 +698,14 @@ namespace AreArpg.UnityClient
                         return;
                     }
                 }
+                if (!Application.isMobilePlatform && Input.GetMouseButtonDown(0) &&
+                    layout.HitTest(layout.ToGuiTouch(Input.mousePosition), true, false, false, false) == ArenaHudControl.Restart)
+                { Restart(); return; }
                 if (Input.GetKeyDown(KeyCode.R)) Restart();
                 return;
             }
 
-            if (PollAudioInput(layout)) return;
+            if (PollMenuInput()) return;
             if (PollRoadInput(layout)) return;
             if (PollHungerInput(layout)) return;
             long x = 0, z = 0;
@@ -700,6 +719,7 @@ namespace AreArpg.UnityClient
                     !layout.BlocksCameraGesture(layout.ToGuiTouch(Input.mousePosition), false,
                         nearNpc, _game.IsVillage, hasMastery, canTakeRation))
                     _cameraRig.ZoomSteps(Input.mouseScrollDelta.y);
+                PollMouseOrbit(layout);
                 _cameraRig.BeginTouchFrame();
             }
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) x -= 10000;
@@ -735,30 +755,25 @@ namespace AreArpg.UnityClient
                     continue;
                 }
 
-                if (touch.phase == TouchPhase.Began && insideSafeArea)
-                {
-                    if (control >= ArenaHudControl.CameraCloser && control <= ArenaHudControl.CameraReset)
-                        ApplyCameraControl((int)control - (int)ArenaHudControl.CameraCloser);
-                    else if (control >= ArenaHudControl.NpcGreet && control <= ArenaHudControl.NpcRob)
-                        QueueNpcAction((NpcAction)((int)control - (int)ArenaHudControl.NpcGreet));
-                    else if (control >= ArenaHudControl.Skill0 && control <= ArenaHudControl.Skill3)
-                        _pendingSkills.Enqueue((int)control - (int)ArenaHudControl.Skill0);
-                    else if (control >= ArenaHudControl.MasteryMight &&
-                        control <= ArenaHudControl.MasteryResolve)
-                        _pendingMastery.Enqueue((MasteryPath)((int)control - (int)ArenaHudControl.MasteryMight));
-                    else if (control == ArenaHudControl.Donate)
-                        _pendingCampDonation = true;
-                    else if (control == ArenaHudControl.TakeRation && _game.Progression.EntryAct == 2)
-                        _pendingTakeRation = true;
-                    else if (control == ArenaHudControl.Pickup)
-                        _pendingPickup = true;
-                }
+                if (touch.phase == TouchPhase.Began && insideSafeArea) RouteHudControl(control);
+                if (MenuOpen) break;
+            }
+
+            // Desktop: a left click selects the same layout target a touch would (movement stays on WASD).
+            if (!Application.isMobilePlatform && Input.touchCount == 0 && Input.GetMouseButtonDown(0) &&
+                layout.IsWithinSafeArea(Input.mousePosition))
+            {
+                ArenaHudControl clicked = layout.HitTest(layout.ToGuiTouch(Input.mousePosition), false,
+                    nearNpc, _game.IsVillage, hasMastery, canTakeRation);
+                if (clicked != ArenaHudControl.Move) RouteHudControl(clicked);
             }
 
             // Release if the OS dropped the tracked finger without Ended/Canceled.
             if (_movementTouch.IsCaptured && !capturedFingerPresent) _movementTouch.Reset();
             if (_cameraRig != null) _cameraRig.EndTouchFrame();
+            if (MenuOpen) { _game.SetMoveInput(0, 0); return; }
 
+            CameraRelativeMove(ref x, ref z);
             _game.SetMoveInput(x, z);
             if (Input.GetKeyDown(KeyCode.Alpha1)) _pendingSkills.Enqueue(0);
             if (Input.GetKeyDown(KeyCode.Alpha2)) _pendingSkills.Enqueue(1);
@@ -775,6 +790,27 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.H)) QueueNpcAction(NpcAction.Rob);
             if (Input.GetKeyDown(KeyCode.T) && _game.Progression.EntryAct == 2) _pendingTakeRation = true;
             if (Input.GetKeyDown(KeyCode.G)) _pendingCampDonation = true;
+        }
+
+        /// <summary>One routing table for touch and mouse; Core actions are only queued, never applied here.</summary>
+        private void RouteHudControl(ArenaHudControl control)
+        {
+            if (control >= ArenaHudControl.MenuCharacter && control <= ArenaHudControl.MenuSettings)
+                OpenMenu((int)control - (int)ArenaHudControl.MenuCharacter);
+            else if (control >= ArenaHudControl.CameraCloser && control <= ArenaHudControl.CameraReset)
+                ApplyCameraControl((int)control - (int)ArenaHudControl.CameraCloser);
+            else if (control >= ArenaHudControl.NpcGreet && control <= ArenaHudControl.NpcRob)
+                QueueNpcAction((NpcAction)((int)control - (int)ArenaHudControl.NpcGreet));
+            else if (control >= ArenaHudControl.Skill0 && control <= ArenaHudControl.Skill3)
+                _pendingSkills.Enqueue((int)control - (int)ArenaHudControl.Skill0);
+            else if (control >= ArenaHudControl.MasteryMight && control <= ArenaHudControl.MasteryResolve)
+                _pendingMastery.Enqueue((MasteryPath)((int)control - (int)ArenaHudControl.MasteryMight));
+            else if (control == ArenaHudControl.Donate)
+                _pendingCampDonation = true;
+            else if (control == ArenaHudControl.TakeRation && _game.Progression.EntryAct == 2)
+                _pendingTakeRation = true;
+            else if (control == ArenaHudControl.Pickup)
+                _pendingPickup = true;
         }
 
         /// <summary>Shared button routing changes only the cosmetic camera; nothing enters the Core action queue.</summary>
@@ -818,7 +854,7 @@ namespace AreArpg.UnityClient
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;
             _hero.position = new Vector3(next.PlayerXmm / 1000f, 1.05f, next.PlayerZmm / 1000f);
-            if (_cameraRig != null) _cameraRig.SnapToTarget();
+            if (_cameraRig != null) { RefreshCameraOccluders(); _cameraRig.SnapToTarget(); }
         }
 
         /// <summary>Install an already-created Core world, discard queued old-world inputs and rebuild projections.</summary>
@@ -859,12 +895,13 @@ namespace AreArpg.UnityClient
         /// <summary>Consume ordered player requests on the established 100-ms tick, then interpolate presentation.</summary>
         private void Update()
         {
-            if (_storageFault) return;
+            if (_storageFault) { UpdateHud(); return; }
             _regionFade = Mathf.Max(0f, _regionFade - Time.deltaTime / 0.75f);
             PollInputs();
-            _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
+            // The modal menu pauses the deterministic simulation; no ticks accumulate while it is open.
+            if (!MenuOpen) _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
             int steps = 0;
-            while (_accumulator >= TickSeconds && steps < CatchUpLimit)
+            while (!MenuOpen && _accumulator >= TickSeconds && steps < CatchUpLimit)
             {
                 _accumulator -= TickSeconds;
                 steps++;
@@ -917,7 +954,7 @@ namespace AreArpg.UnityClient
                 {
                     MasteryPath path = _pendingMastery.Dequeue();
                     bool spent = _game.Progression.TrySpendMastery(path);
-                    _message = spent ? "Mastery allocated: " + path : "No mastery points available";
+                    _message = spent ? "Meisterschaft verteilt: " + MasteryName(path) : "Keine Meisterschaftspunkte frei.";
                     if (spent) SaveCharacter();
                 }
                 while (_pendingSkills.Count > 0)
@@ -937,7 +974,7 @@ namespace AreArpg.UnityClient
                 if (_pendingPickup)
                 {
                     bool pickedUp = _game.TryCollectLoot();
-                    _message = pickedUp ? "Equipment upgraded!" : "No loot nearby";
+                    _message = pickedUp ? "Beute aufgenommen – deine Waffe wird stärker." : "Keine Beute in Reichweite.";
                     if (pickedUp) SaveCharacter();
                     _pendingPickup = false;
                 }
@@ -954,6 +991,8 @@ namespace AreArpg.UnityClient
             UpdateRoadPresentation();
             UpdateInvestigationPresentation();
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
+            UpdateHud();
+            UpdateMenu();
         }
 
         /// <summary>Project actual game state as visuals; never create a second stock owner.</summary>
@@ -1064,166 +1103,56 @@ namespace AreArpg.UnityClient
         }
 
         /// <summary>Render read-only gameplay data and queue player actions; never own game rules.</summary>
+        /// <summary>
+        /// Region modules (journal, road, subtitles) still draw with IMGUI on top of the uGUI HUD,
+        /// using a skin generated from the same Ashen theme so they read as one interface.
+        /// </summary>
         private void OnGUI()
         {
-            if (_game == null) return;
+            if (_game == null || _storageFault || MenuOpen || _game.GameOver) return;
             ArenaHudLayout layout = CurrentHudLayout();
             Matrix4x4 previousMatrix = GUI.matrix;
+            GUISkin previousSkin = GUI.skin;
             GUI.matrix = layout.GuiMatrix;
+            GUI.skin = AshenGuiSkin();
             try
             {
-                if (_storageFault)
-                {
-                    GUI.Box(new Rect(16f, 16f, layout.Width - 32f, 116f),
-                        "SAVE VERIFICATION FAILED\nYour character was not overwritten.\nRestore a valid save before playing.");
-                    return;
-                }
-
-                if (_labelStyle == null)
-                {
-                    _labelStyle = new GUIStyle(GUI.skin.label) { fontSize = 19, fontStyle = FontStyle.Bold };
-                    _labelStyle.normal.textColor = new Color(0.96f, 0.92f, 0.82f);
-                    _smallStyle = new GUIStyle(GUI.skin.label) { fontSize = 15, wordWrap = true };
-                    _smallStyle.normal.textColor = new Color(0.86f, 0.88f, 0.92f);
-                }
-
-                if (!ArenaHudLayout.ShowGameplayControls(_game.GameOver))
-                {
-                    GUI.Box(layout.DefeatPanelRect, DefeatPrompt(Application.isMobilePlatform));
-                    if (Application.isMobilePlatform) GUI.Box(layout.RestartRect, "RESTART");
-                    else if (GUI.Button(layout.RestartRect, "RESTART")) Restart();
-                    return;
-                }
-
-                if (DrawAudioPanel(layout)) return;
                 DrawRoadHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
                 DrawSpeechSubtitle(layout);
-                GUI.Box(layout.StatusPanelRect, "");
-                GUI.Label(new Rect(20f, 15f, 540f, 28f),
-                    "ARE / " + DisplayChapterName(_game).ToUpperInvariant(), _labelStyle);
-                GUI.Label(new Rect(20f, 43f, 460f, 24f),
-                    "HP " + _game.PlayerHealth + "/" + _game.MaxPlayerHealth +
-                    "    Focus " + _game.Resource + "/100" + "    Weapon +" + _game.WeaponBonus, _smallStyle);
-                GUI.Label(new Rect(20f, 67f, 460f, 24f),
-                    DisplayChapterName(_game) + "  | Weg in die Tiefe: " + _game.CryptDepth +
-                    "   Beute " + _game.LootCollected, _smallStyle);
-                GUI.Label(new Rect(20f, 92f, 540f, 24f),
-                    "LV " + _game.Progression.Level + "   Next " + _game.Progression.ExperienceToNextLevel +
-                    " XP   Mastery " + _game.Progression.UnspentMasteryPoints, _smallStyle);
-                GUI.Label(new Rect(20f, 115f, 540f, 24f), _message, _smallStyle);
-
-                if (_cameraRig != null)
-                {
-                    GUI.Box(layout.CameraPanelRect, "KAMERA");
-                    string[] cameraLabels = { "+", "-", "AUTO" };
-                    for (int i = 0; i < cameraLabels.Length; i++)
-                    {
-                        if (Application.isMobilePlatform) GUI.Box(layout.CameraZoomRect(i), cameraLabels[i]);
-                        else if (GUI.Button(layout.CameraZoomRect(i), cameraLabels[i])) ApplyCameraControl(i);
-                    }
-                    GUI.Label(new Rect(layout.CameraPanelRect.x + 9f, 79f, 175f, 20f),
-                        Application.isMobilePlatform ? "Zwei Finger: Zoom" : "Mausrad: Zoom");
-                }
-
-                if (_game.IsVillage)
-                {
-                    int missing = SocialLedger.CampCapacity - _game.Progression.Social.CampProvisions;
-                    GUI.Box(layout.CampPanelRect, "");
-                    GUI.Label(new Rect(17f, 155f, 285f, 24f), "DIE GESTOHLENEN VORRAETE", _smallStyle);
-                    GUI.Label(new Rect(17f, 181f, 285f, 25f),
-                        "Maras Lager: " + _game.Progression.Social.CampProvisions + "/" +
-                        SocialLedger.CampCapacity + "  Fehlbestand: " + missing, _smallStyle);
-                    GUI.Label(new Rect(17f, 205f, 285f, 43f),
-                        _game.Progression.HungerStage > 0 ? "Ilyan hilft Verletzten. Mehr unter Spuren / Entscheidung." : missing > 0 ? "Ilyan hungert. Niemand kennt den Taeter." :
-                        "Das Lager ist versorgt. Die Schuldfrage bleibt offen.", _smallStyle);
-                    if (Application.isMobilePlatform) GUI.Box(layout.DonationRect, DonationButtonLabel(true));
-                    else if (GUI.Button(layout.DonationRect, DonationButtonLabel(false)))
-                        _pendingCampDonation = true;
-                    if (_game.Progression.EntryAct == 2)
-                    {
-                        string take = Application.isMobilePlatform ? "RATION ENTWENDEN" : "T: RATION ENTWENDEN";
-                        if (Application.isMobilePlatform) GUI.Box(layout.TakeRationRect, take);
-                        else if (GUI.Button(layout.TakeRationRect, take)) _pendingTakeRation = true;
-                    }
-                }
-
-                NpcAgent nearby = _game.NearestNpc();
-                if (nearby != null)
-                {
-                    Rect npcPanel = layout.NpcPanelRect;
-                    float left = npcPanel.x + 5f;
-                    float width = npcPanel.width - 5f;
-                    NpcDisposition mood = nearby.Memory.Disposition(nearby.Personality);
-                    string moodText = mood == NpcDisposition.Friendly ? "freundlich" :
-                        (mood == NpcDisposition.Wary ? "misstrauisch" :
-                        (mood == NpcDisposition.Hostile ? "feindselig" : "neutral"));
-                    GUI.Box(npcPanel, "");
-                    string characterName = nearby.Id == 0 ? "Ilyan (Pfadleser)" :
-                        (nearby.Id == 1 ? "Mara (Versorgerin)" : "Dorn (Wache)");
-                    GUI.Label(new Rect(left, 148f, width, 25f),
-                        characterName + " / " + moodText, _labelStyle);
-                    GUI.Label(new Rect(left, 177f, width, 26f),
-                        "Gute Taten +" + nearby.Memory.PositivePoints + "  Uebergriffe -" +
-                        nearby.Memory.NegativePoints, _smallStyle);
-                    GUI.Label(new Rect(left, 205f, width, 26f),
-                        "Hunger " + nearby.Memory.Hunger + "  Erschoepfung " +
-                        nearby.Memory.Fatigue, _smallStyle);
-                    GUI.Label(new Rect(left, 231f, width, 28f),
-                        "Proviant " + _game.Progression.Social.Provisions +
-                        "  Muenzen " + _game.Progression.Social.Coins, _smallStyle);
-                    string[] actions = { "F GRUESSEN", "V VERSORGEN", "B ANGREIFEN", "H AUSRAUBEN" };
-                    Color previousColor = GUI.color;
-                    for (int i = 0; i < actions.Length; i++)
-                    {
-                        GUI.color = i >= 2 ? new Color(1f, 0.68f, 0.62f) : previousColor;
-                        if (Application.isMobilePlatform) GUI.Box(layout.NpcActionRect(i), actions[i]);
-                        else if (GUI.Button(layout.NpcActionRect(i), actions[i]))
-                            QueueNpcAction((NpcAction)i);
-                    }
-                    GUI.color = previousColor;
-                }
-
-                GUI.Box(layout.MoveRect, "MOVE\nWASD / TOUCH");
-                if (_game.Progression.UnspentMasteryPoints > 0)
-                {
-                    string[] masteryLabels = { "+ MIGHT", "+ VITALITY", "+ RESOLVE" };
-                    for (int i = 0; i < masteryLabels.Length; i++)
-                    {
-                        Rect masteryRect = layout.MasteryRect(i);
-                        if (Application.isMobilePlatform) GUI.Box(masteryRect, masteryLabels[i]);
-                        else if (GUI.Button(masteryRect, masteryLabels[i]))
-                            _pendingMastery.Enqueue((MasteryPath)i);
-                    }
-                }
-
-                string[] labels = { "1 KLINGE", "2 WUCHT", "3 SCHUTZ", "4 RUIN" };
-                for (int i = 0; i < labels.Length; i++)
-                {
-                    Rect rect = layout.SkillRect(i);
-                    string title = labels[i] + " R" + _game.Progression.PracticeLevel(i) +
-                        "\n" + _game.Progression.PracticeExperience(i) + " XP" +
-                        (_game.Cooldowns[i] > 0 ? " (" + _game.Cooldowns[i] + ")" : "");
-                    if (Application.isMobilePlatform) GUI.Box(rect, title);
-                    else if (GUI.Button(rect, title)) _pendingSkills.Enqueue(i);
-                }
-
-                if (Application.isMobilePlatform) GUI.Box(layout.PickupRect, "PICK UP");
-                else if (GUI.Button(layout.PickupRect, "PICK UP (E)")) _pendingPickup = true;
-
-                if (_regionFade > 0f)
-                {
-                    Color previous = GUI.color;
-                    GUI.color = new Color(0f, 0f, 0f, _regionFade);
-                    GUI.DrawTexture(new Rect(0f, 0f, layout.Width, layout.Height),
-                        Texture2D.whiteTexture);
-                    GUI.color = previous;
-                }
             }
             finally
             {
                 GUI.matrix = previousMatrix;
+                GUI.skin = previousSkin;
             }
+        }
+
+        private GUISkin _ashenSkin;
+
+        private GUISkin AshenGuiSkin()
+        {
+            if (_ashenSkin != null) return _ashenSkin;
+            _ashenSkin = Instantiate(GUI.skin);
+            Sprite panel = AshenUiTheme.Panel, plain = AshenUiTheme.PanelPlain;
+            int pb = Mathf.RoundToInt(panel.border.x), bb = Mathf.RoundToInt(plain.border.x);
+            _ashenSkin.box.normal.background = panel.texture;
+            _ashenSkin.box.border = new RectOffset(pb, pb, pb, pb);
+            _ashenSkin.box.normal.textColor = AshenUiTheme.Parchment;
+            _ashenSkin.box.fontSize = 15; _ashenSkin.box.fontStyle = FontStyle.Bold;
+            _ashenSkin.box.padding = new RectOffset(14, 14, 10, 10); _ashenSkin.box.wordWrap = true;
+            foreach (GUIStyle b in new[] { _ashenSkin.button })
+            {
+                b.normal.background = plain.texture; b.hover.background = plain.texture; b.active.background = plain.texture;
+                b.border = new RectOffset(bb, bb, bb, bb);
+                b.normal.textColor = AshenUiTheme.Parchment; b.hover.textColor = Color.white; b.active.textColor = AshenUiTheme.Ember;
+                b.fontSize = 14; b.fontStyle = FontStyle.Bold; b.wordWrap = true;
+            }
+            _ashenSkin.label.normal.textColor = AshenUiTheme.Parchment;
+            _labelStyle = new GUIStyle(_ashenSkin.label) { fontSize = 19, fontStyle = FontStyle.Bold };
+            _smallStyle = new GUIStyle(_ashenSkin.label) { fontSize = 15, wordWrap = true };
+            _smallStyle.normal.textColor = new Color(0.86f, 0.84f, 0.80f);
+            return _ashenSkin;
         }
     }
 }

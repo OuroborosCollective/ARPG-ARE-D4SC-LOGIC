@@ -24,7 +24,11 @@ namespace AreArpg.UnityClient
         TakeRation,
         CameraCloser,
         CameraFarther,
-        CameraReset
+        CameraReset,
+        MenuCharacter,
+        MenuInventory,
+        MenuQuests,
+        MenuSettings
     }
 
     /// <summary>
@@ -34,16 +38,21 @@ namespace AreArpg.UnityClient
     public sealed class ArenaHudTouchCapture
     {
         private int _fingerId = -1;
+        private Vector2 _origin;
 
         public bool IsCaptured { get { return _fingerId >= 0; } }
         public int FingerId { get { return _fingerId; } }
+        /// <summary>Where the captured finger first touched; the floating stick is drawn around it.</summary>
+        public Vector2 Origin { get { return _origin; } }
+        /// <summary>Last normalized stick deflection for presentation only.</summary>
+        public Vector2 Direction { get; private set; }
 
         /// <summary>Release a held finger when the game resets or focus/touch disappears.</summary>
-        public void Reset() { _fingerId = -1; }
+        public void Reset() { _fingerId = -1; Direction = Vector2.zero; }
 
         /// <summary>
         /// Accept MOVE only at TouchPhase.Began, then retain that finger even
-        /// beyond MOVE and the safe area. The visible MOVE center is neutral.
+        /// beyond MOVE and the safe area. The first contact point is neutral (floating stick).
         /// Returns false for other fingers and all released/canceled input.
         /// </summary>
         public bool TryMove(int fingerId, TouchPhase phase, Vector2 guiPoint,
@@ -57,23 +66,27 @@ namespace AreArpg.UnityClient
             }
 
             if (!IsCaptured && phase == TouchPhase.Began && controlAtStart == ArenaHudControl.Move)
-                _fingerId = fingerId;
+            { _fingerId = fingerId; _origin = guiPoint; }
             if (_fingerId != fingerId) return false;
 
-            Vector2 offset = guiPoint - layout.MoveRect.center;
-            direction = Vector2.ClampMagnitude(new Vector2(offset.x, -offset.y) / 75f, 1f);
+            Vector2 offset = guiPoint - _origin;
+            direction = Vector2.ClampMagnitude(new Vector2(offset.x, -offset.y) / ArenaHudLayout.StickRadius, 1f);
+            Direction = direction;
             return true;
         }
     }
 
     /// <summary>
-    /// Immutable layout in GUI top-left coordinates, including a single affine mapping
-    /// from Unity's bottom-left physical touch coordinates. Gameplay stays in ArenaSimulation.
+    /// Immutable mobile-ARPG layout in GUI top-left coordinates, including a single affine mapping
+    /// from Unity's bottom-left physical touch coordinates. The same rectangles drive the uGUI
+    /// projection and touch hit testing. Gameplay stays in ArenaSimulation.
     /// </summary>
     public readonly struct ArenaHudLayout
     {
         private const float MinimumWidth = 960f;
         private const float MinimumHeight = 540f;
+        public const float StickRadius = 75f;
+        public const int MenuCount = 4;
         private readonly float _screenHeight;
 
         public Rect SafeArea { get; }
@@ -94,8 +107,9 @@ namespace AreArpg.UnityClient
                 ? Rect.MinMaxRect(left, bottom, right, top)
                 : new Rect(0f, 0f, w, _screenHeight);
 
-            Scale = Mathf.Min(1f, Mathf.Min(SafeArea.width / MinimumWidth,
-                SafeArea.height / MinimumHeight));
+            // Scale up as well as down: the 960x540 logical canvas fills phones and tablets, so touch
+            // targets keep a constant share of the screen (a 2400x1080 phone renders the HUD at 2x).
+            Scale = Mathf.Min(SafeArea.width / MinimumWidth, SafeArea.height / MinimumHeight);
             Width = SafeArea.width / Scale;
             Height = SafeArea.height / Scale;
         }
@@ -131,62 +145,86 @@ namespace AreArpg.UnityClient
                 SafeArea.yMax - guiPoint.y * Scale);
         }
 
-        public Rect StatusPanelRect { get { return new Rect(8f, 8f, Mathf.Min(600f, Width * 0.8f), 132f); } }
-        public Rect CampPanelRect { get { return new Rect(8f, 148f, Mathf.Min(310f, Width * 0.43f), 145f); } }
-        public Rect DonationRect { get { return new Rect(12f, 249f, Mathf.Min(290f, Width * 0.40f), 37f); } }
-        public Rect TakeRationRect { get { return new Rect(12f, 294f, Mathf.Min(290f, Width * 0.40f), 37f); } }
-        public Rect MoveRect { get { return new Rect(25f, Height - 194f, 170f, 170f); } }
-        public Rect PickupRect { get { return new Rect(Width * 0.43f, Height - 72f, Width * 0.16f, 60f); } }
-        public Rect CameraPanelRect { get { return new Rect(Width - 198f, 8f, 190f, 94f); } }
+        // ---- Left column: portrait/status, quest tracker, village camp ----
+        private float LeftColumnWidth { get { return Mathf.Min(326f, Width * 0.34f); } }
+        public Rect StatusPanelRect { get { return new Rect(12f, 12f, LeftColumnWidth, 96f); } }
+        public Rect PortraitRect { get { return new Rect(18f, 18f, 84f, 84f); } }
+        public Rect HealthBarRect { get { return new Rect(112f, 50f, LeftColumnWidth - 112f, 18f); } }
+        public Rect FocusBarRect { get { return new Rect(112f, 74f, LeftColumnWidth - 112f, 12f); } }
+        public Rect QuestTrackerRect { get { return new Rect(12f, 116f, LeftColumnWidth, 60f); } }
+        public Rect CampPanelRect { get { return new Rect(12f, 184f, LeftColumnWidth, 140f); } }
+        public Rect DonationRect { get { return new Rect(16f, 248f, LeftColumnWidth - 8f, 34f); } }
+        public Rect TakeRationRect { get { return new Rect(16f, 288f, LeftColumnWidth - 8f, 34f); } }
 
-        /// <summary>Three presentation-only controls, outside the status and NPC panels.</summary>
+        // ---- Bottom-left floating stick zone ----
+        public Rect MoveRect { get { return new Rect(24f, Height - 212f, 188f, 188f); } }
+
+        // ---- Top-right: minimap, camera, menu bar ----
+        public Rect MinimapRect { get { return new Rect(Width - 176f, 12f, 164f, 164f); } }
+        public Rect CameraPanelRect { get { return new Rect(Width - 176f, 182f, 164f, 40f); } }
+
+        /// <summary>Three presentation-only camera controls directly under the minimap.</summary>
         public Rect CameraZoomRect(int control)
         {
-            return new Rect(Width - 192f + control * 60f, 35f, 55f, 42f);
+            return new Rect(Width - 174f + control * 54f, 184f, 50f, 36f);
         }
 
-        /// <summary>Pinches can start only in free world space, never in visible HUD panels or gameplay controls.</summary>
-        public bool BlocksCameraGesture(Vector2 point, bool gameOver, bool nearNpc,
-            bool chapterOne, bool hasMastery, bool canTakeRation = false)
+        /// <summary>Character, inventory, quests and settings in one row left of the minimap.</summary>
+        public Rect MenuButtonRect(int menu)
         {
-            if (gameOver || StatusPanelRect.Contains(point) || CameraPanelRect.Contains(point)) return true;
-            if (nearNpc && NpcPanelRect.Contains(point)) return true;
-            if (chapterOne && CampPanelRect.Contains(point)) return true;
-            return HitTest(point, false, nearNpc, chapterOne, hasMastery, canTakeRation) != ArenaHudControl.None;
+            return new Rect(Width - 188f - (MenuCount - menu) * 60f, 12f, 54f, 54f);
+        }
+
+        /// <summary>Subtitles live between the left column and the menu bar, under the menu row.</summary>
+        public Rect SubtitleBandRect
+        {
+            get
+            {
+                float left = StatusPanelRect.xMax + 8f;
+                return new Rect(left, 76f, Mathf.Max(120f, Width - 196f - left), 132f);
+            }
+        }
+
+        // ---- Bottom-right: big attack and a three-skill arc ----
+        private Vector2 AttackCenter { get { return new Vector2(Width - 78f, Height - 78f); } }
+
+        /// <summary>Skill 0 is the large basic attack; skills 1-3 sit on a 136-unit arc around it.</summary>
+        public Rect SkillRect(int skill)
+        {
+            Vector2 c = AttackCenter;
+            if (skill <= 0) return new Rect(c.x - 60f, c.y - 60f, 120f, 120f);
+            float angle = Mathf.Deg2Rad * (180f - (skill - 1) * 45f);
+            Vector2 s = c + new Vector2(Mathf.Cos(angle), -Mathf.Sin(angle)) * 136f;
+            return new Rect(s.x - 35f, s.y - 35f, 70f, 70f);
+        }
+
+        /// <summary>Loot pickup floats above the skill arc, clear of camera and minimap.</summary>
+        public Rect PickupRect { get { return new Rect(Width - 110f, Mathf.Max(228f, Height - 318f), 62f, 60f); } }
+
+        // ---- Bottom centre: contextual actions, mastery, NPC dialogue card ----
+        public Rect ContextActionRect { get { return new Rect(Width * 0.5f - 140f, Height - 306f, 280f, 46f); } }
+
+        /// <summary>Unspent mastery points appear as three quick buttons above the dialogue card.</summary>
+        public Rect MasteryRect(int mastery)
+        {
+            return new Rect(LeftColumnWidth + 20f + mastery * 124f, Height - 250f, 116f, 50f);
         }
 
         public Rect NpcPanelRect
         {
-            get
-            {
-                float w = Mathf.Min(300f, Width - 24f);
-                return new Rect(Width - w - 15f, 144f, w + 5f, 210f);
-            }
+            get { return new Rect(230f, Height - 190f, Mathf.Max(300f, Width - 490f), 178f); }
         }
 
-        /// <summary>Place one of four NPC controls in the top-right HUD panel.</summary>
+        /// <summary>Place one of four NPC choices in a 2x2 grid in the dialogue card.</summary>
         public Rect NpcActionRect(int action)
         {
-            float w = Mathf.Min(300f, Width - 24f);
-            return new Rect(Width - w - 10f + (action % 2) * (w / 2f),
-                266f + (action / 2) * 42f, w / 2f - 5f, 38f);
+            Rect p = NpcPanelRect;
+            float half = p.width / 2f;
+            return new Rect(p.x + 8f + (action % 2) * half, p.y + 92f + (action / 2) * 42f, half - 12f, 38f);
         }
 
-        /// <summary>Keep each mastery button clear of the supply and NPC panels.</summary>
-        public Rect MasteryRect(int mastery)
-        {
-            // Vertical center column; no button can cover Mara's supply panel.
-            return new Rect(CampPanelRect.xMax + 12f, 148f + mastery * 62f, 124f, 56f);
-        }
-
-        /// <summary>Compute the four mobile skill targets in one shared layout.</summary>
-        public Rect SkillRect(int skill)
-        {
-            float w = Mathf.Clamp(Width * 0.125f, 74f, 145f);
-            float h = Mathf.Clamp(Height * 0.13f, 48f, 67f);
-            return new Rect(Width - (2 - skill % 2) * (w + 10f) - 12f,
-                Height - (2 - skill / 2) * (h + 9f) - 16f, w, h);
-        }
+        /// <summary>Thin experience bar across the bottom edge; never interactive.</summary>
+        public Rect ExperienceBarRect { get { return new Rect(230f, Height - 9f, Mathf.Max(300f, Width - 490f), 6f); } }
 
         public Rect DefeatPanelRect
         {
@@ -204,6 +242,17 @@ namespace AreArpg.UnityClient
 
         public static bool ShowGameplayControls(bool gameOver) { return !gameOver; }
 
+        /// <summary>Pinches can start only in free world space, never in visible HUD panels or gameplay controls.</summary>
+        public bool BlocksCameraGesture(Vector2 point, bool gameOver, bool nearNpc,
+            bool chapterOne, bool hasMastery, bool canTakeRation = false)
+        {
+            if (gameOver || StatusPanelRect.Contains(point) || CameraPanelRect.Contains(point) ||
+                MinimapRect.Contains(point) || QuestTrackerRect.Contains(point)) return true;
+            if (nearNpc && NpcPanelRect.Contains(point)) return true;
+            if (chapterOne && CampPanelRect.Contains(point)) return true;
+            return HitTest(point, false, nearNpc, chapterOne, hasMastery, canTakeRation) != ArenaHudControl.None;
+        }
+
         /// <summary>
         /// The same visual rectangles decide mobile touch actions. When defeated,
         /// every gameplay action is disabled and only Restart can be selected.
@@ -213,6 +262,10 @@ namespace AreArpg.UnityClient
         {
             if (gameOver)
                 return RestartRect.Contains(point) ? ArenaHudControl.Restart : ArenaHudControl.None;
+
+            for (int i = 0; i < MenuCount; i++)
+                if (MenuButtonRect(i).Contains(point))
+                    return (ArenaHudControl)((int)ArenaHudControl.MenuCharacter + i);
 
             for (int i = 0; i < 3; i++)
                 if (CameraZoomRect(i).Contains(point))
