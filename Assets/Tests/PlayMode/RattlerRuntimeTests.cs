@@ -50,17 +50,7 @@ namespace AreArpg.PlayMode.Tests
                 {
                     Assert.IsTrue(Find("ARE_Rattler_Strike_Warning").activeSelf);
                     Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
-                    yield return Capture("rattler-telegraph.png");
-                    var probeRay = Camera.main.ViewportPointToRay(new Vector3(.25f, .5f, 0));
-                    foreach (var renderer in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
-                    {
-                        if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
-                        if (renderer.bounds.Contains(Camera.main.transform.position) ||
-                            (renderer.bounds.IntersectRay(probeRay, out float distance) && distance < 8f))
-                            Debug.Log("VIEW_BOUNDS " + renderer.transform.root.name + "/" + renderer.name + " " + renderer.GetType().Name + " " + renderer.bounds);
-                    }
-                    Debug.Log("VIEW_CAMERA " + Camera.main.transform.position + " hero=" + Find("Wanderer").transform.position);
-                    captured = true;
+                    yield return Capture("rattler-telegraph.png"); captured = true;
                 }
             }
             Assert.IsTrue(captured); Assert.IsFalse(Game.GameOver); Assert.IsTrue(Game.Progression.Rattler.Creature.IsDead);
@@ -95,6 +85,14 @@ namespace AreArpg.PlayMode.Tests
             animator.Play("Attack", 0, .45f); animator.Update(0);
             int changed = 0; for (int i = 0; i < poses.Length; i++) if (Quaternion.Angle(poses[i], bones[i].localRotation) > .5f) changed++;
             Assert.Greater(changed, 5, "An attached controller without actual bone animation is insufficient");
+            var brand = System.Array.Find(creature.GetComponentsInChildren<Transform>(true), t => t.name == "Immergruen_Royal_Brand").GetComponent<Renderer>();
+            foreach (string pose in new[] { "Idle", "Attack", "Death" })
+            {
+                animator.Play(pose, 0, .45f); animator.Update(0);
+                float extent = Mathf.Max(brand.bounds.size.x, brand.bounds.size.y, brand.bounds.size.z);
+                Assert.That(extent, Is.InRange(.05f, .5f),
+                    "The neck mark must remain a small physical mark in " + pose + ", not a bone-scaled screen obstruction");
+            }
             animator.Play("Idle", 0, 0); animator.Update(0);
             yield return null;
         }
