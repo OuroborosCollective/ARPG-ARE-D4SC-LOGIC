@@ -1,0 +1,17 @@
+# Stimmen und Atmosphäre
+
+Dieser Ausbau ergänzt die bestehende Unity-Projektion um lokal vorgerenderte deutsche NPC-Zeilen, Musik, Umgebung und Effekte. Der C#-Core bleibt die einzige Quelle für Gesprächserfolg, Gedächtnis, bekannte Gerüchte, Bewegung und Kampftreffer. Kein Dialoganbieter läuft im Spiel; Audio entscheidet keine Quest und erzeugt keine Gerüchte. Tick und Save-Formate bleiben unverändert.
+
+`SocialResult` trägt für akzeptierte örtliche Kontakte einen Sprecher und höchstens zwei verfasste Sprachzeilen. Die Darstellung ersetzt alte Gespräche bei neuer Interaktion und beendet sie bei Ortswechsel, Tod/Bewusstlosigkeit oder zu großer Entfernung. Laden wiederholt keine frühere Zeile. Ohne Aufnahme bleibt der Untertitel sichtbar; fehlende Medien sind kein erfolgreicher Mediennachweis.
+
+Die vorläufige Besetzung nutzt Piper 1.8 als externes Produktionswerkzeug: Thorsten-medium für Ilyan/Dorn/Jäger, Kerstin-medium für Mara. Mehrere männliche Rollen teilen vorläufig einen Sprecher. Besetzung und schauspielerische Qualität benötigen noch die Hörprobe des Owners. Die aktualisierten Modelle wurden nach ihrer dokumentierten Trainingskette ausgewählt. Engine und Modelle werden nicht in die App eingebettet. Credits stehen unter Ton/Effekte und in `Resources/AshenAudioCredits.txt`.
+
+Medien werden privat als `Assets/PrivateArt/AshenAudio` bereitgestellt. Der Editor bindet ausschließlich WAV/OGG in `Resources/AshenAtmosphere.asset`; keine Vendor-Skripte, Netzwerkdienste oder zusätzlichen Gameplay-Manager werden übernommen. Musik/Atmosphären streamen; kurze Sprach- und Effektclips werden einmal geladen. Quellpakete: Action RPG Exploration Themes, Fantasy Kingdom 3D und 3D Game Kit. Erdschritte dienen vorläufig der sandigen Aschestraße; Holzschritte sind eigene kurze Resonanzsynthesen. Die Waffenschwünge sind zunächst ausgewählte Staff-Swipes, kein fertig abgemischtes Schwert-Foley.
+
+Es gibt elf AudioSources: zwei für 1,5-Sekunden-Musiküberblendung, eine regionale Atmosphäre, eine räumliche Mühlenwasserquelle, eine priorisierte Stimme und sechs wiederverwendete Effekte. Sprache senkt Musik auf 30 Prozent des eingestellten Pegels. Sprache/Musik/Effekte, Gesamtstummschaltung und reduzierte Partikel sind lokale Darstellungseinstellungen. Bei App-Pause pausiert die Wiedergabe.
+
+Fünf Untergründe werden an tatsächlich zurückgelegter Strecke ausgewählt. Aschestraßenmitte: Stein; Rand: sandige Erde; sichtbare Grasstreifen: Gras; Bretter westlich der Mühle: Holz; flache Pfütze nordwestlich: Wasser. Diese dekorativen Flächen verändern keine Kollision. Stillstand und große Positionssprünge erzeugen keine Gehgeräusche. Angriffsgeräusche benötigen eine aktivierte Fähigkeit, Treffermotive zusätzlich echte Hits.
+
+Außen fallen maximal160 kleine Aschepartikel; innen schweben maximal24 flache Nebelpartikel. Reduziert:40/6. Trefferemission: maximal30 Partikel. Keine Partikelphysik, Schatten oder GPU-Readbacks. Vorhandener Distanznebel und Gefahrentelegraphen bleiben erhalten. Das ist ein begrenzter atmosphärischer Prototyp, keine gemessene Tablet-Performance oder finale Grafikabnahme.
+
+Prüfungen: Core überprüft lokale Freigabe, Gedächtnis und fehlendes telepathisches Wissen. Native Tests müssen reale importierte AudioClips und AudioSource-Wiedergabe, Reiseabbruch, Bewegung, begrenzte Pools, Pause, Einstellungen und Shader nachweisen. Hörqualität, Lautsprecherausgabe und Android-Leistung sind zusätzliche Abnahmen; eine Headless-Unity-Prüfung beweist diese nicht.

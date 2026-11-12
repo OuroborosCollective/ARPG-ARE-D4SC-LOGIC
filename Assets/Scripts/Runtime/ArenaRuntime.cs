@@ -39,6 +39,7 @@ namespace AreArpg.UnityClient
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
         private readonly ArenaHudTouchCapture _movementTouch = new ArenaHudTouchCapture();
         private bool _storageFault;
+        private bool _appPaused, _appUnfocused;
         private Transform _worldPassage;
         private bool _passageAnnounced;
         private float _regionFade;
@@ -122,6 +123,8 @@ namespace AreArpg.UnityClient
 
         private void OnApplicationPause(bool paused)
         {
+            _appPaused = paused;
+            if (_atmosphere != null) _atmosphere.Suspend(_appPaused || _appUnfocused);
             if (paused)
             {
                 ReleasePresentationTouches();
@@ -131,6 +134,8 @@ namespace AreArpg.UnityClient
 
         private void OnApplicationFocus(bool focused)
         {
+            _appUnfocused = !focused;
+            if (_atmosphere != null) _atmosphere.Suspend(_appPaused || _appUnfocused);
             if (!focused) ReleasePresentationTouches();
         }
 
@@ -233,6 +238,7 @@ namespace AreArpg.UnityClient
             _cameraRig = _camera.GetComponent<ArenaCameraRig>();
             if (_cameraRig == null) _cameraRig = _camera.gameObject.AddComponent<ArenaCameraRig>();
             _cameraRig.Configure(_hero, _entryProfile);
+            InitializeAtmosphere();
         }
 
         /// <summary>Lighting is presentation only, with a warm village and readable cool vault.</summary>
@@ -680,6 +686,7 @@ namespace AreArpg.UnityClient
                 return;
             }
 
+            if (PollAudioInput(layout)) return;
             if (PollRoadInput(layout)) return;
             if (PollHungerInput(layout)) return;
             long x = 0, z = 0;
@@ -846,6 +853,7 @@ namespace AreArpg.UnityClient
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
             BuildNpcVisuals();
             _message = message + " / " + next.ChapterName;
+            RebuildAtmosphere();
         }
 
         /// <summary>Consume ordered player requests on the established 100-ms tick, then interpolate presentation.</summary>
@@ -863,6 +871,7 @@ namespace AreArpg.UnityClient
                 if (_pendingHunterAction >= 0)
                 {
                     var hunter = _game.InteractHunter(_pendingHunterAction == 1); _pendingHunterAction = -1;
+                    _atmosphere.AcceptedSpeech(hunter);
                     _message = hunter.Accepted ? hunter.Text : "Gehe direkt zum Jaeger.";
                     if (hunter.Accepted) SaveCharacter();
                 }
@@ -871,6 +880,7 @@ namespace AreArpg.UnityClient
                     var story = _game.ActOnHunger((HungerAction)_pendingHungerAction);
                     _pendingHungerAction = -1;
                     _message = story.Text;
+                    _atmosphere.AcceptedSpeech(story);
                     if (story.Accepted) SaveCharacter();
                     if (_storageFault) break;
                 }
@@ -878,6 +888,7 @@ namespace AreArpg.UnityClient
                 {
                     KeyValuePair<int, NpcAction> request = _pendingNpcActions.Dequeue();
                     SocialResult result = _game.InteractNpc(request.Key, request.Value);
+                    _atmosphere.AcceptedSpeech(result);
                     if (!string.IsNullOrEmpty(result.Text)) _message = result.Text;
                     if (result.Accepted) SaveCharacter();
                     if (_storageFault) break;
@@ -887,6 +898,7 @@ namespace AreArpg.UnityClient
                 {
                     _pendingTakeRation = false;
                     SocialResult theft = _game.TakeCampRation();
+                    _atmosphere.AcceptedSpeech(theft);
                     if (!string.IsNullOrEmpty(theft.Text)) _message = theft.Text;
                     if (theft.Accepted) SaveCharacter();
                     if (_storageFault) break;
@@ -895,6 +907,7 @@ namespace AreArpg.UnityClient
                 {
                     _pendingCampDonation = false;
                     SocialResult donation = _game.DonateCampRation();
+                    _atmosphere.AcceptedSpeech(donation);
                     _message = !string.IsNullOrEmpty(donation.Text) ? donation.Text :
                         "Nur direkt bei Mara kannst du eine Lagerration abgeben.";
                     if (donation.Accepted) SaveCharacter();
@@ -912,6 +925,7 @@ namespace AreArpg.UnityClient
                     int slot = _pendingSkills.Dequeue();
                     System.Numerics.BigInteger previousRank = _game.Progression.PracticeLevel(slot);
                     SkillResult outcome = _game.ActivateSkill(slot);
+                    _atmosphere.Skill(outcome, slot, _game);
                     if (_entryProfile && outcome.Activated && outcome.Hits > 0 && (slot == 0 || slot == 1))
                         foreach (var animator in _heroMeleeAnimations)
                             if (animator != null) { animator.ResetTrigger("Melee"); animator.SetTrigger("Melee"); }
@@ -927,7 +941,9 @@ namespace AreArpg.UnityClient
                     if (pickedUp) SaveCharacter();
                     _pendingPickup = false;
                 }
+                long oldX = _game.PlayerXmm, oldZ = _game.PlayerZmm; int oldHealth = _game.PlayerHealth;
                 _game.Step();
+                _atmosphere.ObserveTick(_game, oldX, oldZ, oldHealth);
                 if ((_game.Progression.Road.Started || _game.Progression.Investigation.Active) && _game.CurrentTick % 10 == 0) SaveCharacter();
                 if ((_game.Progression.EntryAct >= 2 || _game.CryptCleared) && _game.AtAnyPassage)
                 {
@@ -1078,8 +1094,10 @@ namespace AreArpg.UnityClient
                     return;
                 }
 
+                if (DrawAudioPanel(layout)) return;
                 DrawRoadHud(layout);
-                if (DrawHungerJournal(layout)) return;
+                if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
+                DrawSpeechSubtitle(layout);
                 GUI.Box(layout.StatusPanelRect, "");
                 GUI.Label(new Rect(20f, 15f, 540f, 28f),
                     "ARE / " + DisplayChapterName(_game).ToUpperInvariant(), _labelStyle);

@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 namespace AreArpg.PlayMode.Tests
 {
     /// <summary>Real Unity adapter test; arranged combat fixtures are not an unattended player playthrough.</summary>
-    public sealed class EntryJourneyRuntimeTests
+    public sealed partial class EntryJourneyRuntimeTests
     {
         private readonly string[] _keys = { "ARE_ARPG_entry_v1", "ARE_ARPG_entry_v1_backup" };
         private readonly string[] _saved = new string[2];

@@ -328,6 +328,7 @@ namespace AreArpg.Core
             }
             mara.InteractionCooldownTicks = 10;
             result.Accepted = true;
+            result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.ThankHelp;
             result.Text = "Mara nimmt eine echte Ration an. Das Lager wird sicherer; sie merkt sich deine Hilfe.";
             return result;
         }
@@ -351,6 +352,7 @@ namespace AreArpg.Core
                 DistanceSquared(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm) <= FixedMath.Square(8000) &&
                 EntryWorldLayout.HasSight(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm);
             if (witnessed) Progression.Social.WitnessRationTheft(guard.Id);
+            result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.Robbed;
             result.Text = witnessed ? "Du nimmst eine Ration. Mara protestiert; Dorn hat den Diebstahl gesehen und greift ein." :
                 "Du nimmst eine Ration. Mara merkt sich den Übergriff; Dorn hat ihn nicht gesehen.";
             return result;
@@ -386,6 +388,14 @@ namespace AreArpg.Core
                 case NpcAction.Rob:
                     if (!Progression.Social.Rob(id)) { result.Text = "Der Beutel ist leer."; return result; }
                     result.Text = "Du raubst den vorhandenen Muenzbeutel. Vertrauen zerbricht."; break;
+            }
+            if (npc.Memory.Health > 0)
+            {
+                result.SpeakerId = id;
+                result.Speech = action == NpcAction.Greet ? NpcSpeech.Greeting(npc) :
+                    action == NpcAction.Help ? SpeechLine.ThankHelp :
+                    action == NpcAction.Attack ? SpeechLine.Hurt : SpeechLine.Robbed;
+                if (action == NpcAction.Greet) result.FollowupSpeech = NpcSpeech.Rumor(Progression.Social, id);
             }
             npc.InteractionCooldownTicks = 10;
             result.Accepted = true;
