@@ -97,6 +97,41 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator AcceptedSpeechWaitsForAppResume()
+        {
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
+            var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
+            audio.Suspend(true);
+            yield return StoryAction(HungerAction.HearIlyan);
+            Assert.AreEqual(0, audio.SpeechCount, "An accepted line must wait until the app resumes.");
+            Assert.IsEmpty(audio.Subtitle);
+            foreach (var source in audio.GetComponentsInChildren<AudioSource>()) Assert.IsFalse(source.isPlaying);
+            audio.Suspend(false); yield return null;
+            Assert.AreEqual(1, audio.SpeechCount); StringAssert.Contains("Aschestraße", audio.Subtitle);
+            Assert.IsTrue(Find("NPC speech").GetComponent<AudioSource>().isPlaying);
+        }
+
+        [UnityTest]
+        public IEnumerator SubtitlesRemainClearOfAvailableMasteryControls()
+        {
+            foreach (int width in new[] { 960, 1280 })
+            {
+                var layout = new ArenaHudLayout(width, 540, new Rect(0, 0, width, 540));
+                var rect = ArenaRuntime.SpeechSubtitleRect(layout, false, true);
+                for (int i = 0; i < 3; i++) Assert.IsFalse(rect.Overlaps(layout.MasteryRect(i)), "Subtitle obscures mastery at width " + width);
+                Assert.IsFalse(rect.Overlaps(layout.PickupRect));
+                Assert.IsFalse(rect.Overlaps(layout.CampPanelRect));
+                Assert.IsFalse(rect.Overlaps(layout.NpcPanelRect));
+                for (int i = 0; i < 4; i++) Assert.IsFalse(rect.Overlaps(layout.SkillRect(i)));
+            }
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator ConfirmedHitMotesContinueAgingAfterAppResume()
         {
             _runtime.enabled = false;

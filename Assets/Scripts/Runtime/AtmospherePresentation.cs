@@ -96,11 +96,16 @@ namespace AreArpg.UnityClient
             return true;
         }
 
+        public static Rect SpeechSubtitleRect(ArenaHudLayout l, bool journalOpen, bool hasMastery)
+        {
+            float width = journalOpen ? 560 : Mathf.Min(360, l.Width - 650);
+            return new Rect((l.Width - width) / 2, journalOpen ? l.Height - 80 : 148, width, journalOpen ? 74 : 132);
+        }
+
         private void DrawSpeechSubtitle(ArenaHudLayout l)
         {
             if (_atmosphere == null || _atmosphere.Subtitle.Length == 0 || _audioPanelOpen) return;
-            float width = _hungerJournalOpen ? 560 : Mathf.Min(360, l.Width - 650);
-            var rect = new Rect((l.Width - width) / 2, _hungerJournalOpen ? l.Height - 80 : 148, width, _hungerJournalOpen ? 74 : 132);
+            var rect = SpeechSubtitleRect(l, _hungerJournalOpen, _game.Progression.UnspentMasteryPoints > 0);
             var style = new GUIStyle(GUI.skin.box) { fontSize = 16, wordWrap = true, alignment = TextAnchor.MiddleCenter };
             GUI.Box(rect, _atmosphere.Subtitle, style);
         }
