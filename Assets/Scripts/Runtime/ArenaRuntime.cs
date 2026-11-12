@@ -317,7 +317,8 @@ namespace AreArpg.UnityClient
             _chapterScenery.Clear();
             _campRationVisuals.Clear();
             _returnPassage = null;
-            _investigationGate = _cryptWarning = _cryptDebris = null;
+            _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
+            if (_game.Progression.EntryAct == 7) { BuildRattlerDen(); return; }
             if (_game.Progression.EntryAct >= 5) { BuildInvestigationScenery(); return; }
             if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); return; }
             if (_game.Progression.EntryAct > 0 && BuildEntryArt()) return;
@@ -610,7 +611,7 @@ namespace AreArpg.UnityClient
         /// <summary>Build a visual for one existing Core monster and register its movement animator.</summary>
         private void SpawnMonster(MonsterState monster)
         {
-            if (monster.Kind == 4) return;
+            if (monster.Kind == 4 || monster.Kind == 5) return;
             PrimitiveType primitive = monster.Kind >= 2 ? PrimitiveType.Capsule : PrimitiveType.Sphere;
             Vector3 scale = monster.Kind >= 2 ? new Vector3(2.5f, 2.1f, 2.5f) :
                 (monster.Kind == 1 ? new Vector3(1.8f, 1.8f, 1.8f) : Vector3.one * 1.45f);
@@ -689,6 +690,7 @@ namespace AreArpg.UnityClient
             if (PollAudioInput(layout)) return;
             if (PollRoadInput(layout)) return;
             if (PollHungerInput(layout)) return;
+            if (PollRattlerInput(layout)) return;
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
             bool hasMastery = _game.Progression.UnspentMasteryPoints > 0;
@@ -838,7 +840,7 @@ namespace AreArpg.UnityClient
             _pendingNpcActions.Clear();
             _pendingHungerAction = -1;
             _pendingHunterAction = -1;
-            ClearRoadVisuals();
+            ClearRoadVisuals(); ClearRattlerVisuals();
             _roadVisualAct = -1;
             _hungerJournalOpen = false;
             ReleasePresentationTouches();
@@ -953,6 +955,7 @@ namespace AreArpg.UnityClient
             }
             UpdateRoadPresentation();
             UpdateInvestigationPresentation();
+            UpdateRattlerPresentation();
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
         }
 
@@ -1097,6 +1100,7 @@ namespace AreArpg.UnityClient
 
                 if (DrawAudioPanel(layout)) return;
                 DrawRoadHud(layout);
+                DrawRattlerHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
                 DrawSpeechSubtitle(layout);
                 GUI.Box(layout.StatusPanelRect, "");

@@ -4,7 +4,7 @@ using System.Globalization;
 namespace AreArpg.Core
 {
     public enum HungerChoice { Undecided = 0, Reveal = 1, Protect = 2, Replace = 3 }
-    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13 }
+    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17 }
 
     public sealed partial class CharacterProgression
     {
@@ -30,16 +30,16 @@ namespace AreArpg.Core
         }
 
         /// <summary>Reject impossible paths and noncanonical numbers even under a valid checksum.</summary>
-        private static bool ReadHungerToken(string text, out int act, out bool north, out int stage, out HungerChoice choice, bool extended = false)
+        private static bool ReadHungerToken(string text, out int act, out bool north, out int stage, out HungerChoice choice, bool extended = false, bool rattler = false)
         {
             act = 0; north = false; stage = 0; choice = HungerChoice.Undecided;
             string[] f = text.Split(',');
             if (f.Length != 5 || f[0] != "1" || f[1].Length != 1 || f[2].Length != 1 ||
                 f[3].Length != 1 || f[4].Length != 1) return false;
             act = f[1][0] - '0'; stage = f[3][0] - '0'; int decision = f[4][0] - '0';
-            if (act < 2 || act > (extended ? 6 : 4) || (f[2] != "0" && f[2] != "1") || stage < 1 || stage > 4 ||
+            if (act < 2 || act > (rattler ? 7 : extended ? 6 : 4) || (f[2] != "0" && f[2] != "1") || stage < 1 || stage > 4 ||
                 decision < 0 || decision > 3 || (act == 4 && (stage < 2 || (f[2] == "1" && (!extended || stage != 4)))) ||
-                (act >= 5 && stage != 4) || (act == 6 && f[2] == "1") ||
+                (act >= 5 && stage != 4) || ((act == 7 || (act == 6 && !rattler)) && f[2] == "1") ||
                 (stage < 3 && decision != 0) || (stage == 4 && decision == 0)) return false;
             north = f[2] == "1"; choice = (HungerChoice)decision;
             return true;
@@ -58,7 +58,8 @@ namespace AreArpg.Core
         public bool HungerForwardOpen { get { return Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
             Progression.EntryAct == 3 ? Progression.HungerStage >= 2 :
             Progression.EntryAct == 4 ? Progression.HungerStage == 4 :
-            Progression.EntryAct == 5 && Progression.Investigation.Approach != SealApproach.Undecided; } }
+            Progression.EntryAct == 5 ? Progression.Investigation.Approach != SealApproach.Undecided :
+            Progression.EntryAct == 6 && Progression.Rattler.Active; } }
 
         /// <summary>Return edges remain open; forward edges require the clue in the actual region.</summary>
         private ArenaSimulation TraverseHunger(bool backwards)
@@ -89,6 +90,7 @@ namespace AreArpg.Core
         /// <summary>Apply one versioned story action at its real location; repeated requests cannot duplicate effects.</summary>
         public SocialResult ActOnHunger(HungerAction action)
         {
+            if (action >= HungerAction.OpenInnerDoor) return ActOnRattler(action);
             if (action >= HungerAction.StoreBandage) return ActOnInvestigation(action);
             var result = new SocialResult { Text = "Hier gibt es dafuer noch keinen neuen Hinweis." };
             if (GameOver || Progression.EntryAct < 2 || Progression.EntryAct > 4) return result;

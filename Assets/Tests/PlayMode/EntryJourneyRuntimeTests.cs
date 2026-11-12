@@ -85,14 +85,18 @@ namespace AreArpg.PlayMode.Tests
                 camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
             yield return Capture("camera-default.png");
             rig.ZoomSteps(100f);
-            yield return new WaitForSeconds(.9f);
+            // Headless frame stalls are clamped by the camera; advance a bounded presentation interval.
+            for (int step = 0; step < 20; step++) rig.AdvancePresentation(.1f);
+            yield return null;
             float after = Vector2.Distance(camera.WorldToViewportPoint(hero.transform.position),
                 camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
             Assert.Greater(after, before * 1.4f, "The actual projection must visibly magnify the hero");
             Assert.AreEqual(2.8f, Vector3.Distance(camera.transform.position, hero.transform.position), .1f);
             yield return Capture("camera-close.png");
             rig.ZoomSteps(-100f);
-            yield return new WaitForSeconds(.9f);
+            // Headless frame stalls are clamped by the camera; advance a bounded presentation interval.
+            for (int step = 0; step < 20; step++) rig.AdvancePresentation(.1f);
+            yield return null;
             Assert.AreEqual(22f, Vector3.Distance(camera.transform.position, hero.transform.position), .05f);
             Assert.AreEqual(hash, Game.ComputeWorldHash());
             Assert.AreEqual(save, Game.Progression.SaveString());
