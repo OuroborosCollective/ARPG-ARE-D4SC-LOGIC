@@ -52,7 +52,7 @@ namespace AreArpg.UnityClient
             else if (GUI.Button(HunterActionRect(layout), label)) _pendingHunterAction = h.HunterHealth == 0 ? 1 : 0;
         }
 
-        private void OnDestroy() { ClearRoadVisuals(); }
+        private void OnDestroy() { ClearRoadVisuals(); ClearRattlerVisuals(); }
 
         private void ClearRoadVisuals()
         {

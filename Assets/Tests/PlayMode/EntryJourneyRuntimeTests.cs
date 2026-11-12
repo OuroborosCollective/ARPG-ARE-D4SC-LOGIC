@@ -93,7 +93,9 @@ namespace AreArpg.PlayMode.Tests
                 camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
             yield return Capture("camera-default.png");
             rig.ZoomSteps(100f);
-            yield return new WaitForSeconds(.9f);
+            // Headless frame stalls are clamped by the camera; advance a bounded presentation interval.
+            for (int step = 0; step < 20; step++) rig.AdvancePresentation(.1f);
+            yield return null;
             float after = Vector2.Distance(camera.WorldToViewportPoint(hero.transform.position),
                 camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
             Assert.Greater(after, before * 1.4f, "The actual projection must visibly magnify the hero");
@@ -101,13 +103,15 @@ namespace AreArpg.PlayMode.Tests
             Assert.LessOrEqual(Vector3.Distance(camera.transform.position, rig.FocusPoint), 2.25f);
             yield return Capture("camera-close.png");
             rig.ZoomSteps(-100f);
-            yield return new WaitForSeconds(.9f);
+            for (int step = 0; step < 20; step++) rig.AdvancePresentation(.1f);
+            yield return null;
             Assert.AreEqual(9f, rig.Distance, "The entry camera never returns to the far overview.");
             Assert.LessOrEqual(Vector3.Distance(camera.transform.position, rig.FocusPoint), 9.05f);
             yield return Capture("camera-overview.png");
             // Without scenery in the way the camera stands exactly at the chosen distance.
             rig.SetOccluders(null);
-            yield return new WaitForSeconds(1.2f);
+            for (int step = 0; step < 20; step++) rig.AdvancePresentation(.1f);
+            yield return null;
             Assert.AreEqual(9f, Vector3.Distance(camera.transform.position, rig.FocusPoint), .05f);
             Assert.AreEqual(hash, Game.ComputeWorldHash());
             Assert.AreEqual(save, Game.Progression.SaveString());

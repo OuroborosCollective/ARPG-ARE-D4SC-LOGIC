@@ -26,3 +26,7 @@ Vor einer verschlossenen inneren Tür findet der Spieler frischen Verbandsstoff.
 Die Core-Suite läuft beide Siegelwege für Offenlegung, Schutz und Ersatzversorgung. Sie prüft Entfernung, Wiederholungen, Warnung, Schaden, Ausweichen, Laden während der Warnphase, Rückwege, Erhalt der Versorgung und persönlichen Bericht. Native Unity-Tests benutzen die reale Handlungswarteschlange, PlayerPrefs, Gebietswechsel, Szenenprojektion und erneutes Laden. Arrangierte Gegner- und NPC-Kontakte in diesen Tests sind ausdrücklich Testaufbau und kein unbeaufsichtigter Gerätedurchlauf.
 
 Kein neuer APK- oder Gerätetest ist Bestandteil dieses Abschnitts. Die tatsächliche Bildrate und Bedienbarkeit auf Android werden beim nächsten größeren Gebietsstand geprüft.
+
+## Fortsetzung
+
+Nach dem frischen Verband kann der innere Riegel explizit geloest werden. Der Folgebogen und sein AC12-Vertrag stehen in [RATTLER_IMMERGRUEN.md](RATTLER_IMMERGRUEN.md). Die urspruengliche Entscheidung am Speichersiegel bleibt erhalten.
