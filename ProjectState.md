@@ -5,10 +5,16 @@
 - phase: VERTICAL_SLICE / CREATURE_INTEGRATION
 - current_goal: Inneren Kryptazugang, blinden MaulwurfRattler, Schleichen und untersuchbares Halsbrandmal als zusammenhaengenden Spielabschnitt integrieren.
 - approved: Owner-Kanon zu Aschenglutfällen, konditionierter Geruchsjagd und dem schwebenden Handelsreich Immergruen; gewaehltes Modellpaket Creep Horror Creature. Vollstaendiger Vertrag: [RATTLER_IMMERGRUEN](docs/RATTLER_IMMERGRUEN.md).
-- implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. Der Kandidat ist noch nicht integriert.
+- implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. PR25 ist als 86bae8f108aaf1ee508dd7b24dc448e49c2bdc2a in main integriert.
 - open_decisions: Konkrete Wappenzeichnung, Abrichter, Auftraggeber, Motiv, konditionierter Zielgeruch und Schicksal der einzelnen Vermissten. Kein persoenlicher Koenigsbefehl allein aus dem Wappen ableiten.
 - verified: Privates Creep-Horror-Creature-Originalpaket244853 als CryptRattler gebunden (LOD1, 2107Vertices, vier Clips, Halsbrandmal als Grafikprototyp). Native Knochenbewegung/Brandmalbindung und Begegnung bestanden; Unity6 PlayMode68/68, EditMode31/31. Revisionsbindung und XML-Hashes: Memory.md [rattler-pr25-20261112].
-- next: PR25 nach GitHub-CI und geschlossenen Review-Kommentaren integrieren. Finale Wappenzeichnung und Kameraverdeckung am Hoehlenrand bleiben offen; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+- next: PR28 bleibt nach gemeinsamer nativer Pruefung Draft zur Sichtabnahme. Hoehlenverdeckung, Horizonte, Patientenmodelle und finale Wappenzeichnung priorisieren; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+
+## Gemeinsame Integration PR25 / PR28 (12.11.2026)
+
+PR25 ist nach finalen Review-/CI-Gates gemergt und per API sowie Git-Fetch bestaetigt. Der Textur-Draft wurde gegen dieses main zusammengefuehrt. Fables ArenaHudLayout, AshenUiTheme, HudPresentation, MenuPresentation, ArenaCameraRig und HeroCameraPresentation bleiben bytegleich zu PR28; Rattler-Eingabe/HUD bleiben verdrahtet. Beide historischen Memory-Eintraege sind erhalten.
+
+Gemeinsamer nativer Code `18434fca1cca9511bce2cb94685adb6d50c39bb1`: 1840 Core-Assertions, 38 Preflights, GitHub Core-CI43233152350 success, Unity6000.6.8f1 PlayMode98/98 und EditMode31/31 (0Skips), mit privaten Texturen und Creep-Assets. Prefs/Settings wiederhergestellt, private Dateien unveraendert. SHA-/XML-Bindung in Memory.md [integration-pr25-pr28-20261112]. Evidence: `/var/lib/unityarpg/.local/share/are-arpg/integration-20261112`; isolierter Workspace: `/var/lib/unityarpg/workspaces/are-arpg-integrated-20261112`. PR28 bleibt Draft, kein Merge und keine physische Touch-/Android-Abnahme dieses Blocks.
 
 ## Historischer Projektzustand vor den Folgeabschnitten
 
