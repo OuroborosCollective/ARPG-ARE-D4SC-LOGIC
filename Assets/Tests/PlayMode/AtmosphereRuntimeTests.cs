@@ -78,6 +78,41 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator NewlyAcceptedDonationsEachReplaceTheActiveResponse()
+        {
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
+            for (int i = 0; i < 2; i++)
+            {
+                var mara = Game.Npcs.Find(n => n.Id == 1); mara.Xmm = Game.PlayerXmm + 1000; mara.Zmm = Game.PlayerZmm;
+                typeof(ArenaRuntime).GetField("_pendingCampDonation", Flags).SetValue(_runtime, true); TickOnce();
+                Assert.AreEqual(9 + i, Game.Progression.Social.CampProvisions, "Each transaction must actually be accepted.");
+                Assert.AreEqual(i + 1, audio.SpeechCount, "Newly accepted help must replace, not suppress, the response.");
+                for (int tick = 0; tick < 10; tick++) TickOnce();
+            }
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator ConfirmedHitMotesContinueAgingAfterAppResume()
+        {
+            _runtime.enabled = false;
+            var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
+            Game.Monsters[0].Xmm = Game.PlayerXmm + 1000; Game.Monsters[0].Zmm = Game.PlayerZmm;
+            var hit = Game.ActivateSkill(0); Assert.Greater(hit.Hits, 0); audio.Skill(hit, 0, Game);
+            var sparks = Find("Confirmed hit motes").GetComponent<ParticleSystem>();
+            yield return null;
+            var particles = new ParticleSystem.Particle[30]; Assert.Greater(sparks.GetParticles(particles), 0);
+            audio.Suspend(true); float before = particles[0].remainingLifetime;
+            audio.Suspend(false); yield return new WaitForSeconds(.15f);
+            int count = sparks.GetParticles(particles);
+            Assert.IsTrue(count == 0 || particles[0].remainingLifetime < before - .05f, "Paused hit particles must resume real simulation.");
+        }
+
+        [UnityTest]
         public IEnumerator AudioPreferencesAndReducedParticlesRemainPresentationOnly()
         {
             _runtime.enabled = false;
