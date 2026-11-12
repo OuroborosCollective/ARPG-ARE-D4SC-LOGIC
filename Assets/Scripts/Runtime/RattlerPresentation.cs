@@ -34,7 +34,7 @@ namespace AreArpg.UnityClient
             GUI.Box(new Rect(layout.Width * .22f, layout.StatusPanelRect.yMax + 8f, layout.Width * .56f, 62f),
                 r.Creature.IsDead ? "MAULWURFRATTLER BESIEGT\nUntersuche seinen Hals unter SPUREN." :
                 "MAULWURFRATTLER  " + r.Creature.Health + "/" + r.Creature.MaxHealth +
-                "\nBlind: Laerm und naher Geruch verraten dich. Roten Hieben ausweichen!");
+                "\nBlind: Laerm / naher Geruch. Zum Ausweichen SCHLEICHEN AUS!");
             string label = r.Sneaking ? "SCHLEICHEN: AN" : "SCHLEICHEN: AUS";
             if (Application.isMobilePlatform) GUI.Box(RattlerSneakRect(layout), label);
             else if (GUI.Button(RattlerSneakRect(layout), "C: " + label)) _pendingHungerAction = (int)HungerAction.ToggleSneak;

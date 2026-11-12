@@ -31,22 +31,6 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(0, Game.Progression.Rattler.MemoryTicks);
             typeof(ArenaRuntime).GetMethod("UpdateRattlerPresentation", Flags).Invoke(_runtime, null);
             var creature = Find("ARE_MaulwurfRattler"); Assert.IsNotNull(creature);
-            if (!string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
-            {
-                Assert.IsNotEmpty(creature.GetComponentsInChildren<SkinnedMeshRenderer>(), "The requested Creep asset must actually render");
-                var animator = creature.GetComponentInChildren<Animator>(); Assert.IsNotNull(animator);
-                Assert.IsNotNull(animator.runtimeAnimatorController); Assert.IsFalse(animator.applyRootMotion);
-                foreach (var skin in creature.GetComponentsInChildren<SkinnedMeshRenderer>())
-                    foreach (var material in skin.sharedMaterials) Assert.IsTrue(material != null && material.mainTexture != null);
-                Assert.IsNotNull(Find("Immergruen_Royal_Brand"), "The neck brand must be present on the private visual");
-                var bones = creature.GetComponentsInChildren<Transform>();
-                animator.Play("Idle", 0, .2f); animator.Update(0);
-                var poses = new Quaternion[bones.Length]; for (int i = 0; i < poses.Length; i++) poses[i] = bones[i].localRotation;
-                animator.Play("Attack", 0, .45f); animator.Update(0);
-                int changed = 0; for (int i = 0; i < poses.Length; i++) if (Quaternion.Angle(poses[i], bones[i].localRotation) > .5f) changed++;
-                Assert.Greater(changed, 5, "An attached controller without actual bone animation is insufficient");
-                animator.Play("Idle", 0, 0); animator.Update(0);
-            }
             yield return StoryAction(HungerAction.ToggleSneak);
             bool captured = false;
             for (int tick = 0; tick < 600 && !Game.GameOver && !Game.Progression.Rattler.Creature.IsDead; tick++)
@@ -80,6 +64,29 @@ namespace AreArpg.PlayMode.Tests
             yield return Capture("rattler-brand-discovered.png");
             MoveStory(0, -24000); TravelStory();
             Assert.AreEqual(6, Game.Progression.EntryAct); Assert.IsTrue(Game.CanStand(Game.PlayerXmm, Game.PlayerZmm));
+        }
+        /// <summary>Separate private-art acceptance: absence, an unanimated rig or a missing neck brand is a real failure.</summary>
+        [UnityTest]
+        public IEnumerator RattlerPrivateAssetBindsBoneAnimationAndBrand()
+        {
+            _runtime.enabled = false;
+            var creature = new GameObject("Rattler_Private_Art_Check");
+            Assert.IsTrue(PassiveArtVisuals.TryBindGrounded(creature.transform, "CryptRattler", 0),
+                "Creep Horror Creature must be imported as the reviewed private CryptRattler prefab");
+            Assert.IsNotEmpty(creature.GetComponentsInChildren<SkinnedMeshRenderer>(), "The requested Creep asset must actually render");
+            var animator = creature.GetComponentInChildren<Animator>(); Assert.IsNotNull(animator);
+            Assert.IsNotNull(animator.runtimeAnimatorController); Assert.IsFalse(animator.applyRootMotion);
+            foreach (var skin in creature.GetComponentsInChildren<SkinnedMeshRenderer>())
+                foreach (var material in skin.sharedMaterials) Assert.IsTrue(material != null && material.mainTexture != null);
+            Assert.IsTrue(System.Array.Exists(creature.GetComponentsInChildren<Transform>(true), t => t.name == "Immergruen_Royal_Brand"), "The neck brand must be present on the private visual");
+            var bones = creature.GetComponentsInChildren<Transform>();
+            animator.Play("Idle", 0, .2f); animator.Update(0);
+            var poses = new Quaternion[bones.Length]; for (int i = 0; i < poses.Length; i++) poses[i] = bones[i].localRotation;
+            animator.Play("Attack", 0, .45f); animator.Update(0);
+            int changed = 0; for (int i = 0; i < poses.Length; i++) if (Quaternion.Angle(poses[i], bones[i].localRotation) > .5f) changed++;
+            Assert.Greater(changed, 5, "An attached controller without actual bone animation is insufficient");
+            animator.Play("Idle", 0, 0); animator.Update(0);
+            yield return null;
         }
     }
 }
