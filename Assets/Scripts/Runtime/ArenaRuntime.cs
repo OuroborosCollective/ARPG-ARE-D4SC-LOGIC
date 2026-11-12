@@ -321,6 +321,8 @@ namespace AreArpg.UnityClient
             _campRationVisuals.Clear();
             _returnPassage = null;
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
+            if (_entryProfile && _game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4)
+                _chapterScenery.Add(OutdoorBackdrop.Create(_game.Progression.EntryAct));
             if (_game.Progression.EntryAct == 7) { BuildRattlerDen(); return; }
             if (_game.Progression.EntryAct >= 5) { BuildInvestigationScenery(); return; }
             if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); return; }
