@@ -49,6 +49,9 @@ namespace AreArpg.UnityClient
             MusicVolume = ReadVolume("music", .35f); VoiceVolume = ReadVolume("voice", .9f); EffectsVolume = ReadVolume("effects", .65f);
             Muted = PlayerPrefs.GetInt(PreferencePrefix + "mute", 0) != 0;
             ReducedEffects = PlayerPrefs.GetInt(PreferencePrefix + "reduced", 0) != 0;
+            foreach (var source in _sources) source.mute = Muted;
+            _musicA.volume = _musicB.volume = 0;
+            _voice.volume = VoiceVolume; _ambience.volume = EffectsVolume * .27f; _water.volume = EffectsVolume * .3f;
             BuildParticles();
         }
 
@@ -76,6 +79,7 @@ namespace AreArpg.UnityClient
             foreach (var source in _effects) source.Stop();
             // Exactly two music sources crossfade; rapid travel reuses the same bounded pair.
             var old = _musicA; _musicA = _musicB; _musicB = old; _fade = 0;
+            _musicA.volume = 0;
             Loop(_musicA, Clip(act >= 5 || act <= 1 ? "music_crypt" : "music_road"));
             Loop(_ambience, Clip(act == 2 ? "ambient_village" : act == 4 ? "ambient_mill" : "ambient_wind"));
             Loop(_water, act == 4 ? Clip("water_mill") : null);
@@ -103,6 +107,7 @@ namespace AreArpg.UnityClient
             Subtitle = (_speaker == 0 ? "Ilyan" : _speaker == 1 ? "Mara" : _speaker == 2 ? "Dorn" : "Jäger") + ": " + NpcSpeech.Text(next.Value);
             _voice.clip = Clip("voice_" + _speaker + "_" + (int)next.Value);
             _subtitleLeft = _voice.clip != null ? _voice.clip.length + .3f : Mathf.Max(3f, Subtitle.Length / 13f);
+            _voice.volume = VoiceVolume; _voice.mute = Muted;
             if (_voice.clip != null) { _voice.Play(); SpeechCount++; }
         }
 
