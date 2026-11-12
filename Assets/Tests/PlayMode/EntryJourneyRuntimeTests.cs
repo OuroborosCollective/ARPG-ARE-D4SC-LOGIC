@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 namespace AreArpg.PlayMode.Tests
 {
     /// <summary>Real Unity adapter test; arranged combat fixtures are not an unattended player playthrough.</summary>
-    public sealed class EntryJourneyRuntimeTests
+    public sealed partial class EntryJourneyRuntimeTests
     {
         private readonly string[] _keys = { "ARE_ARPG_entry_v1", "ARE_ARPG_entry_v1_backup" };
         private readonly string[] _saved = new string[2];
@@ -624,6 +624,12 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
             Assert.IsTrue(saved.Road.Rescued && saved.Road.FavorClaimed); Assert.AreEqual(0, saved.Road.Purse);
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget(); yield return Capture("hunter-bear-rescued.png");
+            var speech = _runtime.GetComponentInChildren<AshenAtmosphere>();
+            StringAssert.Contains("Jäger", speech.Subtitle);
+            MoveStory(2000, -5000);
+            speech.ObserveTick(Game, Game.PlayerXmm, Game.PlayerZmm, Game.PlayerHealth);
+            Assert.IsEmpty(speech.Subtitle, "Leaving the rescued hunter must stop his local dialogue.");
+            Assert.IsFalse(Find("NPC speech").GetComponent<AudioSource>().isPlaying);
             foreach (var root in _scene.GetRootGameObjects()) Object.Destroy(root);
             yield return null;
             _runtime = new GameObject("Reload_Hunter_Runtime").AddComponent<ArenaRuntime>(); yield return null; _runtime.enabled = false;

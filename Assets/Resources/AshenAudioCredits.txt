@@ -1,0 +1,20 @@
+Ashen Crypt – vorläufige Audiobesetzung
+
+Texte und Spiel: Thomas Markgraf (Künstlerpseudonym OuroborosCollective).
+
+Vorgerenderte synthetische Stimmen: Piper, externes Produktionswerkzeug (OHF-Voice, GPL-3.0-or-later; Engine wird nicht mit dem Spiel ausgeliefert).
+
+Ilyan / Dorn / Jäger: Thorsten-medium. Thorsten-Voice (Thorsten Müller), CC0; aktualisiertes Modell auf rdh (Flemish TTS, CC0) trainiert.
+https://github.com/thorstenMueller/Thorsten-Voice
+https://github.com/r-dh/dutch-vl-tts
+
+Mara: Kerstin-medium, Aufnahmen CC0. Basismodell hifi_tts_92: Stimme Cori Samuel, Hi-Fi Multi-Speaker English TTS Dataset, NVIDIA Corporation; Bakhturina, Lavrukhin, Ginsburg und Zhang (2021), CC BY 4.0. Verarbeitung: Modell-Finetuning und Synthese eigener deutscher Spieltexte.
+https://www.openslr.org/109/
+https://creativecommons.org/licenses/by/4.0/
+https://huggingface.co/rhasspy/piper-voices
+
+Musik: Action RPG Exploration Themes, Chimera Forge Productions.
+Umgebung: Fantasy Kingdom 3D Sample Project, Unity Technologies.
+Schritte / Kampfeffekte: 3D Game Kit, Unity Technologies.
+Originale Holzschrittsynthese: Ashen Crypt.
+Asset-Store-Medien werden im Spiel eingebunden; die Quelldateien sind nicht Bestandteil des öffentlichen Repositorys.
