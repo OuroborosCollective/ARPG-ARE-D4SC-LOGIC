@@ -990,6 +990,7 @@ namespace AreArpg.UnityClient
                 _hero.position = new Vector3(x, 1.05f, z);
                 AnimateActor(_hero, _game.PlayerXmm - _game.PrevPlayerXmm, _game.PlayerZmm - _game.PrevPlayerZmm);
             }
+            UpdateHeroCameraContext();
             foreach (MonsterState enemy in _game.Monsters)
             {
                 // The warning ring is presentation of real BossWindupTicks, not client-owned damage.
@@ -1115,7 +1116,7 @@ namespace AreArpg.UnityClient
                 if (_cameraRig != null)
                 {
                     GUI.Box(layout.CameraPanelRect, "KAMERA");
-                    string[] cameraLabels = { "+", "-", "RESET" };
+                    string[] cameraLabels = { "+", "-", "AUTO" };
                     for (int i = 0; i < cameraLabels.Length; i++)
                     {
                         if (Application.isMobilePlatform) GUI.Box(layout.CameraZoomRect(i), cameraLabels[i]);

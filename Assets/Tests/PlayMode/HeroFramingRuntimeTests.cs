@@ -28,6 +28,16 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator MovingHeroKeepsTheCloserTravelFraming()
+        {
+            ReachQuietVillage(); Game.SetMoveInput(10000, 0); Game.Step(); ProjectCameraFrame();
+            yield return new WaitForSeconds(1.2f);
+            Assert.AreEqual(HeroFraming.Travel, Camera.main.GetComponent<ArenaCameraRig>().Framing);
+            Assert.Greater(HeroViewportHeight(), .17f);
+            yield return Capture("hero-camera-travel.png");
+        }
+
+        [UnityTest]
         public IEnumerator QuietStandingShowsReadableArmourWithoutChangingTheWorld()
         {
             ReachQuietVillage();

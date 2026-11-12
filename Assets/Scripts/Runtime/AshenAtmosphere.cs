@@ -31,6 +31,7 @@ namespace AreArpg.UnityClient
         public bool Muted { get; private set; }
         public bool ReducedEffects { get; private set; }
         public string Subtitle { get; private set; } = "";
+        public int SpeakerId { get { return _speaker; } }
         public string LastEffectKey { get; private set; } = "";
         public int FootstepCount { get; private set; }
         public int SpeechCount { get; private set; }

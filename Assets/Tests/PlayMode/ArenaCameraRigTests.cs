@@ -24,6 +24,27 @@ namespace AreArpg.PlayMode.Tests
             Object.DestroyImmediate(_hero);
         }
 
+        [Test] public void ContextFramesIdleMotionAndDangerWithoutOverridingManualZoom()
+        {
+            _rig.SetContext(false, false, false, Vector3.zero);
+            for (int i = 0; i < 35; i++) _rig.AdvancePresentation(.1f);
+            Assert.AreEqual(HeroFraming.Idle, _rig.Framing);
+            Assert.AreEqual(3f, Vector3.Distance(_camera.transform.position, _hero.transform.position), .01f);
+            _rig.SetContext(false, true, true, Vector3.right);
+            for (int i = 0; i < 15; i++) _rig.AdvancePresentation(.1f);
+            Assert.AreEqual(HeroFraming.Combat, _rig.Framing, "Danger takes priority over dialogue and stillness.");
+            Assert.AreEqual(9f, Vector3.Distance(_camera.transform.position, _hero.transform.position), .01f);
+            _rig.ZoomSteps(1); Assert.AreEqual(7.65f, _rig.Distance, .01f, "Manual input starts from the displayed framing.");
+            _rig.SetContext(false, false, true, Vector3.right);
+            for (int i = 0; i < 35; i++) _rig.AdvancePresentation(.1f);
+            Assert.AreEqual(HeroFraming.Manual, _rig.Framing); Assert.IsFalse(_rig.Automatic);
+            _rig.SnapToTarget(); Assert.AreEqual(7.65f, _rig.Distance, .01f);
+            _rig.ResetZoom(); _rig.SetContext(true, false, true, Vector3.right);
+            for (int i = 0; i < 15; i++) _rig.AdvancePresentation(.1f);
+            Assert.AreEqual(HeroFraming.Travel, _rig.Framing, "Walking exits the cinematic even while speech continues.");
+            Assert.AreEqual(6.5f, Vector3.Distance(_camera.transform.position, _hero.transform.position), .01f);
+        }
+
         /// <summary>A 200-to-300-unit spread magnifies the hero; touch enumeration order is irrelevant.</summary>
         [Test] public void PinchTracksFingerIdsAndCanResetItsFraming()
         {
