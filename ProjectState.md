@@ -8,7 +8,13 @@
 - implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. PR25 ist als 86bae8f108aaf1ee508dd7b24dc448e49c2bdc2a in main integriert.
 - open_decisions: Konkrete Wappenzeichnung, Abrichter, Auftraggeber, Motiv, konditionierter Zielgeruch und Schicksal der einzelnen Vermissten. Kein persoenlicher Koenigsbefehl allein aus dem Wappen ableiten.
 - verified: Privates Creep-Horror-Creature-Originalpaket244853 als CryptRattler gebunden (LOD1, 2107Vertices, vier Clips, Halsbrandmal als Grafikprototyp). Native Knochenbewegung/Brandmalbindung und Begegnung bestanden; Unity6 PlayMode68/68, EditMode31/31. Revisionsbindung und XML-Hashes: Memory.md [rattler-pr25-20261112].
-- next: PR28 bleibt nach gemeinsamer nativer Pruefung Draft zur Sichtabnahme. Hoehlenverdeckung, Horizonte, Patientenmodelle und finale Wappenzeichnung priorisieren; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+- next: PR28 bleibt nach gemeinsamer nativer Pruefung Draft zur Sichtabnahme. Horizonte und Patientenmodelle priorisieren; das Brandmal bleibt primaer ein Lore-Hinweis mit optionaler kleiner Grafik; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+
+## Sichtkorrektur am Rattler (12.11.2026)
+
+Die zuvor als Hoehlenverdeckung dokumentierte dunkle Flaeche war das durch importierte Knochenmasse auf rund31m vergroesserte Halsbrandmal. Im isolierten privaten Prefab wurde ausschliesslich dessen lokale Skalierung korrigiert; Kamerafuehrung, UI, Koerpermodell, Animationen und Core bleiben erhalten. Neues natives Bild zeigt freie Sicht auf Rattler und Hiebwarnung. Der Owner versteht das Brandmal primaer als Lore-Hinweis; eine unauffaellige kleine Grafik ist akzeptiert, kein eigenstaendiges Tattoo-Feature erforderlich.
+
+Code6ba7623ecd55ce0fc7e8c0bcf29a126527ead8b7: Core1840, Preflights38, GitHub-CI43331070721 success, native PlayMode98/98 und EditMode31/31,0Skips. Exakte RED/GREEN-/XML-/Prefab-Bindung in Memory.md [rattler-brand-scale-20261112]. Reproduzierbarer Editor-Schritt: `ARE ARPG/Art/Fit Private Rattler Brand`. Private Rohassets bleiben unversioniert. PR28 bleibt Draft zur Sichtabnahme.
 
 ## Gemeinsame Integration PR25 / PR28 (12.11.2026)
 
