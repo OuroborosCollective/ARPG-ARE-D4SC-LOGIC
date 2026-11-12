@@ -31,30 +31,30 @@ namespace AreArpg.PlayMode.Tests
             _rig.ObserveTouch(4, TouchPhase.Began, new Vector2(400f, 200f), true);
             _rig.ObserveTouch(9, TouchPhase.Began, new Vector2(600f, 200f), true);
             _rig.EndTouchFrame();
-            Assert.AreEqual(11.5f, _rig.Distance);
+            Assert.AreEqual(6.5f, _rig.Distance);
             _rig.BeginTouchFrame();
             _rig.ObserveTouch(9, TouchPhase.Moved, new Vector2(650f, 200f), true);
             _rig.ObserveTouch(4, TouchPhase.Moved, new Vector2(350f, 200f), true);
             _rig.EndTouchFrame();
-            Assert.AreEqual(7.666667f, _rig.Distance, .001f);
+            Assert.AreEqual(4.333333f, _rig.Distance, .001f);
             _rig.ResetZoom();
-            Assert.AreEqual(11.5f, _rig.Distance);
+            Assert.AreEqual(6.5f, _rig.Distance);
         }
 
         /// <summary>Manual buttons cannot leave the reviewed range, and legacy framing keeps its prior default.</summary>
         [Test] public void StepZoomClampsAndResetsPerProfile()
         {
             _rig.ZoomSteps(1f);
-            Assert.AreEqual(9.775f, _rig.Distance, .001f);
+            Assert.AreEqual(5.525f, _rig.Distance, .001f);
             _rig.ZoomSteps(float.NaN);
             _rig.ZoomSteps(float.PositiveInfinity);
-            Assert.AreEqual(9.775f, _rig.Distance, .001f);
+            Assert.AreEqual(5.525f, _rig.Distance, .001f);
             _rig.ZoomSteps(100f);
-            Assert.AreEqual(7f, _rig.Distance);
+            Assert.AreEqual(2.8f, _rig.Distance);
             _rig.ZoomSteps(-100f);
             Assert.AreEqual(22f, _rig.Distance);
             _rig.ResetZoom();
-            Assert.AreEqual(11.5f, _rig.Distance);
+            Assert.AreEqual(6.5f, _rig.Distance);
             _rig.Configure(_hero.transform, false);
             Assert.AreEqual(22f, _rig.Distance);
         }
@@ -70,7 +70,7 @@ namespace AreArpg.PlayMode.Tests
             _rig.ObserveTouch(1, TouchPhase.Moved, new Vector2(300f, 200f), true);
             _rig.ObserveTouch(2, TouchPhase.Moved, new Vector2(700f, 200f), true);
             _rig.EndTouchFrame();
-            Assert.AreEqual(11.5f, _rig.Distance);
+            Assert.AreEqual(6.5f, _rig.Distance);
         }
 
         /// <summary>Lost, canceled and replacement fingers rebase the gesture rather than reusing stale spans.</summary>
@@ -87,13 +87,13 @@ namespace AreArpg.PlayMode.Tests
             _rig.ObserveTouch(3, TouchPhase.Began, new Vector2(100f, 200f), true);
             _rig.ObserveTouch(2, TouchPhase.Stationary, new Vector2(600f, 200f), true);
             _rig.EndTouchFrame();
-            Assert.AreEqual(11.5f, _rig.Distance);
+            Assert.AreEqual(6.5f, _rig.Distance);
             _rig.BeginTouchFrame();
             _rig.ObserveTouch(3, TouchPhase.Canceled, new Vector2(100f, 200f), true);
             _rig.ObserveTouch(2, TouchPhase.Moved, new Vector2(900f, 200f), true);
             _rig.EndTouchFrame();
             _rig.ClearTouches();
-            Assert.AreEqual(11.5f, _rig.Distance);
+            Assert.AreEqual(6.5f, _rig.Distance);
         }
 
         /// <summary>A replacement starts after release processing regardless of the OS contact order.</summary>
@@ -125,12 +125,12 @@ namespace AreArpg.PlayMode.Tests
             if (!replacementFirst) _rig.ObserveTouch(3, TouchPhase.Began, new Vector2(300f, 200f), true);
             _rig.ObserveTouch(2, TouchPhase.Stationary, new Vector2(600f, 200f), true);
             _rig.EndTouchFrame();
-            Assert.AreEqual(11.5f, _rig.Distance, "Replacement must establish a fresh span without jumping.");
+            Assert.AreEqual(6.5f, _rig.Distance, "Replacement must establish a fresh span without jumping.");
             _rig.BeginTouchFrame();
             _rig.ObserveTouch(3, TouchPhase.Moved, new Vector2(150f, 200f), true);
             _rig.ObserveTouch(2, TouchPhase.Stationary, new Vector2(600f, 200f), true);
             _rig.EndTouchFrame();
-            Assert.AreEqual(7.666667f, _rig.Distance, .001f, "Replacement must be adopted on its Began frame.");
+            Assert.AreEqual(4.333333f, _rig.Distance, .001f, "Replacement must be adopted on its Began frame.");
         }
 
         /// <summary>Coincident fingers do not divide by zero or reuse an invalid pinch baseline.</summary>
@@ -144,7 +144,7 @@ namespace AreArpg.PlayMode.Tests
             _rig.ObserveTouch(1, TouchPhase.Moved, new Vector2(400f, 200f), true);
             _rig.ObserveTouch(2, TouchPhase.Moved, new Vector2(600f, 200f), true);
             _rig.EndTouchFrame();
-            Assert.AreEqual(11.5f, _rig.Distance);
+            Assert.AreEqual(6.5f, _rig.Distance);
         }
 
         /// <summary>Zoom uses the same safe-area rectangles for drawing and touch; other HUD regions block pinch starts.</summary>
