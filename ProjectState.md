@@ -1,5 +1,17 @@
 # ARE Ashen Crypt — Projektzustand
 
+## Aktueller Entwicklungsblock: MaulwurfRattler (12.11.2026)
+
+- phase: VERTICAL_SLICE / CREATURE_INTEGRATION
+- current_goal: Inneren Kryptazugang, blinden MaulwurfRattler, Schleichen und untersuchbares Halsbrandmal als zusammenhaengenden Spielabschnitt integrieren.
+- approved: Owner-Kanon zu Aschenglutfällen, konditionierter Geruchsjagd und dem schwebenden Handelsreich Immergruen; gewaehltes Modellpaket Creep Horror Creature. Vollstaendiger Vertrag: [RATTLER_IMMERGRUEN](docs/RATTLER_IMMERGRUEN.md).
+- implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. Der Kandidat ist noch nicht integriert.
+- open_decisions: Konkrete Wappenzeichnung, Abrichter, Auftraggeber, Motiv, konditionierter Zielgeruch und Schicksal der einzelnen Vermissten. Kein persoenlicher Koenigsbefehl allein aus dem Wappen ableiten.
+- blocked: Das gewaehlte private Kreaturmodell ist noch nicht als geprueftes CryptRattler-Binding vorhanden. Die eigenstaendige Art-Abnahme bleibt eine notwendige Integrationsbedingung.
+- next: Modell und Animationen privat importieren, Halsbrandmal anbringen, native Art-Abnahme inklusive echter Knochenbewegung abschliessen; danach Kandidaten integrieren. Kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+
+## Historischer Projektzustand vor den Folgeabschnitten
+
 Stand: 2026-11-10 (Aschengrenze-Entwicklung). Repository: github.com/ouroboroscollective/arpg-are-d4sc-logic; PR #1 ist als Merge-Commit e607c609c2ed7f02223689de3aa6cab7aedda3bc auf main.
 
 - phase: VERTICAL_SLICE / GAMEPLAY_EXPANSION
