@@ -12,6 +12,8 @@ namespace AreArpg.Core
     public sealed class SocialResult
     {
         public bool Accepted;
+        public int SpeakerId = -1;
+        public SpeechLine Speech, FollowupSpeech;
         public string Text = "";
     }
 

@@ -274,6 +274,7 @@ namespace AreArpg.Core
             {
                 if (!h.Rescued || h.FavorClaimed) return r;
                 h.FavorClaimed = true; Progression.Social.ReceiveHunterCoins(h);
+                r.SpeakerId = 3; r.Speech = SpeechLine.HunterThanks;
                 r.Text = "Jaeger: Du hast mir das Leben gerettet. Nimm meinen Beutel. Das vergesse ich dir nicht.";
             }
             r.Accepted = true; return r;

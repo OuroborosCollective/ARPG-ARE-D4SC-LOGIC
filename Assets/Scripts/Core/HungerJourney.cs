@@ -150,7 +150,14 @@ namespace AreArpg.Core
                 result.Text = "Eine Lagerstatt ist leer. Die anderen berichten von weiteren Vermissten. Verband und Schleifspuren weisen zum alten Speicher.";
             }
             else return result;
-            if (contact != null) contact.InteractionCooldownTicks = 10;
+            if (contact != null)
+            {
+                contact.InteractionCooldownTicks = 10;
+                result.SpeakerId = contact.Id;
+                result.Speech = action == HungerAction.HearIlyan ? SpeechLine.IlyanSecret :
+                    action == HungerAction.Protect ? SpeechLine.IlyanProtected :
+                    action == HungerAction.Replace ? SpeechLine.SuppliesReplaced : SpeechLine.MaraInformed;
+            }
             result.Accepted = true;
             return result;
         }

@@ -169,6 +169,7 @@ namespace AreArpg.Core
             {
                 var npc = HungerContact(0); if (npc == null) return result;
                 npc.InteractionCooldownTicks = 10; c.Reported = true;
+                result.SpeakerId = 0; result.Speech = SpeechLine.CryptReport;
                 result.Text = "Ilyan hoert deinen Bericht: Eine verborgene Krypta und frische Spuren. Er weiss nun davon. Ob dort Vermisste leben oder ein Menschenfresser lauert, ist noch nicht bewiesen.";
             }
             else return result;

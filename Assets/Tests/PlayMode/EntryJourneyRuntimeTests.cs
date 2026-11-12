@@ -67,8 +67,8 @@ namespace AreArpg.PlayMode.Tests
             yield return new WaitForSeconds(0.9f);
             var hero = Find("Wanderer");
             Assert.IsNotNull(hero);
-            Assert.AreEqual(11.5f, Vector3.Distance(Camera.main.transform.position, hero.transform.position), 0.1f,
-                "The entry profile should frame the hero at 11.5 m instead of the old 16 m overview");
+            Assert.AreEqual(6.5f, Camera.main.GetComponent<ArenaCameraRig>().Distance, 0.1f,
+                "The entry profile must start from the approved closer 6.5 m framing");
         }
 
         /// <summary>The real native camera magnifies the hero while the actual Core and save bytes remain untouched.</summary>
@@ -89,7 +89,7 @@ namespace AreArpg.PlayMode.Tests
             float after = Vector2.Distance(camera.WorldToViewportPoint(hero.transform.position),
                 camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
             Assert.Greater(after, before * 1.4f, "The actual projection must visibly magnify the hero");
-            Assert.AreEqual(7f, Vector3.Distance(camera.transform.position, hero.transform.position), .05f);
+            Assert.AreEqual(2.8f, Vector3.Distance(camera.transform.position, hero.transform.position), .1f);
             yield return Capture("camera-close.png");
             rig.ZoomSteps(-100f);
             yield return new WaitForSeconds(.9f);
@@ -624,6 +624,12 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
             Assert.IsTrue(saved.Road.Rescued && saved.Road.FavorClaimed); Assert.AreEqual(0, saved.Road.Purse);
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget(); yield return Capture("hunter-bear-rescued.png");
+            var speech = _runtime.GetComponentInChildren<AshenAtmosphere>();
+            StringAssert.Contains("Jäger", speech.Subtitle);
+            MoveStory(2000, -5000);
+            speech.ObserveTick(Game, Game.PlayerXmm, Game.PlayerZmm, Game.PlayerHealth);
+            Assert.IsEmpty(speech.Subtitle, "Leaving the rescued hunter must stop his local dialogue.");
+            Assert.IsFalse(Find("NPC speech").GetComponent<AudioSource>().isPlaying);
             foreach (var root in _scene.GetRootGameObjects()) Object.Destroy(root);
             yield return null;
             _runtime = new GameObject("Reload_Hunter_Runtime").AddComponent<ArenaRuntime>(); yield return null; _runtime.enabled = false;

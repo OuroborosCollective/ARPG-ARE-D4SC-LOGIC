@@ -20,5 +20,6 @@
     <Compile Include="../../Assets/Scripts/Core/HunterEncounter.cs" Link="HunterEncounter.cs" />
     <Compile Include="../../Assets/Scripts/Core/RattlerEncounter.cs" Link="RattlerEncounter.cs" />
     <Compile Include="../../Assets/Scripts/Core/CryptInvestigation.cs" Link="CryptInvestigation.cs" />
+    <Compile Include="../../Assets/Scripts/Core/NpcSpeech.cs" Link="NpcSpeech.cs" />
   </ItemGroup>
 </Project>

@@ -29,6 +29,7 @@ internal static class Program
             CheckpointTests.Run(Require);
             PracticeWorldTests.Run(Require);
             NpcSocialTests.Run(Require);
+            NpcSpeechTests.Run(Require);
             SupplyTheftTests.Run(Require);
             LootAffixTests.Run(Require);
             SkillContractTests.Run(Require);
