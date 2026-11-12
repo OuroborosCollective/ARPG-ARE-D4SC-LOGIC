@@ -99,7 +99,15 @@ namespace AreArpg.UnityClient
         public static Rect SpeechSubtitleRect(ArenaHudLayout l, bool journalOpen, bool hasMastery)
         {
             float width = journalOpen ? 560 : Mathf.Min(360, l.Width - 650);
-            return new Rect((l.Width - width) / 2, journalOpen ? l.Height - 80 : 148, width, journalOpen ? 74 : 132);
+            var rect = new Rect((l.Width - width) / 2, journalOpen ? l.Height - 80 : 148, width, journalOpen ? 74 : 132);
+            if (!journalOpen && hasMastery)
+                for (int i = 0; i < 3; i++) if (rect.Overlaps(l.MasteryRect(i)))
+                {
+                    rect.y = l.MasteryRect(2).yMax + 8;
+                    rect.height = Mathf.Min(rect.height, l.PickupRect.yMin - 8 - rect.y);
+                    break;
+                }
+            return rect;
         }
 
         private void DrawSpeechSubtitle(ArenaHudLayout l)

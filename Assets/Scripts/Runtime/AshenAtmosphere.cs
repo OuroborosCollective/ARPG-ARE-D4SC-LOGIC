@@ -70,8 +70,8 @@ namespace AreArpg.UnityClient
         }
 
         private AudioClip Clip(string key) { _clips.TryGetValue(key, out var clip); return clip; }
-        private static void Loop(AudioSource source, AudioClip clip)
-        { source.Stop(); source.clip = clip; if (clip != null) source.Play(); }
+        private void Loop(AudioSource source, AudioClip clip)
+        { source.Stop(); source.clip = clip; if (clip != null && !_suspended) source.Play(); }
 
         public void EnterRegion(int act)
         {
@@ -85,7 +85,7 @@ namespace AreArpg.UnityClient
             Loop(_water, act == 4 ? Clip("water_mill") : null);
             _ash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             _dust.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            if (act >= 2 && act <= 4) _ash.Play(); else _dust.Play();
+            if (!_suspended) { if (act >= 2 && act <= 4) _ash.Play(); else _dust.Play(); }
             ApplyParticleBudget();
         }
 
@@ -93,8 +93,7 @@ namespace AreArpg.UnityClient
         {
             if (!result.Accepted || result.Speech == SpeechLine.None || result.SpeakerId < 0) return;
             // A deliberate new conversation replaces old chatter; at most its two lines are queued.
-            if (_speaker == result.SpeakerId && _currentLine == result.Speech && _subtitleLeft > 0) return;
-            CancelSpeech();
+            CancelSpeech(); _speaker = result.SpeakerId;
             _speech.Enqueue(new KeyValuePair<int, SpeechLine>(result.SpeakerId, result.Speech));
             if (result.FollowupSpeech != SpeechLine.None) _speech.Enqueue(new KeyValuePair<int, SpeechLine>(result.SpeakerId, result.FollowupSpeech));
             NextSpeech();
@@ -102,7 +101,8 @@ namespace AreArpg.UnityClient
 
         private void NextSpeech()
         {
-            if (_speech.Count == 0) { Subtitle = ""; _currentLine = SpeechLine.None; return; }
+            if (_suspended) return; // Keep the bounded queue; begin its audio and subtitle together on resume.
+            if (_speech.Count == 0) { Subtitle = ""; _speaker = -1; _currentLine = SpeechLine.None; return; }
             var next = _speech.Dequeue(); _speaker = next.Key; _currentLine = next.Value;
             Subtitle = (_speaker == 0 ? "Ilyan" : _speaker == 1 ? "Mara" : _speaker == 2 ? "Dorn" : "Jäger") + ": " + NpcSpeech.Text(next.Value);
             _voice.clip = Clip("voice_" + _speaker + "_" + (int)next.Value);
@@ -123,6 +123,11 @@ namespace AreArpg.UnityClient
                 long dx = npc == null ? 100000 : npc.Xmm - game.PlayerXmm, dz = npc == null ? 0 : npc.Zmm - game.PlayerZmm;
                 if (npc == null || npc.Memory.Health <= 0 || dx * dx + dz * dz > 100000000) CancelSpeech();
             }
+            else if (_speaker == 3)
+            {
+                long dx = HunterEncounter.HunterX - game.PlayerXmm, dz = HunterEncounter.HunterZ - game.PlayerZmm;
+                if (game.Progression.EntryAct != 3 || game.Progression.Road.HunterHealth <= 0 || dx * dx + dz * dz > 100000000) CancelSpeech();
+            }
             if (game.PlayerHealth < oldHealth) Effect("hurt", Position(game), .7f);
             long movedX = game.PlayerXmm - oldX, movedZ = game.PlayerZmm - oldZ;
             float distance = Mathf.Sqrt((float)(movedX * movedX + movedZ * movedZ)) / 1000f;
@@ -141,13 +146,14 @@ namespace AreArpg.UnityClient
 
         public void Skill(SkillResult result, int slot, ArenaSimulation game)
         {
-            if (!result.Activated) return;
+            if (!result.Activated || _suspended) return;
             Effect(slot <= 1 ? "swing" : "spell", Position(game), .8f);
             if (result.Hits > 0) { Effect("impact", Position(game), .8f); _sparks.transform.position = Position(game); _sparks.Emit(ReducedEffects ? 3 : 9); }
         }
 
         public void Effect(string key, Vector3 position, float volume)
         {
+            if (_suspended) return; // Transient world effects are dropped while the app is inactive.
             var clip = Clip(key); if (clip == null) return;
             int index = _effectIndex; _effectIndex = (_effectIndex + 1) % EffectVoices;
             _effectGains[index] = volume; var source = _effects[index]; source.Stop(); source.transform.position = position;
@@ -183,8 +189,19 @@ namespace AreArpg.UnityClient
             _suspended = suspended;
             foreach (var source in _sources) if (suspended) source.Pause(); else source.UnPause();
             if (suspended) { _ash.Pause(); _dust.Pause(); _sparks.Pause(); }
-            else { if (_act >= 2 && _act <= 4) _ash.Play(); else _dust.Play(); }
+            else
+            {
+                if (_act >= 2 && _act <= 4) _ash.Play(); else _dust.Play();
+                _sparks.Play();
+                // Region changes may have selected new loops while suspended.
+                ResumeLoop(_musicA); ResumeLoop(_ambience); ResumeLoop(_water);
+                if (_fade < 1f) ResumeLoop(_musicB);
+                if (_currentLine == SpeechLine.None) NextSpeech();
+            }
         }
+
+        private static void ResumeLoop(AudioSource source)
+        { if (source.clip != null && !source.isPlaying) source.Play(); }
 
         private void BuildParticles()
         {
@@ -199,7 +216,7 @@ namespace AreArpg.UnityClient
             velocity.x = .3f; velocity.y = -.75f; velocity.z = .08f;
             _dust = Particles("Low crypt mist", 24, 2, 2.3f, new Color(.42f, .55f, .6f, .055f), new Vector3(18, .3f, 18), 10);
             _sparks = Particles("Confirmed hit motes", 30, 0, .09f, new Color(.9f, .63f, .3f, .6f), Vector3.one * .3f, .35f);
-            var main = _sparks.main; main.startSpeed = 2.5f;
+            var main = _sparks.main; main.startSpeed = 2.5f; _sparks.Play();
         }
 
         private ParticleSystem Particles(string name, int limit, float rate, float size, Color color, Vector3 area, float lifetime)
