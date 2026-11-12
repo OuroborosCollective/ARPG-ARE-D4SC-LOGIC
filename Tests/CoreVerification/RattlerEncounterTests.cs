@@ -92,6 +92,35 @@ internal static class RattlerEncounterTests
         var kills = a.Progression.LifetimeKills; var loot = a.Progression.LootCollected;
         a = Reload(a); for (int i = 0; i < 30; i++) { a.ActivateSkill(3); a.Step(); }
         check(a.Progression.LifetimeKills == kills && a.Progression.LootCollected == loot && loot == 1, "rattler-death-reward-reload-idempotent");
+        // One audible step at hearing range, then quiet evasion: a later windup can outlive perception memory.
+        var lapse = Den(); lapse.ActOnHunger(HungerAction.ToggleSneak); HunterEncounterTests.Move(lapse, 0, -5000);
+        lapse.ActOnHunger(HungerAction.ToggleSneak); lapse.SetMoveInput(0, 10000); lapse.Step();
+        lapse.ActOnHunger(HungerAction.ToggleSneak);
+        bool lapsedWindup = false, inFlightLoads = true, lapsedStrikeResolves = false;
+        for (int i = 0; i < 160; i++)
+        {
+            lapse.SetMoveInput(i < 24 ? 10000 : 0, 0); lapse.Step();
+            var lr = lapse.Progression.Rattler;
+            if (lr.Creature.BossWindupTicks == 0) continue;
+            bool loads; try { loads = CharacterProgression.TryLoad(lapse.Progression.SaveString(), out _); } catch (Exception) { loads = false; }
+            inFlightLoads &= loads;
+            if (lr.MemoryTicks == 0 && loads && !lapsedWindup)
+            {
+                lapsedWindup = true; var resumed = Reload(lapse);
+                for (int t = 0; t < 10 && resumed.Progression.Rattler.Creature.BossWindupTicks > 0; t++) resumed.Step();
+                lapsedStrikeResolves = resumed.Progression.Rattler.Creature.BossWindupTicks == 0 && resumed.Progression.Rattler.Creature.AttackCooldownTicks > 0;
+            }
+            else if (lr.MemoryTicks == 0) lapsedWindup = true;
+        }
+        check(lapsedWindup, "rattler-windup-can-outlive-perception-memory");
+        check(inFlightLoads, "rattler-in-flight-windup-checkpoint-always-loads");
+        check(lapsedStrikeResolves, "rattler-lapsed-windup-strike-resolves-after-reload");
+        foreach (var extreme in new[] { "-9223372036854775808", "9223372036854775807" })
+            foreach (int field in new[] { 4, 11, 13 })
+            {
+                bool rejected; try { rejected = !CharacterProgression.TryLoad(Alter(a.Progression.SaveString(), field, extreme), out _); } catch (Exception) { rejected = false; }
+                check(rejected, "rattler-reject-extreme-coordinate-without-throw-" + field + (extreme[0] == '-' ? "-min" : "-max"));
+            }
         foreach (var bad in new[] { new[] {"0","0"}, new[] {"1","2"}, new[] {"4","12000"}, new[] {"5","21000"}, new[] {"6","1"}, new[] {"7","15"}, new[] {"8","1"}, new[] {"9","0"}, new[] {"10","61"}, new[] {"11","999999"}, new[] {"13","01"} })
             check(!CharacterProgression.TryLoad(Alter(a.Progression.SaveString(), int.Parse(bad[0]), bad[1]), out _), "rattler-reject-rechecksummed-invalid-" + bad[0]);
         for (int act = 7; act >= 3; act--) { HunterEncounterTests.Move(a, 0, -24000); a = a.TryTraversePassage(); check(a != null, "rattler-return-passage-" + act); }

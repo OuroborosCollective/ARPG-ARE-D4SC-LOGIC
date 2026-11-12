@@ -690,6 +690,7 @@ namespace AreArpg.UnityClient
             if (PollAudioInput(layout)) return;
             if (PollRoadInput(layout)) return;
             if (PollHungerInput(layout)) return;
+            if (PollRattlerInput(layout)) return;
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
             bool hasMastery = _game.Progression.UnspentMasteryPoints > 0;
@@ -1099,6 +1100,7 @@ namespace AreArpg.UnityClient
 
                 if (DrawAudioPanel(layout)) return;
                 DrawRoadHud(layout);
+                DrawRattlerHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
                 DrawSpeechSubtitle(layout);
                 GUI.Box(layout.StatusPanelRect, "");

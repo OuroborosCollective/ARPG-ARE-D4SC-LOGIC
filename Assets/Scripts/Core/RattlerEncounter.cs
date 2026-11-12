@@ -41,7 +41,8 @@ namespace AreArpg.Core
                 n[6] < 0 || n[6] > MaximumHealth || n[7] < 0 || n[7] > 14 || n[8] < 0 || n[8] > 10 ||
                 n[9] < 0 || n[9] > 1 || (n[6] == 0) != (n[9] == 1) ||
                 (n[6] == 0 && n[8] != 0) || (n[2] == 1 && n[6] != 0) ||
-                n[10] < 0 || n[10] > 60 || (n[8] > 0 && n[10] == 0)) return false;
+                // A windup freezes its strike point, so it may legitimately outlive perception memory (MemoryTicks 0).
+                n[10] < 0 || n[10] > 60) return false;
             foreach (int i in new[] { 4, 11, 13 })
                 if (!ArenaSimulation.CanStandInRattlerDen(n[i], n[i + 1])) return false;
             var r = new RattlerEncounter { Active = true, Sneaking = n[1] == 1, BrandExamined = n[2] == 1,
@@ -62,7 +63,11 @@ namespace AreArpg.Core
     {
         /// <summary>The den has an unobstructed central floor, matching its visible walls and sealed north end.</summary>
         public static bool CanStandInRattlerDen(long x, long z)
-        { return Math.Abs(x) <= 12000 - PlayerRadiusMm && z >= -ArenaLimitMm && z <= 20500 - PlayerRadiusMm; }
+        {
+            // Direct bounds instead of Math.Abs: long.MinValue from a damaged save must be rejected, not throw.
+            const long halfWidth = 12000 - PlayerRadiusMm;
+            return x >= -halfWidth && x <= halfWidth && z >= -ArenaLimitMm && z <= 20500 - PlayerRadiusMm;
+        }
 
         private void HearRattlerNoise()
         {
