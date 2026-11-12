@@ -657,6 +657,36 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse(Game.InteractHunter(false).Accepted);
         }
 
+        [UnityTest]
+        public IEnumerator OutdoorBackdropFollowsTravelWithoutChangingTheCore()
+        {
+            Assert.IsNull(Find("ARE_Outdoor_Backdrop"), "The opening crypt keeps its interior atmosphere");
+            yield return CompleteSupplyJourney();
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            var backdrop = Find("ARE_Outdoor_Backdrop");
+            Assert.IsNotNull(backdrop, "The mill must have a surrounding landscape, not a void horizon");
+            Assert.IsNotNull(Find("Outdoor_Sky"));
+            Assert.IsNotNull(Find("Outdoor_FarRidge"));
+            foreach (var collider in backdrop.GetComponentsInChildren<Collider>(true))
+                Assert.IsFalse(collider.enabled, "Backdrop geometry must never supply gameplay collision");
+            int vertices = 0;
+            foreach (var filter in backdrop.GetComponentsInChildren<MeshFilter>())
+            {
+                vertices += filter.sharedMesh.vertexCount;
+                Assert.IsNotNull(filter.GetComponent<Renderer>().sharedMaterial);
+                Assert.IsTrue(filter.GetComponent<Renderer>().sharedMaterial.shader.isSupported);
+            }
+            Assert.Less(vertices, 30000, "The distant landscape has a bounded geometry budget");
+            ulong hash = Game.ComputeWorldHash(); string save = Game.Progression.SaveString();
+            var rig = Camera.main.GetComponent<ArenaCameraRig>();
+            rig.SnapToTarget();
+            yield return Capture("outdoor-mill-north.png");
+            Assert.AreEqual(hash, Game.ComputeWorldHash()); Assert.AreEqual(save, Game.Progression.SaveString());
+            MoveStory(0, 24000); TravelStory(); yield return null;
+            Assert.AreEqual(5, Game.Progression.EntryAct);
+            Assert.IsNull(Find("ARE_Outdoor_Backdrop"), "Leaving the outdoor regions removes their backdrop");
+        }
+
         /// <summary>Use fixed-tick input to reach an interaction or portal; no player teleport fixtures.</summary>
         private void MoveStory(long x, long z)
         {
