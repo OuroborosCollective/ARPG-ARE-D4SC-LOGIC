@@ -51,20 +51,13 @@ namespace AreArpg.PlayMode.Tests
                     Assert.IsTrue(Find("ARE_Rattler_Strike_Warning").activeSelf);
                     Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
                     yield return Capture("rattler-telegraph.png");
-                    foreach (var filter in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None))
+                    var probeRay = Camera.main.ViewportPointToRay(new Vector3(.25f, .5f, 0));
+                    foreach (var renderer in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
                     {
-                        var renderer = filter.GetComponent<MeshRenderer>();
-                        if (renderer == null || !renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
-                        var probe = filter.gameObject.AddComponent<MeshCollider>();
-                        probe.sharedMesh = filter.sharedMesh;
-                        Physics.SyncTransforms();
-                        for (int sample = 0; sample < 3; sample++)
-                        {
-                            var ray = Camera.main.ViewportPointToRay(new Vector3(.25f + sample * .25f, .5f, 0));
-                            if (probe.Raycast(ray, out var hit, 30f))
-                                Debug.Log("VIEW_PROBE " + sample + " " + hit.distance + " " + filter.transform.root.name + "/" + filter.name + " bounds=" + renderer.bounds);
-                        }
-                        Object.DestroyImmediate(probe);
+                        if (!renderer.enabled || !renderer.gameObject.activeInHierarchy) continue;
+                        if (renderer.bounds.Contains(Camera.main.transform.position) ||
+                            (renderer.bounds.IntersectRay(probeRay, out float distance) && distance < 8f))
+                            Debug.Log("VIEW_BOUNDS " + renderer.transform.root.name + "/" + renderer.name + " " + renderer.GetType().Name + " " + renderer.bounds);
                     }
                     Debug.Log("VIEW_CAMERA " + Camera.main.transform.position + " hero=" + Find("Wanderer").transform.position);
                     captured = true;
