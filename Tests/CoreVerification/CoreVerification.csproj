@@ -18,6 +18,7 @@
     <Compile Include="../../Assets/Scripts/Core/EntryWorldLayout.cs" Link="EntryWorldLayout.cs" />
     <Compile Include="../../Assets/Scripts/Core/HungerJourney.cs" Link="HungerJourney.cs" />
     <Compile Include="../../Assets/Scripts/Core/HunterEncounter.cs" Link="HunterEncounter.cs" />
+    <Compile Include="../../Assets/Scripts/Core/RattlerEncounter.cs" Link="RattlerEncounter.cs" />
     <Compile Include="../../Assets/Scripts/Core/CryptInvestigation.cs" Link="CryptInvestigation.cs" />
   </ItemGroup>
 </Project>

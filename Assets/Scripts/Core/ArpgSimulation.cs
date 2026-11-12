@@ -156,7 +156,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -214,6 +214,7 @@ namespace AreArpg.Core
                 PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
                 InitializeRoadEncounter();
                 InitializeInvestigation();
+                if (Progression.EntryAct == 7) Monsters.Add(Progression.Rattler.Creature);
                 return;
             }
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
@@ -472,7 +473,7 @@ namespace AreArpg.Core
         {
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);
-            if (Progression.EntryAct >= 5) return CanStandInInvestigation(Progression.EntryAct, Progression.Investigation.Approach, x, z);
+            if (Progression.EntryAct >= 5) return CanStandInInvestigation(Progression.EntryAct, Progression.Investigation.Approach, x, z, Progression.Rattler.Active);
             if (Progression.EntryAct >= 3) return CanStandInHungerRegion(Progression.EntryAct, x, z);
             long[] coordinates = { -7000, 7000 };
             foreach (long px in coordinates)
@@ -484,8 +485,9 @@ namespace AreArpg.Core
 
         private void MovePlayer()
         {
-            long dx = _directionXbp * PlayerSpeedMmPerTick / 10000L;
-            long dz = _directionZbp * PlayerSpeedMmPerTick / 10000L;
+            long speed = Progression.EntryAct == 7 && Progression.Rattler.Sneaking ? 240 : PlayerSpeedMmPerTick;
+            long dx = _directionXbp * speed / 10000L;
+            long dz = _directionZbp * speed / 10000L;
             if (CanStand(PlayerXmm + dx, PlayerZmm + dz)) { PlayerXmm += dx; PlayerZmm += dz; }
             else if (CanStand(PlayerXmm + dx, PlayerZmm)) PlayerXmm += dx;
             else if (CanStand(PlayerXmm, PlayerZmm + dz)) PlayerZmm += dz;
@@ -507,12 +509,13 @@ namespace AreArpg.Core
             MovePlayer();
             StepNpcs();
             StepRoadEncounter();
+            StepRattler();
             StepInvestigation();
             if (GameOver) return;
 
             foreach (MonsterState enemy in Monsters)
             {
-                if (enemy.IsDead || enemy.Kind == 4) continue;
+                if (enemy.IsDead || enemy.Kind == 4 || enemy.Kind == 5) continue;
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
@@ -587,6 +590,7 @@ namespace AreArpg.Core
                 bool firstKill = enemy.IsDead && !enemy.LootGranted;
                 FinishBear(); if (firstKill) result.Kills++; SaveRoadPlayer(); return;
             }
+            if (enemy.Kind == 5) { FinishRattler(result); return; }
             if (enemy.IsDead && !enemy.LootGranted)
             {
                 enemy.LootGranted = true;
@@ -636,6 +640,7 @@ namespace AreArpg.Core
                         DealDamage(enemy, skill.PowerBp, slot, result);
             }
             else DealDamage(nearest, skill.PowerBp, slot, result);
+            HearRattlerNoise(); SaveInvestigationPlayer();
             result.Message = skill.DisplayName +
                 ": " + result.TotalDamage + " damage / " + result.Kills + " kills";
             return result;

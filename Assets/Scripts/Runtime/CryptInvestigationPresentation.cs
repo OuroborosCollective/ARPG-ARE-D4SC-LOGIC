@@ -6,12 +6,15 @@ namespace AreArpg.UnityClient
 {
     public sealed partial class ArenaRuntime
     {
-        private Transform _investigationGate, _cryptWarning, _cryptDebris;
+        private Transform _investigationGate, _innerGate, _cryptWarning, _cryptDebris;
 
         /// <summary>Offer at most three contextual actions; Core validates each queued request independently.</summary>
         private HungerAction[] InvestigationActions()
         {
             var p = _game.Progression; var c = p.Investigation;
+            if (p.EntryAct == 2 && p.Rattler.BrandExamined && !p.Rattler.Reported) return new[] { HungerAction.ReportRoyalBrand };
+            if (p.EntryAct == 7) return p.Rattler.Creature.IsDead && !p.Rattler.BrandExamined ? new[] { HungerAction.InspectRoyalBrand } : new HungerAction[0];
+            if (p.EntryAct == 6 && c.TraceFound && !p.Rattler.Active) return new[] { HungerAction.OpenInnerDoor };
             if (p.EntryAct == 2 && c.TraceFound && !c.Reported) return new[] { HungerAction.ReportCrypt };
             if (p.EntryAct == 6 && !c.TraceFound) return new[] { HungerAction.InspectCryptTrace };
             if (p.EntryAct != 5 || c.Approach != SealApproach.Undecided) return new HungerAction[0];
@@ -68,8 +71,9 @@ namespace AreArpg.UnityClient
             }
             else
             {
-                _worldPassage = null;
-                BuildInvestigationDoor("HiddenCrypt_InnerDoor", true);
+                _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage", new Vector3(0, .035f, 24),
+                    new Vector3(3.6f, .02f, 3.6f), new Color(.2f, .65f, .72f));
+                _innerGate = BuildInvestigationDoor("HiddenCrypt_InnerDoor", true);
                 ChapterShape(PrimitiveType.Cube, "HiddenCrypt_FreshBandage", new Vector3(0, .05f, 15),
                     new Vector3(1.3f, .08f, .4f), new Color(.9f, .8f, .65f));
                 ClueMark("HiddenCrypt_TraceMark", 0, 15);
@@ -114,6 +118,7 @@ namespace AreArpg.UnityClient
         {
             var c = _game.Progression.Investigation;
             if (_investigationGate != null) _investigationGate.gameObject.SetActive(c.Approach == SealApproach.Undecided);
+            if (_innerGate != null) _innerGate.gameObject.SetActive(!_game.Progression.Rattler.Active);
             if (_cryptWarning != null) _cryptWarning.gameObject.SetActive(c.TrapTicks > 0);
             if (_cryptDebris != null) _cryptDebris.gameObject.SetActive(c.TrapTicks == -1);
         }

@@ -30,7 +30,7 @@ namespace AreArpg.Core
             return string.Join(",", f.Select(x => Convert.ToString(x, CultureInfo.InvariantCulture)));
         }
 
-        internal static bool TryRead(string token, int act, out CryptInvestigation result)
+        internal static bool TryRead(string token, int act, out CryptInvestigation result, bool innerOpen = false)
         {
             result = null; string[] f = token.Split(','); if (f.Length != 17) return false;
             var n = new long[15];
@@ -45,10 +45,10 @@ namespace AreArpg.Core
                 n[4] < 0 || n[4] > n[3] || n[5] < -1 || n[5] > 10 ||
                 (n[2] == 0 && (n[3] != 0 || act == 6)) || (n[2] == 1 && n[1] != 7) ||
                 (n[2] == 2 && (n[1] & 4) == 0) || (n[2] != 2 && n[5] != 0) ||
-                (n[6] != 0 && (n[6] != act || (act != 5 && act != 6) || (a | b) == 0)) ||
+                (n[6] != 0 && (n[6] != act || (act != 5 && act != 6 && act != 7) || (a | b) == 0)) ||
                 n[7] < -27000 || n[7] > 27000 || n[8] < -27000 || n[8] > 27000 ||
                 n[9] < 0 || n[9] > int.MaxValue || n[10] < 0 || n[10] > 100) return false;
-            if (n[6] != 0 && !ArenaSimulation.CanStandInInvestigation(act, (SealApproach)n[2], n[7], n[8])) return false;
+            if (n[6] != 0 && !ArenaSimulation.CanStandInInvestigation(act, (SealApproach)n[2], n[7], n[8], innerOpen)) return false;
             for (int i = 11; i < 15; i++) if (n[i] < 0 || n[i] > 300) return false;
             var r = new CryptInvestigation { Active = true, Clues = (int)n[1], Approach = (SealApproach)n[2],
                 TraceFound = n[3] == 1, Reported = n[4] == 1, TrapTicks = (int)n[5], SavedAct = (int)n[6],
@@ -82,7 +82,7 @@ namespace AreArpg.Core
         private void SaveInvestigationPlayer()
         {
             var c = Progression.Investigation; int act = Progression.EntryAct;
-            if (!c.Active || (act != 5 && act != 6)) return;
+            if (!c.Active || (act != 5 && act != 6 && act != 7)) return;
             c.SavedAct = act; c.SavedX = PlayerXmm; c.SavedZ = PlayerZmm;
             c.SavedHealth = PlayerHealth; c.SavedResource = Resource;
             for (int i = 0; i < 4; i++) c.SavedCooldowns[i] = Cooldowns[i];
@@ -122,8 +122,9 @@ namespace AreArpg.Core
             return crypt ? new InvestigationBox(index == 0 ? -7500 : 7500, 4000, 1500, 2800) :
                 index == 0 ? new InvestigationBox(-7000, -8000, 2000, 2000) : new InvestigationBox(7000, 5000, 2000, 2500);
         }
-        internal static bool CanStandInInvestigation(int act, SealApproach approach, long x, long z)
+        internal static bool CanStandInInvestigation(int act, SealApproach approach, long x, long z, bool innerOpen = false)
         {
+            if (act == 7) return CanStandInRattlerDen(x, z);
             if (x < -12000 + PlayerRadiusMm || x > 12000 - PlayerRadiusMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             for (int i = 0; i < 2; i++)
             {
@@ -131,7 +132,7 @@ namespace AreArpg.Core
                 if (Math.Abs(x - box.X) <= box.HalfX + PlayerRadiusMm &&
                     Math.Abs(z - box.Z) <= box.HalfZ + PlayerRadiusMm) return false;
             }
-            if ((act == 6 || approach == SealApproach.Undecided) &&
+            if (((act == 6 && !innerOpen) || approach == SealApproach.Undecided) &&
                 z > 20500 - PlayerRadiusMm) return false;
             if (z >= 20500 - PlayerRadiusMm && z <= 21500 + PlayerRadiusMm && Math.Abs(x) >= 2000 - PlayerRadiusMm) return false;
             return true;
@@ -179,9 +180,10 @@ namespace AreArpg.Core
             get
             {
                 var c = Progression.Investigation;
+                if (Progression.Rattler.Active) return RattlerObjective;
                 if (!c.Active) return "Folge der Spur vom Verletztenlager durch den Nordweg zum alten Speicher.";
-                if (c.Reported) return "Ilyan kennt die Spuren. Die innere Kryptatuer bleibt verschlossen; Ursache und Vermisste sind noch ungeklaert.";
-                if (c.TraceFound) return "Kehre durch Speicher, Muehle und Aschestrasse zu Ilyan zurueck und berichte persoenlich.";
+                if (c.Reported) return "Ilyan kennt die Spuren. Untersuche nun den Riegel der inneren Kryptatuer.";
+                if (c.TraceFound) return "Berichte Ilyan persoenlich oder oeffne am frischen Verband den Riegel der inneren Kryptatuer.";
                 if (c.Approach != SealApproach.Undecided) return c.Approach == SealApproach.Broken ?
                     "Steige in die Krypta. Der Siegelbruch hat Steine geloest: weiche roten Fallstellen aus. Untersuche den Verband vor der inneren Tuer." :
                     "Der Zugang ist gesichert. Steige in die Krypta und untersuche den Verband vor der inneren Tuer.";

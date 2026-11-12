@@ -55,6 +55,9 @@ namespace AreArpg.UnityClient
                 case HungerAction.OpenSeal: return "SIEGEL ENTLASTEN: Zugang kontrolliert oeffnen";
                 case HungerAction.BreakSeal: return "SIEGEL BRECHEN: Gefahr durch lose Deckensteine!";
                 case HungerAction.InspectCryptTrace: return "AN DER INNEREN TUER: Frische Spuren untersuchen";
+                case HungerAction.OpenInnerDoor: return "AM VERBAND: Inneren Riegel loesen und weitergehen";
+                case HungerAction.InspectRoyalBrand: return "AM HALS: Koenigliches Brandmal untersuchen";
+                case HungerAction.ReportRoyalBrand: return "BEI ILYAN: Das Brandmal von Immergruen melden";
                 case HungerAction.ReportCrypt: return "BEI ILYAN: Persoenlich von der Krypta berichten";
                 default: return "Unbekannte Handlung";
             }
