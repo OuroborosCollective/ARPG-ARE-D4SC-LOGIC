@@ -3,14 +3,20 @@ using UnityEngine;
 
 namespace AreArpg.UnityClient
 {
+    public enum HeroFraming { Travel, Combat, Idle, Dialogue, Manual }
+
     /// <summary>Cosmetic hero framing only; this component never reads or writes Core state.</summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
     public sealed class ArenaCameraRig : MonoBehaviour
     {
         private Transform _target;
-        private readonly Quaternion _rotation = Quaternion.Euler(52f, 0f, 0f);
-        private float _defaultDistance;
+        private float _defaultDistance, _framingDistance, _pitch, _idleSeconds, _dangerHold;
+        private bool _entryProfile, _manual, _moving, _danger, _speaking;
+        private Vector3 _focus, _speakerPosition;
+        public HeroFraming Framing { get; private set; }
+        public bool Automatic { get { return !_manual; } }
+        private float MinimumDistance { get { return _entryProfile ? 2.8f : 7f; } }
         private struct Finger
         {
             public int Id;
@@ -28,7 +34,8 @@ namespace AreArpg.UnityClient
         public void Configure(Transform target, bool entryProfile)
         {
             _target = target;
-            _defaultDistance = entryProfile ? 11.5f : 22f;
+            _entryProfile = entryProfile;
+            _defaultDistance = entryProfile ? 6.5f : 22f;
             ResetZoom();
             SnapToTarget();
         }
@@ -36,15 +43,17 @@ namespace AreArpg.UnityClient
         /// <summary>Restore only camera framing; no character data is involved.</summary>
         public void ResetZoom()
         {
-            Distance = _defaultDistance;
+            Distance = _defaultDistance; _manual = false; _idleSeconds = 0;
             ClearTouches();
         }
 
         /// <summary>Positive button or wheel steps move closer; invalid input cannot poison camera transforms.</summary>
         public void ZoomSteps(float steps)
         {
-            if (!Finite(steps)) return;
-            Distance = Mathf.Clamp(Distance * Mathf.Pow(.85f, Mathf.Clamp(steps, -32f, 32f)), 7f, 22f);
+            if (!Finite(steps) || Mathf.Abs(steps) < .001f) return;
+            float from = _manual ? Distance : _framingDistance;
+            Distance = Mathf.Clamp(from * Mathf.Pow(.85f, Mathf.Clamp(steps, -32f, 32f)), MinimumDistance, 22f);
+            _manual = true;
             ClearTouches();
         }
 
@@ -98,7 +107,12 @@ namespace AreArpg.UnityClient
             if (_first.Id < 0 || _second.Id < 0) { _hasSpan = false; return; }
             float span = Vector2.Distance(_first.Position, _second.Position);
             if (!Finite(span) || span < 8f) { _hasSpan = false; return; }
-            if (_hasSpan) Distance = Mathf.Clamp(Distance * (_previousSpan / span), 7f, 22f);
+            if (_hasSpan && Mathf.Abs(span - _previousSpan) > .01f)
+            {
+                float from = _manual ? Distance : _framingDistance;
+                Distance = Mathf.Clamp(from * (_previousSpan / span), MinimumDistance, 22f);
+                _manual = true;
+            }
             _previousSpan = span;
             _hasSpan = true;
         }
@@ -106,19 +120,57 @@ namespace AreArpg.UnityClient
         private static bool Finite(float value) { return !float.IsNaN(value) && !float.IsInfinity(value); }
         private void OnDisable() { ClearTouches(); }
 
-        /// <summary>Follow a canonical region transition without an old-distance camera jump.</summary>
+        /// <summary>Read-only context supplied by the existing runtime projection.</summary>
+        public void SetContext(bool moving, bool danger, bool speaking, Vector3 speakerPosition)
+        {
+            _moving = moving; _danger = danger; _speaking = speaking;
+            _speakerPosition = speakerPosition;
+        }
+
+        /// <summary>Travel clears old cinematic context while preserving a deliberate manual zoom.</summary>
         public void SnapToTarget()
         {
             if (_target == null) return;
-            transform.SetPositionAndRotation(_target.position - _rotation * Vector3.forward * Distance, _rotation);
+            _moving = _danger = _speaking = false; _idleSeconds = _dangerHold = 0;
+            _framingDistance = Distance; _pitch = _entryProfile ? 38f : 52f; _focus = _target.position;
+            Framing = _manual ? HeroFraming.Manual : HeroFraming.Travel;
+            PlaceCamera();
         }
 
-        private void LateUpdate()
+        private void PlaceCamera()
         {
-            if (_target == null) return;
-            Vector3 desired = _target.position - _rotation * Vector3.forward * Distance;
-            transform.position = Vector3.Lerp(transform.position, desired, 1f - Mathf.Exp(-8f * Time.deltaTime));
-            transform.rotation = _rotation;
+            var rotation = Quaternion.Euler(_pitch, 0, 0);
+            transform.SetPositionAndRotation(_focus - rotation * Vector3.forward * _framingDistance, rotation);
+        }
+
+        private void LateUpdate() { AdvancePresentation(Time.deltaTime); }
+
+        /// <summary>Advance cosmetic interpolation only; explicit delta also permits bounded native checks.</summary>
+        public void AdvancePresentation(float seconds)
+        {
+            if (_target == null || !Finite(seconds) || seconds <= 0) return;
+            float dt = Mathf.Min(seconds, .1f);
+            _dangerHold = _danger ? 1.5f : Mathf.Max(0, _dangerHold - dt);
+            _idleSeconds = _moving || _dangerHold > 0 || _speaking ? 0 : _idleSeconds + dt;
+            Framing = _manual ? HeroFraming.Manual : !_entryProfile ? HeroFraming.Travel :
+                _dangerHold > 0 ? HeroFraming.Combat : _moving ? HeroFraming.Travel :
+                _speaking ? HeroFraming.Dialogue : _idleSeconds >= 1.1f ? HeroFraming.Idle : HeroFraming.Travel;
+            float distance = Distance, pitch = _entryProfile ? 38f : 52f;
+            Vector3 focus = _target.position;
+            if (Framing == HeroFraming.Combat) { distance = 9f; pitch = 48f; }
+            if (Framing == HeroFraming.Idle) { distance = 3f; pitch = 20f; }
+            if (Framing == HeroFraming.Dialogue)
+            {
+                distance = 3.5f; pitch = 18f;
+                Vector3 offset = _speakerPosition - focus; offset.y = 0;
+                if (offset.sqrMagnitude <= 3.5f * 3.5f) focus += Vector3.ClampMagnitude(offset * .25f, .6f);
+            }
+            if (Framing == HeroFraming.Manual) pitch = Mathf.Lerp(20f, 52f, Mathf.InverseLerp(MinimumDistance, 9f, distance));
+            float blend = 1f - Mathf.Exp(-8f * dt);
+            _framingDistance = Mathf.Lerp(_framingDistance, distance, blend);
+            _pitch = Mathf.Lerp(_pitch, pitch, blend);
+            _focus = Vector3.Lerp(_focus, focus, 1f - Mathf.Exp(-10f * dt));
+            PlaceCamera();
         }
     }
 }
