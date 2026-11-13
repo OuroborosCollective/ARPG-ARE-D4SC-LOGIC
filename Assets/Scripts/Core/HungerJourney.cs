@@ -4,7 +4,7 @@ using System.Globalization;
 namespace AreArpg.Core
 {
     public enum HungerChoice { Undecided = 0, Reveal = 1, Protect = 2, Replace = 3 }
-    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17 }
+    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17, OpenDungeonSeal = 18, BreakDungeonSeal = 19, OpenWestChest = 20, OpenEastChest = 21 }
 
     public sealed partial class CharacterProgression
     {
@@ -55,7 +55,7 @@ namespace AreArpg.Core
         /// <summary>Authored shelter encounter: one patient is missing on the return visit, on every supply branch.</summary>
         public int HungerShelterPatients { get { return Progression.EntryAct != 4 ? 0 :
             Progression.SupplyChoice == HungerChoice.Undecided ? 3 : 2; } }
-        public bool HungerForwardOpen { get { return Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
+        public bool HungerForwardOpen { get { return InDungeon ? DungeonForwardOpen : Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
             Progression.EntryAct == 3 ? Progression.HungerStage >= 2 :
             Progression.EntryAct == 4 ? Progression.HungerStage == 4 :
             Progression.EntryAct == 5 ? Progression.Investigation.Approach != SealApproach.Undecided :
@@ -64,6 +64,7 @@ namespace AreArpg.Core
         /// <summary>Return edges remain open; forward edges require the clue in the actual region.</summary>
         private ArenaSimulation TraverseHunger(bool backwards)
         {
+            if (InDungeon) return TraverseDungeon(backwards);
             if (GameOver || GroundLoot.Count != 0 || (backwards ? Progression.EntryAct < 3 : !HungerForwardOpen)) return null;
             if (!CharacterProgression.TryLoad(Progression.SaveString(), out var next)) return null;
             next.TravelHunger(Progression.EntryAct + (backwards ? -1 : 1), backwards);
@@ -108,7 +109,8 @@ namespace AreArpg.Core
         /// <summary>Apply one versioned story action at its real location; repeated requests cannot duplicate effects.</summary>
         public SocialResult ActOnHunger(HungerAction action)
         {
-            if (action >= HungerAction.OpenInnerDoor) return ActOnRattler(action);
+            if (action >= HungerAction.OpenDungeonSeal && action <= HungerAction.OpenEastChest) return ActOnDungeon(action);
+            if (action >= HungerAction.OpenInnerDoor && action <= HungerAction.ReportRoyalBrand) return ActOnRattler(action);
             if (action >= HungerAction.StoreBandage) return ActOnInvestigation(action);
             var result = new SocialResult { Text = "Hier gibt es dafuer noch keinen neuen Hinweis." };
             if (GameOver || Progression.EntryAct < 2 || Progression.EntryAct > 4) return result;
@@ -185,6 +187,7 @@ namespace AreArpg.Core
         {
             get
             {
+                if (InDungeon) return DungeonObjective;
                 switch (Progression.HungerStage)
                 {
                     case 0: return "Ilyan verbirgt etwas. Sprich mit ihm in der Aschengrenze.";

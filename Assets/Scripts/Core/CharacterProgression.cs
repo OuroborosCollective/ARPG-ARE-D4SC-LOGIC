@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Globalization;
 using System.Collections.Generic;
@@ -150,7 +151,7 @@ namespace AreArpg.Core
         /// <summary>Keep legacy AC5/AC7 bytes; explicit entry profiles bind revision/act and receipts in AC8.</summary>
         private string Payload()
         {
-            return (Rattler.Active ? "AC12|" : Investigation.Active ? "AC11|" : Road.Started ? "AC10|" : HungerStage > 0 ? "AC9|" : EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
+            return (Dungeon.Active ? "AC14|" : Rattler.Active ? "AC12|" : Investigation.Active ? "AC11|" : Road.Started ? "AC10|" : HungerStage > 0 ? "AC9|" : EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
                 "|" + LootCollected.ToString(CultureInfo.InvariantCulture) +
                 "|" + LifetimeKills.ToString(CultureInfo.InvariantCulture) +
@@ -165,7 +166,7 @@ namespace AreArpg.Core
                 "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|" + (HungerStage > 0 ? HungerToken() : "1," + EntryAct.ToString(CultureInfo.InvariantCulture)) :
                     (_items.Count == 0 ? "" : "|" + ItemToken())) +
                 (Road.Started || Investigation.Active ? "|" + Road.Token() + "|" + Social.RoadSocialToken() : "") +
-                (Investigation.Active ? "|" + Investigation.Token() : "") + (Rattler.Active ? "|" + Rattler.Token() : "");
+                (Investigation.Active ? "|" + Investigation.Token() : "") + (Rattler.Active ? "|" + Rattler.Token() : Dungeon.Active ? "|-" : "") + (Dungeon.Active ? "|" + Dungeon.Token() : "");
         }
 
         private static ulong HashText(string payload)
@@ -201,8 +202,9 @@ namespace AreArpg.Core
             bool ac5 = parts[0] == "AC5" && parts.Length == 15;
             bool ac7 = parts[0] == "AC7" && parts.Length == 16;
             bool ac8 = parts[0] == "AC8" && parts.Length == 17;
-            bool ac12 = parts[0] == "AC12" && parts.Length == 21;
-            bool ac11 = (parts[0] == "AC11" && parts.Length == 20) || ac12;
+            bool ac14 = parts[0] == "AC14" && parts.Length == 22;
+            bool ac12 = (parts[0] == "AC12" && parts.Length == 21) || (ac14 && parts[19] != "-");
+            bool ac11 = (parts[0] == "AC11" && parts.Length == 20) || ac12 || ac14;
             bool ac10 = (parts[0] == "AC10" && parts.Length == 19) || ac11;
             bool ac9 = (parts[0] == "AC9" && parts.Length == 17) || ac10;
             bool current = ac2 || ac3 || ac4 || ac5 || ac7 || ac8 || ac9;
@@ -230,7 +232,7 @@ namespace AreArpg.Core
             int entryAct = 0, hungerStage = 0;
             bool entryFromNorth = false;
             HungerChoice supplyChoice = HungerChoice.Undecided;
-            if (ac9 && (!unlockedDepth.IsOne || !ReadHungerToken(parts[15], out entryAct, out entryFromNorth, out hungerStage, out supplyChoice, ac11, ac12))) return false;
+            if (ac9 && (!unlockedDepth.IsOne || !ReadHungerToken(parts[15], out entryAct, out entryFromNorth, out hungerStage, out supplyChoice, ac11, ac12 || ac14))) return false;
             if (ac8)
             {
                 if (!unlockedDepth.IsOne || (parts[15] != "1,1" && parts[15] != "1,2")) return false;
@@ -239,10 +241,14 @@ namespace AreArpg.Core
             HunterEncounter road = new HunterEncounter();
             if (ac10 && (!HunterEncounter.TryRead(parts[16], out road) || (!road.Started && !ac11) || !social.ReadRoadSocial(parts[17]) ||
                 (road.ResumePlayer && entryAct != 3))) return false;
+            var dungeon = new CryptDungeonState();
+            if (ac14 && !CryptDungeonState.TryRead(parts[20], entryAct, out dungeon)) return false;
             CryptInvestigation investigation = new CryptInvestigation();
-            if (ac11 && (hungerStage != 4 || !CryptInvestigation.TryRead(parts[18], entryAct, out investigation, ac12))) return false;
+            if (ac11 && (hungerStage != 4 || !CryptInvestigation.TryRead(parts[18], entryAct, out investigation, ac12, ac14 && entryAct >= 6 ? dungeon.Depth : 0))) return false;
             var rattler = new RattlerEncounter();
             if (ac12 && (!investigation.TraceFound || !RattlerEncounter.TryRead(parts[19], out rattler))) return false;
+            if (ac14 && (investigation.Approach == SealApproach.Undecided ||
+                ((dungeon.UnlockedDepth == 3 || entryAct == 7) && !rattler.Active) || (entryAct < 6 && dungeon.Depth != 1))) return false;
             // A valid checksum is necessary but does not make an invalid progression valid.
             ulong checksum;
             if (!ulong.TryParse(parts[last], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out checksum) ||
@@ -262,12 +268,19 @@ namespace AreArpg.Core
                 }
                 if (items.Count > loot || BigInteger.Min(receiptPoints, int.MaxValue) > weapon) return false;
             }
+            if (ac14)
+            {
+                var ordinals = new HashSet<BigInteger>(items.Select(i => i.KillOrdinal));
+                for (int d = 1; d <= 3; d++)
+                    foreach (var drop in dungeon.Floor(d).Loot)
+                        if (drop.Item != null && (drop.Item.KillOrdinal > kills || !ordinals.Add(drop.Item.KillOrdinal))) return false;
+            }
             progress = new CharacterProgression {
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LifetimeKills = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
                 UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct,
-                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler
+                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon
             };
             if (ac11 && investigation.SavedHealth > CombatRules.MaximumHealth(progress)) { progress = null; return false; }
             if (ac10 && (road.SavedHealth > CombatRules.MaximumHealth(progress) ||

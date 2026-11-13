@@ -18,6 +18,7 @@
     <Compile Include="../../Assets/Scripts/Core/EntryWorldLayout.cs" Link="EntryWorldLayout.cs" />
     <Compile Include="../../Assets/Scripts/Core/HungerJourney.cs" Link="HungerJourney.cs" />
     <Compile Include="../../Assets/Scripts/Core/HunterEncounter.cs" Link="HunterEncounter.cs" />
+    <Compile Include="../../Assets/Scripts/Core/CryptDungeon.cs" Link="CryptDungeon.cs" />
     <Compile Include="../../Assets/Scripts/Core/CryptDungeonState.cs" Link="CryptDungeonState.cs" />
     <Compile Include="../../Assets/Scripts/Core/CryptDungeonLayout.cs" Link="CryptDungeonLayout.cs" />
     <Compile Include="../../Assets/Scripts/Core/RattlerEncounter.cs" Link="RattlerEncounter.cs" />

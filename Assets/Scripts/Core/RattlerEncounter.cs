@@ -98,7 +98,7 @@ namespace AreArpg.Core
                 return;
             }
             // A lost trail returns to the authored feeding place, never to an unseen moving player.
-            if (r.MemoryTicks == 0) { r.TargetX = 0; r.TargetZ = 8000; }
+            if (r.MemoryTicks == 0) { r.TargetX = 0; r.TargetZ = InDungeon ? 17000 : 8000; }
             long dx = r.TargetX - m.Xmm, dz = r.TargetZ - m.Zmm;
             long d2 = dx * dx + dz * dz;
             if (r.MemoryTicks > 0 && d2 <= FixedMath.Square(2100) && m.AttackCooldownTicks == 0)
@@ -107,7 +107,7 @@ namespace AreArpg.Core
             long distance = Math.Max(1, FixedMath.IntegerSqrt(d2));
             long step = Math.Min(380, distance);
             long nx = m.Xmm + dx * step / distance, nz = m.Zmm + dz * step / distance;
-            if (CanStandInRattlerDen(nx, nz)) { m.Xmm = nx; m.Zmm = nz; }
+            if (InDungeon ? CanStand(nx, nz) : CanStandInRattlerDen(nx, nz)) { m.Xmm = nx; m.Zmm = nz; }
         }
 
         private void FinishRattler(SkillResult result)
@@ -124,7 +124,7 @@ namespace AreArpg.Core
             var r = Progression.Rattler; var c = Progression.Investigation;
             var result = new SocialResult { Text = "Gehe zum passenden Hinweis." };
             if (GameOver) return result;
-            if (action == HungerAction.OpenInnerDoor && Progression.EntryAct == 6 && c.TraceFound && !r.Active &&
+            if (action == HungerAction.OpenInnerDoor && Progression.EntryAct == 6 && (!InDungeon || Progression.Dungeon.Depth == 2) && c.TraceFound && !r.Active &&
                 DistanceSquared(PlayerXmm, PlayerZmm, 0, 15000) <= FixedMath.Square(NpcInteractionRadiusMm))
             { r.Active = true; result.Text = "Der Riegel gibt nach. Dahinter scharrt etwas. Leise Schritte vermeiden Laerm; aus der Naehe kann es dich riechen."; }
             else if (action == HungerAction.ToggleSneak && Progression.EntryAct == 7)
