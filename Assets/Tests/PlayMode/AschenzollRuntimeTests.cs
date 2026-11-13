@@ -18,9 +18,17 @@ namespace AreArpg.PlayMode.Tests
         private IEnumerator VerifyAschenzoll(bool release)
         {
             InstallWoodlandFixture();Game.Progression.Social.EnableForge();
-            WoodlandWalk(-36000,0);
-            while(Game.GroundLoot.Count>0){var drop=Game.GroundLoot[0];WoodlandWalk(drop.Xmm,drop.Zmm);Game.TryCollectLoot();}
-            WoodlandWalk(-36000,0);TravelStory();yield return null;
+            // Returning from a loot sweep can encounter another live group. Finish that encounter too.
+            for(int sweep=0;sweep<32;sweep++)
+            {
+                WoodlandWalk(-36000,0);
+                if(Game.GroundLoot.Count==0)break;
+                while(Game.GroundLoot.Count>0){var drop=Game.GroundLoot[0];WoodlandWalk(drop.Xmm,drop.Zmm);Game.TryCollectLoot();}
+            }
+            Assert.AreEqual(0,Game.GroundLoot.Count,"All encounter loot secured before cave travel");
+            Assert.AreEqual(9,Game.WoodlandPassage);
+            Assert.IsTrue(CharacterProgression.TryLoad(Game.Progression.SaveString(),out _),"Forest checkpoint is valid before cave travel");
+            TravelStory();yield return null;
             Assert.AreEqual(9,Game.Progression.EntryAct,"Reach the cave through the real loot-gated passage");
             MoveStory(0,5000);yield return StoryAction(HungerAction.InspectCubs);
             yield return StoryAction(HungerAction.SpareCubs);
