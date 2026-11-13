@@ -1,0 +1,28 @@
+{
+  "sourceRevision": "9734b6baf3b4c7a2305f7f92ab7750f914f83357",
+  "exit": 0,
+  "command": [
+    "xvfb-run",
+    "-a",
+    "-s",
+    "-screen 0 1600x900x24",
+    "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+    "-batchmode",
+    "-quit",
+    "-force-glcore",
+    "-projectPath",
+    "/var/lib/unityarpg/workspaces/memory-forge-package-20261113",
+    "-logFile",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-package-20261113/release101b-linux/unity.log",
+    "-executeMethod",
+    "AshenCrypt.ForgeVerification.Editor.ReleaseBuilder.BuildLinuxEvidence"
+  ],
+  "packageSourceUnchanged": true,
+  "files": {
+    "unity.log": "f4da3c1e6d9e7cfd906d77a08bb4ad310c2018ae6e8ded19f167bd8316f71763",
+    "Linux/MemoryForge.x86_64": "de3009bc2c3a8a7c25f347c0c0a098a1c49dbbb6ee6ec100562e61fb50cae261",
+    "Linux/MemoryForge_Data/Managed/AshenCrypt.MemoryForge.dll": "b5ae7384721edf2f91d96a529f98f121ccfb7490f836878b81ede3ac12d7e0a8"
+  },
+  "errors": [],
+  "fileHashSelection": "Executable, runtime assembly and log only; full receipt retained privately"
+}

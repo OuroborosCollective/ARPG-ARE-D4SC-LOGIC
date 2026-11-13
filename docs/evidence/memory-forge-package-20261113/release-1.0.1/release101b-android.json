@@ -1,0 +1,28 @@
+{
+  "sourceRevision": "9734b6baf3b4c7a2305f7f92ab7750f914f83357",
+  "exit": 0,
+  "command": [
+    "xvfb-run",
+    "-a",
+    "-s",
+    "-screen 0 1600x900x24",
+    "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+    "-batchmode",
+    "-quit",
+    "-force-glcore",
+    "-projectPath",
+    "/var/lib/unityarpg/workspaces/memory-forge-package-20261113",
+    "-logFile",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-package-20261113/release101b-android/unity.log",
+    "-executeMethod",
+    "AshenCrypt.ForgeVerification.Editor.ReleaseBuilder.BuildAndroidExample",
+    "-buildTarget",
+    "Android"
+  ],
+  "packageSourceUnchanged": true,
+  "files": {
+    "unity.log": "e5807bb8f40213789f1a1d78cb1724a5bf52900b46ab71ff0a34c3eadaf833ab",
+    "MemoryForge-Example.apk": "6432ac072d941b3b1be7ae22c624629b8122a6a9e306de27a4e3fccc1b693364"
+  },
+  "errors": []
+}
