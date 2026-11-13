@@ -28,6 +28,7 @@ namespace AreArpg.Core
         public int AttackFlash { get; internal set; }
         public int TargetId { get; internal set; }=-1;
         public BigInteger TotalExperience { get; private set; }
+        public BigInteger LifetimeKills { get; internal set; }
         private readonly BigInteger[] _practice=new BigInteger[4];
         public BigInteger Level => CharacterProgression.LevelForExperience(TotalExperience);
         public BigInteger PracticeExperience(int slot) => _practice[slot];
@@ -43,12 +44,14 @@ namespace AreArpg.Core
         internal string Token()
         {
             object[] values={2,(int)Status,Health,Hunger,Fatigue,Area,AreaSeed,Xmm,Zmm,PreviousXmm,PreviousZmm,AttackCooldown,AttackFlash,TargetId,TotalExperience,_practice[0],_practice[1],_practice[2],_practice[3],WeaponOrdinal,ShieldOrdinal,LastPracticeTick,AreaDepth};
+            if(LifetimeKills>0){values[0]=3;values=values.Concat(new object[]{LifetimeKills}).ToArray();}
             return string.Join(",",values.Select(x=>Convert.ToString(x,CultureInfo.InvariantCulture)));
         }
         internal static bool TryRead(string token,CharacterProgression p,out CompanionState state)
         {
             state=null;var f=token.Split(',');bool legacy=f.Length==22&&f[0]=="1";
-            if(!legacy&&(f.Length!=23||f[0]!="2")||p.Social.Forge==null||!p.Road.Rescued)return false;
+            bool attributed=f.Length==24&&f[0]=="3";
+            if(!legacy&&!attributed&&(f.Length!=23||f[0]!="2")||p.Social.Forge==null||!p.Road.Rescued)return false;
             var n=new BigInteger[f.Length];for(int i=0;i<n.Length;i++)if(!BigInteger.TryParse(f[i],NumberStyles.AllowLeadingSign,CultureInfo.InvariantCulture,out n[i])||n[i].ToString(CultureInfo.InvariantCulture)!=f[i])return false;
             if(n[1]<1||n[1]>3||n[2]<0||n[2]>MaximumHealth||(n[1]==3)!=(n[2]==0)||n[3]<0||n[3]>1000||n[4]<0||n[4]>1000||n[5]<2||n[5]>10||n[6]<0||n[6]>ulong.MaxValue)return false;
             for(int i=7;i<=10;i++)if(n[i]<-60000||n[i]>60000)return false;
@@ -63,6 +66,7 @@ namespace AreArpg.Core
                 c.AreaSeed=p.Dungeon.Seed;c.AreaDepth=p.Dungeon.Depth;
             }
             else if(!legacy){if(n[22]<0||n[22]>3)return false;c.AreaDepth=(int)n[22];}
+            if(attributed){if(n[23]<1||n[23]>p.LootOrdinal)return false;c.LifetimeKills=n[23];}
             if(c.AreaDepth>0&&c.Area!=6&&c.Area!=7)return false;
             foreach(var ordinal in new[]{c.WeaponOrdinal,c.ShieldOrdinal})if(ordinal>0&&(!p.Items.Any(x=>x.KillOrdinal==ordinal)||ordinal==p.Equipment.Weapon?.Ordinal||ordinal==p.Equipment.Shield?.Ordinal))return false;
             var weapon=c.WeaponOrdinal>0?p.Equipment.ForItem(p.Items.FirstOrDefault(x=>x.KillOrdinal==c.WeaponOrdinal)):null;
@@ -179,7 +183,7 @@ namespace AreArpg.Core
                     c.AttackCooldown=Math.Max(1,(CompanionWeaponDefinition.StrikeCooldown*(10000-CompanionBonus(WeaponAffix.Haste))+9999)/10000);c.AttackFlash=3;
                     c.Health=Math.Min(CompanionState.MaximumHealth,c.Health+(int)((long)damage*CompanionBonus(WeaponAffix.Siphon)/10000));
                     c.Practice(forge.ProcessedTicks,0,damage);RememberCreatureAssault(target,"hunter");
-                    if(target.Kind==5)FinishRattler(new SkillResult());else ResolveMonsterDefeat(target,new SkillResult());
+                    if(target.Kind==5)FinishRattler(new SkillResult(),false);else ResolveMonsterDefeat(target,new SkillResult(),false);
                 }
             }
             else if(decision.Action==ForgeAction.Flee&&target!=null)MoveCompanion(c.Xmm+(c.Xmm==target.Xmm?1000:c.Xmm-target.Xmm),c.Zmm+c.Zmm-target.Zmm,300);

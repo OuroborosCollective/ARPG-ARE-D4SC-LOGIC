@@ -10,7 +10,7 @@ The default decode budget is 16 MiB of binary archive data and is configurable t
 
 ## Determinism
 
-Identical host state, controller artifacts, event IDs/order, seeds and tick inputs yield identical decisions and serialized archives. Controllers do not read wall-clock time, Unity random state or frame time. The example's MonoBehaviour converts elapsed presentation time into fixed 100-ms sample-host steps. For a networked game, supply ticks and commands from your own authoritative simulation; networking and rollback transport are not included.
+Identical host state, controller artifacts, event IDs/order, seeds and tick inputs yield identical decisions and serialized archives. Controllers do not read wall-clock time, Unity random state or frame time. The example's MonoBehaviour accepts Unity fixed-step callbacks and retains every supplied 100-ms sample-host quantum; rendering never advances its world. Pausing suspends those callbacks, and Load resets any unfinished host quantum. Explicit Step commands advance exactly one tick. For replay or a networked game, supply recorded ticks and commands from your own authoritative simulation; Unity wall-clock pacing, networking and rollback transport are not deterministic replay inputs and are not included.
 
 ## Performance practice
 

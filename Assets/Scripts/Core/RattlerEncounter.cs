@@ -125,14 +125,15 @@ namespace AreArpg.Core
             if (InDungeon ? CanStand(nx, nz) : CanStandInRattlerDen(nx, nz)) { m.Xmm = nx; m.Zmm = nz; }
         }
 
-        private void FinishRattler(SkillResult result)
+        private void FinishRattler(SkillResult result,bool playerCredit=true)
         {
             var m = Progression.Rattler.Creature;
             if (!m.IsDead || m.LootGranted) return;
             m.LootGranted = true; m.BossWindupTicks = 0;
-            result.Kills++; Kills++; Progression.RecordKill(); Progression.EarnExperience(1200);
+            if(playerCredit){result.Kills++;Kills++;Progression.RecordKill();Progression.EarnExperience(1200);}
+            else Progression.RecordCompanionKill();
             if (InDungeon) GroundLoot.Add(new LootState { Id=42,Xmm=m.Xmm,Zmm=m.Zmm,WeaponBonus=34,
-                Item=LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LifetimeKills) });
+                Item=LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LootOrdinal) });
             else Progression.AddWeaponUpgrade(12);
         }
 

@@ -35,10 +35,12 @@ namespace AreArpg.Core
             PlayerZmm=PrevPlayerZmm=InForest?-45000:-15000;
             CurrentTick=w.Tick;
             if(InForest) { GroundLoot.AddRange(w.Loot); Monsters.AddRange(w.Monsters); }
+            // A respawn resets the player checkpoint, never the surviving run's random stream.
+            if((w.Rng0|w.Rng1)!=0)_rng.Restore(w.Rng0,w.Rng1);
             if(w.SavedAct!=Progression.EntryAct)return;
             PlayerXmm=PrevPlayerXmm=w.SavedX; PlayerZmm=PrevPlayerZmm=w.SavedZ;
             PlayerHealth=Math.Min(MaxPlayerHealth,w.SavedHealth);Resource=w.SavedResource;
-            for(int i=0;i<4;i++)Cooldowns[i]=w.SavedCooldowns[i];_rng.Restore(w.Rng0,w.Rng1);
+            for(int i=0;i<4;i++)Cooldowns[i]=w.SavedCooldowns[i];
         }
         private void SaveWoodlandPlayer()
         {

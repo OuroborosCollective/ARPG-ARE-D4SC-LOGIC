@@ -632,21 +632,22 @@ namespace AreArpg.Core
             ResolveMonsterDefeat(enemy,result);
         }
 
-        private void ResolveMonsterDefeat(MonsterState enemy,SkillResult result)
+        private void ResolveMonsterDefeat(MonsterState enemy,SkillResult result,bool playerCredit=true)
         {
             if (enemy.IsDead && !enemy.LootGranted)
             {
                 enemy.LootGranted = true;
-                result.Kills++;
-                Kills++;
-                Progression.RecordKill();
-                Progression.EarnExperience(new System.Numerics.BigInteger(
-                    enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
+                if(playerCredit)
+                {
+                    result.Kills++;Kills++;Progression.RecordKill();
+                    Progression.EarnExperience(new System.Numerics.BigInteger(enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
+                }
+                else Progression.RecordCompanionKill();
                 GroundLoot.Add(new LootState { Id = InDungeon || InForest ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
                     WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8),
-                    Item = InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) :
+                    Item = InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) :
                         _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
-                        CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) });
+                        CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) });
             }
         }
 

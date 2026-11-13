@@ -47,7 +47,7 @@ namespace AreArpg.Core
         public BigInteger FirstOrdinal { get; private set; }
         public WeaponItem Weapon { get; private set; }
         public WeaponItem Shield { get; private set; }
-        public void Enable(CharacterProgression p) { if(!Active) { Active=true;FirstOrdinal=p.LifetimeKills+1; } }
+        public void Enable(CharacterProgression p) { if(!Active) { Active=true;FirstOrdinal=p.LootOrdinal+1; } }
         public WeaponItem ForItem(LootItem item) => Active&&item!=null&&item.KillOrdinal>=FirstOrdinal?new WeaponItem(item):null;
         public int Bonus(WeaponAffix affix) => (Weapon?.Bonus(affix)??0)+(Shield?.Bonus(affix)??0);
         internal bool Equip(CharacterProgression p,BigInteger ordinal)
@@ -64,7 +64,7 @@ namespace AreArpg.Core
         {
             equipment=null;var f=text.Split(',');if(f.Length!=4||f[0]!="1")return false;var n=new BigInteger[3];
             for(int i=0;i<3;i++)if(!BigInteger.TryParse(f[i+1],NumberStyles.None,CultureInfo.InvariantCulture,out n[i])||n[i]<0||n[i].ToString(CultureInfo.InvariantCulture)!=f[i+1])return false;
-            if(n[0]<1||n[0]>p.LifetimeKills+1)return false;
+            if(n[0]<1||n[0]>p.LootOrdinal+1)return false;
             var e=new WeaponEquipment { Active=true,FirstOrdinal=n[0] };
             if(n[1]>0&&(!e.Equip(p,n[1])||e.Weapon==null))return false;
             if(n[2]>0&&(!e.Equip(p,n[2])||e.Shield==null))return false;
