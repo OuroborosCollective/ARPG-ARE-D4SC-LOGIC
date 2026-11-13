@@ -1,10 +1,14 @@
 # ARE Ashen Crypt — Projektzustand
 
-## NPC Memory Forge: erster spielbarer Nachweis (13.11.2026)
+## NPC Memory Forge: Begleiter und Bevölkerung geprüft (13.11.2026)
 
-[Draft PR32](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/32) erweitert den bestehenden Core um deterministische Controller und individuelles Gedächtnis. Die reale Proviantübergabe an Ilyan führt zu Erinnerung, Dankbarkeit und späterer sichtbarer Reaktion; der Ablauf besteht einschließlich PlayerPrefs-Save/Load. Historische Controller bleiben exakt gebunden. Der Editorinspector zeigt tatsächliche Werte und testet Kandidaten isoliert. [Verträge und Eigentümerschaft](docs/NPC_MEMORY_FORGE.md).
+[PR32](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/32) bindet deterministische Controller, persönliche Erinnerungen und Beziehungen in den bestehenden Core ein. Der gerettete Jäger kann mitreisen, sicher warten, eigene Ausrüstung tragen und durch wirksame Aktionen selbst Erfahrung sammeln. Sein Tod bleibt dauerhaft. Tiere und Rattler beachten zugelassene Controllerentscheidungen. Das Gedächtnis umfasst tatsächliche Hilfen, Verbrechen, Gespräche und beobachtete Ereignisse ohne globale Allwissenheit. AC17/18 erhalten die bestehenden Speicherverträge. [Verträge und Eigentümerschaft](docs/NPC_MEMORY_FORGE.md).
 
-Abgenommener erster Block **97f91309d93112264d8b6c33dc2067f60dbfd7c2**: 7952 Core-Assertions,38Preflights, CI43395170499 success, native Unity6000.6.8f1 PlayMode117/117 und EditMode34/34, keine Skips. Private Assets unverändert; Besitzer-Spielstände und Projekteinstellungen wiederhergestellt. Details und vollständige XML-Hashes in Memory.md. Der Branch enthält danach laufende Begleiterarbeit; diese besitzt noch keine eigene Unity-Abnahme. Neuronale Offline-Controller, breitere Population, Android-Leistung und das Verkaufspaket zu9.50USD einmalig sind noch nicht abgeschlossen.
+Code **92228ca3c33aa8b7b3f23a6f297592911e557fde**: 8014 Core-Assertions,38Preflights, CI43411329628 success, native Unity6000.6.8f1 PlayMode119/119 und EditMode36/36, keine Skips. Private Assets unverändert; Besitzer-Spielstände und Projekteinstellungen wiederhergestellt. Android ARM64/IL2CPP gebaut, APK SHA256 **1a17d959080d9204b351809e468d035c9dbf1e7801e9711da95b1f16b46a27b6**, gültige v2-Signatur und 16-KiB-Ausrichtung. Keine physische Tablet-Ausführung. Vollständige Bindungen: [Evidence](docs/evidence/npc-forge-20261113/native-acceptance.json), Memory.md.
+
+Das Offline-Gewichtsexperiment verwarf den nur auf Trainingsdaten erfolgreichen Kandidaten. Korrigierte neuronale und Utility-Policies bestehen je1722 endliche Prüffälle; die schnellere Utility bleibt Spielstandard. Shared-VPS-Messungen sind kein Android-FPS-Beleg. Eine zusätzliche C++-Authority wurde nicht eingeführt.
+
+Der Besitzer übernimmt die Veröffentlichung des getrennten Unity-Verkaufspakets zu9.50USD einmalig; Paket, Anleitung und Bildmaterial wurden zum Download vorbereitet. Nächster Spielblock: die ausdrücklich gewählte Aschenzoll-Ermittlung am leeren Tiertransport, mit Originalbelegsicherung oder überprüfter Weitergabe. Entscheidende neue Story-/Gameplayfragen werden mit dem Besitzer abgestimmt.
 
 ## Wald, Bärenjunge und sichtbare Ausrüstung (13.11.2026)
 

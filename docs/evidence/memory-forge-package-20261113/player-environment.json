@@ -1,0 +1,9 @@
+{
+  "sourceRevision": "2dec62440a5c02ed1d51944dc2cb92fc8c505791",
+  "unity": "6000.6.8f1",
+  "environment": "Linux Xvfb llvmpipe; focused window; process-local ALSA null output",
+  "logSha256": "aa11a35131a3738636d752695c49f026325af4b94b1c5a1f082f4313d51b8b7f",
+  "playerSha256": "de3009bc2c3a8a7c25f347c0c0a098a1c49dbbb6ee6ec100562e61fb50cae261",
+  "audioErrorLines": 0,
+  "physicalDeviceExecution": false
+}

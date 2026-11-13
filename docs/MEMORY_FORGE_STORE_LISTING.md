@@ -35,7 +35,7 @@ There are no external AI services, API keys, subscriptions or inference fees. Yo
 
 **Requirements and boundaries**
 
-The development and verification baseline is Unity 6000.6.8f1. The pure C# library is independent of rendering; the example supplies Built-in/URP shader references. The URP example uses Unity Registry package `com.unity.render-pipelines.universal` 17.6.0. Optional tests use Unity Test Framework 1.8.0. The final compatibility statement must follow the release evidence below; do not label physical Android device execution as tested unless it was actually performed.
+Verified with Unity 6000.6.8f1, Built-in rendering and URP 17.6.0. The package was exported by Unity and imported into an empty project, where all eight Editor tests and the PlayMode example test passed. The URP example also passed those tests and ran as a standalone Linux player with exact save restoration. Optional tests use Unity Test Framework 1.8.0. Physical Android device execution and HDRP presentation have not been validated. The standalone Android ARM64/IL2CPP example built successfully; APK signature and 16-KiB alignment checks passed.
 
 This is a programmer's integration toolkit. Your game supplies navigation, perception queries, action execution, quests, companion progression and inventory. The commercial package does not include Ashen Crypt's RPG systems or licensed character/weapon/environment art. It does not generate dialogue with a language model or infer facts from natural-language descriptions. The example uses original simple geometric characters.
 
@@ -62,8 +62,8 @@ NPC, utility AI, memory, relationships, deterministic, behavior, local AI, neura
 - Owner-approved cover and matching logo exist in the release workspace. Final portal image dimensions must be checked against the live upload fields.
 - Price authorization: USD9.50 one-time.
 - Native game integration evidence is separate from package evidence; game screenshots are not used to imply included art.
-- Package export/import, standalone player, URP and Android checks are being completed. Their actual receipts are required before submission.
-- The primary computer/browser tool failed before page load (`the gaas-browser node_repl sandbox cannot be disabled`). An alternative isolated browser reached `https://login.unity.com/en/sign-in` from the Publisher Portal and showed the actual Unity ID sign-in page. The owner has been given its interactive login window. Publisher account/profile and submission fields remain unverified until that login completes; no missing account is inferred.
+- Unity export and clean import verified on source `8a37cc0d9d7977df468e9b1462d809a66302562d`: 99 imported files match the export byte for byte. Built-in: 8 Editor tests and 1 PlayMode test passed. URP and standalone Linux player verified on `2dec62440a5c02ed1d51944dc2cb92fc8c505791`; package runtime/editor/sample source is unchanged between those revisions (two documentation files changed). Android ARM64/IL2CPP built on the export revision, APK SHA256 `a385f3afb42e35f9240d3d99191b7c4370153cb0c2aede9a3467abfa84772f27`; signature and 16-KiB alignment passed. Physical device execution remains untested.
+- Owner handoff: the owner requested the downloadable package and will handle Unity Asset Store publication. Supply the `.unitypackage`, documentation, approved cover/logo, actual example screenshots and evidence. Resume Ashen Crypt development; do not request another remote-browser login.
 - No upload, submission, review approval or live sale has been observed.
 
 Official workflow references, read 2026-11-13: [Submission guidelines](https://assetstore.unity.com/publishing/submission-guidelines), [validate and upload](https://docs.unity.com/en-us/asset-store/publishing/asset-packages/upload), [submit for review](https://docs.unity.com/en-us/asset-store/publishing/asset-packages/submit), [provider agreement](https://unity.com/legal/provider).
