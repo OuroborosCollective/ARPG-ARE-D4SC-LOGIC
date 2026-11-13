@@ -1,0 +1,504 @@
+{
+  "sourceRevision": "dbe82124ac6d9ad42e874e1f584c4516f2c6c440",
+  "sha256": "03a91192b7ddbbad80b93949d2c0dd5a9516c0377389badfa83c0166b8e8a401",
+  "bytes": 54300,
+  "assetPaths": 55,
+  "matchedFiles": 99,
+  "files": [
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/UtilityEvaluator.cs",
+      "bytes": 6579,
+      "sha256": "2febeebbaa2068a25f16362d083be59e6f86838b729aa2e5809c135f90f01341"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/UtilityEvaluator.cs.meta",
+      "bytes": 243,
+      "sha256": "89e33861706df3000d5f1f91e082eda0dc833e34ff59ce85f3da287da0dacbf1"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Editor.meta",
+      "bytes": 169,
+      "sha256": "296ae6878f1600f5b3ca13e0374c05d3fb8776fb4082522efdb0cc59d8acb3ee"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/traveler-v1.asset",
+      "bytes": 3129,
+      "sha256": "6e785cf1e6ea213b7f3bfa00dfade0518fdc46186f271712d85d5419f3ab4f03"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/traveler-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "3690c7f58ccaa6ea536aa86aa1b686214433e8f9c73bf3e53f7f4b46c94b088e"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Integration.md",
+      "bytes": 5125,
+      "sha256": "98d0753e33554ca63b4a3715a88aa1d31052bf6bcf6e910561f8a049c897b3b8"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Integration.md.meta",
+      "bytes": 155,
+      "sha256": "c45e53ccb2d5523a7d4b49d08e90199c295dde9ca041eb0fbb3a1e0a076a1696"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Runtime/RememberingVillageTests.cs",
+      "bytes": 7257,
+      "sha256": "377cbab6ee526cc23bb3c6297e0dd836ccaef516810e44c0c4529fe60d03535d"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Runtime/RememberingVillageTests.cs.meta",
+      "bytes": 243,
+      "sha256": "4c94ad612427a240abc77cb28d80d05631acafe749ddbba4531809072af4029c"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/guard-v1.asset",
+      "bytes": 3447,
+      "sha256": "5e447f3dcd058bb2091c225f7b46b9dae09d63054b62b93d95cdf1913698b781"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/guard-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "fea29a59bf4bbe1336cd304362a9ae97d6d7397ba4a737e41dbbe0578449ef30"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Editor/ForgePackageBuilder.cs",
+      "bytes": 5215,
+      "sha256": "0fd8cf7594a94fade353ec5ef6f582144c47f494597cbd6cfe820a9a425a3611"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Editor/ForgePackageBuilder.cs.meta",
+      "bytes": 243,
+      "sha256": "8f0851a13e2ae21bf046d5cae012400cc0d0fa3671fb5c13655c1a20372c58a1"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Editor/AshenCrypt.MemoryForge.Tests.asmdef",
+      "bytes": 339,
+      "sha256": "ca19d5b5110d0301d4508b730bfc3d2f89137fb1c1723faaaaffdc65bcbe6c00"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Editor/AshenCrypt.MemoryForge.Tests.asmdef.meta",
+      "bytes": 163,
+      "sha256": "bd92216f210bac899cca44aaecc5e18c2268ab1b6b0b5a453deb7c0c276f06b3"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/fallback-v1.asset",
+      "bytes": 1806,
+      "sha256": "18b02d864b941d0e72645b9feef2b17418fabf2a9dc122df8ded6bb37f83fb82"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/fallback-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "8d57f02c6dada6deb232d46222235efb5784ac4e4a460e33413e4768ff73159b"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation.meta",
+      "bytes": 172,
+      "sha256": "6bfd4421a0026a6bb853069da78eb846d6bebb02f204f2e1ee726506b89dba37"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity/ForgeRegistryAsset.cs",
+      "bytes": 1572,
+      "sha256": "8b979693d75bba60480e4f30089bc6720fa95475053b78a7f048318682050b20"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity/ForgeRegistryAsset.cs.meta",
+      "bytes": 243,
+      "sha256": "04f6421dfdef3047e5411421e3e327e1d0716f037a33e1c591cfda79cf5b5d61"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/villager-v1.asset",
+      "bytes": 3129,
+      "sha256": "8e623f8ca9e8769b5d4821a6b1c6b52f649594e5bc90de46fdfe1bab46fc981f"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/villager-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "e0e55447c54b836866be1d967fbe1336af8f884056df5c6e809697a620f9185c"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.cs",
+      "bytes": 14673,
+      "sha256": "55adad39f21c7b3707f177d4d6c4ee5d2ef0217bc2c00029f57023130dbf464b"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.cs.meta",
+      "bytes": 243,
+      "sha256": "b2f52675b8b904f77a7d773a3264bafbba466921c48c0164b0b67f895b9d4af6"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Quickstart.md",
+      "bytes": 3161,
+      "sha256": "22e96bac0b3e4737b376d4ed953455315bfe506d5545f67e4961d9e0e357577c"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Quickstart.md.meta",
+      "bytes": 155,
+      "sha256": "fce0a41e92fac718278a4284805d01bd37908d43c332d66f00c777393dea250b"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/monster-v1.asset",
+      "bytes": 3269,
+      "sha256": "8710313ee691828817417ee3a67a93d7c2422c348a0dcd6caf967147dbf42495"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/monster-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "2064d476ed6ca2bf22436ef910e66a2242ac802f5384a3ace39483a109dd27c6"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/CHANGELOG.md",
+      "bytes": 1022,
+      "sha256": "54273502febb96595ff152a4ed5f0ca969ae9d4c9e000dbb405f59c230ea836a"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/CHANGELOG.md.meta",
+      "bytes": 155,
+      "sha256": "b1730d317050db4013281a81d318fac9b749aab2adc1fdcf4da774b7c86273ea"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/MemoryPersistence.cs",
+      "bytes": 8719,
+      "sha256": "463cf416e1ac31afa2bbbeb64c03ae81ae0131e3c108be07ec2fd28633810a62"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/MemoryPersistence.cs.meta",
+      "bytes": 240,
+      "sha256": "6cb75b52ff86e50d2feb856a26703d1d0530767086d71b3d3f1e875d06ed0743"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/AshenCrypt.MemoryForge.asmdef",
+      "bytes": 160,
+      "sha256": "7df87f98862749ced9bcc3825210d0a272778d5c3442d048b73be58f7e331761"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/AshenCrypt.MemoryForge.asmdef.meta",
+      "bytes": 166,
+      "sha256": "505e247a6c7329c6bb1acc004aaeea3adb46ea69e04eb3af73a745e8d96535d7"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core.meta",
+      "bytes": 172,
+      "sha256": "cc57ab89fb7a02c839e9d2a9977bc06a1917808a8cb7413f7171c7ecb8533bf5"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Editor.meta",
+      "bytes": 169,
+      "sha256": "2c9a5967d1fe07e1d814217bef0b6f651e46dfc414f11d79e3c41bfb0e177d72"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Editor/CoreContractTests.cs",
+      "bytes": 6953,
+      "sha256": "f5d972cb2e963a1e93d8a5c303c062948c211f44dd52753414de48103dd3ca6e"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Editor/CoreContractTests.cs.meta",
+      "bytes": 243,
+      "sha256": "4b10a328d3db9a9e999b036b58965dccebedcb6179f5ca592165770b94ef8871"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge.meta",
+      "bytes": 172,
+      "sha256": "3e80e9a7c05dc00ca1cf47b678366f6c98eb57cdd5bb29c51f77010c1c147809"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity.meta",
+      "bytes": 169,
+      "sha256": "3c0ed0d87c1b2d1f2695bcfb1fc8651c636cef04a40e869e0f142537ba2b20ba"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity/ForgeNpcView.cs",
+      "bytes": 463,
+      "sha256": "11c1e2fa9093060a859ef836acb435b3b2522fe6d04e4ab196a29c9effee1562"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity/ForgeNpcView.cs.meta",
+      "bytes": 243,
+      "sha256": "5309b22dfb290f8b78089cc8635bf40c6e39f6153d8dd5dc88f787f6e917af4a"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Runtime/AshenCrypt.MemoryForge.PlayTests.asmdef",
+      "bytes": 313,
+      "sha256": "22312f5c2c302fa8fecadff0d776f6c2b1976872f6015484b32d284971899148"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Runtime/AshenCrypt.MemoryForge.PlayTests.asmdef.meta",
+      "bytes": 166,
+      "sha256": "b28db223f469c6d8c75c6874f68ec5876be4c7e95c8d1428482ca9e22a05c998"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Editor/ForgeInspectors.cs",
+      "bytes": 4032,
+      "sha256": "f905bc4444c20780163196994a32fd9847adac18074804012b7fc079bfb0018a"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Editor/ForgeInspectors.cs.meta",
+      "bytes": 243,
+      "sha256": "ce19f84ab996a6814504f29b1b3c7a860c4d396ca61734968716db484415d879"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Schnellstart-DE.md",
+      "bytes": 1558,
+      "sha256": "6a758d2b9f91135ffcb6db569764b3b31a5a14fef92befd7a112397f2fd49be6"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Schnellstart-DE.md.meta",
+      "bytes": 155,
+      "sha256": "519716e4b04118c4e4897cdd981af19429f2aab1d7ce4c23bd8bd7b546ed692d"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Editor/AshenCrypt.MemoryForge.Editor.asmdef",
+      "bytes": 251,
+      "sha256": "dbb4466ae46bcfe1b9bf867626ed21dbda86d69c63fd478a6b269214d336d94e"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Editor/AshenCrypt.MemoryForge.Editor.asmdef.meta",
+      "bytes": 163,
+      "sha256": "48d5d503e7f337853a0d5ebac9abc1440b8b4899fde553c3c711a470246e0686"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ForgeDefaults.cs",
+      "bytes": 5065,
+      "sha256": "90fb45f588d385de926228b8d5bc54ef57021cabb8062b23de136a4f3f875c49"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ForgeDefaults.cs.meta",
+      "bytes": 243,
+      "sha256": "ce11e69971ce80bfe3d417f3b059ff0fa941d2861acfdeab4e9cea5a99e049be"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/animal-v1.asset",
+      "bytes": 3267,
+      "sha256": "ccd11934bf5db629ef89ea672ecacda6c837f614651c4c5bd95cbe4561a6c90f"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/animal-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "f64906ab18252aae5b38a0219cf28caad8afe244166dd7f06149af9ff1e19634"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/healer-v1.asset",
+      "bytes": 3123,
+      "sha256": "9c8a3115df1796df8f3ea3332d38cf96ebb867add120a94189fcfa8a85910f14"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/healer-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "b6fbf12025f73d10bb81dbadf0cc0965cb31a3321c026e84c776d974592e2325"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples.meta",
+      "bytes": 169,
+      "sha256": "fd42de8fb88bdd273632c93369440c0eacb3e15dcd14cf438e9f6a248e5c88a4"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ForgeContracts.cs",
+      "bytes": 4505,
+      "sha256": "ecd1a971fae582d84715e202604e75b62c6a7e7af42a41a6cb6725b2468e12ca"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ForgeContracts.cs.meta",
+      "bytes": 243,
+      "sha256": "0e4730bdd2f785688c41b1e7210a49e403635d1c6189cec277c737c5352ce0d7"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ControllerRegistry.cs",
+      "bytes": 10480,
+      "sha256": "e0850dcdf9438042e8de5b9b0d4b53fd91fa6891ca1608120368e77bc8e66a3c"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ControllerRegistry.cs.meta",
+      "bytes": 243,
+      "sha256": "4be27906b3f04b3fecefac0794180da29cfc2538a279ed209d51891bfac8aa7b"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/DemoWorld.cs",
+      "bytes": 8622,
+      "sha256": "47a5f8dc73390f4169d5d597142520b960fa8faee2b448dc4f5becb0b278adc2"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/DemoWorld.cs.meta",
+      "bytes": 243,
+      "sha256": "8fd85a618c410b75e8b27233d391f1b7ecc561123dffc019b4a844d01cc56d80"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/NpcMemory.cs",
+      "bytes": 12140,
+      "sha256": "229e394b0d092866b4799ac143ac48e90ed2d37641aa61301cec3ac04f812106"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/NpcMemory.cs.meta",
+      "bytes": 240,
+      "sha256": "ac334f1618ece1b3e1dbf07ce93fbabd0d1faa086084ec0954d5fda21643ed64"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/merchant-v1.asset",
+      "bytes": 3129,
+      "sha256": "8431e78516308f9717800741946f53887aaff6041ab6a73011babfe3c0c4e310"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/merchant-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "b7d1a281f14c6409411716b516a079c6b6db478045a2835b05b61136411d6e68"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Persistence-and-performance.md",
+      "bytes": 4707,
+      "sha256": "e3a0e2dc5864fca30c81c1264952513e1009ef97057068878a796fc5d732eb4b"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Persistence-and-performance.md.meta",
+      "bytes": 155,
+      "sha256": "5aa44d8ac00ae39faabedf3bd3fdb5dbd63cc14ba48c40c9dc7795147043bd48"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity/ForgeControllerAsset.cs",
+      "bytes": 7090,
+      "sha256": "62372e9090e2bfcc729cfc015fa6f21849f33edc08ab5a1d00633da29daebdc4"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity/ForgeControllerAsset.cs.meta",
+      "bytes": 243,
+      "sha256": "76329b1f64762e32b40f2306c2365aaa6756cbe7f04d268dd8023cda814f3a72"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage.meta",
+      "bytes": 169,
+      "sha256": "7b5ed18fb2c7705f8602c847bf000f8fa820e8b773c593c463483eaadac2f317"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity/AshenCrypt.MemoryForge.Integration.asmdef",
+      "bytes": 161,
+      "sha256": "c1d8591878c5a892ffd2ad8cc20d09b118d875999b07f51beaa88d048f26a56b"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Unity/AshenCrypt.MemoryForge.Integration.asmdef.meta",
+      "bytes": 163,
+      "sha256": "917a35f5efed92c2f10a20f906a79a3297e1c5005e6ac2b1477cae8970639af7"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.unity",
+      "bytes": 5253,
+      "sha256": "760c6ef233ed325d326a07655bb8deb85303a3488feff432aa728e852559ff31"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.unity.meta",
+      "bytes": 155,
+      "sha256": "6fd78d9f1b80ff015e9ded83361a95714868f9c5d666de44dd9dac8d84e0af46"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/LICENSE.md",
+      "bytes": 1384,
+      "sha256": "f8f475439f91f516654ef60734d710b2547c4366e8762288932f438445bf20f8"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/LICENSE.md.meta",
+      "bytes": 155,
+      "sha256": "e4d8849e9f84e30f76901c79262397d4b30c6405318586c73068fbf58f404381"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/DefaultRegistry.asset",
+      "bytes": 1440,
+      "sha256": "04c20c56ed1edd52917488eb1abd57df19fc6957d7e784cc9543e3664459c783"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/DefaultRegistry.asset.meta",
+      "bytes": 189,
+      "sha256": "cd9fbc2acbbb26c3f08ea76676c383b9d6601423c919414297ccc61fe4de2e57"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/README.md",
+      "bytes": 1803,
+      "sha256": "3d7f994cc3f3d9e91a3c862ba7ada22d6b4ba3c1e6875264720b22feb4e37bd4"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/README.md.meta",
+      "bytes": 155,
+      "sha256": "2bd912fe86d6f9783cd49cba43d3563efed09a7480acede8e6a06cb33adf3e3d"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Runtime.meta",
+      "bytes": 172,
+      "sha256": "6cad0455fbf9714d87a2d5abb222d260034b1a7dd92e67adaa49f8322d70def0"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ControllerMigration.cs",
+      "bytes": 4732,
+      "sha256": "4cac370f2f0ae2c7314e41527c337294e7ee7eef9e24ad5b7b86285efff2f011"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ControllerMigration.cs.meta",
+      "bytes": 243,
+      "sha256": "6a3aecd5c594836d80c5b47080d159c4fb3240c8656ae174eec8199d62deedcc"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Editor/ControllerAssetTests.cs",
+      "bytes": 2004,
+      "sha256": "2df7a219fce551cf4fa3aad9f374e0f93fec0e3587d59588a8eef0a8a859c936"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests/Editor/ControllerAssetTests.cs.meta",
+      "bytes": 240,
+      "sha256": "0f468968b6d3f2627825f7a47b908b871798e2fe14263f386b00f8d99830e0ef"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/QuantizedNetwork.cs",
+      "bytes": 2992,
+      "sha256": "f594b323a8fd9ffaa073f195f8b48391e3051f44d3e95c82e5d2e1983af7e5bd"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/QuantizedNetwork.cs.meta",
+      "bytes": 243,
+      "sha256": "478f4f4cc4e16c80aae9c2f56c95a8e2b96003fbe3790c6968664d3207a180d3"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers.meta",
+      "bytes": 172,
+      "sha256": "8e53f477facf6fa7e98732972e416d0e55bce4911e25d0d70196a993ef2c3909"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Third-Party Notices.txt",
+      "bytes": 703,
+      "sha256": "3c2112065cd8da4a336a850b6c2f309dfd3d10b6cd264348c08be9f749fe25fc"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Third-Party Notices.txt.meta",
+      "bytes": 155,
+      "sha256": "66cf7113abda66791123ec778ed0b6a3b1c2fb923e93b65f174ab0e88fa20f3f"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Controllers.md",
+      "bytes": 4327,
+      "sha256": "385813ebffcbec6f47f8df8f2960fe8980ca47f7788d1cf652cd130f4ea45d5e"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Documentation/Controllers.md.meta",
+      "bytes": 155,
+      "sha256": "e0b37eaa75c9675b78578fa5a9acee950c2d8a1dcd17a6a2403a05b489ebdd46"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Tests.meta",
+      "bytes": 169,
+      "sha256": "15c37e0a1ce2b1191bfde1d15c05734356493fdd0ef730e64e04eb7d6c33af5f"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/companion-v1.asset",
+      "bytes": 3644,
+      "sha256": "808ee585a995ad21d8624dd5997f6cc0b6bfe2710377ff41a1c7634a91930fce"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/companion-v1.asset.meta",
+      "bytes": 189,
+      "sha256": "65e2451903a9d0302a579befdb372aff3f61818bc3da1631d56981b642c64186"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/AshenCrypt.MemoryForge.Samples.asmdef",
+      "bytes": 190,
+      "sha256": "c0115ebe1986adb34ca8fa096890b9b43aa97e68e65b3d81ff39802b62202b23"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/AshenCrypt.MemoryForge.Samples.asmdef.meta",
+      "bytes": 166,
+      "sha256": "12b995a9580bc6ae30ddadf0988a5b3603ec2adc964dcd45dcee384b7e1a4ed8"
+    }
+  ]
+}

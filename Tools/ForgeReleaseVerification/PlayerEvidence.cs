@@ -13,13 +13,14 @@ namespace AshenCrypt.ForgeVerification
         private string _root;
         private bool _savedKey;
         private string _previous;
+        private bool _snapshotTaken;
         private bool Prepare(out RememberingVillage sample)
         {
             sample=null;
             try
             {
                 _root=Environment.GetEnvironmentVariable("FORGE_EVIDENCE_DIR");if(string.IsNullOrEmpty(_root))throw new Exception("Missing explicit evidence output directory");Directory.CreateDirectory(_root);
-                _savedKey=PlayerPrefs.HasKey(RememberingVillage.SaveKey);_previous=PlayerPrefs.GetString(RememberingVillage.SaveKey,"");
+                _savedKey=PlayerPrefs.HasKey(RememberingVillage.SaveKey);_previous=PlayerPrefs.GetString(RememberingVillage.SaveKey,"");_snapshotTaken=true;
                 sample=FindFirstObjectByType<RememberingVillage>();if(sample==null)throw new Exception("Actual example missing");sample.Running=false;
                 sample.Execute("approach");for(int i=0;i<20;i++)sample.Execute("step");sample.Execute("food");for(int i=0;i<4;i++)sample.Execute("step");
                 sample.Execute("leave");for(int i=0;i<20;i++)sample.Execute("step");sample.Execute("approach");for(int i=0;i<20;i++)sample.Execute("step");sample.Execute("greet");
@@ -46,7 +47,22 @@ namespace AshenCrypt.ForgeVerification
             }
             catch(Exception e){Fail(e.ToString());}
         }
-        private void RestoreKey(){if(_savedKey)PlayerPrefs.SetString(RememberingVillage.SaveKey,_previous);else PlayerPrefs.DeleteKey(RememberingVillage.SaveKey);PlayerPrefs.Save();}
-        private void Fail(string error){Debug.LogError(error);if(!string.IsNullOrEmpty(_root))File.WriteAllText(Path.Combine(_root,"player-failure.txt"),error);RestoreKey();Application.Quit(1);}
+        private void RestoreKey()
+        {
+            if(!_snapshotTaken)return;
+            if(_savedKey)PlayerPrefs.SetString(RememberingVillage.SaveKey,_previous);else PlayerPrefs.DeleteKey(RememberingVillage.SaveKey);
+            PlayerPrefs.Save();
+        }
+        private void Fail(string error)
+        {
+            Debug.LogError(error);
+            try{if(!string.IsNullOrEmpty(_root))File.WriteAllText(Path.Combine(_root,"player-failure.txt"),error);}
+            catch(Exception writeError){Debug.LogError(writeError);}
+            finally
+            {
+                try{RestoreKey();}
+                finally{Application.Quit(1);}
+            }
+        }
     }
 }

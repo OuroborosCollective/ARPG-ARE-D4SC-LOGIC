@@ -1,0 +1,30 @@
+{
+  "sourceRevision": "dbe82124ac6d9ad42e874e1f584c4516f2c6c440",
+  "redRevision": "7d1a85c235835041fee2223fd658255ceb089310",
+  "coreAssertions": 8028,
+  "standaloneSampleAssertions": 109,
+  "staticPreflightTests": 40,
+  "logs": {
+    "pr33-review3-core-green.log": "d28f47c72d7212904e1514058fc5b20d437f4fbc7761a00a46a7fef2a5f480f2",
+    "pr33-review3-sample-green.log": "bba098c2ae8e87e05f4cd805497f43790eaec937d67d8ff7f320c8a5e45d3bb5",
+    "pr33-review3-preflight-green.log": "4c9b59ea67d38e57e1dd2dac09b4e097cd3565d37c0c5f29fb41f9b999d11a46"
+  },
+  "ci": [
+    {
+      "id": 43452439375,
+      "name": "Unity PlayMode smoke (licensed runner)",
+      "head_sha": "dbe82124ac6d9ad42e874e1f584c4516f2c6c440",
+      "status": "completed",
+      "conclusion": "skipped",
+      "url": "https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/43452439375"
+    },
+    {
+      "id": 43452439257,
+      "name": "Core deterministic verification",
+      "head_sha": "dbe82124ac6d9ad42e874e1f584c4516f2c6c440",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/43452439257"
+    }
+  ]
+}
