@@ -9,8 +9,8 @@ from pathlib import Path
 
 def inventory(catalog):
     data = json.loads(Path(catalog).read_text())
-    if data.get("schema") != "ashen.official-unity-tooling.v1":
-        raise ValueError("Unsupported official Unity tooling catalog")
+    if data.get("schema") not in ("ashen.official-unity-tooling.v1", "ashen.skill-catalog.v1"):
+        raise ValueError("Unsupported skill catalog")
     result = []
     names = set()
     for item in data["skills"]:
@@ -22,6 +22,13 @@ def inventory(catalog):
         if path.is_file():
             digest = hashlib.sha256(path.read_bytes()).hexdigest()
             status = "INSTALLED" if digest == item["sha256"] else "CHANGED"
+            for relative, expected in sorted(item.get("files", {}).items()):
+                resource = path.parent / relative
+                if not resource.is_file():
+                    status = "MISSING"
+                    break
+                if hashlib.sha256(resource.read_bytes()).hexdigest() != expected:
+                    status = "CHANGED"
         result.append(dict(item, status=status))
     return sorted(result, key=lambda item: item["name"])
 
