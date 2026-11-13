@@ -1,0 +1,221 @@
+{
+  "schema": "ashen.spec-director-pilot.v1",
+  "source": "76e83a7c9c04a429b11806d41f902ccdd69373c9",
+  "base": "6cc8d65bc0a7e1a21fe9ba1851cf67a938693450",
+  "sources": {
+    "spd": {
+      "sha": "14f8c0f2be4421d11b8eb7474cde3ee00fb52b14",
+      "version": "1.15.0"
+    },
+    "specKit": {
+      "sha": "2ee2b1e8005905db05f5717300a469b3068b908f",
+      "version": "1.4.1.dev0",
+      "snapshot": "pinned development source"
+    }
+  },
+  "routingRed": {
+    "sha": "135f8baa52094eeb5694c3dcbc9ebcbf84e7cce9",
+    "total": 5,
+    "failed": 4
+  },
+  "validation": {
+    "director": 20,
+    "preflight": 40,
+    "coreAssertions": 8112,
+    "ciRun": 43522512396,
+    "ciJob": 132220048770,
+    "ciConclusion": "success",
+    "hostDirector": 20,
+    "localDotnet": "NOT_INSTALLED; real Core executed in CI",
+    "freshCodex": {
+      "skills": 15,
+      "allEnabled": true,
+      "errors": []
+    }
+  },
+  "host": {
+    "source": "76e83a7c9c04a429b11806d41f902ccdd69373c9",
+    "skills": [
+      {
+        "name": "deep-discuss",
+        "status": "INSTALLED",
+        "sha256": "9c3fdfed1fdee9aa43a9c62b0b77e1f4557ace75556cadf9f597811268f8a1e7",
+        "files": {
+          "SKILL.md": "9c3fdfed1fdee9aa43a9c62b0b77e1f4557ace75556cadf9f597811268f8a1e7"
+        }
+      },
+      {
+        "name": "review-spd",
+        "status": "INSTALLED",
+        "sha256": "257eca2973f9e7a248fcb8e1a8e630a6b24efbe495d79e6e1f4277468776ac88",
+        "files": {
+          "SKILL.md": "257eca2973f9e7a248fcb8e1a8e630a6b24efbe495d79e6e1f4277468776ac88",
+          "references/output-format.md": "d3074ce5b9996543b9c65d6b4bacf571bbbedf97b4c91617e1fd005d1acd6db1",
+          "references/reviewer-template.md": "5c041ca08f1fa8b2b458312d3657d6830541a0721e3137442e2bd67ee3d9a547",
+          "scripts/review-context.py": "ad5118f4085e530d944b0c832d68f3278b115a7c6dba14833f67aec8b04d6f82"
+        }
+      },
+      {
+        "name": "spec-driven-develop",
+        "status": "INSTALLED",
+        "sha256": "53861b7fd946ed76e8cb98eae3fca66d510115d14fa61eb051e99b5463d8cd0a",
+        "files": {
+          "LICENSE": "7d9abbc50931ec8670f98abbe5c939f222645248abe0677c91e2ce40efed8eaf",
+          "SKILL.md": "53861b7fd946ed76e8cb98eae3fca66d510115d14fa61eb051e99b5463d8cd0a",
+          "references/adaptive-control.md": "ba9f60ccacf14a40a157ac2f6ed33f9950fcf6d3c32cfc2f2a8e15d778e6b2aa",
+          "references/behavioral-rules.md": "5260679d4e5ffd3c7f320546b071e56131da76601f16925deb9a25dbc6145998",
+          "references/github-integration.md": "b8c12d6cf36e854052e6ec970e6e7c6ee01257794c3aa703cfee1f0abcd7199e",
+          "references/parallel-protocol.md": "8ac7956d0733b9b85fcb189aadc6373f5f3c318aeefb4b3f3c94c01329a1ab43",
+          "references/super-philosophy.md": "60ecb60118c014ceca5523a3e5a1755abaad78157ba9c1fc6945407a48e6eb68",
+          "references/templates/analysis.md": "84fd56260c007941d47c404e499d00e26320b18596f9466b11b874959b20e1e2",
+          "references/templates/archive.md": "2112decf5df1e4dc318fd956060e0c1d43b96f00a89a9ebf6ab697ce06e6ad1f",
+          "references/templates/governance.md": "98dbaa58ff16c5950d6488730a68a2542937978f5f05a8fbedcddc49c82871df",
+          "references/templates/plan.md": "ca6932a4ce3b5e09d3eea5c6ee96adcc6714c9c78d2bd1f056ccd641c5acecad",
+          "references/templates/progress.md": "05d22640a678ddf03f657057fa661a0bb64aa0204362f3c5c3099823a95d9950"
+        }
+      },
+      {
+        "name": "speckit-analyze",
+        "status": "INSTALLED",
+        "sha256": "0b3261b13cc33537f24b3e1f6d5320694c348302c385d0046dc6b958cf2db6cb",
+        "files": {
+          "SKILL.md": "0b3261b13cc33537f24b3e1f6d5320694c348302c385d0046dc6b958cf2db6cb"
+        }
+      },
+      {
+        "name": "speckit-bug-assess",
+        "status": "INSTALLED",
+        "sha256": "4d1b3f995cd5039ee7c29c73bc79b5973d5936f04e99722c4940a2a06af94dbc",
+        "files": {
+          "SKILL.md": "4d1b3f995cd5039ee7c29c73bc79b5973d5936f04e99722c4940a2a06af94dbc"
+        }
+      },
+      {
+        "name": "speckit-bug-fix",
+        "status": "INSTALLED",
+        "sha256": "e6653ee84b769616c2e476b4be5f26162404858c7e57898b1222ff3af134f303",
+        "files": {
+          "SKILL.md": "e6653ee84b769616c2e476b4be5f26162404858c7e57898b1222ff3af134f303"
+        }
+      },
+      {
+        "name": "speckit-bug-test",
+        "status": "INSTALLED",
+        "sha256": "1d358663b9fabea7f1c87ea881669975d6ce0509afc39dce27ec9b649e90e188",
+        "files": {
+          "SKILL.md": "1d358663b9fabea7f1c87ea881669975d6ce0509afc39dce27ec9b649e90e188"
+        }
+      },
+      {
+        "name": "speckit-checklist",
+        "status": "INSTALLED",
+        "sha256": "7ac5cba31a27151a1a7b73f691bd478d42750ce2dd734701a07eb0e235ffbd94",
+        "files": {
+          "SKILL.md": "7ac5cba31a27151a1a7b73f691bd478d42750ce2dd734701a07eb0e235ffbd94"
+        }
+      },
+      {
+        "name": "speckit-clarify",
+        "status": "INSTALLED",
+        "sha256": "f6acfbc82c96c0d91b2429fd0b51ce7df7f94b003d1b73acc54470d48bcc455e",
+        "files": {
+          "SKILL.md": "f6acfbc82c96c0d91b2429fd0b51ce7df7f94b003d1b73acc54470d48bcc455e"
+        }
+      },
+      {
+        "name": "speckit-constitution",
+        "status": "INSTALLED",
+        "sha256": "b2a6a979ef7511812b60cde4adb6f1c4a8b1b57314ea2f1861ebc3f4796bf377",
+        "files": {
+          "SKILL.md": "b2a6a979ef7511812b60cde4adb6f1c4a8b1b57314ea2f1861ebc3f4796bf377"
+        }
+      },
+      {
+        "name": "speckit-converge",
+        "status": "INSTALLED",
+        "sha256": "5859c9780ddc012f600e7d35a5691e032fe05861296f226b5665a0ec03135ccd",
+        "files": {
+          "SKILL.md": "5859c9780ddc012f600e7d35a5691e032fe05861296f226b5665a0ec03135ccd"
+        }
+      },
+      {
+        "name": "speckit-implement",
+        "status": "INSTALLED",
+        "sha256": "848a5c9eff7b99e348927cbde6c35378de9fea3fd317941f58fa0b0b79301eec",
+        "files": {
+          "SKILL.md": "848a5c9eff7b99e348927cbde6c35378de9fea3fd317941f58fa0b0b79301eec"
+        }
+      },
+      {
+        "name": "speckit-plan",
+        "status": "INSTALLED",
+        "sha256": "db2406adfa50103fc04ca8109ac934cd715086fba64365fb404630a88c62bda5",
+        "files": {
+          "SKILL.md": "db2406adfa50103fc04ca8109ac934cd715086fba64365fb404630a88c62bda5"
+        }
+      },
+      {
+        "name": "speckit-specify",
+        "status": "INSTALLED",
+        "sha256": "1d4396f488d7cbbe6f468a6dd032c17dde7e3f357e8dadef5b5e9f148b1893a9",
+        "files": {
+          "SKILL.md": "1d4396f488d7cbbe6f468a6dd032c17dde7e3f357e8dadef5b5e9f148b1893a9"
+        }
+      },
+      {
+        "name": "speckit-tasks",
+        "status": "INSTALLED",
+        "sha256": "1086d7885df1188d00e7d5eb4715e678b4340b893e8f24ae748d823b13599a56",
+        "files": {
+          "SKILL.md": "1086d7885df1188d00e7d5eb4715e678b4340b893e8f24ae748d823b13599a56"
+        }
+      }
+    ],
+    "allInstalled": true,
+    "kind": "bug",
+    "execution": "NOT_EXECUTED",
+    "selected": [
+      "spec-driven-develop",
+      "speckit-bug-assess",
+      "speckit-bug-fix",
+      "speckit-bug-test",
+      "review-spd"
+    ],
+    "animationGuidance": [
+      "unity-animation",
+      "game-development"
+    ],
+    "gameDiffEmpty": true,
+    "actionsChanged": false
+  },
+  "hostScriptHashes": {
+    "director.py": "f66189b3381249de5ce49871a6354efe488cde497d5e81254be36ee88203e954",
+    "mcp_server.py": "9ca9cb53b3b6102e93f402dbb412793fb311ec30c7572550854567bbd15f5107",
+    "route_work.py": "eaaa1a28e9201dff388800848e4a488c7930280c17aba7f87703b147bc2179e9",
+    "spec_workflow.py": "f773c3c0ec918ff20a6196dd656c1452ec0bbb753d5b440eaa8cc6e3999544b4"
+  },
+  "hunter": {
+    "source": "9af7842b05bde3157a9461587babbd90a2fe4408",
+    "xmlSha256": "2770609741dc8adbeb54de4ad80ab002166dbde74b5859800a377671905d68ad",
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "readback": "stored native XML independently read and hashed on host",
+    "newUnityRun": false,
+    "repair": "NOT_IMPLEMENTED"
+  },
+  "scope": {
+    "gameplayDiffEmpty": true,
+    "newAndroidBuild": false,
+    "deviceTest": false,
+    "speedupMeasured": false
+  },
+  "review": {
+    "findings": 0,
+    "focuses": [
+      "routing correctness and compatibility",
+      "generated scaffold/configuration and governance"
+    ],
+    "upstreamFullSecurityAudit": false
+  }
+}
