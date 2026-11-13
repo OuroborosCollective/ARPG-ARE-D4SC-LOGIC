@@ -1,1 +1,1 @@
-{"name":"AreArpg.EditMode.Tests","rootNamespace":"AreArpg.EditMode.Tests","references":["AreArpg.Core","AshenCrypt.MemoryForge"],"optionalUnityReferences":["TestAssemblies"],"includePlatforms":["Editor"],"autoReferenced":false,"defineConstraints":["UNITY_INCLUDE_TESTS"]}
+{"name":"AreArpg.EditMode.Tests","rootNamespace":"AreArpg.EditMode.Tests","references":["AreArpg.Core","AreArpg.Runtime","AshenCrypt.MemoryForge"],"optionalUnityReferences":["TestAssemblies"],"includePlatforms":["Editor"],"autoReferenced":false,"defineConstraints":["UNITY_INCLUDE_TESTS"]}
