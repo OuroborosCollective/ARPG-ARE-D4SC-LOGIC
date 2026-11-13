@@ -38,6 +38,20 @@ internal static class CompanionForgeTests
         var deadWorld=new ArenaSimulation(73,deadSave,BigInteger.One,LootCatalog.Version1);
         for(int i=0;i<350;i++)deadWorld.Step();
         check(!deadWorld.RecruitHunter().Accepted&&deadSave.Companion.Status==CompanionStatus.Dead&&deadSave.Companion.Health==0,"companion-death-cannot-use-village-recovery-or-rejoin-to-revive");
+        var gear=RescueFixture();gear.RecruitHunter();gear.Progression.Equipment.Enable(gear.Progression);
+        LootItem owned=null;
+        for(ulong seed=0;seed<1000;seed++)
+        {
+            var receipt=LootCatalog.Version1.Generate(seed,BigInteger.One,1,1,0,gear.Progression.LifetimeKills+1);
+            if(gear.Progression.Equipment.ForItem(receipt).Definition.Family==WeaponFamily.Sword){owned=receipt;break;}
+        }
+        check(owned!=null,"companion-owned-sword-fixture-found");
+        gear.Progression.RecordKill();gear.Progression.CollectItem(owned); // Explicit owned-inventory fixture.
+        check(gear.TryEquipWeapon(owned.KillOrdinal)&&gear.TryEquipCompanionWeapon(owned.KillOrdinal),"companion-can-receive-existing-equipped-weapon");
+        check(gear.Progression.Companion.WeaponOrdinal==owned.KillOrdinal&&gear.Progression.Equipment.Weapon==null&&!gear.TryEquipWeapon(owned.KillOrdinal),"companion-weapon-has-one-equipped-owner");
+        check(!gear.TryEquipCompanionWeapon(999999),"companion-cannot-equip-unowned-receipt");
+        check(CharacterProgression.TryLoad(gear.Progression.SaveString(),out var gearedSave)&&gearedSave.Companion.WeaponOrdinal==owned.KillOrdinal,"companion-equipment-survives-save-load");
+        check(gear.TryUnequipCompanionWeapon()&&gear.TryEquipWeapon(owned.KillOrdinal),"companion-returned-weapon-is-not-duplicated-or-lost");
     }
     private static ArenaSimulation RescueFixture()
     {
