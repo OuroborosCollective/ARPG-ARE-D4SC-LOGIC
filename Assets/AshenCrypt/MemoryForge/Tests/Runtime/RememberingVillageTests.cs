@@ -12,6 +12,22 @@ namespace AshenCrypt.MemoryForge.Tests
     public sealed class RememberingVillageTests
     {
         [UnityTest]
+        public IEnumerator RenderingCannotAdvanceCanonicalSampleTicks()
+        {
+            var go=new GameObject("Sample tick boundary under test");
+            try
+            {
+                var sample=go.AddComponent<RememberingVillage>();sample.Running=false;yield return null;
+                sample.Execute("approach");sample.Running=true;
+                var update=typeof(RememberingVillage).GetMethod("Update",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+                string before=sample.World.Save();
+                for(int i=0;i<1000;i++)update.Invoke(sample,null);
+                Assert.AreEqual(before,sample.World.Save(),"Rendering cannot schedule or drop canonical world steps");
+            }
+            finally{UnityEngine.Object.Destroy(go);}
+            yield return null;
+        }
+        [UnityTest]
         public IEnumerator ActualExampleRemembersHelpRestoresSaveAndRejectsOccludedWitness()
         {
             bool existed=PlayerPrefs.HasKey(RememberingVillage.SaveKey);string previous=PlayerPrefs.GetString(RememberingVillage.SaveKey,"");
