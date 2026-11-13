@@ -189,7 +189,7 @@ namespace AreArpg.Core
             else if(decision.Action==ForgeAction.Flee&&target!=null)MoveCompanion(c.Xmm+(c.Xmm==target.Xmm?1000:c.Xmm-target.Xmm),c.Zmm+c.Zmm-target.Zmm,300);
             else if(decision.Action==ForgeAction.Rest){c.Fatigue=Math.Max(0,c.Fatigue-3);c.Health=Math.Min(CompanionState.MaximumHealth,c.Health+1);}
             else if(ally<FixedMath.Square(800))MoveCompanion(c.Xmm+(c.Xmm==PlayerXmm?1000:c.Xmm-PlayerXmm),c.Zmm+c.Zmm-PlayerZmm,450);
-            else if(ally>FixedMath.Square(1800)){MoveCompanion(PlayerXmm,PlayerZmm,450);if(forge.ProcessedTicks%10==0)c.Fatigue=Math.Min(1000,c.Fatigue+1);}
+            else if(ally>FixedMath.Square(1800)){MoveCompanion(PlayerXmm,PlayerZmm,target==null?PlayerSpeedMmPerTick:450);if(forge.ProcessedTicks%10==0)c.Fatigue=Math.Min(1000,c.Fatigue+1);}
         }
     }
     public sealed partial class SocialLedger
