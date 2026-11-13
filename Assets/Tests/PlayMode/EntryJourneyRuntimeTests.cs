@@ -480,7 +480,8 @@ namespace AreArpg.PlayMode.Tests
             if (Resources.Load<GameObject>("ARE/Visuals/EntryNpc0") == null)
                 Assert.Ignore("Requires the private humanoid art overlay");
             yield return CompleteSupplyJourney(true);
-            AssertRestingPatients(Game.HungerShelterPatients);
+            Assert.AreEqual(2, Game.HungerShelterPatients, "reload must preserve the missing patient");
+            AssertRestingPatients(2);
             ulong hash = Game.ComputeWorldHash(); string save = Game.Progression.SaveString();
             yield return Capture("mill-patients-return.png", patientDetail: true);
             Assert.AreEqual(hash, Game.ComputeWorldHash()); Assert.AreEqual(save, Game.Progression.SaveString());
