@@ -27,6 +27,7 @@ namespace AreArpg.UnityClient
         {
             var p = _game.Progression;
             if (_game.InDungeon) return DungeonActions();
+            var woodland=WoodlandActions(); if(woodland!=null)return woodland;
             if (p.Investigation.Active) return InvestigationActions();
             if (p.EntryAct == 2 && p.HungerStage == 0) return new[] { HungerAction.HearIlyan };
             if (p.EntryAct == 3 && p.HungerStage == 1) return new[] { HungerAction.InspectTrail };
@@ -65,6 +66,14 @@ namespace AreArpg.UnityClient
                 case HungerAction.InspectRoyalBrand: return "AM HALS: Koenigliches Brandmal untersuchen";
                 case HungerAction.ReportRoyalBrand: return "BEI ILYAN: Das Brandmal von Immergruen melden";
                 case HungerAction.ReportCrypt: return "BEI ILYAN: Persoenlich von der Krypta berichten";
+                case HungerAction.AcceptTransportLead: return "BEI ILYAN: Transportspur nach Aschenzoll aufnehmen";
+                case HungerAction.ForestChest0: case HungerAction.ForestChest1: case HungerAction.ForestChest2: case HungerAction.ForestChest3: return "AN DER WALDTRUHE: Öffnen und Beute freilegen";
+                case HungerAction.InspectCubs: return "AM NEST: Bärenjunge und Spuren untersuchen";
+                case HungerAction.SpareCubs: return "VERSCHONEN: Junge am Leben lassen, Mara um Schutz bitten";
+                case HungerAction.SkinCubs: return "TÖTEN UND HÄUTEN: 3 Felle; keine geretteten Jungen";
+                case HungerAction.ReportCubs: return "BEI MARA: Standort der lebenden Jungen melden";
+                case HungerAction.OrganizeCubProtection: return "BEI MARA: Futter und Schutz für die Jungen vereinbaren";
+                case HungerAction.CraftPeltArmor: return "BEI MARA: 3 Felle verarbeiten – Rüstung, 10 % Schutz";
                 default: return "Unbekannte Handlung";
             }
         }

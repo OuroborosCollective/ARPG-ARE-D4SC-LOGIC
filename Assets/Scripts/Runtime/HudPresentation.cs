@@ -483,6 +483,7 @@ namespace AreArpg.UnityClient
                 PlaceDot(ref used, ArenaSimulation.PassageXmm, ArenaSimulation.PassageZmm, new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
             if (_returnPassage != null)
                 PlaceDot(ref used, 0, ArenaSimulation.ReturnPassageZmm, new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
+            foreach(var portal in _woodlandPortals) if(portal!=null) PlaceDot(ref used,(long)(portal.position.x*1000),(long)(portal.position.z*1000),new Color(.35f,.85f,1f),12f,PerMetre,Radius);
             for (int i = used; i < _hudDots.Count; i++) _hudDots[i].enabled = false;
             _hudMinimapLabel.text = DisplayChapterName(_game);
         }

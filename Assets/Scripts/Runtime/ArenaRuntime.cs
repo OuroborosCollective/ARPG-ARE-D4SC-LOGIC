@@ -319,15 +319,17 @@ namespace AreArpg.UnityClient
             foreach (Transform part in _chapterScenery)
                 if (part != null) Destroy(part.gameObject);
             _chapterScenery.Clear();
+            _woodlandChunks.Clear(); _woodlandPortals.Clear();
             _campRationVisuals.Clear();
             _returnPassage = null;
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
             if (_entryProfile && _game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4)
                 _chapterScenery.Add(OutdoorBackdrop.Create(_game.Progression.EntryAct));
+            if (_game.InWoodlandRegion) { BuildWoodlandScenery(); return; }
             if (_game.InDungeon) { BuildDungeonScenery(); return; }
             if (_game.Progression.EntryAct == 7) { BuildRattlerDen(); return; }
             if (_game.Progression.EntryAct >= 5) { BuildInvestigationScenery(); return; }
-            if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); return; }
+            if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); if (_game.Progression.EntryAct == 4 && _game.Progression.Woodland.Active) WoodlandPortal("Wald nach Aschenzoll",-20,18); return; }
             if (_game.Progression.EntryAct > 0 && BuildEntryArt()) return;
             if (_game.Progression.EntryAct == 2) { BuildEntryVillageFallback(); return; }
             _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
@@ -834,6 +836,7 @@ namespace AreArpg.UnityClient
             if (_storageFault) return;
             _game.Progression.Road.RestartPlayer();
             _game.Progression.Investigation.RestartPlayer();
+            _game.Progression.Woodland.RestartPlayer();
             SaveCharacter();
             if (_storageFault) return;
             InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version1),
@@ -1022,6 +1025,7 @@ namespace AreArpg.UnityClient
                 if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
             }
             UpdateDungeonPresentation();
+            UpdateWoodlandPresentation();
             if (_worldPassage != null)
                 _worldPassage.gameObject.SetActive((_game.Progression.EntryAct >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && _game.GroundLoot.Count == 0);
             if (_game.Progression.EntryAct < 2 && _game.CryptCleared && !_passageAnnounced)
@@ -1034,7 +1038,7 @@ namespace AreArpg.UnityClient
             {
                 float x = Mathf.Lerp(_game.PrevPlayerXmm, _game.PlayerXmm, alpha) / 1000f;
                 float z = Mathf.Lerp(_game.PrevPlayerZmm, _game.PlayerZmm, alpha) / 1000f;
-                _hero.position = new Vector3(x, 1.05f, z);
+                _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z), z);
                 AnimateActor(_hero, _game.PlayerXmm - _game.PrevPlayerXmm, _game.PlayerZmm - _game.PrevPlayerZmm);
             }
             UpdateHeroCameraContext();
@@ -1065,7 +1069,7 @@ namespace AreArpg.UnityClient
                 {
                     float x = Mathf.Lerp(enemy.PreviousXmm, enemy.Xmm, alpha) / 1000f;
                     float z = Mathf.Lerp(enemy.PreviousZmm, enemy.Zmm, alpha) / 1000f;
-                    visual.position = new Vector3(x, visual.localScale.y * 0.6f, z);
+                    visual.position = new Vector3(x, visual.localScale.y * 0.6f + GroundHeight(x,z), z);
                     AnimateActor(visual, enemy.Xmm - enemy.PreviousXmm, enemy.Zmm - enemy.PreviousZmm);
                 }
             }
@@ -1073,7 +1077,7 @@ namespace AreArpg.UnityClient
             {
                 if (_lootVisuals.ContainsKey(item.Id)) continue;
                 _lootVisuals.Add(item.Id, Shape(PrimitiveType.Sphere, "Loot_" + item.Id,
-                    new Vector3(item.Xmm / 1000f, 0.55f, item.Zmm / 1000f),
+                    new Vector3(item.Xmm / 1000f, 0.55f + GroundHeight(item.Xmm/1000f,item.Zmm/1000f), item.Zmm / 1000f),
                     Vector3.one * 0.55f, new Color(0.97f, 0.76f, 0.18f), 0.8f));
             }
             var stillOnGround = new HashSet<int>();

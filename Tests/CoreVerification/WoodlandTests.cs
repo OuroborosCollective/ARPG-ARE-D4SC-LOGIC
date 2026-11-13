@@ -12,7 +12,7 @@ internal static class WoodlandTests
         p.Investigation.Active=true;p.Investigation.Clues=7;p.Investigation.Approach=SealApproach.Investigated;p.Investigation.TraceFound=true;p.Investigation.Reported=true;
         p.Rattler.Active=true;p.Rattler.Creature.Health=0;p.Rattler.Creature.LootGranted=true;p.Rattler.BrandExamined=true;p.Rattler.Reported=true;
         var w=new ArenaSimulation(seed,p,1,LootCatalog.Version1);
-        var npc=w.Npcs[0]; HunterEncounterTests.Move(w,npc.Xmm,npc.Zmm);
+        var npc=w.Npcs[0]; npc.Xmm=w.PlayerXmm+1000; npc.Zmm=w.PlayerZmm;
         if(!w.ActOnHunger(HungerAction.AcceptTransportLead).Accepted)throw new Exception("Transport lead refused");
         p.TravelHunger(4,false);w=new ArenaSimulation(seed,p,1,LootCatalog.Version1);
         HunterEncounterTests.Move(w,ArenaSimulation.MillForestXmm,ArenaSimulation.MillForestZmm);
