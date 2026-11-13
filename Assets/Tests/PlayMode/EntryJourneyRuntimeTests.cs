@@ -397,7 +397,7 @@ namespace AreArpg.PlayMode.Tests
         { yield return CompleteSupplyJourney(); }
 
         /// <summary>Reach the missing-patients checkpoint through real story actions before each crypt branch.</summary>
-        private IEnumerator CompleteSupplyJourney()
+        private IEnumerator CompleteSupplyJourney(bool patientArt = false)
         {
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
@@ -430,6 +430,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(0f, millBounds.min.y, .02f, "The mill must stand on the visible ground");
             Assert.IsNotNull(Find("ARE_Return_Passage"));
             Assert.IsNotNull(Find("OldMill_Patient_0"));
+            if (patientArt) AssertRestingPatients(3);
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
             yield return Capture("act4-old-mill.png");
             MoveStory(0, -2000); MoveStory(0, -24000); TravelStory();
@@ -452,6 +453,7 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
             Assert.IsNull(Find("OldMill_Patient_0"));
             Assert.IsNotNull(Find("OldMill_Patient_1"));
+            if (patientArt) AssertRestingPatients(2);
             yield return StoryAction(HungerAction.InspectBeds);
             Assert.AreEqual(4, Game.Progression.HungerStage);
             string checkpoint = PlayerPrefs.GetString(_keys[0]);
@@ -466,6 +468,56 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(4, Game.Progression.HungerStage);
             Assert.AreEqual(HungerChoice.Replace, Game.Progression.SupplyChoice);
             Assert.IsNotNull(Find("OldMill_House"));
+        }
+
+        [UnityTest]
+        public IEnumerator MillPatientArtPreservesSavedPopulation()
+        {
+            if (Resources.Load<GameObject>("ARE/Visuals/EntryNpc0") == null)
+                Assert.Ignore("Requires the private humanoid art overlay");
+            yield return CompleteSupplyJourney(true);
+            AssertRestingPatients(Game.HungerShelterPatients);
+            MoveStory(-6500, 1000);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            ulong hash = Game.ComputeWorldHash(); string save = Game.Progression.SaveString();
+            yield return Capture("mill-patients-return.png");
+            Assert.AreEqual(hash, Game.ComputeWorldHash()); Assert.AreEqual(save, Game.Progression.SaveString());
+            MoveStory(0, 1000); MoveStory(0, 24000); TravelStory(); yield return null;
+            for (int i = 0; i < 3; i++) Assert.IsNull(Find("OldMill_Patient_" + i));
+        }
+
+        private void AssertRestingPatients(int expected)
+        {
+            int count = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                var patient = Find("OldMill_Patient_" + i);
+                if (patient == null) continue;
+                count++;
+                Assert.IsFalse(patient.GetComponent<Renderer>().enabled, "A capsule is not patient art");
+                var art = patient.transform.Find("Art_MillPatient" + i);
+                Assert.IsNotNull(art, "The saved patient needs resting humanoid art");
+                Assert.IsEmpty(art.GetComponentsInChildren<Animator>(), "Baked resting poses need no animator");
+                Assert.IsEmpty(art.GetComponentsInChildren<Collider>());
+                var renderers = art.GetComponentsInChildren<Renderer>();
+                Assert.IsNotEmpty(renderers);
+                Bounds bounds = renderers[0].bounds;
+                foreach (var renderer in renderers)
+                {
+                    bounds.Encapsulate(renderer.bounds);
+                    foreach (var material in renderer.sharedMaterials)
+                        Assert.IsTrue(material != null && material.shader.isSupported);
+                }
+                Assert.That(bounds.size.z, Is.InRange(1.7f, 2.3f));
+                Assert.Less(bounds.size.x, 1.45f); Assert.Less(bounds.size.y, .8f);
+                Assert.That(bounds.min.y, Is.InRange(.3f, .38f));
+                Assert.AreEqual(-4 - i * 2.5f, bounds.center.x, .05f);
+                Assert.AreEqual(5, bounds.center.z, .05f);
+                int vertices = 0;
+                foreach (var mesh in art.GetComponentsInChildren<MeshFilter>()) vertices += mesh.sharedMesh.vertexCount;
+                Assert.That(vertices, Is.InRange(500, 20000));
+            }
+            Assert.AreEqual(expected, count);
         }
 
         /// <summary>Investigate all clues through the shipped action queue, then return the discovery to Ilyan.</summary>
