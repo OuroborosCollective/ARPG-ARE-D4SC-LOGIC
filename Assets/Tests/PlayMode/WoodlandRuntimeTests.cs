@@ -59,7 +59,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.Greater(adults,40,"Mature trees exceed twice the 1.9m hero height");
             string before=Game.Progression.SaveString();DungeonProject();Assert.AreEqual(before,Game.Progression.SaveString(),"Rendering never advances the world");
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();yield return Capture("woodland-entry-gameplay.png");
-            WoodlandWalk(0,-28000);DungeonProject();
+            var firstClearing=Game.Progression.Woodland.Layout.Monster(0);
+            WoodlandWalk(firstClearing.Xmm,firstClearing.Zmm);DungeonProject();
             var hero=Find("Wanderer").transform;Assert.AreEqual(1.05f+Game.Progression.Woodland.Layout.HeightMm(Game.PlayerXmm,Game.PlayerZmm)/1000f,hero.position.y,.002f);
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();yield return Capture("woodland-combat-path.png");yield return DungeonOverview("woodland-clearings-overview.png");
             WoodlandWalk(-36000,0);
@@ -81,8 +82,11 @@ namespace AreArpg.PlayMode.Tests
             {
                 var definition=WeaponCatalog.Get(i);var prefab=Resources.Load<GameObject>("ARE/Visuals/"+definition.VisualKey);
                 Assert.IsNotNull(prefab,definition.Id);Assert.IsNotEmpty(prefab.GetComponentsInChildren<Renderer>(true));
+                foreach(var renderer in prefab.GetComponentsInChildren<Renderer>(true))foreach(var material in renderer.sharedMaterials)
+                {Assert.IsNotNull(material,definition.Id);Assert.IsTrue(material.shader.isSupported,definition.Id+" shader");Assert.IsFalse(material.shader.name.Contains("Error"),definition.Id);}
                 var host=new GameObject("WeaponValidation");Assert.IsTrue(PassiveArtVisuals.TryBindPrefab(host.transform,prefab),definition.Id);UnityEngine.Object.Destroy(host);
             }
+            yield return CaptureWeaponCatalog();
             var chosen=new List<LootItem>();
             for(ulong seed=0;seed<10000&&chosen.Count<2;seed++)
             {
@@ -104,6 +108,27 @@ namespace AreArpg.PlayMode.Tests
             }
             Assert.IsTrue(Game.TryUnequipWeapon());DungeonProject();yield return null;
             Assert.IsNull(typeof(ArenaRuntime).GetField("_equippedVisual",Flags).GetValue(_runtime));
+        }
+        private IEnumerator CaptureWeaponCatalog()
+        {
+            string folder=Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");if(string.IsNullOrEmpty(folder))yield break;
+            var gallery=new GameObject("WeaponCatalogReview");var cameraObject=new GameObject("WeaponCatalogCamera");var camera=cameraObject.AddComponent<Camera>();
+            var target=new RenderTexture(1800,1800,24);var pixels=new Texture2D(1800,1800,TextureFormat.RGB24,false);var active=RenderTexture.active;
+            try
+            {
+                for(int i=0;i<WeaponCatalog.Count;i++)
+                {
+                    var definition=WeaponCatalog.Get(i);var host=new GameObject(definition.Id).transform;host.SetParent(gallery.transform);host.position=new Vector3(200+(i%6)*2.2f,1+(5-i/6)*2.3f,200);
+                    Assert.IsTrue(PassiveArtVisuals.TryBind(host,definition.VisualKey));
+                    var text=new GameObject("Label").AddComponent<TextMesh>();text.transform.SetParent(host,false);text.transform.localPosition=new Vector3(-.85f,-.8f,-.3f);text.transform.localRotation=Quaternion.Euler(0,180,0);text.text=definition.Id;text.fontSize=35;text.characterSize=.045f;text.color=Color.white;
+                }
+                camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.17f,.2f,.25f);camera.orthographic=true;camera.orthographicSize=7.2f;
+                camera.transform.position=new Vector3(205.5f,6.5f,190);camera.transform.LookAt(new Vector3(205.5f,6.5f,200));camera.farClipPlane=20;
+                var light=cameraObject.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.5f;
+                yield return null;camera.targetTexture=target;camera.Render();RenderTexture.active=target;pixels.ReadPixels(new Rect(0,0,1800,1800),0,0);pixels.Apply();
+                System.IO.Directory.CreateDirectory(folder);System.IO.File.WriteAllBytes(System.IO.Path.Combine(folder,"weapon-catalog-36.png"),pixels.EncodeToPNG());
+            }
+            finally{RenderTexture.active=active;camera.targetTexture=null;target.Release();UnityEngine.Object.Destroy(target);UnityEngine.Object.Destroy(pixels);UnityEngine.Object.Destroy(gallery);UnityEngine.Object.Destroy(cameraObject);}
         }
     }
 }

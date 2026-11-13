@@ -18,6 +18,15 @@ namespace AreArpg.EditorTools
             try
             {
                 AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                foreach(string guid in AssetDatabase.FindAssets("t:Texture2D",new[]{"Assets/PrivateArt/WoodlandWeapons"}))
+                {
+                    var importer=AssetImporter.GetAtPath(AssetDatabase.GUIDToAssetPath(guid)) as TextureImporter;
+                    if(importer==null)continue;
+                    importer.isReadable=false;importer.mipmapEnabled=true;importer.maxTextureSize=Math.Min(importer.maxTextureSize,1024);
+                    var android=importer.GetPlatformTextureSettings("Android");android.name="Android";android.overridden=true;
+                    android.maxTextureSize=1024;android.format=TextureImporterFormat.ASTC_6x6;android.compressionQuality=80;
+                    importer.SetPlatformTextureSettings(android);importer.SaveAndReimport();
+                }
                 Directory.CreateDirectory(Output+"Weapons");AssetDatabase.Refresh();
                 string[] sources={"ashen_tree_twisted_a","ashen_tree_burnt_b","ashen_shrub_thorny_01","ashen_fern_cold_01","ashen_mushroom_cluster_glow_01","ashen_basalt_rubble_cluster_01"};
                 string[] keys={"WoodlandTreeA","WoodlandTreeB","WoodlandShrub","WoodlandFern","WoodlandMushroomMoon","WoodlandRock"};
