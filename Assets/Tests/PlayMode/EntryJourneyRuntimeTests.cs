@@ -529,6 +529,45 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(expected, count);
         }
 
+        [UnityTest]
+        public IEnumerator MillRefugeKeepsCluesAndTravelAccessible()
+        {
+            yield return CompleteSupplyJourney();
+            var refuge = Find("OldMill_Refuge"); Assert.IsNotNull(refuge);
+            Assert.IsNotNull(Find("OldMill_Shelter_Canvas"));
+            Assert.IsNotNull(Find("OldMill_Dressing_Roll_0"));
+            for (int i = 0; i < 4; i++)
+            {
+                ArenaSimulation.MillShelterPost(i, out long x, out long z);
+                var post = Find("OldMill_Shelter_Post_" + i);
+                Assert.IsNotNull(post); Assert.IsFalse(Game.CanStand(x, z));
+                Assert.AreEqual(x * .001f, post.transform.position.x, .001f);
+                Assert.AreEqual(z * .001f, post.transform.position.z, .001f);
+                Assert.AreEqual(ArenaSimulation.MillShelterPostHalfWidthMm * .002f,
+                    post.GetComponent<Renderer>().bounds.size.x, .001f);
+            }
+            foreach (var collider in refuge.GetComponentsInChildren<Collider>()) Assert.IsFalse(collider.enabled);
+            Assert.Greater(Find("OldMill_Shelter_Canvas").GetComponent<Renderer>().bounds.min.y, 2.8f);
+            int vertices = 0;
+            foreach (var filter in refuge.GetComponentsInChildren<MeshFilter>()) vertices += filter.sharedMesh.vertexCount;
+            Assert.Less(vertices, 100000, "Refuge and roadside dressing must have bounded geometry");
+            foreach (var renderer in refuge.GetComponentsInChildren<Renderer>())
+            {
+                foreach (var material in renderer.sharedMaterials) Assert.IsTrue(material != null && material.shader.isSupported);
+            }
+            foreach (Transform part in refuge.transform)
+                if (part.name.StartsWith("Route_OuterRocks"))
+                    foreach (var renderer in part.GetComponentsInChildren<Renderer>())
+                        Assert.Greater(Mathf.Abs(renderer.bounds.center.x) - renderer.bounds.extents.x, 27f);
+            ulong hash = Game.ComputeWorldHash(); string save = Game.Progression.SaveString();
+            yield return Capture("mill-refuge-return.png", refugeDetail: true);
+            Assert.AreEqual(hash, Game.ComputeWorldHash()); Assert.AreEqual(save, Game.Progression.SaveString());
+            MoveStory(0, 5000); MoveStory(0, -24000); TravelStory(); yield return null;
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            Assert.IsNull(Find("OldMill_Refuge")); Assert.IsNotNull(Find("AshRoad_Verges"));
+            yield return Capture("ash-road-verges.png");
+        }
+
         /// <summary>Investigate all clues through the shipped action queue, then return the discovery to Ilyan.</summary>
         [UnityTest]
         public IEnumerator CryptInvestigationOpensSafelyAndReportsLocally()
@@ -788,7 +827,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>Optional real camera render for private visual inspection; never a gameplay input.</summary>
-        private IEnumerator Capture(string name, bool heroDetail = false, bool patientDetail = false)
+        private IEnumerator Capture(string name, bool heroDetail = false, bool patientDetail = false, bool refugeDetail = false)
         {
             string directory = System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
             if (string.IsNullOrEmpty(directory)) yield break;
@@ -826,6 +865,11 @@ namespace AreArpg.PlayMode.Tests
                     Vector3 focus = new Vector3(-6.5f, .5f, 5);
                     camera.transform.position = focus + new Vector3(2.7f, 3.4f, -4f);
                     camera.transform.LookAt(focus);
+                }
+                if (refugeDetail)
+                {
+                    camera.transform.position = new Vector3(1, 4.3f, -6);
+                    camera.transform.LookAt(new Vector3(-5.5f, 1.3f, 3.8f));
                 }
                 camera.targetTexture = target;
                 camera.Render();

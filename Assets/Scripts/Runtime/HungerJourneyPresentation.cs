@@ -168,6 +168,7 @@ namespace AreArpg.UnityClient
                 new Vector3(3.6f, .02f, 3.6f), new Color(.25f, .68f, .72f));
             _returnPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_Return_Passage", new Vector3(0, .03f, -24),
                 new Vector3(3.6f, .02f, 3.6f), new Color(.58f, .62f, .69f));
+            _chapterScenery.Add(RefugeScenery.Create(mill));
             if (!mill)
             {
                 ChapterShape(PrimitiveType.Cube, "AshRoad_Trail_Marker", new Vector3(1.7f, .8f, -2),

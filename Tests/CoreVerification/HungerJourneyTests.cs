@@ -44,6 +44,12 @@ internal static class HungerJourneyTests
             check(mill != null && mill.Progression.EntryAct == 4 && mill.Monsters.Count == 0 && mill.Npcs.Count == 0, "hunger-no-duplicate-crypt-or-npc-at-mill");
             check(mill.HungerShelterPatients == 3, "hunger-three-patients-on-first-visit");
             check(!mill.CanStand(10500, 5000) && mill.CanStand(0, 5000), "hunger-mill-footprint-core");
+            Move(mill, -2500, 1000);
+            mill.SetMoveInput(0, 10000);
+            for (int tick = 0; tick < 20; tick++) mill.Step();
+            mill.SetMoveInput(0, 0);
+            check(mill.PlayerZmm < 2900 && mill.PlayerZmm >= 2000, "mill-refuge-post-blocks-real-movement");
+            Move(mill, 0, mill.PlayerZmm);
             Move(mill, 0, -2000); Move(mill, -4000, -2000);
             check(mill.ActOnHunger(HungerAction.InspectShelter).Accepted, "hunger-shelter-evidence");
             Move(mill, -4000, 5000);
