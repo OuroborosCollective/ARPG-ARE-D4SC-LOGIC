@@ -27,6 +27,7 @@ namespace AreArpg.UnityClient
         {
             var p = _game.Progression;
             if (_game.InDungeon) return DungeonActions();
+            var freight=FreightActions(); if(freight!=null)return freight;
             var woodland=WoodlandActions(); if(woodland!=null)return woodland;
             if (p.Investigation.Active) return InvestigationActions();
             if (p.EntryAct == 2 && p.HungerStage == 0) return new[] { HungerAction.HearIlyan };
@@ -74,6 +75,14 @@ namespace AreArpg.UnityClient
                 case HungerAction.ReportCubs: return "BEI MARA: Standort der lebenden Jungen melden";
                 case HungerAction.OrganizeCubProtection: return "BEI MARA: Futter und Schutz für die Jungen vereinbaren";
                 case HungerAction.CraftPeltArmor: return "BEI MARA: 3 Felle verarbeiten – Rüstung, 10 % Schutz";
+                case HungerAction.InspectFreightNotice: return "AM AUSHANG: Handels- und Aufenthaltsregeln lesen";
+                case HungerAction.InspectFreightCage: return "AM KÄFIG: Leere Rückfracht und Sendungsnummer prüfen";
+                case HungerAction.ReadFreightManifest: return "AM PULT: Den Frachtbeleg lesen";
+                case HungerAction.SecureFreight: return "FESTSETZEN: Original bleibt hier; Weiterfahrt entfällt";
+                case HungerAction.ReleaseFreight: return "FREIGEBEN: Original fährt mit; oben Spur prüfen";
+                case HungerAction.TakeFreightOriginal: return "AM PULT: Originalbeleg tatsächlich mitnehmen";
+                case HungerAction.InspectFreightArrival: return "OBERE RAMPE: Sendung und Abladezeichen prüfen";
+                case HungerAction.ReportFreightEvidence: return "BEI ILYAN: Persönlich die Transportspur berichten";
                 default: return "Unbekannte Handlung";
             }
         }
@@ -115,7 +124,7 @@ namespace AreArpg.UnityClient
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;
             if (!_hungerJournalOpen) return false;
             Rect panel = HungerPanel(layout);
-            GUI.Box(panel, _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : "HUNGER HINTER DEN MAUERN");
+            GUI.Box(panel, _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : _game.InAschenzoll ? "ASCHENZOLL — DIE TRANSPORTSPUR" : "HUNGER HINTER DEN MAUERN");
             GUI.Label(new Rect(panel.x + 15, panel.y + 30, 530, 70), _game.HungerObjective, _smallStyle);
             GUI.Label(new Rect(panel.x + 15, panel.y + 105, 530, 30), "Proviant: " + _game.Progression.Social.Provisions +
                 "  |  Entscheidung: " + HungerChoiceLabel(_game.Progression.SupplyChoice), _smallStyle);

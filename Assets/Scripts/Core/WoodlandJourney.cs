@@ -126,7 +126,7 @@ namespace AreArpg.Core
                 if(Progression.EntryAct==9)return !w.CubsInspected?"Untersuche das Nest in der Bärenhöhle.":w.Choice==CubChoice.Undecided?"Entscheide am Nest: Junge verschonen und Schutz suchen oder töten und Felle nehmen.":"Die Entscheidung bleibt bestehen. Kehre über den Höhleneingang in denselben Wald zurück.";
                 if(w.Choice==CubChoice.Spared&&!w.ProtectionOrganized)return w.CubsReported?"Vereinbare bei Mara den Schutz der Bärenjungen.":"Berichte Mara persönlich von den verschonten Bärenjungen.";
                 if(w.Pelts>0)return "Bringe Mara die drei Felle und lasse eine Fellrüstung herstellen.";
-                if(Progression.EntryAct==10)return "Aschenzoll erreicht. Der Frachtplatz liegt vor dir; der südliche Weg führt zurück in den Wald.";
+                if(Progression.EntryAct==10 || w.ReachedAschenzoll && Progression.Freight.EvidenceReady && !Progression.Freight.Reported) return FreightObjective;
                 if(InForest)return "Folge dem Waldweg nach Norden bis Aschenzoll. Eine Bärenhöhle liegt westlich der mittleren Lichtungen. Erkunde Abzweige und sichere Beute.";
                 return "Folge von der Mühle dem westlichen Waldpfad nach Aschenzoll.";
             }

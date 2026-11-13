@@ -77,7 +77,7 @@ namespace AreArpg.Core
                 var innerBytes=Convert.FromBase64String(f[1]);var forgeBytes=Convert.FromBase64String(f[2]);
                 if(Convert.ToBase64String(innerBytes)!=f[1]||Convert.ToBase64String(forgeBytes)!=f[2])return false;
                 var utf8=new UTF8Encoding(false,true);string inner=utf8.GetString(innerBytes);
-                if(inner.StartsWith("AC17|",StringComparison.Ordinal)||inner.StartsWith("AC18|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!NpcForgeState.TryRead(utf8.GetString(forgeBytes),out var forge))return false;
+                if(inner.StartsWith("AC17|",StringComparison.Ordinal)||inner.StartsWith("AC18|",StringComparison.Ordinal)||inner.StartsWith("AC19|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!NpcForgeState.TryRead(utf8.GetString(forgeBytes),out var forge))return false;
                 if(!ForgeVillageCheckpoint.TryRead(forge.Checkpoint,out var checkpoint)||checkpoint!=null&&checkpoint.Health>CombatRules.MaximumHealth(p))return false;
                 p.Social.Forge=forge;progress=p;return true;
             }

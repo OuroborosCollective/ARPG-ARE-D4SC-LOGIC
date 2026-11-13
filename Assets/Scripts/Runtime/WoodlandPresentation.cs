@@ -142,11 +142,14 @@ namespace AreArpg.UnityClient
             {
                 ChapterShape(PrimitiveType.Cube,"Aschenzoll_FreightShelter",new Vector3(-8,2,6),new Vector3(6,4,9),new Color(.34f,.27f,.19f),"AshRuin");
                 for(int i=0;i<6;i++)ChapterShape(PrimitiveType.Cube,"Aschenzoll_FreightCrate_"+i,new Vector3(5+(i%2)*2,.55f,2+(i/2)*3),new Vector3(1.5f,1.1f,1.5f),new Color(.43f,.3f,.17f),"AshCrate");
-                ChapterShape(PrimitiveType.Cube,"Aschenzoll_NoticeBoard",new Vector3(-3,1.3f,0),new Vector3(2,2.6f,.2f),new Color(.41f,.3f,.21f));
+                ChapterShape(PrimitiveType.Cube,"Aschenzoll_NoticeBoard",new Vector3(-5,1.3f,-12),new Vector3(2,2.6f,.2f),new Color(.41f,.3f,.21f));
+                FreightSign("Freight_NoticeSign","Aushang",new Vector3(-5,1.2f,-12.2f));
+                BuildFreightScenery();
             }
         }
         private void UpdateWoodlandPresentation()
         {
+            UpdateFreightPresentation();
             foreach(var chunk in _woodlandChunks)if(chunk!=null) {var d=chunk.position-new Vector3(_game.PlayerXmm/1000f,0,_game.PlayerZmm/1000f);chunk.GetChild(0).gameObject.SetActive(d.sqrMagnitude<52*52);}
             for(int i=0;i<4;i++)if(_forestChestLids[i]!=null)_forestChestLids[i].localRotation=Quaternion.Euler((_game.Progression.Woodland.OpenChests&(1<<i))!=0?-65:0,0,0);
             for(int i=0;i<3;i++)if(_bearCubs[i]!=null)_bearCubs[i].gameObject.SetActive(_game.Progression.Woodland.Choice!=CubChoice.Skinned);

@@ -10,10 +10,10 @@ namespace AreArpg.Core
             var forge=Progression.Social.Forge;if(forge==null||action==HungerAction.ToggleSneak||action==HungerAction.BeginDungeonRun||
                 action==HungerAction.OpenWestChest||action==HungerAction.OpenEastChest||action>=HungerAction.ForestChest0&&action<=HungerAction.ForestChest3)return;
             string contact=null;
-            if(action==HungerAction.HearIlyan||action==HungerAction.Protect||action==HungerAction.ReportCrypt||action==HungerAction.ReportRoyalBrand||action==HungerAction.AcceptTransportLead)contact="ilyan";
+            if(action==HungerAction.HearIlyan||action==HungerAction.Protect||action==HungerAction.ReportCrypt||action==HungerAction.ReportRoyalBrand||action==HungerAction.AcceptTransportLead||action==HungerAction.ReportFreightEvidence)contact="ilyan";
             if(action==HungerAction.Reveal||action==HungerAction.Replace||action==HungerAction.ReportCubs||action==HungerAction.OrganizeCubProtection||action==HungerAction.CraftPeltArmor)contact="mara";
             var impact=action==HungerAction.Protect?new RelationshipChange(trust:2000,gratitude:3000):action==HungerAction.Replace?new RelationshipChange(trust:1000,gratitude:1500):new RelationshipChange();
-            string target=contact??(Progression.EntryAct==9?"bear.cubs":Progression.EntryAct==4?"world.mill":Progression.EntryAct==3?"world.road":"world.crypt");
+            string target=contact??(Progression.EntryAct==10?"world.aschenzoll":Progression.EntryAct==9?"bear.cubs":Progression.EntryAct==4?"world.mill":Progression.EntryAct==3?"world.road":"world.crypt");
             var e=forge.Archive.Append(MemoryKind.Quest,"player",target,forge.ProcessedTicks,8000,true,"story."+action.ToString().ToLowerInvariant(),impact);
             if(contact!=null)forge.Archive.Learn(contact,e.Id,KnowledgeOrigin.Self,contact,forge.ProcessedTicks);
             var c=Progression.Companion;
