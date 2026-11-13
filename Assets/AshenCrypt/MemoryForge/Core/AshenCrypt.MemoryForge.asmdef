@@ -1,0 +1,7 @@
+{
+  "name": "AshenCrypt.MemoryForge",
+  "rootNamespace": "AshenCrypt.MemoryForge",
+  "references": [],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}
