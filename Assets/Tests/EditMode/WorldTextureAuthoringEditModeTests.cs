@@ -49,10 +49,10 @@ namespace AreArpg.EditMode.Tests
         {
             _author = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("AreArpg.EditorTools.WorldTextureAuthoring")).First(t => t != null);
             _fixture = "Assets/PrivateArt/WorldUvTest_" + Guid.NewGuid().ToString("N") + ".asset";
-            _before = new HashSet<string>(AssetDatabase.GetAllAssetPaths());
             _ownsRoot = !System.IO.Directory.Exists(Root);
             System.IO.Directory.CreateDirectory(Root);
             AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            _before = new HashSet<string>(AssetDatabase.GetAllAssetPaths());
         }
 
         [TearDown] public void Cleanup()
