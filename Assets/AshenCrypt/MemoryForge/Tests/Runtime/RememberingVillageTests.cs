@@ -20,7 +20,7 @@ namespace AshenCrypt.MemoryForge.Tests
             {
                 var sample=go.AddComponent<RememberingVillage>();sample.Running=false;yield return null;
                 sample.Execute("approach");for(int i=0;i<20;i++)sample.Execute("step");
-                sample.Execute("food");sample.Execute("step");
+                sample.Execute("food");for(int i=0;i<4;i++)sample.Execute("step");
                 Assert.AreEqual(2,sample.World.Provisions);Assert.AreEqual(1200,sample.World.Archive.Get("nara").RelationshipTo("player").Trust);
                 Assert.AreEqual(ForgeAction.Observe,sample.World.Archive.Get("nara").DecisionState.Action);
                 Assert.AreEqual(0,sample.World.Archive.Get("watch").Known.Count);
