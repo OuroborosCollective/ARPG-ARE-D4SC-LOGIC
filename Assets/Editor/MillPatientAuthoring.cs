@@ -23,7 +23,7 @@ namespace AreArpg.EditorTools
 
         private static void BuildPatient(int id)
         {
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>(Root + "Npc" + (id == 1 ? 1 : 0) + ".prefab");
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(Root + "EntryNpc" + (id == 1 ? 1 : 0) + ".prefab");
             if (source == null) throw new InvalidOperationException("Import the private peasant visuals first.");
             foreach (var component in source.GetComponentsInChildren<Component>(true))
                 if (!(component is Transform || component is Renderer || component is MeshFilter || component is Animator || component is LODGroup))
@@ -72,6 +72,7 @@ namespace AreArpg.EditorTools
                         {
                             copy = new Material(Shader.Find("Universal Render Pipeline/Lit"));
                             Texture texture = original.HasProperty("_BaseMap") ? original.GetTexture("_BaseMap") : original.mainTexture;
+                            if (texture == null) throw new InvalidOperationException("Patient source is missing its baked colour atlas.");
                             copy.SetTexture("_BaseMap", texture);
                             copy.SetColor("_BaseColor", original.HasProperty("_BaseColor") ? original.GetColor("_BaseColor") : original.color);
                             copy.SetFloat("_Smoothness", .12f);
