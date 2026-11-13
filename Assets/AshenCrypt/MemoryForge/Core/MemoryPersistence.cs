@@ -108,7 +108,7 @@ namespace AshenCrypt.MemoryForge
                     if(stream.Position!=stream.Length||a.Save()!=token)return false;archive=a;return true;
                 }
             }
-            catch(Exception e) when(e is ArgumentException||e is IOException||e is OverflowException||e is FormatException||e is InvalidOperationException){return false;}
+            catch(Exception e) when(e is ArgumentException||e is IOException||e is InvalidDataException||e is OverflowException||e is FormatException||e is InvalidOperationException){return false;}
         }
     }
 }

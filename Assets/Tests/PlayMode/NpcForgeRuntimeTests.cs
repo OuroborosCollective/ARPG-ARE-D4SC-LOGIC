@@ -12,6 +12,45 @@ namespace AreArpg.PlayMode.Tests
     public sealed partial class EntryJourneyRuntimeTests
     {
         [UnityTest]
+        public IEnumerator CompanionShortcutLeavesNpcAttackInputAvailable()
+        {
+            _runtime.enabled=false;_runtime.CloseMenu();
+            var route=typeof(ArenaRuntime).GetMethod("TryMenuShortcut",Flags);
+            Assert.IsFalse((bool)route.Invoke(_runtime,new object[]{KeyCode.B}),"B belongs to NPC attack");
+            Assert.IsFalse(_runtime.MenuOpen);
+            Assert.IsTrue((bool)route.Invoke(_runtime,new object[]{KeyCode.O}));
+            Assert.AreEqual(ArenaRuntime.MenuCompanion,_runtime.MenuTab);
+            yield return null;Assert.IsNotNull(Find("CompanionPanel"));
+            Assert.IsTrue((bool)route.Invoke(_runtime,new object[]{KeyCode.O}));Assert.IsFalse(_runtime.MenuOpen);
+        }
+        [UnityTest]
+        public IEnumerator ExplicitVillageRestartRevivesPlayerWhileDeadSaveAndNpcHistoryRemainValid()
+        {
+            _runtime.enabled=false;
+            var p=CharacterProgression.CreateEntryProfile();
+            typeof(CharacterProgression).GetMethod("EnterVillage",Flags).Invoke(p,null);p.Social.EnableForge();
+            ulong seed=(ulong)typeof(ArenaRuntime).GetField("DemoSeed",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic).GetRawConstantValue();
+            typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{new ArenaSimulation(seed,p,1,LootCatalog.Version1),"Village restart fixture"});
+            var ilyan=Game.Npcs.First(n=>n.Id==0);ilyan.Xmm=ilyan.PreviousXmm=Game.PlayerXmm+1200;ilyan.Zmm=ilyan.PreviousZmm=Game.PlayerZmm;
+            typeof(ArenaRuntime).GetMethod("QueueNpcAction",Flags).Invoke(_runtime,new object[]{NpcAction.Help});TickOnce();
+            Assert.AreEqual(1,ilyan.Mind.Known.Count);
+            // Arrange only defeat; the actual save reader and shipped restart adapter execute below.
+            DungeonFixtureSet(Game,"PlayerHealth",0);Assert.IsTrue(Game.GameOver);
+            var tick=Game.CurrentTick;var history=p.Social.Forge.Archive.Save();var provisions=p.Social.Provisions;
+            var positions=Game.Npcs.Select(n=>new Vector2(n.Xmm,n.Zmm)).ToArray();
+            typeof(ArenaRuntime).GetMethod("SaveCharacter",Flags,null,System.Type.EmptyTypes,null).Invoke(_runtime,null);
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var dead));
+            Assert.IsTrue(new ArenaSimulation(seed,dead,1,LootCatalog.Version1).GameOver,"Loading a dead save is not a revival command");
+            typeof(ArenaRuntime).GetMethod("Restart",Flags).Invoke(_runtime,null);
+            Assert.IsFalse(Game.GameOver,"Explicit restart must not restore zero health");
+            Assert.AreEqual(Game.MaxPlayerHealth,Game.PlayerHealth);Assert.AreEqual(tick,Game.CurrentTick);
+            Assert.AreEqual(history,Game.Progression.Social.Forge.Archive.Save());Assert.AreEqual(provisions,Game.Progression.Social.Provisions);
+            CollectionAssert.AreEqual(positions,Game.Npcs.Select(n=>new Vector2(n.Xmm,n.Zmm)).ToArray());
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var alive));
+            Assert.IsFalse(new ArenaSimulation(seed,alive,1,LootCatalog.Version1).GameOver);
+            yield return null;
+        }
+        [UnityTest]
         public IEnumerator IlyanRemembersActualHelpAndReactsAfterNativeSaveReload()
         {
             _runtime.enabled=false;
