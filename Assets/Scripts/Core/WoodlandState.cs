@@ -37,7 +37,7 @@ namespace AreArpg.Core
         internal void Accept(ulong seed) { Active=true;Seed=seed;Build(); }
         internal void Enter()
         {
-            if(NeedsNewRun) { Seed=new DeterministicRng(Seed).Next64(); Run++;Tick=0;Build(); }
+            if(NeedsNewRun) { Seed=new DeterministicRng(Seed).Next64(); Run++;Tick=0;Rng0=Rng1=0;Build(); }
             HasRun=true;NeedsNewRun=false;
         }
         public void RestartPlayer() { SavedAct=0; }
