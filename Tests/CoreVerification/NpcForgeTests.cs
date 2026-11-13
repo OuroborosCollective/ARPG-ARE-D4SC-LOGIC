@@ -6,6 +6,13 @@ internal static class NpcForgeTests
     public static void Run(Action<bool,string> require)
     {
         var registry=ForgeDefaults.CreateRegistry();
+        using(var stream=new System.IO.MemoryStream())
+        {
+            using(var writer=new System.IO.BinaryWriter(stream,System.Text.Encoding.UTF8,true)){writer.Write(1);writer.Write(-1);}
+            string payload=Convert.ToBase64String(stream.ToArray());
+            require(!MemoryArchive.TryLoad("NMF1."+payload+"."+ContractText.Hash(payload),registry,out var rejected)&&rejected==null,
+                "forge-valid-checksum-negative-record-count-is-rejected-without-throwing");
+        }
         require(ForgeDefaults.ReviewedHash("traveler")=="627ed161da4c0868ddf5f5973dac6028aa6adaaaf4e5f4a2f630a156cd83ea74", "forge-release-manifest-pins-reviewed-policy-bytes");
         var guard=registry.BindNew("guard");
         require(guard.ArchetypeId=="guard"&&guard.Version==1&&guard.Hash.Length==64,"forge-spawn-binds-approved-controller-hash");
