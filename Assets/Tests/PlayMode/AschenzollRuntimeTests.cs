@@ -18,9 +18,13 @@ namespace AreArpg.PlayMode.Tests
         private IEnumerator VerifyAschenzoll(bool release)
         {
             InstallWoodlandFixture();Game.Progression.Social.EnableForge();
+            WoodlandWalk(-36000,0);
+            while(Game.GroundLoot.Count>0){var drop=Game.GroundLoot[0];WoodlandWalk(drop.Xmm,drop.Zmm);Game.TryCollectLoot();}
             WoodlandWalk(-36000,0);TravelStory();yield return null;
+            Assert.AreEqual(9,Game.Progression.EntryAct,"Reach the cave through the real loot-gated passage");
             MoveStory(0,5000);yield return StoryAction(HungerAction.InspectCubs);
             yield return StoryAction(HungerAction.SpareCubs);
+            Assert.AreEqual(CubChoice.Spared,Game.Progression.Woodland.Choice);
             MoveStory(0,-18000);TravelStory();yield return null;
             // The existing forest route is walked and fought; the actual travel adapter owns arrival and saving.
             WoodlandWalk(0,48000);
