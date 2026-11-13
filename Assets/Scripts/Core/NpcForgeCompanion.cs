@@ -80,7 +80,7 @@ namespace AreArpg.Core
     public sealed partial class CharacterProgression
     {
         public CompanionState Companion { get; private set; }=new CompanionState();
-        private string Payload()
+        private string CompanionPayload()
         {
             string body=ForgePayload();if(!Companion.HasJoined)return body;
             string prior=body+"|"+HashText(body).ToString("X16",CultureInfo.InvariantCulture);

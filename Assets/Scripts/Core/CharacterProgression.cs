@@ -198,6 +198,7 @@ namespace AreArpg.Core
         {
             progress = null;
             if (string.IsNullOrEmpty(saved)) return false;
+            if(saved.StartsWith("AC19|",StringComparison.Ordinal))return TryLoadFreight(saved,out progress);
             if(saved.StartsWith("AC18|",StringComparison.Ordinal))return TryLoadCompanion(saved,out progress);
             if(saved.StartsWith("AC17|",StringComparison.Ordinal))return TryLoadForge(saved,out progress);
             if(saved.StartsWith("AC16|",StringComparison.Ordinal))return TryLoadEquipment(saved,out progress);

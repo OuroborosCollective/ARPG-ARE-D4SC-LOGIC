@@ -1,0 +1,47 @@
+{
+  "red": "22bd388854bebee5cf583193a1ca350281d07308",
+  "green": "7b1d1ee47afb3b166b4225459ccdd63b2f6bc705",
+  "logs": [
+    {
+      "file": "freight-review-red.log",
+      "bytes": 280763,
+      "sha256": "542dcde6cd696f95e312acd1968a91b5b5dd80fe3909e4474f52b83af31dae26",
+      "tail": [
+        "PASS mixed-actor-defeats-have-unique-loadable-loot-ordinals",
+        "PASS freight-rechecksummed-signed-values-rejected-1,7,-1,0,0,0,0",
+        "PASS freight-rechecksummed-signed-values-rejected-1,7,2,-1,0,0,0",
+        "PASS freight-rechecksummed-signed-values-rejected-1,7,-2147483648,0,0,0,0",
+        "PASS freight-rechecksummed-signed-values-rejected-1,7,2,-2147483648,0,0,0",
+        "PASS freight-rechecksummed-signed-values-rejected-1,7,+1,0,0,0,0",
+        "PASS freight-rechecksummed-signed-values-rejected-1,7,2,+1,0,0,0",
+        "PASS freight-rechecksummed-unsigned-control-loads",
+        "System.Exception: FAIL freight-station-objective-before-unfinished-cubs-False",
+        "   at Program.Require(Boolean expression, String name) in /workspace/ashen-aschenzoll-evidence-20261113/Tests/CoreVerification/Program.cs:line 11",
+        "   at AschenzollTests.Run(Action`2 check) in /workspace/ashen-aschenzoll-evidence-20261113/Tests/CoreVerification/AschenzollTests.cs:line 30",
+        "   at Program.Main() in /workspace/ashen-aschenzoll-evidence-20261113/Tests/CoreVerification/Program.cs:line 49"
+      ]
+    },
+    {
+      "file": "freight-review-green.log",
+      "bytes": 285567,
+      "sha256": "90bf050e7780775403aab3cfbba342f2ec26f34bacec9ec0d2e0902369710809",
+      "tail": [
+        "PASS forge-creature-identity-controller-and-threat-memory-restore",
+        "PASS forge-unknown-creature-role-cannot-use-unguarded-attack",
+        "PASS forge-actual-secret-conversation-is-persistent-personal-history",
+        "PASS forge-story-replay-cannot-duplicate-canonical-episode",
+        "PASS forge-private-story-conversation-is-not-world-knowledge",
+        "PASS forge-rattler-explicit-calm-policy-admitted",
+        "PASS forge-rattler-must-execute-wait-decision-not-hidden-attack",
+        "PASS forge-road-bear-explicit-calm-policy-admitted",
+        "PASS forge-road-bear-must-execute-its-admitted-decision",
+        "PASS forge-road-animal-policy-and-encounter-restore",
+        "PASS forge-offscreen-road-encounter-keeps-same-individual-controller",
+        "ALL PASS: 8109 deterministic core assertions"
+      ]
+    }
+  ],
+  "negativeNumberFinding": "NumberStyles.None already rejected signed input; rechecksummed negative choice/motion regression cases pass before any production parser change.",
+  "nativeEvidence": "../../npc-forge-20261113/review-2-native.json",
+  "fixtureCorrection": "Returning to the cave after collecting loot can meet another group. Repeated bounded collection through actual movement completes that encounter before the passage; no gameplay gate bypass."
+}

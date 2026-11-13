@@ -1,5 +1,51 @@
 # ARE Ashen Crypt — Projektzustand
 
+## Aktueller Entwicklungsstand: geprüfte Spielintegration (13.11.2026)
+
+Der Drei-Ebenen-Dungeon, der prozedurale Wald, feste Bärenhöhle und Aschenzoll
+bilden die spielbare Route. 36 vorhandene Waffen-/Schildmodelle sind echte,
+sichtbar ausrüstbare Beute. NPCs besitzen persönliche Erinnerungen und Beziehungen;
+der gerettete Jäger folgt, wartet, trägt eigene Ausrüstung und übt durch wirksame
+Aktionen. Seine Alleinkills vergeben dem Spieler keine XP oder Kills; Beute bleibt
+sammelbar. Normales Laden belebt Tote nicht wieder.
+
+In Aschenzoll wird der bestätigte **leere Tiertransport** untersucht. Originalbeleg
+sichern oder Fracht tatsächlich verfolgen sind getrennte dauerhafte Entscheidungen.
+Die Hauptspur bleibt sichtbar, auch wenn Mara noch über die verschonten Bärenjungen
+informiert werden muss. Nordwechsel ist bisher nur ein Hinweis, kein fertiges Gebiet.
+[Stationsablauf und Grenzen](docs/ASCHENZOLL_FREIGHT.md).
+
+Gemeinsamer geprüfter Code: **5977f4c494c07a7a94d24c9e67b29419e0f2673e**,
+CI43441375613 erfolgreich: **8112 Core-Assertions und 40 Preflights**.
+Unity6000.6.8f1: **126/126 PlayMode und 52/52 EditMode**, jeweils keine Skips;
+die Gesamtzahlen enthalten auch die separat exportierbaren Pakettests.
+Dorfneustart erhält NPCs, Uhr und Erinnerungen und speichert den geheilten Spieler.
+B bleibt NPC-Angriff, O öffnet Begleiter. Der Jäger folgt außerhalb des Kampfes
+mit Spielergeschwindigkeit. Ungültige NPC-Archive werden sauber abgelehnt.
+[Revisionen, REDs und XML-Prüfsummen](docs/evidence/npc-forge-20261113/review-2-native.json).
+Private Assets unverändert, Besitzer-Spielstände und Projekteinstellungen
+wiederhergestellt. Für diese letzten Spieländerungen fehlt ein neuer Spiel-APK-
+und physischer Tab-A9-Nachweis.
+
+Memory Forge **1.0.2** ist als eigenständiges Unity-Paket fertig:99 Export-/Importdateien
+bytegleich, URP und Built-in-Upgrade jeweils12/12 Editor+2/2 PlayMode,
+tatsächlicher Linux-Player mit unabhängig gelesenem Save und neuer geprüfter
+ARM64/IL2CPP-Beispielbuild. [Releasebelege](docs/evidence/memory-forge-package-20261113/release-1.0.2).
+Der Besitzer veröffentlicht selbst für **9.50USD einmalig**; kein erneuter
+Publisher-Login und kein behaupteter Store-Upload.
+
+Nächster Grafikblock: neue eigene My-Assets-Pakete laden und gezielt integrieren.
+Sechs Quellen sind vollständig und CRC-geprüft: Hunter, Animals FREE,
+GanzSe-Zubehör, Viking-Waffen und beide EmbersStorm-Rüstungspakete.
+Die weiteren Downloads laufen separat. Privater Probeimport bestätigt ein gültiges
+Hunter-Humanoid-Skelett sowie tatsächliche Ruhe-/Laufbewegungen. Die bisherige
+WeaponBowShot-Datei ist eine einzelne0.033s-Pose, kein vollständiger Schussclip;
+Materialanpassung und Prüfung im realen Begleiter-Controller stehen noch aus.
+Die neuen Rohassets sind nicht Bestandteil des Verkaufsplugins oder öffentlichen Git.
+Entscheidende neue Story-/Gameplayfragen gehen weiterhin an den Besitzer.
+
+Die nachfolgenden Abschnitte dokumentieren frühere, revisionsgebundene Stände.
+
 ## NPC Memory Forge: Begleiter und Bevölkerung geprüft (13.11.2026)
 
 [PR32](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/32) bindet deterministische Controller, persönliche Erinnerungen und Beziehungen in den bestehenden Core ein. Der gerettete Jäger kann mitreisen, sicher warten, eigene Ausrüstung tragen und durch wirksame Aktionen selbst Erfahrung sammeln. Sein Tod bleibt dauerhaft. Tiere und Rattler beachten zugelassene Controllerentscheidungen. Das Gedächtnis umfasst tatsächliche Hilfen, Verbrechen, Gespräche und beobachtete Ereignisse ohne globale Allwissenheit. AC17/18 erhalten die bestehenden Speicherverträge. [Verträge und Eigentümerschaft](docs/NPC_MEMORY_FORGE.md).

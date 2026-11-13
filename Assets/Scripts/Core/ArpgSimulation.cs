@@ -537,6 +537,7 @@ namespace AreArpg.Core
                 if (Cooldowns[i] > 0) Cooldowns[i]--;
             if (GameOver) { StepRoadEncounter(); SaveInvestigationPlayer(); SaveDungeonPlayer(); SaveWoodlandPlayer(); return; }
             MovePlayer();
+            StepFreight();
             StepNpcs();
             StepRoadEncounter();
             StepCompanion();
