@@ -18,7 +18,7 @@ namespace AreArpg.UnityClient
         public static readonly string[] MenuTitles = { "CHARAKTER", "TASCHE", "QUESTS", "OPTIONEN", "BEGLEITER" };
         public static readonly string[] ArmorSlots = { "KOPF", "BRUST", "HÄNDE", "BEINE" };
         public static readonly string[] TrinketSlots = { "WAFFE", "NEBENHAND", "AMULETT", "RING" };
-        private static readonly KeyCode[] MenuShortcuts = { KeyCode.K, KeyCode.I, KeyCode.L, KeyCode.F8, KeyCode.B };
+        private static readonly KeyCode[] MenuShortcuts = { KeyCode.K, KeyCode.I, KeyCode.L, KeyCode.F8, KeyCode.O };
 
         private int _menuTab = -1;
         private Canvas _menuCanvas;
@@ -503,7 +503,7 @@ namespace AreArpg.UnityClient
             AshenUiTheme.Place(help.rectTransform, new Rect(16f, 92f, colW - 32f, size.y - 108f));
             help.text = Application.isMobilePlatform
                 ? "<b><color=#F3E5C8>Touch</color></b>\nLinks unten ziehen: bewegen\nRechts unten: Klinge und Fertigkeiten\nFreie Fläche ziehen: Kamera drehen\nZwei Finger: Kamera zoomen\nOben rechts: Held, Tasche, Quests, Optionen"
-                : "<b><color=#F3E5C8>Tastatur und Maus</color></b>\nWASD: bewegen    1–4: Fertigkeiten    E: aufheben\nF / V / B / H: grüßen, versorgen, angreifen, ausrauben\nK: Held    I: Tasche    L: Quests    F8: Optionen    J: Spuren\nRechte Maustaste ziehen: Kamera drehen    Mausrad: Zoom\nEsc: Menü schließen";
+                : "<b><color=#F3E5C8>Tastatur und Maus</color></b>\nWASD: bewegen    1–4: Fertigkeiten    E: aufheben\nF / V / B / H: grüßen, versorgen, angreifen, ausrauben\nK: Held    I: Tasche    L: Quests    O: Begleiter\nF8: Optionen    J: Spuren\nRechte Maustaste ziehen: Kamera drehen    Mausrad: Zoom\nEsc: Menü schließen";
         }
 
         /// <summary>Keep the portrait camera aimed while the character screen is visible.</summary>
