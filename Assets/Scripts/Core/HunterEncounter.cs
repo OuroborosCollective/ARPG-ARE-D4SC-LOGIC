@@ -216,6 +216,7 @@ namespace AreArpg.Core
                 if (!bear.IsDead && (targetPlayer || h.HunterHealth > 0))
                 {
                     long tx = targetPlayer ? PlayerXmm : HunterEncounter.HunterX, tz = targetPlayer ? PlayerZmm : HunterEncounter.HunterZ;
+                    bool pursue=ForgeCreatureMayAttack(bear,tx,tz);
                     if (bear.BossWindupTicks > 0)
                     {
                         bear.BossWindupTicks--;
@@ -237,7 +238,7 @@ namespace AreArpg.Core
                         }
                     }
                     else if (bear.AttackCooldownTicks > 0) bear.AttackCooldownTicks--;
-                    else
+                    else if(pursue)
                     {
                         long dx = tx - bear.Xmm, dz = tz - bear.Zmm;
                         long distance = FixedMath.IntegerSqrt(dx * dx + dz * dz);
