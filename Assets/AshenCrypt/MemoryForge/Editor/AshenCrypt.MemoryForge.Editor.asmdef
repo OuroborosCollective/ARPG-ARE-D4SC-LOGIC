@@ -1,1 +1,1 @@
-{"name":"AshenCrypt.MemoryForge.Editor","rootNamespace":"AshenCrypt.MemoryForge.Editor","references":["AshenCrypt.MemoryForge","AshenCrypt.MemoryForge.Unity"],"includePlatforms":["Editor"],"autoReferenced":true}
+{"name":"AshenCrypt.MemoryForge.Editor","rootNamespace":"AshenCrypt.MemoryForge.Editor","references":["AshenCrypt.MemoryForge","AshenCrypt.MemoryForge.Unity","AshenCrypt.MemoryForge.Samples"],"includePlatforms":["Editor"],"autoReferenced":true}

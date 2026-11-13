@@ -1,0 +1,50 @@
+using System;
+using System.Linq;
+using NUnit.Framework;
+
+namespace AshenCrypt.MemoryForge.Tests
+{
+    public sealed class CoreContractTests
+    {
+        [Test]
+        public void HardPermissionsAreAppliedBeforeWeightedAndNeuralScores()
+        {
+            var role=ForgeDefaults.CreateRegistry().BindNew("guard");
+            var input=new int[(int)Feature.Count];input[(int)Feature.Danger]=10000;
+            var output=new int[10];output[(int)ForgeAction.Attack]=40000;
+            var policy=new ControllerArtifact(role.Archetype,role.ControllerId,2,role.Rules,network:new QuantizedNetwork(1,input,new int[1],output,new int[10]));
+            var frame=new ObservationFrame(ActionSet.Of(ForgeAction.Wait),new[]{new Observation(Feature.Danger,10000)});
+            var decision=UtilityEvaluator.Evaluate(policy,frame);Assert.AreEqual(ForgeAction.Wait,decision.Action);Assert.IsFalse(decision.Priorities.First(s=>s.Action==ForgeAction.Attack).Legal);
+        }
+        [Test]
+        public void IndividualKnowledgeDeduplicatesAndRumorsStayUnconfirmed()
+        {
+            var registry=ForgeDefaults.CreateRegistry();var archive=new MemoryArchive();var a=archive.Spawn("one","traveler",registry);var b=archive.Spawn("two","guard",registry);
+            var e=archive.Append(MemoryKind.Help,"player","one",1,10000,true,"rescue",new RelationshipChange(trust:5000));
+            Assert.IsTrue(archive.Learn("one",e.Id,KnowledgeOrigin.Self,"one",1));Assert.IsFalse(archive.Learn("one",e.Id,KnowledgeOrigin.Self,"one",2));Assert.AreEqual(5000,a.RelationshipTo("player").Trust);Assert.AreEqual(0,b.Known.Count);
+            Assert.IsTrue(archive.Report("one","two",e.Id,2));Assert.AreEqual(KnowledgeOrigin.Reported,b.Known[0].Origin);Assert.IsFalse(b.Known[0].IsFact);
+            Assert.IsFalse(archive.Report("two","one",e.Id,3));Assert.AreEqual(1,a.Relevant(1000000).Count);
+            string saved=archive.Save();Assert.IsTrue(MemoryArchive.TryLoad(saved,registry,out var restored));Assert.AreEqual(saved,restored.Save());
+        }
+        [Test]
+        public void WrongHashesAndFailedRegressionReceiptsAreRejected()
+        {
+            var registry=ForgeDefaults.CreateRegistry();var old=registry.BindNew("guard");var candidate=new ControllerArtifact(old.Archetype,old.ControllerId,2,old.Rules);
+            var frame=new ObservationFrame(ActionSet.Of(ForgeAction.Wait),Array.Empty<Observation>());
+            var fail=ControllerAdmission.Run(candidate,"test.fail",new[]{new RegressionCase(frame,ForgeAction.Attack)});
+            Assert.Throws<ArgumentException>(()=>registry.Register(candidate,candidate.Hash,fail));
+            var good=ControllerAdmission.Run(candidate,"test.pass",new[]{new RegressionCase(frame,ForgeAction.Wait)});
+            Assert.Throws<ArgumentException>(()=>registry.Register(candidate,new string('0',64),good));
+        }
+        [Test]
+        public void ExplicitMigrationPreservesHistoricalMemoryAndExactVersion()
+        {
+            var registry=ForgeDefaults.CreateRegistry();var archive=new MemoryArchive();var mind=archive.Spawn("one","traveler",registry);var old=mind.Controller;
+            var candidate=new ControllerArtifact(old.Archetype,old.ControllerId,2,old.Rules);var frame=new ObservationFrame(ActionSet.Of(ForgeAction.Wait),Array.Empty<Observation>());
+            var admission=ControllerAdmission.Run(candidate,"test.migrate",new[]{new RegressionCase(frame,ForgeAction.Wait)});registry.Register(candidate,candidate.Hash,admission);
+            Assert.AreEqual(1,mind.Controller.Version);Assert.IsTrue(archive.TryMigrate("one",candidate,registry,10,out var receipt));
+            Assert.IsTrue(MemoryArchive.TryLoad(archive.Save(),registry,out var restored));Assert.AreEqual(2,restored.Get("one").Controller.Version);Assert.AreEqual(receipt.Checksum,restored.Migrations[0].Checksum);
+            Assert.IsFalse(MemoryArchive.TryLoad(archive.Save(),ForgeDefaults.CreateRegistry(),out _));
+        }
+    }
+}
