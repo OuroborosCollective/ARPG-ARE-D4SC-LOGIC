@@ -22,9 +22,11 @@ internal static class Program
         long bytes=GC.GetAllocatedBytesForCurrentThread()-allocated;Array.Sort(samples);
         return new{name,operations=batches*operations,meanMicroseconds=samples.Average(),p95BatchMeanMicroseconds=samples[(int)(batches*.95)],allocatedBytesPerOperation=(double)bytes/(batches*operations)};
     }
-    private static void Main()
+    private static void Main(string[] args)
     {
-        var results=new List<object>();var registry=ForgeDefaults.CreateRegistry();var guard=registry.BindNew("guard");
+        var results=new List<object>();var registry=ForgeDefaults.CreateRegistry();
+        if(args.Contains("--manifest")){foreach(var c in registry.Versions)Console.WriteLine(c.ArchetypeId+" "+c.Hash);return;}
+        var guard=registry.BindNew("guard");
         var frame=new ObservationFrame(guard.Archetype.AllowedActions,new[]{new Observation(Feature.Danger,10000),new Observation(Feature.Hostility,10000)});
         results.Add(Measure("utility-guard-with-decision-trace",40,100,()=>UtilityEvaluator.Evaluate(guard,frame)));
         var archive=new MemoryArchive();archive.Spawn("ilyan","traveler",registry);

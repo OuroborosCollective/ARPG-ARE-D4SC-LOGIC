@@ -6,6 +6,7 @@ internal static class NpcForgeTests
     public static void Run(Action<bool,string> require)
     {
         var registry=ForgeDefaults.CreateRegistry();
+        require(ForgeDefaults.ReviewedHash("traveler")=="627ed161da4c0868ddf5f5973dac6028aa6adaaaf4e5f4a2f630a156cd83ea74", "forge-release-manifest-pins-reviewed-policy-bytes");
         var guard=registry.BindNew("guard");
         require(guard.ArchetypeId=="guard"&&guard.Version==1&&guard.Hash.Length==64,"forge-spawn-binds-approved-controller-hash");
         require(registry.BindNew("unknown").ArchetypeId=="fallback","forge-unknown-archetype-safe-fallback");
