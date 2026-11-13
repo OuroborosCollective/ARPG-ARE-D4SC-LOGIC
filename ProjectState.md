@@ -1,5 +1,13 @@
 # ARE Ashen Crypt — Projektzustand
 
+## Prozeduraler Dungeon und Farmruns (13.11.2026)
+
+Der neue Entwicklungsstand liegt in [Draft PR30](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/30): drei verzweigte Ebenen unter der alten Mühle mit variierenden Räumen, Gegnern und optionalen Truhen, Rattler auf Ebene III, bestehende Skills/XP/Level/Mastery und echte Beutebelege. Rückkehr in den Speicher und erneuter Abstieg erzeugt einen neuen Run einschließlich Boss. Brandmal, Ilyans persönlicher Bericht und andere Storyentscheidungen bleiben abgeschlossen. Stockwerkwechsel, Tod und Laden behalten den laufenden Dungeon. Alte AC11-/AC12-Spielstände bleiben lesbar und erhalten einen ausdrücklichen Einstieg am geöffneten Siegel. [Kampf-/Erkundungsvertrag](docs/COMBAT_EXPLORATION.md).
+
+Geprüfter Code cf2a7a96ac84e20253044961b4d1d64d7f6f672d / Tree93be0e1e05865c9f517df6af870460c554fcd4e1: 7308 Core-Assertions,38Preflights, GitHub-CI43362324855 success, native Unity6000.6.8f1 PlayMode113/113 und EditMode34/34,0Skips. Enthalten sind 384 generierte Etagen, zwei volle Farmruns, Ilyan-Bericht, alte Save-Einstiege, Tod, Laden und ungültige Beutebelege. Native Karten-/Spielansichten geprüft; private Assets unverändert, Prefs/Settings wiederhergestellt. SHA-/XML-Bindung: Memory.md [crypt-three-depths-20261113]. Der abschließende Commit ändert nur Dokumentation. Keine neue APK oder physische Android-Abnahme.
+
+Nächster Entwicklungsblock: begehbarer Waldweg von der Mühle nach Aschenzoll mit Kämpfen, Truhen und Bärenhöhle. Deren Entscheidung wird dauerhaft: Felle für eine herzustellende Rüstung oder verschonte Junge mit organisiertem Schutz und möglichem späteren Kriegsbärenvorteil für eine der vier Fraktionen. [Draft PR29](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/29) ist entsprechend angepasst; der direkte Dorf–Stationssprung entfällt. Wald, Bärenquest, Crafting und Endgame-Effekt sind noch nicht implementiert. AC13-Ankunftsversuch bleibt geparkt; die folgende Save-Revision muss den AC14-Dungeon erhalten. PR28 ist bereits in main92268e6 gemergt.
+
 ## PR28: Reviewkorrekturen und Mergefreigabe (13.11.2026)
 
 Owner-Auftrag: Draft PR28 bearbeiten und zum Merge fuehren. Die bisherige Draft-Bindung ist damit aufgehoben; technische Review- und CI-Gates bleiben erforderlich. PR28 wurde zur automatischen Pruefung freigegeben. Sein Umfang bleibt Fables mobile UI/Kamera, private Welttexturen, Aussenhorizonte, Rattler-Sichtkorrektur sowie Patienten/Muehlenzuflucht/Strassenraender. Der Aschenzoll-Storyentwurf bleibt separat in Draft PR29 und ist kein Bestandteil dieses Merges.
