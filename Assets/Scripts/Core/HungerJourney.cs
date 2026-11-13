@@ -192,8 +192,8 @@ namespace AreArpg.Core
         {
             get
             {
-                if (Progression.Woodland.Active) return WoodlandObjective;
                 if (InDungeon) return DungeonObjective;
+                if (Progression.Woodland.Active && Progression.EntryAct != 5 && Progression.EntryAct != 6 && Progression.EntryAct != 7) return WoodlandObjective;
                 if (Progression.EntryAct == 5 && Progression.Dungeon.NeedsNewRun) return "Beim naechsten Abstieg beginnt ein neuer Dungeon-Run mit neuen Wegen, Gegnern und Beute. Deine Storyfortschritte bleiben erhalten.";
                 switch (Progression.HungerStage)
                 {

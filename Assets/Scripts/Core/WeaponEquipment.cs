@@ -15,6 +15,7 @@ namespace AreArpg.Core
         public readonly int BasePower,StrikeCooldown;
         public readonly long RangeMm;
         public readonly bool TwoHanded;
+        public string FamilyName => new[]{"Schwert","Dolch","Axt","Keule","Stab","Bogen","Speer","Schild"}[(int)Family];
         public string VisualKey => "Weapons/"+Id;
         internal WeaponDefinition(string id,string name,string model,WeaponFamily family,int power,int cooldown,long range,bool twoHanded=false)
         { Id=id;Name=name;ModelStem=model;Family=family;BasePower=power;StrikeCooldown=cooldown;RangeMm=range;TwoHanded=twoHanded; }

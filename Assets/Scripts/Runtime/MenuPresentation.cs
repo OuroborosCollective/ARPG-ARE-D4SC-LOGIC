@@ -175,7 +175,7 @@ namespace AreArpg.UnityClient
             };
             row("Leben", _game.PlayerHealth + " / " + _game.MaxPlayerHealth);
             row("Fokus", _game.Resource + " / 100");
-            row("Waffenbonus", "+" + _game.WeaponBonus);
+            row("Waffe / Verstärkung", (_game.Progression.Equipment.Weapon?.Definition.BasePower??95)+" / +"+_game.WeaponBonus);
             row("Erfahrung bis Stufe " + (p.Level + BigInteger.One), p.ExperienceToNextLevel.ToString());
             row("Besiegte Gegner", p.LifetimeKills.ToString());
             row("Gesammelte Beute", p.LootCollected.ToString());
@@ -389,8 +389,8 @@ namespace AreArpg.UnityClient
                 {
                     bool equipped=p.Equipment.Weapon?.Ordinal==gear.Ordinal||p.Equipment.Shield?.Ordinal==gear.Ordinal;
                     var def=gear.Definition;
-                    text.text="<size=18><b><color=#"+hex+">"+gear.DisplayName+"</color></b></size>\n"+RarityName(gear.Rarity)+" · "+def.Family+(def.TwoHanded?" · Zweihand":"")+"\n\n"+
-                        (def.Family==WeaponFamily.Shield?"Schild: 6 % Schadensminderung": "Grundschaden "+def.BasePower+"\nReichweite "+(def.RangeMm/1000f).ToString("0.0")+" m · Tempo "+(def.StrikeCooldown/10f).ToString("0.0")+" s")+"\n\n"+gear.AffixDescription+"\n\n"+(equipped?"Angelegt":"Im Inventar")+"\nErbeutet beim "+gear.Ordinal+". Sieg.";
+                    text.text="<size=18><b><color=#"+hex+">"+gear.DisplayName+"</color></b></size>\n"+RarityName(gear.Rarity)+" · "+def.FamilyName+(def.TwoHanded?" · Zweihand":"")+"\n\n"+
+                        (def.Family==WeaponFamily.Shield?"Schild: "+(def.BasePower/100f).ToString("0.#")+" % Schadensminderung": "Grundschaden "+def.BasePower+"\nReichweite "+(def.RangeMm/1000f).ToString("0.0")+" m · Tempo "+(def.StrikeCooldown/10f).ToString("0.0")+" s")+"\n\n"+gear.AffixDescription+"\n\n"+(equipped?"Angelegt":"Im Inventar")+"\nErbeutet beim "+gear.Ordinal+". Sieg.";
                     AshenUiTheme.Place(text.rectTransform,new Rect(16f,36f,detailW-32f,size.y-100f));
                     AshenUiTheme.MenuButton("EquipWeapon",panel.transform,new Rect(16,size.y-48,detailW-32,34),equipped?"ABLEGEN":"AUSRÜSTEN",()=>EquipInventoryItem(gear),fontSize:13);
                 }

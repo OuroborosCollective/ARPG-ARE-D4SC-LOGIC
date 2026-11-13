@@ -4,12 +4,6 @@ using UnityEngine;
 
 namespace AreArpg.UnityClient
 {
-    /// <summary>Owns only generated presentation meshes; never stores or edits the simulation.</summary>
-    public sealed class WoodlandMeshOwner : MonoBehaviour
-    {
-        public Mesh Mesh;
-        private void OnDestroy() { if(Mesh!=null) Destroy(Mesh); }
-    }
     public sealed partial class ArenaRuntime
     {
         private readonly List<Transform> _woodlandChunks=new List<Transform>();
@@ -57,6 +51,7 @@ namespace AreArpg.UnityClient
             _worldPassage=_returnPassage=null;
             RenderSettings.ambientLight=new Color(.39f,.43f,.48f);RenderSettings.fogColor=new Color(.29f,.34f,.4f);RenderSettings.fogDensity=.013f;
             if(!_game.InForest) { BuildWoodlandAnchor();return; }
+            var backdrop=OutdoorBackdrop.Create(8);backdrop.localScale=new Vector3(2.3f,1f,2.3f);_chapterScenery.Add(backdrop);
             var map=_game.Progression.Woodland.Layout;
             var ground=Resources.Load<Material>("ARE/Visuals/WoodlandGround");
             if(ground==null)ground=new Material(Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard")){color=new Color(.28f,.31f,.33f)};

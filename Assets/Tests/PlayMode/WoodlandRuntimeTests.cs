@@ -86,7 +86,7 @@ namespace AreArpg.PlayMode.Tests
             var chosen=new List<LootItem>();
             for(ulong seed=0;seed<10000&&chosen.Count<2;seed++)
             {
-                var receipt=LootCatalog.Version1.Generate(seed,1,1,1,0,p.LifetimeKills+1);var item=p.Equipment.ForItem(receipt);
+                var receipt=(LootItem)typeof(LootCatalog).GetMethod("Generate",Flags).Invoke(LootCatalog.Version1,new object[]{seed,System.Numerics.BigInteger.One,1UL,1,0,p.LifetimeKills+1});var item=p.Equipment.ForItem(receipt);
                 if(item.Definition.Family!=WeaponFamily.Sword||chosen.Any(c=>p.Equipment.ForItem(c).Definition.Id==item.Definition.Id))continue;
                 p.RecordKill();Assert.IsTrue((bool)typeof(CharacterProgression).GetMethod("CollectItem",Flags).Invoke(p,new object[]{receipt}));chosen.Add(receipt);
             }

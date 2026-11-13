@@ -53,7 +53,7 @@ namespace AreArpg.UnityClient
                 for(int i=0;i<=8;i++){float angle=i*Mathf.PI/8;vertices[i*2]=new Vector3(Mathf.Cos(angle)*.22f,.1f,-Mathf.Sin(angle)*.13f);vertices[i*2+1]=new Vector3(Mathf.Cos(angle)*.4f,-.35f,-Mathf.Sin(angle)*.22f);if(i<8){int n=i*2,k=i*6;indices[k]=n;indices[k+1]=n+1;indices[k+2]=n+2;indices[k+3]=n+2;indices[k+4]=n+1;indices[k+5]=n+3;}}
                 var mesh=new Mesh{name="BearPeltMantle"};mesh.vertices=vertices;mesh.triangles=indices;mesh.RecalculateNormals();
                 t.gameObject.AddComponent<MeshFilter>().sharedMesh=mesh;var renderer=t.gameObject.AddComponent<MeshRenderer>();renderer.material=new Material(Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard")){color=new Color(.25f,.15f,.08f)};
-                t.gameObject.AddComponent<WoodlandMeshOwner>().Mesh=mesh;_peltMantle=t;
+                var owner=t.gameObject.AddComponent<WoodlandMeshOwner>();owner.Mesh=mesh;owner.Material=renderer.sharedMaterial;_peltMantle=t;
             }
             if(_peltMantle!=null)_peltMantle.gameObject.SetActive(_game.Progression.Woodland.ArmorCrafted);
         }

@@ -1080,9 +1080,16 @@ namespace AreArpg.UnityClient
             foreach (LootState item in _game.GroundLoot)
             {
                 if (_lootVisuals.ContainsKey(item.Id)) continue;
-                _lootVisuals.Add(item.Id, Shape(PrimitiveType.Sphere, "Loot_" + item.Id,
+                var drop=Shape(PrimitiveType.Sphere, "Loot_" + item.Id,
                     new Vector3(item.Xmm / 1000f, 0.55f + GroundHeight(item.Xmm/1000f,item.Zmm/1000f), item.Zmm / 1000f),
-                    Vector3.one * 0.55f, new Color(0.97f, 0.76f, 0.18f), 0.8f));
+                    Vector3.one * 0.55f, new Color(0.97f, 0.76f, 0.18f), 0.8f);
+                var equipment=_game.Progression.Equipment.ForItem(item.Item);
+                if(equipment!=null&&PassiveArtVisuals.TryBindGrounded(drop,equipment.Definition.VisualKey,GroundHeight(item.Xmm/1000f,item.Zmm/1000f)))
+                {
+                    var art=drop.GetChild(drop.childCount-1);var rs=art.GetComponentsInChildren<Renderer>();var bounds=rs[0].bounds;foreach(var r in rs)bounds.Encapsulate(r.bounds);
+                    art.position+=Vector3.up*(GroundHeight(item.Xmm/1000f,item.Zmm/1000f)+.15f-bounds.min.y);
+                }
+                _lootVisuals.Add(item.Id,drop);
             }
             var stillOnGround = new HashSet<int>();
             foreach (LootState item in _game.GroundLoot) stillOnGround.Add(item.Id);

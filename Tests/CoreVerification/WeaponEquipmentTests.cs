@@ -35,6 +35,7 @@ internal static class WeaponEquipmentTests
         require(w.TryEquipWeapon(bow.KillOrdinal)&&w.AttackRange(0)==12000&&w.AttackCooldown(0)>2,"bow-uses-real-range-and-tempo");
         require(!w.TryEquipWeapon(shield.KillOrdinal),"two-handed-bow-blocks-shield");
         var target=w.Monsters[0];target.Xmm=0;target.Zmm=8000;target.Health=target.MaxHealth=10000;
+        foreach(var other in w.Monsters)if(other!=target){other.Health=0;other.LootGranted=true;}
         int hp=target.Health;require(w.ActivateSkill(0).Activated&&target.Health<hp,"equipped-bow-actually-hits-at-eight-metres");
         require(w.TryEquipWeapon(sword.KillOrdinal)&&w.TryEquipWeapon(shield.KillOrdinal),"one-handed-weapon-plus-shield");
         string saved=p.SaveString();require(saved.StartsWith("AC16|")&&CharacterProgression.TryLoad(saved,out var loaded)&&loaded.SaveString()==saved&&loaded.Equipment.Weapon.Ordinal==sword.KillOrdinal&&loaded.Equipment.Shield.Ordinal==shield.KillOrdinal,"equipped-models-and-affixes-survive-save-load");
