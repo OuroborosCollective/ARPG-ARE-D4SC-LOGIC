@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using AshenCrypt.MemoryForge.Samples;
-using AshenCrypt.MemoryForge.Unity;
+using AshenCrypt.MemoryForge.Integration;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace AshenCrypt.MemoryForge.Unity
+namespace AshenCrypt.MemoryForge.Integration
 {
     [Serializable] public sealed class ForgeRegistryEntry
     { public ForgeControllerAsset Controller; public bool ForNewSpawns; }

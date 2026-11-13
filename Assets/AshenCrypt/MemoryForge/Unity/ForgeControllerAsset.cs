@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace AshenCrypt.MemoryForge.Unity
+namespace AshenCrypt.MemoryForge.Integration
 {
     [Serializable] public sealed class ForgeRuleConfig
     { public ForgeAction Action; public int Order; public int BasePriority; public int[] Weights=new int[(int)Feature.Count]; }

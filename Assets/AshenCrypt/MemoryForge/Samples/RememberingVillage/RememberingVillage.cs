@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AshenCrypt.MemoryForge.Unity;
+using AshenCrypt.MemoryForge.Integration;
 using UnityEngine;
 
 namespace AshenCrypt.MemoryForge.Samples

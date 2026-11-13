@@ -1,1 +1,1 @@
-{"name":"AshenCrypt.MemoryForge.Samples","rootNamespace":"AshenCrypt.MemoryForge.Samples","references":["AshenCrypt.MemoryForge","AshenCrypt.MemoryForge.Unity"],"autoReferenced":true}
+{"name":"AshenCrypt.MemoryForge.Samples","rootNamespace":"AshenCrypt.MemoryForge.Samples","references":["AshenCrypt.MemoryForge","AshenCrypt.MemoryForge.Integration"],"autoReferenced":true}

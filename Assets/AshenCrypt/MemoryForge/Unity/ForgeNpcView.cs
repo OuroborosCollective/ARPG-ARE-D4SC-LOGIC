@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace AshenCrypt.MemoryForge.Unity
+namespace AshenCrypt.MemoryForge.Integration
 {
     /// <summary>Read-only bridge for an existing host-owned mind. Does not spawn, tick, decide, save or apply actions.</summary>
     [DisallowMultipleComponent]
