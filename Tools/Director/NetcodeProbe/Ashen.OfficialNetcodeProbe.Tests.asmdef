@@ -1,6 +1,6 @@
 {
   "name": "Ashen.OfficialNetcodeProbe.Tests",
-  "references": ["Unity.Netcode.Runtime", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+  "references": ["Unity.Netcode.Runtime"],
   "optionalUnityReferences": ["TestAssemblies"],
   "autoReferenced": false,
   "defineConstraints": ["UNITY_INCLUDE_TESTS"]

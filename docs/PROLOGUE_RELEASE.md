@@ -8,8 +8,9 @@ ist noch keine Veröffentlichung oder bestandene Geräteabnahme.
 
 - Bestehender Einstieg und Dorf mit NPC-Erinnerungen und Beziehungen.
 - Jägerrettung mit dauerhaftem Ausgang und optionalem Begleiter. Eigene wirksame
-  Aktionen entwickeln seine Fertigkeiten; seine Alleinkills geben ihm, nicht dem
-  Spieler, Charakter-XP. Ausrüstung, Warten, Wiederaufnahme und Tod bleiben gespeichert.
+  Aktionen entwickeln seine Fertigkeiten und geben ihm Charakter-XP. Seine Alleinkills
+  zählen für ihn und vergeben keine Spieler-XP. Ausrüstung, Warten, Wiederaufnahme
+  und Tod bleiben gespeichert.
 - Alte Mühle und drei verzweigte Dungeon-Ebenen mit Kampf, Truhen, Beute und Rattler.
   Neue Runs bleiben farmbar, einschließlich des Bosses; abgeschlossene Story bleibt erhalten.
 - Prozeduraler Verbindungswald mit festen Storyankern und Bärenhöhle. Die Entscheidung
