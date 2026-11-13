@@ -28,7 +28,8 @@ internal static class Program
         if(args.Contains("--manifest")){foreach(var c in registry.Versions)Console.WriteLine(c.ArchetypeId+" "+c.Hash);return;}
         var guard=registry.BindNew("guard");
         var frame=new ObservationFrame(guard.Archetype.AllowedActions,new[]{new Observation(Feature.Danger,10000),new Observation(Feature.Hostility,10000)});
-        results.Add(Measure("utility-guard-with-decision-trace",40,100,()=>UtilityEvaluator.Evaluate(guard,frame)));
+        results.Add(Measure("utility-guard-without-formatting",40,100,()=>UtilityEvaluator.Evaluate(guard,frame)));
+        results.Add(Measure("utility-guard-with-decision-trace",40,100,()=>{var trace=UtilityEvaluator.Evaluate(guard,frame).CanonicalTrace;if(trace.Length==0)throw new Exception("Missing trace");}));
         var archive=new MemoryArchive();archive.Spawn("ilyan","traveler",registry);
         for(int i=0;i<1000;i++){var e=archive.Append(MemoryKind.Help,"player","ilyan",(ulong)i,5000,false,"provisions",new RelationshipChange(trust:1,gratitude:1));archive.Learn("ilyan",e.Id,KnowledgeOrigin.Self,"ilyan",(ulong)i);}
         results.Add(Measure("memory-recall-64-from-1000-events",40,50,()=>archive.Get("ilyan").Relevant(2000)));

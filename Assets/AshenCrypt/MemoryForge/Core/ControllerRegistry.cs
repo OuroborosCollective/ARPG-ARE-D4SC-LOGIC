@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
 namespace AshenCrypt.MemoryForge
 {
@@ -90,11 +91,11 @@ namespace AshenCrypt.MemoryForge
         /// <summary>Run real evaluator cases; admission cannot be created by setting a claimed success boolean.</summary>
         public static ControllerAdmission Run(ControllerArtifact controller,string suiteId,IEnumerable<RegressionCase> cases)
         {
-            ContractText.Id(suiteId);int passed=0,failed=0;string receipt=controller.Hash+"\n"+suiteId;
+            ContractText.Id(suiteId);int passed=0,failed=0;var receipt=new StringBuilder(controller.Hash).Append('\n').Append(suiteId);
             foreach(var test in cases??throw new ArgumentNullException(nameof(cases)))
-            {var result=UtilityEvaluator.Evaluate(controller,test.Input);if(result.Action==test.Expected)passed++;else failed++;receipt+="\n"+ContractText.Number((long)test.Expected)+":"+result.CanonicalTrace;}
+            {var result=UtilityEvaluator.Evaluate(controller,test.Input);if(result.Action==test.Expected)passed++;else failed++;receipt.Append('\n').Append(ContractText.Number((long)test.Expected)).Append(':').Append(result.CanonicalTrace);}
             if(passed+failed==0)throw new ArgumentException("Empty regression suite");
-            return new ControllerAdmission(controller.Hash,suiteId,ContractText.Hash(receipt),passed,failed);
+            return new ControllerAdmission(controller.Hash,suiteId,ContractText.Hash(receipt.ToString()),passed,failed);
         }
     }
     public sealed class NpcArchetypeControllerRegistry
