@@ -1,0 +1,293 @@
+{
+  "npc-forge-20261113/review2-green-play/result.json": {
+    "head": "5977f4c494c07a7a94d24c9e67b29419e0f2673e",
+    "tree": "d6e22789ffc7ce6e63860f92b4d67e0a7f6e42f0",
+    "exit": 0,
+    "command": [
+      "/usr/bin/xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1280x720x24",
+      "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+      "-batchmode",
+      "-force-glcore",
+      "-buildTarget",
+      "Android",
+      "-projectPath",
+      "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+      "-logFile",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/review2-green-play/unity.log",
+      "-runTests",
+      "-testPlatform",
+      "PlayMode",
+      "-testResults",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/review2-green-play/tests.xml"
+    ],
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "f35c1e68f6cceac4236953e6c1b00ac9d8d2e47553da216478435416e14553b2",
+      "tests.xml": "05b42d3693b5bad4d0ee8b91d7b12444aff48cb051546d6457d4fcdddbb72766"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "126",
+      "result": "Passed",
+      "total": "126",
+      "passed": "126",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 14:19:39Z",
+      "end-time": "2026-11-13 14:24:56Z",
+      "duration": "317.2005756"
+    },
+    "failures": []
+  },
+  "npc-forge-20261113/review2-green-edit/result.json": {
+    "head": "5977f4c494c07a7a94d24c9e67b29419e0f2673e",
+    "tree": "d6e22789ffc7ce6e63860f92b4d67e0a7f6e42f0",
+    "exit": 0,
+    "command": [
+      "/usr/bin/xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1280x720x24",
+      "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+      "-batchmode",
+      "-force-glcore",
+      "-buildTarget",
+      "Android",
+      "-projectPath",
+      "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+      "-logFile",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/review2-green-edit/unity.log",
+      "-runTests",
+      "-testPlatform",
+      "EditMode",
+      "-testResults",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/review2-green-edit/tests.xml"
+    ],
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "0d2b255a3cc72f291e224c1d2ce34668e78cfa3adf568e3110a86e362f28de41",
+      "tests.xml": "bec32b2975fa6868f651d452be981978240aa6ba89197cc7e799ea65d88e969f"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "52",
+      "result": "Passed",
+      "total": "52",
+      "passed": "52",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 14:27:37Z",
+      "end-time": "2026-11-13 14:28:17Z",
+      "duration": "40.3130042"
+    },
+    "failures": []
+  },
+  "npc-forge-20261113/npc-review2-fixture-red/result.json": {
+    "head": "3888a445530fae4dc3d6f00ab6a8a396d8ea2f96",
+    "tree": "009f991e25c4ed8298d88c80aba1592f9340d946",
+    "exit": 2,
+    "command": [
+      "/usr/bin/xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1280x720x24",
+      "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+      "-batchmode",
+      "-force-glcore",
+      "-buildTarget",
+      "Android",
+      "-projectPath",
+      "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+      "-logFile",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/npc-review2-fixture-red/unity.log",
+      "-runTests",
+      "-testPlatform",
+      "PlayMode",
+      "-testResults",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/npc-review2-fixture-red/tests.xml",
+      "-testFilter",
+      "CompanionShortcutLeavesNpcAttackInputAvailable;ExplicitVillageRestartRevivesPlayerWhileDeadSaveAndNpcHistoryRemainValid;AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport;AschenzollReleasedCargoRequiresActualUpperRampInspection"
+    ],
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "bba18b235138bc34ee12f21d10e101fec25e658f4bacae6d62a027f694a90351",
+      "tests.xml": "294d0870e7ebfab2b0ae23a1054d19ff2ca678d7769746d70e48244342e907ba"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "4",
+      "result": "Failed(Child)",
+      "total": "4",
+      "passed": "2",
+      "failed": "2",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 14:13:03Z",
+      "end-time": "2026-11-13 14:13:21Z",
+      "duration": "17.9274941"
+    },
+    "failures": [
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.CompanionShortcutLeavesNpcAttackInputAvailable",
+        "message": "  B belongs to NPC attack\n  Expected: False\n  But was:  True\n"
+      },
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ExplicitVillageRestartRevivesPlayerWhileDeadSaveAndNpcHistoryRemainValid",
+        "message": "  Expected: 1\n  But was:  0\n"
+      }
+    ]
+  },
+  "npc-forge-20261113/npc-review2-red/result.json": {
+    "head": "c4a07b72e536594ddfd1646e21bd17386b1a0269",
+    "tree": "db26a3f4101bf3f6a55579821620e24e978d5002",
+    "exit": 2,
+    "command": [
+      "/usr/bin/xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1280x720x24",
+      "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+      "-batchmode",
+      "-force-glcore",
+      "-buildTarget",
+      "Android",
+      "-projectPath",
+      "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+      "-logFile",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/npc-review2-red/unity.log",
+      "-runTests",
+      "-testPlatform",
+      "PlayMode",
+      "-testResults",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/npc-review2-red/tests.xml",
+      "-testFilter",
+      "CompanionShortcutLeavesNpcAttackInputAvailable;ExplicitVillageRestartRevivesPlayerWhileDeadSaveAndNpcHistoryRemainValid;AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport;AschenzollReleasedCargoRequiresActualUpperRampInspection"
+    ],
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "359c04f4c2acf5deef867d96dc9966212417faa8dabb67919febc00f39988765",
+      "tests.xml": "bd71b61b61faea5a8da396bac802ba13707a68c9c788a69065dc8275c1008eac"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "4",
+      "result": "Failed(Child)",
+      "total": "4",
+      "passed": "0",
+      "failed": "4",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 14:06:52Z",
+      "end-time": "2026-11-13 14:07:03Z",
+      "duration": "10.7881383"
+    },
+    "failures": [
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport",
+        "message": "  Reach the cave through the real loot-gated passage\n  Expected: 9\n  But was:  8\n"
+      },
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.AschenzollReleasedCargoRequiresActualUpperRampInspection",
+        "message": "  Reach the cave through the real loot-gated passage\n  Expected: 9\n  But was:  8\n"
+      },
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.CompanionShortcutLeavesNpcAttackInputAvailable",
+        "message": "  B belongs to NPC attack\n  Expected: False\n  But was:  True\n"
+      },
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ExplicitVillageRestartRevivesPlayerWhileDeadSaveAndNpcHistoryRemainValid",
+        "message": "  Expected: 1\n  But was:  0\n"
+      }
+    ]
+  },
+  "npc-forge-20261113/freight-review-green/result.json": {
+    "head": "7b1d1ee47afb3b166b4225459ccdd63b2f6bc705",
+    "tree": "9dbd6760944820d4a06d01fc1e2a1bf91306779a",
+    "exit": 2,
+    "command": [
+      "/usr/bin/xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1280x720x24",
+      "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+      "-batchmode",
+      "-force-glcore",
+      "-buildTarget",
+      "Android",
+      "-projectPath",
+      "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+      "-logFile",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/freight-review-green/unity.log",
+      "-runTests",
+      "-testPlatform",
+      "PlayMode",
+      "-testResults",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/freight-review-green/tests.xml",
+      "-testFilter",
+      "AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport;AschenzollReleasedCargoRequiresActualUpperRampInspection;WoodlandUsesApprovedArtHillsRealTravelAndPersistentCubs"
+    ],
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "6987289e4eb0306d0d050f693d8d24d366934a93be99299ac69e77dc84bb7ffa",
+      "tests.xml": "91c6f85c37b96178892cf5fb38c211bc4928ee95c095d99e7cec091c7c296d87"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "3",
+      "result": "Failed(Child)",
+      "total": "3",
+      "passed": "1",
+      "failed": "2",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 13:56:05Z",
+      "end-time": "2026-11-13 13:56:27Z",
+      "duration": "21.9156075"
+    },
+    "failures": [
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport",
+        "message": "  Optional cub follow-up remains visible\n  Expected: String containing \"Mara\"\n  But was:  \"Untersuche den Aushang im Süden, den leeren Käfig im Osten und den Frachtbeleg am Pult. Die Reihenfolge ist frei.\"\n"
+      },
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.AschenzollReleasedCargoRequiresActualUpperRampInspection",
+        "message": "  Optional cub follow-up remains visible\n  Expected: String containing \"Mara\"\n  But was:  \"Untersuche den Aushang im Süden, den leeren Käfig im Osten und den Frachtbeleg am Pult. Die Reihenfolge ist frei.\"\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "sourceRevision": "d703fabadfcb6d138827922eeb46cc4fd7df2e33",
+  "bytes": 23965902,
+  "sha256": "163f3ab90d08cae412996af186e7533f4f6ea1707c5d6dfc74d236734b15a431",
+  "commands": {
+    "signature": {
+      "exit": 0,
+      "output": "Verifies\nVerified using v1 scheme (JAR signing): false\nVerified using v2 scheme (APK Signature Scheme v2): true\nVerified using v3 scheme (APK Signature Scheme v3): false\nVerified using v3.1 scheme (APK Signature Scheme v3.1): false\nVerified using v4 scheme (APK Signature Scheme v4): false\nVerified for SourceStamp: false\nNumber of signers: 1\n"
+    },
+    "zipalign": {
+      "exit": 0,
+      "output": ""
+    }
+  },
+  "libraries": [
+    {
+      "path": "lib/arm64-v8a/lib_burst_generated.so",
+      "machine": 183,
+      "loadAlignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libc++_shared.so",
+      "machine": 183,
+      "loadAlignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libgame.so",
+      "machine": 183,
+      "loadAlignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libil2cpp.so",
+      "machine": 183,
+      "loadAlignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libmain.so",
+      "machine": 183,
+      "loadAlignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libswappywrapper.so",
+      "machine": 183,
+      "loadAlignments": [
+        16384,
+        16384,
+        16384
+      ]
+    },
+    {
+      "path": "lib/arm64-v8a/libunity.so",
+      "machine": 183,
+      "loadAlignments": [
+        16384,
+        16384,
+        16384,
+        16384
+      ]
+    }
+  ],
+  "zipCrcValid": true,
+  "il2cppMetadata": true,
+  "deviceExecution": false
+}
