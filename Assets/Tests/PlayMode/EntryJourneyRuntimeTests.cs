@@ -430,7 +430,11 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(0f, millBounds.min.y, .02f, "The mill must stand on the visible ground");
             Assert.IsNotNull(Find("ARE_Return_Passage"));
             Assert.IsNotNull(Find("OldMill_Patient_0"));
-            if (patientArt) AssertRestingPatients(3);
+            if (patientArt)
+            {
+                AssertRestingPatients(3);
+                yield return Capture("mill-patients-present.png", patientDetail: true);
+            }
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
             yield return Capture("act4-old-mill.png");
             MoveStory(0, -2000); MoveStory(0, -24000); TravelStory();
@@ -477,10 +481,8 @@ namespace AreArpg.PlayMode.Tests
                 Assert.Ignore("Requires the private humanoid art overlay");
             yield return CompleteSupplyJourney(true);
             AssertRestingPatients(Game.HungerShelterPatients);
-            MoveStory(-6500, 1000);
-            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
             ulong hash = Game.ComputeWorldHash(); string save = Game.Progression.SaveString();
-            yield return Capture("mill-patients-return.png");
+            yield return Capture("mill-patients-return.png", patientDetail: true);
             Assert.AreEqual(hash, Game.ComputeWorldHash()); Assert.AreEqual(save, Game.Progression.SaveString());
             MoveStory(0, 1000); MoveStory(0, 24000); TravelStory(); yield return null;
             for (int i = 0; i < 3; i++) Assert.IsNull(Find("OldMill_Patient_" + i));
@@ -779,7 +781,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>Optional real camera render for private visual inspection; never a gameplay input.</summary>
-        private IEnumerator Capture(string name, bool heroDetail = false)
+        private IEnumerator Capture(string name, bool heroDetail = false, bool patientDetail = false)
         {
             string directory = System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
             if (string.IsNullOrEmpty(directory)) yield break;
@@ -810,6 +812,12 @@ namespace AreArpg.PlayMode.Tests
                     Vector3 focus = Find("Wanderer").transform.position;
                     focus.y = 1f;
                     camera.transform.position = focus + new Vector3(3f, 1.2f, 4f);
+                    camera.transform.LookAt(focus);
+                }
+                if (patientDetail)
+                {
+                    Vector3 focus = new Vector3(-6.5f, .5f, 5);
+                    camera.transform.position = focus + new Vector3(2.7f, 3.4f, -4f);
                     camera.transform.LookAt(focus);
                 }
                 camera.targetTexture = target;
