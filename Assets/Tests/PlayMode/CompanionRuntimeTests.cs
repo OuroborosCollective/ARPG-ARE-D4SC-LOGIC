@@ -148,6 +148,22 @@ namespace AreArpg.PlayMode.Tests
             TestContext.WriteLine("Actual bow clip: "+shot.name+", length="+shot.length+"s, sampled arm motion="+maximumMotion+" degrees");
             Assert.Greater(maximumMotion,.1f,"The actual bow clip is a still pose: the hunter's arms must move within the attack, independently of transition blends");
             Assert.Greater(third,second,"The bow shot needs at least three distinct arm poses through its motion, not a switch between two frozen poses");
+
+            float speed=animator.speed;
+            try
+            {
+                foreach(float normalized in new[]{.2f,.5f,.8f})
+                {
+                    animator.speed=1;animator.Play(attackState,0,normalized);animator.Update(0);animator.speed=0;
+                    yield return Capture("hunter-bow-"+Mathf.RoundToInt(normalized*100)+".png",actorDetail:actor.transform);
+                }
+            }
+            finally{animator.speed=speed;}
+            Assert.AreEqual(actorPosition,actor.transform.position);Assert.AreEqual(actorRotation,actor.transform.rotation);
+            Assert.AreEqual(rigPosition,animator.transform.localPosition);Assert.AreEqual(rigRotation,animator.transform.localRotation);
+            Assert.AreEqual(hash,Game.ComputeWorldHash());Assert.AreEqual(save,p.SaveString());
+            for(int i=0;i<_keys.Length;i++)
+            {Assert.AreEqual(hadKeys[i],PlayerPrefs.HasKey(_keys[i]));Assert.AreEqual(stored[i],PlayerPrefs.GetString(_keys[i],""));}
         }
 
         private static float HunterArmPoseDistance(Quaternion[] first,Quaternion[] second)
