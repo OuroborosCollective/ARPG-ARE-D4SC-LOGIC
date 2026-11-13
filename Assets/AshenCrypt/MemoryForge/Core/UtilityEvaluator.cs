@@ -33,6 +33,8 @@ namespace AshenCrypt.MemoryForge
         public ulong StartedTick { get; internal set; }
         public ulong NextDecisionTick { get; internal set; }
         public ulong LastTick { get; internal set; }
+        public ulong EvaluatedTick { get; internal set; }
+        public ObservationFrame LastObservations { get; internal set; }
         public Decision LastDecision { get; internal set; }
     }
     public static class UtilityEvaluator
@@ -72,7 +74,8 @@ namespace AshenCrypt.MemoryForge
                     candidate=new Decision(state.Action,current.Value,candidate.Priorities,tick-state.StartedTick<(ulong)controller.MinimumDuration?"minimum-duration":"hysteresis");
             }
             if(candidate.Action!=state.Action){state.Action=candidate.Action;state.StartedTick=tick;}
-            state.NextDecisionTick=checked(tick+(ulong)controller.DecisionInterval);state.LastDecision=candidate;return candidate;
+            state.NextDecisionTick=checked(tick+(ulong)controller.DecisionInterval);state.EvaluatedTick=tick;
+            state.LastObservations=observations;state.LastDecision=candidate;return candidate;
         }
     }
 }

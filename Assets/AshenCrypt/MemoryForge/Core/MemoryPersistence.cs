@@ -24,8 +24,7 @@ namespace AshenCrypt.MemoryForge
                     foreach(var entry in _minds)
                     {
                         var m=entry.Value;Write(w,m.Id);Write(w,m.Controller.ArchetypeId);Write(w,m.Controller.ControllerId);w.Write(m.Controller.Version);Write(w,m.Controller.Hash);
-                        // Decision continuity is completed in the gameplay adapter integration, before enabling this save in production.
-                        if(m.DecisionState.LastDecision!=null)throw new InvalidOperationException("Decision-state persistence is not yet enabled");
+                        WriteDecision(w,m.DecisionState);
                     }
                     w.Write(_acquisitions.Count);
                     foreach(var k in _acquisitions)
@@ -38,6 +37,34 @@ namespace AshenCrypt.MemoryForge
         }
         private static void Write(BinaryWriter writer,string value)
         {var bytes=Encoding.UTF8.GetBytes(value);writer.Write(bytes.Length);writer.Write(bytes);}
+        private static void WriteDecision(BinaryWriter writer,DecisionState state)
+        {
+            writer.Write(state.LastDecision!=null);
+            if(state.LastDecision==null)return;
+            writer.Write((int)state.Action);writer.Write(state.StartedTick);writer.Write(state.NextDecisionTick);
+            writer.Write(state.LastTick);writer.Write(state.EvaluatedTick);Write(writer,state.LastDecision.Reason);
+            var frame=state.LastObservations;writer.Write(frame.LegalActions);writer.Write(frame.PresentFeatures);
+            for(int i=0;i<(int)Feature.Count;i++)if((frame.PresentFeatures&(1UL<<i))!=0)writer.Write(frame[(Feature)i]);
+        }
+        private static void ReadDecision(BinaryReader reader,NpcMind mind)
+        {
+            byte present=reader.ReadByte();if(present==0)return;if(present!=1)throw new InvalidDataException("Invalid decision marker");
+            var action=(ForgeAction)reader.ReadInt32();ulong started=reader.ReadUInt64(),next=reader.ReadUInt64(),last=reader.ReadUInt64(),evaluated=reader.ReadUInt64();string reason=Read(reader);
+            ulong legal=reader.ReadUInt64(),features=reader.ReadUInt64();
+            if((features&~((1UL<<(int)Feature.Count)-1))!=0||started>evaluated||evaluated>last||next!=checked(evaluated+(ulong)mind.Controller.DecisionInterval))throw new InvalidDataException("Invalid decision continuity");
+            var observations=new System.Collections.Generic.List<Observation>();
+            for(int i=0;i<(int)Feature.Count;i++)if((features&(1UL<<i))!=0)observations.Add(new Observation((Feature)i,reader.ReadInt32()));
+            var frame=new ObservationFrame(legal,observations);var decision=UtilityEvaluator.Evaluate(mind.Controller,frame);
+            if(reason=="minimum-duration"||reason=="hysteresis")
+            {
+                var score=decision.Priorities.FirstOrDefault(p=>p.Action==action);
+                if(!score.Legal)throw new InvalidDataException("Illegal retained action");
+                decision=new Decision(action,score.Value,decision.Priorities,reason);
+            }
+            else if(decision.Action!=action||decision.Reason!=reason)throw new InvalidDataException("Invalid decision result");
+            var state=mind.DecisionState;state.Action=action;state.StartedTick=started;state.NextDecisionTick=next;
+            state.LastTick=last;state.EvaluatedTick=evaluated;state.LastObservations=frame;state.LastDecision=decision;
+        }
         private static string Read(BinaryReader reader)
         {
             int length=reader.ReadInt32();if(length<0||length>4096||length>reader.BaseStream.Length-reader.BaseStream.Position)throw new InvalidDataException("Invalid string length");
@@ -67,7 +94,7 @@ namespace AshenCrypt.MemoryForge
                     {
                         string id=Read(reader),archetype=Read(reader),controllerId=Read(reader);int version=reader.ReadInt32();string hash=Read(reader);
                         if(previous!=null&&StringComparer.Ordinal.Compare(previous,id)>=0||!registry.TryRestore(archetype,controllerId,version,hash,out var controller))return false;
-                        a._minds.Add(id,new NpcMind(id,controller));previous=id;
+                        var mind=new NpcMind(id,controller);ReadDecision(reader,mind);a._minds.Add(id,mind);previous=id;
                     }
                     int acquisitions=Count(reader);
                     for(int i=0;i<acquisitions;i++)
