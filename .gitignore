@@ -49,3 +49,7 @@ asset-intake-receipts/
 /Assets/Resources/ARE/UI/*
 !/Assets/Resources/ARE/UI/README.md
 !/Assets/Resources/ARE/UI/README.md.meta
+
+# Python verification caches
+__pycache__/
+*.pyc
