@@ -149,6 +149,7 @@ namespace AreArpg.Core
             for (int i = 0; i < Cooldowns.Length; i++) next.Cooldowns[i] = Cooldowns[i];
             next.PlayerZmm = next.PrevPlayerZmm = next.Progression.HungerStage > 0 ?
                 (next.Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
+            next.BindCompanion(true);
             next.SaveRoadPlayer(); next.SaveInvestigationPlayer(); next.SaveDungeonPlayer();
             return next;
         }

@@ -82,6 +82,16 @@ internal static class CompanionForgeTests
         check(creature.Health<original&&bp.Companion.TotalExperience>0,"companion-can-use-real-weapon-against-rattler");
         bp.Companion.Status=CompanionStatus.Waiting;bp.Companion.Health=100;bp.Rattler.StrikeX=bp.Companion.Xmm;bp.Rattler.StrikeZ=bp.Companion.Zmm;creature.BossWindupTicks=1;
         boss.Step();check(bp.Companion.Status==CompanionStatus.Dead,"companion-is-subject-to-rattler-telegraphed-strike");
+        var journey=RescueFixture();journey.RecruitHunter();var jp=journey.Progression;
+        for(int i=jp.HungerStage;i<4;i++)jp.DiscoverHungerClue();jp.ChooseHungerSupply(HungerChoice.Protect);
+        jp.Investigation.Active=true;jp.Investigation.Clues=7;jp.Investigation.Approach=SealApproach.Investigated;jp.Investigation.TraceFound=true;jp.Investigation.Reported=true;
+        jp.Rattler.Active=true;jp.Rattler.Creature.Health=0;jp.Rattler.Creature.LootGranted=true;jp.Rattler.BrandExamined=true;jp.Rattler.Reported=true;
+        jp.Woodland.Accept(71);jp.Woodland.Enter();jp.TravelHunger(9,false);
+        var cave=new ArenaSimulation(73,jp,1,LootCatalog.Version1);HunterEncounterTests.Move(cave,0,-18000);
+        var returned=cave.TryTraversePassage();check(returned!=null&&returned.InForest,"companion-cave-return-uses-real-passage");
+        var returning=returned.Progression.Companion;
+        check(FixedMath.Square(returning.Xmm-returned.PlayerXmm)+FixedMath.Square(returning.Zmm-returned.PlayerZmm)<=FixedMath.Square(1500),"companion-arrives-at-final-western-entrance-not-default-southern-spawn");
+        check(returned.CanStand(returning.Xmm,returning.Zmm)&&returning.PreviousXmm==returning.Xmm&&returning.PreviousZmm==returning.Zmm,"companion-passage-position-valid-and-stable");
     }
     private static ArenaSimulation RescueFixture()
     {
