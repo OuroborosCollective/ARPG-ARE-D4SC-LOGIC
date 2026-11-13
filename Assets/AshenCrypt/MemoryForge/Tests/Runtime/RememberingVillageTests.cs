@@ -12,6 +12,25 @@ namespace AshenCrypt.MemoryForge.Tests
     public sealed class RememberingVillageTests
     {
         [UnityTest]
+        public IEnumerator SightLineMaterialTracksActualClearAndOccludedSight()
+        {
+            var go=new GameObject("Sight material under test");
+            try
+            {
+                var sample=go.AddComponent<RememberingVillage>();sample.Running=false;
+                sample.Execute("approach");for(int i=0;i<20;i++)sample.Execute("step");
+                var sight=go.transform.Find("Actual Sight Query").GetComponent<LineRenderer>();
+                Assert.IsFalse(sample.World.GuardCanSeePlayer,"The courtyard wall initially occludes the watch");
+                Assert.AreEqual(new Color(.67f,.27f,.22f,.7f),sight.sharedMaterial.color,"The actual unlit material must show the occluded sight color");
+                sample.Execute("witness");for(int i=0;i<20;i++)sample.Execute("step");
+                Assert.IsTrue(sample.World.GuardCanSeePlayer);
+                Assert.AreEqual(new Color(.35f,.79f,.72f),sight.sharedMaterial.color,"Clear sight must update the material read by Built-in and URP unlit shaders");
+                Assert.AreNotSame(go.transform.Find("Courtyard").GetComponent<Renderer>().sharedMaterial,sight.sharedMaterial,"Sight must own its material");
+            }
+            finally{UnityEngine.Object.Destroy(go);}
+            yield return null;
+        }
+        [UnityTest]
         public IEnumerator RenderingCannotAdvanceCanonicalSampleTicks()
         {
             var go=new GameObject("Sample tick boundary under test");
