@@ -27,7 +27,7 @@ namespace AreArpg.Core
             if(act==9)return Math.Abs(x)<=10000&&z>=-20000&&z<=14000;
             return act==10&&Math.Abs(x)<=14000&&z>=-20000&&z<=20000;
         }
-        private bool CombatSight(long ax,long az,long bx,long bz) => InForest?Progression.Woodland.Layout.HasSight(ax,az,bx,bz):!InDungeon||Progression.Dungeon.Current.Layout.HasSight(ax,az,bx,bz);
+        private bool CombatSight(long ax,long az,long bx,long bz) => Progression.EntryAct==2?EntryWorldLayout.HasSight(ax,az,bx,bz):InForest?Progression.Woodland.Layout.HasSight(ax,az,bx,bz):!InDungeon||Progression.Dungeon.Current.Layout.HasSight(ax,az,bx,bz);
         private void InitializeWoodland()
         {
             var w=Progression.Woodland;

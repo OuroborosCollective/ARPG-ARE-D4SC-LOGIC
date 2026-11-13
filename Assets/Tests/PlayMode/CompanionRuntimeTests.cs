@@ -32,6 +32,9 @@ namespace AreArpg.PlayMode.Tests
             var actor=Find("ARE_Companion_Hunter");Assert.IsNotNull(actor);Assert.IsNotEmpty(actor.GetComponentsInChildren<SkinnedMeshRenderer>());
             Assert.IsFalse(Find("ARE_Road_Hunter").activeSelf,"Recruitment must not leave a duplicate hunter behind");
             Assert.IsNotNull(actor.GetComponentsInChildren<Transform>().FirstOrDefault(t=>t.name=="CompanionWeapon_bow_newbie.1"));
+            var animator=actor.GetComponentInChildren<Animator>();Assert.IsNotNull(animator);Assert.IsTrue(animator.isHuman);Assert.IsFalse(animator.applyRootMotion);
+            Assert.IsTrue(animator.HasState(0,Animator.StringToHash("Move")));
+            Assert.IsTrue(animator.runtimeAnimatorController.animationClips.Any(c=>c.name=="WeaponBowShot"));
             var enemy=new MonsterState{Id=91,Kind=0,Xmm=p.Companion.Xmm+1400,Zmm=p.Companion.Zmm,Health=1000,MaxHealth=1000};Game.Monsters.Add(enemy);
             for(int i=0;i<40&&p.Companion.TotalExperience.IsZero;i++)TickOnce();
             Assert.Greater(p.Companion.TotalExperience,System.Numerics.BigInteger.Zero);Assert.Less(enemy.Health,1000);
@@ -48,6 +51,13 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(CompanionStatus.Following,Game.Progression.Companion.Status);
             Assert.AreEqual(xp,Game.Progression.Companion.TotalExperience);
             Assert.AreEqual(10000,Game.Progression.Social.Forge.Archive.Get("hunter").RelationshipTo("player").Gratitude);
+            MoveStory(2000,13000);
+            typeof(ArenaRuntime).GetMethod("UpdateCompanionPresentation",Flags).Invoke(_runtime,new object[]{1f});DungeonProject();
+            actor=Find("ARE_Companion_Hunter");animator=actor.GetComponentInChildren<Animator>();
+            animator.Update(.15f);var leg=animator.GetBoneTransform(HumanBodyBones.LeftLowerLeg);var pose=leg.localRotation;animator.Update(.25f);
+            Assert.Greater(Quaternion.Angle(pose,leg.localRotation),.1f,"The actual owned walk clip must move the companion rig");
+            Assert.Less(Vector3.Distance(actor.transform.position,new Vector3(Game.Progression.Companion.Xmm/1000f,1,Game.Progression.Companion.Zmm/1000f)),.02f);
+            yield return null;
             yield return Capture("forge-hunter-companion-after-load.png");
         }
     }

@@ -73,7 +73,7 @@ namespace AreArpg.UnityClient
                 PassiveArtVisuals.TryBindGrounded(_companionVisual,"RoadHunter",0);
                 foreach(var part in _companionVisual.GetComponentsInChildren<Transform>(true))if(part.name=="HunterBow")part.gameObject.SetActive(false);
                 _companionAnimator=_companionVisual.GetComponentInChildren<Animator>();
-                if(_companionAnimator!=null){_companionAnimator.applyRootMotion=false;_companionAnimator.runtimeAnimatorController=Resources.Load<RuntimeAnimatorController>("ARE/Visuals/EntryMelee");}
+                if(_companionAnimator!=null){_companionAnimator.applyRootMotion=false;_companionAnimator.cullingMode=AnimatorCullingMode.AlwaysAnimate;_companionAnimator.runtimeAnimatorController=Resources.Load<RuntimeAnimatorController>("ARE/Visuals/EntryMelee");}
             }
             float ground=GroundHeight(Mathf.Lerp(c.PreviousXmm,c.Xmm,alpha)/1000f,Mathf.Lerp(c.PreviousZmm,c.Zmm,alpha)/1000f);
             _companionVisual.position=new Vector3(Mathf.Lerp(c.PreviousXmm,c.Xmm,alpha)/1000f,ground+(c.Health>0?1:.3f),Mathf.Lerp(c.PreviousZmm,c.Zmm,alpha)/1000f);
