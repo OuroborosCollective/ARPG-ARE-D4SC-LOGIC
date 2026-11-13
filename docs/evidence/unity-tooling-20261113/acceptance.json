@@ -1,0 +1,240 @@
+{
+  "schema": "ashen.tooling.acceptance.v1",
+  "unity": "6000.6.8f1",
+  "receipts": {
+    "game-logcat-install-result.json": {
+      "source": "88e4d245bee8d14203296c12f64a128c9acc90fe",
+      "exit": 1,
+      "settingsRestored": true,
+      "prefsRestored": true,
+      "diff": ""
+    },
+    "game-logcat-install2-result.json": {
+      "source": "a7822928837f71bb6b195f94c8d910565c9826a0",
+      "exit": 0,
+      "settingsRestored": true,
+      "prefsRestored": true,
+      "diff": "Packages/manifest.json\nPackages/packages-lock.json\n"
+    },
+    "game-verify/result.json": {
+      "head": "f7cd3dcb4160a630374e5dedaba9daa846b3125d",
+      "tree": "46dac0d03d6dfc2cedaba86785ba1f13070db526",
+      "exit": 0,
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "9ca971f99d21f07bdb190edc897a1ec82c856eb3c9a42c46452bd00c351f94de"
+      }
+    },
+    "game-verify/package-receipt.json": {
+      "unity": "6000.6.8f1",
+      "package": "com.unity.mobile.android-logcat",
+      "version": "1.4.7",
+      "assembly": "Unity.Mobile.AndroidLogcat.Editor",
+      "windowType": "Unity.Android.Logcat.AndroidLogcatConsoleWindow",
+      "deviceExecution": "NOT_TESTED"
+    },
+    "game-edit/result.json": {
+      "head": "b092b21fa9872d9e399f8acf6a5490a47d1b8579",
+      "tree": "2c8c3146b3322a551b58c9f721cca1b1052c1dfe",
+      "exit": 0,
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "e633fc79bb03f6914e9bacb4accafb3797a58f944c0a755215543d80016cfaff",
+        "tests.xml": "19350310ab150666e092aa49dd0e1f4663e6223d7e9c98c738b33548f04cc67a"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "52",
+        "result": "Passed",
+        "total": "52",
+        "passed": "52",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 22:02:43Z",
+        "end-time": "2026-11-13 22:03:58Z",
+        "duration": "74.2959626"
+      },
+      "failures": []
+    },
+    "netcode-install-result.json": {
+      "exit": 0,
+      "timeout": false,
+      "unityPid": 907000
+    },
+    "netcode-test-result.json": {
+      "source": "b092b21fa9872d9e399f8acf6a5490a47d1b8579",
+      "exit": 1,
+      "timeout": false,
+      "scope": "isolated local host lifecycle only",
+      "inputs": {
+        "Assets/Tests/PlayMode/Ashen.OfficialNetcodeProbe.Tests.asmdef": "99f8d0387a09d72d96d6fdc4a5f1fc975e8a3e12b6295809d59432bfa1ac13f6",
+        "Assets/Tests/PlayMode/NetcodeLoopbackTests.cs": "0771ee79b61a832901f3e604116ee54ff65986980ef2410a00520508d5da9bce",
+        "Packages/manifest.json": "748228a4bde65ea68d81f677fef591948786dec4727998d338a194ccfb08f374",
+        "Packages/packages-lock.json": "189f6427e85f48c11469093eadbec2eacda53242082a1a70ffee26f2f9e98b8e"
+      },
+      "inputsUnchanged": true,
+      "files": {
+        "netcode-test.log": "37093725976013a531acbdcdb7b186ebc0437c7d9215ef554bb8013451d53c45"
+      }
+    },
+    "netcode-test2-result.json": {
+      "source": "2cbf795fd880c3a86b3150de0223b7ce2526d0cc",
+      "exit": 0,
+      "timeout": false,
+      "scope": "isolated local host lifecycle only",
+      "inputs": {
+        "Assets/Tests/PlayMode/Ashen.OfficialNetcodeProbe.Tests.asmdef": "0990fcf159fbce8a83fad13c6f0db7c9430d9d4a08f087fd431081c5815c754b",
+        "Assets/Tests/PlayMode/NetcodeLoopbackTests.cs": "0771ee79b61a832901f3e604116ee54ff65986980ef2410a00520508d5da9bce",
+        "Packages/manifest.json": "748228a4bde65ea68d81f677fef591948786dec4727998d338a194ccfb08f374",
+        "Packages/packages-lock.json": "189f6427e85f48c11469093eadbec2eacda53242082a1a70ffee26f2f9e98b8e"
+      },
+      "inputsUnchanged": true,
+      "files": {
+        "netcode-test2.log": "a6a9fd111b1bc710e39455358e7688e01a2c004a57a890d5df8b594260dc745c",
+        "netcode-tests2.xml": "3ccf504846a0e015e365972e37e42935d44a515a8da53ee2ba13671af41ffecf"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "1",
+        "result": "Passed",
+        "total": "1",
+        "passed": "1",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 22:07:39Z",
+        "end-time": "2026-11-13 22:07:41Z",
+        "duration": "1.5977066"
+      },
+      "failures": []
+    },
+    "live-logcat-readback.json": {
+      "success": true,
+      "data": {
+        "jobId": "88249f18cd9c4868b058f02c12aa1a3c",
+        "command": "script eval",
+        "state": "completed",
+        "cancellationRequested": false,
+        "result": {
+          "unity": "6000.6.8f1",
+          "package": "com.unity.mobile.android-logcat",
+          "version": "1.4.7",
+          "window": "Unity.Android.Logcat.AndroidLogcatConsoleWindow",
+          "open": 1,
+          "compiling": false,
+          "playing": false
+        },
+        "error": null,
+        "errorDetails": null,
+        "progress": null
+      },
+      "errors": [],
+      "warnings": []
+    }
+  },
+  "deviceExecution": "NOT_TESTED",
+  "gamePlayMode": "NOT_RERUN_FOR_EDITOR_ONLY_CHANGE",
+  "gameAndroidBuild": "NOT_BUILT_FOR_TOOLING_CHANGE",
+  "officialSkills": {
+    "sources": {
+      "skills": "e5956e7e34a125982550de15a9e87f8e66af7d86",
+      "uvcs-agent-plugin": "3da76cd3a0e8642b9e680440551efba268326c6a",
+      "unity-agent-plugin": "2d68641b24055d9845cb2804bf5a331cc2ff98d9"
+    },
+    "verified": 44
+  },
+  "gameDev": {
+    "source": "26bdb7105fde2baad4be94db7f95b12dbb6c6a55",
+    "installed": 29,
+    "files": 88,
+    "verified": 29,
+    "testsExit": 0,
+    "routes": {
+      "Jäger Bogenschuss Animation": [
+        {
+          "name": "unity-animation",
+          "status": "INSTALLED"
+        },
+        {
+          "name": "game-development",
+          "status": "INSTALLED"
+        }
+      ],
+      "Prozeduraler Wald Dungeon Leveldesign": [
+        {
+          "name": "level-design",
+          "status": "INSTALLED"
+        },
+        {
+          "name": "procedural-gen",
+          "status": "INSTALLED"
+        }
+      ],
+      "Android Logcat Performance": [
+        {
+          "name": "performance-optimization",
+          "status": "INSTALLED"
+        }
+      ]
+    },
+    "directorFiles": {
+      "SKILL.md": "b27fbe52fe2a056396a4633c31b70cb2edb906aae9629fdbc4f150e1825791b7",
+      "scripts/route_work.py": "b71a646a79055d30cb312e47b1e0d5c807dea0805701579e118ee0e2f8a922f2",
+      "scripts/game_dev.py": "83ba7ba2d792714703087f131838470c87ca7e11d5f27b722b8aa968103907c1",
+      "scripts/official_unity.py": "0f1218c280ff3f82a171933e477a9d336f33763a5b3e9e0c874242300cffe620",
+      "references/gamedev-skills.md": "64dda5148b7e8e2baf143051ff285d72a23b5a7e79c7fcbf135c117fc01eeeeb",
+      "gamedev-catalog.json": "1d0f0bab6a6b53f874f1ab43ed4633bbb1acedccc3bda20b78131e2b24ddd260"
+    }
+  },
+  "versions": {
+    "unityCli": "1.0.0",
+    "uvcs": "11.0.16.10371"
+  },
+  "installer": {
+    "scriptSha256": "99104df98333210c9a7ff08d112cdd9c3c2c89c07cb3d36f18781d46112a08e7",
+    "localCli": "1.0.0 installed by official script; skills completed separately",
+    "vpsCli": "1.0.0 installed by self-update; subsequent install.sh copy returned Text file busy"
+  },
+  "levelDesignArticle": {
+    "url": "https://discussions.unity.com/t/i-tested-unity-level-design-tools-these-are-my-favorites/1737408",
+    "ownedCatalogTotal": 219,
+    "baseToolsFound": [],
+    "relatedAddon": {
+      "productId": 345752,
+      "title": "Book of the Dead: Biome for Gaia Pro VS"
+    },
+    "status": "NO_BASE_TOOL_FOUND_IN_AVAILABLE_OWNED_CATALOG"
+  },
+  "netcodeResolvedPackages": {
+    "com.unity.netcode.gameobjects": "2.14.0",
+    "com.unity.test-framework": "1.8.0",
+    "com.unity.transport": "6.6.0"
+  },
+  "ci": {
+    "source": "26bdb7105fde2baad4be94db7f95b12dbb6c6a55",
+    "run": "43517079172",
+    "job": "132201645524",
+    "result": "success",
+    "coreAssertions": 8112,
+    "staticPreflights": 40,
+    "directorTests": 11
+  },
+  "communitySource": {
+    "commit": "25eec57919aec2cfd87d4ef9ae5661832302585e",
+    "animationSha256": "7212ef924d00f125aa50e6acc1d2299319f01e44945b2a3d4968d58b70cc0792",
+    "ownerAttachmentSha256": "b10e50dd2df48516a58ed6c8aeae5444207a1f5f3e34398e2f088665500efb64"
+  }
+}

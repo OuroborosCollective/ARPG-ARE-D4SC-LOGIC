@@ -36,9 +36,14 @@ Kein erneuter Publisher-Login und kein behaupteter Store-Upload oder Gerätetest
 
 Der Besitzer hat die **Prolog-Demo bis Aschenzoll** als erste Veröffentlichung
 gewählt. [Umfang und verbleibende Abnahme](docs/PROLOGUE_RELEASE.md).
-Die offiziellen Unity-Werkzeuge ergänzen den Director; Logcat wird als Editorpaket
-übernommen, Netcode bleibt im separaten Prüfprojekt.
+Die offiziellen Unity-Werkzeuge ergänzen den Director: CLI1.0.0,44Unity-/UVCS-Skills,
+29 zusätzliche Community-/Besitzer-Skills und geprüfte Aufgabenwahl. Logcat1.4.7 ist
+als Editorpaket integriert; native52/52EditModefälle bestehen. Netcode2.14.0 bleibt
+im separaten Prüfprojekt, dessen lokaler Host zweimal startet und sauber beendet.
+Die acht Shop-Erweiterungen des verlinkten Leveldesign-Artikels sind nicht im
+verfügbaren Lizenzbestand nachgewiesen und wurden nicht installiert.
 [Installation, Quellstände und Grenzen](docs/OFFICIAL_UNITY_TOOLING.md).
+[Animations-/Design-Skills und Besitzer-Anhang](docs/GAMEDEV_SKILLS.md).
 
 Nächster Grafikblock: den erworbenen Hunter gezielt als Straßenjäger und Begleiter
 integrieren. Hunter, Horseman, Priest, Orc und Borshin sind vollständig geladen und

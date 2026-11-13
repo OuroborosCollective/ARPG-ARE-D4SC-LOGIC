@@ -41,6 +41,12 @@ Vor Verwendung werden der ausgewählte Skill und seine benötigten Referenzen
 gelesen; CLI-, Editor-, Paket- und Gerätestatus werden zusätzlich frisch ermittelt.
 Die sechs bisherigen Director-Aktionen bleiben erhalten.
 
+Die zusätzlich beauftragten Community-Skills und der Besitzer-Anhang sind über eine
+eigene [Game-Development-Anbindung](GAMEDEV_SKILLS.md) erreichbar. Ihr Katalog bleibt
+von den offiziellen Unity-Quellen unterscheidbar. Die zusammengeführten, echten
+[Prüfergebnisse](evidence/unity-tooling-20261113/acceptance.json) dokumentieren
+Installation, Unity-Editorprüfung und isolierten Netcode-Test getrennt.
+
 Die offizielle Unity CLI **1.0.0** ist lokal und auf dem VPS installiert. Auf dem
 VPS wird sie im bestehenden Unity-Arbeitskonto ausgeführt. Der UVCS-Client
 **11.0.16.10371** steht für passende Aufgaben bereit; ein UVCS-Repository wurde
