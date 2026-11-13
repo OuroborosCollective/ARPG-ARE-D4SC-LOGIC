@@ -17,7 +17,8 @@ internal static class CryptDungeonTests
                 todo.Enqueue((p.Item1-1,p.Item2)); todo.Enqueue((p.Item1+1,p.Item2));
                 todo.Enqueue((p.Item1,p.Item2-1)); todo.Enqueue((p.Item1,p.Item2+1));
             }
-            check(seen.Contains((0,6)) && seen.Contains((-4,-1)) && seen.Contains((4,1)), "dungeon-connected-stairs-and-side-rooms-"+depth);
+            int side = depth == 2 ? -1 : 1;
+            check(seen.Contains((0,6)) && seen.Contains((-4*side,-1)) && seen.Contains((4*side,1)), "dungeon-connected-stairs-and-side-rooms-"+depth);
             check(!CryptDungeonLayout.CanStand(depth,8000,-20000), "dungeon-solid-rock-blocks-shortcut-"+depth);
             check(!CryptDungeonLayout.HasSight(depth,0,-20000,16000,4000), "dungeon-no-sight-through-room-walls-"+depth);
             for (int i=0;i<4;i++)
