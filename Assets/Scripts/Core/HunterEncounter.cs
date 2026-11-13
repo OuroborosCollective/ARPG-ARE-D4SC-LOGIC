@@ -263,6 +263,7 @@ namespace AreArpg.Core
         public SocialResult InteractHunter(bool robCorpse)
         {
             var h = Progression.Road; var r = new SocialResult();
+            if(Progression.Companion.HasJoined)return r; // The live companion owns later life; this encounter is historical.
             if (Progression.EntryAct != 3 || GameOver || DistanceSquared(PlayerXmm, PlayerZmm, HunterEncounter.HunterX, HunterEncounter.HunterZ) > FixedMath.Square(2400)) return r;
             if (robCorpse)
             {

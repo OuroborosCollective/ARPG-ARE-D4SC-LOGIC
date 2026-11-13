@@ -547,6 +547,7 @@ namespace AreArpg.Core
                 if (enemy.IsDead || enemy.Kind == 4 || enemy.Kind == 5) continue;
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
+                if(StepMonsterAgainstCompanion(enemy))continue;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
                 if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
                 if (ChapterId == 2 && enemy.Kind == 3)

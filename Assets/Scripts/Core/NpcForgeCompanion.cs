@@ -56,6 +56,10 @@ namespace AreArpg.Core
             var c=new CompanionState{Status=(CompanionStatus)(int)n[1],Health=(int)n[2],Hunger=(int)n[3],Fatigue=(int)n[4],Area=(int)n[5],AreaSeed=(ulong)n[6],Xmm=(long)n[7],Zmm=(long)n[8],PreviousXmm=(long)n[9],PreviousZmm=(long)n[10],AttackCooldown=(int)n[11],AttackFlash=(int)n[12],TargetId=(int)n[13],TotalExperience=n[14],WeaponOrdinal=n[19],ShieldOrdinal=n[20],LastPracticeTick=(ulong)n[21]};
             for(int i=0;i<4;i++)c._practice[i]=n[15+i];
             foreach(var ordinal in new[]{c.WeaponOrdinal,c.ShieldOrdinal})if(ordinal>0&&(!p.Items.Any(x=>x.KillOrdinal==ordinal)||ordinal==p.Equipment.Weapon?.Ordinal||ordinal==p.Equipment.Shield?.Ordinal))return false;
+            var weapon=c.WeaponOrdinal>0?p.Equipment.ForItem(p.Items.FirstOrDefault(x=>x.KillOrdinal==c.WeaponOrdinal)):null;
+            var shield=c.ShieldOrdinal>0?p.Equipment.ForItem(p.Items.FirstOrDefault(x=>x.KillOrdinal==c.ShieldOrdinal)):null;
+            if(c.WeaponOrdinal>0&&(weapon==null||weapon.Definition.Family==WeaponFamily.Shield)||c.ShieldOrdinal>0&&(shield==null||shield.Definition.Family!=WeaponFamily.Shield||weapon==null||weapon.Definition.TwoHanded))return false;
+            if((c.Status==CompanionStatus.Dead)!=p.Social.Forge.Archive.Events.Any(e=>e.Kind==MemoryKind.Death&&e.Target=="hunter"&&e.Context=="companion.death"&&e.Essential))return false;
             if(p.Social.Forge.Archive.Get("hunter")?.Controller.ArchetypeId!="companion")return false;
             state=c;return true;
         }
@@ -105,6 +109,7 @@ namespace AreArpg.Core
             long x=c.HasJoined?c.Xmm:HunterEncounter.HunterX,z=c.HasJoined?c.Zmm:HunterEncounter.HunterZ;
             if(c.HasJoined?!CompanionPresent:Progression.EntryAct!=3||!Progression.Road.Rescued)return r;
             if(DistanceSquared(PlayerXmm,PlayerZmm,x,z)>FixedMath.Square(2400)||!CombatSight(PlayerXmm,PlayerZmm,x,z))return r;
+            if(!c.HasJoined&&!Progression.Road.FavorClaimed&&!InteractHunter(false).Accepted)return r;
             Progression.Social.Forge.Ensure("hunter","companion");
             if(!c.HasJoined){c.Health=Progression.Road.HunterHealth;c.Xmm=c.PreviousXmm=x;c.Zmm=c.PreviousZmm=z;c.Area=Progression.EntryAct;c.AreaSeed=CompanionAreaSeed;}
             c.Status=CompanionStatus.Following;r.Accepted=true;r.SpeakerId=3;r.Text="Jäger: Du hast mich gerettet. Ich komme mit dir. Meine Erfahrung werde ich mir selbst verdienen.";return r;
@@ -144,10 +149,13 @@ namespace AreArpg.Core
             var decision=UtilityEvaluator.Decide(mind.Controller,frame,mind.DecisionState,forge.ProcessedTicks,changed);
             if(decision.Action==ForgeAction.Attack&&target!=null)
             {
-                if(best>FixedMath.Square(9000))MoveCompanion(target.Xmm,target.Zmm,260);
+                if(best>FixedMath.Square(CompanionWeaponDefinition.RangeMm))MoveCompanion(target.Xmm,target.Zmm,260);
                 else if(c.AttackCooldown==0)
                 {
-                    int damage=Math.Min(target.Health,65+PracticeRules.DamageBonusBp(c.PracticeLevel(0))*65/10000);target.Health-=damage;c.AttackCooldown=12;c.AttackFlash=3;
+                    int power=65+CompanionWeaponDefinition.BasePower;
+                    int damage=Math.Min(target.Health,power*(10000+PracticeRules.DamageBonusBp(c.PracticeLevel(0))+CompanionBonus(WeaponAffix.Power))/10000);target.Health-=damage;
+                    c.AttackCooldown=Math.Max(1,(CompanionWeaponDefinition.StrikeCooldown*(10000-CompanionBonus(WeaponAffix.Haste))+9999)/10000);c.AttackFlash=3;
+                    c.Health=Math.Min(CompanionState.MaximumHealth,c.Health+(int)((long)damage*CompanionBonus(WeaponAffix.Siphon)/10000));
                     c.Practice(forge.ProcessedTicks,0,damage);ResolveMonsterDefeat(target,new SkillResult());
                 }
             }

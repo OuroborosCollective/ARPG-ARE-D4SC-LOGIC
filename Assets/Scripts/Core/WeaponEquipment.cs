@@ -95,6 +95,7 @@ namespace AreArpg.Core
     {
         public bool TryEquipWeapon(BigInteger ordinal)
         {
+            if(ordinal>0&&(Progression.Companion.WeaponOrdinal==ordinal||Progression.Companion.ShieldOrdinal==ordinal))return false;
             if(GameOver||!Progression.Equipment.Equip(Progression,ordinal))return false;
             SaveRoadPlayer();SaveInvestigationPlayer();SaveWoodlandPlayer();return true;
         }
