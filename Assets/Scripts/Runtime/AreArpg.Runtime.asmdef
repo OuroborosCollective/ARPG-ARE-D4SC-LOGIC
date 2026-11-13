@@ -1,6 +1,6 @@
 {
   "name": "AreArpg.Runtime",
   "rootNamespace": "AreArpg.UnityClient",
-  "references": ["AreArpg.Core", "UnityEngine.UI"],
+  "references": ["AreArpg.Core", "AshenCrypt.MemoryForge", "UnityEngine.UI"],
   "autoReferenced": true
 }
