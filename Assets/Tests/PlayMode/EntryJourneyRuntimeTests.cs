@@ -536,6 +536,14 @@ namespace AreArpg.PlayMode.Tests
             var refuge = Find("OldMill_Refuge"); Assert.IsNotNull(refuge);
             Assert.IsNotNull(Find("OldMill_Shelter_Canvas"));
             Assert.IsNotNull(Find("OldMill_Dressing_Roll_0"));
+            if (Resources.Load<GameObject>("ARE/Visuals/EntryVillageWorld") != null)
+                for (int i = 0; i < 6; i++)
+                {
+                    var plant = Find("Route_Grass_-1_" + i); Assert.IsNotNull(plant);
+                    int plantVertices = 0;
+                    foreach (var mesh in plant.GetComponentsInChildren<MeshFilter>()) plantVertices += mesh.sharedMesh.vertexCount;
+                    Assert.Greater(plantVertices, 40, "Roadside plants must be real foliage, not blockout cubes");
+                }
             for (int i = 0; i < 4; i++)
             {
                 ArenaSimulation.MillShelterPost(i, out long x, out long z);
