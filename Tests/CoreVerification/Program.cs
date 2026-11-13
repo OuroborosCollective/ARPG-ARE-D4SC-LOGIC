@@ -47,6 +47,7 @@ internal static class Program
             NpcForgeIntegrationTests.Run(Require);
             CompanionForgeTests.Run(Require);
             ForgePolicyTests.Run(Require);
+            ForgePopulationTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }
