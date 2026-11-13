@@ -42,8 +42,10 @@ namespace AreArpg.EditMode.Tests
         {
             for(int i=0;i<20;i++)action();var times=new double[batches];long before=GC.GetAllocatedBytesForCurrentThread();
             for(int b=0;b<batches;b++){long start=Stopwatch.GetTimestamp();for(int i=0;i<operations;i++)action();times[b]=(Stopwatch.GetTimestamp()-start)*1000000d/Stopwatch.Frequency/operations;}
-            long allocated=GC.GetAllocatedBytesForCurrentThread()-before;Array.Sort(times);
-            rows.Add(string.Join(",",name,(batches*operations).ToString(CultureInfo.InvariantCulture),times[batches/2].ToString("F3",CultureInfo.InvariantCulture),times[Math.Min(batches-1,(int)(batches*.95))].ToString("F3",CultureInfo.InvariantCulture),((double)allocated/(batches*operations)).ToString("F1",CultureInfo.InvariantCulture)));
+            long after=GC.GetAllocatedBytesForCurrentThread(),allocated=after-before;Array.Sort(times);
+            // Some Unity Mono runtimes return zero for this API. Never call that zero-allocation evidence.
+            string allocation=before==0&&after==0?"unavailable":((double)allocated/(batches*operations)).ToString("F1",CultureInfo.InvariantCulture);
+            rows.Add(string.Join(",",name,(batches*operations).ToString(CultureInfo.InvariantCulture),times[batches/2].ToString("F3",CultureInfo.InvariantCulture),times[Math.Min(batches-1,(int)(batches*.95))].ToString("F3",CultureInfo.InvariantCulture),allocation));
         }
     }
 }

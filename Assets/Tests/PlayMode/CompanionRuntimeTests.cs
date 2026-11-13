@@ -6,11 +6,33 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using AshenCrypt.MemoryForge;
 
 namespace AreArpg.PlayMode.Tests
 {
     public sealed partial class EntryJourneyRuntimeTests
     {
+        [UnityTest]
+        public IEnumerator RattlerExecutesItsExplicitlyAdmittedWaitPolicyInTheActualRuntime()
+        {
+            _runtime.enabled=false;var p=CharacterProgression.CreateEntryProfile();
+            typeof(CharacterProgression).GetMethod("EnterVillage",Flags).Invoke(p,null);
+            for(int i=0;i<4;i++)typeof(CharacterProgression).GetMethod("DiscoverHungerClue",Flags).Invoke(p,null);
+            typeof(CharacterProgression).GetMethod("ChooseHungerSupply",Flags).Invoke(p,new object[]{HungerChoice.Protect});
+            typeof(CharacterProgression).GetMethod("TravelHunger",Flags).Invoke(p,new object[]{7,false});p.Social.EnableForge();
+            DungeonFixtureSet(p.Investigation,"Clues",7);DungeonFixtureSet(p.Investigation,"Approach",SealApproach.Investigated);DungeonFixtureSet(p.Investigation,"TraceFound",true);DungeonFixtureSet(p.Rattler,"Active",true);
+            var world=new ArenaSimulation(73,p,1,LootCatalog.Version1);var creature=p.Rattler.Creature;
+            var registry=(NpcArchetypeControllerRegistry)typeof(NpcForgeState).GetField("Registry",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static).GetValue(null);
+            var candidate=new ControllerArtifact(creature.Mind.Controller.Archetype,"test.native.calm-animal",1,new[]{new UtilityRule(ForgeAction.Wait,0,0,new int[(int)Feature.Count])});
+            var input=new ObservationFrame(ActionSet.Of(ForgeAction.Wait,ForgeAction.Attack),new[]{new Observation(Feature.Danger,10000)});
+            registry.Register(candidate,candidate.Hash,ControllerAdmission.Run(candidate,"test.native.calm",new[]{new RegressionCase(input,ForgeAction.Wait)}),false);
+            Assert.IsTrue(world.TryMigrateNpcController(creature.Mind.Id,candidate.ControllerId,1,candidate.Hash));
+            // Arrange only proximity; actual perception, policy and runtime tick execute normally.
+            creature.Xmm=world.PlayerXmm+1000;creature.Zmm=world.PlayerZmm;
+            typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{world,"Geprüfter Testcontroller"});yield return null;
+            int health=world.PlayerHealth;for(int i=0;i<20;i++)TickOnce();
+            Assert.AreEqual(ForgeAction.Wait,creature.Mind.DecisionState.Action);Assert.AreEqual(0,creature.BossWindupTicks);Assert.AreEqual(health,world.PlayerHealth);
+        }
         [UnityTest]
         public IEnumerator RescuedCompanionHasRealModelControlsCombatAndSavedIndividualProgress()
         {

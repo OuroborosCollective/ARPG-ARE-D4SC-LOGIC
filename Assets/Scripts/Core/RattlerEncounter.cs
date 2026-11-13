@@ -96,7 +96,7 @@ namespace AreArpg.Core
             bool playerPerceived=playerDistance<=FixedMath.Square(RattlerEncounter.HearingRadius)&&((!r.Sneaking&&moved)||playerDistance<=FixedMath.Square(RattlerEncounter.SmellRadius));
             if(playerPerceived)HearRattlerNoise();
             PerceiveRattlerCompanion(playerPerceived,playerDistance);
-            if(r.MemoryTicks>0)ForgeCreatureMayAttack(m,r.TargetX,r.TargetZ);
+            bool pursue=r.MemoryTicks==0||ForgeCreatureMayAttack(m,r.TargetX,r.TargetZ);
             if (m.BossWindupTicks > 0)
             {
                 m.BossWindupTicks--;
@@ -112,6 +112,7 @@ namespace AreArpg.Core
                 return;
             }
             // A lost trail returns to the authored feeding place, never to an unseen moving player.
+            if(r.MemoryTicks>0&&!pursue)return;
             if (r.MemoryTicks == 0) { r.TargetX = 0; r.TargetZ = InDungeon ? 17000 : 8000; }
             long dx = r.TargetX - m.Xmm, dz = r.TargetZ - m.Zmm;
             long d2 = dx * dx + dz * dz;

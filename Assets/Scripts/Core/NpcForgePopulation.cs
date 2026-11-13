@@ -27,6 +27,12 @@ namespace AreArpg.Core
         private string _forgePopulationKey;
         private string ForgeCreatureId(MonsterState enemy)
         {
+            if(ReferenceEquals(enemy,Progression.Road.Bear)&&Progression.EntryAct!=3)
+            {
+                // The road encounter continues when the player leaves. Its individual identity stays on the road.
+                string road="3/"+_runSeed.ToString("X16",CultureInfo.InvariantCulture)+"/"+CryptDepth.ToString(CultureInfo.InvariantCulture)+"/0000000000000000/0";
+                using(var sha=SHA256.Create())return "mob."+string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(road)).Select(b=>b.ToString("x2",CultureInfo.InvariantCulture)))+".4."+enemy.Id.ToString(CultureInfo.InvariantCulture);
+            }
             if(_forgePopulationKey==null)
             {
                 string key=Progression.EntryAct.ToString(CultureInfo.InvariantCulture)+"/"+_runSeed.ToString("X16",CultureInfo.InvariantCulture)+"/"+CryptDepth.ToString(CultureInfo.InvariantCulture)+"/"+
