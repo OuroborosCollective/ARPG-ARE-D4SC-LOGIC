@@ -10,6 +10,7 @@ internal static class CompanionForgeTests
         check(p.Road.Rescued&&world.RecruitHunter().Accepted,"companion-real-survivor-can-join-near-player");
         check(p.Companion.Status==CompanionStatus.Following&&p.Companion.Level==BigInteger.One,"companion-new-member-has-own-starting-level");
         check(p.Social.Forge.Archive.Get("hunter").Controller.ArchetypeId=="companion","companion-uses-same-admitted-controller-contract");
+        check(p.Social.Forge.Archive.Get("hunter").Known.Count==1&&p.Social.Forge.Archive.Get("hunter").RelationshipTo("player").Gratitude==10000,"companion-remembers-the-actual-life-saving-event");
         p.EarnExperience(BigInteger.Pow(10,40));world.Step();
         check(p.Companion.Level==BigInteger.One&&p.Companion.TotalExperience.IsZero,"companion-never-copies-player-level");
         var enemy=new MonsterState{Id=91,Kind=0,Xmm=p.Companion.Xmm+1400,Zmm=p.Companion.Zmm,Health=1000,MaxHealth=1000};
@@ -34,7 +35,7 @@ internal static class CompanionForgeTests
         var p=CharacterProgression.CreateEntryProfile();p.EnterVillage();p.DiscoverHungerClue();p.TravelHunger(3,false);p.Social.EnableForge();
         var world=new ArenaSimulation(73,p,BigInteger.One,LootCatalog.Version1);
         p.Road.Started=true;p.Road.Bear.Xmm=world.PlayerXmm+1000;p.Road.Bear.Zmm=world.PlayerZmm;p.Road.Bear.Health=1;
-        if(!world.ActivateSkill(0).Accepted)throw new Exception("Rescue fixture strike failed");
+        if(world.ActivateSkill(0).Hits==0)throw new Exception("Rescue fixture strike failed");
         for(int i=0;i<200;i++)
         {
             long dx=HunterEncounter.HunterX-world.PlayerXmm,dz=HunterEncounter.HunterZ-world.PlayerZmm;

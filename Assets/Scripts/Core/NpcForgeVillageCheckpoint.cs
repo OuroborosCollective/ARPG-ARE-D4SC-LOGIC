@@ -65,6 +65,7 @@ namespace AreArpg.Core
                 }
             }
             forge.Capture=CaptureForgeVillage;
+            BindCompanion();
         }
         private string CaptureForgeVillage()
         {

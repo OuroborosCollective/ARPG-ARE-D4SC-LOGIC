@@ -20,6 +20,7 @@ namespace AreArpg.Core
             Archive=new MemoryArchive();
             Archive.Spawn("ilyan","traveler",Registry);Archive.Spawn("mara","merchant",Registry);Archive.Spawn("dorn","guard",Registry);
         }
+        internal NpcMind Ensure(string id,string archetype) => Archive.Get(id)??Archive.Spawn(id,archetype,Registry);
         internal void Record(int id,NpcAction action,bool victimAware,int[] witnesses,string context)
         {
             var kind=action==NpcAction.Help?MemoryKind.Help:action==NpcAction.Greet?MemoryKind.Greeting:action==NpcAction.Attack?MemoryKind.Assault:MemoryKind.Theft;
@@ -35,7 +36,9 @@ namespace AreArpg.Core
             state=null;var f=token.Split(':');
             if(f.Length!=4||f[0]!="1"||!ulong.TryParse(f[1],NumberStyles.None,CultureInfo.InvariantCulture,out var ticks)||ticks.ToString(CultureInfo.InvariantCulture)!=f[1]||
                 !MemoryArchive.TryLoad(f[2],Registry,out var archive))return false;
-            if(archive.Minds.Count!=3||archive.Get("ilyan")?.Controller.ArchetypeId!="traveler"||archive.Get("mara")?.Controller.ArchetypeId!="merchant"||archive.Get("dorn")?.Controller.ArchetypeId!="guard"||
+            if(archive.Minds.Count<3||archive.Minds.Count>5||archive.Minds.Any(m=>m.Id!="ilyan"&&m.Id!="mara"&&m.Id!="dorn"&&m.Id!="hunter"&&m.Id!="road.traveler")||
+                archive.Get("road.traveler")!=null&&archive.Get("road.traveler").Controller.ArchetypeId!="traveler"||
+                archive.Get("hunter")!=null&&archive.Get("hunter").Controller.ArchetypeId!="companion"||archive.Get("ilyan")?.Controller.ArchetypeId!="traveler"||archive.Get("mara")?.Controller.ArchetypeId!="merchant"||archive.Get("dorn")?.Controller.ArchetypeId!="guard"||
                 archive.Acquisitions.Any(k=>k.LearnedTick>ticks)||archive.Events.Any(e=>e.Tick>ticks)||archive.Minds.Any(m=>m.DecisionState.LastTick>ticks))return false;
             if(!ForgeVillageCheckpoint.TryRead(f[3],out _))return false;
             state=new NpcForgeState{ProcessedTicks=ticks,Archive=archive,Checkpoint=f[3]};return true;
@@ -49,7 +52,7 @@ namespace AreArpg.Core
     }
     public sealed partial class CharacterProgression
     {
-        private string Payload()
+        private string ForgePayload()
         {
             string body=EquipmentPayload();if(Social.Forge==null)return body;
             string legacy=body+"|"+HashText(body).ToString("X16",CultureInfo.InvariantCulture);
@@ -64,7 +67,7 @@ namespace AreArpg.Core
                 var innerBytes=Convert.FromBase64String(f[1]);var forgeBytes=Convert.FromBase64String(f[2]);
                 if(Convert.ToBase64String(innerBytes)!=f[1]||Convert.ToBase64String(forgeBytes)!=f[2])return false;
                 var utf8=new UTF8Encoding(false,true);string inner=utf8.GetString(innerBytes);
-                if(inner.StartsWith("AC17|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!NpcForgeState.TryRead(utf8.GetString(forgeBytes),out var forge))return false;
+                if(inner.StartsWith("AC17|",StringComparison.Ordinal)||inner.StartsWith("AC18|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!NpcForgeState.TryRead(utf8.GetString(forgeBytes),out var forge))return false;
                 if(!ForgeVillageCheckpoint.TryRead(forge.Checkpoint,out var checkpoint)||checkpoint!=null&&checkpoint.Health>CombatRules.MaximumHealth(p))return false;
                 p.Social.Forge=forge;progress=p;return true;
             }

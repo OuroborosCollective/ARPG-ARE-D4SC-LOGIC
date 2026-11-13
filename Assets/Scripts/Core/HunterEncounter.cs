@@ -102,13 +102,14 @@ namespace AreArpg.Core
             _roadFacts[f] = ++RoadEventCount;
             if (travelerWitness) _roadKnowledge[4, f] = 1;
             if (hunterDirect) _roadKnowledge[3, f] = 1;
+            RememberRoadFact(fact,travelerWitness,hunterDirect);
         }
         internal void ReportRoadFact(int source, int receiver)
         {
             // A real meeting transfers the most consequential missing fact, once; no rumor amplification.
             for (int f = 3; f >= 0; f--)
                 if (_roadKnowledge[source, f] == 1 && _roadKnowledge[receiver, f] == 0)
-                { _roadKnowledge[receiver, f] = source + 2; return; }
+                { _roadKnowledge[receiver, f] = source + 2; RememberRoadReport(source,receiver,(RoadFact)f);return; }
         }
         internal void ReceiveHunterCoins(HunterEncounter h)
         { Coins += h.Purse; h.Purse = 0; }

@@ -537,6 +537,7 @@ namespace AreArpg.Core
             MovePlayer();
             StepNpcs();
             StepRoadEncounter();
+            StepCompanion();
             StepRattler();
             StepInvestigation();
             if (GameOver) { SaveDungeonPlayer(); SaveWoodlandPlayer(); return; }
@@ -621,6 +622,11 @@ namespace AreArpg.Core
                 FinishBear(); if (firstKill) result.Kills++; SaveRoadPlayer(); return;
             }
             if (enemy.Kind == 5) { FinishRattler(result); return; }
+            ResolveMonsterDefeat(enemy,result);
+        }
+
+        private void ResolveMonsterDefeat(MonsterState enemy,SkillResult result)
+        {
             if (enemy.IsDead && !enemy.LootGranted)
             {
                 enemy.LootGranted = true;
