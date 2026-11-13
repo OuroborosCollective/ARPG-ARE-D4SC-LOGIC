@@ -22,6 +22,8 @@ namespace AreArpg.EditorTools
                 {
                     var importer=AssetImporter.GetAtPath(AssetDatabase.GUIDToAssetPath(guid)) as TextureImporter;
                     if(importer==null)continue;
+                    var existing=importer.GetPlatformTextureSettings("Android");
+                    if(!importer.isReadable&&importer.mipmapEnabled&&importer.maxTextureSize<=1024&&existing.overridden&&existing.maxTextureSize==1024&&existing.format==TextureImporterFormat.ASTC_6x6)continue;
                     importer.isReadable=false;importer.mipmapEnabled=true;importer.maxTextureSize=Math.Min(importer.maxTextureSize,1024);
                     var android=importer.GetPlatformTextureSettings("Android");android.name="Android";android.overridden=true;
                     android.maxTextureSize=1024;android.format=TextureImporterFormat.ASTC_6x6;android.compressionQuality=80;
@@ -40,6 +42,7 @@ namespace AreArpg.EditorTools
                 for(int i=0;i<WeaponCatalog.Count;i++)
                 {
                     var def=WeaponCatalog.Get(i);var path=paths.FirstOrDefault(p=>Path.GetFileNameWithoutExtension(p)==def.ModelStem);
+                    if(def.ModelStem=="PT_Sword_01_a")path=Output+"EntryWeapon.prefab"; // Existing reviewed URP palette and native grip.
                     if(path==null)throw new IOException("Missing model for "+def.Id+" / "+def.ModelStem);
                     BuildWeapon(path,def);
                 }
