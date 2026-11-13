@@ -22,12 +22,15 @@ namespace AreArpg.EditMode.Tests
             foreach(var runtime in existing)runtime.gameObject.SetActive(false);
             Scene scene=default;
             string temporaryPath=null;
+            bool ownsTemporary=false;
             try
             {
                 if(path=="temporary-unowned-scene")
                 {
                     temporaryPath=AssetDatabase.GenerateUniqueAssetPath("Assets/ForgeBootstrap-Unowned.unity");
-                    Assert.IsTrue(AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity",temporaryPath));
+                    Assert.IsFalse(System.IO.File.Exists(temporaryPath),"Do not overwrite an unimported existing scene");
+                    ownsTemporary=AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity",temporaryPath);
+                    Assert.IsTrue(ownsTemporary);
                     path=temporaryPath;
                 }
                 scene=EditorSceneManager.OpenScene(path,OpenSceneMode.Additive);
@@ -41,7 +44,7 @@ namespace AreArpg.EditMode.Tests
             {
                 if(previous.IsValid()&&previous.isLoaded)SceneManager.SetActiveScene(previous);
                 if(scene.IsValid()&&scene.isLoaded)EditorSceneManager.CloseScene(scene,true);
-                if(temporaryPath!=null)AssetDatabase.DeleteAsset(temporaryPath);
+                if(ownsTemporary)AssetDatabase.DeleteAsset(temporaryPath);
                 foreach(var runtime in existing)if(runtime!=null)runtime.gameObject.SetActive(true);
             }
         }
