@@ -508,7 +508,14 @@ namespace AreArpg.PlayMode.Tests
                 {
                     bounds.Encapsulate(renderer.bounds);
                     foreach (var material in renderer.sharedMaterials)
+                    {
                         Assert.IsTrue(material != null && material.shader.isSupported);
+                        if (renderer.name != "Blanket")
+                        {
+                            Assert.IsNotNull(material.mainTexture, "Patient skin and clothing must retain their baked colour atlas");
+                            Assert.Greater(material.color.maxColorComponent, .05f, "Patient materials must not turn black during conversion");
+                        }
+                    }
                 }
                 Assert.That(bounds.size.z, Is.InRange(1.7f, 2.3f));
                 Assert.Less(bounds.size.x, 1.45f); Assert.Less(bounds.size.y, .8f);
