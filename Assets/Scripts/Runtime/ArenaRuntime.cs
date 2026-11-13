@@ -8,6 +8,8 @@ namespace AreArpg.UnityClient
     /// <summary>Presentation and input only. The Unity physics engine never decides gameplay outcomes.</summary>
     public sealed partial class ArenaRuntime : MonoBehaviour
     {
+        /// <summary>Read the existing authoritative simulation for editor diagnostics.</summary>
+        public ArenaSimulation Simulation => _game;
         private const ulong DemoSeed = 0xA11CE2026UL;
         private bool _entryProfile;
         private string CharacterSaveKey { get { return _entryProfile ? "ARE_ARPG_entry_v1" : "ARE_ARPG_character_ac1"; } }
@@ -66,6 +68,7 @@ namespace AreArpg.UnityClient
                 _message = "Character save is invalid. Back it up before recovery; gameplay locked.";
                 Debug.LogError("ARPG character save could not be validated; refusing to overwrite character progress.");
             }
+            if(!_storageFault&&saved!=null)saved.Social.EnableForge();
             _game = new ArenaSimulation(DemoSeed, saved,
                 saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1);
             if (!_storageFault) _game.Progression.Equipment.Enable(_game.Progression);
@@ -1025,6 +1028,11 @@ namespace AreArpg.UnityClient
                 visual.position = new Vector3(Mathf.Lerp(npc.PreviousXmm, npc.Xmm, alpha) / 1000f,
                     npc.Memory.Health > 0 ? 1f : 0.25f, Mathf.Lerp(npc.PreviousZmm, npc.Zmm, alpha) / 1000f);
                 visual.rotation = npc.Memory.Health > 0 ? Quaternion.identity : Quaternion.Euler(90f, 0f, 0f);
+                if(npc.Memory.Health>0&&npc.Behavior==NpcBehavior.Observe)
+                {
+                    var direction=new Vector3((_game.PlayerXmm-npc.Xmm)/1000f,0f,(_game.PlayerZmm-npc.Zmm)/1000f);
+                    if(direction.sqrMagnitude>.001f)visual.rotation=Quaternion.LookRotation(direction);
+                }
                 if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
             }
             UpdateDungeonPresentation();
