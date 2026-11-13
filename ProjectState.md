@@ -1,6 +1,16 @@
 # ARE Ashen Crypt — Projektzustand
 
-## Aktueller Entwicklungsblock: MaulwurfRattler (12.11.2026)
+## PR28: Reviewkorrekturen und Mergefreigabe (13.11.2026)
+
+Owner-Auftrag: Draft PR28 bearbeiten und zum Merge fuehren. Die bisherige Draft-Bindung ist damit aufgehoben; technische Review- und CI-Gates bleiben erforderlich. PR28 wurde zur automatischen Pruefung freigegeben. Sein Umfang bleibt Fables mobile UI/Kamera, private Welttexturen, Aussenhorizonte, Rattler-Sichtkorrektur sowie Patienten/Muehlenzuflucht/Strassenraender. Der Aschenzoll-Storyentwurf bleibt separat in Draft PR29 und ist kein Bestandteil dieses Merges.
+
+Gepruefter Code ef2926f0e0fe0242492638ae3fdabd9aad0fef37 / Tree8f5489b51948a3cf956e5420d6fd75134288ada8: 1866 Core-Assertions,38Preflights, Unity6000.6.8f1 PlayMode111/111 und EditMode33/33,0Skips. Vier urspruengliche Reviewfehler wurden auf79ac8513907177f8a0f10c2a2abf4f6d9ebf0170 nativ reproduziert; weitere sechs PlayMode- und zwei EditMode-Fehler auf1270dff0437a3d57e35172e656e0e4385f8f4aa3. Der Menue-Panelverdacht bestaetigte sich nicht; die neue Grenzpruefung besteht ohne Layoutaenderung. SHA-/XML-Bindung in Memory.md [pr28-review-merge-20261113]. Private Assets unveraendert, Prefs/Settings wiederhergestellt. Evidence: /var/lib/unityarpg/.local/share/are-arpg/pr28-merge-20261113. Keine neue APK oder physische Android-Abnahme; der vereinbarte Geraeteblock folgt erst nach dem groesseren Story-/Gebietsblock.
+
+Reviewkorrekturen: Helden-Layer nach Portraetansicht wiederherstellen; Legacy-Kameraheading zuruecksetzen; Seitwaertseingabe von automatischem Kamerafolgen entkoppeln; nahe Verdeckung und Mausgesten begrenzen; Minikarte an echte Gebietsausgaenge binden; XP-Balken ohne BigInteger-Ueberlauf; Inventarseiten und Menue-Neulayout bei Viewportwechsel; optionale Weltprefab-Liste und wiederholbare UV-Erzeugung mit Quellnachweis. Nach dem Laden werden explizit zwei Muehlenpatienten verlangt. Die finalen Dokumentationsaenderungen veraendern den getesteten Code nicht. Abschliessender Review-/Mergestatus: [PR28](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/28).
+
+Die nachfolgenden datierten Abschnitte bewahren den jeweiligen historischen Reviewstand.
+
+## Entwicklungsblock: MaulwurfRattler (12.11.2026)
 
 - phase: VERTICAL_SLICE / CREATURE_INTEGRATION
 - current_goal: Inneren Kryptazugang, blinden MaulwurfRattler, Schleichen und untersuchbares Halsbrandmal als zusammenhaengenden Spielabschnitt integrieren.
@@ -12,7 +22,7 @@
 
 ## Muehlenzuflucht und Strassenraender (13.11.2026)
 
-Der Schlafbereich hat ein Schutzdach auf vier Holzstuetzen, einen flachen Bretterzugang und Stoffunterlagen. Verbandrollen und ein kleines Versorgungspaket ergaenzen die vorhandene Kiste. Der helle Verband auf dem leeren Bett bleibt auf dunklerem Stoff sichtbar. Zwoelf niedrige Buesche und sechs Felsgruppen ausserhalb der Bewegungsgrenze rahmen Strasse und Muehle. Zwei separate passive Buschbindungen stammen aus der bestehenden privaten Dorfszene; deren Original bleibt unveraendert. Editor-Reproduktion: `ARE ARPG/Art/Extract Private Roadside Shrubs`.
+Der Schlafbereich hat ein Schutzdach auf vier Holzstuetzen, einen flachen Bretterzugang und Stoffunterlagen. Verbandrollen und ein kleines Versorgungspaket ergaenzen die vorhandene Kiste. Der helle Verband auf dem leeren Bett bleibt auf dunklerem Stoff sichtbar. Zwoelf niedrige Buesche saeumen die Wege; sechs Felsgruppen ausserhalb der Bewegungsgrenze rahmen Strasse und Muehle. Zwei separate passive Buschbindungen stammen aus der bestehenden privaten Dorfszene; deren Original bleibt unveraendert. Editor-Reproduktion: `ARE ARPG/Art/Extract Private Roadside Shrubs`.
 
 Die vier Stuetzen sind echte Hindernisse im integerbasierten Core; Darstellung und Kollision verwenden dieselben Koordinaten und0.24m Breite, mit bestehendem Spielerradius. Hauptweg und beide Untersuchungsstellen bleiben erreichbar. Kein neues Unity-Physiksystem, keine Save-/Quest-/Fable-UI-/Kameraaenderung. Native Gesamt- und Spielansichten gesichtet; bestehender kompletter Regressionstestlauf inklusive Reise-/Save-/Krypta-/Rattlerabschnitten bestanden.
 
