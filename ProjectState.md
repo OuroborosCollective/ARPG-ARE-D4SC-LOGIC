@@ -1,31 +1,48 @@
 # ARE Ashen Crypt — Projektzustand
 
-## Aktueller Entwicklungsstand: Aschenzoll und Reviewkorrekturen (13.11.2026)
+## Aktueller Entwicklungsstand: geprüfte Spielintegration (13.11.2026)
 
-Der Drei-Ebenen-Dungeon aus PR30 ist in main integriert. Die darauf folgenden
-Blöcke PR31–34 enthalten den prozeduralen Wald, individuelle NPC-Erinnerungen,
-den Jägerbegleiter und den gewählten leeren Tiertransport in Aschenzoll.
-[Spielbarer Stationsablauf und Grenzen](docs/ASCHENZOLL_FREIGHT.md).
-Die Besitzerentscheidung zur XP-Zuschreibung gilt: Alleinkills des Jägers
-trainieren ihn, vergeben dem Spieler keine XP/Kills und lassen Beute einsammelbar.
-Tod/Neustart erhält den fortgeschrittenen Wald-Zufallszustand. Generierte
-Ersatzmaterialien werden beim Verlassen freigegeben.
+Der Drei-Ebenen-Dungeon, der prozedurale Wald, feste Bärenhöhle und Aschenzoll
+bilden die spielbare Route. 36 vorhandene Waffen-/Schildmodelle sind echte,
+sichtbar ausrüstbare Beute. NPCs besitzen persönliche Erinnerungen und Beziehungen;
+der gerettete Jäger folgt, wartet, trägt eigene Ausrüstung und übt durch wirksame
+Aktionen. Seine Alleinkills vergeben dem Spieler keine XP oder Kills; Beute bleibt
+sammelbar. Normales Laden belebt Tote nicht wieder.
 
-Aktuelle kombinierte Codeprüfung: **35ed66d98dbb083e1d9788751a72ad530251e351**,
-CI43433696048 erfolgreich (8096 Core-,109 Sample-Assertions,40 Preflights).
-Native Belege sind getrennt gebunden: 121 Spiel-PlayModefälle auf bcb4296,
-Samplekorrektur mit 2/2 PlayMode und 48/48 EditMode auf 0377c9f, danach 4/4
-gezielte Wald-/Stationsfälle auf 35ed66d. Keine Behauptung eines einzelnen
-vollständig grünen kombinierten 123er-Laufs. Private Dateien unverändert;
-Besitzer-Spielstände und Projekteinstellungen wiederhergestellt.
+In Aschenzoll wird der bestätigte **leere Tiertransport** untersucht. Originalbeleg
+sichern oder Fracht tatsächlich verfolgen sind getrennte dauerhafte Entscheidungen.
+Die Hauptspur bleibt sichtbar, auch wenn Mara noch über die verschonten Bärenjungen
+informiert werden muss. Nordwechsel ist bisher nur ein Hinweis, kein fertiges Gebiet.
+[Stationsablauf und Grenzen](docs/ASCHENZOLL_FREIGHT.md).
 
-Memory Forge **1.0.1** liegt als getrenntes, geprüftes Unity-Paket vor:
-99 Dateien beim Upgrade bytegleich,8/8 EditMode,2/2 PlayMode in Built-in und
-2/2 PlayMode in URP, tatsächlicher Linux-Player mit unabhängig geprüftem Save,
-neuer ARM64/IL2CPP-Build mit geprüfter Signatur und16KiB-Ausrichtung.
-[Releasebelege](docs/evidence/memory-forge-package-20261113/release-1.0.1).
-Der Besitzer übernimmt die Veröffentlichung für9.50USD. Für die neuen
-Spieländerungen liegt noch kein neuer Android-/Tab-A9-Lauf vor.
+Gemeinsamer geprüfter Code: **5977f4c494c07a7a94d24c9e67b29419e0f2673e**,
+CI43441375613 erfolgreich: **8112 Core-Assertions und 40 Preflights**.
+Unity6000.6.8f1: **126/126 PlayMode und 52/52 EditMode**, jeweils keine Skips;
+die Gesamtzahlen enthalten auch die separat exportierbaren Pakettests.
+Dorfneustart erhält NPCs, Uhr und Erinnerungen und speichert den geheilten Spieler.
+B bleibt NPC-Angriff, O öffnet Begleiter. Der Jäger folgt außerhalb des Kampfes
+mit Spielergeschwindigkeit. Ungültige NPC-Archive werden sauber abgelehnt.
+[Revisionen, REDs und XML-Prüfsummen](docs/evidence/npc-forge-20261113/review-2-native.json).
+Private Assets unverändert, Besitzer-Spielstände und Projekteinstellungen
+wiederhergestellt. Für diese letzten Spieländerungen fehlt ein neuer Spiel-APK-
+und physischer Tab-A9-Nachweis.
+
+Memory Forge **1.0.2** ist als eigenständiges Unity-Paket fertig:99 Export-/Importdateien
+bytegleich, URP und Built-in-Upgrade jeweils12/12 Editor+2/2 PlayMode,
+tatsächlicher Linux-Player mit unabhängig gelesenem Save und neuer geprüfter
+ARM64/IL2CPP-Beispielbuild. [Releasebelege](docs/evidence/memory-forge-package-20261113/release-1.0.2).
+Der Besitzer veröffentlicht selbst für **9.50USD einmalig**; kein erneuter
+Publisher-Login und kein behaupteter Store-Upload.
+
+Nächster Grafikblock: neue eigene My-Assets-Pakete laden und gezielt integrieren.
+Sechs Quellen sind vollständig und CRC-geprüft: Hunter, Animals FREE,
+GanzSe-Zubehör, Viking-Waffen und beide EmbersStorm-Rüstungspakete.
+Die weiteren Downloads laufen separat. Privater Probeimport bestätigt ein gültiges
+Hunter-Humanoid-Skelett sowie tatsächliche Ruhe-/Laufbewegungen. Die bisherige
+WeaponBowShot-Datei ist eine einzelne0.033s-Pose, kein vollständiger Schussclip;
+Materialanpassung und Prüfung im realen Begleiter-Controller stehen noch aus.
+Die neuen Rohassets sind nicht Bestandteil des Verkaufsplugins oder öffentlichen Git.
+Entscheidende neue Story-/Gameplayfragen gehen weiterhin an den Besitzer.
 
 Die nachfolgenden Abschnitte dokumentieren frühere, revisionsgebundene Stände.
 
