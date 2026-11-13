@@ -116,6 +116,29 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(Game.TryUnequipWeapon());DungeonProject();yield return null;
             Assert.IsNull(typeof(ArenaRuntime).GetField("_equippedVisual",Flags).GetValue(_runtime));
         }
+        [UnityTest]
+        public IEnumerator WoodlandFallbackMaterialsAreSharedAndReleasedWithScenery()
+        {
+            var plants=new GameObject("Missing-art lifetime fixture");
+            var scenery=(List<Transform>)typeof(ArenaRuntime).GetField("_chapterScenery",Flags).GetValue(_runtime);
+            scenery.Add(plants.transform);
+            var plant=typeof(ArenaRuntime).GetMethod("PlantWoodland",Flags);
+            Material[] materials=null;
+            try
+            {
+                for(int i=0;i<2;i++)plant.Invoke(_runtime,new object[]{plants.transform,"missing.woodland.fixture",(float)i,0f,1f,new DeterministicRng(71)});
+                materials=plants.GetComponentsInChildren<Renderer>().Select(r=>r.sharedMaterial).ToArray();
+                Assert.AreEqual(2,materials.Length);Assert.AreSame(materials[0],materials[1],"Missing plants share one owned fallback material");
+                typeof(ArenaRuntime).GetMethod("BuildChapterScenery",Flags).Invoke(_runtime,null);
+                yield return null;yield return null;
+                Assert.IsTrue(materials[0]==null,"Leaving the scenery releases its generated material");
+            }
+            finally
+            {
+                UnityEngine.Object.Destroy(plants);
+                if(materials!=null)foreach(var material in materials.Distinct())if(material!=null)UnityEngine.Object.Destroy(material);
+            }
+        }
         private IEnumerator CaptureWeaponCatalog()
         {
             string folder=Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");if(string.IsNullOrEmpty(folder))yield break;
