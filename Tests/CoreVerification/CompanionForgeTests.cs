@@ -60,6 +60,16 @@ internal static class CompanionForgeTests
         patient.Health=CompanionState.MaximumHealth;patient.Hunger=0;patient.Fatigue=0;
         check(!care.FeedCompanion().Accepted&&care.Progression.Social.Provisions==food-1,"companion-care-rejects-unneeded-resource-spend");
         check(CharacterProgression.TryLoad(care.Progression.SaveString(),out _),"companion-care-memory-roundtrip");
+        var pose=RescueFixture();pose.RecruitHunter();var standing=pose.Progression.Companion;
+        standing.PreviousXmm=standing.Xmm-100;pose.DismissCompanion();pose.Step();
+        check(standing.PreviousXmm==standing.Xmm&&standing.PreviousZmm==standing.Zmm,"companion-waiting-has-no-stale-moving-pose");
+        var areas=RescueFixture();areas.RecruitHunter();var traveler=areas.Progression.Companion;
+        areas.Progression.Dungeon.Begin(100);areas.Progression.TravelHunger(6,false);
+        var first=new ArenaSimulation(73,areas.Progression,1,LootCatalog.Version1);traveler.Xmm=5000;
+        // These distinct (seed, depth) pairs previously both collapsed to 101.
+        areas.Progression.Dungeon.Begin(99);areas.Progression.Dungeon.Depth=2;
+        var second=new ArenaSimulation(73,areas.Progression,1,LootCatalog.Version1);
+        check(traveler.Xmm!=5000,"companion-area-identity-keeps-run-seed-and-floor-separate");
     }
     private static ArenaSimulation RescueFixture()
     {
