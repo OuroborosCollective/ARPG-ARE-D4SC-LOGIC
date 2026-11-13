@@ -873,7 +873,6 @@ namespace AreArpg.UnityClient
         private void InstallNewRun(ArenaSimulation next, string message)
         {
             _game = next;
-            _game.Progression.Equipment.Enable(_game.Progression);
             _actorAnimations.Clear();
             RegisterActorMotion(_hero);
             _passageAnnounced = false;
