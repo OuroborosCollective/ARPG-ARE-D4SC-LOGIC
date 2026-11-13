@@ -24,6 +24,18 @@ namespace AreArpg.PlayMode.Tests
             Object.DestroyImmediate(_hero);
         }
 
+        [Test] public void LegacyResetRestoresTheDefaultHeadingAfterOrbit()
+        {
+            _rig.Configure(_hero.transform, false);
+            _rig.Orbit(new Vector2(100f, 70f));
+            Assert.AreNotEqual(0f, _rig.Yaw);
+            _rig.ResetZoom();
+            _rig.SnapToTarget();
+            Assert.AreEqual(0f, _rig.Yaw, .001f);
+            Assert.AreEqual(52f, _camera.transform.eulerAngles.x, .01f);
+            Assert.AreEqual(22f, _rig.Distance);
+        }
+
         [Test] public void ContextFramesIdleMotionAndDangerWithoutOverridingManualZoom()
         {
             _rig.SetContext(false, false, false, Vector3.zero);

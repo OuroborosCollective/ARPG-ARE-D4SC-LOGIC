@@ -148,6 +148,45 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator PortraitRestoresMixedHeroLayersWhenClosedOrSwitched()
+        {
+            var hero = (Transform)typeof(ArenaRuntime).GetField("_hero", Flags).GetValue(_runtime);
+            var camera = (Camera)typeof(ArenaRuntime).GetField("_camera", Flags).GetValue(_runtime);
+            camera.cullingMask &= ~(1 << 30);
+            var child = new GameObject("MixedLayerAttachment"); child.transform.SetParent(hero, false);
+            child.layer = 8;
+            int original = hero.gameObject.layer;
+            foreach (bool switchTab in new[] { false, true })
+            {
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter);
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter); // Rebuild must not remember portrait layers as originals.
+                yield return null;
+                Assert.AreEqual(30, hero.gameObject.layer);
+                if (switchTab) _runtime.OpenMenu(ArenaRuntime.MenuInventory); else _runtime.CloseMenu();
+                yield return null;
+                Assert.AreEqual(original, hero.gameObject.layer, "the gameplay hero must return to its original layer");
+                Assert.AreEqual(8, child.layer, "attachments keep their individual layers");
+                Assert.AreNotEqual(0, camera.cullingMask & (1 << hero.gameObject.layer));
+            }
+        }
+
+        [Test]
+        public void ExperienceBarStaysFiniteBeyondDoubleRange()
+        {
+            foreach (var level in new[] { System.Numerics.BigInteger.One, new System.Numerics.BigInteger(42), System.Numerics.BigInteger.Pow(10, 310) })
+            {
+                var p = new CharacterProgression();
+                var floor = CharacterProgression.RequiredExperienceForLevel(level);
+                var span = CharacterProgression.RequiredExperienceForLevel(level + 1) - floor;
+                p.EarnExperience(floor + span * 3 / 4);
+                Assert.IsTrue(CharacterProgression.TryLoad(p.SaveString(), out var loaded));
+                float fraction = ArenaRuntime.ExperienceFraction(loaded);
+                Assert.IsFalse(float.IsNaN(fraction) || float.IsInfinity(fraction));
+                Assert.AreEqual(.75f, fraction, .005f);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator CharacterValuesStayInsideTheirPanelOnPhoneAndTablet()
         {
             foreach (var size in new[] { new Vector2(1920, 1080), new Vector2(2400, 1080), new Vector2(2560, 1600) })
