@@ -16,9 +16,18 @@ internal static class AschenzollTests
     }
     public static void Run(Action<bool,string> check)
     {
+        var envelope=Station().Progression.SaveString();
+        string inner=Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(envelope));
+        foreach(string token in new[]{"1,7,-1,0,0,0,0","1,7,2,-1,0,0,0","1,7,-2147483648,0,0,0,0","1,7,2,-2147483648,0,0,0","1,7,+1,0,0,0,0","1,7,2,+1,0,0,0"})
+            check(!CharacterProgression.TryLoad(SignFreight("AC19|"+inner+"|"+token),out _),"freight-rechecksummed-signed-values-rejected-"+token);
+        check(CharacterProgression.TryLoad(SignFreight("AC19|"+inner+"|1,7,0,0,0,0,0"),out _),"freight-rechecksummed-unsigned-control-loads");
         foreach(bool release in new[]{false,true})
         {
             var w=Station();var experience=w.Progression.TotalExperience;string legacy=w.Progression.SaveString();
+            // Pending optional objectives must not hide the station investigation or its recorded result.
+            w.Progression.Woodland.CubsInspected=true;
+            w.Progression.Woodland.Choice=release?CubChoice.Skinned:CubChoice.Spared;
+            check(w.HungerObjective.StartsWith(w.FreightObjective,StringComparison.Ordinal)&&w.HungerObjective.Contains("Mara"),"freight-station-objective-before-unfinished-cubs-"+release);
             check(!legacy.StartsWith("AC19|")&&CharacterProgression.TryLoad(legacy,out var old)&&!old.Freight.HasProgress,"freight-old-save-remains-unchanged-"+release);
             check(!w.ActOnHunger(HungerAction.InspectFreightNotice).Accepted,"freight-distant-reading-forbidden-"+release);
             HunterEncounterTests.Move(w,-3000,-1000);
@@ -72,15 +81,23 @@ internal static class AschenzollTests
             var report=w.ActOnHunger(HungerAction.ReportFreightEvidence);
             check(report.Accepted&&f.Reported&&report.Text.Contains(release?"oberen Rampe":"Originalbeleg"),"freight-personal-branch-specific-report-"+release);
             check(w.HungerObjective.Contains("Nordwechsel")&&w.HungerObjective.Contains(release?"Weitergabe":"Originalbeleg"),"freight-journal-retains-completed-branch-in-village-"+release);
+            check(w.HungerObjective.Contains("Mara")&&!w.Progression.Woodland.ProtectionOrganized&&!w.Progression.Woodland.ArmorCrafted,"freight-preserves-unfinished-cub-followup-after-report-"+release);
             var mind=p.Social.Forge.Archive.Get("ilyan");
             check(mind.Known.Count==1&&mind.Known[0].Origin==KnowledgeOrigin.Self&&mind.Known[0].Event.Context=="story.reportfreightevidence","freight-ilyan-remembers-only-personal-report-"+release);
             check(p.Social.Forge.Archive.Get("dorn").Known.Count==0&&p.Social.Forge.Archive.Get("mara").Known.Count==0,"freight-report-is-not-worldwide-knowledge-"+release);
             string reported=p.SaveString();check(!w.ActOnHunger(HungerAction.ReportFreightEvidence).Accepted&&p.SaveString()==reported,"freight-report-idempotent-"+release);
             w=WoodlandTests.Reload(w);
+            check(w.HungerObjective.StartsWith(w.FreightObjective,StringComparison.Ordinal)&&w.HungerObjective.Contains("Mara"),"freight-and-cub-journal-priority-survives-restore-"+release);
             check(w.Progression.Freight.Reported&&w.Progression.Social.Forge.Archive.Get("ilyan").Known.Count==1,"freight-report-and-memory-restore-together-"+release);
             check(w.Progression.TotalExperience==experience,"freight-investigation-does-not-invent-xp-"+release);
         }
         foreach(string invalid in new[]{"1,7,0,1,0,0,0","1,7,1,0,0,1,0","1,7,2,99,0,1,0","1,7,2,100,1,1,1","1,3,1,0,1,0,0","1,0,0,0,0,0,0","1,7,0,0,0,0,1","1,7,2,-1,0,0,0"})
             check(!FreightState.TryRead(invalid,out _),"freight-impossible-state-rejected-"+invalid);
+    }
+    private static string SignFreight(string body)
+    {
+        ulong hash=14695981039346656037UL;
+        unchecked { foreach(byte value in System.Text.Encoding.UTF8.GetBytes(body)){hash^=value;hash*=1099511628211UL;} }
+        return body+"|"+hash.ToString("X16",System.Globalization.CultureInfo.InvariantCulture);
     }
 }
