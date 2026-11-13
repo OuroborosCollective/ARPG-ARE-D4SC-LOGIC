@@ -1,0 +1,26 @@
+{
+  "sourceRevision": "9734b6baf3b4c7a2305f7f92ab7750f914f83357",
+  "exit": 0,
+  "command": [
+    "xvfb-run",
+    "-a",
+    "-s",
+    "-screen 0 1600x900x24",
+    "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+    "-batchmode",
+    "-quit",
+    "-force-glcore",
+    "-projectPath",
+    "/var/lib/unityarpg/workspaces/memory-forge-package-20261113",
+    "-logFile",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-package-20261113/release101b-export/unity.log",
+    "-executeMethod",
+    "AshenCrypt.MemoryForge.Editor.ForgePackageBuilder.ExportBatch"
+  ],
+  "packageSourceUnchanged": true,
+  "files": {
+    "MemoryForge.unitypackage": "6b233f6118deab7676022be59543e0fdcbc6a3f99d3fecce5ac4b644482043f2",
+    "unity.log": "c729c54a851de17c33c12df77829ea440512bd4af17e2272638f8b4565854f2b"
+  },
+  "errors": []
+}

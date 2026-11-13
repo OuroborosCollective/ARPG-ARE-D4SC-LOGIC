@@ -1,0 +1,17 @@
+{
+  "sourceRevision": "8a37cc0d9d7977df468e9b1462d809a66302562d",
+  "playerRevision": "2dec62440a5c02ed1d51944dc2cb92fc8c505791",
+  "method": "Production DemoWorld.TryLoad on the actual standalone Unity player save; .NET 8 independent readback",
+  "saveSha256": "d02ab1b7d944fb9c97bd1c6fbbc04298f830b81898ab58388f2f2e7dedd3836d",
+  "tick": 64,
+  "provisions": 2,
+  "trust": 1200,
+  "gratitude": 2000,
+  "hostility": 0,
+  "fear": 0,
+  "decision": "Observe",
+  "rememberedEvents": 1,
+  "greeting": "You brought me food when I needed it. Thank you.",
+  "saveRestoredExactly": true,
+  "controllerHash": "627ed161da4c0868ddf5f5973dac6028aa6adaaaf4e5f4a2f630a156cd83ea74"
+}

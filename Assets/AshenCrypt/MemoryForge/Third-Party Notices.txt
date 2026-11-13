@@ -1,0 +1,9 @@
+Memory Forge 1.0.0
+
+No third-party source libraries, fonts, models, textures, audio or animations are bundled in this package.
+
+The example uses Unity's built-in primitive meshes, shaders and system/editor GUI font through Unity platform APIs. Those engine resources are supplied by Unity, not redistributed as separate asset files.
+
+Unity Test Framework is an optional, separately installed Unity Registry dependency for running the included tests. Universal Render Pipeline is a separately installed Unity Registry package when using the example in URP. Unity and .NET components retain their respective platform licenses.
+
+The project's private licensed Ashen Crypt art and UI packages are excluded.

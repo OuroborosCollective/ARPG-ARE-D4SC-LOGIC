@@ -1,0 +1,1 @@
+{"name":"AshenCrypt.MemoryForge.Editor","rootNamespace":"AshenCrypt.MemoryForge.Editor","references":["AshenCrypt.MemoryForge","AshenCrypt.MemoryForge.Integration","AshenCrypt.MemoryForge.Samples"],"includePlatforms":["Editor"],"autoReferenced":true}

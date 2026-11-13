@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e2105d22e304cea87d03f066f207fb1, type: 3}
+  m_Name: DefaultRegistry
+  m_EditorClassIdentifier: AshenCrypt.MemoryForge.Integration::AshenCrypt.MemoryForge.Integration.ForgeRegistryAsset
+  Entries:
+  - Controller: {fileID: 11400000, guid: 8b53bcf2d0fe4b50bbd825a62e5ae46f, type: 2}
+    ForNewSpawns: 1
+  - Controller: {fileID: 11400000, guid: f372cef50ff2deb0ca7a5db4b43b4aee, type: 2}
+    ForNewSpawns: 1
+  - Controller: {fileID: 11400000, guid: 3f08e5be1e454d6dea17b4dc97e4bbf7, type: 2}
+    ForNewSpawns: 1
+  - Controller: {fileID: 11400000, guid: 248d88dade9da1564b6fde430ab35240, type: 2}
+    ForNewSpawns: 1
+  - Controller: {fileID: 11400000, guid: 8ec066bbd0c7985e79ea1c4c9b16eb66, type: 2}
+    ForNewSpawns: 1
+  - Controller: {fileID: 11400000, guid: b9a0c3707fed90cdc9b79e2c16babd87, type: 2}
+    ForNewSpawns: 1
+  - Controller: {fileID: 11400000, guid: 530d1b11f1671fb25ab817836b780489, type: 2}
+    ForNewSpawns: 1
+  - Controller: {fileID: 11400000, guid: 0447d9140e4dd810b8c2b883c20e7bfa, type: 2}
+    ForNewSpawns: 1
+  - Controller: {fileID: 11400000, guid: 4e546045cd37dea1ba20069052c170f0, type: 2}
+    ForNewSpawns: 1

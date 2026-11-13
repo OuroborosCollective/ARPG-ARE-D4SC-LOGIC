@@ -1,0 +1,1 @@
+{"name":"AshenCrypt.ForgeVerification.Editor","references":["AshenCrypt.ForgeVerification","AshenCrypt.MemoryForge.Samples","AshenCrypt.MemoryForge.Editor","Unity.RenderPipelines.Universal.Runtime"],"includePlatforms":["Editor"]}

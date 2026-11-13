@@ -1,0 +1,19 @@
+{
+  "exit": 0,
+  "actions": [
+    {
+      "window": "2097158",
+      "exit": 0,
+      "error": ""
+    }
+  ],
+  "receipt": {
+    "passed": true,
+    "unity": "6000.6.8f1",
+    "platform": "LinuxPlayer",
+    "tick": 64,
+    "trust": 1200,
+    "provisions": 2,
+    "saveRestoredExactly": true
+  }
+}
