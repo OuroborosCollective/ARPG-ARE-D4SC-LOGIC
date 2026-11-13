@@ -22,6 +22,13 @@ namespace AreArpg.Core
         public long StrikeX { get; internal set; }
         public long StrikeZ { get; internal set; }
 
+        internal void RestartDungeonRun()
+        {
+            Creature.Health=MaximumHealth; Creature.LootGranted=false; Creature.AttackCooldownTicks=Creature.BossWindupTicks=0;
+            Creature.Xmm=Creature.PreviousXmm=0; Creature.Zmm=Creature.PreviousZmm=17000;
+            TargetX=StrikeX=StrikeZ=0; TargetZ=17000; MemoryTicks=0; Sneaking=false;
+        }
+
         internal string Token()
         {
             object[] f = { Active ? 1 : 0, Sneaking ? 1 : 0, BrandExamined ? 1 : 0, Reported ? 1 : 0,
@@ -30,7 +37,7 @@ namespace AreArpg.Core
             return string.Join(",", f.Select(v => Convert.ToString(v, CultureInfo.InvariantCulture)));
         }
 
-        internal static bool TryRead(string token, out RattlerEncounter result)
+        internal static bool TryRead(string token, out RattlerEncounter result, bool repeatDungeon = false)
         {
             result = null; var f = token.Split(','); if (f.Length != 15) return false;
             var n = new long[15];
@@ -40,7 +47,7 @@ namespace AreArpg.Core
             if (n[0] != 1 || n[1] < 0 || n[1] > 1 || n[2] < 0 || n[2] > 1 || n[3] < 0 || n[3] > n[2] ||
                 n[6] < 0 || n[6] > MaximumHealth || n[7] < 0 || n[7] > 14 || n[8] < 0 || n[8] > 10 ||
                 n[9] < 0 || n[9] > 1 || (n[6] == 0) != (n[9] == 1) ||
-                (n[6] == 0 && n[8] != 0) || (n[2] == 1 && n[6] != 0) ||
+                (n[6] == 0 && n[8] != 0) || (n[2] == 1 && n[6] != 0 && !repeatDungeon) ||
                 // A windup freezes its strike point, so it may legitimately outlive perception memory (MemoryTicks 0).
                 n[10] < 0 || n[10] > 60) return false;
             foreach (int i in new[] { 4, 11, 13 })
@@ -116,7 +123,9 @@ namespace AreArpg.Core
             if (!m.IsDead || m.LootGranted) return;
             m.LootGranted = true; m.BossWindupTicks = 0;
             result.Kills++; Kills++; Progression.RecordKill(); Progression.EarnExperience(1200);
-            Progression.AddWeaponUpgrade(12);
+            if (InDungeon) GroundLoot.Add(new LootState { Id=42,Xmm=m.Xmm,Zmm=m.Zmm,WeaponBonus=34,
+                Item=LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LifetimeKills) });
+            else Progression.AddWeaponUpgrade(12);
         }
 
         private SocialResult ActOnRattler(HungerAction action)

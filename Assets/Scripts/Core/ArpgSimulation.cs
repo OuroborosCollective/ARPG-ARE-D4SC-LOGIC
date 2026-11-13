@@ -201,7 +201,7 @@ namespace AreArpg.Core
             if (Progression.EntryAct > 0 && !cryptDepth.IsOne)
                 throw new ArgumentOutOfRangeException(nameof(cryptDepth), "Entry revision 1 uses its own two-act checkpoint.");
             PlayerHealth = MaxPlayerHealth;
-            _rng = new DeterministicRng(seed);
+            _rng = new DeterministicRng(InDungeon ? Progression.Dungeon.Seed : seed);
             if (IsVillage)
             {
                 Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -3600, -3400));
@@ -488,7 +488,7 @@ namespace AreArpg.Core
         public bool CanStand(long x, long z)
         {
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
-            if (InDungeon) return CryptDungeonLayout.CanStand(Progression.Dungeon.Depth, x, z) && (z <= 21000 || DungeonForwardOpen);
+            if (InDungeon) return Progression.Dungeon.Current.Layout.CanStand(x, z) && (z <= 21000 || DungeonForwardOpen);
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);
             if (Progression.EntryAct >= 5) return CanStandInInvestigation(Progression.EntryAct, Progression.Investigation.Approach, x, z, Progression.Rattler.Active);
             if (Progression.EntryAct >= 3) return CanStandInHungerRegion(Progression.EntryAct, x, z);
@@ -536,7 +536,7 @@ namespace AreArpg.Core
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
-                if (distance2 > FixedMath.Square(14000) || (InDungeon && !CryptDungeonLayout.HasSight(Progression.Dungeon.Depth, enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm))) continue;
+                if (distance2 > FixedMath.Square(14000) || (InDungeon && !Progression.Dungeon.Current.Layout.HasSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm))) continue;
                 if (ChapterId == 2 && enemy.Kind == 3)
                 {
                     // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.
@@ -583,7 +583,7 @@ namespace AreArpg.Core
             {
                 if (enemy.IsDead || (enemy.Kind == 4 && !Progression.Road.Started)) continue;
                 long d2 = DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm);
-                if (d2 <= bestDistance2 && (!InDungeon || CryptDungeonLayout.HasSight(Progression.Dungeon.Depth, PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm))) { bestDistance2 = d2; target = enemy; }
+                if (d2 <= bestDistance2 && (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm))) { bestDistance2 = d2; target = enemy; }
             }
             return target;
         }
@@ -656,7 +656,7 @@ namespace AreArpg.Core
             {
                 foreach (MonsterState enemy in Monsters)
                     if (!enemy.IsDead && DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(range) &&
-                        (!InDungeon || CryptDungeonLayout.HasSight(Progression.Dungeon.Depth, PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm)))
+                        (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm)))
                         DealDamage(enemy, skill.PowerBp, slot, result);
             }
             else DealDamage(nearest, skill.PowerBp, slot, result);

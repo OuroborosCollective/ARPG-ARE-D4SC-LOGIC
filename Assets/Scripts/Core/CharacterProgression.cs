@@ -244,11 +244,12 @@ namespace AreArpg.Core
             var dungeon = new CryptDungeonState();
             if (ac14 && !CryptDungeonState.TryRead(parts[20], entryAct, out dungeon)) return false;
             CryptInvestigation investigation = new CryptInvestigation();
-            if (ac11 && (hungerStage != 4 || !CryptInvestigation.TryRead(parts[18], entryAct, out investigation, ac12, ac14 && entryAct >= 6 ? dungeon.Depth : 0))) return false;
+            if (ac11 && (hungerStage != 4 || !CryptInvestigation.TryRead(parts[18], entryAct, out investigation, ac12, ac14 && entryAct >= 6 ? dungeon.Current.Layout : null))) return false;
             var rattler = new RattlerEncounter();
-            if (ac12 && (!investigation.TraceFound || !RattlerEncounter.TryRead(parts[19], out rattler))) return false;
+            if (ac12 && (!investigation.TraceFound || !RattlerEncounter.TryRead(parts[19], out rattler, ac14 && dungeon.Run > 1))) return false;
             if (ac14 && (investigation.Approach == SealApproach.Undecided ||
-                ((dungeon.UnlockedDepth == 3 || entryAct == 7) && !rattler.Active) || (entryAct < 6 && dungeon.Depth != 1))) return false;
+                ((dungeon.UnlockedDepth == 3 || entryAct == 7) && !rattler.Active) || (entryAct < 6 && dungeon.Depth != 1) ||
+                (dungeon.Floor(3).Loot.Any(l=>l.Id==42) && !rattler.Creature.IsDead))) return false;
             // A valid checksum is necessary but does not make an invalid progression valid.
             ulong checksum;
             if (!ulong.TryParse(parts[last], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out checksum) ||
