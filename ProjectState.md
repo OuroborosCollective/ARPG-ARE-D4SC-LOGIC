@@ -8,6 +8,8 @@ Gepruefter Code ef2926f0e0fe0242492638ae3fdabd9aad0fef37 / Tree8f5489b51948a3cf9
 
 Reviewkorrekturen: Helden-Layer nach Portraetansicht wiederherstellen; Legacy-Kameraheading zuruecksetzen; Seitwaertseingabe von automatischem Kamerafolgen entkoppeln; nahe Verdeckung und Mausgesten begrenzen; Minikarte an echte Gebietsausgaenge binden; XP-Balken ohne BigInteger-Ueberlauf; Inventarseiten und Menue-Neulayout bei Viewportwechsel; optionale Weltprefab-Liste und wiederholbare UV-Erzeugung mit Quellnachweis. Nach dem Laden werden explizit zwei Muehlenpatienten verlangt. Die finalen Dokumentationsaenderungen veraendern den getesteten Code nicht. Abschliessender Review-/Mergestatus: [PR28](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/28).
 
+Letzter Nachreviewpunkt: Der neue Autorierungstest musste seinen ignorierten Ausgabeordner auch in einem sauberen Checkout selbst anlegen und nur als eigenen leeren Ordner entfernen. Nativ reproduziert auf01dd3813a261049a8631b97966ec84a03a542ff7; korrigiert auf5cb18744f87a42691de42d60cb4cd148b504001b mit2/2 Tests ohne privates Welt-Overlay und33/33 EditMode mit privatem Bestand,0Skips. Private Dateien unveraendert, Prefs/Settings wiederhergestellt. Runtime-Tree717e5ce25a29ce93d6cd11faf7cecdba6490a4f0 und Editor-Tree28b1c8151dff88826f4df3fa4918dc2703357d97 sind bytegleich zum111/111-PlayMode-Stand ef2926f; keine erneute Laufzeitaenderung.
+
 Die nachfolgenden datierten Abschnitte bewahren den jeweiligen historischen Reviewstand.
 
 ## Entwicklungsblock: MaulwurfRattler (12.11.2026)
