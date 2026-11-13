@@ -218,10 +218,12 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator InventoryPagingKeepsEveryCollectedReceiptReachable()
         {
             var collect = typeof(CharacterProgression).GetMethod("CollectItem", Flags);
+            var generate = typeof(LootCatalog).GetMethod("Generate", Flags);
             for (int i = 1; i <= 61; i++)
             {
                 Game.Progression.RecordKill();
-                var item = LootCatalog.Version1.Generate(17, 1, (ulong)i, i, 0, i);
+                var item = (LootItem)generate.Invoke(LootCatalog.Version1, new object[]
+                    { 17UL, System.Numerics.BigInteger.One, (ulong)i, i, 0, new System.Numerics.BigInteger(i) });
                 Assert.IsTrue((bool)collect.Invoke(Game.Progression, new object[] { item }));
             }
             string save = Game.Progression.SaveString();
