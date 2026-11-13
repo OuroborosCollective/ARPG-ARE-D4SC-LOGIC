@@ -8,7 +8,13 @@
 - implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. PR25 ist als 86bae8f108aaf1ee508dd7b24dc448e49c2bdc2a in main integriert.
 - open_decisions: Konkrete Wappenzeichnung, Abrichter, Auftraggeber, Motiv, konditionierter Zielgeruch und Schicksal der einzelnen Vermissten. Kein persoenlicher Koenigsbefehl allein aus dem Wappen ableiten.
 - verified: Privates Creep-Horror-Creature-Originalpaket244853 als CryptRattler gebunden (LOD1, 2107Vertices, vier Clips, Halsbrandmal als Grafikprototyp). Native Knochenbewegung/Brandmalbindung und Begegnung bestanden; Unity6 PlayMode68/68, EditMode31/31. Revisionsbindung und XML-Hashes: Memory.md [rattler-pr25-20261112].
-- next: PR28 bleibt nach gemeinsamer nativer Pruefung Draft zur Sichtabnahme. Horizonte und Patientenmodelle priorisieren; das Brandmal bleibt primaer ein Lore-Hinweis mit optionaler kleiner Grafik; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+- next: PR28 bleibt nach gemeinsamer nativer Pruefung Draft zur Sichtabnahme. Aussenhorizonte sind als gepruefter Grafikstand ergaenzt; Patientenmodelle bleiben der naechste Grafikpunkt. Das Brandmal bleibt primaer ein Lore-Hinweis mit optionaler kleiner Grafik; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+
+## Aussenhorizonte (13.11.2026)
+
+Dorf, Aschenstrasse und alte Muehle erhalten einen bedeckten Himmel, niedrige Huegel und einen texturierten Uebergang in die Ferne. Die statische Kulisse liegt ausserhalb der Bewegungsgrenze; 910 selbst erzeugte Vertices plus zwei optionale bestehende Felsgruppen, keine Collider und keine eigene Update-Schleife. Der native Test begrenzt die Gesamtgeometrie auf weniger als 30000 Vertices, prueft Shader, Save/Core-Unveraendertheit sowie Entfernung beim Wechsel in den Innenbereich. Fables UI/Kamera und der Core sind unveraendert.
+
+Code e32fd6b3b72e21c780e32e9b56a21de7b56fa4cd / Tree 7af5149addbac53e9024efd575283c5543526f36: Unity6000.6.8f1 PlayMode99/99 und EditMode31/31, jeweils0Skips; Core1840 und38Preflights via CI43333802027 success. Native Dorf-/Strassen-/Muehlenbilder gesichtet; erste zu hohe Silhouette vor diesem Stand abgesenkt. Exakte RED/GREEN-/XML-Bindung: Memory.md [outdoor-horizons-20261113]. Evidence: `/var/lib/unityarpg/.local/share/are-arpg/outdoor-horizons-20261112`. Private Assets unveraendert, Saves/Settings wiederhergestellt. Weiterhin visueller Draft; keine neue begehbare Region, keine Android-Leistungsmessung oder APK-Abnahme. Patientenplatzhalter und weitere Landschaftsdetails bleiben offen.
 
 ## Sichtkorrektur am Rattler (12.11.2026)
 
