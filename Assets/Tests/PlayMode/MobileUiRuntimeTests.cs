@@ -147,6 +147,31 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse(camera.enabled, "the portrait camera stops rendering when the menu closes");
         }
 
+        [UnityTest]
+        public IEnumerator CharacterValuesStayInsideTheirPanelOnPhoneAndTablet()
+        {
+            foreach (var size in new[] { new Vector2(1920, 1080), new Vector2(2400, 1080), new Vector2(2560, 1600) })
+            {
+                ArenaRuntime.HudScreenOverride = size;
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter);
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                var panel = (RectTransform)Child(GameObject.Find("ARE_Menu").transform, "Stats");
+                Assert.IsNotNull(panel);
+                var corners = new Vector3[4];
+                foreach (var label in panel.GetComponentsInChildren<Text>())
+                {
+                    label.rectTransform.GetWorldCorners(corners);
+                    foreach (var corner in corners)
+                    {
+                        Vector3 local = panel.InverseTransformPoint(corner);
+                        Assert.That(local.y, Is.InRange(panel.rect.yMin - 1f, panel.rect.yMax + 1f),
+                            size + ": " + label.text + " must remain readable inside the stats panel");
+                    }
+                }
+            }
+        }
+
         [Test]
         public void QuestChronicleReadsPersistedCoreProgressOnly()
         {
