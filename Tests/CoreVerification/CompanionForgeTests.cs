@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using System.Linq;
 using AreArpg.Core;
 
 internal static class CompanionForgeTests
@@ -13,15 +14,20 @@ internal static class CompanionForgeTests
         check(p.Social.Forge.Archive.Get("hunter").Known.Count==1&&p.Social.Forge.Archive.Get("hunter").RelationshipTo("player").Gratitude==10000,"companion-remembers-the-actual-life-saving-event");
         p.EarnExperience(BigInteger.Pow(10,40));world.Step();
         check(p.Companion.Level==BigInteger.One&&p.Companion.TotalExperience.IsZero,"companion-never-copies-player-level");
-        var enemy=new MonsterState{Id=91,Kind=0,Xmm=p.Companion.Xmm+1400,Zmm=p.Companion.Zmm,Health=1000,MaxHealth=1000};
+        var playerXp=p.TotalExperience;var playerKills=p.LifetimeKills;var runKills=world.Kills;
+        var enemy=new MonsterState{Id=91,Kind=0,Xmm=p.Companion.Xmm+1400,Zmm=p.Companion.Zmm,Health=1,MaxHealth=1000};
         world.Monsters.Add(enemy); // Explicit live combat target; real controller/combat/training paths execute below.
         for(int i=0;i<40&&p.Companion.TotalExperience.IsZero;i++)world.Step();
         check(enemy.Health<1000&&p.Companion.PracticeExperience(0)>0&&p.Companion.TotalExperience>0,"companion-learns-only-from-real-effective-hit");
+        check(enemy.IsDead&&p.TotalExperience==playerXp&&p.LifetimeKills==playerKills&&world.Kills==runKills,"companion-solo-kill-does-not-credit-player-xp-or-kills");
+        HunterEncounterTests.Move(world,enemy.Xmm,enemy.Zmm);
+        check(world.TryCollectLoot()&&p.Items.Count==1,"companion-solo-kill-still-drops-collectible-item");
         var experience=p.Companion.TotalExperience;var practice=p.Companion.PracticeExperience(0);
         string token=p.SaveString();check(token.StartsWith("AC18|")&&CharacterProgression.TryLoad(token,out _),"companion-ac18-preserves-checked-ac17-and-progress");
         CharacterProgression.TryLoad(token,out var restored);var resumed=new ArenaSimulation(73,restored,BigInteger.One,LootCatalog.Version1);
         for(int i=0;i<20;i++)resumed.Step();
         check(restored.Companion.TotalExperience==experience&&restored.Companion.PracticeExperience(0)==practice,"companion-load-without-new-effective-action-cannot-duplicate-xp");
+        check(restored.TotalExperience==playerXp&&restored.LifetimeKills==playerKills&&restored.Items.Count==1,"companion-kill-attribution-and-loot-survive-load");
         var waiting=RescueFixture();check(waiting.RecruitHunter().Accepted&&waiting.DismissCompanion().Accepted,"companion-can-wait-at-authored-safe-road-anchor");
         var level=waiting.Progression.Companion.Level;
         waiting.Progression.EarnExperience(1000000);for(int i=0;i<300;i++)waiting.Step();
@@ -92,6 +98,18 @@ internal static class CompanionForgeTests
         var returning=returned.Progression.Companion;
         check(FixedMath.Square(returning.Xmm-returned.PlayerXmm)+FixedMath.Square(returning.Zmm-returned.PlayerZmm)<=FixedMath.Square(1500),"companion-arrives-at-final-western-entrance-not-default-southern-spawn");
         check(returned.CanStand(returning.Xmm,returning.Zmm)&&returning.PreviousXmm==returning.Xmm&&returning.PreviousZmm==returning.Zmm,"companion-passage-position-valid-and-stable");
+        var forestXp=returned.Progression.TotalExperience;var forestKills=returned.Progression.LifetimeKills;
+        var victim=returned.Monsters[0];victim.Xmm=returning.Xmm;victim.Zmm=returning.Zmm+400;victim.Health=1;
+        check(returned.CanStand(victim.Xmm,victim.Zmm),"companion-forest-target-fixture-on-walkable-floor");
+        for(int i=0;i<20&&!victim.IsDead;i++)returned.Step();
+        check(victim.IsDead&&returned.Progression.Companion.LifetimeKills==1&&returned.Progression.TotalExperience==forestXp&&returned.Progression.LifetimeKills==forestKills,"companion-forest-defeat-has-independent-credit");
+        string forestSave=returned.Progression.SaveString();
+        check(CharacterProgression.TryLoad(forestSave,out var forestLoaded)&&forestLoaded.SaveString()==forestSave,"companion-forest-ground-loot-and-attribution-roundtrip-exactly");
+        var forestResume=new ArenaSimulation(73,forestLoaded,1,LootCatalog.Version1);
+        forestResume.Step();check(forestLoaded.Companion.LifetimeKills==1&&forestLoaded.LifetimeKills==forestKills,"companion-loaded-defeat-cannot-reaward-credit");
+        var playerTarget=forestResume.Monsters[1];playerTarget.Xmm=forestResume.PlayerXmm;playerTarget.Zmm=forestResume.PlayerZmm+400;playerTarget.Health=1;
+        check(forestResume.ActivateSkill(0).Kills==1&&forestLoaded.LifetimeKills==forestKills+1&&forestLoaded.TotalExperience>forestXp,"next-player-defeat-still-credits-player");
+        check(forestResume.GroundLoot.Count==2&&forestResume.GroundLoot.Select(l=>l.Item.KillOrdinal).Distinct().Count()==2&&CharacterProgression.TryLoad(forestLoaded.SaveString(),out _),"mixed-actor-defeats-have-unique-loadable-loot-ordinals");
     }
     private static ArenaSimulation RescueFixture()
     {

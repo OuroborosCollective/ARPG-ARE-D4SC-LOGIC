@@ -107,6 +107,12 @@ internal static class WoodlandTests
         typeof(ArenaSimulation).GetMethod("ReceiveDamage",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(armored,new object[]{100});
         require(rawHp-unarmored.PlayerHealth==100&&armorHp-armored.PlayerHealth==90,"crafted-armor-actually-reduces-incoming-damage");
         w=Enter(71);
+        Walk(w,-36000,0);
+        var rng0=w.Progression.Woodland.Rng0;var rng1=w.Progression.Woodland.Rng1;
+        var runTick=w.CurrentTick;var deadCount=w.Monsters.Count(m=>m.IsDead);
         var seedBefore=w.Progression.Woodland.Seed;w.Progression.Woodland.RestartPlayer();w=Reload(w);require(w.Progression.Woodland.Seed==seedBefore,"restart-does-not-reroll");
+        require(w.CurrentTick==runTick&&w.Monsters.Count(m=>m.IsDead)==deadCount&&w.PlayerXmm==0&&w.PlayerZmm==-45000,"restart-resets-only-player-checkpoint");
+        w.Step();
+        require(w.Progression.Woodland.Rng0==rng0&&w.Progression.Woodland.Rng1==rng1,"restart-preserves-advanced-run-random-state");
     }
 }

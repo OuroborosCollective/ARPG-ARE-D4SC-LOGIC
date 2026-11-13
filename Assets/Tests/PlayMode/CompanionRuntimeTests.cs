@@ -57,10 +57,12 @@ namespace AreArpg.PlayMode.Tests
             var animator=actor.GetComponentInChildren<Animator>();Assert.IsNotNull(animator);Assert.IsTrue(animator.isHuman);Assert.IsFalse(animator.applyRootMotion);
             Assert.IsTrue(animator.HasState(0,Animator.StringToHash("Move")));
             Assert.IsTrue(animator.runtimeAnimatorController.animationClips.Any(c=>c.name=="WeaponBowShot"));
-            var enemy=new MonsterState{Id=91,Kind=0,Xmm=p.Companion.Xmm+1400,Zmm=p.Companion.Zmm,Health=1000,MaxHealth=1000};Game.Monsters.Add(enemy);
+            var playerXp=p.TotalExperience;var playerKills=p.LifetimeKills;var runKills=Game.Kills;
+            var enemy=new MonsterState{Id=91,Kind=0,Xmm=p.Companion.Xmm+1400,Zmm=p.Companion.Zmm,Health=1,MaxHealth=1000};Game.Monsters.Add(enemy);
             for(int i=0;i<40&&p.Companion.TotalExperience.IsZero;i++)TickOnce();
             Assert.Greater(p.Companion.TotalExperience,System.Numerics.BigInteger.Zero);Assert.Less(enemy.Health,1000);
-            enemy.Health=0; // End the arranged encounter; no fabricated kill reward or practice.
+            Assert.IsTrue(enemy.IsDead);Assert.AreEqual(playerXp,p.TotalExperience);Assert.AreEqual(playerKills,p.LifetimeKills);Assert.AreEqual(runKills,Game.Kills);
+            MoveStory(enemy.Xmm,enemy.Zmm);Assert.IsTrue(Game.TryCollectLoot());Assert.AreEqual(1,p.Items.Count);
             var xp=p.Companion.TotalExperience;
             _runtime.OpenMenu(4);yield return null;
             var wait=Find("CompanionWait");Assert.IsNotNull(wait);wait.GetComponent<Button>().onClick.Invoke();TickOnce();
@@ -68,6 +70,7 @@ namespace AreArpg.PlayMode.Tests
             typeof(ArenaRuntime).GetMethod("SaveCharacter",Flags,null,System.Type.EmptyTypes,null).Invoke(_runtime,null);
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var loaded));
             Assert.AreEqual(xp,loaded.Companion.TotalExperience);Assert.AreEqual(CompanionStatus.Waiting,loaded.Companion.Status);
+            Assert.AreEqual(playerXp,loaded.TotalExperience);Assert.AreEqual(playerKills,loaded.LifetimeKills);Assert.AreEqual(1,loaded.Items.Count);
             typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{new ArenaSimulation(73,loaded,1,LootCatalog.Version1),"Jäger wartet"});
             queue.Invoke(_runtime,new object[]{0});TickOnce();yield return null;
             Assert.AreEqual(CompanionStatus.Following,Game.Progression.Companion.Status);
