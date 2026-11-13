@@ -47,6 +47,11 @@ internal static class NpcForgeIntegrationTests
             var token=crimeProfile.SaveString();
             check(!crime.TakeCampRation().Accepted&&crimeProfile.SaveString()==token,"forge-rejected-repeat-produces-no-memory-"+hidden);
             check(CharacterProgression.TryLoad(token,out var afterCrime)&&afterCrime.Social.Forge.Archive.Get("dorn").Known.Count==(hidden?0:1),"forge-witness-versus-occluded-state-persists-"+hidden);
+            for(int i=0;i<15;i++)crime.Step();
+            merchant.Xmm=crime.PlayerXmm+1000;merchant.Zmm=crime.PlayerZmm;guardNpc.Xmm=hidden?-16000:-7000;guardNpc.Zmm=-8700;
+            int prior=guardNpc.Mind.Known.Count;
+            check(crime.InteractNpc(1,NpcAction.Rob).Accepted,"forge-personal-robbery-accepted-"+hidden);
+            check(guardNpc.Mind.Known.Count==prior+(hidden?0:1),"forge-personal-robbery-respects-actual-building-sight-"+hidden);
         }
     }
     private static void Move(ArenaSimulation world,long x,long z)
