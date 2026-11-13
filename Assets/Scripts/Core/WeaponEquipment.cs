@@ -75,7 +75,7 @@ namespace AreArpg.Core
     public sealed partial class CharacterProgression
     {
         public WeaponEquipment Equipment { get; private set; }=new WeaponEquipment();
-        private string Payload()
+        private string EquipmentPayload()
         {
             string body=BasePayload();if(!Equipment.Active)return body;
             string legacy=body+"|"+HashText(body).ToString("X16",CultureInfo.InvariantCulture);
@@ -87,7 +87,7 @@ namespace AreArpg.Core
             string inner;
             try { var bytes=Convert.FromBase64String(f[1]);if(Convert.ToBase64String(bytes)!=f[1])return false;inner=new System.Text.UTF8Encoding(false,true).GetString(bytes); }
             catch(FormatException){return false;}catch(System.Text.DecoderFallbackException){return false;}
-            if(inner.StartsWith("AC16|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!WeaponEquipment.TryRead(f[2],p,out var equipment))return false;
+            if(inner.StartsWith("AC16|",StringComparison.Ordinal)||inner.StartsWith("AC17|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!WeaponEquipment.TryRead(f[2],p,out var equipment))return false;
             p.Equipment=equipment;progress=p;return true;
         }
     }

@@ -213,7 +213,7 @@ namespace AreArpg.Core
             if (Progression.EntryAct >= 2)
             {
                 PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
-                if (InWoodlandRegion) { InitializeWoodland(); return; }
+                if (InWoodlandRegion) { InitializeWoodland(); BindForge(); return; }
                 InitializeRoadEncounter();
                 InitializeInvestigation();
                 if (InDungeon)
@@ -223,6 +223,7 @@ namespace AreArpg.Core
                     Monsters.AddRange(Progression.Dungeon.Current.Monsters);
                 }
                 if (Progression.EntryAct == 7) Monsters.Add(Progression.Rattler.Creature);
+                BindForge();
                 return;
             }
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
@@ -240,6 +241,7 @@ namespace AreArpg.Core
                 Monsters.Add(NewMonster(2, 1, 6000, 4500, 770 + depthScale * 55));
                 Monsters.Add(NewMonster(3, 3, 0, 12000, 2800 + depthScale * 200));
             }
+            BindForge();
         }
 
         /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
@@ -336,6 +338,7 @@ namespace AreArpg.Core
                 return result;
             }
             mara.InteractionCooldownTicks = 10;
+            RememberNpcAction(mara,NpcAction.Help,true,"camp.donation");
             result.Accepted = true;
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.ThankHelp;
             result.Text = "Mara nimmt eine echte Ration an. Das Lager wird sicherer; sie merkt sich deine Hilfe.";
@@ -361,6 +364,7 @@ namespace AreArpg.Core
                 DistanceSquared(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm) <= FixedMath.Square(8000) &&
                 EntryWorldLayout.HasSight(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm);
             if (witnessed) Progression.Social.WitnessRationTheft(guard.Id);
+            RememberNpcAction(mara,NpcAction.Rob,true,"camp.theft",witnessed?new[]{guard.Id}:Array.Empty<int>());
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.Robbed;
             result.Text = witnessed ? "Du nimmst eine Ration. Mara protestiert; Dorn hat den Diebstahl gesehen und greift ein." :
                 "Du nimmst eine Ration. Mara merkt sich den Übergriff; Dorn hat ihn nicht gesehen.";
@@ -376,6 +380,7 @@ namespace AreArpg.Core
                 DistanceSquared(PlayerXmm, PlayerZmm, npc.Xmm, npc.Zmm) > FixedMath.Square(NpcInteractionRadiusMm)) return result;
             if (npc.Memory.Health == 0 && action != NpcAction.Rob && action != NpcAction.Help)
             { result.Text = "Diese Person ist bewusstlos."; return result; }
+            bool wasAware=npc.Memory.Health>0;
             switch (action)
             {
                 case NpcAction.Greet:
@@ -407,6 +412,7 @@ namespace AreArpg.Core
                 if (action == NpcAction.Greet) result.FollowupSpeech = NpcSpeech.Rumor(Progression.Social, id);
             }
             npc.InteractionCooldownTicks = 10;
+            RememberNpcAction(npc,action,wasAware,action==NpcAction.Help?"provisions":"encounter");
             result.Accepted = true;
             return result;
         }
@@ -441,6 +447,7 @@ namespace AreArpg.Core
                 if (CurrentTick % 20 == 0) npc.Memory.Hunger = Math.Min(1000, npc.Memory.Hunger + 1);
                 long distance = DistanceSquared(npc.Xmm, npc.Zmm, PlayerXmm, PlayerZmm);
                 bool hostile = npc.Memory.Disposition(npc.Personality) == NpcDisposition.Hostile;
+                if(StepForgeNpc(npc,distance,hostile)){if(GameOver)break;continue;}
                 if (hostile && distance < FixedMath.Square(14000))
                 {
                     if (npc.Personality != NpcPersonality.Brave || npc.Memory.Health < NpcMemory.MaxHealth / 4)
@@ -516,6 +523,7 @@ namespace AreArpg.Core
         public void Step()
         {
             CurrentTick++;
+            if(Progression.Social.Forge!=null)Progression.Social.Forge.ProcessedTicks=checked(Progression.Social.Forge.ProcessedTicks+1);
             PrevPlayerXmm = PlayerXmm;
             PrevPlayerZmm = PlayerZmm;
             foreach (MonsterState monster in Monsters)

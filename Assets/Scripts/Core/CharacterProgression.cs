@@ -194,6 +194,7 @@ namespace AreArpg.Core
         {
             progress = null;
             if (string.IsNullOrEmpty(saved)) return false;
+            if(saved.StartsWith("AC17|",StringComparison.Ordinal))return TryLoadForge(saved,out progress);
             if(saved.StartsWith("AC16|",StringComparison.Ordinal))return TryLoadEquipment(saved,out progress);
             string[] parts = saved.Split('|');
             bool legacy = parts[0] == "AC1" && parts.Length == 6;

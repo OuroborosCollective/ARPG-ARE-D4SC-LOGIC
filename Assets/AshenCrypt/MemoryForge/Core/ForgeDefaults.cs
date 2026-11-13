@@ -29,7 +29,7 @@ namespace AshenCrypt.MemoryForge
                     Rule(ForgeAction.SeekFood,0,(Feature.Hunger,12000),(Feature.TravelCost,-1500)),
                     Rule(ForgeAction.Eat,100,(Feature.Hunger,15000),(Feature.Food,1000)),
                     Rule(ForgeAction.Flee,1000,(Feature.Danger,16000),(Feature.Injury,10000),(Feature.Fear,7000))});
-                if(social)rules.Add(Rule(ForgeAction.Observe,700,(Feature.Trust,1200),(Feature.Gratitude,2000),(Feature.Quest,4000),(Feature.Danger,-10000)));
+                if(social)rules.Add(Rule(ForgeAction.Observe,700,(Feature.Trust,4000),(Feature.Gratitude,8000),(Feature.Quest,4000),(Feature.Danger,-10000)));
                 if(fighter)rules.Add(Rule(ForgeAction.Attack,500,(Feature.Danger,20000),(Feature.Hostility,8000),(Feature.Injury,-8000),(Feature.TargetInjury,1000)));
                 if(id=="companion")rules.Add(Rule(ForgeAction.Follow,1800,(Feature.AllyDistance,10000),(Feature.Danger,-2000)));
                 var artifact=new ControllerArtifact(archetype,"ashen."+id,1,rules);
