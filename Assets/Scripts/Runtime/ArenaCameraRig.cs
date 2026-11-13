@@ -62,7 +62,7 @@ namespace AreArpg.UnityClient
         {
             Distance = _defaultDistance; _manual = false; _idleSeconds = 0;
             _pitchOffset = 0; _followHold = 0;
-            if (_target != null && _entryProfile) _yaw = _target.eulerAngles.y;
+            _yaw = _target != null && _entryProfile ? _target.eulerAngles.y : 0f;
             ClearTouches();
         }
 

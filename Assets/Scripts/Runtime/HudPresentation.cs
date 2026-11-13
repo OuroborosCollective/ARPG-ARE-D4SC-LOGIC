@@ -353,7 +353,9 @@ namespace AreArpg.UnityClient
             if (max <= BigInteger.Zero) return 0f;
             if (value <= BigInteger.Zero) return 0f;
             if (value >= max) return 1f;
-            return (float)((double)value / (double)max);
+            // Divide while still arbitrary precision; only the bounded ratio is converted for drawing.
+            const int precision = 1000000;
+            return (float)(value * precision / max) / precision;
         }
 
         public static float ExperienceFraction(CharacterProgression p)
@@ -477,7 +479,10 @@ namespace AreArpg.UnityClient
                 PlaceDot(ref used, n.Xmm, n.Zmm, new Color(1f, 0.82f, 0.35f), 10f, PerMetre, Radius);
             foreach (var loot in _game.GroundLoot)
                 PlaceDot(ref used, loot.Xmm, loot.Zmm, new Color(1f, 0.95f, 0.55f), 8f, PerMetre, Radius);
-            PlaceDot(ref used, ArenaSimulation.PassageXmm, ArenaSimulation.PassageZmm, new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
+            if (_worldPassage != null)
+                PlaceDot(ref used, ArenaSimulation.PassageXmm, ArenaSimulation.PassageZmm, new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
+            if (_returnPassage != null)
+                PlaceDot(ref used, 0, ArenaSimulation.ReturnPassageZmm, new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
             for (int i = used; i < _hudDots.Count; i++) _hudDots[i].enabled = false;
             _hudMinimapLabel.text = DisplayChapterName(_game);
         }

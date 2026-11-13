@@ -27,6 +27,7 @@ namespace AreArpg.UnityClient
         private Camera _portraitCamera;
         private RenderTexture _portraitTexture;
         private const int PortraitLayer = 30;
+        private readonly Dictionary<Transform, int> _portraitOriginalLayers = new Dictionary<Transform, int>();
 
         public bool MenuOpen { get { return _menuTab >= 0; } }
         public int MenuTab { get { return _menuTab; } }
@@ -46,7 +47,7 @@ namespace AreArpg.UnityClient
             _menuTab = -1; _menuCredits = false;
             if (_menuRoot != null) Destroy(_menuRoot.gameObject);
             _menuRoot = null;
-            if (_portraitCamera != null) _portraitCamera.enabled = false;
+            RestorePortraitLayers();
         }
 
         /// <summary>Menu hotkeys and Escape; returns true while the modal menu owns input.</summary>
@@ -78,6 +79,7 @@ namespace AreArpg.UnityClient
 
         private void BuildMenu()
         {
+            RestorePortraitLayers();
             EnsureEventSystem();
             ArenaHudLayout l = CurrentHudLayout();
             EnsureMenuCanvas(l);
@@ -281,10 +283,27 @@ namespace AreArpg.UnityClient
             _portraitCamera.transform.LookAt(target);
         }
 
-        private static void SetLayerRecursively(Transform root, int layer)
+        private void SetLayerRecursively(Transform root, int layer)
         {
+            if (!_portraitOriginalLayers.ContainsKey(root)) _portraitOriginalLayers.Add(root, root.gameObject.layer);
             root.gameObject.layer = layer;
             for (int i = 0; i < root.childCount; i++) SetLayerRecursively(root.GetChild(i), layer);
+        }
+
+        private void RestorePortraitLayers()
+        {
+            if (_portraitCamera != null) _portraitCamera.enabled = false;
+            foreach (var entry in _portraitOriginalLayers)
+                if (entry.Key != null) entry.Key.gameObject.layer = entry.Value;
+            _portraitOriginalLayers.Clear();
+        }
+
+        private void ClearPortraitVisuals()
+        {
+            RestorePortraitLayers();
+            if (_portraitCamera != null) Destroy(_portraitCamera.gameObject);
+            if (_portraitTexture != null) { _portraitTexture.Release(); Destroy(_portraitTexture); }
+            _portraitCamera = null; _portraitTexture = null;
         }
 
         // ------------------------------------------------------------------ INVENTORY
