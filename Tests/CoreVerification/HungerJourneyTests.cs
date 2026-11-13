@@ -7,6 +7,18 @@ internal static class HungerJourneyTests
     /// <summary>Exercise actual travel, resource transactions and reloads; NPC positioning is a labelled contact fixture.</summary>
     public static void Run(Action<bool, string> check)
     {
+        foreach (long x in new long[] { -10500, -2500 })
+            foreach (long z in new long[] { 2900, 7200 })
+            {
+                check(!ArenaSimulation.CanStandInHungerRegion(4, x, z), "mill-refuge-post-is-solid");
+                check(ArenaSimulation.CanStandInHungerRegion(3, x, z), "mill-refuge-post-only-at-mill");
+                check(!ArenaSimulation.CanStandInHungerRegion(4, x + 120 + ArenaSimulation.PlayerRadiusMm, z), "mill-refuge-post-includes-player-radius");
+                check(ArenaSimulation.CanStandInHungerRegion(4, x + 121 + ArenaSimulation.PlayerRadiusMm, z), "mill-refuge-post-edge-is-bounded");
+            }
+        foreach (long z in new long[] { -24000, -2000, 2900, 5000, 7200, 24000 })
+            check(ArenaSimulation.CanStandInHungerRegion(4, 0, z), "mill-refuge-central-path-stays-open");
+        check(ArenaSimulation.CanStandInHungerRegion(4, -4000, -2000) && ArenaSimulation.CanStandInHungerRegion(4, -4000, 5000),
+            "mill-refuge-existing-clues-stay-reachable");
         foreach (HungerAction decision in new[] { HungerAction.Reveal, HungerAction.Protect, HungerAction.Replace })
         {
             var w = Village();
