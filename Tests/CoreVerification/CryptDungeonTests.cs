@@ -150,6 +150,14 @@ internal static class CryptDungeonTests
         var floorFields=floors[0].Split('~'); var monsters=floorFields[1].Split('/'); var monster=monsters[0].Split(','); monster[0]="25000"; monster[1]="25000";
         monsters[0]=string.Join(",",monster); floorFields[1]=string.Join("/",monsters); floors[0]=string.Join("~",floorFields); fields[7]=string.Join("^",floors);
         check(!CharacterProgression.TryLoad(ReplaceSaveField(game.Progression.SaveString(),20,string.Join(";",fields)),out _),"proc-rechecksummed-enemy-inside-wall-rejected");
+        var drops=Enter(); drops.SetMoveInput(0,10000);
+        for(int t=0;t<1000 && drops.GroundLoot.Count==0 && !drops.GameOver;t++)
+        { drops.ActivateSkill(3); drops.ActivateSkill(1); drops.ActivateSkill(0); drops.ActivateSkill(2); drops.Step(); }
+        check(drops.GroundLoot.Count>0 && Reload(drops).Progression.SaveString()==drops.Progression.SaveString(),"proc-unclaimed-catalog-drop-roundtrip");
+        drops.GroundLoot.Add(drops.GroundLoot[0]);
+        check(!CharacterProgression.TryLoad(drops.Progression.SaveString(),out _),"proc-duplicate-ground-receipt-rejected");
+        drops.GroundLoot.RemoveAt(drops.GroundLoot.Count-1); drops.Progression.CollectItem(drops.GroundLoot[0].Item);
+        check(!CharacterProgression.TryLoad(drops.Progression.SaveString(),out _),"proc-collected-and-ground-receipt-cannot-coexist");
         var dying=Enter(); dying.SetMoveInput(0,10000);
         for(int t=0;t<1000 && !dying.GameOver;t++) dying.Step();
         check(dying.GameOver && Reload(dying).GameOver,"proc-real-enemy-death-loads-as-death");

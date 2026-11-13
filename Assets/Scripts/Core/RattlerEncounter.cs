@@ -136,7 +136,11 @@ namespace AreArpg.Core
             if (GameOver) return result;
             if (action == HungerAction.OpenInnerDoor && Progression.EntryAct == 6 && (!InDungeon || Progression.Dungeon.Depth == 2) && c.TraceFound && !r.Active &&
                 DistanceSquared(PlayerXmm, PlayerZmm, 0, 15000) <= FixedMath.Square(NpcInteractionRadiusMm))
-            { r.Active = true; result.Text = "Der Riegel gibt nach. Dahinter scharrt etwas. Leise Schritte vermeiden Laerm; aus der Naehe kann es dich riechen."; }
+            {
+                r.Active = true;
+                if (InDungeon) r.RestartDungeonRun();
+                result.Text = "Der Riegel gibt nach. Dahinter scharrt etwas. Leise Schritte vermeiden Laerm; aus der Naehe kann es dich riechen.";
+            }
             else if (action == HungerAction.ToggleSneak && Progression.EntryAct == 7)
             { r.Sneaking = !r.Sneaking; result.Text = r.Sneaking ? "Du schleichst. Naher Geruch und Angriffe verraten dich weiterhin." : "Du gehst wieder schnell. Deine Schritte sind hoerbar."; }
             else if (action == HungerAction.InspectRoyalBrand && Progression.EntryAct == 7 && r.Creature.IsDead && !r.BrandExamined &&

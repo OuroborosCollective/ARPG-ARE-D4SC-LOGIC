@@ -128,6 +128,41 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(Game.Monsters.All(m=>!m.IsDead)); Assert.IsTrue(Game.Progression.Rattler.BrandExamined);
             Assert.IsFalse(Game.Progression.Rattler.Creature.IsDead); DungeonProject();
             yield return DungeonOverview("dungeon-run2-floor1.png");
+            // Restart uses the shipped adapter after a real enemy death; it must not reroll the run.
+            Game.SetMoveInput(0,10000);
+            for(int t=0;t<1000 && !Game.GameOver;t++) Game.Step();
+            Assert.IsTrue(Game.GameOver);
+            ulong seedBeforeDeath=Game.Progression.Dungeon.Seed;
+            int[] enemyHealth=Game.Progression.Dungeon.Current.Monsters.Select(m=>m.Health).ToArray();
+            typeof(ArenaRuntime).GetMethod("Restart",Flags).Invoke(_runtime,null); yield return null;
+            Assert.IsFalse(Game.GameOver); Assert.AreEqual(seedBeforeDeath,Game.Progression.Dungeon.Seed);
+            Assert.AreEqual(2,(int)Game.Progression.Dungeon.Run);
+            CollectionAssert.AreEqual(enemyHealth,Game.Progression.Dungeon.Current.Monsters.Select(m=>m.Health).ToArray());
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var afterRestart));
+            Assert.AreEqual(seedBeforeDeath,afterRestart.Dungeon.Seed);
+        }
+
+        [UnityTest]
+        public IEnumerator CompletedLegacyStoryOffersDungeonAndDoesNotAskToRediscoverBrand()
+        {
+            InstallDungeonFixture();
+            var p=Game.Progression;
+            DungeonFixtureSet(p.Investigation,"Approach",SealApproach.Investigated);
+            DungeonFixtureSet(p.Investigation,"TraceFound",true); DungeonFixtureSet(p.Investigation,"Reported",true);
+            DungeonFixtureSet(p.Rattler,"Active",true); DungeonFixtureSet(p.Rattler,"BrandExamined",true); DungeonFixtureSet(p.Rattler,"Reported",true);
+            p.Rattler.Creature.Health=0; p.Rattler.Creature.LootGranted=true;
+            MoveStory(0,18000);
+            Assert.IsTrue(p.SaveString().StartsWith("AC12|"));
+            var offered=(HungerAction[])typeof(ArenaRuntime).GetMethod("HungerActions",Flags).Invoke(_runtime,null);
+            CollectionAssert.Contains(offered,HungerAction.BeginDungeonRun);
+            string status=(string)typeof(ArenaRuntime).GetProperty("RattlerStatusText",Flags).GetValue(_runtime);
+            Assert.IsFalse(status.Contains("Untersuche"),"A discovered brand is permanent knowledge");
+            yield return StoryAction(HungerAction.BeginDungeonRun);
+            MoveStory(0,24000); TravelStory(); yield return null;
+            Assert.IsTrue(Game.InDungeon); Assert.IsTrue(Game.Progression.Rattler.Reported);
+            Assert.IsTrue(Game.Progression.Rattler.BrandExamined); Assert.IsFalse(Game.Progression.Rattler.Creature.IsDead);
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var saved));
+            Assert.IsTrue(saved.Dungeon.Active); Assert.IsTrue(saved.Rattler.Reported);
         }
 
         private IEnumerator DungeonOverview(string name)

@@ -27,14 +27,22 @@ namespace AreArpg.UnityClient
             _game.SetMoveInput(0, 0); ReleasePresentationTouches(); return true;
         }
 
+        private string RattlerStatusText
+        {
+            get
+            {
+                var r = _game.Progression.Rattler;
+                return r.Creature.IsDead ? "MAULWURFRATTLER BESIEGT\nUntersuche seinen Hals unter SPUREN." :
+                    "MAULWURFRATTLER  " + r.Creature.Health + "/" + r.Creature.MaxHealth +
+                    "\nBlind: Laerm / naher Geruch. Zum Ausweichen SCHLEICHEN AUS!";
+            }
+        }
+
         private void DrawRattlerHud(ArenaHudLayout layout)
         {
             if (_game.Progression.EntryAct != 7 || _hungerJournalOpen) return;
             var r = _game.Progression.Rattler;
-            GUI.Box(new Rect(layout.Width * .22f, layout.StatusPanelRect.yMax + 8f, layout.Width * .56f, 62f),
-                r.Creature.IsDead ? "MAULWURFRATTLER BESIEGT\nUntersuche seinen Hals unter SPUREN." :
-                "MAULWURFRATTLER  " + r.Creature.Health + "/" + r.Creature.MaxHealth +
-                "\nBlind: Laerm / naher Geruch. Zum Ausweichen SCHLEICHEN AUS!");
+            GUI.Box(new Rect(layout.Width * .22f, layout.StatusPanelRect.yMax + 8f, layout.Width * .56f, 62f), RattlerStatusText);
             string label = r.Sneaking ? "SCHLEICHEN: AN" : "SCHLEICHEN: AUS";
             if (Application.isMobilePlatform) GUI.Box(RattlerSneakRect(layout), label);
             else if (GUI.Button(RattlerSneakRect(layout), "C: " + label)) _pendingHungerAction = (int)HungerAction.ToggleSneak;
