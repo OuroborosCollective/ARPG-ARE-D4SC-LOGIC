@@ -54,6 +54,6 @@ asset-intake-receipts/
 __pycache__/
 *.pyc
 
-# Standalone verification outputs
+# Standalone .NET verification outputs
 Tests/**/bin/
 Tests/**/obj/

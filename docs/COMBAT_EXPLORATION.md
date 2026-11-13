@@ -8,7 +8,7 @@ Owner bestätigt am 13.11.2026: Dauerhafte Storyorte und gespeicherte Entscheidu
 
 Speichern/Laden, Tod und Abstecher in eine zugehörige Questhöhle erhalten den laufenden Run. Erst vollständiges Verlassen des Verbindungsgebietes zu einem angrenzenden Storyort und erneuter Eintritt erzeugen einen neuen Run. Storyentscheidungen, Meldungen, einmalige Materialien und spätere Konsequenzen gehören zum Charakterfortschritt und werden dabei nicht zurückgesetzt. Das gilt als Arbeitsablauf für weitere Kapitel; bestehende Generatorrevisionen bleiben reproduzierbar.
 
-Der nächste umzusetzende Block ist der spielbare Wald Mühle → Aschenzoll mit seitlicher Bärenhöhle, vorhandenen Gegnerfamilien und dem bestätigten Asset-Stil. Die Handelsstation erhält zunächst einen erreichbaren Ankunftsbereich; ihre detaillierte Fracht-Ermittlung bleibt ein eigener Storyblock. Waffenmodelle werden gegen den privaten Bestand geprüft und als echte ausrüstbare Beute mit stabilen Modellkennungen, Grundwerten und Affixen angebunden. Rohassets bleiben privat.
+Der neue Spielblock ist der begehbare Wald Mühle → Aschenzoll mit seitlicher Bärenhöhle, vorhandenen Gegnerfamilien und dem bestätigten Asset-Stil. Die Handelsstation erhält zunächst einen erreichbaren Ankunftsbereich; ihre detaillierte Fracht-Ermittlung bleibt ein eigener Storyblock. Waffenmodelle werden gegen den privaten Bestand geprüft und als echte ausrüstbare Beute mit stabilen Modellkennungen, Grundwerten und Affixen angebunden. Rohassets bleiben privat.
 
 ## Drei Ebenen unter der alten Mühle
 
@@ -28,9 +28,9 @@ Eine gemeinsame ganzzahlige Raumkarte bestimmt Laufwege, Sichtlinien und die sic
 
 Der aktuelle Generator ist die erste spielbare Krypta-Fassung. Weitere Raumformen, Gegnerfamilien, seltene Ereignisse und gezielte Beutetabellen sind spätere Inhalte. Wald und Bärenhöhle benötigen eigene Gebietsmotive und feste Questorte, auch wenn sie dieselben deterministischen Generatorbausteine nutzen.
 
-## Danach: Waldweg zur Handelsstation
+## Waldweg zur Handelsstation
 
-Der Weg von der Mühle nach Aschenzoll wird ein eigener Außenabschnitt mit Wald-/Buschpassagen, Gegnern, Truhen, einer Bärenhöhle und Nebenaufgaben. Kein direkter Dorf-Teleport als Ersatz für diesen Weg. Der bisherige Aschenzoll-Entwurf muss vor seiner Umsetzung entsprechend angepasst werden.
+Nach dem persönlichen Rattler-Bericht nimmt der Spieler Ilyans Transportspur an. Von der Mühle führt ein begehbarer Übergang in den Wald: acht verbundene Lichtungen, 16 Gegner aus zwei vorhandenen Familien und vier einzeln mit 75 % Wahrscheinlichkeit erzeugte Truhenplätze. Eine seitliche Passage führt in die Bärenhöhle, der nördliche Ausgang nach Aschenzoll. Alle Übergänge verlangen echte Annäherung; offene Beute muss gesichert werden. Die Frachtermittlung in Aschenzoll bleibt ein separater Storyblock.
 
 ### Die Jungen der Bärin
 
@@ -41,6 +41,8 @@ Bestätigte Owner-Idee: Die Höhle beherbergt die Jungen der Bärin, die den ver
 | Junge töten und häuten | Einmalige Felle als Material für eine besondere Rüstung; Herstellung ist eine eigene tatsächliche Handlung. | Keine geretteten Jungen aus dieser Begegnung für spätere Kriegsbären. |
 | Junge verschonen und Schutz organisieren | Tiere bleiben am Leben; ein persönlicher Bericht und tatsächlich vereinbarter Schutz werden gesondert festgehalten. | Eine später festgelegte Fraktion kann im Krieg um die Herrschaftstürme Kriegsbären und einen konkreten Vorteil erhalten. |
 
-Vier Fraktionen kämpfen im späteren Endgame um die Herrschaftstürme. Ihre Namen, die begünstigte Fraktion, zeitlicher Übergang, Rüstungswerte und Stärke des Vorteils sind noch offen. Keine unsichtbare automatische Fraktionszugehörigkeit durch bloßes Vorbeigehen. Verschonen, Bericht, organisierter Schutz und späterer Fraktionszugang sind verschiedene Fakten beim bestehenden Save-Owner. Die Entscheidung soll vor dem Auslösen verständliche unmittelbare Folgen zeigen; spätere Ereignisse müssen sie kausal aufgreifen.
+Vier Fraktionen kämpfen im späteren Endgame um die Herrschaftstürme. Ihre Namen, die begünstigte Fraktion, zeitlicher Übergang, Stärke des Fraktionsvorteils sind noch offen. Keine unsichtbare automatische Fraktionszugehörigkeit durch bloßes Vorbeigehen. Verschonen, Bericht, organisierter Schutz und späterer Fraktionszugang sind verschiedene Fakten beim bestehenden Save-Owner. Die Entscheidung soll vor dem Auslösen verständliche unmittelbare Folgen zeigen; spätere Ereignisse müssen sie kausal aufgreifen.
 
-Die Bärenhöhle, Fellrüstung, Waldstrecke und Endgame-Effekte sind Designauftrag, noch kein implementierter Spielfortschritt. Der aktuelle erste Entwicklungsblock ist der Dungeon unter der Mühle.
+Die Höhle bietet eine ausdrückliche, dauerhafte Entscheidung. Drei einmalige Felle können bei Mara zu einem sichtbaren Fellmantel mit 10 % Schadensminderung verarbeitet werden. Wer die Jungen verschont, muss Mara persönlich informieren und anschließend ihren Schutz organisieren. Erst dann ist `WarBearEligibility` erfüllt. Das ist eine gespeicherte Voraussetzung; ein bereits spielbarer Fraktionskrieg wird damit nicht behauptet.
+
+Siehe [Wald und Ausrüstung](WOODLAND_EQUIPMENT.md) für Persistenz, Modelle, Affixe und Reproduktion.
