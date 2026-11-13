@@ -33,6 +33,103 @@ namespace AreArpg.PlayMode.Tests
             int health=world.PlayerHealth;for(int i=0;i<20;i++)TickOnce();
             Assert.AreEqual(ForgeAction.Wait,creature.Mind.DecisionState.Action);Assert.AreEqual(0,creature.BossWindupTicks);Assert.AreEqual(health,world.PlayerHealth);
         }
+
+        /// <summary>A real companion strike needs moving arm poses inside its clip, not just blends to and from a still.</summary>
+        [UnityTest]
+        public IEnumerator HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave()
+        {
+            if(string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private hunter and animation overlay");
+            _runtime.enabled=false;
+            var p=CharacterProgression.CreateEntryProfile();
+            typeof(CharacterProgression).GetMethod("EnterVillage",Flags).Invoke(p,null);
+            typeof(CharacterProgression).GetMethod("DiscoverHungerClue",Flags).Invoke(p,null);
+            typeof(CharacterProgression).GetMethod("TravelHunger",Flags).Invoke(p,new object[]{3,false});p.Social.EnableForge();p.Equipment.Enable(p);
+            var world=new ArenaSimulation(73,p,1,LootCatalog.Version1);
+            // Arrange encounter contact only; rescue and recruitment use the existing gameplay path.
+            DungeonFixtureSet(p.Road,"Started",true);p.Road.Bear.Xmm=world.PlayerXmm+1000;p.Road.Bear.Zmm=world.PlayerZmm;p.Road.Bear.Health=1;
+            Assert.Greater(world.ActivateSkill(0).Hits,0);
+            typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{world,"Jäger gerettet"});
+            MoveStory(2000,9000);yield return null;
+            typeof(ArenaRuntime).GetMethod("QueueCompanionAction",Flags).Invoke(_runtime,new object[]{0});TickOnce();yield return null;
+            Assert.AreEqual(CompanionStatus.Following,p.Companion.Status);
+
+            var actor=Find("ARE_Companion_Hunter");Assert.IsNotNull(actor);
+            Assert.IsNotEmpty(actor.GetComponentsInChildren<SkinnedMeshRenderer>(),"Inspect the actual skinned hunter, not its fallback capsule");
+            var animator=actor.GetComponentInChildren<Animator>();Assert.IsNotNull(animator);Assert.IsTrue(animator.isHuman);
+            Assert.IsFalse(animator.applyRootMotion);
+            var bow=actor.GetComponentsInChildren<Transform>().FirstOrDefault(t=>t.name=="CompanionWeapon_bow_newbie.1");
+            Assert.IsNotNull(bow);Assert.IsTrue(bow.IsChildOf(animator.GetBoneTransform(HumanBodyBones.LeftHand)));
+            var arms=new[]{HumanBodyBones.LeftUpperArm,HumanBodyBones.LeftLowerArm,HumanBodyBones.RightUpperArm,HumanBodyBones.RightLowerArm}
+                .Select(animator.GetBoneTransform).ToArray();
+            foreach(var bone in arms)Assert.IsNotNull(bone,"The real humanoid arms must be available for pose inspection");
+            int attackState=Animator.StringToHash("Melee"),idleState=Animator.StringToHash("Idle");
+            animator.ResetTrigger("Melee");animator.SetFloat("MoveMagnitude",0f);animator.Play(idleState,0,0f);animator.Update(0f);
+
+            var target=new MonsterState{Id=91,Kind=0,Xmm=p.Companion.Xmm+1400,Zmm=p.Companion.Zmm,Health=1000,MaxHealth=1000};
+            Game.Monsters.Add(target);
+            for(int tick=0;tick<40&&target.Health==1000;tick++)TickOnce();
+            Assert.Less(target.Health,1000,"A real companion hit must precede the bow presentation");
+            Assert.Greater(p.Companion.AttackFlash,0);
+            animator.Update(0f);
+            Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).shortNameHash==attackState||
+                animator.IsInTransition(0)&&animator.GetNextAnimatorStateInfo(0).shortNameHash==attackState,
+                "The accepted companion strike must enter the actual attack controller state");
+
+            ulong hash=Game.ComputeWorldHash();string save=p.SaveString();
+            var stored=_keys.Select(key=>PlayerPrefs.GetString(key,"")).ToArray();
+            var hadKeys=_keys.Select(PlayerPrefs.HasKey).ToArray();
+            var actorPosition=actor.transform.position;var actorRotation=actor.transform.rotation;
+            var rigPosition=animator.transform.localPosition;var rigRotation=animator.transform.localRotation;
+            animator.ResetTrigger("Melee");animator.SetFloat("MoveMagnitude",0f);
+            var poses=new Quaternion[13][];AnimationClip shot=null;
+            for(int sample=0;sample<poses.Length;sample++)
+            {
+                // Seek the unblended state before its .9 exit time. Idle/attack blends must not make
+                // a constant single-frame bow pose pass as an animated draw, shot and recovery.
+                animator.Play(attackState,0,.85f*sample/(poses.Length-1));animator.Update(0f);
+                Assert.AreEqual(attackState,animator.GetCurrentAnimatorStateInfo(0).shortNameHash);
+                Assert.IsFalse(animator.IsInTransition(0),"Pose samples must exclude transition-only movement");
+                if(sample==0)
+                {
+                    var clips=animator.GetCurrentAnimatorClipInfo(0);Assert.AreEqual(1,clips.Length);
+                    shot=clips[0].clip;Assert.IsNotNull(shot);Assert.IsTrue(shot.humanMotion);
+                    Assert.Greater(shot.length,0f);
+                }
+                poses[sample]=arms.Select(bone=>bone.localRotation).ToArray();
+            }
+            // Use the real state's exit transition, with no simulation tick or new attack request.
+            animator.Update(shot.length);animator.Update(.2f);
+            Assert.AreEqual(idleState,animator.GetCurrentAnimatorStateInfo(0).shortNameHash,"The shot must recover to locomotion");
+            Assert.AreEqual(actorPosition,actor.transform.position);Assert.AreEqual(actorRotation,actor.transform.rotation);
+            Assert.AreEqual(rigPosition,animator.transform.localPosition);Assert.AreEqual(rigRotation,animator.transform.localRotation);
+            Assert.AreEqual(hash,Game.ComputeWorldHash(),"Animation must not advance or mutate the authoritative world");
+            Assert.AreEqual(save,p.SaveString(),"Animation must not change companion progress or save contents");
+            for(int i=0;i<_keys.Length;i++)
+            {Assert.AreEqual(hadKeys[i],PlayerPrefs.HasKey(_keys[i]));Assert.AreEqual(stored[i],PlayerPrefs.GetString(_keys[i],""));}
+
+            // Match the existing rig-motion test's .1-degree noise tolerance; this is a still-pose
+            // regression gate, not an invented art-direction threshold for the final draw timing.
+            int second=-1,third=-1;float maximumMotion=0f;
+            for(int sample=1;sample<poses.Length;sample++)
+            {
+                float fromStart=HunterArmPoseDistance(poses[0],poses[sample]);maximumMotion=Mathf.Max(maximumMotion,fromStart);
+                if(fromStart<=.1f)continue;
+                if(second<0)second=sample;
+                else if(HunterArmPoseDistance(poses[second],poses[sample])>.1f){third=sample;break;}
+            }
+            TestContext.WriteLine("Actual bow clip: "+shot.name+", length="+shot.length+"s, sampled arm motion="+maximumMotion+" degrees");
+            Assert.Greater(maximumMotion,.1f,"The actual bow clip is a still pose: the hunter's arms must move within the attack, independently of transition blends");
+            Assert.Greater(third,second,"The bow shot needs at least three distinct arm poses through its motion, not a switch between two frozen poses");
+        }
+
+        private static float HunterArmPoseDistance(Quaternion[] first,Quaternion[] second)
+        {
+            float angle=0f;
+            for(int bone=0;bone<first.Length;bone++)angle=Mathf.Max(angle,Quaternion.Angle(first[bone],second[bone]));
+            return angle;
+        }
+
         [UnityTest]
         public IEnumerator RescuedCompanionHasRealModelControlsCombatAndSavedIndividualProgress()
         {
