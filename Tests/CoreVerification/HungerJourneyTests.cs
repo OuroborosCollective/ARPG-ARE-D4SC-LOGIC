@@ -7,6 +7,18 @@ internal static class HungerJourneyTests
     /// <summary>Exercise actual travel, resource transactions and reloads; NPC positioning is a labelled contact fixture.</summary>
     public static void Run(Action<bool, string> check)
     {
+        foreach (long x in new long[] { -10500, -2500 })
+            foreach (long z in new long[] { 2900, 7200 })
+            {
+                check(!ArenaSimulation.CanStandInHungerRegion(4, x, z), "mill-refuge-post-is-solid");
+                check(ArenaSimulation.CanStandInHungerRegion(3, x, z), "mill-refuge-post-only-at-mill");
+                check(!ArenaSimulation.CanStandInHungerRegion(4, x + 120 + ArenaSimulation.PlayerRadiusMm, z), "mill-refuge-post-includes-player-radius");
+                check(ArenaSimulation.CanStandInHungerRegion(4, x + 121 + ArenaSimulation.PlayerRadiusMm, z), "mill-refuge-post-edge-is-bounded");
+            }
+        foreach (long z in new long[] { -24000, -2000, 2900, 5000, 7200, 24000 })
+            check(ArenaSimulation.CanStandInHungerRegion(4, 0, z), "mill-refuge-central-path-stays-open");
+        check(ArenaSimulation.CanStandInHungerRegion(4, -4000, -2000) && ArenaSimulation.CanStandInHungerRegion(4, -4000, 5000),
+            "mill-refuge-existing-clues-stay-reachable");
         foreach (HungerAction decision in new[] { HungerAction.Reveal, HungerAction.Protect, HungerAction.Replace })
         {
             var w = Village();
@@ -32,6 +44,12 @@ internal static class HungerJourneyTests
             check(mill != null && mill.Progression.EntryAct == 4 && mill.Monsters.Count == 0 && mill.Npcs.Count == 0, "hunger-no-duplicate-crypt-or-npc-at-mill");
             check(mill.HungerShelterPatients == 3, "hunger-three-patients-on-first-visit");
             check(!mill.CanStand(10500, 5000) && mill.CanStand(0, 5000), "hunger-mill-footprint-core");
+            Move(mill, -2500, 1000);
+            mill.SetMoveInput(0, 10000);
+            for (int tick = 0; tick < 20; tick++) mill.Step();
+            mill.SetMoveInput(0, 0);
+            check(mill.PlayerZmm < 2900 && mill.PlayerZmm >= 2000, "mill-refuge-post-blocks-real-movement");
+            Move(mill, 0, mill.PlayerZmm);
             Move(mill, 0, -2000); Move(mill, -4000, -2000);
             check(mill.ActOnHunger(HungerAction.InspectShelter).Accepted, "hunger-shelter-evidence");
             Move(mill, -4000, 5000);

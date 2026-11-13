@@ -54,6 +54,25 @@ namespace AreArpg.PlayMode.Tests
             Disjoint(layout.MoveRect, layout.CampPanelRect, "movement/camp");
             Disjoint(layout.MoveRect, layout.PickupRect, "movement/pickup");
 
+            // Mobile-ARPG frame: menu bar, minimap, camera, tracker, subtitle band and context action never collide.
+            Rect[] fixedPanels = { layout.StatusPanelRect, layout.QuestTrackerRect, layout.CampPanelRect, layout.MinimapRect,
+                layout.CameraPanelRect, layout.SubtitleBandRect, layout.ContextActionRect, layout.NpcPanelRect, layout.MoveRect,
+                layout.PickupRect };
+            string[] fixedNames = { "status", "quest", "camp", "minimap", "camera", "subtitles", "context", "npc", "move", "pickup" };
+            for (int i = 0; i < fixedPanels.Length; i++)
+            {
+                Fits(fixedPanels[i], layout, fixedNames[i]);
+                for (int j = 0; j < i; j++) Disjoint(fixedPanels[i], fixedPanels[j], fixedNames[i] + "/" + fixedNames[j]);
+                for (int m = 0; m < ArenaHudLayout.MenuCount; m++) Disjoint(fixedPanels[i], layout.MenuButtonRect(m), fixedNames[i] + "/menu " + m);
+                for (int k = 0; k < 4; k++) Disjoint(fixedPanels[i], layout.SkillRect(k), fixedNames[i] + "/skill " + k);
+            }
+            for (int m = 0; m < ArenaHudLayout.MenuCount; m++)
+            {
+                Fits(layout.MenuButtonRect(m), layout, "menu " + m);
+                for (int n = 0; n < m; n++) Disjoint(layout.MenuButtonRect(m), layout.MenuButtonRect(n), "menu buttons must be disjoint");
+            }
+            Assert.Greater(layout.SkillRect(0).width, layout.SkillRect(1).width * 1.5f, "basic attack must be the dominant button");
+
             for (int i = 0; i < 3; i++)
             {
                 Rect mastery = layout.MasteryRect(i);
@@ -104,8 +123,8 @@ namespace AreArpg.PlayMode.Tests
         [Test] public void SafeAreaInsetsAreAppliedToVisualsAndTouch()
         {
             var layout = new ArenaHudLayout(1007f, 601f, new Rect(23f, 16f, 964f, 573f));
-            Assert.AreEqual(1f, layout.Scale, 0.0001f);
-            Assert.AreEqual(964f, layout.Width, 0.01f);
+            Assert.AreEqual(964f / 960f, layout.Scale, 0.0001f);
+            Assert.AreEqual(960f, layout.Width, 0.01f);
             ValidateGameView(layout);
             Vector2 center = layout.SkillRect(0).center;
             Vector2 screen = layout.ToScreenTouch(center);
@@ -126,7 +145,9 @@ namespace AreArpg.PlayMode.Tests
                 ArenaHudControl.Skill2, ArenaHudControl.Skill3,
                 ArenaHudControl.MasteryMight, ArenaHudControl.MasteryVitality,
                 ArenaHudControl.MasteryResolve, ArenaHudControl.Donate,
-                ArenaHudControl.Pickup, ArenaHudControl.Move
+                ArenaHudControl.Pickup, ArenaHudControl.Move,
+                ArenaHudControl.MenuCharacter, ArenaHudControl.MenuInventory,
+                ArenaHudControl.MenuQuests, ArenaHudControl.MenuSettings
             };
             Rect[] rectangles =
             {
@@ -136,7 +157,9 @@ namespace AreArpg.PlayMode.Tests
                 layout.SkillRect(2), layout.SkillRect(3),
                 layout.MasteryRect(0), layout.MasteryRect(1),
                 layout.MasteryRect(2), layout.DonationRect,
-                layout.PickupRect, layout.MoveRect
+                layout.PickupRect, layout.MoveRect,
+                layout.MenuButtonRect(0), layout.MenuButtonRect(1),
+                layout.MenuButtonRect(2), layout.MenuButtonRect(3)
             };
             for (int i = 0; i < controls.Length; i++)
             {
@@ -213,6 +236,37 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse(move.IsCaptured);
             Assert.IsFalse(move.TryMove(4, TouchPhase.Stationary, layout.MoveRect.center,
                 layout, ArenaHudControl.None, out direction));
+        }
+
+        /// <summary>High-density phones scale the HUD up so thumb targets keep their physical size.</summary>
+        [Test] public void HudScalesUpOnModernPhonesAndTablets()
+        {
+            var phone = FullView(2400f, 1080f);
+            Assert.AreEqual(2f, phone.Scale, 0.0001f);
+            Assert.AreEqual(540f, phone.Height, 0.01f);
+            Assert.GreaterOrEqual(phone.SkillRect(0).width * phone.Scale, 240f, "attack button must stay thumb-sized");
+            ValidateGameView(phone);
+            var tablet = FullView(2560f, 1600f);
+            Assert.AreEqual(960f, tablet.Width, 0.01f);
+            ValidateGameView(tablet);
+            ValidateGameView(FullView(1334f, 750f));
+        }
+
+        /// <summary>The stick floats: the first contact inside MOVE is neutral, deflection is measured from it.</summary>
+        [Test] public void MoveStickFloatsFromFirstContact()
+        {
+            var layout = FullView(960f, 540f);
+            var move = new ArenaHudTouchCapture();
+            Vector2 start = layout.MoveRect.position + new Vector2(30f, 40f);
+            Vector2 direction;
+            Assert.IsTrue(move.TryMove(3, TouchPhase.Began, start, layout, layout.HitTest(start, false, false, false, false), out direction));
+            Assert.AreEqual(0f, direction.magnitude, 0.0001f, "first contact is the neutral centre");
+            Assert.AreEqual(start, move.Origin);
+            Assert.IsTrue(move.TryMove(3, TouchPhase.Moved, start + new Vector2(0f, -ArenaHudLayout.StickRadius), layout, ArenaHudControl.None, out direction));
+            Assert.AreEqual(1f, direction.y, 0.0001f, "dragging up moves north");
+            Assert.AreEqual(direction, move.Direction);
+            Assert.IsFalse(move.TryMove(3, TouchPhase.Ended, start, layout, ArenaHudControl.None, out direction));
+            Assert.AreEqual(Vector2.zero, move.Direction);
         }
 
         [Test] public void MobileDefeatInstructionsMatchTouchRestartAction()

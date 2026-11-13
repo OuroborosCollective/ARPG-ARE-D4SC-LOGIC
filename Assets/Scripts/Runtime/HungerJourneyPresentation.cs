@@ -10,8 +10,9 @@ namespace AreArpg.UnityClient
         private Transform _returnPassage;
 
         /// <summary>Keep the journal control separate from movement, combat, pickup and camera targets.</summary>
+        /// <summary>The journal button sits at the right end of the quest tracker.</summary>
         public static Rect HungerToggleRect(ArenaHudLayout layout)
-        { return new Rect(layout.Width * .35f, layout.Height - 130f, layout.Width * .28f, 45f); }
+        { Rect q = layout.QuestTrackerRect; return new Rect(q.xMax - 98f, q.y + 6f, 92f, q.height - 12f); }
 
         /// <summary>One modal layout is shared by desktop drawing and physical Android touch routing.</summary>
         private static Rect HungerPanel(ArenaHudLayout layout)
@@ -95,7 +96,7 @@ namespace AreArpg.UnityClient
         private bool DrawHungerJournal(ArenaHudLayout layout)
         {
             if (_game.Progression.EntryAct < 2) return false;
-            string toggle = _hungerJournalOpen ? "SCHLIESSEN" : (Application.isMobilePlatform ? "SPUREN / ENTSCHEIDUNG" : "J: SPUREN / ENTSCHEIDUNG");
+            string toggle = _hungerJournalOpen ? "SCHLIESSEN" : (Application.isMobilePlatform ? "SPUREN" : "SPUREN (J)");
             if (Application.isMobilePlatform) GUI.Box(HungerToggleRect(layout), toggle);
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;
             if (!_hungerJournalOpen) return false;
@@ -167,6 +168,7 @@ namespace AreArpg.UnityClient
                 new Vector3(3.6f, .02f, 3.6f), new Color(.25f, .68f, .72f));
             _returnPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_Return_Passage", new Vector3(0, .03f, -24),
                 new Vector3(3.6f, .02f, 3.6f), new Color(.58f, .62f, .69f));
+            _chapterScenery.Add(RefugeScenery.Create(mill));
             if (!mill)
             {
                 ChapterShape(PrimitiveType.Cube, "AshRoad_Trail_Marker", new Vector3(1.7f, .8f, -2),
@@ -190,8 +192,13 @@ namespace AreArpg.UnityClient
                 if (i >= 3 - _game.HungerShelterPatients)
                 {
                     Transform patient = ChapterShape(PrimitiveType.Capsule, "OldMill_Patient_" + i,
-                        new Vector3(-4 - i * 2.5f, .58f, 5), new Vector3(.55f, .85f, .55f), new Color(.46f, .4f, .35f));
-                    patient.rotation = Quaternion.Euler(90, 0, 0);
+                        new Vector3(-4 - i * 2.5f, .32f, 5), Vector3.one, new Color(.46f, .4f, .35f));
+                    if (!PassiveArtVisuals.TryBindGrounded(patient, "MillPatient" + i, .32f))
+                    {
+                        patient.position += Vector3.up * .26f;
+                        patient.localScale = new Vector3(.55f, .85f, .55f);
+                        patient.rotation = Quaternion.Euler(90, 0, 0);
+                    }
                 }
             }
             ChapterShape(PrimitiveType.Cube, "OldMill_Torn_Bandage", new Vector3(-4, .32f, 5),

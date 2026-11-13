@@ -12,8 +12,7 @@ namespace AreArpg.UnityClient
         private string _roadAnimation = "";
         private bool _roadCallShown;
 
-        private static Rect HunterActionRect(ArenaHudLayout layout)
-        { return new Rect(layout.Width * .35f, layout.Height - 180f, layout.Width * .28f, 42f); }
+        private static Rect HunterActionRect(ArenaHudLayout layout) { return layout.ContextActionRect; }
 
         private bool CanShowHunterAction()
         {
@@ -44,7 +43,7 @@ namespace AreArpg.UnityClient
             if (_hungerJournalOpen || _game.Progression.EntryAct != 3) return;
             var h = _game.Progression.Road;
             if (h.Started && !h.Bear.IsDead && h.HunterHealth > 0)
-                GUI.Box(new Rect(layout.Width * .25f, layout.StatusPanelRect.yMax + 8f, layout.Width * .5f, 62f),
+                GUI.Box(new Rect(layout.SubtitleBandRect.x, layout.SubtitleBandRect.y, layout.SubtitleBandRect.width, 62f),
                     "JAEGER IN GEFAHR  " + h.HunterHealth + "/700  |  BAER  " + h.Bear.Health + "/" + h.Bear.MaxHealth +
                     "\nAngreifen lenkt ihn ab. Dem roten Prankenhieb ausweichen!");
             if (!CanShowHunterAction()) return;
@@ -53,7 +52,7 @@ namespace AreArpg.UnityClient
             else if (GUI.Button(HunterActionRect(layout), label)) _pendingHunterAction = h.HunterHealth == 0 ? 1 : 0;
         }
 
-        private void OnDestroy() { ClearRoadVisuals(); ClearRattlerVisuals(); }
+        private void OnDestroy() { ClearRoadVisuals(); ClearRattlerVisuals(); ClearPortraitVisuals(); }
 
         private void ClearRoadVisuals()
         {

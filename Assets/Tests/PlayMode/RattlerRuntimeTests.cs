@@ -26,6 +26,12 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse(Find("HiddenCrypt_InnerDoor").activeSelf);
             MoveStory(0, 24000); TravelStory();
             Assert.AreEqual(7, Game.Progression.EntryAct);
+            typeof(ArenaRuntime).GetMethod("UpdateHud", Flags).Invoke(_runtime, null);
+            var mapDots = (System.Collections.Generic.List<UnityEngine.UI.Image>)typeof(ArenaRuntime)
+                .GetField("_hudDots", Flags).GetValue(_runtime);
+            var exits = mapDots.FindAll(dot => dot.enabled && dot.color == new Color(.35f, .85f, 1f));
+            Assert.AreEqual(1, exits.Count, "the den has only its actual return passage");
+            Assert.Less(exits[0].rectTransform.anchoredPosition.y, 0f, "the exit is south, behind the arriving player");
             yield return StoryAction(HungerAction.ToggleSneak);
             MoveStory(0, 0);
             Assert.AreEqual(0, Game.Progression.Rattler.MemoryTicks);
@@ -85,6 +91,14 @@ namespace AreArpg.PlayMode.Tests
             animator.Play("Attack", 0, .45f); animator.Update(0);
             int changed = 0; for (int i = 0; i < poses.Length; i++) if (Quaternion.Angle(poses[i], bones[i].localRotation) > .5f) changed++;
             Assert.Greater(changed, 5, "An attached controller without actual bone animation is insufficient");
+            var brand = System.Array.Find(creature.GetComponentsInChildren<Transform>(true), t => t.name == "Immergruen_Royal_Brand").GetComponent<Renderer>();
+            foreach (string pose in new[] { "Idle", "Attack", "Death" })
+            {
+                animator.Play(pose, 0, .45f); animator.Update(0);
+                float extent = Mathf.Max(brand.bounds.size.x, brand.bounds.size.y, brand.bounds.size.z);
+                Assert.That(extent, Is.InRange(.05f, .5f),
+                    "The neck mark must remain a small physical mark in " + pose + ", not a bone-scaled screen obstruction");
+            }
             animator.Play("Idle", 0, 0); animator.Update(0);
             yield return null;
         }

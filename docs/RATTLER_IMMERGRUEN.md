@@ -10,7 +10,7 @@ Das **schwebende Koenigreich Immergruen** (`realm.immergruen`) liegt als gruene 
 
 Der Rattler in der verborgenen Krypta traegt **am Hals ein Brandmal, das exakt dem Wappen des Koenigs von Immergruen entspricht** (`immergruen.royal.brand`). Das verbindet das Tier mit Immergruen. Sein Auftauchen bei den Verletzten und die Moeglichkeit der Abrichtung begruenden den Verdacht auf gezielten Einsatz. **Abrichter, Auftraggeber, Motiv, ausgewaehlte Opfer und das Schicksal aller Vermissten bleiben offen.** Insbesondere ist das Wappen kein automatischer Beweis eines persoenlichen Befehls des Koenigs.
 
-Die konkrete heraldische Zeichnung ist noch keine Owner-Entscheidung. Ein grafischer Prototyp darf als solcher erkennbar sein; Markenidentitaet und Untersuchungstext sind bereits eindeutig.
+Die konkrete heraldische Zeichnung ist noch keine Owner-Entscheidung. Ein grafischer Prototyp darf als solcher erkennbar sein; Markenidentitaet und Untersuchungstext sind bereits eindeutig. Der Owner praezisiert am12.11.2026: Das Brandmal ist primaer ein Lore-Hinweis; ein eigenes Tattoo-Modell ist nicht erforderlich. Der bereits vorhandene kleine Grafikprototyp ist akzeptiert. Bei Nutzung des privaten Creep-Prefabs passt `ARE ARPG/Art/Fit Private Rattler Brand` nur seine Groesse an die importierten Knochenmasse an (0.24m in der Ausgangspose).
 
 ## Spielbarer Abschnitt
 

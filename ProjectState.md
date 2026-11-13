@@ -1,14 +1,60 @@
 # ARE Ashen Crypt — Projektzustand
 
-## Aktueller Entwicklungsblock: MaulwurfRattler (12.11.2026)
+## PR28: Reviewkorrekturen und Mergefreigabe (13.11.2026)
+
+Owner-Auftrag: Draft PR28 bearbeiten und zum Merge fuehren. Die bisherige Draft-Bindung ist damit aufgehoben; technische Review- und CI-Gates bleiben erforderlich. PR28 wurde zur automatischen Pruefung freigegeben. Sein Umfang bleibt Fables mobile UI/Kamera, private Welttexturen, Aussenhorizonte, Rattler-Sichtkorrektur sowie Patienten/Muehlenzuflucht/Strassenraender. Der Aschenzoll-Storyentwurf bleibt separat in Draft PR29 und ist kein Bestandteil dieses Merges.
+
+Gepruefter Code ef2926f0e0fe0242492638ae3fdabd9aad0fef37 / Tree8f5489b51948a3cf956e5420d6fd75134288ada8: 1866 Core-Assertions,38Preflights, Unity6000.6.8f1 PlayMode111/111 und EditMode33/33,0Skips. Vier urspruengliche Reviewfehler wurden auf79ac8513907177f8a0f10c2a2abf4f6d9ebf0170 nativ reproduziert; weitere sechs PlayMode- und zwei EditMode-Fehler auf1270dff0437a3d57e35172e656e0e4385f8f4aa3. Der Menue-Panelverdacht bestaetigte sich nicht; die neue Grenzpruefung besteht ohne Layoutaenderung. SHA-/XML-Bindung in Memory.md [pr28-review-merge-20261113]. Private Assets unveraendert, Prefs/Settings wiederhergestellt. Evidence: /var/lib/unityarpg/.local/share/are-arpg/pr28-merge-20261113. Keine neue APK oder physische Android-Abnahme; der vereinbarte Geraeteblock folgt erst nach dem groesseren Story-/Gebietsblock.
+
+Reviewkorrekturen: Helden-Layer nach Portraetansicht wiederherstellen; Legacy-Kameraheading zuruecksetzen; Seitwaertseingabe von automatischem Kamerafolgen entkoppeln; nahe Verdeckung und Mausgesten begrenzen; Minikarte an echte Gebietsausgaenge binden; XP-Balken ohne BigInteger-Ueberlauf; Inventarseiten und Menue-Neulayout bei Viewportwechsel; optionale Weltprefab-Liste und wiederholbare UV-Erzeugung mit Quellnachweis. Nach dem Laden werden explizit zwei Muehlenpatienten verlangt. Die finalen Dokumentationsaenderungen veraendern den getesteten Code nicht. Abschliessender Review-/Mergestatus: [PR28](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/28).
+
+Letzter Nachreviewpunkt: Der neue Autorierungstest musste seinen ignorierten Ausgabeordner auch in einem sauberen Checkout selbst anlegen und nur als eigenen leeren Ordner entfernen. Nativ reproduziert auf01dd3813a261049a8631b97966ec84a03a542ff7; korrigiert auf5cb18744f87a42691de42d60cb4cd148b504001b mit2/2 Tests ohne privates Welt-Overlay und33/33 EditMode mit privatem Bestand,0Skips. Private Dateien unveraendert, Prefs/Settings wiederhergestellt. Runtime-Tree717e5ce25a29ce93d6cd11faf7cecdba6490a4f0 und Editor-Tree28b1c8151dff88826f4df3fa4918dc2703357d97 sind bytegleich zum111/111-PlayMode-Stand ef2926f; keine erneute Laufzeitaenderung.
+
+Der abschliessende Fixturetest reproduzierte ausserdem den Verlust einer bereits auf Platte vorhandenen, noch nicht importierten Datei (REDccef6e2f08c9a6a15598b787d73b47fd4fbeddd6). Die Bestandsaufnahme erfolgt nun nach dem synchronen Import. GREENdf36319e2bf4d13e7a6467664a949719d561543e:34/34 private EditMode-Tests und3/3 gezielte Tests im sauberen Checkout,0Skips; private Assets unveraendert, Prefs/Settings wiederhergestellt. Runtime-/Editor-Quelltrees bleiben identisch; neue Regression betrifft ausschliesslich Testisolation. XML-SHA256 in Memory.md.
+
+Die nachfolgenden datierten Abschnitte bewahren den jeweiligen historischen Reviewstand.
+
+## Entwicklungsblock: MaulwurfRattler (12.11.2026)
 
 - phase: VERTICAL_SLICE / CREATURE_INTEGRATION
 - current_goal: Inneren Kryptazugang, blinden MaulwurfRattler, Schleichen und untersuchbares Halsbrandmal als zusammenhaengenden Spielabschnitt integrieren.
 - approved: Owner-Kanon zu Aschenglutfällen, konditionierter Geruchsjagd und dem schwebenden Handelsreich Immergruen; gewaehltes Modellpaket Creep Horror Creature. Vollstaendiger Vertrag: [RATTLER_IMMERGRUEN](docs/RATTLER_IMMERGRUEN.md).
-- implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. Der Kandidat ist noch nicht integriert.
+- implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. PR25 ist als 86bae8f108aaf1ee508dd7b24dc448e49c2bdc2a in main integriert.
 - open_decisions: Konkrete Wappenzeichnung, Abrichter, Auftraggeber, Motiv, konditionierter Zielgeruch und Schicksal der einzelnen Vermissten. Kein persoenlicher Koenigsbefehl allein aus dem Wappen ableiten.
 - verified: Privates Creep-Horror-Creature-Originalpaket244853 als CryptRattler gebunden (LOD1, 2107Vertices, vier Clips, Halsbrandmal als Grafikprototyp). Native Knochenbewegung/Brandmalbindung und Begegnung bestanden; Unity6 PlayMode68/68, EditMode31/31. Revisionsbindung und XML-Hashes: Memory.md [rattler-pr25-20261112].
-- next: PR25 nach GitHub-CI und geschlossenen Review-Kommentaren integrieren. Finale Wappenzeichnung und Kameraverdeckung am Hoehlenrand bleiben offen; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+- next: PR28 bleibt Draft zur Sichtabnahme. Aussenhorizonte, Patienten, Muehlenzuflucht und erste Strassenrandgestaltung sind nativ geprueft. Naechsten groesseren Story-/Gebietsblock konkretisieren; weitere visuelle Feinarbeit bleibt offen. Das Brandmal bleibt primaer ein Lore-Hinweis mit optionaler kleiner Grafik; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+
+## Muehlenzuflucht und Strassenraender (13.11.2026)
+
+Der Schlafbereich hat ein Schutzdach auf vier Holzstuetzen, einen flachen Bretterzugang und Stoffunterlagen. Verbandrollen und ein kleines Versorgungspaket ergaenzen die vorhandene Kiste. Der helle Verband auf dem leeren Bett bleibt auf dunklerem Stoff sichtbar. Zwoelf niedrige Buesche saeumen die Wege; sechs Felsgruppen ausserhalb der Bewegungsgrenze rahmen Strasse und Muehle. Zwei separate passive Buschbindungen stammen aus der bestehenden privaten Dorfszene; deren Original bleibt unveraendert. Editor-Reproduktion: `ARE ARPG/Art/Extract Private Roadside Shrubs`.
+
+Die vier Stuetzen sind echte Hindernisse im integerbasierten Core; Darstellung und Kollision verwenden dieselben Koordinaten und0.24m Breite, mit bestehendem Spielerradius. Hauptweg und beide Untersuchungsstellen bleiben erreichbar. Kein neues Unity-Physiksystem, keine Save-/Quest-/Fable-UI-/Kameraaenderung. Native Gesamt- und Spielansichten gesichtet; bestehender kompletter Regressionstestlauf inklusive Reise-/Save-/Krypta-/Rattlerabschnitten bestanden.
+
+Code6947fadf3d8baf1e923ae05b5e37b2a91c064c32 / Tree a5863fb98f337bf240a654bb902247bbcd359904: Core1866+38Preflights, CI43340748087 success; Unity6000.6.8f1 PlayMode101/101 und EditMode31/31, jeweils0Skips. Reale REDs fuer durchlaufbare Stuetzen und primitive Pflanzen; SHA-/XML-Bindung in Memory.md [mill-refuge-20261113]. Evidence `/var/lib/unityarpg/.local/share/are-arpg/mill-refuge-20261113`, `refined-play`, `refined-edit` und `author-result.json`. Private Dateien in Tests unveraendert, Prefs/Settings wiederhergestellt. PR28 bleibt Draft; keine neue APK oder Android-Leistungsmessung.
+
+## Patienten an der alten Muehle (13.11.2026)
+
+Die Kapseln sind durch ruhende, zugedeckte Bauernfiguren aus den vorhandenen privaten Dorfmodellen ersetzt. Statische Meshes mit5648/5263/5648Vertices, ohne Animator oder zusaetzliche Physik; Quellen unveraendert. Anzahl, Verschwinden und Laden folgen unveraendert dem Core. Native Nahaufnahmen zeigen erst drei Patienten, nach Rueckkehr/Laden zwei und das leere Bett mit Verband. Fable-UI, Spielkamera, Core und Save-Vertrag bleiben erhalten. Reproduktion: `ARE ARPG/Art/Build Private Mill Patients`.
+
+Code665f681f1e91d262f23994f988bd7f0df51759b4 / Tree d9c687de3343fe74c37916dff6daa7bd75511b43: Unity6000.6.8f1 PlayMode100/100 und EditMode31/31, jeweils0Skips, Core1840+38Preflights, CI43336707652 success. Zwei echte REDs fuer fehlende Modelle bzw. fehlende Farbtexturen; finale Autorenerzeugung nutzt die bereits gebackenen Dorftexturen. Nach einmaliger Unity-Importaktualisierung der sechs neuen Patientenmaterialien bestehen die finalen Laeufe mit unveraendertem privaten Bestand und wiederhergestellten Prefs/Settings. SHA-/XML-Bindung: Memory.md [mill-patients-20261113]. Evidence: `/var/lib/unityarpg/.local/share/are-arpg/mill-patients-20261113`, `stable-play` und `stable-edit`; private Authoring-Receipts getrennt. PR28 bleibt Draft; keine neue APK oder Android-Leistungsmessung.
+
+## Aussenhorizonte (13.11.2026)
+
+Dorf, Aschenstrasse und alte Muehle erhalten einen bedeckten Himmel, niedrige Huegel und einen texturierten Uebergang in die Ferne. Die statische Kulisse liegt ausserhalb der Bewegungsgrenze; 910 selbst erzeugte Vertices plus zwei optionale bestehende Felsgruppen, keine Collider und keine eigene Update-Schleife. Der native Test begrenzt die Gesamtgeometrie auf weniger als 30000 Vertices, prueft Shader, Save/Core-Unveraendertheit sowie Entfernung beim Wechsel in den Innenbereich. Fables UI/Kamera und der Core sind unveraendert.
+
+Code e32fd6b3b72e21c780e32e9b56a21de7b56fa4cd / Tree 7af5149addbac53e9024efd575283c5543526f36: Unity6000.6.8f1 PlayMode99/99 und EditMode31/31, jeweils0Skips; Core1840 und38Preflights via CI43333802027 success. Native Dorf-/Strassen-/Muehlenbilder gesichtet; erste zu hohe Silhouette vor diesem Stand abgesenkt. Exakte RED/GREEN-/XML-Bindung: Memory.md [outdoor-horizons-20261113]. Evidence: `/var/lib/unityarpg/.local/share/are-arpg/outdoor-horizons-20261112`. Private Assets unveraendert, Saves/Settings wiederhergestellt. Weiterhin visueller Draft; keine neue begehbare Region, keine Android-Leistungsmessung oder APK-Abnahme. Patientenplatzhalter und weitere Landschaftsdetails bleiben offen.
+
+## Sichtkorrektur am Rattler (12.11.2026)
+
+Die zuvor als Hoehlenverdeckung dokumentierte dunkle Flaeche war das durch importierte Knochenmasse auf rund31m vergroesserte Halsbrandmal. Im isolierten privaten Prefab wurde ausschliesslich dessen lokale Skalierung korrigiert; Kamerafuehrung, UI, Koerpermodell, Animationen und Core bleiben erhalten. Neues natives Bild zeigt freie Sicht auf Rattler und Hiebwarnung. Der Owner versteht das Brandmal primaer als Lore-Hinweis; eine unauffaellige kleine Grafik ist akzeptiert, kein eigenstaendiges Tattoo-Feature erforderlich.
+
+Code6ba7623ecd55ce0fc7e8c0bcf29a126527ead8b7: Core1840, Preflights38, GitHub-CI43331070721 success, native PlayMode98/98 und EditMode31/31,0Skips. Exakte RED/GREEN-/XML-/Prefab-Bindung in Memory.md [rattler-brand-scale-20261112]. Reproduzierbarer Editor-Schritt: `ARE ARPG/Art/Fit Private Rattler Brand`. Private Rohassets bleiben unversioniert. PR28 bleibt Draft zur Sichtabnahme.
+
+## Gemeinsame Integration PR25 / PR28 (12.11.2026)
+
+PR25 ist nach finalen Review-/CI-Gates gemergt und per API sowie Git-Fetch bestaetigt. Der Textur-Draft wurde gegen dieses main zusammengefuehrt. Fables ArenaHudLayout, AshenUiTheme, HudPresentation, MenuPresentation, ArenaCameraRig und HeroCameraPresentation bleiben bytegleich zu PR28; Rattler-Eingabe/HUD bleiben verdrahtet. Beide historischen Memory-Eintraege sind erhalten.
+
+Gemeinsamer nativer Code `18434fca1cca9511bce2cb94685adb6d50c39bb1`: 1840 Core-Assertions, 38 Preflights, GitHub Core-CI43233152350 success, Unity6000.6.8f1 PlayMode98/98 und EditMode31/31 (0Skips), mit privaten Texturen und Creep-Assets. Prefs/Settings wiederhergestellt, private Dateien unveraendert. SHA-/XML-Bindung in Memory.md [integration-pr25-pr28-20261112]. Evidence: `/var/lib/unityarpg/.local/share/are-arpg/integration-20261112`; isolierter Workspace: `/var/lib/unityarpg/workspaces/are-arpg-integrated-20261112`. PR28 bleibt Draft, kein Merge und keine physische Touch-/Android-Abnahme dieses Blocks.
 
 ## Historischer Projektzustand vor den Folgeabschnitten
 

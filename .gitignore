@@ -44,3 +44,8 @@ asset-intake-receipts/
 # Dependencies of privately staged models; never part of the public source tree.
 /Assets/PrivateVendor/
 /Assets/PrivateVendor.meta
+
+# Private Asset Store UI kit sprites/fonts (e.g. Stone UI) stay outside public Git
+/Assets/Resources/ARE/UI/*
+!/Assets/Resources/ARE/UI/README.md
+!/Assets/Resources/ARE/UI/README.md.meta

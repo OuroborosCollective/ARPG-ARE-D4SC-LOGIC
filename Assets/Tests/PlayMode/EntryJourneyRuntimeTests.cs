@@ -60,15 +60,23 @@ namespace AreArpg.PlayMode.Tests
             PlayerPrefs.Save();
         }
 
-        /// <summary>The entry camera frames the actual hero more closely without a separate gameplay world.</summary>
+        /// <summary>The entry keeps its close default and uses the existing combat framing when enemies threaten.</summary>
         [UnityTest]
         public IEnumerator EntryCameraStartsAtTheCloserHeroDistance()
         {
             yield return new WaitForSeconds(0.9f);
             var hero = Find("Wanderer");
             Assert.IsNotNull(hero);
-            Assert.AreEqual(6.5f, Camera.main.GetComponent<ArenaCameraRig>().Distance, 0.1f,
-                "The entry profile must start from the approved closer 6.5 m framing");
+            var rig = Camera.main.GetComponent<ArenaCameraRig>();
+            Assert.AreEqual(4.2f, rig.Distance, 0.01f, "The entry profile must start from the close third-person framing");
+            Assert.AreEqual(HeroFraming.Combat, rig.Framing, "Nearby crypt enemies activate the existing combat framing");
+            Assert.AreEqual(5.4f, Vector3.Distance(Camera.main.transform.position, rig.FocusPoint), .06f,
+                "The actual camera must reach its reviewed combat distance while retaining the 4.2-m default");
+            Assert.Less(Camera.main.transform.eulerAngles.x, 25f, "The camera looks along the ground, not down from above.");
+            Assert.Less(Camera.main.transform.position.y, hero.transform.position.y + 2.5f);
+            Vector3 view = Camera.main.WorldToViewportPoint(hero.transform.position);
+            Assert.AreEqual(.5f, view.x, .05f, "The hero stays in the horizontal centre.");
+            Assert.Less(view.y, .5f, "The hero stands in the lower half so the way ahead is visible.");
         }
 
         /// <summary>The real native camera magnifies the hero while the actual Core and save bytes remain untouched.</summary>
@@ -91,16 +99,22 @@ namespace AreArpg.PlayMode.Tests
             float after = Vector2.Distance(camera.WorldToViewportPoint(hero.transform.position),
                 camera.WorldToViewportPoint(hero.transform.position + Vector3.up));
             Assert.Greater(after, before * 1.4f, "The actual projection must visibly magnify the hero");
-            Assert.AreEqual(2.8f, Vector3.Distance(camera.transform.position, hero.transform.position), .1f);
+            Assert.AreEqual(2.2f, rig.Distance);
+            Assert.LessOrEqual(Vector3.Distance(camera.transform.position, rig.FocusPoint), 2.25f);
             yield return Capture("camera-close.png");
             rig.ZoomSteps(-100f);
-            // Headless frame stalls are clamped by the camera; advance a bounded presentation interval.
             for (int step = 0; step < 20; step++) rig.AdvancePresentation(.1f);
             yield return null;
-            Assert.AreEqual(22f, Vector3.Distance(camera.transform.position, hero.transform.position), .05f);
+            Assert.AreEqual(9f, rig.Distance, "The entry camera never returns to the far overview.");
+            Assert.LessOrEqual(Vector3.Distance(camera.transform.position, rig.FocusPoint), 9.05f);
+            yield return Capture("camera-overview.png");
+            // Without scenery in the way the camera stands exactly at the chosen distance.
+            rig.SetOccluders(null);
+            for (int step = 0; step < 20; step++) rig.AdvancePresentation(.1f);
+            yield return null;
+            Assert.AreEqual(9f, Vector3.Distance(camera.transform.position, rig.FocusPoint), .05f);
             Assert.AreEqual(hash, Game.ComputeWorldHash());
             Assert.AreEqual(save, Game.Progression.SaveString());
-            yield return Capture("camera-overview.png");
         }
 
         /// <summary>Travel through canonical kill/pickup/passage, real PlayerPrefs and private village projection.</summary>
@@ -127,9 +141,11 @@ namespace AreArpg.PlayMode.Tests
             typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
             Assert.AreEqual(2, Game.Progression.EntryAct);
             Assert.AreEqual(chosenCameraDistance, cameraRig.Distance);
-            Assert.AreEqual(chosenCameraDistance,
-                Vector3.Distance(Camera.main.transform.position, Find("Wanderer").transform.position), .01f,
-                "The region transition must retain the chosen zoom without a 22 m snap");
+            Assert.LessOrEqual(Vector3.Distance(Camera.main.transform.position, cameraRig.FocusPoint), chosenCameraDistance + .01f,
+                "The region transition must retain the chosen zoom without snapping away");
+            Assert.AreEqual(0f, Vector3.Distance(cameraRig.FocusPoint,
+                Find("Wanderer").transform.position + Vector3.up * ArenaCameraRig.HeadHeight), .01f,
+                "The camera arrives with the hero instead of gliding in from the old region");
             Assert.AreEqual(0, Game.Monsters.Count);
             Assert.AreEqual(3, Game.Npcs.Count);
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var loaded));
@@ -381,7 +397,7 @@ namespace AreArpg.PlayMode.Tests
         { yield return CompleteSupplyJourney(); }
 
         /// <summary>Reach the missing-patients checkpoint through real story actions before each crypt branch.</summary>
-        private IEnumerator CompleteSupplyJourney()
+        private IEnumerator CompleteSupplyJourney(bool patientArt = false)
         {
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
@@ -414,6 +430,11 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(0f, millBounds.min.y, .02f, "The mill must stand on the visible ground");
             Assert.IsNotNull(Find("ARE_Return_Passage"));
             Assert.IsNotNull(Find("OldMill_Patient_0"));
+            if (patientArt)
+            {
+                AssertRestingPatients(3);
+                yield return Capture("mill-patients-present.png", patientDetail: true);
+            }
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
             yield return Capture("act4-old-mill.png");
             MoveStory(0, -2000); MoveStory(0, -24000); TravelStory();
@@ -436,6 +457,7 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
             Assert.IsNull(Find("OldMill_Patient_0"));
             Assert.IsNotNull(Find("OldMill_Patient_1"));
+            if (patientArt) AssertRestingPatients(2);
             yield return StoryAction(HungerAction.InspectBeds);
             Assert.AreEqual(4, Game.Progression.HungerStage);
             string checkpoint = PlayerPrefs.GetString(_keys[0]);
@@ -450,6 +472,109 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(4, Game.Progression.HungerStage);
             Assert.AreEqual(HungerChoice.Replace, Game.Progression.SupplyChoice);
             Assert.IsNotNull(Find("OldMill_House"));
+        }
+
+        [UnityTest]
+        public IEnumerator MillPatientArtPreservesSavedPopulation()
+        {
+            if (Resources.Load<GameObject>("ARE/Visuals/EntryNpc0") == null)
+                Assert.Ignore("Requires the private humanoid art overlay");
+            yield return CompleteSupplyJourney(true);
+            Assert.AreEqual(2, Game.HungerShelterPatients, "reload must preserve the missing patient");
+            AssertRestingPatients(2);
+            ulong hash = Game.ComputeWorldHash(); string save = Game.Progression.SaveString();
+            yield return Capture("mill-patients-return.png", patientDetail: true);
+            Assert.AreEqual(hash, Game.ComputeWorldHash()); Assert.AreEqual(save, Game.Progression.SaveString());
+            MoveStory(0, 1000); MoveStory(0, 24000); TravelStory(); yield return null;
+            for (int i = 0; i < 3; i++) Assert.IsNull(Find("OldMill_Patient_" + i));
+        }
+
+        private void AssertRestingPatients(int expected)
+        {
+            int count = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                var patient = Find("OldMill_Patient_" + i);
+                if (patient == null) continue;
+                count++;
+                Assert.IsFalse(patient.GetComponent<Renderer>().enabled, "A capsule is not patient art");
+                var art = patient.transform.Find("Art_MillPatient" + i);
+                Assert.IsNotNull(art, "The saved patient needs resting humanoid art");
+                Assert.IsEmpty(art.GetComponentsInChildren<Animator>(), "Baked resting poses need no animator");
+                Assert.IsEmpty(art.GetComponentsInChildren<Collider>());
+                var renderers = art.GetComponentsInChildren<Renderer>();
+                Assert.IsNotEmpty(renderers);
+                Bounds bounds = renderers[0].bounds;
+                foreach (var renderer in renderers)
+                {
+                    bounds.Encapsulate(renderer.bounds);
+                    foreach (var material in renderer.sharedMaterials)
+                    {
+                        Assert.IsTrue(material != null && material.shader.isSupported);
+                        if (renderer.name != "Blanket")
+                        {
+                            Assert.IsNotNull(material.mainTexture, "Patient skin and clothing must retain their baked colour atlas");
+                            Assert.Greater(material.color.maxColorComponent, .05f, "Patient materials must not turn black during conversion");
+                        }
+                    }
+                }
+                Assert.That(bounds.size.z, Is.InRange(1.7f, 2.3f));
+                Assert.Less(bounds.size.x, 1.45f); Assert.Less(bounds.size.y, .8f);
+                Assert.That(bounds.min.y, Is.InRange(.3f, .38f));
+                Assert.AreEqual(-4 - i * 2.5f, bounds.center.x, .05f);
+                Assert.AreEqual(5, bounds.center.z, .05f);
+                int vertices = 0;
+                foreach (var mesh in art.GetComponentsInChildren<MeshFilter>()) vertices += mesh.sharedMesh.vertexCount;
+                Assert.That(vertices, Is.InRange(500, 20000));
+            }
+            Assert.AreEqual(expected, count);
+        }
+
+        [UnityTest]
+        public IEnumerator MillRefugeKeepsCluesAndTravelAccessible()
+        {
+            yield return CompleteSupplyJourney();
+            var refuge = Find("OldMill_Refuge"); Assert.IsNotNull(refuge);
+            Assert.IsNotNull(Find("OldMill_Shelter_Canvas"));
+            Assert.IsNotNull(Find("OldMill_Dressing_Roll_0"));
+            if (Resources.Load<GameObject>("ARE/Visuals/EntryVillageWorld") != null)
+                for (int i = 0; i < 6; i++)
+                {
+                    var plant = Find("Route_Grass_-1_" + i); Assert.IsNotNull(plant);
+                    int plantVertices = 0;
+                    foreach (var mesh in plant.GetComponentsInChildren<MeshFilter>()) plantVertices += mesh.sharedMesh.vertexCount;
+                    Assert.Greater(plantVertices, 40, "Roadside plants must be real foliage, not blockout cubes");
+                }
+            for (int i = 0; i < 4; i++)
+            {
+                ArenaSimulation.MillShelterPost(i, out long x, out long z);
+                var post = Find("OldMill_Shelter_Post_" + i);
+                Assert.IsNotNull(post); Assert.IsFalse(Game.CanStand(x, z));
+                Assert.AreEqual(x * .001f, post.transform.position.x, .001f);
+                Assert.AreEqual(z * .001f, post.transform.position.z, .001f);
+                Assert.AreEqual(ArenaSimulation.MillShelterPostHalfWidthMm * .002f,
+                    post.GetComponent<Renderer>().bounds.size.x, .001f);
+            }
+            foreach (var collider in refuge.GetComponentsInChildren<Collider>()) Assert.IsFalse(collider.enabled);
+            Assert.Greater(Find("OldMill_Shelter_Canvas").GetComponent<Renderer>().bounds.min.y, 2.8f);
+            int vertices = 0;
+            foreach (var filter in refuge.GetComponentsInChildren<MeshFilter>()) vertices += filter.sharedMesh.vertexCount;
+            Assert.Less(vertices, 100000, "Refuge and roadside dressing must have bounded geometry");
+            foreach (var renderer in refuge.GetComponentsInChildren<Renderer>())
+            {
+                foreach (var material in renderer.sharedMaterials) Assert.IsTrue(material != null && material.shader.isSupported);
+            }
+            foreach (Transform part in refuge.transform)
+                if (part.name.StartsWith("Route_OuterRocks"))
+                    foreach (var renderer in part.GetComponentsInChildren<Renderer>())
+                        Assert.Greater(Mathf.Abs(renderer.bounds.center.x) - renderer.bounds.extents.x, 27f);
+            ulong hash = Game.ComputeWorldHash(); string save = Game.Progression.SaveString();
+            yield return Capture("mill-refuge-return.png", refugeDetail: true);
+            Assert.AreEqual(hash, Game.ComputeWorldHash()); Assert.AreEqual(save, Game.Progression.SaveString());
+            MoveStory(0, 5000); MoveStory(0, -24000); TravelStory(); yield return null;
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            Assert.IsNull(Find("OldMill_Refuge")); Assert.IsNotNull(Find("AshRoad_Verges"));
+            yield return Capture("ash-road-verges.png");
         }
 
         /// <summary>Investigate all clues through the shipped action queue, then return the discovery to Ilyan.</summary>
@@ -641,6 +766,36 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse(Game.InteractHunter(false).Accepted);
         }
 
+        [UnityTest]
+        public IEnumerator OutdoorBackdropFollowsTravelWithoutChangingTheCore()
+        {
+            Assert.IsNull(Find("ARE_Outdoor_Backdrop"), "The opening crypt keeps its interior atmosphere");
+            yield return CompleteSupplyJourney();
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            var backdrop = Find("ARE_Outdoor_Backdrop");
+            Assert.IsNotNull(backdrop, "The mill must have a surrounding landscape, not a void horizon");
+            Assert.IsNotNull(Find("Outdoor_Sky"));
+            Assert.IsNotNull(Find("Outdoor_FarRidge"));
+            foreach (var collider in backdrop.GetComponentsInChildren<Collider>(true))
+                Assert.IsFalse(collider.enabled, "Backdrop geometry must never supply gameplay collision");
+            int vertices = 0;
+            foreach (var filter in backdrop.GetComponentsInChildren<MeshFilter>())
+            {
+                vertices += filter.sharedMesh.vertexCount;
+                Assert.IsNotNull(filter.GetComponent<Renderer>().sharedMaterial);
+                Assert.IsTrue(filter.GetComponent<Renderer>().sharedMaterial.shader.isSupported);
+            }
+            Assert.Less(vertices, 30000, "The distant landscape has a bounded geometry budget");
+            ulong hash = Game.ComputeWorldHash(); string save = Game.Progression.SaveString();
+            var rig = Camera.main.GetComponent<ArenaCameraRig>();
+            rig.SnapToTarget();
+            yield return Capture("outdoor-mill-north.png");
+            Assert.AreEqual(hash, Game.ComputeWorldHash()); Assert.AreEqual(save, Game.Progression.SaveString());
+            MoveStory(0, 24000); TravelStory(); yield return null;
+            Assert.AreEqual(5, Game.Progression.EntryAct);
+            Assert.IsNull(Find("ARE_Outdoor_Backdrop"), "Leaving the outdoor regions removes their backdrop");
+        }
+
         /// <summary>Use fixed-tick input to reach an interaction or portal; no player teleport fixtures.</summary>
         private void MoveStory(long x, long z)
         {
@@ -681,7 +836,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>Optional real camera render for private visual inspection; never a gameplay input.</summary>
-        private IEnumerator Capture(string name, bool heroDetail = false)
+        private IEnumerator Capture(string name, bool heroDetail = false, bool patientDetail = false, bool refugeDetail = false)
         {
             string directory = System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
             if (string.IsNullOrEmpty(directory)) yield break;
@@ -713,6 +868,17 @@ namespace AreArpg.PlayMode.Tests
                     focus.y = 1f;
                     camera.transform.position = focus + new Vector3(3f, 1.2f, 4f);
                     camera.transform.LookAt(focus);
+                }
+                if (patientDetail)
+                {
+                    Vector3 focus = new Vector3(-6.5f, .5f, 5);
+                    camera.transform.position = focus + new Vector3(2.7f, 3.4f, -4f);
+                    camera.transform.LookAt(focus);
+                }
+                if (refugeDetail)
+                {
+                    camera.transform.position = new Vector3(1, 5.5f, -8);
+                    camera.transform.LookAt(new Vector3(-5.5f, 1.3f, 3.8f));
                 }
                 camera.targetTexture = target;
                 camera.Render();

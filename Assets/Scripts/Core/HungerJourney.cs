@@ -70,11 +70,29 @@ namespace AreArpg.Core
             return new ArenaSimulation(_runSeed, next, CryptDepth, _lootCatalog);
         }
 
-        /// <summary>Core-sized mill footprint also supplies the visible structure's dimensions.</summary>
+        public const long MillShelterPostHalfWidthMm = 120;
+
+        /// <summary>One authored layout supplies both collision and the four visible shelter supports.</summary>
+        public static void MillShelterPost(int index, out long x, out long z)
+        {
+            if (index < 0 || index >= 4) throw new ArgumentOutOfRangeException(nameof(index));
+            x = index % 2 == 0 ? -10500 : -2500;
+            z = index < 2 ? 2900 : 7200;
+        }
+
+        /// <summary>Mill and shelter footprints are integer Core geometry, including player clearance.</summary>
         public static bool CanStandInHungerRegion(int act, long x, long z)
         {
-            return act != 4 || Math.Abs(x - 10500L) > 3500L + PlayerRadiusMm ||
-                Math.Abs(z - 5000L) > 5500L + PlayerRadiusMm;
+            if (act != 4) return true;
+            if (Math.Abs(x - 10500L) <= 3500L + PlayerRadiusMm &&
+                Math.Abs(z - 5000L) <= 5500L + PlayerRadiusMm) return false;
+            for (int i = 0; i < 4; i++)
+            {
+                MillShelterPost(i, out long px, out long pz);
+                if (Math.Abs(x - px) <= MillShelterPostHalfWidthMm + PlayerRadiusMm &&
+                    Math.Abs(z - pz) <= MillShelterPostHalfWidthMm + PlayerRadiusMm) return false;
+            }
+            return true;
         }
 
         /// <summary>Require actual conscious, nonhostile local contact; offscreen NPCs learn nothing.</summary>

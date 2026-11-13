@@ -1,0 +1,365 @@
+using System.Collections;
+using System.Reflection;
+using AreArpg.Core;
+using AreArpg.UnityClient;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+using UnityEngine.UI;
+
+namespace AreArpg.PlayMode.Tests
+{
+    /// <summary>Real Unity test of the uGUI HUD and modal menus on the entry profile (isolated save keys).</summary>
+    public sealed class MobileUiRuntimeTests
+    {
+        private readonly string[] _keys = { "ARE_ARPG_entry_v1", "ARE_ARPG_entry_v1_backup" };
+        private readonly string[] _saved = new string[2];
+        private readonly bool[] _had = new bool[2];
+        private Scene _previous, _scene;
+        private GameObject[] _previousRoots;
+        private bool[] _previousActive;
+        private ArenaRuntime _runtime;
+        private const BindingFlags Flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        private ArenaSimulation Game { get { return (ArenaSimulation)typeof(ArenaRuntime).GetField("_game", Flags).GetValue(_runtime); } }
+
+        [UnitySetUp]
+        public IEnumerator Setup()
+        {
+            for (int i = 0; i < _keys.Length; i++) { _had[i] = PlayerPrefs.HasKey(_keys[i]); _saved[i] = PlayerPrefs.GetString(_keys[i], ""); PlayerPrefs.DeleteKey(_keys[i]); }
+            _previous = SceneManager.GetActiveScene();
+            _previousRoots = _previous.GetRootGameObjects();
+            _previousActive = new bool[_previousRoots.Length];
+            for (int i = 0; i < _previousRoots.Length; i++)
+            {
+                _previousActive[i] = _previousRoots[i].activeSelf;
+                var root = _previousRoots[i];
+                if (root.GetComponent<ArenaRuntime>() != null || root.GetComponentsInChildren<Renderer>(true).Length > 0 ||
+                    root.GetComponentsInChildren<Camera>(true).Length > 0 || root.GetComponentsInChildren<Light>(true).Length > 0 ||
+                    root.GetComponentsInChildren<Canvas>(true).Length > 0)
+                    root.SetActive(false);
+            }
+            _scene = SceneManager.CreateScene("AshenEntry");
+            SceneManager.SetActiveScene(_scene);
+            _runtime = new GameObject("Mobile_UI_Check").AddComponent<ArenaRuntime>();
+            yield return null;
+        }
+
+        [UnityTearDown]
+        public IEnumerator Restore()
+        {
+            ArenaRuntime.HudScreenOverride = null;
+            if (_previous.IsValid() && _previous.isLoaded) SceneManager.SetActiveScene(_previous);
+            if (_scene.IsValid() && _scene.isLoaded) yield return SceneManager.UnloadSceneAsync(_scene);
+            for (int i = 0; i < _previousRoots.Length; i++)
+                if (_previousRoots[i] != null) _previousRoots[i].SetActive(_previousActive[i]);
+            for (int i = 0; i < _keys.Length; i++)
+                if (_had[i]) PlayerPrefs.SetString(_keys[i], _saved[i]); else PlayerPrefs.DeleteKey(_keys[i]);
+            PlayerPrefs.Save();
+        }
+
+        private Canvas Hud { get { return (Canvas)typeof(ArenaRuntime).GetField("_hudCanvas", Flags).GetValue(_runtime); } }
+        private void Route(ArenaHudControl control) { typeof(ArenaRuntime).GetMethod("RouteHudControl", Flags).Invoke(_runtime, new object[] { control }); }
+        private void Refresh() { typeof(ArenaRuntime).GetMethod("UpdateHud", Flags).Invoke(_runtime, null); }
+
+        private static Transform Child(Transform root, string name)
+        {
+            foreach (var t in root.GetComponentsInChildren<Transform>(true)) if (t.name == name) return t;
+            return null;
+        }
+
+        [UnityTest]
+        public IEnumerator HudProjectsTheSharedLayoutWithoutRaycasts()
+        {
+            ArenaRuntime.HudScreenOverride = new Vector2(1920f, 1080f);
+            Refresh();
+            yield return null;
+            Canvas hud = Hud;
+            Assert.IsNotNull(hud, "the uGUI HUD canvas must exist");
+            Assert.IsNull(hud.GetComponent<GraphicRaycaster>(), "HUD input is layout hit-tested; the HUD must not raycast");
+            var layout = new ArenaHudLayout(1920f, 1080f, new Rect(0f, 0f, 1920f, 1080f));
+            Assert.AreEqual(layout.Scale, hud.GetComponent<CanvasScaler>().scaleFactor, 1e-4f);
+            foreach (string name in new[] { "Status", "QuestTracker", "Minimap", "Menu0", "Menu1", "Menu2", "Menu3", "StickBase", "Skill0", "Skill1", "Skill2", "Skill3", "Pickup", "XpBack" })
+                Assert.IsNotNull(Child(hud.transform, name), name + " is missing from the HUD");
+            var skill = (RectTransform)Child(hud.transform, "Skill0");
+            Rect expected = layout.SkillRect(0);
+            Assert.AreEqual(new Vector2(expected.x, -expected.y), skill.anchoredPosition, "drawn attack button must equal its touch target");
+            Assert.AreEqual(expected.size, skill.sizeDelta);
+            foreach (var graphic in hud.GetComponentsInChildren<Graphic>(true)) Assert.IsFalse(graphic.raycastTarget, graphic.name + " must not raycast");
+            yield return CaptureUi("ui-hud-1920x1080.png", 1920, 1080);
+            yield return CaptureUi("ui-hud-phone-2400x1080.png", 2400, 1080);
+            yield return CaptureUi("ui-hud-tablet-2560x1600.png", 2560, 1600);
+        }
+
+        [UnityTest]
+        public IEnumerator MenuButtonsOpenModalMenusThatPauseTheCore()
+        {
+            yield return new WaitForSeconds(0.3f);
+            ulong before = Game.CurrentTick;
+            Assert.Greater(before, 0UL, "the core must run before the menu opens");
+            Route(ArenaHudControl.MenuInventory);
+            Assert.IsTrue(_runtime.MenuOpen);
+            Assert.AreEqual(ArenaRuntime.MenuInventory, _runtime.MenuTab);
+            ulong paused = Game.CurrentTick;
+            yield return new WaitForSeconds(0.5f);
+            Assert.AreEqual(paused, Game.CurrentTick, "no tick may advance while the menu is open");
+            var menu = GameObject.Find("ARE_Menu");
+            Assert.IsNotNull(menu);
+            Assert.IsNotNull(menu.GetComponent<GraphicRaycaster>(), "menus use real uGUI buttons");
+            Assert.IsNotNull(Object.FindObjectOfType<UnityEngine.EventSystems.EventSystem>());
+            var gameplay = Child(Hud.transform, "Gameplay");
+            Assert.IsFalse(gameplay.gameObject.activeSelf, "HUD controls hide behind the modal menu");
+            yield return CaptureUi("ui-menu-inventory.png", 1920, 1080);
+
+            for (int tab = 0; tab < ArenaRuntime.MenuTitles.Length; tab++)
+            {
+                _runtime.OpenMenu(tab);
+                yield return null;
+                Assert.AreEqual(tab, _runtime.MenuTab);
+                Assert.IsNotNull(Child(menu.transform, "Window"));
+                yield return CaptureUi("ui-menu-" + ArenaRuntime.MenuTitles[tab].ToLowerInvariant() + ".png", 1920, 1080);
+                yield return CaptureUi("ui-menu-" + ArenaRuntime.MenuTitles[tab].ToLowerInvariant() + "-phone.png", 2400, 1080);
+            }
+
+            _runtime.CloseMenu();
+            Assert.IsFalse(_runtime.MenuOpen);
+            yield return new WaitForSeconds(0.35f);
+            Assert.Greater(Game.CurrentTick, paused, "closing the menu resumes the 100-ms core");
+            Assert.IsTrue(Child(Hud.transform, "Gameplay").gameObject.activeSelf, "HUD controls return after closing");
+        }
+
+        [UnityTest]
+        public IEnumerator CharacterScreenRendersTheActualHeroOnly()
+        {
+            _runtime.OpenMenu(ArenaRuntime.MenuCharacter);
+            yield return null;
+            var camera = (Camera)typeof(ArenaRuntime).GetField("_portraitCamera", Flags).GetValue(_runtime);
+            Assert.IsNotNull(camera, "the character screen renders the real hero");
+            Assert.IsTrue(camera.enabled);
+            Assert.AreEqual(1 << 30, camera.cullingMask, "only the hero layer is rendered into the portrait");
+            Assert.IsNotNull(camera.targetTexture);
+            var hero = (Transform)typeof(ArenaRuntime).GetField("_hero", Flags).GetValue(_runtime);
+            Assert.AreEqual(30, hero.gameObject.layer);
+            var raw = Object.FindObjectsOfType<RawImage>();
+            Assert.IsTrue(System.Array.Exists(raw, r => r.texture == camera.targetTexture), "the RenderTexture must be shown");
+            _runtime.CloseMenu();
+            yield return null;
+            Assert.IsFalse(camera.enabled, "the portrait camera stops rendering when the menu closes");
+        }
+
+        [Test]
+        public void LateralInputDoesNotFeedCameraFollowBackIntoMovement()
+        {
+            var rig = (ArenaCameraRig)typeof(ArenaRuntime).GetField("_cameraRig", Flags).GetValue(_runtime);
+            var hero = (Transform)typeof(ArenaRuntime).GetField("_hero", Flags).GetValue(_runtime);
+            hero.rotation = Quaternion.identity; rig.ResetZoom();
+            var move = typeof(ArenaRuntime).GetMethod("CameraRelativeMove", Flags);
+            for (int i = 0; i < 80; i++)
+            {
+                object[] input = { 10000L, 0L }; move.Invoke(_runtime, input);
+                Assert.AreEqual(0L, (long)input[1], "holding right must keep the same world direction");
+                hero.rotation = Quaternion.LookRotation(new Vector3((long)input[0], 0, (long)input[1]));
+                rig.SetContext(true, false, false, Vector3.zero); rig.AdvancePresentation(.1f);
+            }
+        }
+
+        [Test]
+        public void InterruptedPresentationInputReleasesMouseOrbit()
+        {
+            var held = typeof(ArenaRuntime).GetField("_orbitMouseHeld", Flags);
+            held.SetValue(_runtime, true);
+            typeof(ArenaRuntime).GetMethod("ReleasePresentationTouches", Flags).Invoke(_runtime, null);
+            Assert.IsFalse((bool)held.GetValue(_runtime));
+        }
+
+        [Test]
+        public void MouseOrbitRequiresAnUnblockedFreshPress()
+        {
+            var handle = typeof(ArenaRuntime).GetMethod("HandleMouseOrbit", Flags);
+            Assert.IsNotNull(handle, "mouse polling needs the same testable gesture boundary as touch");
+            var rig = (ArenaCameraRig)typeof(ArenaRuntime).GetField("_cameraRig", Flags).GetValue(_runtime);
+            var l = new ArenaHudLayout(1920, 1080, new Rect(0, 0, 1920, 1080));
+            Vector2 free = new Vector2(960, 540), moved = new Vector2(1060, 540);
+            Vector2 blocked = new Vector2(l.SkillRect(0).center.x * l.Scale, 1080 - l.SkillRect(0).center.y * l.Scale);
+            float yaw = rig.Yaw;
+            handle.Invoke(_runtime, new object[] { l, blocked, true, true });
+            handle.Invoke(_runtime, new object[] { l, free, false, true });
+            Assert.AreEqual(yaw, rig.Yaw);
+            handle.Invoke(_runtime, new object[] { l, new Vector2(-1, -1), true, true });
+            handle.Invoke(_runtime, new object[] { l, free, false, true });
+            Assert.AreEqual(yaw, rig.Yaw);
+            handle.Invoke(_runtime, new object[] { l, free, true, true });
+            handle.Invoke(_runtime, new object[] { l, moved, false, true });
+            Assert.AreNotEqual(yaw, rig.Yaw);
+            typeof(ArenaRuntime).GetMethod("ReleasePresentationTouches", Flags).Invoke(_runtime, null);
+            yaw = rig.Yaw;
+            handle.Invoke(_runtime, new object[] { l, free, false, true });
+            Assert.AreEqual(yaw, rig.Yaw, "resuming a held button is not a new press");
+        }
+
+        [UnityTest]
+        public IEnumerator OpenMenuReflowsWhenViewportChanges()
+        {
+            ArenaRuntime.HudScreenOverride = new Vector2(2560, 1600);
+            _runtime.OpenMenu(ArenaRuntime.MenuInventory);
+            yield return null;
+            ArenaRuntime.HudScreenOverride = new Vector2(1280, 720);
+            typeof(ArenaRuntime).GetMethod("UpdateMenu", Flags).Invoke(_runtime, null);
+            yield return null;
+            var menu = GameObject.Find("ARE_Menu");
+            Assert.AreEqual(1280f / 960f, menu.GetComponent<CanvasScaler>().scaleFactor, .001f);
+            var close = (RectTransform)Child(menu.transform, "Close");
+            var corners = new Vector3[4]; close.GetWorldCorners(corners);
+            foreach (var point in corners) Assert.That(point.x, Is.InRange(0f, 1280f));
+            Assert.AreEqual(ArenaRuntime.MenuInventory, _runtime.MenuTab);
+        }
+
+        [UnityTest]
+        public IEnumerator InventoryPagingKeepsEveryCollectedReceiptReachable()
+        {
+            var collect = typeof(CharacterProgression).GetMethod("CollectItem", Flags);
+            var generate = typeof(LootCatalog).GetMethod("Generate", Flags);
+            for (int i = 1; i <= 61; i++)
+            {
+                Game.Progression.RecordKill();
+                var item = (LootItem)generate.Invoke(LootCatalog.Version1, new object[]
+                    { 17UL, System.Numerics.BigInteger.One, (ulong)i, i, 0, new System.Numerics.BigInteger(i) });
+                Assert.IsTrue((bool)collect.Invoke(Game.Progression, new object[] { item }));
+            }
+            string save = Game.Progression.SaveString();
+            _runtime.OpenMenu(ArenaRuntime.MenuInventory); yield return null;
+            var seen = new System.Collections.Generic.HashSet<int>();
+            for (int page = 0; page < 3; page++)
+            {
+                var menu = GameObject.Find("ARE_Menu");
+                var next = Child(menu.transform, "NextPage");
+                Assert.IsNotNull(next, "all receipts need reachable inventory pages");
+                for (int slot = 0; slot < 30; slot++)
+                {
+                    var cell = Child(menu.transform, "Cell" + slot);
+                    var button = cell.GetComponent<Button>();
+                    if (button == null) continue;
+                    button.onClick.Invoke(); yield return null;
+                    seen.Add((int)typeof(ArenaRuntime).GetField("_selectedItem", Flags).GetValue(_runtime));
+                    menu = GameObject.Find("ARE_Menu");
+                }
+                if (page < 2) { Child(menu.transform, "NextPage").GetComponent<Button>().onClick.Invoke(); yield return null; }
+            }
+            Assert.AreEqual(61, seen.Count);
+            var previous = Child(GameObject.Find("ARE_Menu").transform, "PreviousPage").GetComponent<Button>();
+            previous.onClick.Invoke(); yield return null;
+            Assert.AreEqual(30, (int)typeof(ArenaRuntime).GetField("_selectedItem", Flags).GetValue(_runtime));
+            Assert.AreEqual(save, Game.Progression.SaveString(), "browsing must not change equipment or progression");
+        }
+
+        [UnityTest]
+        public IEnumerator PortraitRestoresMixedHeroLayersWhenClosedOrSwitched()
+        {
+            var hero = (Transform)typeof(ArenaRuntime).GetField("_hero", Flags).GetValue(_runtime);
+            var camera = (Camera)typeof(ArenaRuntime).GetField("_camera", Flags).GetValue(_runtime);
+            camera.cullingMask &= ~(1 << 30);
+            var child = new GameObject("MixedLayerAttachment"); child.transform.SetParent(hero, false);
+            child.layer = 8;
+            int original = hero.gameObject.layer;
+            foreach (bool switchTab in new[] { false, true })
+            {
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter);
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter); // Rebuild must not remember portrait layers as originals.
+                yield return null;
+                Assert.AreEqual(30, hero.gameObject.layer);
+                if (switchTab) _runtime.OpenMenu(ArenaRuntime.MenuInventory); else _runtime.CloseMenu();
+                yield return null;
+                Assert.AreEqual(original, hero.gameObject.layer, "the gameplay hero must return to its original layer");
+                Assert.AreEqual(8, child.layer, "attachments keep their individual layers");
+                Assert.AreNotEqual(0, camera.cullingMask & (1 << hero.gameObject.layer));
+            }
+        }
+
+        [Test]
+        public void ExperienceBarStaysFiniteBeyondDoubleRange()
+        {
+            foreach (var level in new[] { System.Numerics.BigInteger.One, new System.Numerics.BigInteger(42), System.Numerics.BigInteger.Pow(10, 310) })
+            {
+                var p = new CharacterProgression();
+                var floor = CharacterProgression.RequiredExperienceForLevel(level);
+                var span = CharacterProgression.RequiredExperienceForLevel(level + 1) - floor;
+                p.EarnExperience(floor + span * 3 / 4);
+                Assert.IsTrue(CharacterProgression.TryLoad(p.SaveString(), out var loaded));
+                float fraction = ArenaRuntime.ExperienceFraction(loaded);
+                Assert.IsFalse(float.IsNaN(fraction) || float.IsInfinity(fraction));
+                Assert.AreEqual(.75f, fraction, .005f);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CharacterValuesStayInsideTheirPanelOnPhoneAndTablet()
+        {
+            foreach (var size in new[] { new Vector2(1920, 1080), new Vector2(2400, 1080), new Vector2(2560, 1600) })
+            {
+                ArenaRuntime.HudScreenOverride = size;
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter);
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                var panel = (RectTransform)Child(GameObject.Find("ARE_Menu").transform, "Stats");
+                Assert.IsNotNull(panel);
+                var corners = new Vector3[4];
+                foreach (var label in panel.GetComponentsInChildren<Text>())
+                {
+                    label.rectTransform.GetWorldCorners(corners);
+                    foreach (var corner in corners)
+                    {
+                        Vector3 local = panel.InverseTransformPoint(corner);
+                        Assert.That(local.y, Is.InRange(panel.rect.yMin - 1f, panel.rect.yMax + 1f),
+                            size + ": " + label.text + " must remain readable inside the stats panel");
+                    }
+                }
+            }
+        }
+
+        [Test]
+        public void QuestChronicleReadsPersistedCoreProgressOnly()
+        {
+            var fresh = CharacterProgression.CreateEntryProfile();
+            var milestones = ArenaRuntime.QuestMilestones(fresh);
+            Assert.Greater(milestones.Count, 4);
+            Assert.IsTrue(milestones.TrueForAll(m => !m.Value), "a fresh profile has completed nothing");
+            Assert.AreEqual(0f, ArenaRuntime.ExperienceFraction(fresh), 1e-6f);
+        }
+
+        /// <summary>Render HUD and menu (switched to camera space) at an exact device size into the evidence folder.</summary>
+        private IEnumerator CaptureUi(string name, int width, int height)
+        {
+            string directory = System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
+            if (string.IsNullOrEmpty(directory)) yield break;
+            ArenaRuntime.HudScreenOverride = new Vector2(width, height);
+            Refresh();
+            if (_runtime.MenuOpen) _runtime.OpenMenu(_runtime.MenuTab);
+            yield return null;
+            var camera = (Camera)typeof(ArenaRuntime).GetField("_camera", Flags).GetValue(_runtime);
+            var canvases = _runtime.GetComponentsInChildren<Canvas>();
+            var target = new RenderTexture(width, height, 24);
+            var pixels = new Texture2D(width, height, TextureFormat.RGB24, false);
+            var previous = camera.targetTexture; var active = RenderTexture.active;
+            try
+            {
+                camera.targetTexture = target;
+                foreach (var c in canvases) { c.renderMode = RenderMode.ScreenSpaceCamera; c.worldCamera = camera; c.planeDistance = camera.nearClipPlane + 0.05f; }
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+                RenderTexture.active = target;
+                pixels.ReadPixels(new Rect(0, 0, width, height), 0, 0); pixels.Apply();
+                System.IO.Directory.CreateDirectory(directory);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, name), pixels.EncodeToPNG());
+            }
+            finally
+            {
+                foreach (var c in canvases) { c.renderMode = RenderMode.ScreenSpaceOverlay; c.worldCamera = null; }
+                camera.targetTexture = previous; RenderTexture.active = active;
+                Object.Destroy(pixels); target.Release(); Object.Destroy(target);
+                ArenaRuntime.HudScreenOverride = null;
+                Refresh();
+                if (_runtime.MenuOpen) _runtime.OpenMenu(_runtime.MenuTab);
+            }
+        }
+    }
+}
