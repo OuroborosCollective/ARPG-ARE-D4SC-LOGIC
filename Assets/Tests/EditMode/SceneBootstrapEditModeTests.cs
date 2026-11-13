@@ -19,10 +19,11 @@ namespace AreArpg.EditMode.Tests
             var previous=SceneManager.GetActiveScene();
             var existing=Object.FindObjectsByType<ArenaRuntime>(FindObjectsSortMode.None);
             foreach(var runtime in existing)runtime.gameObject.SetActive(false);
-            var scene=path.Length==0?EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Additive):EditorSceneManager.OpenScene(path,OpenSceneMode.Additive);
-            SceneManager.SetActiveScene(scene);
+            Scene scene=default;
             try
             {
+                scene=path.Length==0?SceneManager.CreateScene("Forge_Bootstrap_Unowned_Check"):EditorSceneManager.OpenScene(path,OpenSceneMode.Additive);
+                SceneManager.SetActiveScene(scene);
                 var install=typeof(ArenaRuntime).GetMethod("InstallInAnyScene",BindingFlags.Static|BindingFlags.NonPublic);
                 install.Invoke(null,null);install.Invoke(null,null);
                 int count=scene.GetRootGameObjects().Sum(g=>g.GetComponentsInChildren<ArenaRuntime>(true).Length);
@@ -31,7 +32,7 @@ namespace AreArpg.EditMode.Tests
             finally
             {
                 if(previous.IsValid()&&previous.isLoaded)SceneManager.SetActiveScene(previous);
-                EditorSceneManager.CloseScene(scene,true);
+                if(scene.IsValid()&&scene.isLoaded)EditorSceneManager.CloseScene(scene,true);
                 foreach(var runtime in existing)if(runtime!=null)runtime.gameObject.SetActive(true);
             }
         }
