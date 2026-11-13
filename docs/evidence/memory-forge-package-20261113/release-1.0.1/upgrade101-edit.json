@@ -1,0 +1,44 @@
+{
+  "sourceRevision": "9734b6baf3b4c7a2305f7f92ab7750f914f83357",
+  "exit": 0,
+  "command": [
+    "xvfb-run",
+    "-a",
+    "-s",
+    "-screen 0 1600x900x24",
+    "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+    "-batchmode",
+    "-force-glcore",
+    "-projectPath",
+    "/var/lib/unityarpg/workspaces/forge-clean-import-20261113",
+    "-logFile",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-clean-import-20261113/upgrade101-edit/unity.log",
+    "-runTests",
+    "-testPlatform",
+    "EditMode",
+    "-testResults",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-clean-import-20261113/upgrade101-edit/tests.xml"
+  ],
+  "sourceUnchanged": true,
+  "files": {
+    "unity.log": "9586fc9aa8d74d847bb39252871dadb2223db790c352f94487720f2e67889ba9",
+    "tests.xml": "c2c2b7a8507a952dbbba2fbba869ebb27212459c5ccd063dd4df03494921ee8f"
+  },
+  "tests": {
+    "id": "2",
+    "testcasecount": "8",
+    "result": "Passed",
+    "total": "8",
+    "passed": "8",
+    "failed": "0",
+    "inconclusive": "0",
+    "skipped": "0",
+    "asserts": "0",
+    "engine-version": "3.5.0.0",
+    "clr-version": "4.0.30319.42000",
+    "start-time": "2026-11-13 13:29:10Z",
+    "end-time": "2026-11-13 13:29:10Z",
+    "duration": "0.4654717"
+  },
+  "failures": []
+}

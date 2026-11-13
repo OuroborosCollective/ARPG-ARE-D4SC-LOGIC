@@ -4,7 +4,7 @@ This is the reviewable submission text. It is not a receipt of upload, submissio
 
 **Title:** Memory Forge — Deterministic NPC AI  
 **Category:** Tools / Behavior AI  
-**Version:** 1.0.0  
+**Version:** 1.0.1  
 **Price:** USD 9.50, one-time purchase, as explicitly selected by the owner. Regional currency conversion and taxes are controlled by the storefront.  
 **Publisher:** use the owner's verified Unity publisher profile; the project identity is OuroborosCollective.  
 **Automatic publication:** disabled. Read back Unity's review outcome before making the listing live.  

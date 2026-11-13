@@ -1,0 +1,127 @@
+{
+  "review-native-red": {
+    "head": "27907d609a82cbc12bbe2085ca1375009a1a7d61",
+    "tree": "0d91978476b34716719268cf6c40a929ded7db8e",
+    "exit": 2,
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "88e85efa9d343de8f9c80a052cf7c744d749127173ae66b9f1b3eda6afd6968f",
+      "tests.xml": "bb089fd421650db84a84a180fbda618ecd979e3db5187605b1edbb805b9627b6"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "3",
+      "result": "Failed(Child)",
+      "total": "3",
+      "passed": "2",
+      "failed": "1",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 12:49:48Z",
+      "end-time": "2026-11-13 12:50:18Z",
+      "duration": "29.7950694"
+    },
+    "failures": [
+      {
+        "name": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.RenderingCannotAdvanceCanonicalSampleTicks",
+        "message": "  Rendering cannot schedule or drop canonical world steps\n  Expected string length 524 but was 755. Strings differ at index 5.\n  Expected: \"MFD1|0|-2200|-4000|-2200|500|1000|3|0|12|-2200|1500|800|100|2...\"\n  But was:  \"MFD1|1163|-2200|500|-2200|500|1000|3|0|12|-2200|1500|858|0|22...\"\n  ----------------^\n"
+      }
+    ],
+    "caseGroups": {
+      "game": {
+        "Passed": 2
+      },
+      "sample": {
+        "Failed": 1
+      }
+    }
+  },
+  "review-green-play": {
+    "head": "bcb4296feb7bf76a2106b9af6c0146b3b21e6704",
+    "tree": "1f3165793a829092d80b614a7110be811a272ebe",
+    "exit": 2,
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "77a885e6ca1631001ab4a72c209a781080611a82127b7669343200c5dd9a986e",
+      "tests.xml": "ad5e23c025ce15201658fe016bd1bdd2d84b8b4da3393682f3a8e57baa07636f"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "123",
+      "result": "Failed(Child)",
+      "total": "123",
+      "passed": "122",
+      "failed": "1",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 12:53:48Z",
+      "end-time": "2026-11-13 12:56:52Z",
+      "duration": "183.6123826"
+    },
+    "failures": [
+      {
+        "name": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.RenderingCannotAdvanceCanonicalSampleTicks",
+        "message": "  All supplied fixed steps must be processed, including catch-up\n  Expected: 10\n  But was:  9\n"
+      }
+    ],
+    "caseGroups": {
+      "game": {
+        "Passed": 121
+      },
+      "sample": {
+        "Passed": 1,
+        "Failed": 1
+      }
+    }
+  },
+  "review-final-edit": {
+    "head": "0377c9ffd7139114673206dabb32072849923061",
+    "tree": "189dc493d6a9ea32e6200350006c2bd1d00af0e0",
+    "exit": 0,
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "c670754f939bb8d8fe2363aedbb50d38e588223eb1cb297e2f080f24dc753c6f",
+      "tests.xml": "e5e729ecc656d18f31c43a1e118532b1af168f717a766d331bdf2b02683db367"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "48",
+      "result": "Passed",
+      "total": "48",
+      "passed": "48",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 13:08:48Z",
+      "end-time": "2026-11-13 13:09:48Z",
+      "duration": "60.1046002"
+    },
+    "failures": [],
+    "caseGroups": {
+      "game": {
+        "Passed": 40
+      },
+      "sample": {
+        "Passed": 8
+      }
+    }
+  }
+}

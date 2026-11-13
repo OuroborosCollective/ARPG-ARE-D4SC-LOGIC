@@ -1,0 +1,26 @@
+{
+  "sourceRevision": "9734b6baf3b4c7a2305f7f92ab7750f914f83357",
+  "packageSha256": "6b233f6118deab7676022be59543e0fdcbc6a3f99d3fecce5ac4b644482043f2",
+  "exit": 0,
+  "upgradedFrom": "1.0.0",
+  "importedFileCount": 99,
+  "mismatches": [],
+  "unityLogSha256": "9d5ae5a4798ba56908fddfcf8383747850e0d7854ece8e3a3d82cbec77d9eefd",
+  "renderPipeline": "Built-in; no URP package installed",
+  "command": [
+    "xvfb-run",
+    "-a",
+    "-s",
+    "-screen 0 1600x900x24",
+    "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+    "-batchmode",
+    "-quit",
+    "-force-glcore",
+    "-projectPath",
+    "/var/lib/unityarpg/workspaces/forge-clean-import-20261113",
+    "-importPackage",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-package-20261113/release101b-export/MemoryForge.unitypackage",
+    "-logFile",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-clean-import-20261113/upgrade101-import/unity.log"
+  ]
+}

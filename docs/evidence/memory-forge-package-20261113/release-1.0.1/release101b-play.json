@@ -1,0 +1,44 @@
+{
+  "sourceRevision": "9734b6baf3b4c7a2305f7f92ab7750f914f83357",
+  "exit": 0,
+  "command": [
+    "xvfb-run",
+    "-a",
+    "-s",
+    "-screen 0 1600x900x24",
+    "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+    "-batchmode",
+    "-force-glcore",
+    "-projectPath",
+    "/var/lib/unityarpg/workspaces/memory-forge-package-20261113",
+    "-logFile",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-package-20261113/release101b-play/unity.log",
+    "-runTests",
+    "-testPlatform",
+    "PlayMode",
+    "-testResults",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-package-20261113/release101b-play/tests.xml"
+  ],
+  "sourceUnchanged": true,
+  "files": {
+    "unity.log": "4294400362cdaf1319c0e85fae60eecaac01edfd57c39e0e33304b8748999461",
+    "tests.xml": "c3f170ab46d039cefb006a94c40e3bdc7a63be497a9ca9bf2f66575e8c57c0f4"
+  },
+  "tests": {
+    "id": "2",
+    "testcasecount": "2",
+    "result": "Passed",
+    "total": "2",
+    "passed": "2",
+    "failed": "0",
+    "inconclusive": "0",
+    "skipped": "0",
+    "asserts": "0",
+    "engine-version": "3.5.0.0",
+    "clr-version": "4.0.30319.42000",
+    "start-time": "2026-11-13 13:04:25Z",
+    "end-time": "2026-11-13 13:04:26Z",
+    "duration": "1.7112331"
+  },
+  "failures": []
+}
