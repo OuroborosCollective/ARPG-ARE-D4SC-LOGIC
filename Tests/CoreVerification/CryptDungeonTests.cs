@@ -33,5 +33,17 @@ internal static class CryptDungeonTests
             }
         }
         check(!CryptDungeonLayout.CanStand(1,long.MinValue,long.MaxValue),"dungeon-extreme-coordinates-rejected");
+        var state = new CryptDungeonState { Active=true, Seed=123 };
+        string token=state.Token();
+        check(CryptDungeonState.TryRead(token,6,out var copy) && copy.Token()==token,"dungeon-canonical-world-roundtrip");
+        var dead=state.Current.Monsters[0]; dead.Health=0; dead.LootGranted=true;
+        var item=LootCatalog.Version1.Generate(123,1,10,dead.Id,dead.Kind,1);
+        state.Current.Loot.Add(new LootState { Id=dead.Id,Xmm=dead.Xmm,Zmm=dead.Zmm,WeaponBonus=8,Item=item });
+        token=state.Token();
+        check(CryptDungeonState.TryRead(token,6,out copy) && copy.Current.Loot[0].Item.InstanceId==item.InstanceId && copy.Token()==token,"dungeon-uncollected-catalog-receipt-survives");
+        state.UnlockedDepth=2;
+        check(!CryptDungeonState.TryRead(state.Token(),6,out _),"dungeon-deeper-floor-with-living-guards-rejected");
+        state.UnlockedDepth=1; state.Current.Loot.Add(state.Current.Loot[0]);
+        check(!CryptDungeonState.TryRead(state.Token(),6,out _),"dungeon-duplicate-drops-rejected");
     }
 }
