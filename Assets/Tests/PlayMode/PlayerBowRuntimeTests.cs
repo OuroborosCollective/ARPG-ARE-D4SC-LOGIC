@@ -26,6 +26,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNotEmpty(hero.GetComponentsInChildren<SkinnedMeshRenderer>());
             var animator=hero.GetComponentInChildren<Animator>();Assert.IsNotNull(animator);Assert.IsTrue(animator.isHuman);
             Assert.IsFalse(animator.applyRootMotion);
+            var gripProbe=animator.gameObject.AddComponent<BowGripReadback>();
             var meleeController=animator.runtimeAnimatorController;Assert.IsNotNull(meleeController);
 
             // Arrange owned inventory with real catalog generation and collection; equipping uses the actual UI/Core path.
@@ -129,6 +130,12 @@ namespace AreArpg.PlayMode.Tests
                 foreach(float normalized in new[]{.2f,.5f,.8f})
                 {
                     animator.speed=1;animator.Play(attackState,0,normalized);animator.Update(0);animator.speed=0;
+                    if(normalized==.5f)
+                    {
+                        float angle=Vector3.Angle(hero.transform.up,bowVisual.up);
+                        TestContext.WriteLine("Player bow grip angle="+angle+"; boneToPalm="+(Quaternion.Inverse(animator.GetBoneTransform(HumanBodyBones.LeftHand).rotation)*gripProbe.LeftGoalRotation)+"; palm up/right/forward="+(gripProbe.LeftGoalRotation*Vector3.up)+" / "+(gripProbe.LeftGoalRotation*Vector3.right)+" / "+(gripProbe.LeftGoalRotation*Vector3.forward)+"; IK observed="+gripProbe.Observed);
+                        Assert.Less(angle,30f,"The player must retain an upright bow at full draw");
+                    }
                     yield return Capture("player-bow-"+Mathf.RoundToInt(normalized*100)+".png",heroDetail:true);
                 }
             }
