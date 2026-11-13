@@ -7,7 +7,7 @@ using AshenCrypt.MemoryForge;
 namespace AreArpg.Core
 {
     /// <summary>Owned by the existing SocialLedger. No independent clock or world simulation.</summary>
-    public sealed class NpcForgeState
+    public sealed partial class NpcForgeState
     {
         internal static readonly NpcArchetypeControllerRegistry Registry=ForgeDefaults.CreateRegistry();
         public MemoryArchive Archive { get; private set; }
@@ -38,7 +38,7 @@ namespace AreArpg.Core
             state=null;var f=token.Split(':');
             if(f.Length!=4||f[0]!="1"||!ulong.TryParse(f[1],NumberStyles.None,CultureInfo.InvariantCulture,out var ticks)||ticks.ToString(CultureInfo.InvariantCulture)!=f[1]||
                 !MemoryArchive.TryLoad(f[2],Registry,out var archive))return false;
-            if(archive.Minds.Count<3||archive.Minds.Count>5||archive.Minds.Any(m=>m.Id!="ilyan"&&m.Id!="mara"&&m.Id!="dorn"&&m.Id!="hunter"&&m.Id!="road.traveler")||
+            if(archive.Minds.Count<3||archive.Minds.Any(m=>!ValidIdentity(m))||
                 archive.Get("road.traveler")!=null&&archive.Get("road.traveler").Controller.ArchetypeId!="traveler"||
                 archive.Get("hunter")!=null&&archive.Get("hunter").Controller.ArchetypeId!="companion"||archive.Get("ilyan")?.Controller.ArchetypeId!="traveler"||archive.Get("mara")?.Controller.ArchetypeId!="merchant"||archive.Get("dorn")?.Controller.ArchetypeId!="guard"||
                 archive.Acquisitions.Any(k=>k.LearnedTick>ticks)||archive.Events.Any(e=>e.Tick>ticks)||archive.Migrations.Any(m=>m.Tick>ticks)||archive.Minds.Any(m=>m.DecisionState.LastTick>ticks))return false;

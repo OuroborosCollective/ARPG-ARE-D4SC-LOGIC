@@ -85,6 +85,7 @@ namespace AreArpg.Core
 
     public sealed class MonsterState
     {
+        public AshenCrypt.MemoryForge.NpcMind Mind { get; internal set; }
         public int Id;
         public int Kind; // 0: ghoul, 1: knight, 2: boss
         public long Xmm;
@@ -545,11 +546,13 @@ namespace AreArpg.Core
             foreach (MonsterState enemy in Monsters)
             {
                 if (enemy.IsDead || enemy.Kind == 4 || enemy.Kind == 5) continue;
+                EnsureCreatureMind(enemy);
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
                 if(StepMonsterAgainstCompanion(enemy))continue;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
                 if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
+                if(!ForgeCreatureMayAttack(enemy,PlayerXmm,PlayerZmm))continue;
                 if (ChapterId == 2 && enemy.Kind == 3)
                 {
                     // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.
@@ -609,6 +612,7 @@ namespace AreArpg.Core
             long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
             int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
+            RememberCreatureAssault(enemy,"player");
             PlayerHealth = Math.Min(MaxPlayerHealth,PlayerHealth+(int)((long)appliedDamage*Progression.Equipment.Bonus(WeaponAffix.Siphon)/10000));
             Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);

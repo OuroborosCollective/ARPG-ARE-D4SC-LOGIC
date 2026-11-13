@@ -13,6 +13,7 @@ namespace AreArpg.Core
             if(!CompanionPresent||c.Health<=0||c.Status==CompanionStatus.Dead||enemy.Kind>=3)return false;
             long distance2=DistanceSquared(enemy.Xmm,enemy.Zmm,c.Xmm,c.Zmm);
             if(distance2>=DistanceSquared(enemy.Xmm,enemy.Zmm,PlayerXmm,PlayerZmm)||distance2>FixedMath.Square(14000)||!CombatSight(enemy.Xmm,enemy.Zmm,c.Xmm,c.Zmm))return false;
+            if(!ForgeCreatureMayAttack(enemy,c.Xmm,c.Zmm))return true;
             if(distance2>FixedMath.Square(1650))
             {
                 long distance=Math.Max(1,FixedMath.IntegerSqrt(distance2)),speed=enemy.Kind>=2?190:MonsterSpeedMmPerTick;

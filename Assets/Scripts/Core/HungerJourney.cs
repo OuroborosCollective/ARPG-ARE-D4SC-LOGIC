@@ -113,6 +113,12 @@ namespace AreArpg.Core
         /// <summary>Apply one versioned story action at its real location; repeated requests cannot duplicate effects.</summary>
         public SocialResult ActOnHunger(HungerAction action)
         {
+            var result=ActOnHungerCore(action);
+            if(result.Accepted)RememberStoryAction(action);
+            return result;
+        }
+        private SocialResult ActOnHungerCore(HungerAction action)
+        {
             if (action >= HungerAction.AcceptTransportLead) return ActOnWoodland(action);
             if (action >= HungerAction.OpenDungeonSeal && action <= HungerAction.BeginDungeonRun) return ActOnDungeon(action);
             if (action >= HungerAction.OpenInnerDoor && action <= HungerAction.ReportRoyalBrand) return ActOnRattler(action);
