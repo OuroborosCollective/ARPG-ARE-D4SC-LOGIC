@@ -42,7 +42,7 @@ namespace AreArpg.EditorTools
         {
             try
             {
-                var package = PackageInfo.GetAllRegisteredPackages().Single(p => p.name == Logcat);
+                var package = UnityEditor.PackageManager.PackageInfo.GetAllRegisteredPackages().Single(p => p.name == Logcat);
                 if (package.version != "1.4.7") throw new InvalidOperationException("Unexpected Logcat version.");
                 var assembly = System.Reflection.Assembly.Load("Unity.Mobile.AndroidLogcat.Editor");
                 var type = assembly.GetType("Unity.Android.Logcat.AndroidLogcatConsoleWindow", true);
