@@ -40,6 +40,7 @@ internal static class Program
             HunterEncounterTests.Run(Require);
             InvestigationJourneyTests.Run(Require);
             RattlerEncounterTests.Run(Require);
+            TradeRouteTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }
