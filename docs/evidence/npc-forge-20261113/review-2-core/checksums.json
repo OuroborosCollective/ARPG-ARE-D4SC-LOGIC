@@ -1,0 +1,30 @@
+[
+  {
+    "file": "archive-review-red.log",
+    "sha256": "4db85db64caedc44e6fb7715c3557b7a5d3bea5c17e63507c6ebb728b3fd6a5a"
+  },
+  {
+    "file": "archive-review-green.log",
+    "sha256": "84db55b842f49a20370ebafe88980b8ebf5d4741fc25ca5a4534d5dfd4700ca4"
+  },
+  {
+    "file": "companion-follow-red.log",
+    "sha256": "a29d70349957d927bda274eed645fe68018e8181738a3ebaed3e783cd8304b04"
+  },
+  {
+    "file": "companion-follow-green.log",
+    "sha256": "d28f47c72d7212904e1514058fc5b20d437f4fbc7761a00a46a7fef2a5f480f2"
+  },
+  {
+    "file": "npc-review2-core-green.log",
+    "sha256": "d28f47c72d7212904e1514058fc5b20d437f4fbc7761a00a46a7fef2a5f480f2"
+  },
+  {
+    "file": "review2-integrated-core.log",
+    "sha256": "7c8a2036870d33360031129586a82c7711181612bbedae6aab4c76da4d5f2a09"
+  },
+  {
+    "file": "review2-preflight.log",
+    "sha256": "1d4ae0d27eeacd24de1a24650efd2b174162c5a2ceea85e225afeea9e14655db"
+  }
+]
