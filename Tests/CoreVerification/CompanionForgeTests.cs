@@ -29,6 +29,15 @@ internal static class CompanionForgeTests
         check(CharacterProgression.TryLoad(waiting.Progression.SaveString(),out var savedWaiting),"companion-waiting-state-roundtrips");
         var rejoined=new ArenaSimulation(73,savedWaiting,BigInteger.One,LootCatalog.Version1);
         check(rejoined.RecruitHunter().Accepted&&savedWaiting.Companion.Level==level,"companion-rejoining-keeps-individual-level");
+        var mortal=RescueFixture();mortal.RecruitHunter();var wounded=mortal.Progression.Companion;
+        // Wounded, stationary companion fixture; a real nearby monster must choose and damage this actor.
+        wounded.Status=CompanionStatus.Waiting;wounded.Health=40;wounded.Xmm=wounded.PreviousXmm=5000;wounded.Zmm=wounded.PreviousZmm=9000;
+        mortal.Monsters.Add(new MonsterState{Id=92,Kind=0,Xmm=6000,Zmm=9000,Health=10000,MaxHealth=10000});mortal.Step();
+        check(wounded.Status==CompanionStatus.Dead&&wounded.Health==0,"companion-actual-enemy-hit-can-kill-companion");
+        check(CharacterProgression.TryLoad(mortal.Progression.SaveString(),out var deadSave),"companion-death-and-earlier-rescue-both-persist");
+        var deadWorld=new ArenaSimulation(73,deadSave,BigInteger.One,LootCatalog.Version1);
+        for(int i=0;i<350;i++)deadWorld.Step();
+        check(!deadWorld.RecruitHunter().Accepted&&deadSave.Companion.Status==CompanionStatus.Dead&&deadSave.Companion.Health==0,"companion-death-cannot-use-village-recovery-or-rejoin-to-revive");
     }
     private static ArenaSimulation RescueFixture()
     {
