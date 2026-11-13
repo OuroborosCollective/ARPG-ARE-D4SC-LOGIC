@@ -37,7 +37,7 @@ namespace AreArpg.Core
             return string.Join(",", f.Select(v => Convert.ToString(v, CultureInfo.InvariantCulture)));
         }
 
-        internal static bool TryRead(string token, out RattlerEncounter result, bool repeatDungeon = false)
+        internal static bool TryRead(string token, out RattlerEncounter result, CryptDungeonLayout dungeonLayout = null)
         {
             result = null; var f = token.Split(','); if (f.Length != 15) return false;
             var n = new long[15];
@@ -47,11 +47,11 @@ namespace AreArpg.Core
             if (n[0] != 1 || n[1] < 0 || n[1] > 1 || n[2] < 0 || n[2] > 1 || n[3] < 0 || n[3] > n[2] ||
                 n[6] < 0 || n[6] > MaximumHealth || n[7] < 0 || n[7] > 14 || n[8] < 0 || n[8] > 10 ||
                 n[9] < 0 || n[9] > 1 || (n[6] == 0) != (n[9] == 1) ||
-                (n[6] == 0 && n[8] != 0) || (n[2] == 1 && n[6] != 0 && !repeatDungeon) ||
+                (n[6] == 0 && n[8] != 0) || (n[2] == 1 && n[6] != 0 && dungeonLayout == null) ||
                 // A windup freezes its strike point, so it may legitimately outlive perception memory (MemoryTicks 0).
                 n[10] < 0 || n[10] > 60) return false;
             foreach (int i in new[] { 4, 11, 13 })
-                if (!ArenaSimulation.CanStandInRattlerDen(n[i], n[i + 1])) return false;
+                if (!(dungeonLayout != null ? dungeonLayout.CanStand(n[i], n[i + 1]) : ArenaSimulation.CanStandInRattlerDen(n[i], n[i + 1]))) return false;
             var r = new RattlerEncounter { Active = true, Sneaking = n[1] == 1, BrandExamined = n[2] == 1,
                 Reported = n[3] == 1, MemoryTicks = (int)n[10], TargetX = n[11], TargetZ = n[12], StrikeX = n[13], StrikeZ = n[14] };
             r.Creature.Xmm = r.Creature.PreviousXmm = n[4]; r.Creature.Zmm = r.Creature.PreviousZmm = n[5];
