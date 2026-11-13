@@ -4,13 +4,21 @@ Owner-Richtung vom 13.11.2026: Die Geschichte braucht längere spielbare Kampf- 
 
 ## Zuerst: drei Ebenen unter der alten Mühle
 
-Der alte Speicher bleibt der Eingang mit seiner Siegelentscheidung. Dahinter liegen drei zusammenhängende Ebenen mit mehreren Räumen, Abzweigen und einem Rundweg. Gegner und Truhen machen Seitenräume lohnend. Der MaulwurfRattler wartet erst im hinteren Bereich der dritten Ebene. Rückzug zur Mühle und späteres Wiederkommen bleiben möglich.
+Der alte Speicher bleibt der Eingang mit seiner Siegelentscheidung. Dahinter liegen drei zusammenhängende, prozedural erzeugte Ebenen mit jeweils fünf bis sieben Raumknoten, Abzweigen und Rundwegen. Gegner und Truhen machen Seitenräume lohnend. Der MaulwurfRattler wartet erst im hinteren Bereich der dritten Ebene. Der Generator verbindet gestaltete Raumformen und Korridore nach einem gespeicherten Seed; er ersetzt weder die benötigten Art-Bauteile noch Kampf- und Beutebalance.
 
-Jede Ebene erhält einen sicheren Ankunftsbereich, mehrere gewöhnliche Gegner, zwei optionale Truhen und sichtbare Auf-/Abgänge. Normale Gegner nutzen die bestehenden Kampfskills, XP und versionierten Beuteregeln. Truhen enthalten zunächst Schmiedefragmente; eine neue Ausrüstungs- oder Crafting-Authority wird damit nicht vorgetäuscht. Ein weiterer Stock öffnet erst nach dem dortigen Kampf und dem Sichern offener Beute. Truhen müssen nicht alle geöffnet werden.
+Jede Ebene erhält einen sicheren Ankunftsbereich, vier bis sechs gewöhnliche Gegner und sichtbare Auf-/Abgänge. Raumverbindungen, Gegnerarten und Positionen variieren. Zwei mögliche Truhenplätze werden einzeln ausgewürfelt; auch eine Ebene ohne Truhe ist möglich. Normale Gegner und Rattler nutzen die bestehenden Kampfskills, XP, Level-/Mastery-Progression und versionierten Beuteregeln. Truhen enthalten zunächst Schmiedefragmente; eine neue Ausrüstungs- oder Crafting-Authority wird damit nicht vorgetäuscht. Ein weiterer Stock öffnet erst nach dem dortigen Kampf und dem Sichern offener Beute. Truhen müssen nicht alle geöffnet werden.
 
-Besiegte Gegner, geöffnete Truhen und nicht eingesammelte Beute bleiben je Ebene gespeichert. Reisen, Tod und Laden dürfen weder Belohnungen vervielfachen noch offene Beute verlieren. Ein Tod startet den Spieler am sicheren Eingang neu, erhält aber die bereits veränderte Welt. Alte AC11-/AC12-Spielstände werden nicht nachträglich in einen ungespielten Kampf versetzt. Neue Ermittlungsdurchgänge benutzen die drei Ebenen.
+### Neue Runs, dauerhafte Geschichte
 
-Eine gemeinsame ganzzahlige Raumkarte bestimmt Laufwege, Sichtlinien und die sichtbaren Wände. Keine Angriffe durch geschlossene Wände. Die Darstellung verwendet vorhandene private Dungeonbauteile und Weltmaterialien. Die neue Dungeonfortsetzung reserviert AC14; AC13 bleibt dem separat geparkten, noch nicht veröffentlichten Handelsstationsversuch vorbehalten.
+Owner-Entscheidung: Auch der Rattler ist nach dem ersten Sieg erneut farmbar. Ein vollständiger Rückzug aus Ebene I in den alten Speicher und anschließender Abstieg beginnt einen neuen Run: neuer Seed, neue Raumkarte, lebende Gegner einschließlich Rattler und neu ausgewürfelte Truhen. Jeder besiegte Gegner gewährt pro Run erneut Kampfbeute und XP. Die Runnummer ist unbegrenzt; Kartenvarianten können sich bei wiederholtem Spielen auch ähneln oder wiederholen.
+
+Innerhalb eines Runs bleiben besiegte Gegner, geöffnete Truhen, nicht eingesammelte Beute und Kampfzustände je Ebene gespeichert. Stockwerkwechsel, Speichern/Laden und Tod würfeln nichts neu. Ein Tod startet den Spieler am Eingang der aktuellen Ebene neu und erhält die veränderte Welt. Offene Beute muss vor dem Verlassen einer Ebene eingesammelt werden; das bestehende Reise-Gate verhindert ihren Verlust und eine Belohnungsverdopplung.
+
+Brandmalentdeckung, persönlicher Bericht an Ilyan, Siegelentscheidung und andere Storyfakten bleiben beim Wechsel des Runs abgeschlossen. Auch Charakterlevel, XP, Mastery, Übung und eingesammelte Gegenstände bleiben erhalten. Alte AC11-/AC12-Spielstände laden unverändert; am bereits geöffneten Siegel können sie ausdrücklich in den neuen Dungeon einsteigen. Neue Ermittlungsdurchgänge benutzen die drei Ebenen unmittelbar.
+
+Eine gemeinsame ganzzahlige Raumkarte bestimmt Laufwege, Sichtlinien und die sichtbaren Wände. Keine Angriffe durch geschlossene Wände oder Mauerecken, auch nicht beim blinden Rattler: Seine Wahrnehmung folgt weiterhin Geräuschen und Geruch, sein Hieb benötigt freien Raum. Die Darstellung verwendet vorhandene private Dungeonbauteile und Weltmaterialien. AC14 enthält Seed, Generatorrevision, Runnummer, Etagenzustände und ausstehende Beutebelege beim bestehenden CharacterProgression-Speicher. AC13 bleibt dem separat geparkten, noch nicht veröffentlichten Handelsstationsversuch vorbehalten.
+
+Der aktuelle Generator ist die erste spielbare Krypta-Fassung. Weitere Raumformen, Gegnerfamilien, seltene Ereignisse und gezielte Beutetabellen sind spätere Inhalte. Wald und Bärenhöhle benötigen eigene Gebietsmotive und feste Questorte, auch wenn sie dieselben deterministischen Generatorbausteine nutzen.
 
 ## Danach: Waldweg zur Handelsstation
 

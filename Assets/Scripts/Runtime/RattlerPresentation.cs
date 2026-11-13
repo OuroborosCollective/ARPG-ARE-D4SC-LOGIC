@@ -32,7 +32,8 @@ namespace AreArpg.UnityClient
             get
             {
                 var r = _game.Progression.Rattler;
-                return r.Creature.IsDead ? "MAULWURFRATTLER BESIEGT\nUntersuche seinen Hals unter SPUREN." :
+                return r.Creature.IsDead ? "MAULWURFRATTLER BESIEGT\n" + (r.BrandExamined ?
+                    "Das Brandmal ist bekannt. Sichere deine Beute." : "Untersuche seinen Hals unter SPUREN.") :
                     "MAULWURFRATTLER  " + r.Creature.Health + "/" + r.Creature.MaxHealth +
                     "\nBlind: Laerm / naher Geruch. Zum Ausweichen SCHLEICHEN AUS!";
             }
