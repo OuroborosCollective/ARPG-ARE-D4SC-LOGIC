@@ -11,7 +11,7 @@ python3 scripts/forge/prepare_release_verification.py /absolute/path/to/verifica
 
 Import the Memory Forge package into that project first and install the matching
 Unity 6 URP package. The script copies this tree to
-`Assets/ForgeReleaseVerification`, where Unity imports both assembly definitions.
+`Assets/ForgeReleaseVerification`, where Unity imports the runtime, editor and test assemblies.
 It refuses the game checkout, a missing package, and overwriting existing files
 with different contents. Its JSON receipt fingerprints each copied source.
 
@@ -23,3 +23,8 @@ to the APK path. Run `ConfigureAndAuthor` first to author the included demo scen
 and URP settings. Set `FORGE_EVIDENCE_DIR` when executing the verification player.
 `PlayerEvidence` is a verification driver, not shipped example behavior; a build
 or automated fixture is not a physical-device test.
+
+The verification-only PlayMode tests cover preservation of an existing preference
+before a snapshot and restoration after actual evidence-file writes fail. They
+are excluded from the exported commercial package. The exported sample has its
+own rendering, save/load and sight-material regressions.

@@ -1,0 +1,61 @@
+{
+  "sourceRevision": "7d1a85c235835041fee2223fd658255ceb089310",
+  "exit": 2,
+  "command": [
+    "xvfb-run",
+    "-a",
+    "-s",
+    "-screen 0 1600x900x24",
+    "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+    "-batchmode",
+    "-job-worker-count",
+    "2",
+    "-background-job-worker-count",
+    "2",
+    "-force-glcore",
+    "-projectPath",
+    "/var/lib/unityarpg/workspaces/memory-forge-package-20261113",
+    "-logFile",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-package-20261113/review3-red-play/unity.log",
+    "-runTests",
+    "-testPlatform",
+    "PlayMode",
+    "-testResults",
+    "/var/lib/unityarpg/.local/share/are-arpg/forge-package-20261113/review3-red-play/tests.xml"
+  ],
+  "sourceUnchanged": true,
+  "files": {
+    "unity.log": "a396ff1dbf5659eceb613875cc91c63ca850bcea92b2ed7567fef62914cc7c49",
+    "tests.xml": "c24a9534514f7f0de7ccdaff775d015430fa16be1a0fb2892d7d2a8ff72432c9"
+  },
+  "tests": {
+    "id": "2",
+    "testcasecount": "5",
+    "result": "Failed(Child)",
+    "total": "5",
+    "passed": "2",
+    "failed": "3",
+    "inconclusive": "0",
+    "skipped": "0",
+    "asserts": "0",
+    "engine-version": "3.5.0.0",
+    "clr-version": "4.0.30319.42000",
+    "start-time": "2026-11-13 15:21:27Z",
+    "end-time": "2026-11-13 15:21:28Z",
+    "duration": "1.0920424"
+  },
+  "failures": [
+    {
+      "name": "AshenCrypt.ForgeVerification.Tests.PlayerEvidenceCleanupTests.CleanupBeforeSnapshotCannotDeleteAnExistingSave",
+      "message": "  No snapshot means no permission to restore or delete the existing save\n  Expected string length 30 but was 0. Strings differ at index 0.\n  Expected: \"owner-save-before-verification\"\n  But was:  <string.Empty>\n  -----------^\n"
+    },
+    {
+      "name": "AshenCrypt.ForgeVerification.Tests.PlayerEvidenceCleanupTests.FailedEvidenceWritesStillRestoreTheActualOriginalSave",
+      "message": "  Failure logging cannot prevent preference cleanup\n  Expected: No Exception to be thrown\n  But was:  <System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.UnauthorizedAccessException: Access to the path '/tmp/OuroborosCollective/MemoryForgeExample/forge-evidence-failure-ec01bce69980472094e798456ce30f01/player-failure.txt' is denied.\n  at System.IO.FileStream..ctor (System.String path, System.IO.FileMode mode, System.IO.FileAccess access, System.IO.FileShare share, System.Int32 bufferSize, System.Boolean anonymous, System.IO.FileOptions options) [0x000e0] in <22e1610eb8a64fddad374425202296ea>:0 \n  at System.IO.FileStream..ctor (System.String path, System.IO.FileMode mode, System.IO.FileAccess access, System.IO.FileShare share, System.Int32 bufferSize, System.IO.FileOptions options) [0x00000] in <22e1610eb8a64fddad374425202296ea>:0 \n  at (wrapper remoting-invoke-with-check) System.IO.FileStream..ctor(string,System.IO.FileMode,System.IO.FileAccess,System.IO.FileShare,int,System.IO.FileOptions)\n  at System.IO.StreamWriter..ctor (System.String path, System.Boolean append, System.Text.Encoding encoding, System.Int32 bufferSize) [0x00055] in <22e1610eb8a64fddad374425202296ea>:0 \n  at System.IO.StreamWriter..ctor (System.String path) [0x00008] in <22e1610eb8a64fddad374425202296ea>:0 \n  at (wrapper remoting-invoke-with-check) System.IO.StreamWriter..ctor(string)\n  at System.IO.File.WriteAllText (System.String path, System.String contents) [0x00026] in <22e1610eb8a64fddad374425202296ea>:0 \n  at AshenCrypt.ForgeVerification.PlayerEvidence.Fail (System.String error) [0x00013] in /var/lib/unityarpg/workspaces/memory-forge-package-20261113/Assets/ForgeReleaseVerification/PlayerEvidence.cs:50 \n  at AshenCrypt.ForgeVerification.PlayerEvidence.Prepare (AshenCrypt.MemoryForge.Samples.RememberingVillage& sample) [0x001df] in /var/lib/unityarpg/workspaces/memory-forge-package-20261113/Assets/ForgeReleaseVerification/PlayerEvidence.cs:30 \n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <22e1610eb8a64fddad374425202296ea>:0 \n   --- End of inner exception stack trace ---\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x00083] in <22e1610eb8a64fddad374425202296ea>:0 \n  at System.Reflection.MethodBase.Invoke (System.Object obj, System.Object[] parameters) [0x00000] in <22e1610eb8a64fddad374425202296ea>:0 \n  at AshenCrypt.ForgeVerification.Tests.PlayerEvidenceCleanupTests+<>c__DisplayClass3_0.<FailedEvidenceWritesStillRestoreTheActualOriginalSave>b__0 () [0x00000] in /var/lib/unityarpg/workspaces/memory-forge-package-20261113/Assets/ForgeReleaseVerification/Tests/Runtime/PlayerEvidenceCleanupTests.cs:49 \n  at NUnit.Framework.Constraints.ThrowsConstraint+VoidInvocationDescriptor.Invoke () [0x00001] in <8b63e8ac0a4746599ed207982825ae6c>:0 \n  at NUnit.Framework.Constraints.ThrowsConstraint+ExceptionInterceptor.Intercept (System.Object invocation) [0x00050] in <8b63e8ac0a4746599ed207982825ae6c>:0 >\n"
+    },
+    {
+      "name": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+      "message": "  The actual unlit material must show the occluded sight color\n  Expected: RGBA(0.670, 0.270, 0.220, 0.700)\n  But was:  RGBA(1.000, 1.000, 1.000, 1.000)\n"
+    }
+  ]
+}

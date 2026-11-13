@@ -4,7 +4,7 @@ This is the reviewable submission text. It is not a receipt of upload, submissio
 
 **Title:** Memory Forge — Deterministic NPC AI  
 **Category:** Tools / Behavior AI  
-**Version:** 1.0.2  
+**Version:** 1.0.3<br>
 **Price:** USD 9.50, one-time purchase, as explicitly selected by the owner. Regional currency conversion and taxes are controlled by the storefront.  
 **Publisher:** use the owner's verified Unity publisher profile; the project identity is OuroborosCollective.  
 **Automatic publication:** disabled. Read back Unity's review outcome before making the listing live.  
@@ -35,7 +35,7 @@ There are no external AI services, API keys, subscriptions or inference fees. Yo
 
 **Requirements and boundaries**
 
-Verified with Unity 6000.6.8f1, Built-in rendering and URP 17.6.0. The package was exported by Unity and imported into an empty project, where all eight Editor tests and the PlayMode example test passed. The URP example also passed those tests and ran as a standalone Linux player with exact save restoration. Optional tests use Unity Test Framework 1.8.0. Physical Android device execution and HDRP presentation have not been validated. The standalone Android ARM64/IL2CPP example built successfully; APK signature and 16-KiB alignment checks passed.
+Verified with Unity 6000.6.8f1, Built-in rendering and URP 17.6.0. The Unity-exported package matches all 99 source files and the actual import. The clean Built-in project was upgraded from 1.0.2 and passed 12 Editor and 3 PlayMode package tests. The URP verification project passed those cases plus 2 verification-driver failure tests (12 Editor, 5 PlayMode total). Its standalone Linux player ran with exact save restoration. Optional tests use Unity Test Framework 1.8.0. The Android ARM64/IL2CPP example built successfully and passed APK signature, ZIP integrity and 16-KiB alignment checks. Physical Android device execution and HDRP presentation have not been validated.
 
 This is a programmer's integration toolkit. Your game supplies navigation, perception queries, action execution, quests, companion progression and inventory. The commercial package does not include Ashen Crypt's RPG systems or licensed character/weapon/environment art. It does not generate dialogue with a language model or infer facts from natural-language descriptions. The example uses original simple geometric characters.
 
@@ -62,7 +62,7 @@ NPC, utility AI, memory, relationships, deterministic, behavior, local AI, neura
 - Owner-approved cover and matching logo exist in the release workspace. Final portal image dimensions must be checked against the live upload fields.
 - Price authorization: USD9.50 one-time.
 - Native game integration evidence is separate from package evidence; game screenshots are not used to imply included art.
-- Version 1.0.2 is verified on source `d703fabadfcb6d138827922eeb46cc4fd7df2e33`. The exported package is 54,000 bytes; all 99 imported files match source. Built-in upgrade from 1.0.1 and URP each pass 12 Editor and 2 PlayMode tests. The actual Linux player retains help, relationships and exact save/load. Android ARM64/IL2CPP APK SHA256 `163f3ab90d08cae412996af186e7533f4f6ea1707c5d6dfc74d236734b15a431`; signature, ZIP integrity and 16-KiB alignment passed. Physical device execution remains untested.
+- Version 1.0.3 is verified on source `dbe82124ac6d9ad42e874e1f584c4516f2c6c440`. The sight query now updates the actual unlit material; the separate evidence driver preserves existing preferences before a snapshot and restores them even if failure logging also fails. Three native RED regressions were reproduced before the fixes. Package, import, tests, player and Android receipts are in `docs/evidence/memory-forge-package-20261113/release-1.0.3`. Android APK SHA256 `34df034bf85116682f339616925546eb6d4ea21f3effd060b4beec84ed5fad44`; physical device execution remains untested.
 - Owner handoff: the owner requested the downloadable package and will handle Unity Asset Store publication. Supply the `.unitypackage`, documentation, approved cover/logo, actual example screenshots and evidence. Resume Ashen Crypt development; do not request another remote-browser login.
 - No upload, submission, review approval or live sale has been observed.
 
