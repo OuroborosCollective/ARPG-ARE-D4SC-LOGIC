@@ -27,10 +27,13 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator ExplicitVillageRestartRevivesPlayerWhileDeadSaveAndNpcHistoryRemainValid()
         {
             _runtime.enabled=false;
-            var p=CharacterProgression.CreateEntryProfile();
-            typeof(CharacterProgression).GetMethod("EnterVillage",Flags).Invoke(p,null);p.Social.EnableForge();
+            foreach(var enemy in Game.Monsters){enemy.Xmm=Game.PlayerXmm+1000;enemy.Zmm=Game.PlayerZmm;enemy.Health=1;}
+            Assert.AreEqual(3,Game.ActivateSkill(3).Kills);
+            for(int i=0;i<3;i++)Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0,24000);TravelStory();yield return null;
+            Assert.AreEqual(2,Game.Progression.EntryAct);
+            var p=Game.Progression;
             ulong seed=(ulong)typeof(ArenaRuntime).GetField("DemoSeed",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic).GetRawConstantValue();
-            typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{new ArenaSimulation(seed,p,1,LootCatalog.Version1),"Village restart fixture"});
             var ilyan=Game.Npcs.First(n=>n.Id==0);ilyan.Xmm=ilyan.PreviousXmm=Game.PlayerXmm+1200;ilyan.Zmm=ilyan.PreviousZmm=Game.PlayerZmm;
             typeof(ArenaRuntime).GetMethod("QueueNpcAction",Flags).Invoke(_runtime,new object[]{NpcAction.Help});TickOnce();
             Assert.AreEqual(1,ilyan.Mind.Known.Count);
@@ -43,7 +46,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(new ArenaSimulation(seed,dead,1,LootCatalog.Version1).GameOver,"Loading a dead save is not a revival command");
             typeof(ArenaRuntime).GetMethod("Restart",Flags).Invoke(_runtime,null);
             Assert.IsFalse(Game.GameOver,"Explicit restart must not restore zero health");
-            Assert.AreEqual(Game.MaxPlayerHealth,Game.PlayerHealth);Assert.AreEqual(tick,Game.CurrentTick);
+            Assert.AreEqual(Game.MaxPlayerHealth,Game.PlayerHealth);Assert.AreEqual(tick,Game.CurrentTick,"Restart retains the village timeline");
             Assert.AreEqual(history,Game.Progression.Social.Forge.Archive.Save());Assert.AreEqual(provisions,Game.Progression.Social.Provisions);
             CollectionAssert.AreEqual(positions,Game.Npcs.Select(n=>new Vector2(n.Xmm,n.Zmm)).ToArray());
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var alive));
