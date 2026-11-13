@@ -116,8 +116,22 @@ internal static class CryptDungeonTests
         }
         check(game.Progression.EntryAct==7 && game.Monsters.Count==5 && game.Progression.Rattler.Creature.Zmm==17000,"dungeon-rattler-waits-in-third-floor-hall");
         check(game.Progression.Level>1 && game.Progression.Items.Count==8 && game.Progression.LootCollected==12,"dungeon-real-xp-levels-and-item-receipts");
+        ClearFloor(game);
+        check(game.Progression.Rattler.Creature.IsDead && game.Progression.Dungeon.Current.Cleared && !game.GameOver,"dungeon-third-floor-and-rattler-completed-with-shipped-skills");
+        WalkFight(game,game.Progression.Rattler.Creature.Xmm,game.Progression.Rattler.Creature.Zmm);
+        check(game.ActOnHunger(HungerAction.InspectRoyalBrand).Accepted,"dungeon-existing-brand-story-follows-boss");
+        game=Reload(game);
         var kills=game.Progression.LifetimeKills;
-        HunterEncounterTests.Move(game,0,-24000); game=game.TryTraversePassage();
+        WalkFight(game,0,12000); WalkFight(game,0,4000); WalkFight(game,0,-8000); WalkFight(game,0,-24000); game=game.TryTraversePassage();
         check(game.Progression.Dungeon.Depth==2 && game.Progression.Dungeon.Current.Cleared && game.GroundLoot.Count==0 && game.Progression.LifetimeKills==kills,"dungeon-return-keeps-cleared-floor-and-rewards");
+        for(int d=2;d>=1;d--) { WalkFight(game,0,12000); WalkFight(game,0,4000); WalkFight(game,0,-8000); WalkFight(game,0,-24000); game=game.TryTraversePassage(); }
+        check(game.Progression.EntryAct==5 && Reload(game).Progression.Rattler.BrandExamined,"dungeon-full-return-to-store-with-story-and-loot");
+        HunterEncounterTests.Move(game,0,24000); game=game.TryTraversePassage();
+        check(game.Progression.Dungeon.Depth==1 && game.Progression.Dungeon.Current.Cleared && game.Progression.Dungeon.Current.OpenChests==3,"dungeon-revisit-does-not-respawn-rewards");
+        var death=Enter(); HunterEncounterTests.Move(death,0,-8000); death.SetMoveInput(0,0);
+        for(int t=0;t<1000 && !death.GameOver;t++) death.Step();
+        check(death.GameOver && Reload(death).GameOver && !death.ActOnHunger(HungerAction.OpenWestChest).Accepted,"dungeon-death-save-and-action-gate");
+        death.Progression.Investigation.RestartPlayer(); death=new ArenaSimulation(123,death.Progression,1,LootCatalog.Version1);
+        check(!death.GameOver && death.PlayerZmm==-21000 && death.CanStand(death.PlayerXmm,death.PlayerZmm),"dungeon-restart-at-walkable-entrance");
     }
 }
