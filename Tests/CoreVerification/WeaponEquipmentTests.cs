@@ -41,6 +41,14 @@ internal static class WeaponEquipmentTests
         string saved=p.SaveString();require(saved.StartsWith("AC16|")&&CharacterProgression.TryLoad(saved,out var loaded)&&loaded.SaveString()==saved&&loaded.Equipment.Weapon.Ordinal==sword.KillOrdinal&&loaded.Equipment.Shield.Ordinal==shield.KillOrdinal,"equipped-models-and-affixes-survive-save-load");
         require(w.TryEquipWeapon(bow.KillOrdinal)&&p.Equipment.Shield==null,"equipping-two-hand-clears-offhand-without-losing-item");
         require(w.TryUnequipWeapon()&&p.Items.Count==4&&new CombatStats(p,0).WeaponPoints==95L+p.WeaponBonus,"unequip-restores-baseline-and-retains-owned-items");
+        var quick=new CharacterProgression();quick.Equipment.Enable(quick);
+        for(ulong seed=0;seed<10000;seed++)
+        {
+            var receipt=LootCatalog.Version1.Generate(seed,1,1,1,0,1);var rolled=new WeaponItem(receipt);
+            if(rolled.Definition.Family!=WeaponFamily.Dagger||rolled.Bonus(WeaponAffix.Haste)==0)continue;
+            quick.RecordKill();quick.CollectItem(receipt);var quickWorld=new ArenaSimulation(1,quick,1,LootCatalog.Version1);quickWorld.TryEquipWeapon(1);
+            require(quickWorld.AttackCooldown(0)==2,"small-haste-affix-does-not-halve-a-two-tick-attack");break;
+        }
         var forest=WoodlandTests.Enter();forest.Progression.Equipment.Enable(forest.Progression);string nested=forest.Progression.SaveString();
         require(CharacterProgression.TryLoad(nested,out var forestLoaded)&&forestLoaded.EntryAct==8&&forestLoaded.Woodland.Seed==forest.Progression.Woodland.Seed&&forestLoaded.SaveString()==nested,"AC16-preserves-AC15-forest-checkpoint");
         var lootWorld=new ArenaSimulation(77,new CharacterProgression(),1,LootCatalog.Version1);lootWorld.Progression.Equipment.Enable(lootWorld.Progression);

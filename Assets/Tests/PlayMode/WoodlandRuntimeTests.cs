@@ -93,7 +93,10 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(2,chosen.Count);
             foreach(var receipt in chosen)
             {
-                var item=p.Equipment.ForItem(receipt);typeof(ArenaRuntime).GetMethod("EquipInventoryItem",Flags).Invoke(_runtime,new object[]{item});yield return null;
+                var item=p.Equipment.ForItem(receipt);typeof(ArenaRuntime).GetField("_selectedItem",Flags).SetValue(_runtime,p.Items.IndexOf(receipt));
+                _runtime.OpenMenu(ArenaRuntime.MenuInventory);yield return null;
+                var button=Find("EquipWeapon").GetComponent<UnityEngine.UI.Button>();Assert.IsTrue(button.interactable);button.onClick.Invoke();yield return null;
+                _runtime.CloseMenu();yield return null;
                 Assert.AreEqual(item.Definition.Id,Game.Progression.Equipment.Weapon.Definition.Id);
                 var host=(Transform)typeof(ArenaRuntime).GetField("_equippedVisual",Flags).GetValue(_runtime);Assert.IsNotNull(host);Assert.IsTrue(host.name.Contains(item.Definition.Id));
                 Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var saved));Assert.AreEqual(item.Definition.Id,saved.Equipment.Weapon.Definition.Id);
