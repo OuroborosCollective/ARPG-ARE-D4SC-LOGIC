@@ -12,6 +12,7 @@ namespace AreArpg.UnityClient
         private HungerAction[] InvestigationActions()
         {
             var p = _game.Progression; var c = p.Investigation;
+            if (p.EntryAct == 5 && c.Approach != SealApproach.Undecided && !p.Dungeon.Active) return new[] { HungerAction.BeginDungeonRun };
             if (p.EntryAct == 2 && p.Rattler.BrandExamined && !p.Rattler.Reported) return new[] { HungerAction.ReportRoyalBrand };
             if (p.EntryAct == 7) return p.Rattler.Creature.IsDead && !p.Rattler.BrandExamined ? new[] { HungerAction.InspectRoyalBrand } : new HungerAction[0];
             if (p.EntryAct == 6 && c.TraceFound && !p.Rattler.Active) return new[] { HungerAction.OpenInnerDoor };
@@ -19,7 +20,7 @@ namespace AreArpg.UnityClient
             if (p.EntryAct == 6 && !c.TraceFound) return new[] { HungerAction.InspectCryptTrace };
             if (p.EntryAct != 5 || c.Approach != SealApproach.Undecided) return new HungerAction[0];
             if ((c.Clues & 4) != 0 && _game.AtInvestigationSeal)
-                return c.Clues == 7 ? new[] { HungerAction.OpenSeal, HungerAction.BreakSeal } : new[] { HungerAction.BreakSeal };
+                return c.Clues == 7 ? new[] { HungerAction.OpenDungeonSeal, HungerAction.BreakDungeonSeal } : new[] { HungerAction.BreakDungeonSeal };
             var actions = new List<HungerAction>(3);
             if ((c.Clues & 1) == 0) actions.Add(HungerAction.StoreBandage);
             if ((c.Clues & 2) == 0) actions.Add(HungerAction.StoreTracks);

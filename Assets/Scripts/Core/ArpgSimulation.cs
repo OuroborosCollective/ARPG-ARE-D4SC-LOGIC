@@ -147,7 +147,7 @@ namespace AreArpg.Core
             for (int i = 0; i < Cooldowns.Length; i++) next.Cooldowns[i] = Cooldowns[i];
             next.PlayerZmm = next.PrevPlayerZmm = next.Progression.HungerStage > 0 ?
                 (next.Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
-            next.SaveRoadPlayer(); next.SaveInvestigationPlayer();
+            next.SaveRoadPlayer(); next.SaveInvestigationPlayer(); next.SaveDungeonPlayer();
             return next;
         }
 
@@ -156,7 +156,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -201,7 +201,7 @@ namespace AreArpg.Core
             if (Progression.EntryAct > 0 && !cryptDepth.IsOne)
                 throw new ArgumentOutOfRangeException(nameof(cryptDepth), "Entry revision 1 uses its own two-act checkpoint.");
             PlayerHealth = MaxPlayerHealth;
-            _rng = new DeterministicRng(seed);
+            _rng = new DeterministicRng(InDungeon ? Progression.Dungeon.Seed : seed);
             if (IsVillage)
             {
                 Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -3600, -3400));
@@ -214,6 +214,12 @@ namespace AreArpg.Core
                 PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
                 InitializeRoadEncounter();
                 InitializeInvestigation();
+                if (InDungeon)
+                {
+                    CurrentTick = Progression.Dungeon.Tick;
+                    GroundLoot = Progression.Dungeon.Current.Loot;
+                    Monsters.AddRange(Progression.Dungeon.Current.Monsters);
+                }
                 if (Progression.EntryAct == 7) Monsters.Add(Progression.Rattler.Creature);
                 return;
             }
@@ -482,6 +488,7 @@ namespace AreArpg.Core
         public bool CanStand(long x, long z)
         {
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
+            if (InDungeon) return Progression.Dungeon.Current.Layout.CanStand(x, z) && (z <= 21000 || DungeonForwardOpen);
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);
             if (Progression.EntryAct >= 5) return CanStandInInvestigation(Progression.EntryAct, Progression.Investigation.Approach, x, z, Progression.Rattler.Active);
             if (Progression.EntryAct >= 3) return CanStandInHungerRegion(Progression.EntryAct, x, z);
@@ -515,13 +522,13 @@ namespace AreArpg.Core
             }
             for (int i = 0; i < Cooldowns.Length; i++)
                 if (Cooldowns[i] > 0) Cooldowns[i]--;
-            if (GameOver) { StepRoadEncounter(); SaveInvestigationPlayer(); return; }
+            if (GameOver) { StepRoadEncounter(); SaveInvestigationPlayer(); SaveDungeonPlayer(); return; }
             MovePlayer();
             StepNpcs();
             StepRoadEncounter();
             StepRattler();
             StepInvestigation();
-            if (GameOver) return;
+            if (GameOver) { SaveDungeonPlayer(); return; }
 
             foreach (MonsterState enemy in Monsters)
             {
@@ -529,7 +536,7 @@ namespace AreArpg.Core
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
-                if (distance2 > FixedMath.Square(14000)) continue;
+                if (distance2 > FixedMath.Square(14000) || (InDungeon && !Progression.Dungeon.Current.Layout.HasSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm))) continue;
                 if (ChapterId == 2 && enemy.Kind == 3)
                 {
                     // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.
@@ -565,6 +572,7 @@ namespace AreArpg.Core
                     if (GameOver) break;
                 }
             }
+            SaveDungeonPlayer();
         }
 
         private MonsterState NearestMonster(long maxDistanceMm)
@@ -575,7 +583,7 @@ namespace AreArpg.Core
             {
                 if (enemy.IsDead || (enemy.Kind == 4 && !Progression.Road.Started)) continue;
                 long d2 = DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm);
-                if (d2 <= bestDistance2) { bestDistance2 = d2; target = enemy; }
+                if (d2 <= bestDistance2 && (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm))) { bestDistance2 = d2; target = enemy; }
             }
             return target;
         }
@@ -609,9 +617,10 @@ namespace AreArpg.Core
                 Progression.RecordKill();
                 Progression.EarnExperience(new System.Numerics.BigInteger(
                     enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
-                GroundLoot.Add(new LootState { Id = _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
+                GroundLoot.Add(new LootState { Id = InDungeon ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
                     WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8),
-                    Item = _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
+                    Item = InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) :
+                        _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
                         CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) });
             }
         }
@@ -646,7 +655,8 @@ namespace AreArpg.Core
             if (skill.Target == SkillTarget.Area)
             {
                 foreach (MonsterState enemy in Monsters)
-                    if (!enemy.IsDead && DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(range))
+                    if (!enemy.IsDead && DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(range) &&
+                        (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm)))
                         DealDamage(enemy, skill.PowerBp, slot, result);
             }
             else DealDamage(nearest, skill.PowerBp, slot, result);

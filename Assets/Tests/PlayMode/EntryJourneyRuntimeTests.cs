@@ -633,8 +633,9 @@ namespace AreArpg.PlayMode.Tests
             MoveStory(0, 24000); TravelStory(); MoveStory(0, 18000);
             yield return StoryAction(HungerAction.InspectSeal);
             var actions = (HungerAction[])typeof(ArenaRuntime).GetMethod("HungerActions", Flags).Invoke(_runtime, null);
-            CollectionAssert.Contains(actions, HungerAction.BreakSeal);
-            CollectionAssert.DoesNotContain(actions, HungerAction.OpenSeal);
+            CollectionAssert.Contains(actions, HungerAction.BreakDungeonSeal);
+            CollectionAssert.DoesNotContain(actions, HungerAction.OpenDungeonSeal);
+            // Keep exercising the pre-AC14 trap/checkpoint here; the offered UI now starts the generated dungeon.
             yield return StoryAction(HungerAction.BreakSeal);
             MoveStory(0, 24000); TravelStory();
             MoveStory(0, -3000);

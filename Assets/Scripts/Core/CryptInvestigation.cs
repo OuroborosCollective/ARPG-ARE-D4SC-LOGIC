@@ -30,7 +30,7 @@ namespace AreArpg.Core
             return string.Join(",", f.Select(x => Convert.ToString(x, CultureInfo.InvariantCulture)));
         }
 
-        internal static bool TryRead(string token, int act, out CryptInvestigation result, bool innerOpen = false)
+        internal static bool TryRead(string token, int act, out CryptInvestigation result, bool innerOpen = false, CryptDungeonLayout dungeonLayout = null)
         {
             result = null; string[] f = token.Split(','); if (f.Length != 17) return false;
             var n = new long[15];
@@ -48,7 +48,7 @@ namespace AreArpg.Core
                 (n[6] != 0 && (n[6] != act || (act != 5 && act != 6 && act != 7) || (a | b) == 0)) ||
                 n[7] < -27000 || n[7] > 27000 || n[8] < -27000 || n[8] > 27000 ||
                 n[9] < 0 || n[9] > int.MaxValue || n[10] < 0 || n[10] > 100) return false;
-            if (n[6] != 0 && !ArenaSimulation.CanStandInInvestigation(act, (SealApproach)n[2], n[7], n[8], innerOpen)) return false;
+            if (n[6] != 0 && !(dungeonLayout != null ? dungeonLayout.CanStand(n[7], n[8]) : ArenaSimulation.CanStandInInvestigation(act, (SealApproach)n[2], n[7], n[8], innerOpen))) return false;
             for (int i = 11; i < 15; i++) if (n[i] < 0 || n[i] > 300) return false;
             var r = new CryptInvestigation { Active = true, Clues = (int)n[1], Approach = (SealApproach)n[2],
                 TraceFound = n[3] == 1, Reported = n[4] == 1, TrapTicks = (int)n[5], SavedAct = (int)n[6],
@@ -92,7 +92,7 @@ namespace AreArpg.Core
         private void StepInvestigation()
         {
             var c = Progression.Investigation;
-            if (Progression.EntryAct == 6 && c.Approach == SealApproach.Broken && !GameOver)
+            if (Progression.EntryAct == 6 && (!InDungeon || Progression.Dungeon.Depth == 1) && c.Approach == SealApproach.Broken && !GameOver)
             {
                 if (c.TrapTicks > 0)
                 {
@@ -162,7 +162,7 @@ namespace AreArpg.Core
                 result.Text = c.Approach == SealApproach.Investigated ? "Du entlastest den Zugmechanismus. Der Abstieg oeffnet sich kontrolliert." :
                     "Das Siegel bricht. Ein Ruck geht durch das Mauerwerk. Achte unten auf Staub und markierte Fallstellen!";
             }
-            else if (action == HungerAction.InspectCryptTrace && Progression.EntryAct == 6 && !c.TraceFound &&
+            else if (action == HungerAction.InspectCryptTrace && Progression.EntryAct == 6 && (!InDungeon || Progression.Dungeon.Depth == 2) && !c.TraceFound &&
                 DistanceSquared(PlayerXmm, PlayerZmm, 0, 15000) <= FixedMath.Square(NpcInteractionRadiusMm))
             { c.TraceFound = true; result.Text = "Frischer Verbandsstoff liegt vor einer verriegelten inneren Tuer. Von dahinter kommen dumpfe Schlaege. Die Spur endet nicht im Speicher. Berichte Ilyan; wer dahinter ist, bleibt ungeklaert."; }
             else if (action == HungerAction.ReportCrypt && Progression.EntryAct == 2 && c.TraceFound && !c.Reported)

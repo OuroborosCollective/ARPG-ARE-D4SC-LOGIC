@@ -22,6 +22,13 @@ namespace AreArpg.Core
         public long StrikeX { get; internal set; }
         public long StrikeZ { get; internal set; }
 
+        internal void RestartDungeonRun()
+        {
+            Creature.Health=MaximumHealth; Creature.LootGranted=false; Creature.AttackCooldownTicks=Creature.BossWindupTicks=0;
+            Creature.Xmm=Creature.PreviousXmm=0; Creature.Zmm=Creature.PreviousZmm=17000;
+            TargetX=StrikeX=StrikeZ=0; TargetZ=17000; MemoryTicks=0; Sneaking=false;
+        }
+
         internal string Token()
         {
             object[] f = { Active ? 1 : 0, Sneaking ? 1 : 0, BrandExamined ? 1 : 0, Reported ? 1 : 0,
@@ -30,7 +37,7 @@ namespace AreArpg.Core
             return string.Join(",", f.Select(v => Convert.ToString(v, CultureInfo.InvariantCulture)));
         }
 
-        internal static bool TryRead(string token, out RattlerEncounter result)
+        internal static bool TryRead(string token, out RattlerEncounter result, CryptDungeonLayout dungeonLayout = null)
         {
             result = null; var f = token.Split(','); if (f.Length != 15) return false;
             var n = new long[15];
@@ -40,11 +47,11 @@ namespace AreArpg.Core
             if (n[0] != 1 || n[1] < 0 || n[1] > 1 || n[2] < 0 || n[2] > 1 || n[3] < 0 || n[3] > n[2] ||
                 n[6] < 0 || n[6] > MaximumHealth || n[7] < 0 || n[7] > 14 || n[8] < 0 || n[8] > 10 ||
                 n[9] < 0 || n[9] > 1 || (n[6] == 0) != (n[9] == 1) ||
-                (n[6] == 0 && n[8] != 0) || (n[2] == 1 && n[6] != 0) ||
+                (n[6] == 0 && n[8] != 0) || (n[2] == 1 && n[6] != 0 && dungeonLayout == null) ||
                 // A windup freezes its strike point, so it may legitimately outlive perception memory (MemoryTicks 0).
                 n[10] < 0 || n[10] > 60) return false;
             foreach (int i in new[] { 4, 11, 13 })
-                if (!ArenaSimulation.CanStandInRattlerDen(n[i], n[i + 1])) return false;
+                if (!(dungeonLayout != null ? dungeonLayout.CanStand(n[i], n[i + 1]) : ArenaSimulation.CanStandInRattlerDen(n[i], n[i + 1]))) return false;
             var r = new RattlerEncounter { Active = true, Sneaking = n[1] == 1, BrandExamined = n[2] == 1,
                 Reported = n[3] == 1, MemoryTicks = (int)n[10], TargetX = n[11], TargetZ = n[12], StrikeX = n[13], StrikeZ = n[14] };
             r.Creature.Xmm = r.Creature.PreviousXmm = n[4]; r.Creature.Zmm = r.Creature.PreviousZmm = n[5];
@@ -91,14 +98,15 @@ namespace AreArpg.Core
                 m.BossWindupTicks--;
                 if (m.BossWindupTicks == 0)
                 {
-                    if (DistanceSquared(PlayerXmm, PlayerZmm, r.StrikeX, r.StrikeZ) <= FixedMath.Square(RattlerEncounter.StrikeRadius))
+                    if (DistanceSquared(PlayerXmm, PlayerZmm, r.StrikeX, r.StrikeZ) <= FixedMath.Square(RattlerEncounter.StrikeRadius) &&
+                        (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm)))
                         PlayerHealth = Math.Max(0, PlayerHealth - 280);
                     m.AttackCooldownTicks = 14;
                 }
                 return;
             }
             // A lost trail returns to the authored feeding place, never to an unseen moving player.
-            if (r.MemoryTicks == 0) { r.TargetX = 0; r.TargetZ = 8000; }
+            if (r.MemoryTicks == 0) { r.TargetX = 0; r.TargetZ = InDungeon ? 17000 : 8000; }
             long dx = r.TargetX - m.Xmm, dz = r.TargetZ - m.Zmm;
             long d2 = dx * dx + dz * dz;
             if (r.MemoryTicks > 0 && d2 <= FixedMath.Square(2100) && m.AttackCooldownTicks == 0)
@@ -107,7 +115,7 @@ namespace AreArpg.Core
             long distance = Math.Max(1, FixedMath.IntegerSqrt(d2));
             long step = Math.Min(380, distance);
             long nx = m.Xmm + dx * step / distance, nz = m.Zmm + dz * step / distance;
-            if (CanStandInRattlerDen(nx, nz)) { m.Xmm = nx; m.Zmm = nz; }
+            if (InDungeon ? CanStand(nx, nz) : CanStandInRattlerDen(nx, nz)) { m.Xmm = nx; m.Zmm = nz; }
         }
 
         private void FinishRattler(SkillResult result)
@@ -116,7 +124,9 @@ namespace AreArpg.Core
             if (!m.IsDead || m.LootGranted) return;
             m.LootGranted = true; m.BossWindupTicks = 0;
             result.Kills++; Kills++; Progression.RecordKill(); Progression.EarnExperience(1200);
-            Progression.AddWeaponUpgrade(12);
+            if (InDungeon) GroundLoot.Add(new LootState { Id=42,Xmm=m.Xmm,Zmm=m.Zmm,WeaponBonus=34,
+                Item=LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LifetimeKills) });
+            else Progression.AddWeaponUpgrade(12);
         }
 
         private SocialResult ActOnRattler(HungerAction action)
@@ -124,9 +134,13 @@ namespace AreArpg.Core
             var r = Progression.Rattler; var c = Progression.Investigation;
             var result = new SocialResult { Text = "Gehe zum passenden Hinweis." };
             if (GameOver) return result;
-            if (action == HungerAction.OpenInnerDoor && Progression.EntryAct == 6 && c.TraceFound && !r.Active &&
+            if (action == HungerAction.OpenInnerDoor && Progression.EntryAct == 6 && (!InDungeon || Progression.Dungeon.Depth == 2) && c.TraceFound && !r.Active &&
                 DistanceSquared(PlayerXmm, PlayerZmm, 0, 15000) <= FixedMath.Square(NpcInteractionRadiusMm))
-            { r.Active = true; result.Text = "Der Riegel gibt nach. Dahinter scharrt etwas. Leise Schritte vermeiden Laerm; aus der Naehe kann es dich riechen."; }
+            {
+                r.Active = true;
+                if (InDungeon) r.RestartDungeonRun();
+                result.Text = "Der Riegel gibt nach. Dahinter scharrt etwas. Leise Schritte vermeiden Laerm; aus der Naehe kann es dich riechen.";
+            }
             else if (action == HungerAction.ToggleSneak && Progression.EntryAct == 7)
             { r.Sneaking = !r.Sneaking; result.Text = r.Sneaking ? "Du schleichst. Naher Geruch und Angriffe verraten dich weiterhin." : "Du gehst wieder schnell. Deine Schritte sind hoerbar."; }
             else if (action == HungerAction.InspectRoyalBrand && Progression.EntryAct == 7 && r.Creature.IsDead && !r.BrandExamined &&
