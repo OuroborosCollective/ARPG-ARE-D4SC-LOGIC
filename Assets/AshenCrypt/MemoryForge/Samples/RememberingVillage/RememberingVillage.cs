@@ -83,7 +83,7 @@ namespace AshenCrypt.MemoryForge.Samples
             foreach(var actor in new[]{_nara,_guard}){var d=_player.position-actor.position;if(d.sqrMagnitude>.01f)actor.rotation=Quaternion.LookRotation(d);}
             foreach(var label in new[]{_naraLabel,_guardLabel})label.transform.rotation=SampleCamera.transform.rotation;
             _sight.SetPosition(0,_guard.position+Vector3.up*1.6f);_sight.SetPosition(1,_player.position+Vector3.up*1.6f);
-            _sight.startColor=_sight.endColor=World.GuardCanSeePlayer?Teal:new Color(.67f,.27f,.22f,.7f);
+            _sight.sharedMaterial.color=World.GuardCanSeePlayer?Teal:new Color(.67f,.27f,.22f,.7f);
         }
         public void Execute(string command)
         {
