@@ -110,12 +110,12 @@ namespace AreArpg.Core
         private ulong CompanionAreaSeed => InForest?Progression.Woodland.Seed:InDungeon?Progression.Dungeon.Seed:0;
         private int CompanionAreaDepth => InDungeon?Progression.Dungeon.Depth:0;
         public bool CompanionPresent => Progression.Companion.HasJoined&&Progression.Companion.Area==Progression.EntryAct&&Progression.Companion.AreaSeed==CompanionAreaSeed&&Progression.Companion.AreaDepth==CompanionAreaDepth;
-        private void BindCompanion()
+        private void BindCompanion(bool passageArrival=false)
         {
             var forge=Progression.Social.Forge;if(forge==null)return;
             if(Progression.EntryAct==3||Progression.Companion.HasJoined)forge.Ensure("hunter","companion");
             var c=Progression.Companion;
-            if(c.Status==CompanionStatus.Following&&!CompanionPresent)
+            if(c.Status==CompanionStatus.Following&&(passageArrival||!CompanionPresent))
             {
                 c.Area=Progression.EntryAct;c.AreaSeed=CompanionAreaSeed;c.AreaDepth=CompanionAreaDepth;c.Xmm=c.PreviousXmm=PlayerXmm;c.Zmm=c.PreviousZmm=PlayerZmm;
                 foreach(var offset in new[]{(-1200L,0L),(1200L,0L),(0L,-1200L),(0L,1200L)})

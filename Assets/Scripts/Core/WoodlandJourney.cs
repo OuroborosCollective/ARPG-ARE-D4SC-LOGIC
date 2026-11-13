@@ -64,6 +64,7 @@ namespace AreArpg.Core
             if(target==8) { x=from==9?-33000:0; z=from==4?-45000:from==10?45000:0; }
             if(target==4) { x=MillForestXmm+3000;z=MillForestZmm; }
             next.PlayerXmm=next.PrevPlayerXmm=x;next.PlayerZmm=next.PrevPlayerZmm=z;
+            next.BindCompanion(true);
             if(target==9||from==9) next._rng.Restore(_rng.S0,_rng.S1);
             next.PlayerHealth=Math.Min(PlayerHealth,next.MaxPlayerHealth);next.Resource=Resource;
             for(int i=0;i<4;i++)next.Cooldowns[i]=Cooldowns[i];
