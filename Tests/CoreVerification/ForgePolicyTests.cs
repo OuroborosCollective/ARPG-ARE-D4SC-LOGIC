@@ -34,5 +34,11 @@ internal static class ForgePolicyTests
         UtilityEvaluator.Decide(npc.Controller,hurt,npc.DecisionState,4);
         var save=archive.Save();check(MemoryArchive.TryLoad(save,registry,out var loaded)&&loaded.Save()==save&&loaded.Migrations[0].Checksum==receipt.Checksum&&loaded.Get("watch").RelationshipTo("player").Trust==7000,"forge-migration-history-neural-decision-and-memory-survive-restore");
         var withoutV2=ForgeDefaults.CreateRegistry();check(!MemoryArchive.TryLoad(save,withoutV2,out _),"forge-missing-neural-history-must-not-select-newest");
+        for(int i=0;i<100;i++)UtilityEvaluator.Evaluate(guard,threat);
+        long before=GC.GetAllocatedBytesForCurrentThread();
+        for(int i=0;i<1000;i++)UtilityEvaluator.Evaluate(guard,threat);
+        long perDecision=(GC.GetAllocatedBytesForCurrentThread()-before)/1000;
+        check(perDecision<2000,"forge-gameplay-decision-does-not-allocate-unused-diagnostic-text-actual-bytes-"+perDecision);
+        check(UtilityEvaluator.Evaluate(guard,threat).Priorities.First(s=>s.Action==ForgeAction.Attack).Contributions.Contains("3=10000*20000->20000"),"forge-on-demand-trace-retains-actual-input-weight-and-contribution");
     }
 }
