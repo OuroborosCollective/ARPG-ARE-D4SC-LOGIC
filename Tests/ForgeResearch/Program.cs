@@ -23,7 +23,7 @@ internal static class Program
         var input=new int[2*(int)Feature.Count];input[(int)Feature.Danger]=fullDomain?0:10000;input[(int)Feature.Count+(int)Feature.Injury]=10000;
         var output=new int[20];output[(int)ForgeAction.Attack*2]=repairWeight;output[(int)ForgeAction.Attack*2+1]=-20000;output[(int)ForgeAction.Flee*2+1]=20000;
         var network=new QuantizedNetwork(2,input,new[]{fullDomain?10000:0,-5000},output,new int[10]);
-        return new ControllerArtifact(Role,"research.guard",fullDomain?3:repairWeight<0?1:2,new[]{Rule(ForgeAction.Wait,0,100),Rule(ForgeAction.Attack,1,0),Rule(ForgeAction.Flee,2,0)},network:network);
+        return new ControllerArtifact(Role,"research.guard",fullDomain?3:repairWeight<0?1:2,new[]{Rule(ForgeAction.Wait,0,fullDomain?-10000:100),Rule(ForgeAction.Attack,1,0),Rule(ForgeAction.Flee,2,0)},network:network);
     }
     private static ControllerArtifact Utility()=>new ControllerArtifact(Role,"research.utility",1,new[]{Rule(ForgeAction.Wait,0,-10000),Rule(ForgeAction.Attack,1,10000,-10000),Rule(ForgeAction.Flee,2,-5000,10000)});
     private static object Score(ControllerArtifact c,ObservationFrame[] frames)
@@ -44,7 +44,10 @@ internal static class Program
         var forbidden=Enumerable.Range(0,41).Select(i=>Frame(10000,i*250,true)).ToArray();
         var candidates=new[]{-10000,-5000,0,5000,10000,15000,20000};
         int selected=candidates.OrderByDescending(w=>train.Count(f=>UtilityEvaluator.Evaluate(Neural(w),f).Action==BehaviorTree(f))).ThenBy(w=>Math.Abs(w+10000)).ThenBy(w=>w).First();
-        var faulty=Neural(-10000);var repaired=Neural(selected);var full=Neural(selected,true);var utility=Utility();
+        // The first search overfits. The reviewed threshold specification gives 4*(7500-5000)=10000;
+        // a saturated constant hidden node removes the accidental dependence on danger magnitude.
+        // Lowering Wait also fixes the separate safe-fallback rule when attack is forbidden.
+        var faulty=Neural(-10000);var repaired=Neural(selected);var full=Neural(10000,true);var utility=Utility();
         // World permissions must filter forbidden attack before either model scores it. Flee is the safe legal response.
         var cases=grid.Concat(forbidden).Select(f=>new RegressionCase(f,BehaviorTree(f))).ToArray();
         var admission=ControllerAdmission.Run(full,"research.guard-full-domain",cases);
