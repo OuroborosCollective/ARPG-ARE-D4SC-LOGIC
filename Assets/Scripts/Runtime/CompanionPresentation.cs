@@ -69,7 +69,7 @@ namespace AreArpg.UnityClient
             if(!_game.CompanionPresent){ClearCompanionVisuals();return;}
             if(_companionVisual==null)
             {
-                _companionVisual=Shape(PrimitiveType.Capsule,"ARE_Companion_Hunter",Vector3.zero,new Vector3(.8f,1,.8f),new Color(.27f,.45f,.25f));
+                _companionVisual=Shape(PrimitiveType.Capsule,"ARE_Companion_Hunter",Vector3.up,new Vector3(.8f,1,.8f),new Color(.27f,.45f,.25f));
                 PassiveArtVisuals.TryBindGrounded(_companionVisual,"RoadHunter",0);
                 foreach(var part in _companionVisual.GetComponentsInChildren<Transform>(true))if(part.name=="HunterBow")part.gameObject.SetActive(false);
                 _companionAnimator=_companionVisual.GetComponentInChildren<Animator>();

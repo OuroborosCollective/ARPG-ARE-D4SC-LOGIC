@@ -31,7 +31,7 @@ namespace AreArpg.Core
             if(c.Health>0)return;
             c.Status=CompanionStatus.Dead;c.TargetId=-1;c.AttackFlash=0;
             var forge=Progression.Social.Forge;
-            string actor="mob."+Progression.EntryAct.ToString(CultureInfo.InvariantCulture)+"."+CompanionAreaSeed.ToString(CultureInfo.InvariantCulture)+"."+source.Id.ToString(CultureInfo.InvariantCulture);
+            string actor="mob."+Progression.EntryAct.ToString(CultureInfo.InvariantCulture)+"."+CompanionAreaSeed.ToString(CultureInfo.InvariantCulture)+"."+CompanionAreaDepth.ToString(CultureInfo.InvariantCulture)+"."+source.Id.ToString(CultureInfo.InvariantCulture);
             var e=forge.Archive.Append(MemoryKind.Death,actor,"hunter",forge.ProcessedTicks,10000,true,"companion.death",new RelationshipChange(fear:5000));
             foreach(var npc in Npcs)
                 if(npc.Memory.Health>0&&DistanceSquared(npc.Xmm,npc.Zmm,c.Xmm,c.Zmm)<=FixedMath.Square(8000)&&CombatSight(npc.Xmm,npc.Zmm,c.Xmm,c.Zmm))
