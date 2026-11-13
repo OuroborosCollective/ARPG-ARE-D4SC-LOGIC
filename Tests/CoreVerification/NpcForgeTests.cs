@@ -36,5 +36,17 @@ internal static class NpcForgeTests
         archive.Learn("ilyan",death.Id,KnowledgeOrigin.Witnessed,"ilyan",20);
         require(ilyan.Relevant(1000000).Count==1&&ilyan.Known.Count==2&&archive.Events.Count==2,"forge-forgetting-retains-history-and-essential-death");
         require(archive.Learn("mara",helped.Id,KnowledgeOrigin.Refuted,"mara",30)&&mara.RelationshipTo("player").Trust==0,"forge-refuted-rumor-retracts-its-own-impact");
+        UtilityEvaluator.Decide(ilyan.Controller,calm,ilyan.DecisionState,31);
+        bool continuitySaved=false;
+        try
+        {
+            string checkpoint=archive.Save();
+            continuitySaved=MemoryArchive.TryLoad(checkpoint,registry,out var resumed)&&resumed.Save()==checkpoint&&
+                UtilityEvaluator.Decide(ilyan.Controller,calm,ilyan.DecisionState,32).CanonicalTrace==
+                UtilityEvaluator.Decide(resumed.Get("ilyan").Controller,calm,resumed.Get("ilyan").DecisionState,32).CanonicalTrace&&
+                resumed.Get("ilyan").DecisionState.StartedTick==ilyan.DecisionState.StartedTick;
+        }
+        catch(InvalidOperationException) { }
+        require(continuitySaved,"forge-active-decision-cooldown-and-trace-survive-load");
     }
 }
