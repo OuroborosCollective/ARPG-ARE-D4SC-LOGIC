@@ -22,14 +22,20 @@ namespace AreArpg.UnityClient
         {
             var shader = Resources.Load<Shader>("AshenBackdrop");
             _land = new Material(shader) { name = "Ashen distant landscape", renderQueue = 2000 };
-            _land.SetFloat("_FogStrength", .55f);
+            _land.SetFloat("_FogStrength", 0);
+            var ground = Resources.Load<Material>("ARE/Visuals/WorldSurfaces/OutdoorGround");
+            if (ground != null && ground.HasProperty("_BaseMap") && ground.GetTexture("_BaseMap") != null)
+            {
+                _land.SetTexture("_BaseMap", ground.GetTexture("_BaseMap"));
+                _land.SetFloat("_TextureStrength", 1);
+            }
             _sky = new Material(shader) { name = "Ashen overcast sky", renderQueue = 1000 };
             _sky.SetFloat("_ZWrite", 0); _sky.SetFloat("_FogStrength", 0);
 
-            var soil = new Color(.24f, .28f, .20f);
-            var near = new Color(.25f, .31f, .23f);
-            var middle = new Color(.30f, .36f, .31f);
-            var far = new Color(.39f, .44f, .41f);
+            var soil = new Color(.045f, .065f, .035f);
+            var near = new Color(.09f, .13f, .10f);
+            var middle = new Color(.18f, .23f, .21f);
+            var far = new Color(.29f, .34f, .33f);
             AddBand("Outdoor_GroundSkirt", 0, 1, soil, near, act);
             AddBand("Outdoor_NearRidge", 1, 2, near, middle, act);
             AddBand("Outdoor_FarRidge", 2, 3, middle, far, act);
@@ -73,8 +79,8 @@ namespace AreArpg.UnityClient
             }
             float wave = .5f + .27f * Mathf.Sin(angle * 5 + act * .7f) + .18f * Mathf.Sin(angle * 9 - act);
             float radiusOut = ring == 1 ? 57 : ring == 2 ? 110 : ring == 3 ? 185 : 235;
-            float height = ring == 1 ? 1 + 8 * wave * Mathf.Abs(x) :
-                ring == 2 ? 8 + 20 * wave : ring == 3 ? 20 + 33 * wave : 9;
+            float height = ring == 1 ? .2f + 2 * wave * Mathf.Abs(x) :
+                ring == 2 ? 2 + 6 * wave : ring == 3 ? 5 + 12 * wave : 2;
             return new Vector3(x * radiusOut, height, z * radiusOut);
         }
 
