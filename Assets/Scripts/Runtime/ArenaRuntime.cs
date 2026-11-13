@@ -889,6 +889,7 @@ namespace AreArpg.UnityClient
             _pendingNpcActions.Clear();
             _pendingHungerAction = -1;
             _pendingHunterAction = -1;
+            _pendingCompanionAction = -1;
             ClearRoadVisuals(); ClearRattlerVisuals();
             _roadVisualAct = -1;
             _hungerJournalOpen = false;
@@ -920,6 +921,8 @@ namespace AreArpg.UnityClient
             {
                 _accumulator -= TickSeconds;
                 steps++;
+                ProcessCompanionAction();
+                if (_storageFault) break;
                 if (_pendingHunterAction >= 0)
                 {
                     var hunter = _game.InteractHunter(_pendingHunterAction == 1); _pendingHunterAction = -1;
@@ -1004,6 +1007,7 @@ namespace AreArpg.UnityClient
                 }
             }
             UpdateRoadPresentation();
+            UpdateCompanionPresentation(Mathf.Clamp01(_accumulator / TickSeconds));
             UpdateInvestigationPresentation();
             UpdateRattlerPresentation();
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));

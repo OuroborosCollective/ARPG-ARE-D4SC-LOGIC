@@ -14,8 +14,8 @@ namespace AreArpg.UnityClient
     /// </summary>
     public sealed partial class ArenaRuntime
     {
-        public const int MenuCharacter = 0, MenuInventory = 1, MenuQuests = 2, MenuSettings = 3;
-        public static readonly string[] MenuTitles = { "CHARAKTER", "TASCHE", "QUESTS", "OPTIONEN" };
+        public const int MenuCharacter = 0, MenuInventory = 1, MenuQuests = 2, MenuSettings = 3, MenuCompanion = 4;
+        public static readonly string[] MenuTitles = { "CHARAKTER", "TASCHE", "QUESTS", "OPTIONEN", "BEGLEITER" };
         public static readonly string[] ArmorSlots = { "KOPF", "BRUST", "HÄNDE", "BEINE" };
         public static readonly string[] TrinketSlots = { "WAFFE", "NEBENHAND", "AMULETT", "RING" };
 
@@ -60,6 +60,7 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.I)) { if (_menuTab == MenuInventory) CloseMenu(); else OpenMenu(MenuInventory); return true; }
             if (Input.GetKeyDown(KeyCode.L)) { if (_menuTab == MenuQuests) CloseMenu(); else OpenMenu(MenuQuests); return true; }
             if (Input.GetKeyDown(KeyCode.F8)) { if (_menuTab == MenuSettings) CloseMenu(); else OpenMenu(MenuSettings); return true; }
+            if (Input.GetKeyDown(KeyCode.B)) { if (_menuTab == MenuCompanion) CloseMenu(); else OpenMenu(MenuCompanion); return true; }
             if (!MenuOpen) return false;
             if (Input.GetKeyDown(KeyCode.Escape)) CloseMenu();
             if (_game != null) _game.SetMoveInput(0, 0);
@@ -125,6 +126,7 @@ namespace AreArpg.UnityClient
             if (_menuTab == MenuCharacter) BuildCharacterTab(body, content.size);
             else if (_menuTab == MenuInventory) BuildInventoryTab(body, content.size);
             else if (_menuTab == MenuQuests) BuildQuestTab(body, content.size);
+            else if (_menuTab == MenuCompanion) BuildCompanionTab(body, content.size);
             else BuildSettingsTab(body, content.size);
         }
 
@@ -391,8 +393,13 @@ namespace AreArpg.UnityClient
                     var def=gear.Definition;
                     text.text="<size=18><b><color=#"+hex+">"+gear.DisplayName+"</color></b></size>\n"+RarityName(gear.Rarity)+" · "+def.FamilyName+(def.TwoHanded?" · Zweihand":"")+"\n\n"+
                         (def.Family==WeaponFamily.Shield?"Schild: "+(def.BasePower/100f).ToString("0.#")+" % Schadensminderung": "Grundschaden "+def.BasePower+"\nReichweite "+(def.RangeMm/1000f).ToString("0.0")+" m · Tempo "+(def.StrikeCooldown/10f).ToString("0.0")+" s")+"\n\n"+gear.AffixDescription+"\n\n"+(equipped?"Angelegt":"Im Inventar")+"\nErbeutet beim "+gear.Ordinal+". Sieg.";
-                    AshenUiTheme.Place(text.rectTransform,new Rect(16f,36f,detailW-32f,size.y-100f));
-                    AshenUiTheme.MenuButton("EquipWeapon",panel.transform,new Rect(16,size.y-48,detailW-32,34),equipped?"ABLEGEN":"AUSRÜSTEN",()=>EquipInventoryItem(gear),fontSize:13);
+                    bool companion=p.Companion.WeaponOrdinal==gear.Ordinal||p.Companion.ShieldOrdinal==gear.Ordinal;
+                    if(companion)text.text+="\nBeim Jäger angelegt";
+                    bool manage=_game.CanManageCompanionEquipment;
+                    AshenUiTheme.Place(text.rectTransform,new Rect(16f,36f,detailW-32f,size.y-(manage?140f:100f)));
+                    var equip=AshenUiTheme.MenuButton("EquipWeapon",panel.transform,new Rect(16,size.y-48,detailW-32,34),equipped?"ABLEGEN":"AUSRÜSTEN",()=>EquipInventoryItem(gear),fontSize:13);
+                    equip.interactable=!companion;
+                    if(manage)AshenUiTheme.MenuButton("CompanionEquip",panel.transform,new Rect(16,size.y-88,detailW-32,34),companion?"VOM JÄGER NEHMEN":"DEM JÄGER GEBEN",()=>EquipCompanionInventoryItem(gear),fontSize:12);
                 }
             }
         }
