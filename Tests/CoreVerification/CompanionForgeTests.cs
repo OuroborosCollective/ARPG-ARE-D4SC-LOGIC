@@ -79,6 +79,12 @@ internal static class CompanionForgeTests
         var formation=RescueFixture();formation.RecruitHunter();var follower=formation.Progression.Companion;
         for(int i=0;i<8;i++)formation.Step();
         check(FixedMath.Square(follower.Xmm-formation.PlayerXmm)+FixedMath.Square(follower.Zmm-formation.PlayerZmm)>=FixedMath.Square(700),"companion-maintains-room-around-player-after-recruitment");
+        var walking=RescueFixture();walking.RecruitHunter();var walker=walking.Progression.Companion;
+        long walkingStart=walking.PlayerZmm;
+        walking.SetMoveInput(0,10000);
+        for(int i=0;i<15;i++)walking.Step();
+        check(walking.PlayerZmm-walkingStart==15*ArenaSimulation.PlayerSpeedMmPerTick,"companion-follow-test-uses-unblocked-player-walk");
+        check(FixedMath.Square(walker.Xmm-walking.PlayerXmm)+FixedMath.Square(walker.Zmm-walking.PlayerZmm)<=FixedMath.Square(2400),"companion-maintains-formation-with-moving-player");
         var boss=RescueFixture();boss.RecruitHunter();var bp=boss.Progression;
         for(int i=bp.HungerStage;i<4;i++)bp.DiscoverHungerClue();bp.ChooseHungerSupply(HungerChoice.Protect);bp.TravelHunger(7,false);
         bp.Investigation.Active=true;bp.Investigation.Clues=7;bp.Investigation.Approach=SealApproach.Investigated;bp.Investigation.TraceFound=true;bp.Rattler.Active=true;
