@@ -1,5 +1,11 @@
 # ARE Ashen Crypt — Projektzustand
 
+## NPC Memory Forge: erster spielbarer Nachweis (13.11.2026)
+
+[Draft PR32](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/32) erweitert den bestehenden Core um deterministische Controller und individuelles Gedächtnis. Die reale Proviantübergabe an Ilyan führt zu Erinnerung, Dankbarkeit und späterer sichtbarer Reaktion; der Ablauf besteht einschließlich PlayerPrefs-Save/Load. Historische Controller bleiben exakt gebunden. Der Editorinspector zeigt tatsächliche Werte und testet Kandidaten isoliert. [Verträge und Eigentümerschaft](docs/NPC_MEMORY_FORGE.md).
+
+Abgenommener erster Block **97f91309d93112264d8b6c33dc2067f60dbfd7c2**: 7952 Core-Assertions,38Preflights, CI43395170499 success, native Unity6000.6.8f1 PlayMode117/117 und EditMode34/34, keine Skips. Private Assets unverändert; Besitzer-Spielstände und Projekteinstellungen wiederhergestellt. Details und vollständige XML-Hashes in Memory.md. Der Branch enthält danach laufende Begleiterarbeit; diese besitzt noch keine eigene Unity-Abnahme. Neuronale Offline-Controller, breitere Population, Android-Leistung und das Verkaufspaket zu9.50USD einmalig sind noch nicht abgeschlossen.
+
 ## Wald, Bärenjunge und sichtbare Ausrüstung (13.11.2026)
 
 [Draft PR31](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/31) ergänzt den Dungeonstand um einen prozeduralen Wald, die feste Bärenhöhle mit dauerhafter Entscheidung und den begehbaren Übergang zur Aschenzoll-Ankunft. 36 vorhandene Waffen-/Schildmodelle sind als echte Beute mit Affixen ausrüstbar und erscheinen am Charakter. [Umfang, Regeln und Reproduktion](docs/WOODLAND_EQUIPMENT.md).
