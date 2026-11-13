@@ -69,6 +69,7 @@ namespace AreArpg.PlayMode.Tests
             var ilyan=Game.Npcs.First(n=>n.Id==0);ilyan.Xmm=ilyan.PreviousXmm=Game.PlayerXmm+1000;ilyan.Zmm=ilyan.PreviousZmm=Game.PlayerZmm;
             yield return StoryAction(HungerAction.ReportFreightEvidence);
             Assert.IsTrue(Game.Progression.Freight.Reported);
+            Assert.That(Game.HungerObjective,Does.Contain("Nordwechsel"),"Completed branch remains in the village journal");
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var final));
             Assert.IsTrue(final.Freight.Reported);Assert.AreEqual(release,final.Freight.ArrivalInspected);
             Assert.AreEqual(1,final.Social.Forge.Archive.Get("ilyan").Known.Count(k=>k.Event.Context=="story.reportfreightevidence"));

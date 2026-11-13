@@ -35,11 +35,21 @@ namespace AreArpg.UnityClient
         {
             var post=ChapterShape(PrimitiveType.Cube,name+"_Post",at,new Vector3(.14f,2.4f,.14f),new Color(.3f,.23f,.16f));
             var label=new GameObject(name).AddComponent<TextMesh>();label.transform.position=at+new Vector3(0,1.1f,0);
-            label.transform.SetParent(post,true);label.fontSize=45;label.characterSize=.065f;label.anchor=TextAnchor.MiddleCenter;label.alignment=TextAlignment.Center;
+            label.transform.SetParent(post,true);label.fontSize=40;label.characterSize=.022f;label.anchor=TextAnchor.MiddleCenter;label.alignment=TextAlignment.Center;
             label.text=text;label.color=new Color(.9f,.84f,.69f);
         }
         private void BuildFreightScenery()
         {
+            _chapterScenery.Add(OutdoorBackdrop.Create(10));
+            var verge=ChapterShape(PrimitiveType.Cube,"Aschenzoll_ForestVerge",new Vector3(0,-.32f,0),new Vector3(57,.3f,57),new Color(.23f,.27f,.2f));
+            FreightGroundMaterial(verge,"OutdoorGround",new Vector2(14,14));
+            var vegetation=new GameObject("Aschenzoll_TreeLine").transform;_chapterScenery.Add(vegetation);
+            var sceneryRng=new DeterministicRng(17010);
+            for(int side=-1;side<=1;side+=2)for(int i=0;i<4;i++)
+            {
+                PlantWoodland(vegetation,i%2==0?"WoodlandTreeA":"WoodlandTreeB",side*(21+i%2*3),-17+i*12,6.5f+i%3,sceneryRng);
+                PlantWoodland(vegetation,"WoodlandShrub",side*18,-13+i*10,1.1f,sceneryRng);
+            }
             _freightCart=new GameObject("Aschenzoll_EmptyFreightCart").transform;_chapterScenery.Add(_freightCart);
             var wood=new Color(.34f,.24f,.15f);var iron=new Color(.25f,.28f,.3f);
             var platform=ChapterShape(PrimitiveType.Cube,"Freight_Platform",new Vector3(0,.25f,0),new Vector3(2,.5f,4),wood,"AshCrate");platform.SetParent(_freightCart,true);
@@ -70,10 +80,18 @@ namespace AreArpg.UnityClient
             ChapterShape(PrimitiveType.Cube,"Aschenzoll_FreightDesk",new Vector3(-3,.7f,-1),new Vector3(1.6f,1.4f,1.1f),wood,"AshCrate");
             _freightOriginal=ChapterShape(PrimitiveType.Cube,"Freight_OriginalManifest",new Vector3(-3,1.43f,-1),new Vector3(.55f,.025f,.7f),new Color(.8f,.73f,.56f));
             _freightBrake=ChapterShape(PrimitiveType.Cube,"Freight_EmergencyBrake",new Vector3(-4,.8f,-1),new Vector3(.12f,1.2f,.12f),new Color(.6f,.27f,.15f));
-            FreightSign("Freight_DeskSign","Frachtpult / Notriegel",new Vector3(-5,1.2f,-1));
-            FreightSign("Freight_CageSign","Leerer Tierkäfig\nSendung 17",new Vector3(12,1.2f,-6.5f));
-            FreightSign("Freight_UpperSign","Obere Rampe\nWeitergabe: Nordwechsel",new Vector3(12,1.2f,16.5f));
+            FreightSign("Freight_DeskSign","Frachtpult",new Vector3(-5,1.2f,-1));
+            FreightSign("Freight_CageSign","Rückfracht 17",new Vector3(17.5f,1.2f,-4));
+            FreightSign("Freight_UpperSign","Obere Rampe",new Vector3(17.5f,1.2f,16.5f));
             UpdateFreightPresentation();
+        }
+        private static void FreightGroundMaterial(Transform floor,string key,Vector2 tiling)
+        {
+            var surface=Resources.Load<Material>("ARE/Visuals/WorldSurfaces/"+key);
+            if(surface==null)return;
+            var material=new Material(surface);material.mainTextureScale=tiling;
+            floor.GetComponent<Renderer>().sharedMaterial=material;
+            floor.gameObject.AddComponent<WoodlandMeshOwner>().Material=material;
         }
         private void UpdateFreightPresentation()
         {

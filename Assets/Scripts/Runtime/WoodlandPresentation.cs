@@ -118,7 +118,8 @@ namespace AreArpg.UnityClient
         private void BuildWoodlandAnchor()
         {
             bool cave=_game.Progression.EntryAct==9;
-            var floor=ChapterShape(PrimitiveType.Cube,cave?"BearCave_Floor":"Aschenzoll_Arrival_Ground",new Vector3(0,-.15f,0),new Vector3(cave?22:30,.3f,42),new Color(.3f,.29f,.27f),cave?null:"AshStoneFloor");
+            var floor=ChapterShape(PrimitiveType.Cube,cave?"BearCave_Floor":"Aschenzoll_Arrival_Ground",new Vector3(0,-.15f,0),new Vector3(cave?22:30,.3f,42),new Color(.3f,.29f,.27f));
+            if(!cave)FreightGroundMaterial(floor,"CryptSubfloor",new Vector2(7.5f,10.5f));
             var earth=cave?Resources.Load<Material>("ARE/Visuals/WoodlandGround"):null;
             if(earth!=null)
             {
