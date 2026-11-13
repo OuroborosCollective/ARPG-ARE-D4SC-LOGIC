@@ -26,7 +26,7 @@ namespace AreArpg.Core
         /// <summary>Accept each confirmed kill ordinal once, retain stable order and apply the existing upgrade path.</summary>
         internal bool CollectItem(LootItem item)
         {
-            if (item == null || item.KillOrdinal > LifetimeKills) return false;
+            if (item == null || item.KillOrdinal > LootOrdinal) return false;
             foreach (var existing in _items) if (existing.KillOrdinal == item.KillOrdinal) return false;
             int index = 0;
             while (index < _items.Count && _items[index].KillOrdinal < item.KillOrdinal) index++;
@@ -75,7 +75,10 @@ namespace AreArpg.Core
             _practice[slot] += amount;
         }
         public BigInteger TotalExperience { get; private set; }
-        public BigInteger LifetimeKills { get; private set; }
+        // The legacy save field remains the monotonic defeat/loot ordinal. AC18v3 separately
+        // attributes new companion defeats, without rewriting older historical rewards.
+        internal BigInteger LootOrdinal { get; private set; }
+        public BigInteger LifetimeKills => LootOrdinal - Companion.LifetimeKills;
         public BigInteger LootCollected { get; private set; }
         public int WeaponBonus { get; private set; }
         public BigInteger MightRank { get; private set; }
@@ -139,7 +142,8 @@ namespace AreArpg.Core
             return true;
         }
 
-        public void RecordKill() { LifetimeKills += BigInteger.One; }
+        public void RecordKill() { LootOrdinal += BigInteger.One; }
+        internal void RecordCompanionKill() { LootOrdinal += BigInteger.One; Companion.LifetimeKills += BigInteger.One; }
         public void AddWeaponUpgrade(int amount)
         {
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
@@ -154,7 +158,7 @@ namespace AreArpg.Core
             return (Woodland.Active ? "AC15|" : Dungeon.Active ? "AC14|" : Rattler.Active ? "AC12|" : Investigation.Active ? "AC11|" : Road.Started ? "AC10|" : HungerStage > 0 ? "AC9|" : EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
                 "|" + LootCollected.ToString(CultureInfo.InvariantCulture) +
-                "|" + LifetimeKills.ToString(CultureInfo.InvariantCulture) +
+                "|" + LootOrdinal.ToString(CultureInfo.InvariantCulture) +
                 "|" + MightRank.ToString(CultureInfo.InvariantCulture) +
                 "|" + VitalityRank.ToString(CultureInfo.InvariantCulture) +
                 "|" + ResolveRank.ToString(CultureInfo.InvariantCulture) +
@@ -285,7 +289,7 @@ namespace AreArpg.Core
                 ac14 ? Enumerable.Range(1,3).SelectMany(d=>dungeon.Floor(d).Loot) : Enumerable.Empty<LootState>(), out woodland))) return false;
             progress = new CharacterProgression {
                 TotalExperience = xp, WeaponBonus = (int)weapon,
-                LootCollected = loot, LifetimeKills = kills,
+                LootCollected = loot, LootOrdinal = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
                 UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct,
                 HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland

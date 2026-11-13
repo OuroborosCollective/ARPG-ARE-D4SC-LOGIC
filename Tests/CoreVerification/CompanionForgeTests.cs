@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using System.Linq;
 using AreArpg.Core;
 
 internal static class CompanionForgeTests
@@ -97,6 +98,18 @@ internal static class CompanionForgeTests
         var returning=returned.Progression.Companion;
         check(FixedMath.Square(returning.Xmm-returned.PlayerXmm)+FixedMath.Square(returning.Zmm-returned.PlayerZmm)<=FixedMath.Square(1500),"companion-arrives-at-final-western-entrance-not-default-southern-spawn");
         check(returned.CanStand(returning.Xmm,returning.Zmm)&&returning.PreviousXmm==returning.Xmm&&returning.PreviousZmm==returning.Zmm,"companion-passage-position-valid-and-stable");
+        var forestXp=returned.Progression.TotalExperience;var forestKills=returned.Progression.LifetimeKills;
+        var victim=returned.Monsters[0];victim.Xmm=returning.Xmm;victim.Zmm=returning.Zmm+400;victim.Health=1;
+        check(returned.CanStand(victim.Xmm,victim.Zmm),"companion-forest-target-fixture-on-walkable-floor");
+        for(int i=0;i<20&&!victim.IsDead;i++)returned.Step();
+        check(victim.IsDead&&returned.Progression.Companion.LifetimeKills==1&&returned.Progression.TotalExperience==forestXp&&returned.Progression.LifetimeKills==forestKills,"companion-forest-defeat-has-independent-credit");
+        string forestSave=returned.Progression.SaveString();
+        check(CharacterProgression.TryLoad(forestSave,out var forestLoaded)&&forestLoaded.SaveString()==forestSave,"companion-forest-ground-loot-and-attribution-roundtrip-exactly");
+        var forestResume=new ArenaSimulation(73,forestLoaded,1,LootCatalog.Version1);
+        forestResume.Step();check(forestLoaded.Companion.LifetimeKills==1&&forestLoaded.LifetimeKills==forestKills,"companion-loaded-defeat-cannot-reaward-credit");
+        var playerTarget=forestResume.Monsters[1];playerTarget.Xmm=forestResume.PlayerXmm;playerTarget.Zmm=forestResume.PlayerZmm+400;playerTarget.Health=1;
+        check(forestResume.ActivateSkill(0).Kills==1&&forestLoaded.LifetimeKills==forestKills+1&&forestLoaded.TotalExperience>forestXp,"next-player-defeat-still-credits-player");
+        check(forestResume.GroundLoot.Count==2&&forestResume.GroundLoot.Select(l=>l.Item.KillOrdinal).Distinct().Count()==2&&CharacterProgression.TryLoad(forestLoaded.SaveString(),out _),"mixed-actor-defeats-have-unique-loadable-loot-ordinals");
     }
     private static ArenaSimulation RescueFixture()
     {
