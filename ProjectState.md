@@ -8,7 +8,13 @@
 - implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. PR25 ist als 86bae8f108aaf1ee508dd7b24dc448e49c2bdc2a in main integriert.
 - open_decisions: Konkrete Wappenzeichnung, Abrichter, Auftraggeber, Motiv, konditionierter Zielgeruch und Schicksal der einzelnen Vermissten. Kein persoenlicher Koenigsbefehl allein aus dem Wappen ableiten.
 - verified: Privates Creep-Horror-Creature-Originalpaket244853 als CryptRattler gebunden (LOD1, 2107Vertices, vier Clips, Halsbrandmal als Grafikprototyp). Native Knochenbewegung/Brandmalbindung und Begegnung bestanden; Unity6 PlayMode68/68, EditMode31/31. Revisionsbindung und XML-Hashes: Memory.md [rattler-pr25-20261112].
-- next: PR28 bleibt nach gemeinsamer nativer Pruefung Draft zur Sichtabnahme. Aussenhorizonte sind als gepruefter Grafikstand ergaenzt; Patientenmodelle bleiben der naechste Grafikpunkt. Das Brandmal bleibt primaer ein Lore-Hinweis mit optionaler kleiner Grafik; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+- next: PR28 bleibt nach gemeinsamer nativer Pruefung Draft zur Sichtabnahme. Aussenhorizonte und Patientenmodelle sind als gepruefter Grafikstand ergaenzt; weitere Landschaftsdetails und zusammenhaengender Story-/Gebietsblock bleiben offen. Das Brandmal bleibt primaer ein Lore-Hinweis mit optionaler kleiner Grafik; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+
+## Patienten an der alten Muehle (13.11.2026)
+
+Die Kapseln sind durch ruhende, zugedeckte Bauernfiguren aus den vorhandenen privaten Dorfmodellen ersetzt. Statische Meshes mit5648/5263/5648Vertices, ohne Animator oder zusaetzliche Physik; Quellen unveraendert. Anzahl, Verschwinden und Laden folgen unveraendert dem Core. Native Nahaufnahmen zeigen erst drei Patienten, nach Rueckkehr/Laden zwei und das leere Bett mit Verband. Fable-UI, Spielkamera, Core und Save-Vertrag bleiben erhalten. Reproduktion: `ARE ARPG/Art/Build Private Mill Patients`.
+
+Code665f681f1e91d262f23994f988bd7f0df51759b4 / Tree d9c687de3343fe74c37916dff6daa7bd75511b43: Unity6000.6.8f1 PlayMode100/100 und EditMode31/31, jeweils0Skips, Core1840+38Preflights, CI43336707652 success. Zwei echte REDs fuer fehlende Modelle bzw. fehlende Farbtexturen; finale Autorenerzeugung nutzt die bereits gebackenen Dorftexturen. Nach einmaliger Unity-Importaktualisierung der sechs neuen Patientenmaterialien bestehen die finalen Laeufe mit unveraendertem privaten Bestand und wiederhergestellten Prefs/Settings. SHA-/XML-Bindung: Memory.md [mill-patients-20261113]. Evidence: `/var/lib/unityarpg/.local/share/are-arpg/mill-patients-20261113`, `stable-play` und `stable-edit`; private Authoring-Receipts getrennt. PR28 bleibt Draft; keine neue APK oder Android-Leistungsmessung.
 
 ## Aussenhorizonte (13.11.2026)
 
