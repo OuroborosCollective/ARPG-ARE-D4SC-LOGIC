@@ -14,12 +14,16 @@ namespace AreArpg.EditMode.Tests
         private Type _author;
         private string _fixture;
         private HashSet<string> _before;
+        private bool _ownsRoot;
 
         [SetUp] public void Setup()
         {
             _author = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("AreArpg.EditorTools.WorldTextureAuthoring")).First(t => t != null);
             _fixture = "Assets/PrivateArt/WorldUvTest_" + Guid.NewGuid().ToString("N") + ".asset";
             _before = new HashSet<string>(AssetDatabase.GetAllAssetPaths());
+            _ownsRoot = !System.IO.Directory.Exists(Root);
+            System.IO.Directory.CreateDirectory(Root);
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         }
 
         [TearDown] public void Cleanup()
@@ -27,6 +31,8 @@ namespace AreArpg.EditMode.Tests
             foreach (string path in AssetDatabase.GetAllAssetPaths())
                 if (!_before.Contains(path) && (path.StartsWith(Root, StringComparison.Ordinal) || path == _fixture))
                     AssetDatabase.DeleteAsset(path);
+            if (_ownsRoot && System.IO.Directory.Exists(Root) && System.IO.Directory.GetFileSystemEntries(Root).Length == 0)
+                AssetDatabase.DeleteAsset(Root.TrimEnd('/'));
         }
 
         [Test] public void SurfaceOnlyRecipeCanEnumerateItsBoundAssets()
