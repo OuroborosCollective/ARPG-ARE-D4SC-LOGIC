@@ -44,6 +44,9 @@ class OfficialUnityRoutingTests(unittest.TestCase):
     def test_git_review_does_not_route_through_uvcs(self):
         self.assertNotIn("uvcs-core", [s["name"] for s in route("review merge", self.catalog, "git")["skills"]])
 
+    def test_build_does_not_match_the_ui_abbreviation_inside_a_word(self):
+        self.assertNotIn("ui-ugui", [s["name"] for s in route("Android build", self.catalog, "git")["skills"]])
+
     def test_uvcs_review_includes_required_core(self):
         names = [s["name"] for s in route("review", self.catalog, "uvcs")["skills"]]
         self.assertIn("uvcs-core", names)

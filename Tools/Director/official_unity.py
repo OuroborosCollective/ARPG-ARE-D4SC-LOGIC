@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 
@@ -39,7 +40,8 @@ def route(task, catalog, vcs="git"):
         (("physik", "physics", "collision", "kollision"), ["fix-3d-physics-collisions"]),
     ]
     for keywords, names in groups:
-        if any(word in text for word in keywords):
+        if any((re.search(r"\b" + re.escape(word) + r"\b", text) if len(word) <= 3 else word in text)
+               for word in keywords):
             selected.update(names)
     if any(word in text for word in ("android", "tablet", "logcat", "adb")):
         packages.append(dict(id="com.unity.mobile.android-logcat", version="1.4.7",
