@@ -15,6 +15,7 @@ namespace AshenCrypt.MemoryForge.Tests
         public IEnumerator RenderingCannotAdvanceCanonicalSampleTicks()
         {
             var go=new GameObject("Sample tick boundary under test");
+            float previousFixedStep=Time.fixedDeltaTime;
             try
             {
                 var sample=go.AddComponent<RememberingVillage>();sample.Running=false;yield return null;
@@ -23,8 +24,16 @@ namespace AshenCrypt.MemoryForge.Tests
                 string before=sample.World.Save();
                 for(int i=0;i<1000;i++)update.Invoke(sample,null);
                 Assert.AreEqual(before,sample.World.Save(),"Rendering cannot schedule or drop canonical world steps");
+                Time.fixedDeltaTime=.02f;
+                var fixedUpdate=typeof(RememberingVillage).GetMethod("FixedUpdate",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic);
+                var tick=sample.World.Tick;
+                for(int i=0;i<50;i++)fixedUpdate.Invoke(sample,null);
+                Assert.AreEqual(tick+10,sample.World.Tick,"All supplied fixed steps must be processed, including catch-up");
+                sample.Running=false;
+                for(int i=0;i<50;i++)fixedUpdate.Invoke(sample,null);
+                Assert.AreEqual(tick+10,sample.World.Tick,"Paused fixed callbacks cannot create delayed steps");
             }
-            finally{UnityEngine.Object.Destroy(go);}
+            finally{Time.fixedDeltaTime=previousFixedStep;UnityEngine.Object.Destroy(go);}
             yield return null;
         }
         [UnityTest]

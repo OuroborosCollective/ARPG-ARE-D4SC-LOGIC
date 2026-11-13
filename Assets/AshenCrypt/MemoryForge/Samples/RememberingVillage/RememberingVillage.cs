@@ -18,7 +18,7 @@ namespace AshenCrypt.MemoryForge.Samples
         private TextMesh _naraLabel,_guardLabel;
         private LineRenderer _sight;
         private readonly List<Material> _materials=new List<Material>();
-        private float _accumulator;
+        private double _fixedAccumulator;
         private int _selected,_tab;
         private string _note="Approach Nara, give her food, then leave and return. Her next greeting will remember your help.";
         private GUIStyle _title,_label,_muted,_small,_button,_heading;
@@ -67,12 +67,15 @@ namespace AshenCrypt.MemoryForge.Samples
             var label=go.GetComponent<TextMesh>();label.text=text;label.characterSize=.065f;label.fontSize=40;label.anchor=TextAnchor.MiddleCenter;label.alignment=TextAlignment.Center;label.color=Cream;return label;
         }
         private void BindViews(){_nara.GetComponent<ForgeNpcView>().Bind(World.Archive.Get("nara"));_guard.GetComponent<ForgeNpcView>().Bind(World.Archive.Get("watch"));}
-        private void Update()
+        private void FixedUpdate()
         {
-            if(Running)_accumulator+=Mathf.Min(Time.deltaTime,.25f);
-            int count=0;while(_accumulator>=.1f&&count++<3){_accumulator-=.1f;World.Step();}
-            Project();
+            // Only host fixed-step callbacks supply time. Rendering cannot advance the world,
+            // and every supplied 100-ms quantum is retained, including catch-up callbacks.
+            if(!Running)return;
+            _fixedAccumulator+=Time.fixedDeltaTime;
+            while(_fixedAccumulator+0.00000001>=.1){_fixedAccumulator=Math.Max(0,_fixedAccumulator-.1);World.Step();}
         }
+        private void Update(){Project();}
         public void Project()
         {
             _player.position=new Vector3(World.PlayerX/1000f,0,World.PlayerZ/1000f);_nara.position=new Vector3(World.NaraX/1000f,0,World.NaraZ/1000f);_guard.position=new Vector3(World.GuardX/1000f,0,World.GuardZ/1000f);
@@ -92,8 +95,8 @@ namespace AshenCrypt.MemoryForge.Samples
                 case "witness":World.MoveWitnessToCourtyard();_note="The watch walks around the wall. The sight line shows what can actually be witnessed.";break;
                 case "rob":_note=World.Rob()?"The purse changed hands once. Only a witness with a clear sight line learned about the theft.":"Come within reach. An empty purse cannot be taken twice.";break;
                 case "save":PlayerPrefs.SetString(SaveKey,World.Save());PlayerPrefs.Save();_note="Saved: host state, individual memories, exact controller versions and decision continuity.";break;
-                case "load":if(DemoWorld.TryLoad(PlayerPrefs.GetString(SaveKey,""),out var loaded)){World=loaded;BindViews();_accumulator=0;_note="Restored the actual saved state. No relationship or reward was applied twice.";}else _note="No valid sample save. The current world has been kept.";break;
-                case "reset":World=new DemoWorld();BindViews();_accumulator=0;_note="Fresh scenario. Your saved snapshot is still available through Load.";break;
+                case "load":if(DemoWorld.TryLoad(PlayerPrefs.GetString(SaveKey,""),out var loaded)){World=loaded;BindViews();_fixedAccumulator=0;_note="Restored the actual saved state. No relationship or reward was applied twice.";}else _note="No valid sample save. The current world has been kept.";break;
+                case "reset":World=new DemoWorld();BindViews();_fixedAccumulator=0;_note="Fresh scenario. Your saved snapshot is still available through Load.";break;
                 case "step":World.Step();break;
                 case "pause":Running=!Running;break;
             }
