@@ -21,6 +21,8 @@ namespace AshenCrypt.MemoryForge.Tests
                 sample.Execute("approach");for(int i=0;i<20;i++)sample.Execute("step");
                 var sight=go.transform.Find("Actual Sight Query").GetComponent<LineRenderer>();
                 Assert.IsFalse(sample.World.GuardCanSeePlayer,"The courtyard wall initially occludes the watch");
+                var actual=sight.sharedMaterial.color;var expected=new Color(.67f,.27f,.22f,.7f);
+                TestContext.WriteLine("Sight material "+sight.sharedMaterial.shader.name+": component deltas="+(actual.r-expected.r).ToString("R")+","+(actual.g-expected.g).ToString("R")+","+(actual.b-expected.b).ToString("R")+","+(actual.a-expected.a).ToString("R"));
                 Assert.AreEqual(new Color(.67f,.27f,.22f,.7f),sight.sharedMaterial.color,"The actual unlit material must show the occluded sight color");
                 sample.Execute("witness");for(int i=0;i<20;i++)sample.Execute("step");
                 Assert.IsTrue(sample.World.GuardCanSeePlayer);
