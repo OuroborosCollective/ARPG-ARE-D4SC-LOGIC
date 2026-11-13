@@ -191,8 +191,13 @@ namespace AreArpg.UnityClient
                 if (i >= 3 - _game.HungerShelterPatients)
                 {
                     Transform patient = ChapterShape(PrimitiveType.Capsule, "OldMill_Patient_" + i,
-                        new Vector3(-4 - i * 2.5f, .58f, 5), new Vector3(.55f, .85f, .55f), new Color(.46f, .4f, .35f));
-                    patient.rotation = Quaternion.Euler(90, 0, 0);
+                        new Vector3(-4 - i * 2.5f, .32f, 5), Vector3.one, new Color(.46f, .4f, .35f));
+                    if (!PassiveArtVisuals.TryBindGrounded(patient, "MillPatient" + i, .32f))
+                    {
+                        patient.position += Vector3.up * .26f;
+                        patient.localScale = new Vector3(.55f, .85f, .55f);
+                        patient.rotation = Quaternion.Euler(90, 0, 0);
+                    }
                 }
             }
             ChapterShape(PrimitiveType.Cube, "OldMill_Torn_Bandage", new Vector3(-4, .32f, 5),
