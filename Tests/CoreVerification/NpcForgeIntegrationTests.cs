@@ -32,5 +32,31 @@ internal static class NpcForgeIntegrationTests
         var greeting=loaded.InteractNpc(0,NpcAction.Greet);
         check(greeting.Accepted&&greeting.Text.Contains("Proviant"),"forge-later-greeting-remembers-specific-help");
         check(restored.Social.Forge.Archive.Get("mara").Known.Count==0,"forge-actual-help-not-globally-known");
+        foreach(bool hidden in new[]{false,true})
+        {
+            var crimeProfile=CharacterProgression.CreateEntryProfile();crimeProfile.EnterVillage();crimeProfile.Social.EnableForge();
+            var crime=new ArenaSimulation(72,crimeProfile,BigInteger.One,LootCatalog.Version1);
+            // Legal positions on either side of a real village building; only the Core sight query decides witnessing.
+            Move(crime,0,-8700);Move(crime,-9000,-8700);
+            var merchant=crime.Npcs[1];merchant.Xmm=-8000;merchant.Zmm=-8700;
+            var guardNpc=crime.Npcs[2];guardNpc.Xmm=hidden?-16000:-7000;guardNpc.Zmm=-8700;
+            check(crime.TakeCampRation().Accepted,"forge-local-theft-transaction-"+hidden);
+            check(merchant.Mind.Known.Count==1&&merchant.Mind.Known[0].Origin==KnowledgeOrigin.Self,"forge-victim-remembers-actual-theft-"+hidden);
+            check(guardNpc.Mind.Known.Count==(hidden?0:1),"forge-building-occlusion-gates-personal-knowledge-"+hidden);
+            if(!hidden)check(guardNpc.Mind.Known[0].Origin==KnowledgeOrigin.Witnessed,"forge-guard-witness-provenance");
+            var token=crimeProfile.SaveString();
+            check(!crime.TakeCampRation().Accepted&&crimeProfile.SaveString()==token,"forge-rejected-repeat-produces-no-memory-"+hidden);
+            check(CharacterProgression.TryLoad(token,out var afterCrime)&&afterCrime.Social.Forge.Archive.Get("dorn").Known.Count==(hidden?0:1),"forge-witness-versus-occluded-state-persists-"+hidden);
+        }
+    }
+    private static void Move(ArenaSimulation world,long x,long z)
+    {
+        for(int i=0;i<200;i++)
+        {
+            long dx=x-world.PlayerXmm,dz=z-world.PlayerZmm;
+            if(Math.Abs(dx)<500&&Math.Abs(dz)<500){world.SetMoveInput(0,0);return;}
+            world.SetMoveInput(Math.Abs(dx)<500?0:Math.Sign(dx)*10000,Math.Abs(dz)<500?0:Math.Sign(dz)*10000);world.Step();
+        }
+        throw new Exception("Witness test route failed");
     }
 }
