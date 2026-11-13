@@ -8,6 +8,35 @@ using UnityEngine;
 
 namespace AreArpg.EditMode.Tests
 {
+    public sealed class WorldTextureFixtureIsolationTests
+    {
+        [Test] public void CleanupPreservesFilesThatWereOnDiskBeforeSetup()
+        {
+            const string root = "Assets/Resources/ARE/Visuals/WorldSurfaces/";
+            string path = root + "Unimported_" + Guid.NewGuid().ToString("N") + ".txt";
+            bool ownsRoot = !System.IO.Directory.Exists(root);
+            const string contents = "Pre-existing asset must survive fixture cleanup.";
+            try
+            {
+                System.IO.Directory.CreateDirectory(root);
+                System.IO.File.WriteAllText(path, contents);
+                CollectionAssert.DoesNotContain(AssetDatabase.GetAllAssetPaths(), path);
+                var fixture = new WorldTextureAuthoringEditModeTests();
+                fixture.Setup();
+                fixture.Cleanup();
+                Assert.IsTrue(System.IO.File.Exists(path), "cleanup deleted a pre-existing unimported asset");
+                Assert.AreEqual(contents, System.IO.File.ReadAllText(path));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(path);
+                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+                if (ownsRoot && System.IO.Directory.Exists(root) && System.IO.Directory.GetFileSystemEntries(root).Length == 0)
+                    AssetDatabase.DeleteAsset(root.TrimEnd('/'));
+            }
+        }
+    }
+
     public sealed class WorldTextureAuthoringEditModeTests
     {
         private const string Root = "Assets/Resources/ARE/Visuals/WorldSurfaces/";
