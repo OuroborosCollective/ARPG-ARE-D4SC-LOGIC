@@ -1,11 +1,37 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using AshenCrypt.MemoryForge.Integration;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
+using AshenCrypt.MemoryForge.Samples;
 
 namespace AshenCrypt.MemoryForge.Tests
 {
     public sealed class CoreContractTests
     {
+        [Test]
+        public void IncludedExampleSceneKeepsBuildTimeShaderDependencies()
+        {
+            const string path="Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.unity";
+            var previous=SceneManager.GetActiveScene();var scene=SceneManager.GetSceneByPath(path);bool opened=!scene.IsValid()||!scene.isLoaded;
+            if(opened)scene=EditorSceneManager.OpenScene(path,OpenSceneMode.Additive);
+            try
+            {
+                var sample=scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<RememberingVillage>()).Single();
+                Assert.IsNotNull(sample.BuiltinLitShader);Assert.IsNotNull(sample.BuiltinUnlitShader);
+                if(UnityEngine.Shader.Find("Universal Render Pipeline/Lit")!=null){Assert.IsNotNull(sample.UniversalLitShader);Assert.IsNotNull(sample.UniversalUnlitShader);}
+            }
+            finally{if(previous.IsValid()&&previous.isLoaded)SceneManager.SetActiveScene(previous);if(opened)EditorSceneManager.CloseScene(scene,true);}
+        }
+        [Test]
+        public void IncludedRegistryAssetsRebuildTheExactAdmittedDefaultControllers()
+        {
+            var asset=AssetDatabase.LoadAssetAtPath<ForgeRegistryAsset>("Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/Controllers/DefaultRegistry.asset");
+            Assert.IsNotNull(asset);var registry=asset.Build();Assert.AreEqual(9,registry.Versions.Count);
+            foreach(var controller in registry.Versions)Assert.AreEqual(ForgeDefaults.ReviewedHash(controller.ArchetypeId),controller.Hash);
+        }
         [Test]
         public void HardPermissionsAreAppliedBeforeWeightedAndNeuralScores()
         {

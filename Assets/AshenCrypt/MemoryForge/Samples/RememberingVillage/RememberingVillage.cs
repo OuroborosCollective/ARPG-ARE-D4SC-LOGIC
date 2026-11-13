@@ -12,6 +12,7 @@ namespace AshenCrypt.MemoryForge.Samples
         public const string SaveKey="AshenCrypt.MemoryForge.Sample.v1";
         public DemoWorld World { get; private set; }
         public bool Running=true;
+        public Shader BuiltinLitShader,BuiltinUnlitShader,UniversalLitShader,UniversalUnlitShader;
         public Camera SampleCamera { get; private set; }
         private Transform _player,_nara,_guard;
         private TextMesh _naraLabel,_guardLabel;
@@ -40,7 +41,10 @@ namespace AshenCrypt.MemoryForge.Samples
         }
         private Material Material(Color color,bool unlit=false)
         {
-            var shader=Shader.Find(unlit?"Universal Render Pipeline/Unlit":"Universal Render Pipeline/Lit")??Shader.Find(unlit?"Unlit/Color":"Standard");
+            bool universal=UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline!=null&&UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline.GetType().Name.Contains("Universal");
+            var shader=universal?(unlit?UniversalUnlitShader:UniversalLitShader):(unlit?BuiltinUnlitShader:BuiltinLitShader);
+            if(shader==null)shader=Shader.Find(universal?(unlit?"Universal Render Pipeline/Unlit":"Universal Render Pipeline/Lit"):(unlit?"Unlit/Color":"Standard"));
+            if(shader==null)throw new InvalidOperationException("The example requires its serialized Built-in or URP shader references. Open the included scene or configure these four fields on a custom sample component.");
             var material=new Material(shader){color=color};_materials.Add(material);return material;
         }
         private Transform Shape(PrimitiveType type,string title,Vector3 position,Vector3 scale,Color color,Transform parent=null)

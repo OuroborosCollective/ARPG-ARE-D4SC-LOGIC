@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using AshenCrypt.MemoryForge.Samples;
 using AshenCrypt.MemoryForge.Integration;
 using UnityEditor;
@@ -24,7 +25,9 @@ namespace AshenCrypt.MemoryForge.Editor
         public static void BuildDemo()
         {
             var scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Single);
-            new GameObject("Memory Forge - Remembering Village").AddComponent<RememberingVillage>();
+            var sample=new GameObject("Memory Forge - Remembering Village").AddComponent<RememberingVillage>();
+            sample.BuiltinLitShader=Shader.Find("Standard");sample.BuiltinUnlitShader=Shader.Find("Unlit/Color");
+            sample.UniversalLitShader=Shader.Find("Universal Render Pipeline/Lit");sample.UniversalUnlitShader=Shader.Find("Universal Render Pipeline/Unlit");
             EditorSceneManager.SaveScene(scene,DemoPath);
             CreateDefaults();AssetDatabase.SaveAssets();
         }
@@ -62,7 +65,7 @@ namespace AshenCrypt.MemoryForge.Editor
             if(!File.Exists(DemoPath))BuildDemo();else CreateDefaults();
             var files=Directory.GetFiles(Root,"*",SearchOption.AllDirectories);
             foreach(string file in files.Where(f=>f.EndsWith(".cs",StringComparison.Ordinal)))
-                if(File.ReadAllText(file).Contains("using AreArpg."))throw new InvalidOperationException("Package must not depend on the game core: "+file);
+                if(Regex.IsMatch(File.ReadAllText(file),@"^\s*using\s+AreArpg\.",RegexOptions.Multiline))throw new InvalidOperationException("Package must not depend on the game core: "+file);
             foreach(string asset in AssetDatabase.GetDependencies(AssetDatabase.GetAllAssetPaths().Where(p=>p.StartsWith(Root+"/",StringComparison.Ordinal)).ToArray(),true))
                 if(asset.StartsWith("Assets/",StringComparison.Ordinal)&&!asset.StartsWith(Root+"/",StringComparison.Ordinal)&&asset!=Root)throw new InvalidOperationException("External asset dependency: "+asset);
             Directory.CreateDirectory(Path.GetDirectoryName(output));
