@@ -2,7 +2,15 @@
 
 Owner-Richtung vom 13.11.2026: Die Geschichte braucht längere spielbare Kampf- und Erkundungsstrecken. Bestehende Skills, XP, Levelaufstieg und Beutedrops sollen diese Strecken tragen. Ein Gebietssprung von Gespräch zu Gespräch reicht nicht.
 
-## Zuerst: drei Ebenen unter der alten Mühle
+## Verbindlicher Weltaufbau für die weitere Entwicklung
+
+Owner bestätigt am 13.11.2026: Dauerhafte Storyorte und gespeicherte Entscheidungen wechseln sich mit prozeduralen Kampf- und Erkundungsgebieten ab. Mühle, Bärenhöhle und Aschenzoll bleiben erkennbare feste Anker. Wege, Lichtungen, gewöhnliche Gegner, Truhen und Vegetation dazwischen variieren pro Run. Der Generator verbindet diese Anker erreichbar und hält sichere Ankünfte frei.
+
+Speichern/Laden, Tod und Abstecher in eine zugehörige Questhöhle erhalten den laufenden Run. Erst vollständiges Verlassen des Verbindungsgebietes zu einem angrenzenden Storyort und erneuter Eintritt erzeugen einen neuen Run. Storyentscheidungen, Meldungen, einmalige Materialien und spätere Konsequenzen gehören zum Charakterfortschritt und werden dabei nicht zurückgesetzt. Das gilt als Arbeitsablauf für weitere Kapitel; bestehende Generatorrevisionen bleiben reproduzierbar.
+
+Der nächste umzusetzende Block ist der spielbare Wald Mühle → Aschenzoll mit seitlicher Bärenhöhle, vorhandenen Gegnerfamilien und dem bestätigten Asset-Stil. Die Handelsstation erhält zunächst einen erreichbaren Ankunftsbereich; ihre detaillierte Fracht-Ermittlung bleibt ein eigener Storyblock. Waffenmodelle werden gegen den privaten Bestand geprüft und als echte ausrüstbare Beute mit stabilen Modellkennungen, Grundwerten und Affixen angebunden. Rohassets bleiben privat.
+
+## Drei Ebenen unter der alten Mühle
 
 Der alte Speicher bleibt der Eingang mit seiner Siegelentscheidung. Dahinter liegen drei zusammenhängende, prozedural erzeugte Ebenen mit jeweils fünf bis sieben Raumknoten, Abzweigen und Rundwegen. Gegner und Truhen machen Seitenräume lohnend. Der MaulwurfRattler wartet erst im hinteren Bereich der dritten Ebene. Der Generator verbindet gestaltete Raumformen und Korridore nach einem gespeicherten Seed; er ersetzt weder die benötigten Art-Bauteile noch Kampf- und Beutebalance.
 
