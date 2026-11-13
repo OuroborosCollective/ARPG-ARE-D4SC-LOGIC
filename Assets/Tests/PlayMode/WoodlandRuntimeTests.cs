@@ -46,6 +46,13 @@ namespace AreArpg.PlayMode.Tests
             Assert.Fail("Actual woodland movement stalled");
         }
         [UnityTest]
+        public IEnumerator WoodlandDistantGroundHasNoCullingHoles()
+        {
+            InstallWoodlandFixture();yield return null;DungeonProject();
+            var chunks=(List<Transform>)typeof(ArenaRuntime).GetField("_woodlandChunks",Flags).GetValue(_runtime);
+            Assert.IsTrue(chunks.All(c=>c.gameObject.activeSelf),"Distant ground must remain visible beneath the forest silhouette");
+        }
+        [UnityTest]
         public IEnumerator WoodlandUsesApprovedArtHillsRealTravelAndPersistentCubs()
         {
             InstallWoodlandFixture();yield return null;DungeonProject();
