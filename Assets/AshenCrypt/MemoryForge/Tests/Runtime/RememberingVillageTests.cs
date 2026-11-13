@@ -36,9 +36,16 @@ namespace AshenCrypt.MemoryForge.Tests
                 if(!string.IsNullOrEmpty(evidence))
                 {
                     Directory.CreateDirectory(evidence);string path=Path.Combine(evidence,"remembering-village-after-load.png");
-                    ScreenCapture.CaptureScreenshot(path);
-                    for(int i=0;i<20&&!File.Exists(path);i++)yield return null;
-                    Assert.IsTrue(File.Exists(path),"The actual Unity screenshot must exist");Assert.Greater(new FileInfo(path).Length,10000);
+                    // Batch mode has no end-of-frame screen capture. Render the actual sample camera explicitly.
+                    var target=new RenderTexture(1600,900,24);var pixels=new Texture2D(1600,900,TextureFormat.RGB24,false);
+                    var previous=sample.SampleCamera.targetTexture;var active=RenderTexture.active;var viewport=sample.SampleCamera.rect;
+                    try
+                    {
+                        sample.SampleCamera.rect=new Rect(0,0,1,1);sample.SampleCamera.targetTexture=target;sample.SampleCamera.Render();RenderTexture.active=target;
+                        pixels.ReadPixels(new Rect(0,0,1600,900),0,0);pixels.Apply();File.WriteAllBytes(path,pixels.EncodeToPNG());
+                    }
+                    finally{sample.SampleCamera.rect=viewport;sample.SampleCamera.targetTexture=previous;RenderTexture.active=active;target.Release();UnityEngine.Object.Destroy(target);UnityEngine.Object.Destroy(pixels);}
+                    Assert.Greater(new FileInfo(path).Length,10000);
                 }
                 sample.Execute("rob");Assert.AreEqual(12,sample.World.Coins);Assert.AreEqual(0,sample.World.Archive.Get("watch").Known.Count);
                 sample.Execute("reset");sample.Execute("approach");sample.Execute("witness");for(int i=0;i<20;i++)sample.Execute("step");sample.Execute("rob");
