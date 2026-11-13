@@ -1,5 +1,34 @@
 # ARE Ashen Crypt — Projektzustand
 
+## Aktueller Entwicklungsstand: Aschenzoll und Reviewkorrekturen (13.11.2026)
+
+Der Drei-Ebenen-Dungeon aus PR30 ist in main integriert. Die darauf folgenden
+Blöcke PR31–34 enthalten den prozeduralen Wald, individuelle NPC-Erinnerungen,
+den Jägerbegleiter und den gewählten leeren Tiertransport in Aschenzoll.
+[Spielbarer Stationsablauf und Grenzen](docs/ASCHENZOLL_FREIGHT.md).
+Die Besitzerentscheidung zur XP-Zuschreibung gilt: Alleinkills des Jägers
+trainieren ihn, vergeben dem Spieler keine XP/Kills und lassen Beute einsammelbar.
+Tod/Neustart erhält den fortgeschrittenen Wald-Zufallszustand. Generierte
+Ersatzmaterialien werden beim Verlassen freigegeben.
+
+Aktuelle kombinierte Codeprüfung: **35ed66d98dbb083e1d9788751a72ad530251e351**,
+CI43433696048 erfolgreich (8096 Core-,109 Sample-Assertions,40 Preflights).
+Native Belege sind getrennt gebunden: 121 Spiel-PlayModefälle auf bcb4296,
+Samplekorrektur mit 2/2 PlayMode und 48/48 EditMode auf 0377c9f, danach 4/4
+gezielte Wald-/Stationsfälle auf 35ed66d. Keine Behauptung eines einzelnen
+vollständig grünen kombinierten 123er-Laufs. Private Dateien unverändert;
+Besitzer-Spielstände und Projekteinstellungen wiederhergestellt.
+
+Memory Forge **1.0.1** liegt als getrenntes, geprüftes Unity-Paket vor:
+99 Dateien beim Upgrade bytegleich,8/8 EditMode,2/2 PlayMode in Built-in und
+2/2 PlayMode in URP, tatsächlicher Linux-Player mit unabhängig geprüftem Save,
+neuer ARM64/IL2CPP-Build mit geprüfter Signatur und16KiB-Ausrichtung.
+[Releasebelege](docs/evidence/memory-forge-package-20261113/release-1.0.1).
+Der Besitzer übernimmt die Veröffentlichung für9.50USD. Für die neuen
+Spieländerungen liegt noch kein neuer Android-/Tab-A9-Lauf vor.
+
+Die nachfolgenden Abschnitte dokumentieren frühere, revisionsgebundene Stände.
+
 ## NPC Memory Forge: Begleiter und Bevölkerung geprüft (13.11.2026)
 
 [PR32](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/32) bindet deterministische Controller, persönliche Erinnerungen und Beziehungen in den bestehenden Core ein. Der gerettete Jäger kann mitreisen, sicher warten, eigene Ausrüstung tragen und durch wirksame Aktionen selbst Erfahrung sammeln. Sein Tod bleibt dauerhaft. Tiere und Rattler beachten zugelassene Controllerentscheidungen. Das Gedächtnis umfasst tatsächliche Hilfen, Verbrechen, Gespräche und beobachtete Ereignisse ohne globale Allwissenheit. AC17/18 erhalten die bestehenden Speicherverträge. [Verträge und Eigentümerschaft](docs/NPC_MEMORY_FORGE.md).
