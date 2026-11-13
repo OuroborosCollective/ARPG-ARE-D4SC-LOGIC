@@ -11,6 +11,29 @@ namespace AshenCrypt.MemoryForge.Tests
 {
     public sealed class CoreContractTests
     {
+        [TestCase(1,false)]
+        [TestCase(2,false)]
+        [TestCase(1,true)]
+        [TestCase(2,true)]
+        public void ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(int schema,bool malformedString)
+        {
+            string payload;
+            using(var stream=new System.IO.MemoryStream())
+            {
+                using(var writer=new System.IO.BinaryWriter(stream,System.Text.Encoding.UTF8,true))
+                {
+                    writer.Write(schema);writer.Write(malformedString?1:-1);
+                    if(malformedString){writer.Write(1UL);writer.Write((byte)MemoryKind.Help);writer.Write(-1);}
+                }
+                payload=Convert.ToBase64String(stream.ToArray());
+            }
+            string hash;
+            using(var sha=System.Security.Cryptography.SHA256.Create())
+                hash=BitConverter.ToString(sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(payload))).Replace("-","").ToLowerInvariant();
+            MemoryArchive rejected=null;
+            Assert.DoesNotThrow(()=>Assert.IsFalse(MemoryArchive.TryLoad("NMF"+schema+"."+payload+"."+hash,ForgeDefaults.CreateRegistry(),out rejected)));
+            Assert.IsNull(rejected);
+        }
         [Test]
         public void IncludedExampleSceneKeepsBuildTimeShaderDependencies()
         {
