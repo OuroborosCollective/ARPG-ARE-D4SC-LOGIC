@@ -18,7 +18,7 @@ namespace AreArpg.Core
         {
             Seed=seed; var rng=new DeterministicRng(seed ^ 0xF04E57UL);
             Clearing(0,-12); Clearing(0,12); Clearing(-9,0);
-            for(int i=0;i<8;i++) Clearing((int)(rng.Next64()%13)-6,-9+i*3);
+            for(int i=0;i<8;i++) Clearing((int)(rng.Next64()%13)-6,-7+i*2);
             Join(0,3,rng);
             for(int i=3;i<10;i++) Join(i,i+1,rng);
             Join(10,1,rng); Join(2,6,rng); Join(4,7,rng); Join(5,8,rng);
@@ -66,7 +66,7 @@ namespace AreArpg.Core
         /// <summary>Continuous bilinear hills shared by all visual projections; flat at authored doorways.</summary>
         public long HeightMm(long x,long z)
         {
-            long gx=(long)Math.Floor(x/16000.0),gz=(long)Math.Floor(z/16000.0),fx=x-gx*16000,fz=z-gz*16000;
+            long gx=x>=0?x/16000:(x-15999)/16000,gz=z>=0?z/16000:(z-15999)/16000,fx=x-gx*16000,fz=z-gz*16000;
             long a=HeightNode(gx,gz)*(16000-fx)+HeightNode(gx+1,gz)*fx;
             long b=HeightNode(gx,gz+1)*(16000-fx)+HeightNode(gx+1,gz+1)*fx;
             long h=(a*(16000-fz)+b*fz)/256000000;
