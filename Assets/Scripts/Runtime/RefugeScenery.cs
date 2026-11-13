@@ -62,7 +62,7 @@ namespace AreArpg.UnityClient
                     new Vector3(2.7f, .07f, .41f), board);
             for (int i = 0; i < 3; i++)
                 Shape("OldMill_Bed_Linen_" + i, PrimitiveType.Cube, new Vector3(-4 - i * 2.5f, .31f, 5),
-                    new Vector3(1.25f, .02f, 2.14f), linen);
+                    new Vector3(1.25f, .02f, 2.14f), cloth);
             Shape("OldMill_Folded_Linen", PrimitiveType.Cube, new Vector3(-4.15f, .64f, -2.1f), new Vector3(.6f, .08f, .35f), linen);
             for (int i = 0; i < 3; i++)
             {
@@ -108,17 +108,19 @@ namespace AreArpg.UnityClient
                 {
                     float x = side * (5.4f + i % 3 * .75f);
                     if (mill && side < 0) x = -15f - i % 2;
-                    BindClump("Route_Grass_" + side + "_" + i, "AshGrass", new Vector3(x, -.08f, -20 + i * 8), .65f, 2f);
+                    BindClump("Route_Grass_" + side + "_" + i, "RoadsideShrub" + i % 2,
+                        new Vector3(x, -.08f, -20 + i * 8), .8f, 2f, i * 47 + side * 15);
                 }
                 for (int i = 0; i < 3; i++)
                     BindClump("Route_OuterRocks_" + side + "_" + i, "AshRocks", new Vector3(side * 31, -.1f, -18 + i * 17), 3.2f, 4f);
             }
         }
 
-        private void BindClump(string name, string key, Vector3 position, float height, float width)
+        private void BindClump(string name, string key, Vector3 position, float height, float width, float yaw = 0)
         {
             var host = new GameObject(name); host.transform.SetParent(transform, false);
             if (!PassiveArtVisuals.TryBindGrounded(host.transform, key, 0)) { Destroy(host); return; }
+            host.transform.localRotation = Quaternion.Euler(0, yaw, 0);
             var renderers = host.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0) { Destroy(host); return; }
             Bounds bounds = renderers[0].bounds;

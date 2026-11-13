@@ -876,7 +876,7 @@ namespace AreArpg.PlayMode.Tests
                 }
                 if (refugeDetail)
                 {
-                    camera.transform.position = new Vector3(1, 4.3f, -6);
+                    camera.transform.position = new Vector3(1, 5.5f, -8);
                     camera.transform.LookAt(new Vector3(-5.5f, 1.3f, 3.8f));
                 }
                 camera.targetTexture = target;
