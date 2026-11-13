@@ -8,7 +8,15 @@
 - implemented_candidate: Akt 7 mit Rueckweg, lokale Wahrnehmung durch tatsaechliche Schritte/Angriffe und nahen Geruch, fixierte Hiebwarnung, einmalige Belohnung, Brandmaluntersuchung, persoenlicher Bericht an Ilyan und AC12 beim bisherigen Save-Owner. PR25 ist als 86bae8f108aaf1ee508dd7b24dc448e49c2bdc2a in main integriert.
 - open_decisions: Konkrete Wappenzeichnung, Abrichter, Auftraggeber, Motiv, konditionierter Zielgeruch und Schicksal der einzelnen Vermissten. Kein persoenlicher Koenigsbefehl allein aus dem Wappen ableiten.
 - verified: Privates Creep-Horror-Creature-Originalpaket244853 als CryptRattler gebunden (LOD1, 2107Vertices, vier Clips, Halsbrandmal als Grafikprototyp). Native Knochenbewegung/Brandmalbindung und Begegnung bestanden; Unity6 PlayMode68/68, EditMode31/31. Revisionsbindung und XML-Hashes: Memory.md [rattler-pr25-20261112].
-- next: PR28 bleibt nach gemeinsamer nativer Pruefung Draft zur Sichtabnahme. Aussenhorizonte und Patientenmodelle sind als gepruefter Grafikstand ergaenzt; weitere Landschaftsdetails und zusammenhaengender Story-/Gebietsblock bleiben offen. Das Brandmal bleibt primaer ein Lore-Hinweis mit optionaler kleiner Grafik; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+- next: PR28 bleibt Draft zur Sichtabnahme. Aussenhorizonte, Patienten, Muehlenzuflucht und erste Strassenrandgestaltung sind nativ geprueft. Naechsten groesseren Story-/Gebietsblock konkretisieren; weitere visuelle Feinarbeit bleibt offen. Das Brandmal bleibt primaer ein Lore-Hinweis mit optionaler kleiner Grafik; kein neuer Geraetetest vor dem vereinbarten groesseren Story-/Gebietsblock.
+
+## Muehlenzuflucht und Strassenraender (13.11.2026)
+
+Der Schlafbereich hat ein Schutzdach auf vier Holzstuetzen, einen flachen Bretterzugang und Stoffunterlagen. Verbandrollen und ein kleines Versorgungspaket ergaenzen die vorhandene Kiste. Der helle Verband auf dem leeren Bett bleibt auf dunklerem Stoff sichtbar. Zwoelf niedrige Buesche und sechs Felsgruppen ausserhalb der Bewegungsgrenze rahmen Strasse und Muehle. Zwei separate passive Buschbindungen stammen aus der bestehenden privaten Dorfszene; deren Original bleibt unveraendert. Editor-Reproduktion: `ARE ARPG/Art/Extract Private Roadside Shrubs`.
+
+Die vier Stuetzen sind echte Hindernisse im integerbasierten Core; Darstellung und Kollision verwenden dieselben Koordinaten und0.24m Breite, mit bestehendem Spielerradius. Hauptweg und beide Untersuchungsstellen bleiben erreichbar. Kein neues Unity-Physiksystem, keine Save-/Quest-/Fable-UI-/Kameraaenderung. Native Gesamt- und Spielansichten gesichtet; bestehender kompletter Regressionstestlauf inklusive Reise-/Save-/Krypta-/Rattlerabschnitten bestanden.
+
+Code6947fadf3d8baf1e923ae05b5e37b2a91c064c32 / Tree a5863fb98f337bf240a654bb902247bbcd359904: Core1866+38Preflights, CI43340748087 success; Unity6000.6.8f1 PlayMode101/101 und EditMode31/31, jeweils0Skips. Reale REDs fuer durchlaufbare Stuetzen und primitive Pflanzen; SHA-/XML-Bindung in Memory.md [mill-refuge-20261113]. Evidence `/var/lib/unityarpg/.local/share/are-arpg/mill-refuge-20261113`, `refined-play`, `refined-edit` und `author-result.json`. Private Dateien in Tests unveraendert, Prefs/Settings wiederhergestellt. PR28 bleibt Draft; keine neue APK oder Android-Leistungsmessung.
 
 ## Patienten an der alten Muehle (13.11.2026)
 
