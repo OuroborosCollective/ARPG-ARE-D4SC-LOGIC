@@ -45,6 +45,7 @@ internal static class Program
             WeaponEquipmentTests.Run(Require);
             NpcForgeTests.Run(Require);
             NpcForgeIntegrationTests.Run(Require);
+            CompanionForgeTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }
