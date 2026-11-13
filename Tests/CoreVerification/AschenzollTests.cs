@@ -71,6 +71,7 @@ internal static class AschenzollTests
             var ilyan=w.Npcs.First(n=>n.Id==0);ilyan.Xmm=w.PlayerXmm+1000;ilyan.Zmm=w.PlayerZmm;
             var report=w.ActOnHunger(HungerAction.ReportFreightEvidence);
             check(report.Accepted&&f.Reported&&report.Text.Contains(release?"oberen Rampe":"Originalbeleg"),"freight-personal-branch-specific-report-"+release);
+            check(w.HungerObjective.Contains("Nordwechsel")&&w.HungerObjective.Contains(release?"Weitergabe":"Originalbeleg"),"freight-journal-retains-completed-branch-in-village-"+release);
             var mind=p.Social.Forge.Archive.Get("ilyan");
             check(mind.Known.Count==1&&mind.Known[0].Origin==KnowledgeOrigin.Self&&mind.Known[0].Event.Context=="story.reportfreightevidence","freight-ilyan-remembers-only-personal-report-"+release);
             check(p.Social.Forge.Archive.Get("dorn").Known.Count==0&&p.Social.Forge.Archive.Get("mara").Known.Count==0,"freight-report-is-not-worldwide-knowledge-"+release);
