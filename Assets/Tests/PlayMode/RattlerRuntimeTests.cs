@@ -26,6 +26,12 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse(Find("HiddenCrypt_InnerDoor").activeSelf);
             MoveStory(0, 24000); TravelStory();
             Assert.AreEqual(7, Game.Progression.EntryAct);
+            typeof(ArenaRuntime).GetMethod("UpdateHud", Flags).Invoke(_runtime, null);
+            var mapDots = (System.Collections.Generic.List<UnityEngine.UI.Image>)typeof(ArenaRuntime)
+                .GetField("_hudDots", Flags).GetValue(_runtime);
+            var exits = mapDots.FindAll(dot => dot.enabled && dot.color == new Color(.35f, .85f, 1f));
+            Assert.AreEqual(1, exits.Count, "the den has only its actual return passage");
+            Assert.Less(exits[0].rectTransform.anchoredPosition.y, 0f, "the exit is south, behind the arriving player");
             yield return StoryAction(HungerAction.ToggleSneak);
             MoveStory(0, 0);
             Assert.AreEqual(0, Game.Progression.Rattler.MemoryTicks);

@@ -24,6 +24,29 @@ namespace AreArpg.PlayMode.Tests
             Object.DestroyImmediate(_hero);
         }
 
+        [Test] public void NearbyWallCannotPushCameraPastItsFirstIntersection()
+        {
+            var wall = new Bounds(new Vector3(0, 1, -.6f), new Vector3(2, 6, .1f));
+            var ray = new Ray(_rig.FocusPoint, Quaternion.Euler(12, 0, 0) * Vector3.back);
+            Assert.IsTrue(wall.IntersectRay(ray, out float hit));
+            Assert.Less(hit, .8f);
+            _rig.SetOccluders(new[] { wall });
+            _rig.SnapToTarget();
+            Assert.Less(Vector3.Distance(_camera.transform.position, _rig.FocusPoint), hit);
+        }
+
+        [Test] public void LegacyResetRestoresTheDefaultHeadingAfterOrbit()
+        {
+            _rig.Configure(_hero.transform, false);
+            _rig.Orbit(new Vector2(100f, 70f));
+            Assert.AreNotEqual(0f, _rig.Yaw);
+            _rig.ResetZoom();
+            _rig.SnapToTarget();
+            Assert.AreEqual(0f, _rig.Yaw, .001f);
+            Assert.AreEqual(52f, _camera.transform.eulerAngles.x, .01f);
+            Assert.AreEqual(22f, _rig.Distance);
+        }
+
         [Test] public void ContextFramesIdleMotionAndDangerWithoutOverridingManualZoom()
         {
             _rig.SetContext(false, false, false, Vector3.zero);

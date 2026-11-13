@@ -148,6 +148,175 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [Test]
+        public void LateralInputDoesNotFeedCameraFollowBackIntoMovement()
+        {
+            var rig = (ArenaCameraRig)typeof(ArenaRuntime).GetField("_cameraRig", Flags).GetValue(_runtime);
+            var hero = (Transform)typeof(ArenaRuntime).GetField("_hero", Flags).GetValue(_runtime);
+            hero.rotation = Quaternion.identity; rig.ResetZoom();
+            var move = typeof(ArenaRuntime).GetMethod("CameraRelativeMove", Flags);
+            for (int i = 0; i < 80; i++)
+            {
+                object[] input = { 10000L, 0L }; move.Invoke(_runtime, input);
+                Assert.AreEqual(0L, (long)input[1], "holding right must keep the same world direction");
+                hero.rotation = Quaternion.LookRotation(new Vector3((long)input[0], 0, (long)input[1]));
+                rig.SetContext(true, false, false, Vector3.zero); rig.AdvancePresentation(.1f);
+            }
+        }
+
+        [Test]
+        public void InterruptedPresentationInputReleasesMouseOrbit()
+        {
+            var held = typeof(ArenaRuntime).GetField("_orbitMouseHeld", Flags);
+            held.SetValue(_runtime, true);
+            typeof(ArenaRuntime).GetMethod("ReleasePresentationTouches", Flags).Invoke(_runtime, null);
+            Assert.IsFalse((bool)held.GetValue(_runtime));
+        }
+
+        [Test]
+        public void MouseOrbitRequiresAnUnblockedFreshPress()
+        {
+            var handle = typeof(ArenaRuntime).GetMethod("HandleMouseOrbit", Flags);
+            Assert.IsNotNull(handle, "mouse polling needs the same testable gesture boundary as touch");
+            var rig = (ArenaCameraRig)typeof(ArenaRuntime).GetField("_cameraRig", Flags).GetValue(_runtime);
+            var l = new ArenaHudLayout(1920, 1080, new Rect(0, 0, 1920, 1080));
+            Vector2 free = new Vector2(960, 540), moved = new Vector2(1060, 540);
+            Vector2 blocked = new Vector2(l.SkillRect(0).center.x * l.Scale, 1080 - l.SkillRect(0).center.y * l.Scale);
+            float yaw = rig.Yaw;
+            handle.Invoke(_runtime, new object[] { l, blocked, true, true });
+            handle.Invoke(_runtime, new object[] { l, free, false, true });
+            Assert.AreEqual(yaw, rig.Yaw);
+            handle.Invoke(_runtime, new object[] { l, new Vector2(-1, -1), true, true });
+            handle.Invoke(_runtime, new object[] { l, free, false, true });
+            Assert.AreEqual(yaw, rig.Yaw);
+            handle.Invoke(_runtime, new object[] { l, free, true, true });
+            handle.Invoke(_runtime, new object[] { l, moved, false, true });
+            Assert.AreNotEqual(yaw, rig.Yaw);
+            typeof(ArenaRuntime).GetMethod("ReleasePresentationTouches", Flags).Invoke(_runtime, null);
+            yaw = rig.Yaw;
+            handle.Invoke(_runtime, new object[] { l, free, false, true });
+            Assert.AreEqual(yaw, rig.Yaw, "resuming a held button is not a new press");
+        }
+
+        [UnityTest]
+        public IEnumerator OpenMenuReflowsWhenViewportChanges()
+        {
+            ArenaRuntime.HudScreenOverride = new Vector2(2560, 1600);
+            _runtime.OpenMenu(ArenaRuntime.MenuInventory);
+            yield return null;
+            ArenaRuntime.HudScreenOverride = new Vector2(1280, 720);
+            typeof(ArenaRuntime).GetMethod("UpdateMenu", Flags).Invoke(_runtime, null);
+            yield return null;
+            var menu = GameObject.Find("ARE_Menu");
+            Assert.AreEqual(1280f / 960f, menu.GetComponent<CanvasScaler>().scaleFactor, .001f);
+            var close = (RectTransform)Child(menu.transform, "Close");
+            var corners = new Vector3[4]; close.GetWorldCorners(corners);
+            foreach (var point in corners) Assert.That(point.x, Is.InRange(0f, 1280f));
+            Assert.AreEqual(ArenaRuntime.MenuInventory, _runtime.MenuTab);
+        }
+
+        [UnityTest]
+        public IEnumerator InventoryPagingKeepsEveryCollectedReceiptReachable()
+        {
+            var collect = typeof(CharacterProgression).GetMethod("CollectItem", Flags);
+            var generate = typeof(LootCatalog).GetMethod("Generate", Flags);
+            for (int i = 1; i <= 61; i++)
+            {
+                Game.Progression.RecordKill();
+                var item = (LootItem)generate.Invoke(LootCatalog.Version1, new object[]
+                    { 17UL, System.Numerics.BigInteger.One, (ulong)i, i, 0, new System.Numerics.BigInteger(i) });
+                Assert.IsTrue((bool)collect.Invoke(Game.Progression, new object[] { item }));
+            }
+            string save = Game.Progression.SaveString();
+            _runtime.OpenMenu(ArenaRuntime.MenuInventory); yield return null;
+            var seen = new System.Collections.Generic.HashSet<int>();
+            for (int page = 0; page < 3; page++)
+            {
+                var menu = GameObject.Find("ARE_Menu");
+                var next = Child(menu.transform, "NextPage");
+                Assert.IsNotNull(next, "all receipts need reachable inventory pages");
+                for (int slot = 0; slot < 30; slot++)
+                {
+                    var cell = Child(menu.transform, "Cell" + slot);
+                    var button = cell.GetComponent<Button>();
+                    if (button == null) continue;
+                    button.onClick.Invoke(); yield return null;
+                    seen.Add((int)typeof(ArenaRuntime).GetField("_selectedItem", Flags).GetValue(_runtime));
+                    menu = GameObject.Find("ARE_Menu");
+                }
+                if (page < 2) { Child(menu.transform, "NextPage").GetComponent<Button>().onClick.Invoke(); yield return null; }
+            }
+            Assert.AreEqual(61, seen.Count);
+            var previous = Child(GameObject.Find("ARE_Menu").transform, "PreviousPage").GetComponent<Button>();
+            previous.onClick.Invoke(); yield return null;
+            Assert.AreEqual(30, (int)typeof(ArenaRuntime).GetField("_selectedItem", Flags).GetValue(_runtime));
+            Assert.AreEqual(save, Game.Progression.SaveString(), "browsing must not change equipment or progression");
+        }
+
+        [UnityTest]
+        public IEnumerator PortraitRestoresMixedHeroLayersWhenClosedOrSwitched()
+        {
+            var hero = (Transform)typeof(ArenaRuntime).GetField("_hero", Flags).GetValue(_runtime);
+            var camera = (Camera)typeof(ArenaRuntime).GetField("_camera", Flags).GetValue(_runtime);
+            camera.cullingMask &= ~(1 << 30);
+            var child = new GameObject("MixedLayerAttachment"); child.transform.SetParent(hero, false);
+            child.layer = 8;
+            int original = hero.gameObject.layer;
+            foreach (bool switchTab in new[] { false, true })
+            {
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter);
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter); // Rebuild must not remember portrait layers as originals.
+                yield return null;
+                Assert.AreEqual(30, hero.gameObject.layer);
+                if (switchTab) _runtime.OpenMenu(ArenaRuntime.MenuInventory); else _runtime.CloseMenu();
+                yield return null;
+                Assert.AreEqual(original, hero.gameObject.layer, "the gameplay hero must return to its original layer");
+                Assert.AreEqual(8, child.layer, "attachments keep their individual layers");
+                Assert.AreNotEqual(0, camera.cullingMask & (1 << hero.gameObject.layer));
+            }
+        }
+
+        [Test]
+        public void ExperienceBarStaysFiniteBeyondDoubleRange()
+        {
+            foreach (var level in new[] { System.Numerics.BigInteger.One, new System.Numerics.BigInteger(42), System.Numerics.BigInteger.Pow(10, 310) })
+            {
+                var p = new CharacterProgression();
+                var floor = CharacterProgression.RequiredExperienceForLevel(level);
+                var span = CharacterProgression.RequiredExperienceForLevel(level + 1) - floor;
+                p.EarnExperience(floor + span * 3 / 4);
+                Assert.IsTrue(CharacterProgression.TryLoad(p.SaveString(), out var loaded));
+                float fraction = ArenaRuntime.ExperienceFraction(loaded);
+                Assert.IsFalse(float.IsNaN(fraction) || float.IsInfinity(fraction));
+                Assert.AreEqual(.75f, fraction, .005f);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CharacterValuesStayInsideTheirPanelOnPhoneAndTablet()
+        {
+            foreach (var size in new[] { new Vector2(1920, 1080), new Vector2(2400, 1080), new Vector2(2560, 1600) })
+            {
+                ArenaRuntime.HudScreenOverride = size;
+                _runtime.OpenMenu(ArenaRuntime.MenuCharacter);
+                yield return null;
+                Canvas.ForceUpdateCanvases();
+                var panel = (RectTransform)Child(GameObject.Find("ARE_Menu").transform, "Stats");
+                Assert.IsNotNull(panel);
+                var corners = new Vector3[4];
+                foreach (var label in panel.GetComponentsInChildren<Text>())
+                {
+                    label.rectTransform.GetWorldCorners(corners);
+                    foreach (var corner in corners)
+                    {
+                        Vector3 local = panel.InverseTransformPoint(corner);
+                        Assert.That(local.y, Is.InRange(panel.rect.yMin - 1f, panel.rect.yMax + 1f),
+                            size + ": " + label.text + " must remain readable inside the stats panel");
+                    }
+                }
+            }
+        }
+
+        [Test]
         public void QuestChronicleReadsPersistedCoreProgressOnly()
         {
             var fresh = CharacterProgression.CreateEntryProfile();

@@ -22,6 +22,7 @@ namespace AreArpg.UnityClient
         private float _defaultDistance, _framingDistance, _pitch, _idleSeconds, _dangerHold;
         private float _yaw, _pitchOffset, _followHold, _pullIn;
         private bool _entryProfile, _manual, _moving, _danger, _speaking;
+        private bool _lateralInput;
         private Vector3 _focus, _speakerPosition;
         private Bounds[] _occluders = new Bounds[0];
         public HeroFraming Framing { get; private set; }
@@ -62,7 +63,7 @@ namespace AreArpg.UnityClient
         {
             Distance = _defaultDistance; _manual = false; _idleSeconds = 0;
             _pitchOffset = 0; _followHold = 0;
-            if (_target != null && _entryProfile) _yaw = _target.eulerAngles.y;
+            _yaw = _target != null && _entryProfile ? _target.eulerAngles.y : 0f;
             ClearTouches();
         }
 
@@ -89,6 +90,9 @@ namespace AreArpg.UnityClient
 
         /// <summary>Tall scenery the camera must not sit behind; boxes are world-space and presentation-only.</summary>
         public void SetOccluders(Bounds[] boxes) { _occluders = boxes ?? new Bounds[0]; }
+
+        /// <summary>Camera-relative lateral input must not turn its own coordinate frame through follow.</summary>
+        public void SetMovementIntent(long lateral) { _lateralInput = lateral != 0; }
 
         /// <summary>Release gestures after a pause, focus loss or region transition, retaining chosen zoom.</summary>
         public void ClearTouches()
@@ -202,7 +206,7 @@ namespace AreArpg.UnityClient
                 float hit;
                 if (box.IntersectRay(ray, out hit) && hit < clear) clear = hit;
             }
-            return clear < _framingDistance ? Mathf.Max(clear - .25f, .8f) : clear;
+            return clear < _framingDistance ? Mathf.Max(clear - .25f, clear * .5f) : clear;
         }
 
         private void PlaceCamera()
@@ -242,7 +246,7 @@ namespace AreArpg.UnityClient
                 // A walking hero pulls the view back behind them. The pull fades out towards the
                 // opposite heading, so walking at the camera does not spin it around.
                 _followHold = Mathf.Max(0, _followHold - dt);
-                if (_moving && _followHold <= 0)
+                if (_moving && !_lateralInput && _followHold <= 0)
                 {
                     float away = Mathf.DeltaAngle(_yaw, _target.eulerAngles.y) * Mathf.Deg2Rad;
                     _yaw = Mathf.Repeat(_yaw + Mathf.Sin(away) * Mathf.Cos(away * .5f) * FollowDegreesPerSecond * dt, 360f);
