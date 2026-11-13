@@ -28,11 +28,25 @@ AC17 wraps the complete previously validated save (including AC16 equipment and 
 
 AC18 adds the recruited companion around the complete AC17 save. Its v2 companion token keeps area seed and dungeon floor separate, preventing identity collisions. A following companion is positioned only after the passage determines the player's final entrance. Waiting/dead companions remain in their own area. Controller migration resets decision continuity explicitly; its migration tick remains part of restore validation.
 
+AC18 companion token v3 additionally attributes new companion kills. The legacy
+inner save field remains the monotonic encounter/loot ordinal, so existing item
+receipts keep their identity and validation. `LifetimeKills` reports the player's
+share; the companion's separate count is subtracted only after the validated
+wrapper restores it. New loot from both actors uses the shared ordinal. Old
+v1/v2 saves retain their historical rewards and receive no invented retrospective
+attribution. The v3 token is emitted only after an attributed companion kill.
+
 ## Companion and creature effects
 
 The rescued living hunter can join, wait in a safe authored area, rejoin, receive actual owned equipment and consume an actual provision for needed care. The BEGLEITER tab uses the existing game menu theme. The owned hunter model, walking clip, bow attack clip and equipped weapon visuals project Core state; there is no duplicate road hunter after recruitment.
 
 The companion owns health, hunger, fatigue, BigInteger experience and practice accounts. Only an effective lawful hit awards practice; waiting, replay, loading and player level increases do not. Gear receipts have one equipped owner. Death remains permanent under the current rules and cannot use village recovery to revive. The historical road rescue outcome is retained separately from the recruited companion's live health.
+
+Owner decision, 2026-11-13: a solo companion kill grants the player no character
+XP or kill credit. The hunter advances through his own effective combat actions.
+Ordinary enemies and the Rattler share this attribution rule; story completion
+and collectible loot still resolve once. Mixed player/companion defeats keep
+unique loot receipts, including ground loot across forest Save/Load.
 
 Ordinary enemies can attack the nearer visible living party member. The Rattler retains sound/scent perception and telegraphed strikes, including companion targets and damage. Authored animal encounters honor admitted controller decisions when beginning pursuit/attacks; an already committed telegraph resolves under its existing combat rules. Surviving creatures remember actual assaults individually. Existing story progress and farm-run loot remain owned by their original systems.
 
