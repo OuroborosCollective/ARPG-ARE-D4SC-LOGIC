@@ -70,6 +70,18 @@ internal static class CompanionForgeTests
         areas.Progression.Dungeon.Begin(99);areas.Progression.Dungeon.Depth=2;
         var second=new ArenaSimulation(73,areas.Progression,1,LootCatalog.Version1);
         check(traveler.Xmm!=5000,"companion-area-identity-keeps-run-seed-and-floor-separate");
+        var formation=RescueFixture();formation.RecruitHunter();var follower=formation.Progression.Companion;
+        for(int i=0;i<8;i++)formation.Step();
+        check(FixedMath.Square(follower.Xmm-formation.PlayerXmm)+FixedMath.Square(follower.Zmm-formation.PlayerZmm)>=FixedMath.Square(700),"companion-maintains-room-around-player-after-recruitment");
+        var boss=RescueFixture();boss.RecruitHunter();var bp=boss.Progression;
+        for(int i=bp.HungerStage;i<4;i++)bp.DiscoverHungerClue();bp.ChooseHungerSupply(HungerChoice.Protect);bp.TravelHunger(7,false);
+        bp.Investigation.Active=true;bp.Investigation.Clues=7;bp.Investigation.Approach=SealApproach.Investigated;bp.Investigation.TraceFound=true;bp.Rattler.Active=true;
+        boss=new ArenaSimulation(73,bp,1,LootCatalog.Version1);
+        var creature=bp.Rattler.Creature;creature.Xmm=bp.Companion.Xmm+1000;creature.Zmm=bp.Companion.Zmm;creature.Health=creature.MaxHealth=5200;
+        int original=creature.Health;for(int i=0;i<15&&creature.Health==original;i++)boss.Step();
+        check(creature.Health<original&&bp.Companion.TotalExperience>0,"companion-can-use-real-weapon-against-rattler");
+        bp.Companion.Status=CompanionStatus.Waiting;bp.Companion.Health=100;bp.Rattler.StrikeX=bp.Companion.Xmm;bp.Rattler.StrikeZ=bp.Companion.Zmm;creature.BossWindupTicks=1;
+        boss.Step();check(bp.Companion.Status==CompanionStatus.Dead,"companion-is-subject-to-rattler-telegraphed-strike");
     }
     private static ArenaSimulation RescueFixture()
     {
