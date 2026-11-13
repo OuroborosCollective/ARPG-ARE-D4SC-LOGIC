@@ -63,7 +63,7 @@ NPC, utility AI, memory, relationships, deterministic, behavior, local AI, neura
 - Price authorization: USD9.50 one-time.
 - Native game integration evidence is separate from package evidence; game screenshots are not used to imply included art.
 - Package export/import, standalone player, URP and Android checks are being completed. Their actual receipts are required before submission.
-- Publisher Portal could not be inspected: the computer/browser tool returned `the gaas-browser node_repl sandbox cannot be disabled` before page load. This is not evidence of a missing publisher account or of an authentication failure.
+- The primary computer/browser tool failed before page load (`the gaas-browser node_repl sandbox cannot be disabled`). An alternative isolated browser reached `https://login.unity.com/en/sign-in` from the Publisher Portal and showed the actual Unity ID sign-in page. The owner has been given its interactive login window. Publisher account/profile and submission fields remain unverified until that login completes; no missing account is inferred.
 - No upload, submission, review approval or live sale has been observed.
 
 Official workflow references, read 2026-11-13: [Submission guidelines](https://assetstore.unity.com/publishing/submission-guidelines), [validate and upload](https://docs.unity.com/en-us/asset-store/publishing/asset-packages/upload), [submit for review](https://docs.unity.com/en-us/asset-store/publishing/asset-packages/submit), [provider agreement](https://unity.com/legal/provider).

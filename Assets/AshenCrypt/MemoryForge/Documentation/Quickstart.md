@@ -13,7 +13,7 @@ The sample stores only `AshenCrypt.MemoryForge.Sample.v1` in PlayerPrefs. Reset 
 
 ## Inspect a live NPC
 
-Select `Nara` or `Watch` in the hierarchy during Play. `ForgeNpcView` displays the mind supplied by the sample host. The Inspector shows its exact controller hash, legal actions, weighted scores, origins of memories and relationships. It does not create or mutate gameplay state.
+Select `Nara` or `Watch` in the hierarchy during Play. `ForgeNpcView` displays the mind supplied by the sample host. The Inspector shows its exact controller hash, capabilities, legal actions, weighted scores and origins of memories. The example's right-hand panel displays trust, gratitude, hostility and fear toward the player. Neither display creates or mutates gameplay state.
 
 ## Configure a controller
 

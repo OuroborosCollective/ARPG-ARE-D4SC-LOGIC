@@ -28,5 +28,5 @@ Use the release evidence to distinguish .NET benchmarks, Unity Editor tests, And
 - **NPC knows too much:** audit where your host calls `Learn`. The library cannot validate scene visibility on behalf of the host.
 - **Old save fails:** restore all exact historical artifacts and their admissions. Do not replace them with a newer version.
 - **Approved asset is rejected:** its bytes or regression receipt changed. Fork a new version, test it, then select or migrate explicitly.
-- **Sample is pink:** verify the active pipeline and available shaders. Its original geometry has no third-party materials; the helper selects URP Lit/Unlit when present, otherwise Standard/Unlit Color. HDRP is not a validated sample presentation target.
+- **Sample is pink:** open the included scene and verify the active pipeline and its serialized shader references. The helper selects URP Lit/Unlit only when a Universal pipeline is active; otherwise it uses Standard/Unlit Color. Merely installing URP does not switch this selection. HDRP is not a validated sample presentation target.
 - **No test assemblies:** install Unity Test Framework. Production assemblies do not require NUnit.

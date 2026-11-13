@@ -52,6 +52,8 @@ namespace AreArpg.UnityClient
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void InstallInAnyScene()
         {
+            string path = UnityEngine.SceneManagement.SceneManager.GetActiveScene().path;
+            if (path != "Assets/Scenes/AshenEntry.unity" && path != "Assets/Scenes/Arena.unity") return;
             if (FindObjectOfType<ArenaRuntime>() != null) return;
             new GameObject("ARE_ARPG_Runtime").AddComponent<ArenaRuntime>();
         }
