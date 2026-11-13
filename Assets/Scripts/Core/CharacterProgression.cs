@@ -246,7 +246,7 @@ namespace AreArpg.Core
             CryptInvestigation investigation = new CryptInvestigation();
             if (ac11 && (hungerStage != 4 || !CryptInvestigation.TryRead(parts[18], entryAct, out investigation, ac12, ac14 && entryAct >= 6 ? dungeon.Current.Layout : null))) return false;
             var rattler = new RattlerEncounter();
-            if (ac12 && (!investigation.TraceFound || !RattlerEncounter.TryRead(parts[19], out rattler, ac14 && dungeon.Run > 1))) return false;
+            if (ac12 && (!investigation.TraceFound || !RattlerEncounter.TryRead(parts[19], out rattler, ac14))) return false;
             if (ac14 && (investigation.Approach == SealApproach.Undecided ||
                 ((dungeon.UnlockedDepth == 3 || entryAct == 7) && !rattler.Active) || (entryAct < 6 && dungeon.Depth != 1) ||
                 (dungeon.Floor(3).Loot.Any(l=>l.Id==42) && !rattler.Creature.IsDead))) return false;

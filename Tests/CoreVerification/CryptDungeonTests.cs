@@ -87,6 +87,15 @@ internal static class CryptDungeonTests
             layouts.Add(fingerprint); emptyChests|=map.ChestMask==0;
         }
         check(layouts.Count>100 && spawns.Count>80 && emptyChests,"proc-varied-layouts-enemies-and-absent-chests");
+        var cornerMap=new CryptDungeonLayout(1,1); bool cornerChecked=false;
+        for(int z=-5;z<5 && !cornerChecked;z++) for(int x=-5;x<5 && !cornerChecked;x++)
+            if(cornerMap.IsFloor(x,z) && cornerMap.IsFloor(x+1,z+1) &&
+                (!cornerMap.IsFloor(x+1,z) || !cornerMap.IsFloor(x,z+1)))
+            {
+                check(!cornerMap.HasSight(x*4000,z*4000,(x+1)*4000,(z+1)*4000),"proc-no-attacks-through-solid-wall-corners");
+                cornerChecked=true;
+            }
+        check(cornerChecked,"proc-corner-regression-fixture-found");
         var state=new CryptDungeonState(123) {Active=true}; string token=state.Token();
         check(CryptDungeonState.TryRead(token,6,out var copy) && copy.Token()==token,"proc-canonical-world-roundtrip");
         var game=Enter();

@@ -8,10 +8,18 @@ namespace AreArpg.Core
 
         private SocialResult ActOnDungeon(HungerAction action)
         {
+            if(action==HungerAction.BeginDungeonRun)
+            {
+                var r=new SocialResult {Text="Gehe zum geoeffneten Siegel im alten Speicher."};
+                if(GameOver || Progression.EntryAct!=5 || Progression.Dungeon.Active || Progression.Investigation.Approach==SealApproach.Undecided ||
+                    DistanceSquared(PlayerXmm,PlayerZmm,0,18000)>FixedMath.Square(NpcInteractionRadiusMm)) return r;
+                Progression.Dungeon.Begin(_rng.Next64()); Progression.Rattler.RestartDungeonRun(); SaveInvestigationPlayer();
+                r.Accepted=true; r.Text="Ein neuer Vorstoss beginnt. Drei Kryptaebenen liegen vor dir. Bereits entdeckte Storyspuren bleiben erhalten."; return r;
+            }
             if(action==HungerAction.OpenDungeonSeal || action==HungerAction.BreakDungeonSeal)
             {
                 var r=ActOnInvestigation(action==HungerAction.OpenDungeonSeal ? HungerAction.OpenSeal : HungerAction.BreakSeal);
-                if(r.Accepted) { Progression.Dungeon.Begin(_runSeed); }
+                if(r.Accepted) { Progression.Dungeon.Begin(_rng.Next64()); SaveInvestigationPlayer(); }
                 return r;
             }
             var result=new SocialResult { Text="Gehe nahe an eine noch geschlossene Truhe." };

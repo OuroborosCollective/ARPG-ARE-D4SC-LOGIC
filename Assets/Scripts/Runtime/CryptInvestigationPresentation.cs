@@ -12,6 +12,7 @@ namespace AreArpg.UnityClient
         private HungerAction[] InvestigationActions()
         {
             var p = _game.Progression; var c = p.Investigation;
+            if (p.EntryAct == 5 && c.Approach != SealApproach.Undecided && !p.Dungeon.Active) return new[] { HungerAction.BeginDungeonRun };
             if (p.EntryAct == 2 && p.Rattler.BrandExamined && !p.Rattler.Reported) return new[] { HungerAction.ReportRoyalBrand };
             if (p.EntryAct == 7) return p.Rattler.Creature.IsDead && !p.Rattler.BrandExamined ? new[] { HungerAction.InspectRoyalBrand } : new HungerAction[0];
             if (p.EntryAct == 6 && c.TraceFound && !p.Rattler.Active) return new[] { HungerAction.OpenInnerDoor };

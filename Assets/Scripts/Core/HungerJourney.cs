@@ -4,7 +4,7 @@ using System.Globalization;
 namespace AreArpg.Core
 {
     public enum HungerChoice { Undecided = 0, Reveal = 1, Protect = 2, Replace = 3 }
-    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17, OpenDungeonSeal = 18, BreakDungeonSeal = 19, OpenWestChest = 20, OpenEastChest = 21 }
+    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17, OpenDungeonSeal = 18, BreakDungeonSeal = 19, OpenWestChest = 20, OpenEastChest = 21, BeginDungeonRun = 22 }
 
     public sealed partial class CharacterProgression
     {
@@ -113,7 +113,7 @@ namespace AreArpg.Core
         /// <summary>Apply one versioned story action at its real location; repeated requests cannot duplicate effects.</summary>
         public SocialResult ActOnHunger(HungerAction action)
         {
-            if (action >= HungerAction.OpenDungeonSeal && action <= HungerAction.OpenEastChest) return ActOnDungeon(action);
+            if (action >= HungerAction.OpenDungeonSeal && action <= HungerAction.BeginDungeonRun) return ActOnDungeon(action);
             if (action >= HungerAction.OpenInnerDoor && action <= HungerAction.ReportRoyalBrand) return ActOnRattler(action);
             if (action >= HungerAction.StoreBandage) return ActOnInvestigation(action);
             var result = new SocialResult { Text = "Hier gibt es dafuer noch keinen neuen Hinweis." };

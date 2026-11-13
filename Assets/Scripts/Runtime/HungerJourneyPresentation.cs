@@ -55,6 +55,7 @@ namespace AreArpg.UnityClient
                 case HungerAction.StoreTracks: return "AN DER SCHLEIFSPUR: Fugen und Staub untersuchen";
                 case HungerAction.InspectSeal: return "AM SIEGEL: Mechanismus und Gefahr untersuchen";
                 case HungerAction.OpenDungeonSeal: return "SIEGEL ENTLASTEN: Drei Kryptaebenen erkunden";
+                case HungerAction.BeginDungeonRun: return "AM OFFENEN SIEGEL: Neuen Dungeon-Run beginnen";
                 case HungerAction.BreakDungeonSeal: return "SIEGEL BRECHEN: Krypta betreten - Steinschlaggefahr!";
                 case HungerAction.OpenWestChest: case HungerAction.OpenEastChest: return "AN DER TRUHE: Oeffnen und Beute freilegen";
                 case HungerAction.OpenSeal: return "SIEGEL ENTLASTEN: Zugang kontrolliert oeffnen";
