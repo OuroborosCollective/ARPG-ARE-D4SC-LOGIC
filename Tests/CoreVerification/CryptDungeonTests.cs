@@ -130,6 +130,14 @@ internal static class CryptDungeonTests
                 check(swipe.PlayerHealth==hp,"proc-rattler-swipe-cannot-hit-through-wall-corner"); swipeChecked=true;
             }
         check(swipeChecked,"proc-rattler-wall-fixture-found");
+        for(ulong seed=1;seed<=128;seed++)
+        {
+            var waiting=Enter().Progression; waiting.Dungeon.Begin(seed); waiting.Dungeon.Depth=waiting.Dungeon.UnlockedDepth=2;
+            foreach(var m in waiting.Dungeon.Floor(1).Monsters) { m.Health=0; m.LootGranted=true; }
+            waiting.Investigation.TraceFound=true; waiting.Investigation.SavedX=0; waiting.Investigation.SavedZ=15000;
+            var door=new ArenaSimulation(123,waiting,1,LootCatalog.Version1);
+            check(door.ActOnHunger(HungerAction.OpenInnerDoor).Accepted && CharacterProgression.TryLoad(door.Progression.SaveString(),out _),"proc-door-checkpoint-before-first-boss-entry-"+seed);
+        }
         var state=new CryptDungeonState(123) {Active=true}; string token=state.Token();
         check(CryptDungeonState.TryRead(token,6,out var copy) && copy.Token()==token,"proc-canonical-world-roundtrip");
         foreach(string invalid in new[]{token.Replace("2;1;1;","9;1;1;"), token.Replace(";123;",";0123;"), token.Replace(";1;0;",";0;0;")})

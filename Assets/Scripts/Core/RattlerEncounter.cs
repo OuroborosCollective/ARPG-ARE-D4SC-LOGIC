@@ -98,7 +98,8 @@ namespace AreArpg.Core
                 m.BossWindupTicks--;
                 if (m.BossWindupTicks == 0)
                 {
-                    if (DistanceSquared(PlayerXmm, PlayerZmm, r.StrikeX, r.StrikeZ) <= FixedMath.Square(RattlerEncounter.StrikeRadius))
+                    if (DistanceSquared(PlayerXmm, PlayerZmm, r.StrikeX, r.StrikeZ) <= FixedMath.Square(RattlerEncounter.StrikeRadius) &&
+                        (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm)))
                         PlayerHealth = Math.Max(0, PlayerHealth - 280);
                     m.AttackCooldownTicks = 14;
                 }
