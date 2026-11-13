@@ -12,6 +12,8 @@ namespace AreArpg.Core
         internal static readonly NpcArchetypeControllerRegistry Registry=ForgeDefaults.CreateRegistry();
         public MemoryArchive Archive { get; private set; }
         public ulong ProcessedTicks { get; internal set; }
+        public static System.Collections.Generic.IReadOnlyList<ControllerArtifact> ControllerCatalog => Registry.Versions;
+        public static ControllerAdmission Regression(ControllerArtifact controller) => Registry.Admission(controller);
         internal string Checkpoint="-";
         internal Func<string> Capture;
         public static string Identity(int id) => id==0?"ilyan":id==1?"mara":id==2?"dorn":throw new ArgumentOutOfRangeException(nameof(id));
@@ -39,7 +41,7 @@ namespace AreArpg.Core
             if(archive.Minds.Count<3||archive.Minds.Count>5||archive.Minds.Any(m=>m.Id!="ilyan"&&m.Id!="mara"&&m.Id!="dorn"&&m.Id!="hunter"&&m.Id!="road.traveler")||
                 archive.Get("road.traveler")!=null&&archive.Get("road.traveler").Controller.ArchetypeId!="traveler"||
                 archive.Get("hunter")!=null&&archive.Get("hunter").Controller.ArchetypeId!="companion"||archive.Get("ilyan")?.Controller.ArchetypeId!="traveler"||archive.Get("mara")?.Controller.ArchetypeId!="merchant"||archive.Get("dorn")?.Controller.ArchetypeId!="guard"||
-                archive.Acquisitions.Any(k=>k.LearnedTick>ticks)||archive.Events.Any(e=>e.Tick>ticks)||archive.Minds.Any(m=>m.DecisionState.LastTick>ticks))return false;
+                archive.Acquisitions.Any(k=>k.LearnedTick>ticks)||archive.Events.Any(e=>e.Tick>ticks)||archive.Migrations.Any(m=>m.Tick>ticks)||archive.Minds.Any(m=>m.DecisionState.LastTick>ticks))return false;
             if(!ForgeVillageCheckpoint.TryRead(f[3],out _))return false;
             state=new NpcForgeState{ProcessedTicks=ticks,Archive=archive,Checkpoint=f[3]};return true;
         }
@@ -49,6 +51,14 @@ namespace AreArpg.Core
         public NpcForgeState Forge { get; internal set; }
         /// <summary>Explicit feature migration; the old BigInteger social accounts remain intact.</summary>
         public void EnableForge(){if(Forge==null)Forge=new NpcForgeState();}
+    }
+    public sealed partial class ArenaSimulation
+    {
+        public bool TryMigrateNpcController(string identity,string controllerId,int version,string hash)
+        {
+            var forge=Progression.Social.Forge;var mind=forge?.Archive.Get(identity);
+            return !GameOver&&mind!=null&&NpcForgeState.Registry.TryRestore(mind.Controller.ArchetypeId,controllerId,version,hash,out var target)&&forge.Archive.TryMigrate(identity,target,NpcForgeState.Registry,forge.ProcessedTicks,out _);
+        }
     }
     public sealed partial class CharacterProgression
     {

@@ -87,9 +87,10 @@ namespace AshenCrypt.MemoryForge
         private readonly SortedSet<ulong> _essential=new SortedSet<ulong>();
         public string Id { get; }
         public ControllerArtifact Controller { get; private set; }
-        public DecisionState DecisionState { get; }=new DecisionState();
+        public DecisionState DecisionState { get; private set; }=new DecisionState();
         public IReadOnlyList<KnownMemory> Known=>new ReadOnlyCollection<KnownMemory>(_known.Values.ToArray());
-        public NpcMind(string id,ControllerArtifact controller){Id=ContractText.Id(id);Controller=controller??throw new ArgumentNullException(nameof(controller));}
+        internal NpcMind(string id,ControllerArtifact controller){Id=ContractText.Id(id);Controller=controller??throw new ArgumentNullException(nameof(controller));}
+        internal void MigrateTo(ControllerArtifact controller,ulong tick){Controller=controller;DecisionState=new DecisionState{LastTick=tick};}
         public Relationship RelationshipTo(string actor)
         {ContractText.Id(actor);return _relations.TryGetValue(actor,out var relationship)?relationship:new Relationship();}
         public KnownMemory Knowledge(ulong id)=>_known.TryGetValue(id,out var known)?known:null;
@@ -133,7 +134,7 @@ namespace AshenCrypt.MemoryForge
         public NpcMind Get(string id)=>_minds.TryGetValue(id,out var mind)?mind:null;
         public MemoryEvent Append(MemoryKind kind,string actor,string target,ulong tick,int importance,bool essential,string context,RelationshipChange impact)
         {
-            if(_events.Count>0&&tick<_events[_events.Count-1].Tick)throw new ArgumentException("Event tick moved backwards");
+            if(_events.Count>0&&tick<_events[_events.Count-1].Tick||_migrations.Count>0&&tick<_migrations.Last().Tick)throw new ArgumentException("Event tick moved backwards");
             var ev=new MemoryEvent(checked((ulong)_events.Count+1),kind,actor,target,tick,importance,essential,context,impact);_events.Add(ev);return ev;
         }
         public bool Learn(string knower,ulong eventId,KnowledgeOrigin origin,string source,ulong tick,int personal=10000,int social=10000)

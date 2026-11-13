@@ -43,6 +43,7 @@ namespace AshenCrypt.MemoryForge
         {
             if(controller==null||observations==null)throw new ArgumentNullException();
             var scores=new List<ActionScore>(controller.Rules.Count);ForgeAction chosen=ForgeAction.None;int maximum=int.MinValue;
+            var neural=controller.Network?.Evaluate(observations,observations.LegalActions&controller.Archetype.AllowedActions);
             foreach(var rule in controller.Rules)
             {
                 bool legal=ActionSet.Contains(observations.LegalActions&controller.Archetype.AllowedActions,rule.Action);
@@ -54,6 +55,7 @@ namespace AshenCrypt.MemoryForge
                     int value=observations[(Feature)i];int term=FixedPoint.Multiply(weight,value);score=checked(score+term);
                     contributions+=","+ContractText.Number(i)+"="+ContractText.Number(value)+"*"+ContractText.Number(weight)+"->"+ContractText.Number(term);
                 }
+                if(neural!=null){score=checked(score+neural[(int)rule.Action]);contributions+=",neural="+ContractText.Number(neural[(int)rule.Action]);}
                 scores.Add(new ActionScore(rule.Action,true,score,contributions));
                 // Rules have a unique, versioned order. Strict greater-than preserves ties.
                 if(chosen==ForgeAction.None||score>maximum){maximum=score;chosen=rule.Action;}

@@ -909,6 +909,8 @@ namespace AreArpg.UnityClient
         }
 
         /// <summary>Consume ordered player requests on the established 100-ms tick, then interpolate presentation.</summary>
+        public void SaveNpcControllerChange() { SaveCharacter(); }
+
         private void Update()
         {
             if (_storageFault) { UpdateHud(); return; }

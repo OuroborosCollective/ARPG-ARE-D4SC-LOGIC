@@ -48,7 +48,8 @@ namespace AshenCrypt.MemoryForge
         public IReadOnlyList<UtilityRule> Rules { get; }
         public string Hash { get; }
         public string Canonical { get; }
-        public ControllerArtifact(ArchetypeDefinition archetype,string controllerId,int version,IEnumerable<UtilityRule> rules,int decisionInterval=3,int minimumDuration=4,int hysteresis=300,int runtimeVersion=1,int memoryVersion=1)
+        public QuantizedNetwork Network { get; }
+        public ControllerArtifact(ArchetypeDefinition archetype,string controllerId,int version,IEnumerable<UtilityRule> rules,int decisionInterval=3,int minimumDuration=4,int hysteresis=300,int runtimeVersion=1,int memoryVersion=1,QuantizedNetwork network=null)
         {
             Archetype=archetype??throw new ArgumentNullException(nameof(archetype));ControllerId=ContractText.Id(controllerId);
             if(version<1||runtimeVersion<1||memoryVersion<1||decisionInterval<1||decisionInterval>100||minimumDuration<0||minimumDuration>100||hysteresis<0||hysteresis>10000)throw new ArgumentException("Invalid controller version or timing");
@@ -61,8 +62,13 @@ namespace AshenCrypt.MemoryForge
                 for(int i=0;i<(int)Feature.Count;i++)if(rule.Weight((Feature)i)!=0&&(archetype.ObservableFeatures&(1UL<<i))==0)throw new ArgumentException("Unobservable controller input");
             }
             if(!copy.Any(r=>r.Action==archetype.Fallback))throw new ArgumentException("Missing fallback rule");
+            if(network!=null)
+                for(int h=0;h<network.HiddenCount;h++)for(int f=0;f<(int)Feature.Count;f++)
+                    if(network.InputWeight(h,(Feature)f)!=0&&(archetype.ObservableFeatures&(1UL<<f))==0)throw new ArgumentException("Unobservable neural input");
+            Network=network;
             Rules=new ReadOnlyCollection<UtilityRule>(copy);
             Canonical="AshenCrypt.ControllerArtifact.v1\n"+archetype.Canonical+"\n"+ControllerId+","+ContractText.Number(version)+","+ContractText.Number(runtimeVersion)+","+ContractText.Number(memoryVersion)+","+ContractText.Number(decisionInterval)+","+ContractText.Number(minimumDuration)+","+ContractText.Number(hysteresis)+"\n"+string.Join("\n",copy.Select(r=>r.Canonical));
+            if(Network!=null)Canonical="AshenCrypt.ControllerArtifact.v2\n"+Canonical+"\n"+Network.Canonical;
             Hash=ContractText.Hash(Canonical);
         }
     }
@@ -97,6 +103,7 @@ namespace AshenCrypt.MemoryForge
         private readonly SortedDictionary<string,ControllerArtifact> _versions=new SortedDictionary<string,ControllerArtifact>(StringComparer.Ordinal);
         private readonly SortedDictionary<string,ControllerArtifact> _current=new SortedDictionary<string,ControllerArtifact>(StringComparer.Ordinal);
         private readonly SortedDictionary<string,ControllerAdmission> _admissions=new SortedDictionary<string,ControllerAdmission>(StringComparer.Ordinal);
+        private readonly SortedDictionary<string,string> _manifests=new SortedDictionary<string,string>(StringComparer.Ordinal);
         public int RuntimeVersion { get; }
         public int MemoryVersion { get; }
         public NpcArchetypeControllerRegistry(int runtimeVersion=1,int memoryVersion=1){RuntimeVersion=runtimeVersion;MemoryVersion=memoryVersion;}
@@ -106,7 +113,8 @@ namespace AshenCrypt.MemoryForge
             if(controller==null||controller.Hash!=expectedHash||admission==null||admission.ControllerHash!=expectedHash||admission.Failed!=0||admission.Passed==0||controller.RuntimeVersion!=RuntimeVersion||controller.MemoryVersion!=MemoryVersion)throw new ArgumentException("Controller admission rejected");
             string key=Key(controller.ArchetypeId,controller.ControllerId,controller.Version);
             if(_versions.ContainsKey(key))throw new ArgumentException("Immutable controller version already exists");
-            if(_current.TryGetValue(controller.ArchetypeId,out var old)&&old.Archetype.Canonical!=controller.Archetype.Canonical)throw new ArgumentException("An archetype cannot silently change its capabilities");
+            if(_manifests.TryGetValue(controller.ArchetypeId,out var manifest)&&manifest!=controller.Archetype.Canonical)throw new ArgumentException("An archetype cannot silently change its capabilities");
+            _manifests[controller.ArchetypeId]=controller.Archetype.Canonical;
             _versions.Add(key,controller);_admissions.Add(key,admission);
             if(selectForNewSpawns)_current[controller.ArchetypeId]=controller;
         }

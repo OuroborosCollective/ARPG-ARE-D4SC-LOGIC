@@ -14,7 +14,7 @@ namespace AshenCrypt.MemoryForge
             {
                 using(var w=new BinaryWriter(stream,Encoding.UTF8,true))
                 {
-                    w.Write(1);w.Write(_events.Count);
+                    w.Write(_migrations.Count>0?2:1);w.Write(_events.Count);
                     foreach(var e in _events)
                     {
                         w.Write(e.Id);w.Write((byte)e.Kind);Write(w,e.Actor);Write(w,e.Target);w.Write(e.Tick);w.Write(e.Importance);w.Write(e.Essential);Write(w,e.Context);
@@ -31,8 +31,9 @@ namespace AshenCrypt.MemoryForge
                     {
                         w.Write(k.Sequence);w.Write(k.Event.Id);Write(w,k.Knower);w.Write((byte)k.Origin);Write(w,k.Source);w.Write(k.SourceSequence);w.Write(k.LearnedTick);w.Write(k.PersonalImpact);w.Write(k.SocialCloseness);Write(w,k.Checksum);
                     }
+                    if(_migrations.Count>0)WriteMigrations(w);
                 }
-                string payload=Convert.ToBase64String(stream.ToArray());return "NMF1."+payload+"."+ContractText.Hash(payload);
+                string payload=Convert.ToBase64String(stream.ToArray());return (_migrations.Count>0?"NMF2.":"NMF1.")+payload+"."+ContractText.Hash(payload);
             }
         }
         private static void Write(BinaryWriter writer,string value)
@@ -75,13 +76,13 @@ namespace AshenCrypt.MemoryForge
         public static bool TryLoad(string token,NpcArchetypeControllerRegistry registry,out MemoryArchive archive,int maximumBytes=16*1024*1024)
         {
             archive=null;if(string.IsNullOrEmpty(token)||maximumBytes<1||token.Length>(long)maximumBytes*2)return false;
-            var fields=token.Split('.');if(fields.Length!=3||fields[0]!="NMF1"||fields[2]!=ContractText.Hash(fields[1]))return false;
+            var fields=token.Split('.');if(fields.Length!=3||fields[0]!="NMF1"&&fields[0]!="NMF2"||fields[2]!=ContractText.Hash(fields[1]))return false;
             try
             {
                 var bytes=Convert.FromBase64String(fields[1]);if(bytes.Length>maximumBytes||Convert.ToBase64String(bytes)!=fields[1])return false;
                 using(var stream=new MemoryStream(bytes,false))using(var reader=new BinaryReader(stream,new UTF8Encoding(false,true)))
                 {
-                    if(reader.ReadInt32()!=1)return false;var a=new MemoryArchive();int events=Count(reader);
+                    int schema=reader.ReadInt32();if(schema!=(fields[0]=="NMF1"?1:2))return false;var a=new MemoryArchive();int events=Count(reader);
                     for(int i=0;i<events;i++)
                     {
                         ulong id=reader.ReadUInt64();var kind=(MemoryKind)reader.ReadByte();string actor=Read(reader),target=Read(reader);ulong tick=reader.ReadUInt64();int importance=reader.ReadInt32();byte essential=reader.ReadByte();if(essential>1)return false;string context=Read(reader);
@@ -103,6 +104,7 @@ namespace AshenCrypt.MemoryForge
                         bool accepted=origin==KnowledgeOrigin.Reported?a.Report(source,knower,eventId,tick,personal,social):a.Learn(knower,eventId,origin,source,tick,personal,social);
                         if(!accepted)return false;var known=a._acquisitions.Last();if(known.Sequence!=sequence||known.SourceSequence!=sourceSequence||known.Checksum!=hash)return false;
                     }
+                    if(schema==2&&!a.ReadMigrations(reader,registry))return false;
                     if(stream.Position!=stream.Length||a.Save()!=token)return false;archive=a;return true;
                 }
             }
