@@ -16,7 +16,9 @@ keine Cloud-Dienste, Werbung, Käufe oder Multiplayer-Funktionen.
 Der untersuchte Logcat-Gitstand enthält 1.5.0, die Registry veröffentlicht 1.4.7.
 Netcode `develop` enthält 3.3.0 und verlangt Unity 6000.7. Diese Version wird nicht in
 das auf 6000.6.8f1 festgelegte Projekt übernommen. Netcode 2.14.0 verlangt Unity6000.0
-und Unity Transport2.6.0. Eine spätere Multiplayer-Entscheidung betrifft Spielregeln,
+und deklariert Unity Transport2.6.0. Unity 6000.6.8f1 löst im Prüfprojekt tatsächlich
+das eingebaute Transportpaket6.6.0 auf; der reale Paket-Lock ist maßgeblich.
+Eine spätere Multiplayer-Entscheidung betrifft Spielregeln,
 Authority und Save/Replay und wird mit dem Besitzer besprochen.
 
 ## Director-Anbindung
@@ -39,6 +41,12 @@ Vor Verwendung werden der ausgewählte Skill und seine benötigten Referenzen
 gelesen; CLI-, Editor-, Paket- und Gerätestatus werden zusätzlich frisch ermittelt.
 Die sechs bisherigen Director-Aktionen bleiben erhalten.
 
+Die offizielle Unity CLI **1.0.0** ist lokal und auf dem VPS installiert. Auf dem
+VPS wird sie im bestehenden Unity-Arbeitskonto ausgeführt. Der UVCS-Client
+**11.0.16.10371** steht für passende Aufgaben bereit; ein UVCS-Repository wurde
+nicht angelegt. Das offizielle Codex-Plugin und lokale Skills sind Werkzeuge der
+Entwicklungsumgebung, keine neu registrierten ChatGPT-Connectoren.
+
 ## Android-Diagnose
 
 `ARE ARPG > Tools > Install Android Logcat` verwendet die offizielle asynchrone
@@ -51,6 +59,17 @@ und ein tatsächlich verbundenes, autorisiertes Gerät sind Voraussetzung für L
 Speichermessungen und Bildschirmaufnahmen. Installation und ein geöffnetes Fenster
 sind kein Gerätetest. Die Linux-Unterstützung einzelner Aufnahmefunktionen muss an
 der installierten Version geprüft werden; Videoaufzeichnung wird nicht versprochen.
+
+## Isolierte Netcode-Erprobung
+
+Das separate Projekt `AshenOfficialToolingProbe` verwendet denselben Editorpin,
+Netcode2.14.0 und Test Framework1.8.0, ohne Cloud-Verknüpfung. Die beiden Dateien
+unter `Tools/Director/NetcodeProbe` werden nur dort nach `Assets/Tests/PlayMode`
+kopiert. Der PlayMode-Test `NetcodeLoopbackTests` startet einen Host an
+`127.0.0.1:17853`, prüft seinen lokalen Client, beendet ihn und wiederholt den
+Ablauf. Teardown entfernt den Manager auch bei fehlgeschlagenen Assertions.
+Dies prüft den lokalen Host-Lebenszyklus; es belegt weder eine Verbindung zwischen
+zwei Geräten noch Netzwerk-Synchronisierung des Ashen-Crypt-Core.
 
 ## Nachvollziehbare Quellen
 
