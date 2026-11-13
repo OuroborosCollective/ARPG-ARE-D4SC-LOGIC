@@ -59,7 +59,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(Game.InForest);Assert.AreEqual(16,Game.Monsters.Count);
             foreach(string key in new[]{"WoodlandTreeA","WoodlandTreeB","WoodlandShrub","WoodlandFern","WoodlandMushroomRed","WoodlandMushroomMoon","WoodlandRock"})Assert.IsNotNull(Resources.Load<GameObject>("ARE/Visuals/"+key),key);
             var chunks=(List<Transform>)typeof(ArenaRuntime).GetField("_woodlandChunks",Flags).GetValue(_runtime);
-            Assert.Greater(chunks.Count,100);Assert.IsTrue(chunks.Any(c=>!c.gameObject.activeSelf),"Distance culling active");
+            Assert.Greater(chunks.Count,100);Assert.IsTrue(chunks.Any(c=>!c.Find("Forest_Vegetation").gameObject.activeSelf),"Vegetation distance culling active");
             Assert.IsTrue(chunks.SelectMany(c=>c.GetComponent<MeshFilter>().sharedMesh.vertices).Any(v=>Mathf.Abs(v.y)>.4f),"Actual hill geometry");
             var trees=chunks.SelectMany(c=>c.GetComponentsInChildren<Transform>(true)).Where(t=>t.name=="WoodlandTreeA"||t.name=="WoodlandTreeB").ToArray();
             int adults=0;foreach(var t in trees){var rs=t.GetComponentsInChildren<Renderer>(true);var b=rs[0].bounds;foreach(var r in rs)b.Encapsulate(r.bounds);if(b.size.y>5.9f)adults++;}
@@ -127,7 +127,7 @@ namespace AreArpg.PlayMode.Tests
                 {
                     var definition=WeaponCatalog.Get(i);var host=new GameObject(definition.Id).transform;host.SetParent(gallery.transform);host.position=new Vector3(200+(i%6)*2.2f,1+(5-i/6)*2.3f,200);
                     Assert.IsTrue(PassiveArtVisuals.TryBind(host,definition.VisualKey));
-                    var text=new GameObject("Label").AddComponent<TextMesh>();text.transform.SetParent(host,false);text.transform.localPosition=new Vector3(-.85f,-.8f,-.3f);text.transform.localRotation=Quaternion.Euler(0,180,0);text.text=definition.Id;text.fontSize=35;text.characterSize=.045f;text.color=Color.white;
+                    var text=new GameObject("Label").AddComponent<TextMesh>();text.transform.SetParent(host,false);text.transform.localPosition=new Vector3(-.85f,-.8f,-.3f);text.text=definition.Id;text.fontSize=35;text.characterSize=.045f;text.color=Color.white;
                 }
                 camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.17f,.2f,.25f);camera.orthographic=true;camera.orthographicSize=7.2f;
                 camera.transform.position=new Vector3(205.5f,6.5f,190);camera.transform.LookAt(new Vector3(205.5f,6.5f,200));camera.farClipPlane=20;

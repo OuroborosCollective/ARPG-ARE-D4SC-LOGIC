@@ -33,7 +33,10 @@ namespace AreArpg.EditorTools
                 for(int i=0;i<sources.Length;i++)CopyPassive(Forest+"Prefabs/Generated/"+sources[i]+".prefab",Output+keys[i]+".prefab");
                 CopyPassive(Forest+"Prefabs/ReviewVariants/ashen_mushroom_cluster_red_01.prefab",Output+"WoodlandMushroomRed.prefab");
                 if(!AssetDatabase.LoadAssetAtPath<Material>(Output+"WoodlandGround.mat")&&!AssetDatabase.CopyAsset(Forest+"Materials/Generated/AK_Ground_AshenPBR.mat",Output+"WoodlandGround.mat"))throw new IOException("Missing forest ground material");
-                var paths=AssetDatabase.FindAssets("t:Model",new[]{"Assets/PrivateArt/WoodlandWeapons","Assets/PrivateVendor"}).Select(AssetDatabase.GUIDToAssetPath).OrderBy(p=>p,StringComparer.Ordinal).ToArray();
+                var roots=new[]{"Assets/PrivateArt/WoodlandWeapons","Assets/PrivateVendor"};
+                // The supplied staff prefabs carry material overrides absent from the raw FBX (notably Ice).
+                var paths=AssetDatabase.FindAssets("t:Prefab",roots).Select(AssetDatabase.GUIDToAssetPath).OrderBy(p=>p,StringComparer.Ordinal)
+                    .Concat(AssetDatabase.FindAssets("t:Model",roots).Select(AssetDatabase.GUIDToAssetPath).OrderBy(p=>p,StringComparer.Ordinal)).ToArray();
                 for(int i=0;i<WeaponCatalog.Count;i++)
                 {
                     var def=WeaponCatalog.Get(i);var path=paths.FirstOrDefault(p=>Path.GetFileNameWithoutExtension(p)==def.ModelStem);

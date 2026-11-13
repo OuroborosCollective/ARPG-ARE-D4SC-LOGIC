@@ -60,6 +60,7 @@ namespace AreArpg.UnityClient
             for(int cz=-14;cz<14;cz+=2)for(int cx=-12;cx<12;cx+=2)
             {
                 var chunk=new GameObject("Forest_Chunk_"+cx+"_"+cz).transform;chunk.position=new Vector3(cx*4+4,0,cz*4+4);_chapterScenery.Add(chunk);_woodlandChunks.Add(chunk);
+                var vegetation=new GameObject("Forest_Vegetation").transform;vegetation.SetParent(chunk,false);
                 var verts=new Vector3[81];var uv=new Vector2[81];var indices=new int[384];int ti=0;
                 for(int z=0;z<=8;z++)for(int x=0;x<=8;x++)
                 {
@@ -75,16 +76,16 @@ namespace AreArpg.UnityClient
                     if(!path)
                     {
                         float height=rng.Next64()%4==0?2.5f+(rng.Next64()%180)/100f:6f+(rng.Next64()%240)/100f;
-                        PlantWoodland(chunk,(rng.Next64()%2==0?"WoodlandTreeA":"WoodlandTreeB"),wx,wz,height,rng);
-                        PlantWoodland(chunk,"WoodlandShrub",wx+1.1f,wz+1.1f,.8f+(rng.Next64()%50)/100f,rng);
+                        PlantWoodland(vegetation,(rng.Next64()%2==0?"WoodlandTreeA":"WoodlandTreeB"),wx,wz,height,rng);
+                        PlantWoodland(vegetation,"WoodlandShrub",wx+1.1f,wz+1.1f,.8f+(rng.Next64()%50)/100f,rng);
                         // Boundary boulders visibly mark impassable thickets without blocking the open path.
-                        if(map.IsFloor(x-1,z)||map.IsFloor(x+1,z)||map.IsFloor(x,z-1)||map.IsFloor(x,z+1))PlantWoodland(chunk,"WoodlandRock",wx,wz,1.7f,rng);
+                        if(map.IsFloor(x-1,z)||map.IsFloor(x+1,z)||map.IsFloor(x,z-1)||map.IsFloor(x,z+1))PlantWoodland(vegetation,"WoodlandRock",wx,wz,1.7f,rng);
                     }
                     else
                     {
                         // Low undergrowth stays out of the central combat lane.
-                        if(rng.Next64()%3==0)PlantWoodland(chunk,"WoodlandFern",wx+1.5f,wz+1.5f,.45f,rng);
-                        if(rng.Next64()%5==0)PlantWoodland(chunk,rng.Next64()%2==0?"WoodlandMushroomRed":"WoodlandMushroomMoon",wx-1.4f,wz+1.4f,.3f,rng);
+                        if(rng.Next64()%3==0)PlantWoodland(vegetation,"WoodlandFern",wx+1.5f,wz+1.5f,.45f,rng);
+                        if(rng.Next64()%5==0)PlantWoodland(vegetation,rng.Next64()%2==0?"WoodlandMushroomRed":"WoodlandMushroomMoon",wx-1.4f,wz+1.4f,.3f,rng);
                     }
                 }
             }
@@ -117,7 +118,13 @@ namespace AreArpg.UnityClient
         private void BuildWoodlandAnchor()
         {
             bool cave=_game.Progression.EntryAct==9;
-            ChapterShape(PrimitiveType.Cube,cave?"BearCave_Floor":"Aschenzoll_Arrival_Ground",new Vector3(0,-.15f,0),new Vector3(cave?22:30,.3f,42),new Color(.3f,.29f,.27f),"AshStoneFloor");
+            var floor=ChapterShape(PrimitiveType.Cube,cave?"BearCave_Floor":"Aschenzoll_Arrival_Ground",new Vector3(0,-.15f,0),new Vector3(cave?22:30,.3f,42),new Color(.3f,.29f,.27f),cave?null:"AshStoneFloor");
+            var earth=cave?Resources.Load<Material>("ARE/Visuals/WoodlandGround"):null;
+            if(earth!=null)
+            {
+                var material=new Material(earth);material.mainTextureScale=new Vector2(5.5f,10.5f);material.color=new Color(.7f,.63f,.54f);
+                floor.GetComponent<Renderer>().sharedMaterial=material;floor.gameObject.AddComponent<WoodlandMeshOwner>().Material=material;
+            }
             WoodlandPortal("Zurück zum Wald",0,-18);
             if(cave)
             {
@@ -140,7 +147,7 @@ namespace AreArpg.UnityClient
         }
         private void UpdateWoodlandPresentation()
         {
-            foreach(var chunk in _woodlandChunks)if(chunk!=null) {var d=chunk.position-new Vector3(_game.PlayerXmm/1000f,0,_game.PlayerZmm/1000f);chunk.gameObject.SetActive(d.sqrMagnitude<52*52);}
+            foreach(var chunk in _woodlandChunks)if(chunk!=null) {var d=chunk.position-new Vector3(_game.PlayerXmm/1000f,0,_game.PlayerZmm/1000f);chunk.GetChild(0).gameObject.SetActive(d.sqrMagnitude<52*52);}
             for(int i=0;i<4;i++)if(_forestChestLids[i]!=null)_forestChestLids[i].localRotation=Quaternion.Euler((_game.Progression.Woodland.OpenChests&(1<<i))!=0?-65:0,0,0);
             for(int i=0;i<3;i++)if(_bearCubs[i]!=null)_bearCubs[i].gameObject.SetActive(_game.Progression.Woodland.Choice!=CubChoice.Skinned);
         }
