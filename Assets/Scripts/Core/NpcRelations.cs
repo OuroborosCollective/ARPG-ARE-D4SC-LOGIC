@@ -7,7 +7,7 @@ namespace AreArpg.Core
     public enum NpcAction { Greet = 0, Help = 1, Attack = 2, Rob = 3 }
     public enum NpcPersonality { Cautious = 0, Peaceful = 1, Brave = 2 }
     public enum NpcDisposition { Neutral = 0, Friendly = 1, Wary = 2, Hostile = 3 }
-    public enum NpcBehavior { Travel = 0, Rest = 1, SeekFood = 2, Eat = 3, Flee = 4, Attack = 5, Downed = 6 }
+    public enum NpcBehavior { Travel = 0, Rest = 1, SeekFood = 2, Eat = 3, Flee = 4, Attack = 5, Downed = 6, Observe = 7, Wait = 8 }
 
     public sealed class SocialResult
     {
@@ -207,6 +207,7 @@ namespace AreArpg.Core
         public string Role { get { return Id == 0 ? "Abenteurer" : (Id == 1 ? "Versorger" : "Wache"); } }
         public NpcPersonality Personality { get { return (NpcPersonality)Id; } }
         public NpcMemory Memory { get; private set; }
+        public AshenCrypt.MemoryForge.NpcMind Mind { get; internal set; }
         public long Xmm, Zmm, PreviousXmm, PreviousZmm;
         public int AttackCooldownTicks, InteractionCooldownTicks, PatrolIndex;
         public NpcBehavior Behavior;
@@ -221,6 +222,8 @@ namespace AreArpg.Core
             NpcDisposition disposition = Memory.Disposition(Personality);
             if (disposition == NpcDisposition.Hostile) return "Bleib weg. Deine Taten sind nicht vergessen.";
             if (disposition == NpcDisposition.Wary) return "Ich erinnere mich an deinen Uebergriff. Halte Abstand.";
+            if(Mind!=null&&Mind.RelationshipTo("player").Gratitude>0)
+                return "Deinen Proviant und deine Hilfe habe ich nicht vergessen. Es ist gut, dich wiederzusehen.";
             if (disposition == NpcDisposition.Friendly) return "Da bist du wieder. Deinen Beistand vergesse ich nicht.";
             return Memory.Meetings > 1 ? "Wir sind uns schon begegnet. Was fuehrt dich her?" : "Sei gegruesst, Reisender.";
         }

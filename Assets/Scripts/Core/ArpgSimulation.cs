@@ -85,6 +85,7 @@ namespace AreArpg.Core
 
     public sealed class MonsterState
     {
+        public AshenCrypt.MemoryForge.NpcMind Mind { get; internal set; }
         public int Id;
         public int Kind; // 0: ghoul, 1: knight, 2: boss
         public long Xmm;
@@ -148,6 +149,7 @@ namespace AreArpg.Core
             for (int i = 0; i < Cooldowns.Length; i++) next.Cooldowns[i] = Cooldowns[i];
             next.PlayerZmm = next.PrevPlayerZmm = next.Progression.HungerStage > 0 ?
                 (next.Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
+            next.BindCompanion(true);
             next.SaveRoadPlayer(); next.SaveInvestigationPlayer(); next.SaveDungeonPlayer();
             return next;
         }
@@ -213,7 +215,7 @@ namespace AreArpg.Core
             if (Progression.EntryAct >= 2)
             {
                 PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
-                if (InWoodlandRegion) { InitializeWoodland(); return; }
+                if (InWoodlandRegion) { InitializeWoodland(); BindForge(); return; }
                 InitializeRoadEncounter();
                 InitializeInvestigation();
                 if (InDungeon)
@@ -223,6 +225,7 @@ namespace AreArpg.Core
                     Monsters.AddRange(Progression.Dungeon.Current.Monsters);
                 }
                 if (Progression.EntryAct == 7) Monsters.Add(Progression.Rattler.Creature);
+                BindForge();
                 return;
             }
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
@@ -240,6 +243,7 @@ namespace AreArpg.Core
                 Monsters.Add(NewMonster(2, 1, 6000, 4500, 770 + depthScale * 55));
                 Monsters.Add(NewMonster(3, 3, 0, 12000, 2800 + depthScale * 200));
             }
+            BindForge();
         }
 
         /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
@@ -336,6 +340,7 @@ namespace AreArpg.Core
                 return result;
             }
             mara.InteractionCooldownTicks = 10;
+            RememberNpcAction(mara,NpcAction.Help,true,"camp.donation");
             result.Accepted = true;
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.ThankHelp;
             result.Text = "Mara nimmt eine echte Ration an. Das Lager wird sicherer; sie merkt sich deine Hilfe.";
@@ -361,6 +366,7 @@ namespace AreArpg.Core
                 DistanceSquared(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm) <= FixedMath.Square(8000) &&
                 EntryWorldLayout.HasSight(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm);
             if (witnessed) Progression.Social.WitnessRationTheft(guard.Id);
+            RememberNpcAction(mara,NpcAction.Rob,true,"camp.theft",witnessed?new[]{guard.Id}:Array.Empty<int>());
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.Robbed;
             result.Text = witnessed ? "Du nimmst eine Ration. Mara protestiert; Dorn hat den Diebstahl gesehen und greift ein." :
                 "Du nimmst eine Ration. Mara merkt sich den Übergriff; Dorn hat ihn nicht gesehen.";
@@ -376,6 +382,7 @@ namespace AreArpg.Core
                 DistanceSquared(PlayerXmm, PlayerZmm, npc.Xmm, npc.Zmm) > FixedMath.Square(NpcInteractionRadiusMm)) return result;
             if (npc.Memory.Health == 0 && action != NpcAction.Rob && action != NpcAction.Help)
             { result.Text = "Diese Person ist bewusstlos."; return result; }
+            bool wasAware=npc.Memory.Health>0;
             switch (action)
             {
                 case NpcAction.Greet:
@@ -407,6 +414,7 @@ namespace AreArpg.Core
                 if (action == NpcAction.Greet) result.FollowupSpeech = NpcSpeech.Rumor(Progression.Social, id);
             }
             npc.InteractionCooldownTicks = 10;
+            RememberNpcAction(npc,action,wasAware,action==NpcAction.Help?"provisions":"encounter");
             result.Accepted = true;
             return result;
         }
@@ -441,6 +449,7 @@ namespace AreArpg.Core
                 if (CurrentTick % 20 == 0) npc.Memory.Hunger = Math.Min(1000, npc.Memory.Hunger + 1);
                 long distance = DistanceSquared(npc.Xmm, npc.Zmm, PlayerXmm, PlayerZmm);
                 bool hostile = npc.Memory.Disposition(npc.Personality) == NpcDisposition.Hostile;
+                if(StepForgeNpc(npc,distance,hostile)){if(GameOver)break;continue;}
                 if (hostile && distance < FixedMath.Square(14000))
                 {
                     if (npc.Personality != NpcPersonality.Brave || npc.Memory.Health < NpcMemory.MaxHealth / 4)
@@ -516,6 +525,7 @@ namespace AreArpg.Core
         public void Step()
         {
             CurrentTick++;
+            if(Progression.Social.Forge!=null)Progression.Social.Forge.ProcessedTicks=checked(Progression.Social.Forge.ProcessedTicks+1);
             PrevPlayerXmm = PlayerXmm;
             PrevPlayerZmm = PlayerZmm;
             foreach (MonsterState monster in Monsters)
@@ -529,6 +539,7 @@ namespace AreArpg.Core
             MovePlayer();
             StepNpcs();
             StepRoadEncounter();
+            StepCompanion();
             StepRattler();
             StepInvestigation();
             if (GameOver) { SaveDungeonPlayer(); SaveWoodlandPlayer(); return; }
@@ -536,10 +547,13 @@ namespace AreArpg.Core
             foreach (MonsterState enemy in Monsters)
             {
                 if (enemy.IsDead || enemy.Kind == 4 || enemy.Kind == 5) continue;
+                EnsureCreatureMind(enemy);
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
+                if(StepMonsterAgainstCompanion(enemy))continue;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
                 if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
+                if(!ForgeCreatureMayAttack(enemy,PlayerXmm,PlayerZmm))continue;
                 if (ChapterId == 2 && enemy.Kind == 3)
                 {
                     // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.
@@ -599,6 +613,7 @@ namespace AreArpg.Core
             long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
             int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
+            RememberCreatureAssault(enemy,"player");
             PlayerHealth = Math.Min(MaxPlayerHealth,PlayerHealth+(int)((long)appliedDamage*Progression.Equipment.Bonus(WeaponAffix.Siphon)/10000));
             Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
@@ -613,19 +628,25 @@ namespace AreArpg.Core
                 FinishBear(); if (firstKill) result.Kills++; SaveRoadPlayer(); return;
             }
             if (enemy.Kind == 5) { FinishRattler(result); return; }
+            ResolveMonsterDefeat(enemy,result);
+        }
+
+        private void ResolveMonsterDefeat(MonsterState enemy,SkillResult result,bool playerCredit=true)
+        {
             if (enemy.IsDead && !enemy.LootGranted)
             {
                 enemy.LootGranted = true;
-                result.Kills++;
-                Kills++;
-                Progression.RecordKill();
-                Progression.EarnExperience(new System.Numerics.BigInteger(
-                    enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
+                if(playerCredit)
+                {
+                    result.Kills++;Kills++;Progression.RecordKill();
+                    Progression.EarnExperience(new System.Numerics.BigInteger(enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
+                }
+                else Progression.RecordCompanionKill();
                 GroundLoot.Add(new LootState { Id = InDungeon || InForest ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
                     WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8),
-                    Item = InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) :
+                    Item = InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) :
                         _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
-                        CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) });
+                        CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) });
             }
         }
 

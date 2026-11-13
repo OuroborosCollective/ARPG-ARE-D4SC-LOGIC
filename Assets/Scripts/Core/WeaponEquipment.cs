@@ -47,7 +47,7 @@ namespace AreArpg.Core
         public BigInteger FirstOrdinal { get; private set; }
         public WeaponItem Weapon { get; private set; }
         public WeaponItem Shield { get; private set; }
-        public void Enable(CharacterProgression p) { if(!Active) { Active=true;FirstOrdinal=p.LifetimeKills+1; } }
+        public void Enable(CharacterProgression p) { if(!Active) { Active=true;FirstOrdinal=p.LootOrdinal+1; } }
         public WeaponItem ForItem(LootItem item) => Active&&item!=null&&item.KillOrdinal>=FirstOrdinal?new WeaponItem(item):null;
         public int Bonus(WeaponAffix affix) => (Weapon?.Bonus(affix)??0)+(Shield?.Bonus(affix)??0);
         internal bool Equip(CharacterProgression p,BigInteger ordinal)
@@ -64,7 +64,7 @@ namespace AreArpg.Core
         {
             equipment=null;var f=text.Split(',');if(f.Length!=4||f[0]!="1")return false;var n=new BigInteger[3];
             for(int i=0;i<3;i++)if(!BigInteger.TryParse(f[i+1],NumberStyles.None,CultureInfo.InvariantCulture,out n[i])||n[i]<0||n[i].ToString(CultureInfo.InvariantCulture)!=f[i+1])return false;
-            if(n[0]<1||n[0]>p.LifetimeKills+1)return false;
+            if(n[0]<1||n[0]>p.LootOrdinal+1)return false;
             var e=new WeaponEquipment { Active=true,FirstOrdinal=n[0] };
             if(n[1]>0&&(!e.Equip(p,n[1])||e.Weapon==null))return false;
             if(n[2]>0&&(!e.Equip(p,n[2])||e.Shield==null))return false;
@@ -75,7 +75,7 @@ namespace AreArpg.Core
     public sealed partial class CharacterProgression
     {
         public WeaponEquipment Equipment { get; private set; }=new WeaponEquipment();
-        private string Payload()
+        private string EquipmentPayload()
         {
             string body=BasePayload();if(!Equipment.Active)return body;
             string legacy=body+"|"+HashText(body).ToString("X16",CultureInfo.InvariantCulture);
@@ -87,7 +87,7 @@ namespace AreArpg.Core
             string inner;
             try { var bytes=Convert.FromBase64String(f[1]);if(Convert.ToBase64String(bytes)!=f[1])return false;inner=new System.Text.UTF8Encoding(false,true).GetString(bytes); }
             catch(FormatException){return false;}catch(System.Text.DecoderFallbackException){return false;}
-            if(inner.StartsWith("AC16|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!WeaponEquipment.TryRead(f[2],p,out var equipment))return false;
+            if(inner.StartsWith("AC16|",StringComparison.Ordinal)||inner.StartsWith("AC17|",StringComparison.Ordinal)||inner.StartsWith("AC18|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!WeaponEquipment.TryRead(f[2],p,out var equipment))return false;
             p.Equipment=equipment;progress=p;return true;
         }
     }
@@ -95,6 +95,7 @@ namespace AreArpg.Core
     {
         public bool TryEquipWeapon(BigInteger ordinal)
         {
+            if(ordinal>0&&(Progression.Companion.WeaponOrdinal==ordinal||Progression.Companion.ShieldOrdinal==ordinal))return false;
             if(GameOver||!Progression.Equipment.Equip(Progression,ordinal))return false;
             SaveRoadPlayer();SaveInvestigationPlayer();SaveWoodlandPlayer();return true;
         }

@@ -27,7 +27,7 @@ namespace AreArpg.Core
             if(act==9)return Math.Abs(x)<=10000&&z>=-20000&&z<=14000;
             return act==10&&Math.Abs(x)<=14000&&z>=-20000&&z<=20000;
         }
-        private bool CombatSight(long ax,long az,long bx,long bz) => InForest?Progression.Woodland.Layout.HasSight(ax,az,bx,bz):!InDungeon||Progression.Dungeon.Current.Layout.HasSight(ax,az,bx,bz);
+        private bool CombatSight(long ax,long az,long bx,long bz) => Progression.EntryAct==2?EntryWorldLayout.HasSight(ax,az,bx,bz):InForest?Progression.Woodland.Layout.HasSight(ax,az,bx,bz):!InDungeon||Progression.Dungeon.Current.Layout.HasSight(ax,az,bx,bz);
         private void InitializeWoodland()
         {
             var w=Progression.Woodland;
@@ -66,6 +66,7 @@ namespace AreArpg.Core
             if(target==8) { x=from==9?-33000:0; z=from==4?-45000:from==10?45000:0; }
             if(target==4) { x=MillForestXmm+3000;z=MillForestZmm; }
             next.PlayerXmm=next.PrevPlayerXmm=x;next.PlayerZmm=next.PrevPlayerZmm=z;
+            next.BindCompanion(true);
             if(target==9||from==9) next._rng.Restore(_rng.S0,_rng.S1);
             next.PlayerHealth=Math.Min(PlayerHealth,next.MaxPlayerHealth);next.Resource=Resource;
             for(int i=0;i<4;i++)next.Cooldowns[i]=Cooldowns[i];

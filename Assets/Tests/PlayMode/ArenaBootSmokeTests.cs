@@ -74,9 +74,27 @@ namespace AreArpg.PlayMode.Tests
             var field = typeof(ArenaRuntime).GetField("_game", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             var game = (ArenaSimulation)field.GetValue(runtime);
             var npc = game.Npcs[0];
+            // Explicit rested/fed fixture: autonomous need-driven rest is valid and must not fail a movement test.
+            var memory=npc.Memory;int hunger=memory.Hunger,fatigue=memory.Fatigue,health=memory.Health;
+            var memoryType=typeof(AreArpg.Core.NpcMemory);
+            memoryType.GetProperty("Hunger").SetValue(memory,0);
+            memoryType.GetProperty("Fatigue").SetValue(memory,0);
+            memoryType.GetProperty("Health").SetValue(memory,AreArpg.Core.NpcMemory.MaxHealth);
             long x = npc.Xmm, z = npc.Zmm;
-            yield return new WaitForSeconds(0.35f);
-            Assert.IsTrue(npc.Xmm != x || npc.Zmm != z, "The real client must advance the adventurer's own activity");
+            try
+            {
+                // Includes the admitted four-tick minimum duration and three-tick decision interval.
+                yield return new WaitForSeconds(0.9f);
+                Assert.IsTrue(npc.Xmm != x || npc.Zmm != z, "The real client must advance the rested adventurer's activity");
+                var visual=GameObject.Find("ARE_NPC_0").transform;
+                Assert.Less(Vector2.Distance(new Vector2(visual.position.x,visual.position.z),new Vector2(npc.Xmm/1000f,npc.Zmm/1000f)),.5f);
+            }
+            finally
+            {
+                memoryType.GetProperty("Hunger").SetValue(memory,hunger);
+                memoryType.GetProperty("Fatigue").SetValue(memory,fatigue);
+                memoryType.GetProperty("Health").SetValue(memory,health);
+            }
         }
 
         [Test]

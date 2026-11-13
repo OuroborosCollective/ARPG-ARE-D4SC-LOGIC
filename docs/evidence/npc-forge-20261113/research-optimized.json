@@ -1,0 +1,173 @@
+{
+  "schema": "AshenCrypt.ForgeResearch.v1",
+  "revision": "5b4913f9bce47e59f5c99e4027a1b1c76d975be7",
+  "runtime": ".NET 8.0.15",
+  "os": "Debian GNU/Linux 13 (trixie)",
+  "architecture": "X64",
+  "experiment": "Guard threat response: isolated output-weight fault, then a broader observation-domain counterexample",
+  "cause": "Threat observations and Attack permission are present. The faulty neural Attack output weight is -10000; its healthy-threat logit is negative.",
+  "search": {
+    "candidates": [
+      -10000,
+      -5000,
+      0,
+      5000,
+      10000,
+      15000,
+      20000
+    ],
+    "selected": 5000,
+    "objective": "Training correct count, then minimum absolute weight edit, then integer order"
+  },
+  "faulty": {
+    "ControllerId": "research.guard",
+    "Version": 1,
+    "Hash": "f69ef6791781f9df082d8e3669b4db42010ebe040235437e003f7f804f4bda30",
+    "cases": 12,
+    "passed": 8,
+    "failed": 4,
+    "firstFailures": [
+      {
+        "danger": 10000,
+        "injury": 0,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Wait"
+      },
+      {
+        "danger": 10000,
+        "injury": 2000,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Wait"
+      },
+      {
+        "danger": 10000,
+        "injury": 5000,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Wait"
+      },
+      {
+        "danger": 10000,
+        "injury": 6000,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Flee"
+      }
+    ]
+  },
+  "repairedTraining": {
+    "ControllerId": "research.guard",
+    "Version": 2,
+    "Hash": "c4922f1489fe7a11a60d03c0f13c89e7f438244b78728133364f590d69f537d4",
+    "cases": 12,
+    "passed": 12,
+    "failed": 0,
+    "firstFailures": []
+  },
+  "repairedHeldout": {
+    "ControllerId": "research.guard",
+    "Version": 2,
+    "Hash": "c4922f1489fe7a11a60d03c0f13c89e7f438244b78728133364f590d69f537d4",
+    "cases": 24,
+    "passed": 21,
+    "failed": 3,
+    "firstFailures": [
+      {
+        "danger": 10000,
+        "injury": 6500,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Flee"
+      },
+      {
+        "danger": 10000,
+        "injury": 7000,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Flee"
+      },
+      {
+        "danger": 10000,
+        "injury": 7500,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Flee"
+      }
+    ]
+  },
+  "repairedBroaderDomain": {
+    "ControllerId": "research.guard",
+    "Version": 2,
+    "Hash": "c4922f1489fe7a11a60d03c0f13c89e7f438244b78728133364f590d69f537d4",
+    "cases": 1681,
+    "passed": 1366,
+    "failed": 315,
+    "firstFailures": [
+      {
+        "danger": 250,
+        "injury": 5250,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Flee"
+      },
+      {
+        "danger": 250,
+        "injury": 5500,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Flee"
+      },
+      {
+        "danger": 250,
+        "injury": 5750,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Flee"
+      },
+      {
+        "danger": 250,
+        "injury": 6000,
+        "legal": 97,
+        "expected": "Attack",
+        "actual": "Flee"
+      }
+    ]
+  },
+  "fullDomainRepair": {
+    "ControllerId": "research.guard",
+    "Version": 3,
+    "Hash": "fa528b625cc032df04d45302f352020d63cc386dd286c2704dbd580e2e91bfac",
+    "cases": 1681,
+    "passed": 1681,
+    "failed": 0,
+    "firstFailures": []
+  },
+  "simpleUtility": {
+    "ControllerId": "research.utility",
+    "Version": 1,
+    "Hash": "6bc90a46a6e217a1bf90e1b444321d4f77e5ba98d3e04300da95512fa59f7283",
+    "cases": 1681,
+    "passed": 1681,
+    "failed": 0,
+    "firstFailures": []
+  },
+  "admission": {
+    "Passed": 1722,
+    "Failed": 0,
+    "EvidenceHash": "e5390dd58bb50c791ad1af18c922c07fdea260b9fed37c044de2f874e825a7ea"
+  },
+  "utilityAdmission": {
+    "Passed": 1722,
+    "Failed": 0,
+    "EvidenceHash": "81ab053d09c664c1f0b82c2aae70586c6c53b7867d4e6157721ed227d1ed2c75"
+  },
+  "measuredManagedMicrosecondsPerEvaluation": {
+    "neural": 2.013885,
+    "utility": 0.69938,
+    "iterations": 20000
+  },
+  "decision": "Keep shipped utility profiles. Integer neural inference is supported and deterministic; no gameplay superiority is demonstrated. Partial-domain repair is rejected for general use. No runtime training, native module or Android performance claim.",
+  "fullDomainArtifact": "AshenCrypt.ControllerArtifact.v2\nAshenCrypt.ControllerArtifact.v1\nguard,15,383,16383,0\nresearch.guard,3,1,1,3,4,300\n0,0,-10000,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n6,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\n5,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0\nAshenCrypt.QuantizedNetwork.v1;scale=10000;round=nearest-away;hidden=clipped-relu;output=signed-clamp\n2\n0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10000,0,0,0,0,0,0,0,0,0,0,0\n10000,-5000\n0,0,0,0,0,0,0,0,0,0,0,20000,10000,-20000,0,0,0,0,0,0\n0,0,0,0,0,0,0,0,0,0"
+}

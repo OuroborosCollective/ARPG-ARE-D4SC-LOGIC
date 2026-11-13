@@ -19,9 +19,9 @@ namespace AreArpg.UnityClient
             var h = _game.Progression.Road;
             long dx = _game.PlayerXmm - HunterEncounter.HunterX;
             long dz = _game.PlayerZmm - HunterEncounter.HunterZ;
-            return _game.Progression.EntryAct == 3 && !_game.GameOver &&
+            return !_game.Progression.Companion.HasJoined && _game.Progression.EntryAct == 3 && !_game.GameOver &&
                 dx * dx + dz * dz <= FixedMath.Square(2400) &&
-                (h.HunterHealth == 0 || h.Rescued) && h.Purse > 0;
+                (h.HunterHealth == 0 || h.Rescued) && (h.Purse > 0 || h.Rescued && _game.Progression.Social.Forge!=null);
         }
 
         private bool PollRoadInput(ArenaHudLayout layout)
@@ -34,6 +34,7 @@ namespace AreArpg.UnityClient
                 if (t.phase == TouchPhase.Began && layout.IsWithinSafeArea(t.position) && HunterActionRect(layout).Contains(layout.ToGuiTouch(t.position))) pressed = true;
             }
             if (!pressed) return false;
+            if(_game.Progression.Road.FavorClaimed) {OpenMenu(MenuCompanion);return true;}
             _pendingHunterAction = _game.Progression.Road.HunterHealth == 0 ? 1 : 0;
             _game.SetMoveInput(0, 0); ReleasePresentationTouches(); return true;
         }
@@ -47,12 +48,13 @@ namespace AreArpg.UnityClient
                     "JAEGER IN GEFAHR  " + h.HunterHealth + "/700  |  BAER  " + h.Bear.Health + "/" + h.Bear.MaxHealth +
                     "\nAngreifen lenkt ihn ab. Dem roten Prankenhieb ausweichen!");
             if (!CanShowHunterAction()) return;
-            string label = h.HunterHealth == 0 ? "H: LEICHNAM BERAUBEN (12 Muenzen)" : "H: MIT DEM JAEGER SPRECHEN";
+            string label = h.HunterHealth == 0 ? "H: LEICHNAM BERAUBEN (12 Muenzen)" : h.FavorClaimed?"H: JÄGER ALS BEGLEITER":"H: MIT DEM JAEGER SPRECHEN";
             if (Application.isMobilePlatform) GUI.Box(HunterActionRect(layout), label.Substring(3));
-            else if (GUI.Button(HunterActionRect(layout), label)) _pendingHunterAction = h.HunterHealth == 0 ? 1 : 0;
+            else if (GUI.Button(HunterActionRect(layout), label))
+            {if(h.FavorClaimed)OpenMenu(MenuCompanion);else _pendingHunterAction = h.HunterHealth == 0 ? 1 : 0;}
         }
 
-        private void OnDestroy() { ClearRoadVisuals(); ClearRattlerVisuals(); ClearPortraitVisuals(); }
+        private void OnDestroy() { ClearRoadVisuals(); ClearCompanionVisuals(); ClearRattlerVisuals(); ClearPortraitVisuals(); }
 
         private void ClearRoadVisuals()
         {
@@ -89,9 +91,10 @@ namespace AreArpg.UnityClient
                 if (!bear.IsDead && facing.sqrMagnitude > .01f) _roadBear.rotation = Quaternion.LookRotation(facing);
                 string animation = bear.IsDead ? "Death" : bear.BossWindupTicks > 0 ? "Attack" :
                     bear.Xmm != bear.PreviousXmm || bear.Zmm != bear.PreviousZmm ? "Run" : "Idle";
-                if (_roadBearAnimator != null && animation != _roadAnimation)
+                if (_roadBearAnimator != null && _roadBearAnimator.isActiveAndEnabled && animation != _roadAnimation)
                 { _roadBearAnimator.CrossFade(animation, .1f); _roadAnimation = animation; }
                 _roadHunter.position = new Vector3(2, h.HunterHealth > 0 ? 1 : .3f, 9);
+                _roadHunter.gameObject.SetActive(!_game.Progression.Companion.HasJoined);
                 _roadHunter.rotation = h.HunterHealth > 0 ? Quaternion.identity : Quaternion.Euler(90, 0, 0);
                 _roadWarning.gameObject.SetActive(bear.BossWindupTicks > 0);
                 _roadWarning.position = new Vector3(h.StrikeX / 1000f, .04f, h.StrikeZ / 1000f);

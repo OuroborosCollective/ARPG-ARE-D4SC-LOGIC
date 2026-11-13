@@ -92,7 +92,11 @@ namespace AreArpg.Core
             if (r.MemoryTicks > 0) r.MemoryTicks--;
             if (m.AttackCooldownTicks > 0) m.AttackCooldownTicks--;
             bool moved = PlayerXmm != PrevPlayerXmm || PlayerZmm != PrevPlayerZmm;
-            if ((!r.Sneaking && moved) || DistanceSquared(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm) <= FixedMath.Square(RattlerEncounter.SmellRadius)) HearRattlerNoise();
+            long playerDistance=DistanceSquared(m.Xmm,m.Zmm,PlayerXmm,PlayerZmm);
+            bool playerPerceived=playerDistance<=FixedMath.Square(RattlerEncounter.HearingRadius)&&((!r.Sneaking&&moved)||playerDistance<=FixedMath.Square(RattlerEncounter.SmellRadius));
+            if(playerPerceived)HearRattlerNoise();
+            PerceiveRattlerCompanion(playerPerceived,playerDistance);
+            bool pursue=r.MemoryTicks==0||ForgeCreatureMayAttack(m,r.TargetX,r.TargetZ);
             if (m.BossWindupTicks > 0)
             {
                 m.BossWindupTicks--;
@@ -101,11 +105,14 @@ namespace AreArpg.Core
                     if (DistanceSquared(PlayerXmm, PlayerZmm, r.StrikeX, r.StrikeZ) <= FixedMath.Square(RattlerEncounter.StrikeRadius) &&
                         (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm)))
                         ReceiveDamage(280);
+                    var companion=Progression.Companion;
+                    if(CompanionPresent&&companion.Health>0&&DistanceSquared(companion.Xmm,companion.Zmm,r.StrikeX,r.StrikeZ)<=FixedMath.Square(RattlerEncounter.StrikeRadius)&&CombatSight(m.Xmm,m.Zmm,companion.Xmm,companion.Zmm))DamageCompanion(m,280);
                     m.AttackCooldownTicks = 14;
                 }
                 return;
             }
             // A lost trail returns to the authored feeding place, never to an unseen moving player.
+            if(r.MemoryTicks>0&&!pursue)return;
             if (r.MemoryTicks == 0) { r.TargetX = 0; r.TargetZ = InDungeon ? 17000 : 8000; }
             long dx = r.TargetX - m.Xmm, dz = r.TargetZ - m.Zmm;
             long d2 = dx * dx + dz * dz;
@@ -118,14 +125,15 @@ namespace AreArpg.Core
             if (InDungeon ? CanStand(nx, nz) : CanStandInRattlerDen(nx, nz)) { m.Xmm = nx; m.Zmm = nz; }
         }
 
-        private void FinishRattler(SkillResult result)
+        private void FinishRattler(SkillResult result,bool playerCredit=true)
         {
             var m = Progression.Rattler.Creature;
             if (!m.IsDead || m.LootGranted) return;
             m.LootGranted = true; m.BossWindupTicks = 0;
-            result.Kills++; Kills++; Progression.RecordKill(); Progression.EarnExperience(1200);
+            if(playerCredit){result.Kills++;Kills++;Progression.RecordKill();Progression.EarnExperience(1200);}
+            else Progression.RecordCompanionKill();
             if (InDungeon) GroundLoot.Add(new LootState { Id=42,Xmm=m.Xmm,Zmm=m.Zmm,WeaponBonus=34,
-                Item=LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LifetimeKills) });
+                Item=LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LootOrdinal) });
             else Progression.AddWeaponUpgrade(12);
         }
 

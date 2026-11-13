@@ -1,5 +1,15 @@
 # ARE Ashen Crypt — Projektzustand
 
+## NPC Memory Forge: Begleiter und Bevölkerung geprüft (13.11.2026)
+
+[PR32](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/32) bindet deterministische Controller, persönliche Erinnerungen und Beziehungen in den bestehenden Core ein. Der gerettete Jäger kann mitreisen, sicher warten, eigene Ausrüstung tragen und durch wirksame Aktionen selbst Erfahrung sammeln. Sein Tod bleibt dauerhaft. Tiere und Rattler beachten zugelassene Controllerentscheidungen. Das Gedächtnis umfasst tatsächliche Hilfen, Verbrechen, Gespräche und beobachtete Ereignisse ohne globale Allwissenheit. AC17/18 erhalten die bestehenden Speicherverträge. [Verträge und Eigentümerschaft](docs/NPC_MEMORY_FORGE.md).
+
+Code **92228ca3c33aa8b7b3f23a6f297592911e557fde**: 8014 Core-Assertions,38Preflights, CI43411329628 success, native Unity6000.6.8f1 PlayMode119/119 und EditMode36/36, keine Skips. Private Assets unverändert; Besitzer-Spielstände und Projekteinstellungen wiederhergestellt. Android ARM64/IL2CPP gebaut, APK SHA256 **1a17d959080d9204b351809e468d035c9dbf1e7801e9711da95b1f16b46a27b6**, gültige v2-Signatur und 16-KiB-Ausrichtung. Keine physische Tablet-Ausführung. Vollständige Bindungen: [Evidence](docs/evidence/npc-forge-20261113/native-acceptance.json), Memory.md.
+
+Das Offline-Gewichtsexperiment verwarf den nur auf Trainingsdaten erfolgreichen Kandidaten. Korrigierte neuronale und Utility-Policies bestehen je1722 endliche Prüffälle; die schnellere Utility bleibt Spielstandard. Shared-VPS-Messungen sind kein Android-FPS-Beleg. Eine zusätzliche C++-Authority wurde nicht eingeführt.
+
+Der Besitzer übernimmt die Veröffentlichung des getrennten Unity-Verkaufspakets zu9.50USD einmalig; Paket, Anleitung und Bildmaterial wurden zum Download vorbereitet. Nächster Spielblock: die ausdrücklich gewählte Aschenzoll-Ermittlung am leeren Tiertransport, mit Originalbelegsicherung oder überprüfter Weitergabe. Entscheidende neue Story-/Gameplayfragen werden mit dem Besitzer abgestimmt.
+
 ## Wald, Bärenjunge und sichtbare Ausrüstung (13.11.2026)
 
 [Draft PR31](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/31) ergänzt den Dungeonstand um einen prozeduralen Wald, die feste Bärenhöhle mit dauerhafter Entscheidung und den begehbaren Übergang zur Aschenzoll-Ankunft. 36 vorhandene Waffen-/Schildmodelle sind als echte Beute mit Affixen ausrüstbar und erscheinen am Charakter. [Umfang, Regeln und Reproduktion](docs/WOODLAND_EQUIPMENT.md).

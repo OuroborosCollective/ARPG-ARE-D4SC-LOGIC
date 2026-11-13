@@ -102,13 +102,14 @@ namespace AreArpg.Core
             _roadFacts[f] = ++RoadEventCount;
             if (travelerWitness) _roadKnowledge[4, f] = 1;
             if (hunterDirect) _roadKnowledge[3, f] = 1;
+            RememberRoadFact(fact,travelerWitness,hunterDirect);
         }
         internal void ReportRoadFact(int source, int receiver)
         {
             // A real meeting transfers the most consequential missing fact, once; no rumor amplification.
             for (int f = 3; f >= 0; f--)
                 if (_roadKnowledge[source, f] == 1 && _roadKnowledge[receiver, f] == 0)
-                { _roadKnowledge[receiver, f] = source + 2; return; }
+                { _roadKnowledge[receiver, f] = source + 2; RememberRoadReport(source,receiver,(RoadFact)f);return; }
         }
         internal void ReceiveHunterCoins(HunterEncounter h)
         { Coins += h.Purse; h.Purse = 0; }
@@ -215,6 +216,7 @@ namespace AreArpg.Core
                 if (!bear.IsDead && (targetPlayer || h.HunterHealth > 0))
                 {
                     long tx = targetPlayer ? PlayerXmm : HunterEncounter.HunterX, tz = targetPlayer ? PlayerZmm : HunterEncounter.HunterZ;
+                    bool pursue=ForgeCreatureMayAttack(bear,tx,tz);
                     if (bear.BossWindupTicks > 0)
                     {
                         bear.BossWindupTicks--;
@@ -236,7 +238,7 @@ namespace AreArpg.Core
                         }
                     }
                     else if (bear.AttackCooldownTicks > 0) bear.AttackCooldownTicks--;
-                    else
+                    else if(pursue)
                     {
                         long dx = tx - bear.Xmm, dz = tz - bear.Zmm;
                         long distance = FixedMath.IntegerSqrt(dx * dx + dz * dz);
@@ -262,6 +264,7 @@ namespace AreArpg.Core
         public SocialResult InteractHunter(bool robCorpse)
         {
             var h = Progression.Road; var r = new SocialResult();
+            if(Progression.Companion.HasJoined)return r; // The live companion owns later life; this encounter is historical.
             if (Progression.EntryAct != 3 || GameOver || DistanceSquared(PlayerXmm, PlayerZmm, HunterEncounter.HunterX, HunterEncounter.HunterZ) > FixedMath.Square(2400)) return r;
             if (robCorpse)
             {
