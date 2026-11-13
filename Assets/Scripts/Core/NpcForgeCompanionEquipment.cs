@@ -12,7 +12,7 @@ namespace AreArpg.Core
         private static readonly WeaponDefinition HunterBow=Enumerable.Range(0,WeaponCatalog.Count).Select(WeaponCatalog.Get).First(w=>w.Id=="bow_newbie.1");
         public WeaponDefinition CompanionWeaponDefinition => CompanionWeapon?.Definition??HunterBow;
         public int CompanionBonus(WeaponAffix affix) => (CompanionWeapon?.Bonus(affix)??0)+(CompanionShield?.Bonus(affix)??0);
-        public bool CanManageCompanionEquipment => !GameOver&&CompanionPresent&&DistanceSquared(PlayerXmm,PlayerZmm,Progression.Companion.Xmm,Progression.Companion.Zmm)<=FixedMath.Square(3500);
+        public bool CanManageCompanionEquipment => !GameOver&&CompanionPresent&&DistanceSquared(PlayerXmm,PlayerZmm,Progression.Companion.Xmm,Progression.Companion.Zmm)<=FixedMath.Square(3500)&&CombatSight(PlayerXmm,PlayerZmm,Progression.Companion.Xmm,Progression.Companion.Zmm);
         public bool TryEquipCompanionWeapon(BigInteger ordinal)
         {
             var c=Progression.Companion;var item=CompanionItem(ordinal);

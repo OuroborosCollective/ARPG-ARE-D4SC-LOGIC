@@ -88,6 +88,16 @@ namespace AreArpg.Core
     }
     public sealed partial class ArenaSimulation
     {
+        public SocialResult FeedCompanion()
+        {
+            var c=Progression.Companion;var r=new SocialResult{SpeakerId=3};
+            if(!CanManageCompanionEquipment||c.Health<=0||!Progression.Social.CareForCompanion(c))
+            {r.Text="Der Jäger muss in deiner Nähe sein, Hilfe benötigen und du musst Proviant besitzen.";return r;}
+            var forge=Progression.Social.Forge;
+            var e=forge.Archive.Append(MemoryKind.Help,"player","hunter",forge.ProcessedTicks,5000,false,"companion.provision",new RelationshipChange(trust:1200,gratitude:2000,familiarity:500));
+            forge.Archive.Learn("hunter",e.Id,KnowledgeOrigin.Self,"hunter",forge.ProcessedTicks);
+            r.Accepted=true;r.Text="Jäger: Danke für den Proviant. Ich erinnere mich an deine Hilfe.";return r;
+        }
         private ulong CompanionAreaSeed => InForest?Progression.Woodland.Seed:InDungeon?Progression.Dungeon.Seed+(ulong)Progression.Dungeon.Depth:0;
         public bool CompanionPresent => Progression.Companion.HasJoined&&Progression.Companion.Area==Progression.EntryAct&&Progression.Companion.AreaSeed==CompanionAreaSeed;
         private void BindCompanion()
@@ -162,6 +172,14 @@ namespace AreArpg.Core
             else if(decision.Action==ForgeAction.Flee&&target!=null)MoveCompanion(c.Xmm+(c.Xmm==target.Xmm?1000:c.Xmm-target.Xmm),c.Zmm+c.Zmm-target.Zmm,300);
             else if(decision.Action==ForgeAction.Rest){c.Fatigue=Math.Max(0,c.Fatigue-3);c.Health=Math.Min(CompanionState.MaximumHealth,c.Health+1);}
             else if(ally>FixedMath.Square(1800)){MoveCompanion(PlayerXmm,PlayerZmm,450);if(forge.ProcessedTicks%10==0)c.Fatigue=Math.Min(1000,c.Fatigue+1);}
+        }
+    }
+    public sealed partial class SocialLedger
+    {
+        internal bool CareForCompanion(CompanionState c)
+        {
+            if(Provisions.IsZero||c.Health<=0||c.Health==CompanionState.MaximumHealth&&c.Hunger<400&&c.Fatigue<300)return false;
+            Provisions--;c.Hunger=Math.Max(0,c.Hunger-400);c.Fatigue=Math.Max(0,c.Fatigue-300);c.Health=Math.Min(CompanionState.MaximumHealth,c.Health+120);return true;
         }
     }
 }
