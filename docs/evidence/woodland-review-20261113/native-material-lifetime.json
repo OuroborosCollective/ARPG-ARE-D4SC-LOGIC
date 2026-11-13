@@ -1,0 +1,111 @@
+{
+  "woodland-material-red": {
+    "head": "924441e96b05ff3e038f047bd9a9f597cc689479",
+    "tree": "d5cf23faf6eb68d1ef1f135d4272611ca541adba",
+    "exit": 2,
+    "command": [
+      "/usr/bin/xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1280x720x24",
+      "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+      "-batchmode",
+      "-force-glcore",
+      "-buildTarget",
+      "Android",
+      "-projectPath",
+      "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+      "-logFile",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/woodland-material-red/unity.log",
+      "-runTests",
+      "-testPlatform",
+      "PlayMode",
+      "-testResults",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/woodland-material-red/tests.xml",
+      "-testFilter",
+      "WoodlandFallbackMaterialsAreSharedAndReleasedWithScenery"
+    ],
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "4aa22cb11ef7f18cb9a29cb495ee872d469e0633c5d0f26805e589bd501cac34",
+      "tests.xml": "5ec7605d66e42e1629396769b6381c4958db63ec541d649988f70d00213ab0f0"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "1",
+      "result": "Failed(Child)",
+      "total": "1",
+      "passed": "0",
+      "failed": "1",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 13:19:36Z",
+      "end-time": "2026-11-13 13:19:45Z",
+      "duration": "9.5987174"
+    },
+    "failures": [
+      {
+        "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.WoodlandFallbackMaterialsAreSharedAndReleasedWithScenery",
+        "message": "  Missing plants share one owned fallback material\n  Expected: same as <Lit (Instance) (UnityEngine.Material)>\n  But was:  <Lit (Instance) (UnityEngine.Material)>\n"
+      }
+    ]
+  },
+  "woodland-material-green": {
+    "head": "35ed66d98dbb083e1d9788751a72ad530251e351",
+    "tree": "d14b646eb85bb630387c542f4cf19b3214382f77",
+    "exit": 0,
+    "command": [
+      "/usr/bin/xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1280x720x24",
+      "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+      "-batchmode",
+      "-force-glcore",
+      "-buildTarget",
+      "Android",
+      "-projectPath",
+      "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+      "-logFile",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/woodland-material-green/unity.log",
+      "-runTests",
+      "-testPlatform",
+      "PlayMode",
+      "-testResults",
+      "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/woodland-material-green/tests.xml",
+      "-testFilter",
+      "WoodlandFallbackMaterialsAreSharedAndReleasedWithScenery;WoodlandUsesApprovedArtHillsRealTravelAndPersistentCubs;AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport;AschenzollReleasedCargoRequiresActualUpperRampInspection"
+    ],
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "privateUnchanged": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "8c0c45caa8123479eae3e665020c96001d2a4b26fa72aba9763c8d0e964d99a8",
+      "tests.xml": "b4e3c1875af919de4d801b0a6fd5655438c2aa316b1c1031fc49c6bb6297a80a"
+    },
+    "tests": {
+      "id": "2",
+      "testcasecount": "4",
+      "result": "Passed",
+      "total": "4",
+      "passed": "4",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 13:29:22Z",
+      "end-time": "2026-11-13 13:29:56Z",
+      "duration": "33.5896984"
+    },
+    "failures": []
+  }
+}
