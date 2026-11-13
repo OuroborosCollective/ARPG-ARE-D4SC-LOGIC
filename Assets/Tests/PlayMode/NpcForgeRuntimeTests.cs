@@ -46,7 +46,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(new ArenaSimulation(seed,dead,1,LootCatalog.Version1).GameOver,"Loading a dead save is not a revival command");
             typeof(ArenaRuntime).GetMethod("Restart",Flags).Invoke(_runtime,null);
             Assert.IsFalse(Game.GameOver,"Explicit restart must not restore zero health");
-            Assert.AreEqual(Game.MaxPlayerHealth,Game.PlayerHealth);Assert.AreEqual(tick,Game.CurrentTick);
+            Assert.AreEqual(Game.MaxPlayerHealth,Game.PlayerHealth);Assert.AreEqual(tick,Game.CurrentTick,"Restart retains the village timeline");
             Assert.AreEqual(history,Game.Progression.Social.Forge.Archive.Save());Assert.AreEqual(provisions,Game.Progression.Social.Provisions);
             CollectionAssert.AreEqual(positions,Game.Npcs.Select(n=>new Vector2(n.Xmm,n.Zmm)).ToArray());
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var alive));

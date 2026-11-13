@@ -844,6 +844,7 @@ namespace AreArpg.UnityClient
             _game.Progression.Road.RestartPlayer();
             _game.Progression.Investigation.RestartPlayer();
             _game.Progression.Woodland.RestartPlayer();
+            _game.PrepareVillagePlayerRestart();
             SaveCharacter();
             if (_storageFault) return;
             InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version1),
