@@ -216,3 +216,10 @@ Source1dde63549cd8ffb8d205d5d716d8a8767ac10f48, Treebff55cf3dd5a7d613f3c15c53b01
 - `approved`: Owner wählte `story.aschengrenze.supplies.v1` als nächsten Konflikt. Bestehender Ilyan-Hilfe-/Angriffspfad und Maras Ressourcenkern werden wiederverwendet.
 - `next`: TDD RED/GREEN, echte Unity-6-PlayMode- und .NET-GitHub-CI, unabhängiger Save-/Replay-Readback, visueller GameView, danach getrennt Android-Build/Gerät. AC6 und Zeugenschaft bleiben bei #2–#6.
 - `blocked`: Keine Wahrheitsbehauptung zu Täter, Zeugen oder abgeschlossener vollständiger Ermittlungsquest. Android-Device-Gate und finale Art bleiben separat offen.
+
+
+## Spec-/Director-Pilot (13.11.2026)
+- `current_goal`: Zwei angeforderte Spec-Workflows mit vorhandenem Director erproben; Details in docs/SPEC_DIRECTOR_WORKFLOW.md.
+- `approved`: Technische Anbindung autonom; wesentliche neue Story-/Gameplayentscheidungen bleiben beim Besitzer.
+- `next`: Nach Werkzeugabnahme die ursprüngliche Jäger-Bogenschuss-Reproduktion reparieren und nativ erneut prüfen.
+- `blocked`: Jäger-Animation bleibt RED auf9af7842b05bde3157a9461587babbd90a2fe4408; die neue Fehlerakte ist keine Gameplay-Reparatur.

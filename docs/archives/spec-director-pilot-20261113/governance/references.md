@@ -1,0 +1,1 @@
+Canonical sources remain at repository root: AGENTS.md, Memory.md, ProjectState.md. Baseline 6cc8d65bc0a7e1a21fe9ba1851cf67a938693450; adapter/source76e83a7c9c04a429b11806d41f902ccdd69373c9. This archive records workflow adoption, not a replacement memory or game state.
