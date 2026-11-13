@@ -18,6 +18,7 @@ namespace AreArpg.UnityClient
         public static readonly string[] MenuTitles = { "CHARAKTER", "TASCHE", "QUESTS", "OPTIONEN", "BEGLEITER" };
         public static readonly string[] ArmorSlots = { "KOPF", "BRUST", "HÄNDE", "BEINE" };
         public static readonly string[] TrinketSlots = { "WAFFE", "NEBENHAND", "AMULETT", "RING" };
+        private static readonly KeyCode[] MenuShortcuts = { KeyCode.K, KeyCode.I, KeyCode.L, KeyCode.F8, KeyCode.B };
 
         private int _menuTab = -1;
         private Canvas _menuCanvas;
@@ -56,15 +57,18 @@ namespace AreArpg.UnityClient
         /// <summary>Menu hotkeys and Escape; returns true while the modal menu owns input.</summary>
         private bool PollMenuInput()
         {
-            if (Input.GetKeyDown(KeyCode.K)) { if (_menuTab == MenuCharacter) CloseMenu(); else OpenMenu(MenuCharacter); return true; }
-            if (Input.GetKeyDown(KeyCode.I)) { if (_menuTab == MenuInventory) CloseMenu(); else OpenMenu(MenuInventory); return true; }
-            if (Input.GetKeyDown(KeyCode.L)) { if (_menuTab == MenuQuests) CloseMenu(); else OpenMenu(MenuQuests); return true; }
-            if (Input.GetKeyDown(KeyCode.F8)) { if (_menuTab == MenuSettings) CloseMenu(); else OpenMenu(MenuSettings); return true; }
-            if (Input.GetKeyDown(KeyCode.B)) { if (_menuTab == MenuCompanion) CloseMenu(); else OpenMenu(MenuCompanion); return true; }
+            foreach(var key in MenuShortcuts)if(Input.GetKeyDown(key))return TryMenuShortcut(key);
             if (!MenuOpen) return false;
             if (Input.GetKeyDown(KeyCode.Escape)) CloseMenu();
             if (_game != null) _game.SetMoveInput(0, 0);
             ReleasePresentationTouches();
+            return true;
+        }
+        private bool TryMenuShortcut(KeyCode key)
+        {
+            int tab=System.Array.IndexOf(MenuShortcuts,key);
+            if(tab<0)return false;
+            if(_menuTab==tab)CloseMenu();else OpenMenu(tab);
             return true;
         }
 
