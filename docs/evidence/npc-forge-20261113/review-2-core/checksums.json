@@ -1,30 +1,163 @@
 [
   {
     "file": "archive-review-red.log",
-    "sha256": "4db85db64caedc44e6fb7715c3557b7a5d3bea5c17e63507c6ebb728b3fd6a5a"
+    "sourceRevision": "7c87efaab41f6dfaf4bba286ec895dcf967c39ee",
+    "command": "dotnet run --project Tests/CoreVerification/CoreVerification.csproj",
+    "sha256": "4db85db64caedc44e6fb7715c3557b7a5d3bea5c17e63507c6ebb728b3fd6a5a",
+    "bytes": 274330,
+    "lines": 7868,
+    "tail": [
+      "PASS equipped-models-and-affixes-survive-save-load",
+      "PASS equipping-two-hand-clears-offhand-without-losing-item",
+      "PASS unequip-restores-baseline-and-retains-owned-items",
+      "PASS small-haste-affix-does-not-halve-a-two-tick-attack",
+      "PASS AC16-preserves-AC15-forest-checkpoint",
+      "PASS ground-drop-is-not-owned-until-picked-up",
+      "PASS actual-kill-pickup-equip-path",
+      "System.IO.InvalidDataException: Invalid record count",
+      "   at AshenCrypt.MemoryForge.MemoryArchive.Count(BinaryReader reader) in /workspace/ashen-npc-forge-20261113/Assets/AshenCrypt/MemoryForge/Core/MemoryPersistence.cs:line 75",
+      "   at AshenCrypt.MemoryForge.MemoryArchive.TryLoad(String token, NpcArchetypeControllerRegistry registry, MemoryArchive& archive, Int32 maximumBytes) in /workspace/ashen-npc-forge-20261113/Assets/AshenCrypt/MemoryForge/Core/MemoryPersistence.cs:line 85",
+      "   at NpcForgeTests.Run(Action`2 require) in /workspace/ashen-npc-forge-20261113/Tests/CoreVerification/NpcForgeTests.cs:line 13",
+      "   at Program.Main() in /workspace/ashen-npc-forge-20261113/Tests/CoreVerification/Program.cs:line 46"
+    ],
+    "completeLocalLog": "/workspace/scratch/npc-forge-20261113/archive-review-red.log"
   },
   {
     "file": "archive-review-green.log",
-    "sha256": "84db55b842f49a20370ebafe88980b8ebf5d4741fc25ca5a4534d5dfd4700ca4"
+    "sourceRevision": "1253ea82c5b9c9345ed55abef222a55ddb7674cd",
+    "command": "dotnet run --project Tests/CoreVerification/CoreVerification.csproj",
+    "sha256": "84db55b842f49a20370ebafe88980b8ebf5d4741fc25ca5a4534d5dfd4700ca4",
+    "bytes": 281466,
+    "lines": 8028,
+    "tail": [
+      "PASS forge-creature-identity-controller-and-threat-memory-restore",
+      "PASS forge-unknown-creature-role-cannot-use-unguarded-attack",
+      "PASS forge-actual-secret-conversation-is-persistent-personal-history",
+      "PASS forge-story-replay-cannot-duplicate-canonical-episode",
+      "PASS forge-private-story-conversation-is-not-world-knowledge",
+      "PASS forge-rattler-explicit-calm-policy-admitted",
+      "PASS forge-rattler-must-execute-wait-decision-not-hidden-attack",
+      "PASS forge-road-bear-explicit-calm-policy-admitted",
+      "PASS forge-road-bear-must-execute-its-admitted-decision",
+      "PASS forge-road-animal-policy-and-encounter-restore",
+      "PASS forge-offscreen-road-encounter-keeps-same-individual-controller",
+      "ALL PASS: 8026 deterministic core assertions"
+    ],
+    "completeLocalLog": "/workspace/scratch/npc-forge-20261113/archive-review-green.log"
   },
   {
     "file": "companion-follow-red.log",
-    "sha256": "a29d70349957d927bda274eed645fe68018e8181738a3ebaed3e783cd8304b04"
+    "sourceRevision": "fcf1733bf773a3ad89e9879ee8093a2a776fc6ab",
+    "command": "dotnet run --project Tests/CoreVerification/CoreVerification.csproj",
+    "sha256": "a29d70349957d927bda274eed645fe68018e8181738a3ebaed3e783cd8304b04",
+    "bytes": 279800,
+    "lines": 7996,
+    "tail": [
+      "PASS companion-care-consumes-one-real-provision",
+      "PASS companion-care-creates-personal-memory-not-free-experience",
+      "PASS companion-care-rejects-unneeded-resource-spend",
+      "PASS companion-care-memory-roundtrip",
+      "PASS companion-waiting-has-no-stale-moving-pose",
+      "PASS companion-area-identity-keeps-run-seed-and-floor-separate",
+      "PASS companion-maintains-room-around-player-after-recruitment",
+      "PASS companion-follow-test-uses-unblocked-player-walk",
+      "System.Exception: FAIL companion-maintains-formation-with-moving-player",
+      "   at Program.Require(Boolean expression, String name) in /workspace/ashen-npc-forge-20261113/Tests/CoreVerification/Program.cs:line 11",
+      "   at CompanionForgeTests.Run(Action`2 check) in /workspace/ashen-npc-forge-20261113/Tests/CoreVerification/CompanionForgeTests.cs:line 87",
+      "   at Program.Main() in /workspace/ashen-npc-forge-20261113/Tests/CoreVerification/Program.cs:line 48"
+    ],
+    "completeLocalLog": "/workspace/scratch/npc-forge-20261113/companion-follow-red.log"
   },
   {
     "file": "companion-follow-green.log",
-    "sha256": "d28f47c72d7212904e1514058fc5b20d437f4fbc7761a00a46a7fef2a5f480f2"
+    "sourceRevision": "32b71da7a4ebf0e5b9579ed8eeb5a03c5c42c3ec",
+    "command": "dotnet run --project Tests/CoreVerification/CoreVerification.csproj",
+    "sha256": "d28f47c72d7212904e1514058fc5b20d437f4fbc7761a00a46a7fef2a5f480f2",
+    "bytes": 281574,
+    "lines": 8030,
+    "tail": [
+      "PASS forge-creature-identity-controller-and-threat-memory-restore",
+      "PASS forge-unknown-creature-role-cannot-use-unguarded-attack",
+      "PASS forge-actual-secret-conversation-is-persistent-personal-history",
+      "PASS forge-story-replay-cannot-duplicate-canonical-episode",
+      "PASS forge-private-story-conversation-is-not-world-knowledge",
+      "PASS forge-rattler-explicit-calm-policy-admitted",
+      "PASS forge-rattler-must-execute-wait-decision-not-hidden-attack",
+      "PASS forge-road-bear-explicit-calm-policy-admitted",
+      "PASS forge-road-bear-must-execute-its-admitted-decision",
+      "PASS forge-road-animal-policy-and-encounter-restore",
+      "PASS forge-offscreen-road-encounter-keeps-same-individual-controller",
+      "ALL PASS: 8028 deterministic core assertions"
+    ],
+    "completeLocalLog": "/workspace/scratch/npc-forge-20261113/companion-follow-green.log"
   },
   {
     "file": "npc-review2-core-green.log",
-    "sha256": "d28f47c72d7212904e1514058fc5b20d437f4fbc7761a00a46a7fef2a5f480f2"
+    "sourceRevision": "b38c14e76dd01d68fe82bfab40c6da2c8ee22cf5",
+    "command": "dotnet run --project Tests/CoreVerification/CoreVerification.csproj",
+    "sha256": "d28f47c72d7212904e1514058fc5b20d437f4fbc7761a00a46a7fef2a5f480f2",
+    "bytes": 281574,
+    "lines": 8030,
+    "tail": [
+      "PASS forge-creature-identity-controller-and-threat-memory-restore",
+      "PASS forge-unknown-creature-role-cannot-use-unguarded-attack",
+      "PASS forge-actual-secret-conversation-is-persistent-personal-history",
+      "PASS forge-story-replay-cannot-duplicate-canonical-episode",
+      "PASS forge-private-story-conversation-is-not-world-knowledge",
+      "PASS forge-rattler-explicit-calm-policy-admitted",
+      "PASS forge-rattler-must-execute-wait-decision-not-hidden-attack",
+      "PASS forge-road-bear-explicit-calm-policy-admitted",
+      "PASS forge-road-bear-must-execute-its-admitted-decision",
+      "PASS forge-road-animal-policy-and-encounter-restore",
+      "PASS forge-offscreen-road-encounter-keeps-same-individual-controller",
+      "ALL PASS: 8028 deterministic core assertions"
+    ],
+    "completeLocalLog": "/workspace/scratch/npc-forge-20261113/npc-review2-core-green.log"
   },
   {
     "file": "review2-integrated-core.log",
-    "sha256": "7c8a2036870d33360031129586a82c7711181612bbedae6aab4c76da4d5f2a09"
+    "sourceRevision": "5977f4c494c07a7a94d24c9e67b29419e0f2673e",
+    "command": "dotnet run --project Tests/CoreVerification/CoreVerification.csproj",
+    "sha256": "7c8a2036870d33360031129586a82c7711181612bbedae6aab4c76da4d5f2a09",
+    "bytes": 285752,
+    "lines": 8114,
+    "tail": [
+      "PASS forge-creature-identity-controller-and-threat-memory-restore",
+      "PASS forge-unknown-creature-role-cannot-use-unguarded-attack",
+      "PASS forge-actual-secret-conversation-is-persistent-personal-history",
+      "PASS forge-story-replay-cannot-duplicate-canonical-episode",
+      "PASS forge-private-story-conversation-is-not-world-knowledge",
+      "PASS forge-rattler-explicit-calm-policy-admitted",
+      "PASS forge-rattler-must-execute-wait-decision-not-hidden-attack",
+      "PASS forge-road-bear-explicit-calm-policy-admitted",
+      "PASS forge-road-bear-must-execute-its-admitted-decision",
+      "PASS forge-road-animal-policy-and-encounter-restore",
+      "PASS forge-offscreen-road-encounter-keeps-same-individual-controller",
+      "ALL PASS: 8112 deterministic core assertions"
+    ],
+    "completeLocalLog": "/workspace/scratch/npc-forge-20261113/review2-integrated-core.log"
   },
   {
     "file": "review2-preflight.log",
-    "sha256": "1d4ae0d27eeacd24de1a24650efd2b174162c5a2ceea85e225afeea9e14655db"
+    "sourceRevision": "5977f4c494c07a7a94d24c9e67b29419e0f2673e",
+    "command": "python3 -m unittest discover -s Tests/Preflight -v",
+    "sha256": "1d4ae0d27eeacd24de1a24650efd2b174162c5a2ceea85e225afeea9e14655db",
+    "bytes": 6189,
+    "lines": 48,
+    "tail": [
+      "test_manifest_and_lock_pin_urp (test_urp_render_pipeline.UrpRenderPipelineContract.test_manifest_and_lock_pin_urp) ... ok",
+      "test_no_quality_level_overrides_the_pipeline_with_a_foreign_asset (test_urp_render_pipeline.UrpRenderPipelineContract.test_no_quality_level_overrides_the_pipeline_with_a_foreign_asset) ... ok",
+      "test_pipeline_asset_uses_the_project_owned_renderer (test_urp_render_pipeline.UrpRenderPipelineContract.test_pipeline_asset_uses_the_project_owned_renderer) ... ok",
+      "test_pipeline_provides_the_textures_the_water_shaders_sample (test_urp_render_pipeline.UrpRenderPipelineContract.test_pipeline_provides_the_textures_the_water_shaders_sample) ... ok",
+      "test_project_owned_pipeline_assets_exist_with_meta (test_urp_render_pipeline.UrpRenderPipelineContract.test_project_owned_pipeline_assets_exist_with_meta) ... ok",
+      "test_render_settings_are_version_controlled_and_private_art_is_not (test_urp_render_pipeline.UrpRenderPipelineContract.test_render_settings_are_version_controlled_and_private_art_is_not) ... ok",
+      "test_setup_tool_is_project_owned_editor_code (test_urp_render_pipeline.UrpRenderPipelineContract.test_setup_tool_is_project_owned_editor_code) ... ok",
+      "",
+      "----------------------------------------------------------------------",
+      "Ran 40 tests in 0.145s",
+      "",
+      "OK"
+    ],
+    "completeLocalLog": "/workspace/scratch/npc-forge-20261113/review2-preflight.log"
   }
 ]
