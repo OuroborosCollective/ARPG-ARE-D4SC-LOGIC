@@ -159,13 +159,13 @@ namespace AreArpg.Core
             MonsterState target=null;long best=FixedMath.Square(14000);
             foreach(var enemy in Monsters.OrderBy(e=>e.Id))
             {
-                if(enemy.IsDead||enemy.Kind>=4)continue;
+                if(enemy.IsDead||enemy.Kind==4)continue;
                 long d=DistanceSquared(c.Xmm,c.Zmm,enemy.Xmm,enemy.Zmm);
                 if(d<best&&CombatSight(c.Xmm,c.Zmm,enemy.Xmm,enemy.Zmm)){target=enemy;best=d;}
             }
             c.TargetId=target?.Id??-1;
             long ally=DistanceSquared(c.Xmm,c.Zmm,PlayerXmm,PlayerZmm);
-            var actions=target==null?ActionSet.Of(ForgeAction.Wait,ForgeAction.Follow,ForgeAction.Rest):ActionSet.Of(ForgeAction.Follow,ForgeAction.Attack,ForgeAction.Flee);
+            var actions=target==null?(ally<FixedMath.Square(800)?ActionSet.Of(ForgeAction.Follow):ActionSet.Of(ForgeAction.Wait,ForgeAction.Follow,ForgeAction.Rest)):ActionSet.Of(ForgeAction.Follow,ForgeAction.Attack,ForgeAction.Flee);
             var frame=new ObservationFrame(actions,new[]{new Observation(Feature.Danger,target!=null?10000:0),new Observation(Feature.Hostility,target!=null?10000:0),new Observation(Feature.Injury,(CompanionState.MaximumHealth-c.Health)*10000/CompanionState.MaximumHealth),new Observation(Feature.AllyDistance,(int)Math.Min(10000,FixedMath.IntegerSqrt(ally))),new Observation(Feature.Fatigue,c.Fatigue*10),new Observation(Feature.Trust,FixedPoint.Clamp(mind.RelationshipTo("player").Trust))});
             bool changed=mind.DecisionState.LastObservations==null||mind.DecisionState.LastObservations[Feature.Danger]!=frame[Feature.Danger];
             var decision=UtilityEvaluator.Decide(mind.Controller,frame,mind.DecisionState,forge.ProcessedTicks,changed);
@@ -178,11 +178,13 @@ namespace AreArpg.Core
                     int damage=Math.Min(target.Health,power*(10000+PracticeRules.DamageBonusBp(c.PracticeLevel(0))+CompanionBonus(WeaponAffix.Power))/10000);target.Health-=damage;
                     c.AttackCooldown=Math.Max(1,(CompanionWeaponDefinition.StrikeCooldown*(10000-CompanionBonus(WeaponAffix.Haste))+9999)/10000);c.AttackFlash=3;
                     c.Health=Math.Min(CompanionState.MaximumHealth,c.Health+(int)((long)damage*CompanionBonus(WeaponAffix.Siphon)/10000));
-                    c.Practice(forge.ProcessedTicks,0,damage);ResolveMonsterDefeat(target,new SkillResult());
+                    c.Practice(forge.ProcessedTicks,0,damage);RememberCreatureAssault(target,"hunter");
+                    if(target.Kind==5)FinishRattler(new SkillResult());else ResolveMonsterDefeat(target,new SkillResult());
                 }
             }
             else if(decision.Action==ForgeAction.Flee&&target!=null)MoveCompanion(c.Xmm+(c.Xmm==target.Xmm?1000:c.Xmm-target.Xmm),c.Zmm+c.Zmm-target.Zmm,300);
             else if(decision.Action==ForgeAction.Rest){c.Fatigue=Math.Max(0,c.Fatigue-3);c.Health=Math.Min(CompanionState.MaximumHealth,c.Health+1);}
+            else if(ally<FixedMath.Square(800))MoveCompanion(c.Xmm+(c.Xmm==PlayerXmm?1000:c.Xmm-PlayerXmm),c.Zmm+c.Zmm-PlayerZmm,450);
             else if(ally>FixedMath.Square(1800)){MoveCompanion(PlayerXmm,PlayerZmm,450);if(forge.ProcessedTicks%10==0)c.Fatigue=Math.Min(1000,c.Fatigue+1);}
         }
     }

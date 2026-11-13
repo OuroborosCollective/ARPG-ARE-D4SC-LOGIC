@@ -92,7 +92,11 @@ namespace AreArpg.Core
             if (r.MemoryTicks > 0) r.MemoryTicks--;
             if (m.AttackCooldownTicks > 0) m.AttackCooldownTicks--;
             bool moved = PlayerXmm != PrevPlayerXmm || PlayerZmm != PrevPlayerZmm;
-            if ((!r.Sneaking && moved) || DistanceSquared(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm) <= FixedMath.Square(RattlerEncounter.SmellRadius)) HearRattlerNoise();
+            long playerDistance=DistanceSquared(m.Xmm,m.Zmm,PlayerXmm,PlayerZmm);
+            bool playerPerceived=playerDistance<=FixedMath.Square(RattlerEncounter.HearingRadius)&&((!r.Sneaking&&moved)||playerDistance<=FixedMath.Square(RattlerEncounter.SmellRadius));
+            if(playerPerceived)HearRattlerNoise();
+            PerceiveRattlerCompanion(playerPerceived,playerDistance);
+            if(r.MemoryTicks>0)ForgeCreatureMayAttack(m,r.TargetX,r.TargetZ);
             if (m.BossWindupTicks > 0)
             {
                 m.BossWindupTicks--;
@@ -101,6 +105,8 @@ namespace AreArpg.Core
                     if (DistanceSquared(PlayerXmm, PlayerZmm, r.StrikeX, r.StrikeZ) <= FixedMath.Square(RattlerEncounter.StrikeRadius) &&
                         (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm)))
                         ReceiveDamage(280);
+                    var companion=Progression.Companion;
+                    if(CompanionPresent&&companion.Health>0&&DistanceSquared(companion.Xmm,companion.Zmm,r.StrikeX,r.StrikeZ)<=FixedMath.Square(RattlerEncounter.StrikeRadius)&&CombatSight(m.Xmm,m.Zmm,companion.Xmm,companion.Zmm))DamageCompanion(m,280);
                     m.AttackCooldownTicks = 14;
                 }
                 return;

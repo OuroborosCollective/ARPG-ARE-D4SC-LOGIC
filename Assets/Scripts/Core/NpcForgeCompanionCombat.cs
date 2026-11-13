@@ -6,6 +6,15 @@ namespace AreArpg.Core
 {
     public sealed partial class ArenaSimulation
     {
+        private void PerceiveRattlerCompanion(bool playerPerceived,long playerDistance)
+        {
+            var c=Progression.Companion;if(!CompanionPresent||c.Health<=0)return;
+            var r=Progression.Rattler;var m=r.Creature;
+            long distance=DistanceSquared(m.Xmm,m.Zmm,c.Xmm,c.Zmm);
+            bool noise=(!r.Sneaking&&(c.Xmm!=c.PreviousXmm||c.Zmm!=c.PreviousZmm))||c.AttackFlash==3;
+            bool perceived=distance<=FixedMath.Square(RattlerEncounter.SmellRadius)||noise&&distance<=FixedMath.Square(RattlerEncounter.HearingRadius);
+            if(perceived&&(!playerPerceived||distance<playerDistance)){r.TargetX=c.Xmm;r.TargetZ=c.Zmm;r.MemoryTicks=60;}
+        }
         /// <summary>Existing ordinary-monster combat can target the nearer living party actor.</summary>
         private bool StepMonsterAgainstCompanion(MonsterState enemy)
         {
@@ -27,12 +36,12 @@ namespace AreArpg.Core
         private void DamageCompanion(MonsterState source,int amount)
         {
             var c=Progression.Companion;if(!CompanionPresent||c.Health<=0||amount<=0)return;
-            int applied=Math.Max(1,(int)((long)amount*(10000-Math.Min(3500,CompanionBonus(WeaponAffix.Ward)))/10000));
+            int applied=Math.Max(1,(int)((long)amount*(10000-Math.Min(3500,CompanionBonus(WeaponAffix.Ward)+(CompanionShield?.Definition.BasePower??0)))/10000));
             c.Health=Math.Max(0,c.Health-applied);
             if(c.Health>0)return;
             c.Status=CompanionStatus.Dead;c.TargetId=-1;c.AttackFlash=0;
             var forge=Progression.Social.Forge;
-            string actor="mob."+Progression.EntryAct.ToString(CultureInfo.InvariantCulture)+"."+CompanionAreaSeed.ToString(CultureInfo.InvariantCulture)+"."+CompanionAreaDepth.ToString(CultureInfo.InvariantCulture)+"."+source.Id.ToString(CultureInfo.InvariantCulture);
+            string actor=ForgeCreatureId(source);
             var e=forge.Archive.Append(MemoryKind.Death,actor,"hunter",forge.ProcessedTicks,10000,true,"companion.death",new RelationshipChange(fear:5000));
             foreach(var npc in Npcs)
                 if(npc.Memory.Health>0&&DistanceSquared(npc.Xmm,npc.Zmm,c.Xmm,c.Zmm)<=FixedMath.Square(8000)&&CombatSight(npc.Xmm,npc.Zmm,c.Xmm,c.Zmm))
