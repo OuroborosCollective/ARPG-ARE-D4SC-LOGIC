@@ -322,6 +322,7 @@ namespace AreArpg.UnityClient
             foreach (Transform part in _chapterScenery)
                 if (part != null) Destroy(part.gameObject);
             _chapterScenery.Clear();
+            _woodlandFallbackMaterial=null;
             _woodlandChunks.Clear(); _woodlandPortals.Clear();
             _campRationVisuals.Clear();
             _returnPassage = null;
