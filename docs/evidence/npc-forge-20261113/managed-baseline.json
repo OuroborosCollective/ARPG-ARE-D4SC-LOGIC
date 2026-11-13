@@ -1,0 +1,61 @@
+{
+  "runtime": ".NET 8.0.15",
+  "os": "Debian GNU/Linux 13 (trixie)",
+  "architecture": "X64",
+  "processorCount": 4,
+  "archiveEvents": 1000,
+  "archiveTokenBytes": 376242,
+  "actualVillageNpcs": 3,
+  "measurement": "Managed host measurements; batch-mean p95, not device frame-time evidence",
+  "results": [
+    {
+      "name": "utility-guard-without-formatting",
+      "operations": 4000,
+      "meanMicroseconds": 3.066319499999999,
+      "p95BatchMeanMicroseconds": 3.8687400000000003,
+      "allocatedBytesPerOperation": 480
+    },
+    {
+      "name": "utility-guard-with-decision-trace",
+      "operations": 4000,
+      "meanMicroseconds": 18.512401750000002,
+      "p95BatchMeanMicroseconds": 31.60306,
+      "allocatedBytesPerOperation": 8216
+    },
+    {
+      "name": "memory-recall-64-from-1000-events",
+      "operations": 2000,
+      "meanMicroseconds": 56.47507950000001,
+      "p95BatchMeanMicroseconds": 66.95158,
+      "allocatedBytesPerOperation": 7080
+    },
+    {
+      "name": "archive-save-1000-events",
+      "operations": 100,
+      "meanMicroseconds": 2498.5132000000003,
+      "p95BatchMeanMicroseconds": 4670.0212,
+      "allocatedBytesPerOperation": 3557321.36
+    },
+    {
+      "name": "archive-load-1000-events",
+      "operations": 100,
+      "meanMicroseconds": 13604.10219,
+      "p95BatchMeanMicroseconds": 24373.6856,
+      "allocatedBytesPerOperation": 10516783.2
+    },
+    {
+      "name": "actual-core-village-tick-3-npcs",
+      "operations": 4000,
+      "meanMicroseconds": 4.392136750000001,
+      "p95BatchMeanMicroseconds": 7.1558,
+      "allocatedBytesPerOperation": 1925.364
+    },
+    {
+      "name": "actual-core-village-save",
+      "operations": 300,
+      "meanMicroseconds": 40.953833333333336,
+      "p95BatchMeanMicroseconds": 71.0201,
+      "allocatedBytesPerOperation": 59528.693333333336
+    }
+  ]
+}
