@@ -4,6 +4,8 @@ using AreArpg.Core;
 using AreArpg.UnityClient;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using AshenCrypt.MemoryForge;
@@ -81,26 +83,51 @@ namespace AreArpg.PlayMode.Tests
             var hadKeys=_keys.Select(PlayerPrefs.HasKey).ToArray();
             var actorPosition=actor.transform.position;var actorRotation=actor.transform.rotation;
             var rigPosition=animator.transform.localPosition;var rigRotation=animator.transform.localRotation;
-            animator.ResetTrigger("Melee");animator.SetFloat("MoveMagnitude",0f);
-            var poses=new Quaternion[13][];AnimationClip shot=null;
-            for(int sample=0;sample<poses.Length;sample++)
+            var controller=animator.runtimeAnimatorController as AnimatorOverrideController;
+            Assert.IsNotNull(controller,"Inspect the actual equipped bow controller");
+            var overrides=new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<AnimationClip,AnimationClip>>();
+            controller.GetOverrides(overrides);
+            var attacks=overrides.Where(pair=>pair.Key.name.Contains("Strike")).ToArray();
+            Assert.AreEqual(1,attacks.Length,"The production controller must expose one attack binding");
+            var shot=attacks[0].Value??attacks[0].Key;
+            Assert.IsNotNull(shot);Assert.IsTrue(shot.humanMotion);Assert.Greater(shot.length,0f);
+            Assert.AreSame(Resources.Load<AnimationClip>("ARE/Visuals/WeaponBowShot"),shot,
+                "Sample the bow clip actually bound to the production attack state");
+
+            // Finish the genuinely triggered controller cycle before isolated clip inspection.
+            // Positive, bounded presentation steps traverse its .04 entry and .08 exit blends.
+            animator.SetFloat("MoveMagnitude",0f);
+            for(int step=0;step<32;step++)animator.Update((shot.length+.2f)/32f);
+            Assert.AreEqual(idleState,animator.GetCurrentAnimatorStateInfo(0).shortNameHash,"The accepted shot must recover to locomotion");
+            Assert.IsFalse(animator.IsInTransition(0),"The actual attack exit must complete");
+
+            var poses=new Quaternion[13][];
+            var graph=PlayableGraph.Create("HunterBowMotionRegression");
+            try
             {
-                // Seek the unblended state before its .9 exit time. Idle/attack blends must not make
-                // a constant single-frame bow pose pass as an animated draw, shot and recovery.
-                animator.Play(attackState,0,.85f*sample/(poses.Length-1));animator.Update(0f);
-                Assert.AreEqual(attackState,animator.GetCurrentAnimatorStateInfo(0).shortNameHash);
-                Assert.IsFalse(animator.IsInTransition(0),"Pose samples must exclude transition-only movement");
-                if(sample==0)
+                // A single clip drives the real humanoid with manual evaluation. No controller
+                // transition or empty ClipInfo result can substitute for movement inside the clip.
+                animator.runtimeAnimatorController=null;
+                graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+                var playable=AnimationClipPlayable.Create(graph,shot);
+                playable.SetApplyFootIK(false);playable.SetApplyPlayableIK(false);playable.SetSpeed(0d);
+                var output=AnimationPlayableOutput.Create(graph,"Hunter bow pose",animator);
+                output.SetSourcePlayable(playable);output.SetWeight(1f);graph.Play();
+                playable.SetTime(0d);graph.Evaluate(0f); // Initialize native bindings before recording.
+                for(int sample=0;sample<poses.Length;sample++)
                 {
-                    var clips=animator.GetCurrentAnimatorClipInfo(0);Assert.AreEqual(1,clips.Length);
-                    shot=clips[0].clip;Assert.IsNotNull(shot);Assert.IsTrue(shot.humanMotion);
-                    Assert.Greater(shot.length,0f);
+                    playable.SetTime((double)shot.length*sample/(poses.Length-1));graph.Evaluate(0f);
+                    poses[sample]=arms.Select(bone=>bone.localRotation).ToArray();
                 }
-                poses[sample]=arms.Select(bone=>bone.localRotation).ToArray();
+                playable.SetTime(0d);graph.Evaluate(0f);
+                Assert.LessOrEqual(HunterArmPoseDistance(poses[0],arms.Select(bone=>bone.localRotation).ToArray()),.1f,
+                    "Sampling the same clip time twice must reproduce the same arm pose");
             }
-            // Use the real state's exit transition, with no simulation tick or new attack request.
-            animator.Update(shot.length);animator.Update(.2f);
-            Assert.AreEqual(idleState,animator.GetCurrentAnimatorStateInfo(0).shortNameHash,"The shot must recover to locomotion");
+            finally
+            {
+                if(graph.IsValid())graph.Destroy();
+                animator.runtimeAnimatorController=controller;
+            }
             Assert.AreEqual(actorPosition,actor.transform.position);Assert.AreEqual(actorRotation,actor.transform.rotation);
             Assert.AreEqual(rigPosition,animator.transform.localPosition);Assert.AreEqual(rigRotation,animator.transform.localRotation);
             Assert.AreEqual(hash,Game.ComputeWorldHash(),"Animation must not advance or mutate the authoritative world");
@@ -116,7 +143,7 @@ namespace AreArpg.PlayMode.Tests
                 float fromStart=HunterArmPoseDistance(poses[0],poses[sample]);maximumMotion=Mathf.Max(maximumMotion,fromStart);
                 if(fromStart<=.1f)continue;
                 if(second<0)second=sample;
-                else if(HunterArmPoseDistance(poses[second],poses[sample])>.1f){third=sample;break;}
+                else if(third<0&&HunterArmPoseDistance(poses[second],poses[sample])>.1f)third=sample;
             }
             TestContext.WriteLine("Actual bow clip: "+shot.name+", length="+shot.length+"s, sampled arm motion="+maximumMotion+" degrees");
             Assert.Greater(maximumMotion,.1f,"The actual bow clip is a still pose: the hunter's arms must move within the attack, independently of transition blends");
