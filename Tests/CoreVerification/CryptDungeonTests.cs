@@ -20,6 +20,22 @@ internal static class CryptDungeonTests
         if(!CharacterProgression.TryLoad(w.Progression.SaveString(),out var p)) throw new Exception("Dungeon save rejected: "+w.Progression.SaveString());
         return new ArenaSimulation(123,p,1,LootCatalog.Version1);
     }
+    private static CharacterProgression BossGeometryFixture()
+    {
+        var p=Enter().Progression;
+        p.Dungeon.Depth=p.Dungeon.UnlockedDepth=3;
+        for(int d=1;d<=3;d++) foreach(var m in p.Dungeon.Floor(d).Monsters) { m.Health=0; m.LootGranted=true; }
+        p.Investigation.TraceFound=true; p.Rattler.Active=true; p.Rattler.RestartDungeonRun();
+        p.TravelHunger(7,false);
+        return p;
+    }
+    private static string ReplaceSaveField(string save,int field,string value)
+    {
+        var parts=save.Split('|'); parts[field]=value;
+        string payload=string.Join("|",parts,0,parts.Length-1); ulong hash=14695981039346656037UL;
+        unchecked { foreach(byte b in System.Text.Encoding.UTF8.GetBytes(payload)) { hash^=b; hash*=1099511628211UL; } }
+        return payload+"|"+hash.ToString("X16",System.Globalization.CultureInfo.InvariantCulture);
+    }
     private static (int,int) Cell(long x,long z) { return ((int)((x+26000)/4000)-6,(int)((z+26000)/4000)-6); }
     internal static void WalkFight(ArenaSimulation w,long x,long z)
     {
@@ -96,12 +112,42 @@ internal static class CryptDungeonTests
                 cornerChecked=true;
             }
         check(cornerChecked,"proc-corner-regression-fixture-found");
+        var bossProfile=BossGeometryFixture(); var bossMap=bossProfile.Dungeon.Current.Layout;
+        bossMap.Room(2,out var roomX,out var roomZ);
+        bossProfile.Rattler.Creature.Xmm=bossProfile.Rattler.TargetX=roomX;
+        bossProfile.Rattler.Creature.Zmm=bossProfile.Rattler.TargetZ=roomZ;
+        check(CharacterProgression.TryLoad(bossProfile.SaveString(),out _),"proc-boss-side-room-checkpoint-loads-outside-legacy-den");
+        bool swipeChecked=false;
+        for(int z=-5;z<5 && !swipeChecked;z++) for(int x=-5;x<5 && !swipeChecked;x++)
+            if(bossMap.IsFloor(x,z) && bossMap.IsFloor(x+1,z+1) && (!bossMap.IsFloor(x+1,z) || !bossMap.IsFloor(x,z+1)))
+            {
+                long cx=x*4000+2000,cz=z*4000+2000; var r=bossProfile.Rattler;
+                r.Creature.Xmm=r.TargetX=r.StrikeX=cx-900; r.Creature.Zmm=r.TargetZ=r.StrikeZ=cz-900;
+                r.Creature.BossWindupTicks=1; r.MemoryTicks=1;
+                bossProfile.Investigation.SavedAct=7; bossProfile.Investigation.SavedX=cx+900; bossProfile.Investigation.SavedZ=cz+900;
+                bossProfile.Investigation.SavedHealth=800; bossProfile.Investigation.SavedResource=100;
+                var swipe=new ArenaSimulation(123,bossProfile,1,LootCatalog.Version1); int hp=swipe.PlayerHealth; swipe.Step();
+                check(swipe.PlayerHealth==hp,"proc-rattler-swipe-cannot-hit-through-wall-corner"); swipeChecked=true;
+            }
+        check(swipeChecked,"proc-rattler-wall-fixture-found");
         var state=new CryptDungeonState(123) {Active=true}; string token=state.Token();
         check(CryptDungeonState.TryRead(token,6,out var copy) && copy.Token()==token,"proc-canonical-world-roundtrip");
+        foreach(string invalid in new[]{token.Replace("2;1;1;","9;1;1;"), token.Replace(";123;",";0123;"), token.Replace(";1;0;",";0;0;")})
+            check(!CryptDungeonState.TryRead(invalid,6,out _),"proc-invalid-world-header-rejected");
         var game=Enter();
         check(game.InDungeon && game.Progression.Dungeon.Depth==1 && !game.Progression.Rattler.Active,"dungeon-first-descent-before-rattler");
         check(game.Progression.SaveString().StartsWith("AC14|") && Reload(game).Progression.SaveString()==game.Progression.SaveString(),"proc-ac14-entry-roundtrip");
         check(!game.ActOnHunger(HungerAction.OpenWestChest).Accepted && !game.HungerForwardOpen,"proc-no-remote-chest-or-early-descent");
+        var damaged=game.Progression.SaveString().Split('|'); var fields=damaged[20].Split(';'); var floors=fields[7].Split('^');
+        var floorFields=floors[0].Split('~'); var monsters=floorFields[1].Split('/'); var monster=monsters[0].Split(','); monster[0]="25000"; monster[1]="25000";
+        monsters[0]=string.Join(",",monster); floorFields[1]=string.Join("/",monsters); floors[0]=string.Join("~",floorFields); fields[7]=string.Join("^",floors);
+        check(!CharacterProgression.TryLoad(ReplaceSaveField(game.Progression.SaveString(),20,string.Join(";",fields)),out _),"proc-rechecksummed-enemy-inside-wall-rejected");
+        var dying=Enter(); dying.SetMoveInput(0,10000);
+        for(int t=0;t<1000 && !dying.GameOver;t++) dying.Step();
+        check(dying.GameOver && Reload(dying).GameOver,"proc-real-enemy-death-loads-as-death");
+        string worldBefore=dying.Progression.Dungeon.Token();
+        dying.Progression.Investigation.RestartPlayer(); dying=Reload(dying);
+        check(!dying.GameOver && dying.PlayerHealth==dying.MaxPlayerHealth && dying.Progression.Dungeon.Token()==worldBefore,"proc-death-restart-keeps-run-seed-enemies-and-loot");
         var resumed=Reload(game);
         for(int t=0;t<40;t++) { game.SetMoveInput(0,10000); resumed.SetMoveInput(0,10000); game.ActivateSkill(0); resumed.ActivateSkill(0); game.Step(); resumed.Step(); check(game.Progression.SaveString()==resumed.Progression.SaveString(),"proc-identical-resumed-future-"+t); }
         for(int run=1;run<=2;run++)
@@ -121,9 +167,22 @@ internal static class CryptDungeonTests
             var kills=game.Progression.LifetimeKills; var xp=game.Progression.TotalExperience;
             for(int d=3;d>=1;d--) { WalkFight(game,0,-24000); game=game.TryTraversePassage(); check(game!=null,"proc-return-stairs-"+run+"-"+d); }
             check(game.Progression.EntryAct==5 && game.Progression.Dungeon.NeedsNewRun && Reload(game).Progression.SaveString()==game.Progression.SaveString(),"proc-run-boundary-saved-"+run);
+            if(run==1)
+            {
+                for(int act=5;act>=3;act--) { HunterEncounterTests.Move(game,0,-24000); game=game.TryTraversePassage(); }
+                var ilyan=game.Npcs.Find(n=>n.Id==0); ilyan.Xmm=game.PlayerXmm+1000; ilyan.Zmm=game.PlayerZmm; ilyan.InteractionCooldownTicks=0;
+                check(game.ActOnHunger(HungerAction.ReportRoyalBrand).Accepted && Reload(game).Progression.Rattler.Reported,"proc-real-ilyan-report-persists");
+                // Completed AC12 profiles can opt into farming at the already-open seal without losing story facts.
+                var legacy=Reload(game).Progression; legacy.Dungeon.Active=false; legacy.TravelHunger(5,false);
+                var legacyWorld=new ArenaSimulation(123,legacy,1,LootCatalog.Version1); HunterEncounterTests.Move(legacyWorld,0,18000);
+                check(legacyWorld.Progression.SaveString().StartsWith("AC12|") && Reload(legacyWorld).Progression.SaveString()==legacyWorld.Progression.SaveString(),"proc-legacy-completed-ac12-unchanged-until-opt-in");
+                check(legacyWorld.ActOnHunger(HungerAction.BeginDungeonRun).Accepted && !legacyWorld.ActOnHunger(HungerAction.BeginDungeonRun).Accepted,"proc-legacy-farming-opt-in-once");
+                check(Reload(legacyWorld).Progression.Rattler.Reported && legacyWorld.Progression.Rattler.BrandExamined && !legacyWorld.Progression.Rattler.Creature.IsDead,"proc-legacy-opt-in-keeps-story-and-loads-living-boss");
+                for(int act=2;act<5;act++) { HunterEncounterTests.Move(game,0,24000); game=game.TryTraversePassage(); }
+            }
             HunterEncounterTests.Move(game,0,24000); game=game.TryTraversePassage();
             check(game.Progression.Dungeon.Run==run+1 && game.Progression.Dungeon.Seed!=seed && game.Monsters.All(m=>!m.IsDead) && game.Progression.Dungeon.Current.OpenChests==0,"proc-new-run-new-seed-and-respawns-"+run);
-            check(game.Progression.LifetimeKills==kills && game.Progression.TotalExperience==xp && game.Progression.Rattler.BrandExamined && !game.Progression.Rattler.Creature.IsDead,"proc-reset-preserves-character-and-story-"+run);
+            check(game.Progression.LifetimeKills==kills && game.Progression.TotalExperience==xp && game.Progression.Rattler.BrandExamined && game.Progression.Rattler.Reported && !game.Progression.Rattler.Creature.IsDead,"proc-reset-preserves-character-and-story-"+run);
             check(Reload(game).Progression.SaveString()==game.Progression.SaveString(),"proc-repeated-boss-with-persistent-brand-loads-"+run);
         }
         check(game.Progression.Level>1 && game.Progression.Items.Count>20,"proc-farming-produces-levels-and-unique-items");

@@ -76,7 +76,8 @@ namespace AreArpg.Core
         {
             if(!Inside(ax,az) || !Inside(bx,bz)) return false;
             long steps=Math.Max(Math.Abs(bx-ax),Math.Abs(bz-az))/250+1;
-            for(long i=0;i<=steps;i++) if(!Inside(ax+(bx-ax)*i/steps,az+(bz-az)*i/steps)) return false;
+            // Reserve the same wall clearance as movement, including diagonal joins at a solid corner.
+            for(long i=0;i<=steps;i++) if(!CanStand(ax+(bx-ax)*i/steps,az+(bz-az)*i/steps)) return false;
             return true;
         }
         public bool HasChest(int index) { return index>=0 && index<2 && (ChestMask&(1<<index))!=0; }
