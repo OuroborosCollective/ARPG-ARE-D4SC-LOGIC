@@ -2,7 +2,7 @@
 
 Stand: 13.11.2026. **Story- und Umsetzungsentwurf, noch nicht implementiert.**
 
-Der Owner hat als nächsten Abschnitt nach Ilyans Brandmalbericht ausdrücklich **„Handelsstation und Transportspur“** gewählt. „Aschenzoll“, „Nordwechsel“, die folgenden Fundstücke und die Frachtentscheidung sind konkrete Vorschläge innerhalb dieser Richtung, noch keine bestätigten historischen Weltfakten. Quellstand: `36d5b2d485d2be2e97aae1804c9fe0cf62c4d5f0`.
+Der Owner hat als nächsten Abschnitt nach Ilyans Brandmalbericht ausdrücklich **„Handelsstation und Transportspur“** gewählt. „Aschenzoll“, „Nordwechsel“, die folgenden Fundstücke und die Frachtentscheidung sind konkrete Vorschläge innerhalb dieser Richtung, noch keine bestätigten historischen Weltfakten. Ursprünglicher Quellstand: `36d5b2d485d2be2e97aae1804c9fe0cf62c4d5f0`; am 13.11. aktualisiert nach PR28-Merge und der Owner-Entscheidung für Dungeon, Waldweg und Bärenhöhle. Der isolierte AC13-Ankunftsversuch ist geparkt und kein Bestandteil dieses Entwurfs.
 
 ## Was der Abschnitt erzählen soll
 
@@ -27,9 +27,20 @@ Nach dem bereits erfolgten Brandmalbericht erscheint bei Ilyan eine neue, freiwi
 
 > „Wenn dieses Tier hierhergebracht wurde, musste jemand Platz dafür schaffen. Unter Immergrün wird jede Last umgeschlagen. Am Aschenzoll könnten noch Spuren sein. Aber ein Wappen verrät uns nicht, wer die Fracht bestellt hat.“
 
-Neues Ziel: **„Untersuche die Rückfracht am Aschenzoll.“** Die Annahme öffnet einen eigenen Abzweig im Dorf. Der bisherige Weg über Straße, Mühle und Krypta bleibt benutzbar.
+Neues Ziel: **„Untersuche die Rückfracht am Aschenzoll.“** Die Annahme weist zum Handelsweg an der alten Mühle. Von dort führt ein eigener, begehbarer Waldabschnitt zur Station. Dorf, Aschestraße und Mühle bleiben die Rückroute zu Ilyan. Es gibt keinen direkten Dorf–Stationssprung.
 
-### 2. Die Station lesen
+### 2. Der Waldweg und die Bärenhöhle
+
+Zwischen Mühle und Aschenzoll liegt eine Kampf- und Erkundungsstrecke mit verzweigten Wald-/Buschwegen, Gegnern, optionalen Truhen und ein bis zwei Nebenaufgaben. Der zuvor entwickelte Dungeon besitzt drei prozedurale Ebenen und einen erneut farmbaren Rattler; seine Storyentdeckungen bleiben abgeschlossen. Der Wald erhält passende eigene Raum-/Wegbausteine und feste, erreichbare Questorte. Ein Generatorsystem allein ersetzt weder Gegnerbalance noch Landschaftsgestaltung.
+
+In einer abzweigenden Höhle leben die Jungen der Bärin vom Jägerereignis. Die Quest liest den tatsächlichen Zustand von Bärin und Jäger; sie erfindet keinen Tod der Mutter. Zwei bewusste Entscheidungen tragen verschiedene Folgen:
+
+- Junge töten und häuten: einmalige Felle; eine besondere Rüstung muss anschließend tatsächlich hergestellt werden.
+- Junge verschonen und Schutz organisieren: persönlicher Bericht im Dorf und zugesagter Schutz werden eigene gespeicherte Fakten. Daraus kann später eine Fraktion Kriegsbären für den Kampf um die Herrschaftstürme gewinnen.
+
+Vier Fraktionen gehören zum geplanten Endgame. Fraktionsnamen, begünstigte Fraktion, Rüstungswerte und Stärke des Vorteils sind offen. Ein neuer Farmrun darf weder die Entscheidung zurücksetzen noch erneut Felle aus derselben Storybegegnung erzeugen. Verschonen allein ist noch kein organisierter Schutz. Diese Quest und der Wald sind noch nicht implementiert.
+
+### 3. Die Station lesen
 
 Drei kurze, aus der Nähe untersuchbare Punkte vermitteln unterschiedliche Fakten. Ihre Reihenfolge ist frei; alle drei werden vor der endgültigen Entscheidung benötigt.
 
@@ -41,7 +52,7 @@ Drei kurze, aus der Nähe untersuchbare Punkte vermitteln unterschiedliche Fakte
 
 Die Sendungsnummer ist ein lokales Zuordnungsmerkmal, kein neu eingeführtes königliches Siegel. Das Lesen merkt den Inhalt; das spätere Sichern des Originals ist ein eigener Weltzustand. Der Spieler darf nach jedem Fund zurückkehren, ohne Wissen zu verlieren.
 
-### 3. Begegnung am Frachtpult
+### 4. Begegnung am Frachtpult
 
 Ein **örtlicher Frachtwächter** hält den Spieler vom gesperrten Arbeitsbereich fern. Seine Zugehörigkeit zum Königshaus wird nicht behauptet. Kurzer Zuruf: „Zurück vom Pult. Diese Fracht geht weiter.“ Erst das Betreten des sichtbar abgegrenzten Bereichs beginnt die Begegnung.
 
@@ -49,7 +60,7 @@ Vorgeschlagen ist ein einzelner Nahkampfgegner mit klar angekündigtem Hieb und 
 
 Der Wächter verfolgt nicht ins Dorf. Rückzug bleibt möglich. Ein besiegter Wächter bleibt besiegt, seine etwaige normale Kampfbelohnung wird nur einmal vergeben. Für die Entscheidung selbst gibt es in diesem Block keine neue XP- oder Gegenstandsbelohnung.
 
-### 4. Eine informierte Frachtentscheidung
+### 5. Eine informierte Frachtentscheidung
 
 Am Bedienpult sind nach den drei Untersuchungen beide Möglichkeiten mit ihren unmittelbaren Folgen sichtbar. Keine verdeckte Frist. Die Fracht beginnt erst nach einer bewussten Wahl zu rollen.
 
@@ -64,7 +75,7 @@ Die Frachtbahn selbst ist nicht begehbar. Ein dauerhafter seitlicher Fußweg ver
 
 Bei Freigabe bewegt allein der Core die Fracht mit festen 100-ms-Schritten. Außerhalb dieser Region pausiert sie, bei geschlossener App vergeht keine Simulationszeit. Ankunft allein zählt nicht als Untersuchung. Wer weggeht oder stirbt, kann zurückkehren und den abgestellten Käfig noch prüfen; kein zeitabhängiger Verlust der Spur. Das Öffnen des verschlossenen Begleitfachs ist keine zusätzliche Handlung dieses Abschnitts.
 
-### 5. Persönlicher Abschluss bei Ilyan
+### 6. Persönlicher Abschluss bei Ilyan
 
 Nach dem tatsächlichen Sichern beziehungsweise der Untersuchung an der oberen Rampe: **„Bringe Ilyan die Transportspur.“** Ein erfolgreicher Bericht benötigt Ilyan vor Ort und die bestehenden Gesprächsvoraussetzungen. Fehlt der Kontakt, bleiben Beweis und Rückweg erhalten; kein automatischer Abschluss.
 
@@ -80,11 +91,11 @@ Abschlussziel: **„Die Spur führt zum Nordwechsel. Der weitere Weg ist noch ni
 
 ## Gebiet und Darstellung
 
-Ein kompakter Außenbereich, vorgeschlagen als Akt 8. Die folgenden Millimeterkoordinaten sind ein **Blockout-Vorschlag**, keine verifizierte Laufkarte:
+Ein kompakter Außenbereich nach dem neuen Waldweg. Regionkennungen werden bei Integration explizit vergeben; die Station beansprucht nicht vorab Akt 8. Die folgenden Millimeterkoordinaten sind ein **Blockout-Vorschlag**, keine verifizierte Laufkarte:
 
 | Punkt | X / Z (mm) | Funktion |
 | --- | --- | --- |
-| Rückweg ins Dorf | 0 / -24000 | Sicherer Ausgang, dauerhaft verfügbar |
+| Rückweg in den Wald | 0 / -24000 | Sicherer Ausgang, dauerhaft verfügbar |
 | Ankunft | 0 / -21000 | Außerhalb des sofortigen Rückreiseauslösers |
 | Aushang | -5000 / -14000 | Orientierung vor dem Konfliktbereich |
 | Käfig / untere Rampe | 4000 / -4000 | Untersuchung, Start der Frachtbahn |
@@ -92,7 +103,7 @@ Ein kompakter Außenbereich, vorgeschlagen als Akt 8. Die folgenden Millimeterko
 | Obere Rampe | 4000 / 14000 | Ende der Frachtbewegung, zweite Untersuchung |
 | Seitlicher Fußweg | Korridor um X = -9000 | Erreichbarer Weg an beiden Rampen vorbei |
 
-Die Dorfverbindung ist eine neue Kante **Dorf ↔ Aschenzoll**, keine Verlängerung von Akt 7. Vorschlag für den Dorfabzweig: Ostseite bei `(24000, 0)`, Rückankunft `(21000, 0)`. Diese Punkte liegen außerhalb der derzeitigen Gebäudegrundrisse in `EntryWorldLayout`; die vollständige Bewegungsroute und die private Grafik sind noch nativ zu prüfen. Vor Annahme zeigt der Abzweig nur den Hinweis auf Ilyan.
+Die neue Verbindung lautet **Mühle ↔ Waldweg ↔ Aschenzoll**, mit einem Abzweig **Waldweg ↔ Bärenhöhle**. Ausgänge und sichere Ankünfte müssen beim Wald-Blockout gemeinsam festgelegt und mit echter Bewegung geprüft werden. Die bestehenden Dorf-/Straßen-/Mühlenkanten bleiben erhalten. Der alte Vorschlag eines östlichen Dorfabzweigs zur Station entfällt.
 
 Holz, Stein, Warenstapel und aschiger Boden können auf dem vorhandenen Materialbestand aufbauen. Käfig und Mechanik brauchen erkennbare eigene Formen; ein unpassendes vorhandenes Modell gilt nicht allein durch Umbenennung als fertig. Private Modelle nur als separate passive Bindungen, keine Rohassets im Repository. Die obere Bergsilhouette darf Immergrün andeuten; kein begehbares Schloss und keine neue Schwebemechanik. Fables Kamera und Bedienstruktur bleiben erhalten.
 
@@ -103,7 +114,10 @@ Ein vorgeschlagener `TradeRouteEncounter` gehört zu `CharacterProgression`. Er 
 ```mermaid
 flowchart TD
     A[Ilyans Brandmalbericht erfolgt] --> B[Transportauftrag persönlich annehmen]
-    B --> C[Aschenzoll: drei Fundstellen untersuchen]
+    B --> W[Von der Mühle durch den Wald kämpfen]
+    W --> Q[Optionale Bärenhöhle mit dauerhafter Entscheidung]
+    W --> C[Aschenzoll: drei Fundstellen untersuchen]
+    Q --> C
     C --> D{Einmalige Frachtentscheidung}
     D --> E[Festsetzen und Original aufnehmen]
     D --> F[Freigeben und oberen Abladeplatz untersuchen]
@@ -118,20 +132,20 @@ Reisen sind an jedem aktiven Schritt möglich; die Grafik zeigt nur den Fortschr
 
 | Bestehende Stelle | Nötige Änderung / Grenze |
 | --- | --- |
-| [HungerJourney.cs](../Assets/Scripts/Core/HungerJourney.cs): `TraverseHunger`, `AtAnyPassage` | Benannte Übergänge mit explizitem Ziel und Ankunft ergänzen. `EntryAct +/- 1` bildet den Dorfabzweig nicht ab. Die alten Nord-/Südkanten bleiben gleich. |
-| [ArpgSimulation.cs](../Assets/Scripts/Core/ArpgSimulation.cs): `TryTraversePassage` und Spawn | Reise übernimmt weiter HP, Fokus und Cooldowns. Neue Ostankunft nicht über das bisherige Nord-/Süd-Bool vortäuschen. Spawn außerhalb von Hindernissen und Reiseauslösern validieren. |
+| [HungerJourney.cs](../Assets/Scripts/Core/HungerJourney.cs): `TraverseHunger`, `AtAnyPassage` | Benannte Übergänge mit explizitem Ziel und Ankunft ergänzen. `EntryAct +/- 1` bildet Waldabzweig, Höhle und Station nicht ab. Die alten Nord-/Südkanten bleiben gleich. |
+| [ArpgSimulation.cs](../Assets/Scripts/Core/ArpgSimulation.cs): `TryTraversePassage` und Spawn | Reise übernimmt weiter HP, Fokus und Cooldowns. Neue Abzweigankunft nicht über das bisherige Nord-/Süd-Bool vortäuschen. Spawn außerhalb von Hindernissen und Reiseauslösern validieren. |
 | `HungerJourney.TravelHunger`, Core-Kollision und [ArenaRuntime.cs](../Assets/Scripts/Runtime/ArenaRuntime.cs): `BuildChapterScenery` | Numerische Bereichsprüfungen wie `act >= 5` klassifizieren den neuen Akt sonst als Krypta. Region explizit zuordnen; gemeinsame Stationsgeometrie für Core und Darstellung. |
 | `HungerAction` und Aktionsdispatch | Bestehende numerische Bereiche leiten hohe Werte an den Rattler weiter. Eigene explizite Dispatch-Zuordnung für Stationshandlungen, bestehende Werte stabil lassen. |
 | [CryptInvestigation.cs](../Assets/Scripts/Core/CryptInvestigation.cs) und [RattlerEncounter.cs](../Assets/Scripts/Core/RattlerEncounter.cs) | Neues aktives Ziel nach Annahme vor dem bisherigen abschließenden Rattlertext anzeigen; alte Journalfakten weiter erhalten. Krypta-Checkpoint akzeptiert aktuell nur die dortigen Akte, daher nicht ungeprüft für Akt 8 verwenden. |
-| [CharacterProgression.cs](../Assets/Scripts/Core/CharacterProgression.cs) und `ReadHungerToken` | Vorschlag AC13 erst nach Auftragannahme. Unbenutzte AC12-/Altsaves bytegleich lassen. AC12 hat 21 Felder; Aktparser ist auf eine Ziffer und höchstens Akt 7 begrenzt. Für Akt 8 versionsgebunden erweitern, nicht pauschal alle alten Formate lockern. AC6 bleibt reserviert. |
+| [CharacterProgression.cs](../Assets/Scripts/Core/CharacterProgression.cs) und `ReadHungerToken` | AC13 gehört zum geparkten Ankunftsversuch, AC14 zum neuen Dungeon. Eine folgende gemeinsame Revision muss auch AC14-Runzustände erhalten. Alte Formate nicht pauschal lockern; weitere Regionen versionsgebunden einlesen. AC6 bleibt reserviert. |
 
-Die genaue AC13-Tokenstruktur ist vor Implementierung zusammen mit Verhaltenstests festzulegen. Sie muss den Stationscheckpoint einschließlich Spielerzustand, PRNG und Cooldowns sowie Wächterposition/HP/Warnung und einmalige Belohnung tragen. Bestehende Rattler-, Krypta-, Straßen- und Sozialzustände bleiben beim selben Save-Owner. Kein zweites Inventar für den Beleg: Besitz ist ein validiertes Questfaktum.
+Die nächste gemeinsame Tokenstruktur ist nach Integration des AC14-Dungeons zusammen mit Verhaltenstests festzulegen. Die experimentelle AC13-Struktur wird nicht als zweite parallele Save-Authority übernommen. Sie muss den Stationscheckpoint einschließlich Spielerzustand, PRNG und Cooldowns sowie Wächterposition/HP/Warnung und einmalige Belohnung tragen. Bestehende Rattler-, Krypta-, Straßen- und Sozialzustände bleiben beim selben Save-Owner. Kein zweites Inventar für den Beleg: Besitz ist ein validiertes Questfaktum.
 
 Laden verwirft widersprüchliche Kombinationen, etwa Station ohne Annahme/Brandmalbericht, beide Entscheidungen, Originalbesitz nach Freigabe, bewegte Fracht nach Festsetzen, Abschluss ohne passenden Beweis oder Positionen außerhalb der erlaubten Grenzen. Nichtendliche oder übergroße Zahlen werden bereits beim Parsen abgewiesen. Laden mitten in Frachtbewegung oder Hiebwarnung muss denselben nächsten Core-Schritt ergeben. Tod setzt den Spieler an den sicheren Stationseingang, aber löscht weder Weltfakten noch bereits gewährte Belohnungen.
 
 ## Umsetzungspakete und Abnahme
 
-1. **Core und Reisegrundlage:** Auftragannahme, explizite Dorfkante, Stationsgeometrie, eigener Checkpoint und AC13; Tests für unberechtigten Zugang, Hin-/Rückreise und alte Save-Bytes. Neue Reisegeometrie nicht allein mit direkt gesetzten Spielerpositionen prüfen: echte Bewegung bis zu den Durchgängen gehört dazu.
+1. **Core und Reisegrundlage:** Auftragannahme, begehbare Waldroute ab der Mühle, Höhlenabzweig, dauerhafte Bärenentscheidung, Stationsgeometrie und ein gemeinsamer versionierter Checkpoint; Tests für unberechtigten Zugang, Hin-/Rückreise und alte Save-Bytes. Neue Reisegeometrie nicht allein mit direkt gesetzten Spielerpositionen prüfen: echte Bewegung bis zu den Durchgängen gehört dazu.
 2. **Spielbarer Ermittlungsbogen:** Drei lokale Untersuchungen, Wächter, exklusive Entscheidung, Frachtbewegung, Beweisaufnahme und persönlicher Bericht. Tests für beide vollständigen Wege, abgebrochene Kontakte, Rückzug, Tod und Wiederladen; insbesondere Eingabedoppelung und unerreichbare Fundstellen.
 3. **Native Darstellung und Bedienung:** Stationskulisse, verständliche Warnung/Schalter, sichtbarer leerer Käfig, beide dauerhaften Endzustände und aktuelle Journalziele. Echte Unity-Eingabe-/PlayerPrefs-Tests mit wiederhergestelltem Nutzerstand; private Bindungen und native Ansichten prüfen. Bestehende Fable-UI/Kamera und alle bisherigen Storyabschnitte regressionsprüfen.
 4. **Gemeinsame Prüfung des größeren Blocks:** GitHub-Core-CI und native Unity-Läufe an exakte Revisionen binden, beide Entscheidungswege bildlich zeigen. Erst danach den vereinbarten neuen APK-/Geräteblock angehen. Ein arrangierter Testlauf ersetzt keine physische Spielerabnahme.
@@ -140,4 +154,4 @@ Besonders zu zeigen: Der Käfig ist vor der Wahl sichtbar leer; der Fußweg funk
 
 ## Status dieses Dokuments
 
-Fertig ist der konkrete Entwurf einschließlich Dialogen, Entscheidung, Gebietsskizze und Integrationsgrenzen. Geprüft werden in diesem Dokumentationsblock Quellbezüge, Links und der reine Dokumentationsdiff. **Akt 8, Frachtwächter, AC13 und Stationsgrafik existieren dadurch noch nicht im Spiel.** Dafür sind die obigen Umsetzungspakete und ihre echten Core-/Unity-Nachweise erforderlich.
+Fertig ist der konkrete Entwurf einschließlich Dialogen, Entscheidung, Gebietsskizze und Integrationsgrenzen. Geprüft werden in diesem Dokumentationsblock Quellbezüge, Links und der reine Dokumentationsdiff. **Waldweg, Bärenhöhle, Frachtwächter und Stationsgrafik existieren dadurch noch nicht im Spiel.** Der Dungeon wird separat auf `feature/crypt-three-depths-20261113` entwickelt; dieser PR bleibt ein reiner Story-/Gebietsentwurf. Dafür sind die obigen Umsetzungspakete und ihre echten Core-/Unity-Nachweise erforderlich.
