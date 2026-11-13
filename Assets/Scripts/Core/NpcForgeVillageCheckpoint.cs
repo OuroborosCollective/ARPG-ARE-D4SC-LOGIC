@@ -68,6 +68,22 @@ namespace AreArpg.Core
             BindCompanion();
             BindForgePopulation();
         }
+        /// <summary>Explicit player restart preserves the village clock, actors and memories in the next saved checkpoint.</summary>
+        public void PrepareVillagePlayerRestart()
+        {
+            var forge=Progression.Social.Forge;
+            if(Progression.EntryAct!=2||forge==null)return;
+            if(!ForgeVillageCheckpoint.TryRead(CaptureForgeVillage(),out var c)||c==null)
+                throw new InvalidOperationException("Cannot restart an invalid village checkpoint");
+            c.X=c.PreviousX=0;
+            c.Z=c.PreviousZ=Progression.HungerStage>0?(Progression.EntryFromNorth?21000L:-21000L):-23000L;
+            c.DirectionX=c.DirectionZ=0;c.Health=MaxPlayerHealth;c.Resource=100;
+            Array.Clear(c.Cooldowns,0,c.Cooldowns.Length);
+            forge.Checkpoint=c.Token();
+            // Saving must use this explicit restart, not the previous simulation's defeated player.
+            // BindForge installs the new capture delegate after the checkpoint is read back.
+            forge.Capture=null;
+        }
         private string CaptureForgeVillage()
         {
             if(Progression.EntryAct!=2)return "-";
