@@ -41,6 +41,8 @@ internal static class Program
             InvestigationJourneyTests.Run(Require);
             RattlerEncounterTests.Run(Require);
             CryptDungeonTests.Run(Require);
+            WoodlandTests.Run(Require);
+            WeaponEquipmentTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

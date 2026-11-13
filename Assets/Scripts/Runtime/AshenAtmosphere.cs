@@ -81,12 +81,12 @@ namespace AreArpg.UnityClient
             // Exactly two music sources crossfade; rapid travel reuses the same bounded pair.
             var old = _musicA; _musicA = _musicB; _musicB = old; _fade = 0;
             _musicA.volume = 0;
-            Loop(_musicA, Clip(act >= 5 || act <= 1 ? "music_crypt" : "music_road"));
+            Loop(_musicA, Clip((act >= 5 && act <= 7) || act == 9 || act <= 1 ? "music_crypt" : "music_road"));
             Loop(_ambience, Clip(act == 2 ? "ambient_village" : act == 4 ? "ambient_mill" : "ambient_wind"));
             Loop(_water, act == 4 ? Clip("water_mill") : null);
             _ash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             _dust.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            if (!_suspended) { if (act >= 2 && act <= 4) _ash.Play(); else _dust.Play(); }
+            if (!_suspended) { if ((act >= 2 && act <= 4) || act == 8 || act == 10) _ash.Play(); else _dust.Play(); }
             ApplyParticleBudget();
         }
 
@@ -143,7 +143,7 @@ namespace AreArpg.UnityClient
             }
         }
 
-        private static Vector3 Position(ArenaSimulation game) { return new Vector3(game.PlayerXmm / 1000f, .4f, game.PlayerZmm / 1000f); }
+        private static Vector3 Position(ArenaSimulation game) { return new Vector3(game.PlayerXmm / 1000f, .4f + (game.InForest?game.Progression.Woodland.Layout.HeightMm(game.PlayerXmm,game.PlayerZmm)/1000f:0), game.PlayerZmm / 1000f); }
 
         public void Skill(SkillResult result, int slot, ArenaSimulation game)
         {
@@ -192,7 +192,7 @@ namespace AreArpg.UnityClient
             if (suspended) { _ash.Pause(); _dust.Pause(); _sparks.Pause(); }
             else
             {
-                if (_act >= 2 && _act <= 4) _ash.Play(); else _dust.Play();
+                if ((_act >= 2 && _act <= 4) || _act == 8 || _act == 10) _ash.Play(); else _dust.Play();
                 _sparks.Play();
                 // Region changes may have selected new loops while suspended.
                 ResumeLoop(_musicA); ResumeLoop(_ambience); ResumeLoop(_water);

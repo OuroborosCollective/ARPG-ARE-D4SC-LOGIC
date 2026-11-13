@@ -139,10 +139,10 @@ namespace AreArpg.UnityClient
             float slotsTop = 8f;
             for (int i = 0; i < 4; i++)
             {
-                EquipmentSlot(body, new Rect(colX0, slotsTop + i * (slot + gap + 14f), slot, slot), ArmorSlots[i], null, Color.white);
+                EquipmentSlot(body, new Rect(colX0, slotsTop + i * (slot + gap + 14f), slot, slot), ArmorSlots[i], i==1&&p.Woodland.ArmorCrafted?"FELL\n10 %":null, Color.white);
                 bool weapon = i == 0;
                 EquipmentSlot(body, new Rect(colX1, slotsTop + i * (slot + gap + 14f), slot, slot), TrinketSlots[i],
-                    weapon ? "⚔\n+" + _game.WeaponBonus : null, weapon ? AshenUiTheme.Ember : Color.white);
+                    weapon ? (p.Equipment.Weapon==null?"⚔\n+"+_game.WeaponBonus:"⚔\n"+p.Equipment.Weapon.Definition.BasePower) : i==1&&p.Equipment.Shield!=null?"SCHILD":null, weapon ? AshenUiTheme.Ember : Color.white);
             }
 
             Rect stage = new Rect(slot + 14f, 0f, slotsW - 2f * slot - 28f, size.y - 40f);
@@ -175,7 +175,7 @@ namespace AreArpg.UnityClient
             };
             row("Leben", _game.PlayerHealth + " / " + _game.MaxPlayerHealth);
             row("Fokus", _game.Resource + " / 100");
-            row("Waffenbonus", "+" + _game.WeaponBonus);
+            row("Waffe / Verstärkung", (_game.Progression.Equipment.Weapon?.Definition.BasePower??95)+" / +"+_game.WeaponBonus);
             row("Erfahrung bis Stufe " + (p.Level + BigInteger.One), p.ExperienceToNextLevel.ToString());
             row("Besiegte Gegner", p.LifetimeKills.ToString());
             row("Gesammelte Beute", p.LootCollected.ToString());
@@ -361,7 +361,7 @@ namespace AreArpg.UnityClient
                 var glow = AshenUiTheme.Image("Rarity", s.transform, AshenUiTheme.Glow, new Color(rc.r, rc.g, rc.b, index == _selectedItem ? 0.55f : 0.28f));
                 AshenUiTheme.Stretch(glow.rectTransform, 3f);
                 var t = AshenUiTheme.Label("Glyph", s.transform, Mathf.RoundToInt(cell * 0.36f), rc, TextAnchor.MiddleCenter, FontStyle.Bold);
-                AshenUiTheme.Stretch(t.rectTransform); t.text = "◆";
+                AshenUiTheme.Stretch(t.rectTransform); t.text = p.Equipment.ForItem(item)==null?"◆":p.Equipment.ForItem(item).Definition.Family==WeaponFamily.Shield?"◈":"⚔";
                 var v = AshenUiTheme.Label("Value", s.transform, 11, AshenUiTheme.Parchment, TextAnchor.LowerRight, FontStyle.Bold);
                 AshenUiTheme.Stretch(v.rectTransform, 5f); v.text = "+" + item.AffixValue;
                 var button = s.gameObject.AddComponent<Button>();
@@ -375,15 +375,25 @@ namespace AreArpg.UnityClient
             var text = AshenUiTheme.Label("Text", panel.transform, 13, AshenUiTheme.Parchment, TextAnchor.UpperLeft);
             AshenUiTheme.Place(text.rectTransform, new Rect(16f, 36f, detailW - 32f, size.y - 52f));
             if (items.Count == 0)
-                text.text = "Noch keine Beute.\n\nBesiege Gegner und hebe ihre Splitter auf. Jeder Splitter verstärkt deine Waffe dauerhaft.";
+                text.text = "Noch keine Beute.\n\nBesiege Gegner und hebe ihre Beute auf. Waffen kannst du hier vergleichen und ausrüsten.";
             else
             {
                 LootItem item = items[_selectedItem < 0 ? items.Count - 1 : _selectedItem];
                 string hex = ColorUtility.ToHtmlStringRGB(AshenUiTheme.RarityColor(item.Rarity));
+                var gear=p.Equipment.ForItem(item);
                 text.text = "<size=18><b><color=#" + hex + ">" + ItemName(item) + "</color></b></size>\n" +
                     "<color=#" + hex + ">" + RarityName(item.Rarity) + "</color>\n\n" +
                     "Waffe <b>+" + item.AffixValue + "</b>  <color=#A89A84>(dauerhaft eingesetzt)</color>\n\n" +
                     "<color=#A89A84>Erbeutet beim " + item.KillOrdinal + ". Sieg.\nKennung " + item.InstanceId.Substring(0, Mathf.Min(18, item.InstanceId.Length)) + "…</color>";
+                if(gear!=null)
+                {
+                    bool equipped=p.Equipment.Weapon?.Ordinal==gear.Ordinal||p.Equipment.Shield?.Ordinal==gear.Ordinal;
+                    var def=gear.Definition;
+                    text.text="<size=18><b><color=#"+hex+">"+gear.DisplayName+"</color></b></size>\n"+RarityName(gear.Rarity)+" · "+def.FamilyName+(def.TwoHanded?" · Zweihand":"")+"\n\n"+
+                        (def.Family==WeaponFamily.Shield?"Schild: "+(def.BasePower/100f).ToString("0.#")+" % Schadensminderung": "Grundschaden "+def.BasePower+"\nReichweite "+(def.RangeMm/1000f).ToString("0.0")+" m · Tempo "+(def.StrikeCooldown/10f).ToString("0.0")+" s")+"\n\n"+gear.AffixDescription+"\n\n"+(equipped?"Angelegt":"Im Inventar")+"\nErbeutet beim "+gear.Ordinal+". Sieg.";
+                    AshenUiTheme.Place(text.rectTransform,new Rect(16f,36f,detailW-32f,size.y-100f));
+                    AshenUiTheme.MenuButton("EquipWeapon",panel.transform,new Rect(16,size.y-48,detailW-32,34),equipped?"ABLEGEN":"AUSRÜSTEN",()=>EquipInventoryItem(gear),fontSize:13);
+                }
             }
         }
 

@@ -220,7 +220,7 @@ namespace AreArpg.Core
                         bear.BossWindupTicks--;
                         if (bear.BossWindupTicks == 0)
                         {
-                            if (h.StrikePlayer && local && !GameOver && DistanceSquared(PlayerXmm, PlayerZmm, h.StrikeX, h.StrikeZ) <= FixedMath.Square(2400)) PlayerHealth = Math.Max(0, PlayerHealth - 320);
+                            if (h.StrikePlayer && local && !GameOver && DistanceSquared(PlayerXmm, PlayerZmm, h.StrikeX, h.StrikeZ) <= FixedMath.Square(2400)) ReceiveDamage(320);
                             if (!h.StrikePlayer && h.HunterHealth > 0)
                             {
                                 h.HunterHealth = Math.Max(0, h.HunterHealth - 140);

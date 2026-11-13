@@ -4,7 +4,7 @@ using System.Globalization;
 namespace AreArpg.Core
 {
     public enum HungerChoice { Undecided = 0, Reveal = 1, Protect = 2, Replace = 3 }
-    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17, OpenDungeonSeal = 18, BreakDungeonSeal = 19, OpenWestChest = 20, OpenEastChest = 21, BeginDungeonRun = 22 }
+    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17, OpenDungeonSeal = 18, BreakDungeonSeal = 19, OpenWestChest = 20, OpenEastChest = 21, BeginDungeonRun = 22, AcceptTransportLead = 23, ForestChest0 = 24, ForestChest1 = 25, ForestChest2 = 26, ForestChest3 = 27, InspectCubs = 28, SpareCubs = 29, SkinCubs = 30, ReportCubs = 31, OrganizeCubProtection = 32, CraftPeltArmor = 33 }
 
     public sealed partial class CharacterProgression
     {
@@ -20,7 +20,7 @@ namespace AreArpg.Core
         internal void ChooseHungerSupply(HungerChoice choice) { SupplyChoice = choice; }
 
         /// <summary>Change only the cloned entry checkpoint for a validated adjacent passage.</summary>
-        internal void TravelHunger(int act, bool fromNorth) { EntryAct = act; EntryFromNorth = fromNorth; Road.ResumePlayer = false; Investigation.RestartPlayer(); if (act >= 5) Investigation.Active = true; }
+        internal void TravelHunger(int act, bool fromNorth) { EntryAct = act; EntryFromNorth = fromNorth; Road.ResumePlayer = false; Investigation.RestartPlayer(); Woodland.RestartPlayer(); if (act >= 5 && act <= 7) Investigation.Active = true; }
 
         /// <summary>AC9 leaves every unused AC8/legacy profile byte-stable until the first story action.</summary>
         private string HungerToken()
@@ -30,14 +30,14 @@ namespace AreArpg.Core
         }
 
         /// <summary>Reject impossible paths and noncanonical numbers even under a valid checksum.</summary>
-        private static bool ReadHungerToken(string text, out int act, out bool north, out int stage, out HungerChoice choice, bool extended = false, bool rattler = false)
+        private static bool ReadHungerToken(string text, out int act, out bool north, out int stage, out HungerChoice choice, bool extended = false, bool rattler = false, bool woodland = false)
         {
             act = 0; north = false; stage = 0; choice = HungerChoice.Undecided;
             string[] f = text.Split(',');
-            if (f.Length != 5 || f[0] != "1" || f[1].Length != 1 || f[2].Length != 1 ||
+            if (f.Length != 5 || f[0] != "1" || (f[1].Length != 1 && !(woodland && f[1] == "10")) || f[2].Length != 1 ||
                 f[3].Length != 1 || f[4].Length != 1) return false;
-            act = f[1][0] - '0'; stage = f[3][0] - '0'; int decision = f[4][0] - '0';
-            if (act < 2 || act > (rattler ? 7 : extended ? 6 : 4) || (f[2] != "0" && f[2] != "1") || stage < 1 || stage > 4 ||
+            act = f[1] == "10" ? 10 : f[1][0] - '0'; stage = f[3][0] - '0'; int decision = f[4][0] - '0';
+            if (act < 2 || act > (woodland ? 10 : rattler ? 7 : extended ? 6 : 4) || (f[2] != "0" && f[2] != "1") || stage < 1 || stage > 4 ||
                 decision < 0 || decision > 3 || (act == 4 && (stage < 2 || (f[2] == "1" && (!extended || stage != 4)))) ||
                 (act >= 5 && stage != 4) || ((act == 7 || (act == 6 && !rattler)) && f[2] == "1") ||
                 (stage < 3 && decision != 0) || (stage == 4 && decision == 0)) return false;
@@ -49,13 +49,13 @@ namespace AreArpg.Core
     public sealed partial class ArenaSimulation
     {
         public const long ReturnPassageZmm = -24000L;
-        public bool AtReturnPassage { get { return Progression.EntryAct >= 3 &&
+        public bool AtReturnPassage { get { return !InWoodlandRegion && Progression.EntryAct >= 3 &&
             DistanceSquared(PlayerXmm, PlayerZmm, 0, ReturnPassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
-        public bool AtAnyPassage { get { return AtWorldPassage || AtReturnPassage; } }
+        public bool AtAnyPassage { get { return AtWoodlandPassage || AtWorldPassage || AtReturnPassage; } }
         /// <summary>Authored shelter encounter: one patient is missing on the return visit, on every supply branch.</summary>
         public int HungerShelterPatients { get { return Progression.EntryAct != 4 ? 0 :
             Progression.SupplyChoice == HungerChoice.Undecided ? 3 : 2; } }
-        public bool HungerForwardOpen { get { return InDungeon ? DungeonForwardOpen : Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
+        public bool HungerForwardOpen { get { return InWoodlandRegion ? false : InDungeon ? DungeonForwardOpen : Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
             Progression.EntryAct == 3 ? Progression.HungerStage >= 2 :
             Progression.EntryAct == 4 ? Progression.HungerStage == 4 :
             Progression.EntryAct == 5 ? Progression.Investigation.Approach != SealApproach.Undecided :
@@ -113,6 +113,7 @@ namespace AreArpg.Core
         /// <summary>Apply one versioned story action at its real location; repeated requests cannot duplicate effects.</summary>
         public SocialResult ActOnHunger(HungerAction action)
         {
+            if (action >= HungerAction.AcceptTransportLead) return ActOnWoodland(action);
             if (action >= HungerAction.OpenDungeonSeal && action <= HungerAction.BeginDungeonRun) return ActOnDungeon(action);
             if (action >= HungerAction.OpenInnerDoor && action <= HungerAction.ReportRoyalBrand) return ActOnRattler(action);
             if (action >= HungerAction.StoreBandage) return ActOnInvestigation(action);
@@ -192,6 +193,7 @@ namespace AreArpg.Core
             get
             {
                 if (InDungeon) return DungeonObjective;
+                if (Progression.Woodland.Active && Progression.EntryAct != 5 && Progression.EntryAct != 6 && Progression.EntryAct != 7) return WoodlandObjective;
                 if (Progression.EntryAct == 5 && Progression.Dungeon.NeedsNewRun) return "Beim naechsten Abstieg beginnt ein neuer Dungeon-Run mit neuen Wegen, Gegnern und Beute. Deine Storyfortschritte bleiben erhalten.";
                 switch (Progression.HungerStage)
                 {

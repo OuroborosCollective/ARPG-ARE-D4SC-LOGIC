@@ -134,11 +134,12 @@ namespace AreArpg.Core
         public const long CampXmm = -4500L;
         public const long CampZmm = -6000L;
         public const long NpcInteractionRadiusMm = 2400L;
-        public bool AtWorldPassage { get { return DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
+        public bool AtWorldPassage { get { return !InWoodlandRegion && DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
 
         /// <summary>Use the existing passage gate and carry surviving player resources into the next approved world.</summary>
         public ArenaSimulation TryTraversePassage()
         {
+            if (AtWoodlandPassage) return TraverseWoodland();
             if (!AtAnyPassage || GameOver) return null;
             ArenaSimulation next = Progression.EntryAct >= 2 ? TraverseHunger(AtReturnPassage) : TryAdvanceCrypt();
             if (next == null) return null;
@@ -156,7 +157,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -201,7 +202,7 @@ namespace AreArpg.Core
             if (Progression.EntryAct > 0 && !cryptDepth.IsOne)
                 throw new ArgumentOutOfRangeException(nameof(cryptDepth), "Entry revision 1 uses its own two-act checkpoint.");
             PlayerHealth = MaxPlayerHealth;
-            _rng = new DeterministicRng(InDungeon ? Progression.Dungeon.Seed : seed);
+            _rng = new DeterministicRng(InForest ? Progression.Woodland.Seed : InDungeon ? Progression.Dungeon.Seed : seed);
             if (IsVillage)
             {
                 Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -3600, -3400));
@@ -212,6 +213,7 @@ namespace AreArpg.Core
             if (Progression.EntryAct >= 2)
             {
                 PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
+                if (InWoodlandRegion) { InitializeWoodland(); return; }
                 InitializeRoadEncounter();
                 InitializeInvestigation();
                 if (InDungeon)
@@ -452,7 +454,7 @@ namespace AreArpg.Core
                         npc.Behavior = NpcBehavior.Attack;
                         if (distance > FixedMath.Square(1500)) MoveNpc(npc, PlayerXmm, PlayerZmm, 240);
                         else if (npc.AttackCooldownTicks == 0)
-                        { PlayerHealth = Math.Max(0, PlayerHealth - 40); npc.AttackCooldownTicks = 15; }
+                        { ReceiveDamage(40); npc.AttackCooldownTicks = 15; }
                     }
                 }
                 else if (npc.Memory.Hunger >= 700)
@@ -487,6 +489,7 @@ namespace AreArpg.Core
         /// <summary>Apply arena bounds and the active chapter collision model using integer coordinates.</summary>
         public bool CanStand(long x, long z)
         {
+            if (InWoodlandRegion) return CanStandInWoodland(Progression.EntryAct, Progression.Woodland.Layout, x, z);
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             if (InDungeon) return Progression.Dungeon.Current.Layout.CanStand(x, z) && (z <= 21000 || DungeonForwardOpen);
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);
@@ -522,13 +525,13 @@ namespace AreArpg.Core
             }
             for (int i = 0; i < Cooldowns.Length; i++)
                 if (Cooldowns[i] > 0) Cooldowns[i]--;
-            if (GameOver) { StepRoadEncounter(); SaveInvestigationPlayer(); SaveDungeonPlayer(); return; }
+            if (GameOver) { StepRoadEncounter(); SaveInvestigationPlayer(); SaveDungeonPlayer(); SaveWoodlandPlayer(); return; }
             MovePlayer();
             StepNpcs();
             StepRoadEncounter();
             StepRattler();
             StepInvestigation();
-            if (GameOver) { SaveDungeonPlayer(); return; }
+            if (GameOver) { SaveDungeonPlayer(); SaveWoodlandPlayer(); return; }
 
             foreach (MonsterState enemy in Monsters)
             {
@@ -536,7 +539,7 @@ namespace AreArpg.Core
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
-                if (distance2 > FixedMath.Square(14000) || (InDungeon && !Progression.Dungeon.Current.Layout.HasSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm))) continue;
+                if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
                 if (ChapterId == 2 && enemy.Kind == 3)
                 {
                     // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.
@@ -545,7 +548,7 @@ namespace AreArpg.Core
                         enemy.BossWindupTicks--;
                         if (enemy.BossWindupTicks == 0 &&
                             DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(4000))
-                            PlayerHealth = Math.Max(0, PlayerHealth - 190);
+                            ReceiveDamage(190);
                         continue;
                     }
                     if (enemy.BossPulseCooldownTicks == 0 && distance2 <= FixedMath.Square(10000))
@@ -568,11 +571,11 @@ namespace AreArpg.Core
                 else if (enemy.AttackCooldownTicks == 0)
                 {
                     enemy.AttackCooldownTicks = enemy.Kind >= 2 ? 12 : 17;
-                    PlayerHealth = Math.Max(0, PlayerHealth - (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40)));
+                    ReceiveDamage((enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40)));
                     if (GameOver) break;
                 }
             }
-            SaveDungeonPlayer();
+            SaveDungeonPlayer(); SaveWoodlandPlayer();
         }
 
         private MonsterState NearestMonster(long maxDistanceMm)
@@ -583,7 +586,7 @@ namespace AreArpg.Core
             {
                 if (enemy.IsDead || (enemy.Kind == 4 && !Progression.Road.Started)) continue;
                 long d2 = DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm);
-                if (d2 <= bestDistance2 && (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm))) { bestDistance2 = d2; target = enemy; }
+                if (d2 <= bestDistance2 && CombatSight(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm)) { bestDistance2 = d2; target = enemy; }
             }
             return target;
         }
@@ -596,6 +599,7 @@ namespace AreArpg.Core
             long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
             int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
+            PlayerHealth = Math.Min(MaxPlayerHealth,PlayerHealth+(int)((long)appliedDamage*Progression.Equipment.Bonus(WeaponAffix.Siphon)/10000));
             Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
             result.Hits++;
@@ -617,9 +621,9 @@ namespace AreArpg.Core
                 Progression.RecordKill();
                 Progression.EarnExperience(new System.Numerics.BigInteger(
                     enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
-                GroundLoot.Add(new LootState { Id = InDungeon ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
+                GroundLoot.Add(new LootState { Id = InDungeon || InForest ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
                     WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8),
-                    Item = InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) :
+                    Item = InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) :
                         _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
                         CurrentTick, enemy.Id, enemy.Kind, Progression.LifetimeKills) });
             }
@@ -640,27 +644,27 @@ namespace AreArpg.Core
                 PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + skill.BaseHealing + Progression.ResolveHealBonus + Progression.PracticeHealingBonus);
                 int restored = PlayerHealth - previousHealth;
                 if (restored > 0) Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(restored));
-                Cooldowns[slot] = skill.CooldownTicks;
+                Cooldowns[slot] = AttackCooldown(slot);
                 result.Activated = true;
                 result.Message = skill.DisplayName + ": restored " + restored + " HP";
-                SaveRoadPlayer(); SaveInvestigationPlayer();
+                SaveRoadPlayer(); SaveInvestigationPlayer(); SaveWoodlandPlayer();
                 return result;
             }
-            long range = skill.RangeMm;
+            long range = AttackRange(slot);
             MonsterState nearest = NearestMonster(range);
             if (nearest == null) { result.Message = "No enemy within reach"; return result; }
             Resource = Math.Min(100, Resource - skill.FocusCost + skill.FocusGain);
-            Cooldowns[slot] = skill.CooldownTicks;
+            Cooldowns[slot] = AttackCooldown(slot);
             result.Activated = true;
             if (skill.Target == SkillTarget.Area)
             {
                 foreach (MonsterState enemy in Monsters)
                     if (!enemy.IsDead && DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(range) &&
-                        (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm)))
+                        CombatSight(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm))
                         DealDamage(enemy, skill.PowerBp, slot, result);
             }
             else DealDamage(nearest, skill.PowerBp, slot, result);
-            HearRattlerNoise(); SaveInvestigationPlayer();
+            HearRattlerNoise(); SaveInvestigationPlayer(); SaveWoodlandPlayer();
             result.Message = skill.DisplayName +
                 ": " + result.TotalDamage + " damage / " + result.Kills + " kills";
             return result;
@@ -680,6 +684,7 @@ namespace AreArpg.Core
                 }
                 else Progression.AddWeaponUpgrade(item.WeaponBonus);
                 GroundLoot.RemoveAt(i);
+                SaveWoodlandPlayer();
                 return true;
             }
             return false;
