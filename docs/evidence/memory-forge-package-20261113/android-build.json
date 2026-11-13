@@ -1,0 +1,15 @@
+{
+  "sourceRevision": "8a37cc0d9d7977df468e9b1462d809a66302562d",
+  "unity": "6000.6.8f1",
+  "method": "AshenCrypt.ForgeVerification.Editor.ReleaseBuilder.BuildAndroidExample",
+  "exit": 0,
+  "packageSourceUnchanged": true,
+  "errors": [],
+  "logSha256": "7c7c26078867ab5b90223d510fd7af65e4450c23427cfc5f797bf484e65f0bb3",
+  "apkSha256": "a385f3afb42e35f9240d3d99191b7c4370153cb0c2aede9a3467abfa84772f27",
+  "apkBytes": 23964622,
+  "abis": ["arm64-v8a"],
+  "il2cpp": true,
+  "metadata": true,
+  "physicalDeviceExecution": false
+}

@@ -1,0 +1,29 @@
+{
+  "sourceRevision": "8a37cc0d9d7977df468e9b1462d809a66302562d",
+  "sha256": "a385f3afb42e35f9240d3d99191b7c4370153cb0c2aede9a3467abfa84772f27",
+  "bytes": 23964622,
+  "signatureVerificationExit": 0,
+  "signatureSchemes": [
+    "Verified using v1 scheme (JAR signing): false",
+    "Verified using v2 scheme (APK Signature Scheme v2): true",
+    "Verified using v3 scheme (APK Signature Scheme v3): false",
+    "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+    "Verified using v4 scheme (APK Signature Scheme v4): false"
+  ],
+  "zipAlignmentExit": 0,
+  "elfLoadAlignment": {
+    "lib/arm64-v8a/libil2cpp.so": [
+      16384,
+      16384,
+      16384,
+      16384
+    ],
+    "lib/arm64-v8a/libunity.so": [
+      16384,
+      16384,
+      16384,
+      16384
+    ]
+  },
+  "physicalDeviceExecution": false
+}

@@ -1,0 +1,122 @@
+{
+  "forge-clean-import-20261113-import.json": {
+    "sourceRevision": "8a37cc0d9d7977df468e9b1462d809a66302562d",
+    "packageSha256": "44412f0b5b6d811ca1000f54a6157989f154dab8b0faf463a0f2c1c6a135e4a5",
+    "exit": 0,
+    "initialAssetsEmpty": true,
+    "importedFileCount": 99,
+    "mismatches": [],
+    "unityLogSha256": "215a8db0533c014c2ab41931665cba38ce700529f5eb411a7818dd26977f9b4b",
+    "renderPipeline": "Built-in; no URP package installed"
+  },
+  "forge-clean-import-20261113-edit.json": {
+    "sourceRevision": "8a37cc0d9d7977df468e9b1462d809a66302562d",
+    "exit": 0,
+    "sourceUnchanged": true,
+    "tests": {
+      "id": "2",
+      "testcasecount": "8",
+      "result": "Passed",
+      "total": "8",
+      "passed": "8",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 11:40:40Z",
+      "end-time": "2026-11-13 11:40:41Z",
+      "duration": "0.518206"
+    },
+    "failures": []
+  },
+  "forge-clean-import-20261113-play.json": {
+    "sourceRevision": "8a37cc0d9d7977df468e9b1462d809a66302562d",
+    "exit": 0,
+    "sourceUnchanged": true,
+    "tests": {
+      "id": "2",
+      "testcasecount": "1",
+      "result": "Passed",
+      "total": "1",
+      "passed": "1",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 11:42:39Z",
+      "end-time": "2026-11-13 11:42:46Z",
+      "duration": "6.6844846"
+    },
+    "failures": []
+  },
+  "forge-package-20261113-release-edit.json": {
+    "sourceRevision": "2dec62440a5c02ed1d51944dc2cb92fc8c505791",
+    "exit": 0,
+    "sourceUnchanged": true,
+    "tests": {
+      "id": "2",
+      "testcasecount": "8",
+      "result": "Passed",
+      "total": "8",
+      "passed": "8",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 11:01:33Z",
+      "end-time": "2026-11-13 11:01:34Z",
+      "duration": "1.5107932"
+    },
+    "failures": []
+  },
+  "forge-package-20261113-release-play.json": {
+    "sourceRevision": "2dec62440a5c02ed1d51944dc2cb92fc8c505791",
+    "exit": 0,
+    "sourceUnchanged": true,
+    "tests": {
+      "id": "2",
+      "testcasecount": "1",
+      "result": "Passed",
+      "total": "1",
+      "passed": "1",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 11:04:59Z",
+      "end-time": "2026-11-13 11:05:21Z",
+      "duration": "21.5874802"
+    },
+    "failures": []
+  },
+  "forge-bootstrap-20261113-fixed.json": {
+    "sourceRevision": "8a37cc0d9d7977df468e9b1462d809a66302562d",
+    "exit": 0,
+    "sourceUnchanged": true,
+    "tests": {
+      "id": "2",
+      "testcasecount": "4",
+      "result": "Passed",
+      "total": "4",
+      "passed": "4",
+      "failed": "0",
+      "inconclusive": "0",
+      "skipped": "0",
+      "asserts": "0",
+      "engine-version": "3.5.0.0",
+      "clr-version": "4.0.30319.42000",
+      "start-time": "2026-11-13 11:28:56Z",
+      "end-time": "2026-11-13 11:28:59Z",
+      "duration": "2.1965313"
+    },
+    "failures": []
+  }
+}
