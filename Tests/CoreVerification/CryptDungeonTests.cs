@@ -192,6 +192,7 @@ internal static class CryptDungeonTests
                 var legacy=Reload(game).Progression; legacy.Dungeon.Active=false; legacy.TravelHunger(5,false);
                 var legacyWorld=new ArenaSimulation(123,legacy,1,LootCatalog.Version1); HunterEncounterTests.Move(legacyWorld,0,18000);
                 check(legacyWorld.Progression.SaveString().StartsWith("AC12|") && Reload(legacyWorld).Progression.SaveString()==legacyWorld.Progression.SaveString(),"proc-legacy-completed-ac12-unchanged-until-opt-in");
+                legacyWorld=Reload(legacyWorld); // A real AC12 load has no hidden AC14 world from this test fixture.
                 check(legacyWorld.ActOnHunger(HungerAction.BeginDungeonRun).Accepted && !legacyWorld.ActOnHunger(HungerAction.BeginDungeonRun).Accepted,"proc-legacy-farming-opt-in-once");
                 check(Reload(legacyWorld).Progression.Rattler.Reported && legacyWorld.Progression.Rattler.BrandExamined && !legacyWorld.Progression.Rattler.Creature.IsDead,"proc-legacy-opt-in-keeps-story-and-loads-living-boss");
                 for(int act=2;act<5;act++) { HunterEncounterTests.Move(game,0,24000); game=game.TryTraversePassage(); }
