@@ -42,7 +42,7 @@ internal static class TradeRouteTests
         check(!w.ActOnHunger(HungerAction.AskTransport).Accepted, "trade-contact-cooldown-enforced");
         ilyan.InteractionCooldownTicks = 0; ilyan.Memory.Health = 0;
         check(!w.ActOnHunger(HungerAction.AskTransport).Accepted, "trade-unconscious-contact-rejected");
-        ilyan.Memory.Health = 900;
+        ilyan.Memory.Health = NpcMemory.MaxHealth;
         string social = w.Progression.Social.Token();
         check(w.ActOnHunger(HungerAction.AskTransport).Accepted && w.Progression.TradeRoute.Accepted, "trade-personal-acceptance");
         check(!w.ActOnHunger(HungerAction.AskTransport).Accepted && social == w.Progression.Social.Token(), "trade-no-repeat-or-offscreen-knowledge");
