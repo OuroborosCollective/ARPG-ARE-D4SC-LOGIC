@@ -6,6 +6,23 @@ namespace AshenCrypt.MemoryForge
 {
     public static class ForgeDefaults
     {
+        /// <summary>Release-v1 manifest. A weight or capability edit requires a new reviewed version.</summary>
+        public static string ReviewedHash(string archetype)
+        {
+            switch(archetype)
+            {
+                case "animal":return "7449ddfe37ae25feee387c6a537725e42c8f3c1e64b9124c1265ae8e86193734";
+                case "companion":return "d13a9b2dbeca77faa8afb7fad14b86bef3fd319bc092529f06a4ea89d08da844";
+                case "fallback":return "43af7a1a576b9139316101477a9be58589d3a5141427791ebf01d56d303a1b2d";
+                case "guard":return "eabad422b8127f050594eb2327901652b3fc79286827e7051fc609c10c5a189c";
+                case "healer":return "a7bf9ecb59e5699252913f8b760a0ff2b6b7346f4d71fca0a8be6cc88eccd664";
+                case "merchant":return "7a14d38e4bd69fb8b6017d73ae173a2814530a9feb245638dad1ef54c5098aa4";
+                case "monster":return "470ff8b3cc2847771d70603a0bf01185b0cceebac7fcf11e589b07644ad4955c";
+                case "traveler":return "627ed161da4c0868ddf5f5973dac6028aa6adaaaf4e5f4a2f630a156cd83ea74";
+                case "villager":return "7f8adda00ed846d9235895d2ae21358678fb93734fb5fec390327efd94daf883";
+                default:throw new ArgumentException("No reviewed built-in artifact for this archetype");
+            }
+        }
         private static UtilityRule Rule(ForgeAction action,int priority,params (Feature feature,int weight)[] values)
         {var weights=new int[(int)Feature.Count];foreach(var v in values)weights[(int)v.feature]=v.weight;return new UtilityRule(action,(int)action,priority,weights);}
         public static NpcArchetypeControllerRegistry CreateRegistry()
@@ -36,7 +53,7 @@ namespace AshenCrypt.MemoryForge
                 var cases=new List<RegressionCase>{new RegressionCase(new ObservationFrame(ActionSet.Of(ForgeAction.Wait),Array.Empty<Observation>()),ForgeAction.Wait),new RegressionCase(new ObservationFrame(0,Array.Empty<Observation>()),ForgeAction.None)};
                 if(!safe)cases.Add(new RegressionCase(new ObservationFrame(ActionSet.Of(ForgeAction.Rest,ForgeAction.Travel),new[]{new Observation(Feature.Fatigue,10000)}),ForgeAction.Rest));
                 if(fighter)cases.Add(new RegressionCase(new ObservationFrame(ActionSet.Of(ForgeAction.Flee,ForgeAction.Attack),new[]{new Observation(Feature.Danger,10000),new Observation(Feature.Hostility,10000)}),ForgeAction.Attack));
-                var admission=ControllerAdmission.Run(artifact,"ashen.utility-v1",cases);registry.Register(artifact,artifact.Hash,admission);
+                var admission=ControllerAdmission.Run(artifact,"ashen.utility-v1",cases);registry.Register(artifact,ReviewedHash(id),admission);
             }
             return registry;
         }
