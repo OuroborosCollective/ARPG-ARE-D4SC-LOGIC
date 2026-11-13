@@ -51,7 +51,7 @@ namespace AreArpg.UnityClient
             _worldPassage=_returnPassage=null;
             RenderSettings.ambientLight=new Color(.39f,.43f,.48f);RenderSettings.fogColor=new Color(.29f,.34f,.4f);RenderSettings.fogDensity=.013f;
             if(!_game.InForest) { BuildWoodlandAnchor();return; }
-            var backdrop=OutdoorBackdrop.Create(8);backdrop.localScale=new Vector3(2.3f,1f,2.3f);_chapterScenery.Add(backdrop);
+            var backdrop=OutdoorBackdrop.Create(8);backdrop.localScale=new Vector3(1.7f,1f,2f);_chapterScenery.Add(backdrop);
             var map=_game.Progression.Woodland.Layout;
             var ground=Resources.Load<Material>("ARE/Visuals/WoodlandGround");
             if(ground==null)ground=new Material(Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard")){color=new Color(.28f,.31f,.33f)};
@@ -102,7 +102,8 @@ namespace AreArpg.UnityClient
             if(PassiveArtVisuals.TryBind(t,key))
             {
                 var renderers=t.GetComponentsInChildren<Renderer>();var bounds=renderers[0].bounds;foreach(var r in renderers)bounds.Encapsulate(r.bounds);
-                t.localScale=Vector3.one*(height/Mathf.Max(.01f,bounds.size.y));
+                float fit=height/Mathf.Max(.01f,bounds.size.y);if(key=="WoodlandRock")fit=Mathf.Min(fit,3.5f/Mathf.Max(bounds.size.x,bounds.size.z));
+                t.localScale=Vector3.one*fit;
                 bounds=renderers[0].bounds;foreach(var r in renderers)bounds.Encapsulate(r.bounds);
                 t.position+=new Vector3(x-bounds.center.x,GroundHeight(x,z)-bounds.min.y,z-bounds.center.z);t.rotation=Quaternion.Euler(0,(float)(rng.Next64()%360),0);
             }

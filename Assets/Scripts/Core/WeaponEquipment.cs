@@ -103,7 +103,7 @@ namespace AreArpg.Core
         public int AttackCooldown(int slot)
         {
             var e=Progression.Equipment;int cooldown=slot==0&&e.Weapon!=null?e.Weapon.Definition.StrikeCooldown:SkillCatalog.Get(slot).CooldownTicks;
-            return Math.Max(1,cooldown*(10000-e.Bonus(WeaponAffix.Haste))/10000);
+            return Math.Max(1,(cooldown*(10000-e.Bonus(WeaponAffix.Haste))+9999)/10000);
         }
     }
 }
