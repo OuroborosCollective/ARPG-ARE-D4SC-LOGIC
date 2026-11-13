@@ -26,6 +26,7 @@ namespace AreArpg.UnityClient
         private HungerAction[] HungerActions()
         {
             var p = _game.Progression;
+            if (_game.InDungeon) return DungeonActions();
             if (p.Investigation.Active) return InvestigationActions();
             if (p.EntryAct == 2 && p.HungerStage == 0) return new[] { HungerAction.HearIlyan };
             if (p.EntryAct == 3 && p.HungerStage == 1) return new[] { HungerAction.InspectTrail };
@@ -53,6 +54,9 @@ namespace AreArpg.UnityClient
                 case HungerAction.StoreBandage: return "AM WESTLICHEN VERBAND: Stoff und Knoten untersuchen";
                 case HungerAction.StoreTracks: return "AN DER SCHLEIFSPUR: Fugen und Staub untersuchen";
                 case HungerAction.InspectSeal: return "AM SIEGEL: Mechanismus und Gefahr untersuchen";
+                case HungerAction.OpenDungeonSeal: return "SIEGEL ENTLASTEN: Drei Kryptaebenen erkunden";
+                case HungerAction.BreakDungeonSeal: return "SIEGEL BRECHEN: Krypta betreten - Steinschlaggefahr!";
+                case HungerAction.OpenWestChest: case HungerAction.OpenEastChest: return "AN DER TRUHE: Oeffnen und Beute freilegen";
                 case HungerAction.OpenSeal: return "SIEGEL ENTLASTEN: Zugang kontrolliert oeffnen";
                 case HungerAction.BreakSeal: return "SIEGEL BRECHEN: Gefahr durch lose Deckensteine!";
                 case HungerAction.InspectCryptTrace: return "AN DER INNEREN TUER: Frische Spuren untersuchen";
@@ -101,7 +105,7 @@ namespace AreArpg.UnityClient
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;
             if (!_hungerJournalOpen) return false;
             Rect panel = HungerPanel(layout);
-            GUI.Box(panel, "HUNGER HINTER DEN MAUERN");
+            GUI.Box(panel, _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : "HUNGER HINTER DEN MAUERN");
             GUI.Label(new Rect(panel.x + 15, panel.y + 30, 530, 70), _game.HungerObjective, _smallStyle);
             GUI.Label(new Rect(panel.x + 15, panel.y + 105, 530, 30), "Proviant: " + _game.Progression.Social.Provisions +
                 "  |  Entscheidung: " + HungerChoiceLabel(_game.Progression.SupplyChoice), _smallStyle);

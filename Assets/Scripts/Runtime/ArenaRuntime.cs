@@ -324,6 +324,7 @@ namespace AreArpg.UnityClient
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
             if (_entryProfile && _game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4)
                 _chapterScenery.Add(OutdoorBackdrop.Create(_game.Progression.EntryAct));
+            if (_game.InDungeon) { BuildDungeonScenery(); return; }
             if (_game.Progression.EntryAct == 7) { BuildRattlerDen(); return; }
             if (_game.Progression.EntryAct >= 5) { BuildInvestigationScenery(); return; }
             if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); return; }
@@ -1020,6 +1021,7 @@ namespace AreArpg.UnityClient
                 visual.rotation = npc.Memory.Health > 0 ? Quaternion.identity : Quaternion.Euler(90f, 0f, 0f);
                 if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
             }
+            UpdateDungeonPresentation();
             if (_worldPassage != null)
                 _worldPassage.gameObject.SetActive((_game.Progression.EntryAct >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && _game.GroundLoot.Count == 0);
             if (_game.Progression.EntryAct < 2 && _game.CryptCleared && !_passageAnnounced)

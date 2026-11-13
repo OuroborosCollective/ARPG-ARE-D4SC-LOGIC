@@ -57,7 +57,8 @@ namespace AreArpg.Core
             get
             {
                 var d=Progression.Dungeon;
-                if(d.Depth==3) return "Ebene III: "+RattlerObjective;
+                if(d.Depth==3) return !Progression.Rattler.Creature.IsDead ? "Ebene III: Erkunde die Kammern und besiege den MaulwurfRattler im Nordsaal." :
+                    !Progression.Rattler.BrandExamined ? RattlerObjective : "Der Rattler ist besiegt. Sichere deine Beute. Ein neuer Run beginnt nach dem Rueckzug in den Speicher und erneutem Abstieg.";
                 if(!d.Current.Cleared) return "Ebene "+d.Depth+"/3: Erkunde die Seitenkammern und besiege die Waechter. Halte nach Truhen mit optionaler Beute Ausschau.";
                 if(GroundLoot.Count>0) return "Sichere die gefallene Beute, bevor du die Ebene verlaesst.";
                 if(d.Depth==2 && !Progression.Rattler.Active) return "Untersuche den frischen Verband im Nordsaal und oeffne den Riegel zur dritten Ebene.";

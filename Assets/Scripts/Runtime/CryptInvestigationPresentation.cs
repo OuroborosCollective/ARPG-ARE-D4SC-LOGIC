@@ -19,7 +19,7 @@ namespace AreArpg.UnityClient
             if (p.EntryAct == 6 && !c.TraceFound) return new[] { HungerAction.InspectCryptTrace };
             if (p.EntryAct != 5 || c.Approach != SealApproach.Undecided) return new HungerAction[0];
             if ((c.Clues & 4) != 0 && _game.AtInvestigationSeal)
-                return c.Clues == 7 ? new[] { HungerAction.OpenSeal, HungerAction.BreakSeal } : new[] { HungerAction.BreakSeal };
+                return c.Clues == 7 ? new[] { HungerAction.OpenDungeonSeal, HungerAction.BreakDungeonSeal } : new[] { HungerAction.BreakDungeonSeal };
             var actions = new List<HungerAction>(3);
             if ((c.Clues & 1) == 0) actions.Add(HungerAction.StoreBandage);
             if ((c.Clues & 2) == 0) actions.Add(HungerAction.StoreTracks);

@@ -192,6 +192,7 @@ namespace AreArpg.Core
             get
             {
                 if (InDungeon) return DungeonObjective;
+                if (Progression.EntryAct == 5 && Progression.Dungeon.NeedsNewRun) return "Beim naechsten Abstieg beginnt ein neuer Dungeon-Run mit neuen Wegen, Gegnern und Beute. Deine Storyfortschritte bleiben erhalten.";
                 switch (Progression.HungerStage)
                 {
                     case 0: return "Ilyan verbirgt etwas. Sprich mit ihm in der Aschengrenze.";
