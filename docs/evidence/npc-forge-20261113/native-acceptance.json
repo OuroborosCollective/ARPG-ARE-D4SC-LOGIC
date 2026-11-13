@@ -1,0 +1,159 @@
+{
+  "npc-forge-20261113/animal-play": {
+    "ready": true,
+    "result": {
+      "head": "92228ca3c33aa8b7b3f23a6f297592911e557fde",
+      "tree": "02106a20e77734da96ca3ae1951f008efe42bb8c",
+      "exit": "TIMEOUT",
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": ""
+    },
+    "hashes": {
+      "unity.log": "4e7314276facc98317e38bfa7f0bc950090dbadc1cf91d1aa491f1a046059793",
+      "result.json": "b638a93b685750a3189f814cc07299c71f51d26674d945d9b78148ceedfc534b"
+    }
+  },
+  "npc-forge-20261113/animal-play-retry": {
+    "ready": true,
+    "result": {
+      "head": "92228ca3c33aa8b7b3f23a6f297592911e557fde",
+      "tree": "02106a20e77734da96ca3ae1951f008efe42bb8c",
+      "exit": 0,
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "tests": {
+        "id": "2",
+        "testcasecount": "119",
+        "result": "Passed",
+        "total": "119",
+        "passed": "119",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 11:40:47Z",
+        "end-time": "2026-11-13 11:47:50Z",
+        "duration": "422.2990943"
+      },
+      "failures": []
+    },
+    "hashes": {
+      "tests.xml": "262b7e9680e1b4684cc9db52eec624523a6316759bdd2e102b6796312ddf6f60",
+      "unity.log": "c0db5d6519ae66bce0226ced21018446327c264b8a805851bfce2f3c04f9b14c",
+      "result.json": "9c107b836d32fdaba4091363b28c984a55eac814f9ef44b23dfe1ff22f4f9407"
+    }
+  },
+  "npc-forge-20261113/animal-edit-retry": {
+    "ready": true,
+    "result": {
+      "head": "92228ca3c33aa8b7b3f23a6f297592911e557fde",
+      "tree": "02106a20e77734da96ca3ae1951f008efe42bb8c",
+      "exit": 0,
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "tests": {
+        "id": "2",
+        "testcasecount": "36",
+        "result": "Passed",
+        "total": "36",
+        "passed": "36",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 11:54:58Z",
+        "end-time": "2026-11-13 11:57:30Z",
+        "duration": "152.197784"
+      },
+      "failures": []
+    },
+    "hashes": {
+      "tests.xml": "399b507b1eacfce992f6095f1cc1638a083ff8b851aa37e2da71d594cca624cc",
+      "unity.log": "76c8fc3b7d823dbf03b5a25aa8309893c1d6e5707c193c2b5e8a9a2e3a9fe8a6",
+      "result.json": "b3444713cd71543c12c7a07dcf7631e0999dc8653806c928f34dca269429291a"
+    }
+  },
+  "npc-forge-20261113/android-build": {
+    "ready": true,
+    "result": {
+      "head": "c78611c3e9057e7384483271c9a9ce588217c0cc",
+      "tree": "179669e638933b8639ed809cdce25b05ca08d73e",
+      "exit": 0,
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "apk": {
+        "path": "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113/Builds/ARE-Ashen-Crypt.apk",
+        "bytes": 241545661,
+        "sha256": "82f876478987ee3d8d8ab26a4c986e48876ed7c0c90d977d504e9145a2556e3c",
+        "writtenDuringBuild": true,
+        "arm64": true,
+        "il2cpp": true,
+        "metadata": true
+      }
+    },
+    "hashes": {
+      "unity.log": "d27382baafe37d946a87a64652caa3a50e56490a98453dd702e99ad1e02e1738",
+      "result.json": "8033ccb4b4cd6368fb147e02baeea9c9a877ec88a680e37fd5ba1f8eed3b4b2b"
+    },
+    "apk": {
+      "name": "ARE-Ashen-Crypt.apk",
+      "bytes": 241545661,
+      "sha256": "82f876478987ee3d8d8ab26a4c986e48876ed7c0c90d977d504e9145a2556e3c",
+      "abis": [
+        "arm64-v8a"
+      ],
+      "il2cpp": true,
+      "metadata": true,
+      "physicalDeviceExecution": false
+    }
+  },
+  "npc-forge-20261113/android-animal": {
+    "ready": true,
+    "result": {
+      "head": "92228ca3c33aa8b7b3f23a6f297592911e557fde",
+      "tree": "02106a20e77734da96ca3ae1951f008efe42bb8c",
+      "exit": 0,
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "544c68d7a8a252f77e70e6266f0d51041ada08eeb759f69aa1564abd3618d186"
+      },
+      "apk": {
+        "path": "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113/Builds/ARE-Ashen-Crypt.apk",
+        "bytes": 241545981,
+        "sha256": "1a17d959080d9204b351809e468d035c9dbf1e7801e9711da95b1f16b46a27b6",
+        "writtenDuringBuild": true,
+        "arm64": true,
+        "il2cpp": true,
+        "metadata": true,
+        "artifactPath": "/var/lib/unityarpg/.local/share/are-arpg/npc-forge-20261113/android-animal/ARE-Ashen-Crypt.apk"
+      },
+      "logSha256": "544c68d7a8a252f77e70e6266f0d51041ada08eeb759f69aa1564abd3618d186"
+    }
+  },
+  "forge-package-20261113/release-android-final": {
+    "ready": false
+  },
+  "core": {
+    "sourceRevision": "92228ca3c33aa8b7b3f23a6f297592911e557fde",
+    "assertions": 8014,
+    "preflights": 38,
+    "githubRunId": 43411329628,
+    "conclusion": "success",
+    "physicalDeviceExecution": false
+  }
+}
