@@ -74,3 +74,22 @@ bestätigt 8096 Core-Assertions, 109 Sample-Assertions und 40 Preflights.
 Die beiden nativen Schlussansichten wurden geprüft: kleine lesbare Schilder,
 Waldhintergrund und texturierter Boden. Kein neuer Android- oder physischer
 Gerätetest für diesen Storyabschnitt wird behauptet.
+
+## Zusammenführung des Entwurfs und aktueller Reviewstand
+
+Der ältere [Entwurf in PR29](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/29)
+ist durch die Dungeon- und Waldintegration (PR30/31) und diese Frachtumsetzung
+abgelöst. Sein ursprünglicher Commit bleibt erhalten; die veralteten AC13- und
+Projektstatusangaben werden nicht übernommen. Die dort vorgeschlagene
+Frachtwächter-Konfrontation bleibt ein offener Vorschlag. Auch Nordwechsel und
+der spätere Fraktionskrieg werden hier nicht als fertig dargestellt.
+
+Der abschließende Spielnachweis auf
+`5977f4c494c07a7a94d24c9e67b29419e0f2673e` besteht **8112 Core-Assertions,
+40 statische Preflights, 126 PlayMode- und 52 EditModefälle**, ohne Skips.
+CI43441375613 ist erfolgreich. Das Frachtziel bleibt an der Station und beim
+Rückweg zum persönlichen Bericht sichtbar, auch wenn Maras freiwillige
+Bärenaufgabe noch offen ist. Neu berechnete Prüfsummen erlauben keine negativen
+Frachtfelder. Die damaligen Pakettests sind in den nativen Zahlen enthalten;
+spätere reine Paketkorrekturen haben eigene Nachweise.
+[Exakte native Revisionen, RED/GREEN und XML-Hashes](evidence/npc-forge-20261113/review-2-native.json).
