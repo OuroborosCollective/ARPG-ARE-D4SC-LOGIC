@@ -63,6 +63,7 @@ namespace AreArpg.UnityClient
             foreach(var animator in _heroMeleeAnimations)
             {
                 if(animator==null)continue;
+                HumanoidBowGrip.Bind(animator,weapon!=null&&weapon.Definition.Family==WeaponFamily.Bow?_equippedVisual:null);
                 if(_originalCombatController==null)_originalCombatController=animator.runtimeAnimatorController;
                 if(clip==null)animator.runtimeAnimatorController=_originalCombatController;
                 else

@@ -21,6 +21,8 @@ derived asset identity. Native verification is recorded separately in test.md.
 | Assets/Tests/PlayMode/PlayerBowRuntimeTests.cs | Player regression | Real inventory/UI, rejected/accepted attacks, arm motion and melee re-equipping |
 | Assets/Tests/PlayMode/EntryJourneyRuntimeTests.cs | Optional capture focus | Test camera is restored in finally; production camera unchanged |
 | Assets/Tests/EditMode/BowAnimationEditModeTests.cs | Three native authoring tests | Exact source curves, invalid take rejection, repeatability, GUID/source preservation |
+| Assets/Scripts/Runtime/HumanoidBowGrip.cs | Bow-only palm-frame adapter | Read actual humanoid IK orientation once; rotate only the live weapon, preserve the reviewed player grip |
+| Assets/Scripts/Runtime/EquipmentPresentation.cs, CompanionPresentation.cs | Bind or clear bow grip on equipment change | Sword/shield attachments and Core actions unchanged |
 
 ## Tests Added or Updated
 
@@ -43,9 +45,23 @@ derived asset identity. Native verification is recorded separately in test.md.
 
 ## Deviations from Assessment
 
-None in production scope. The existing named animation is sufficient; no authored
-replacement, Core timing change, new runtime controller or gameplay events are needed.
-The new Editor tests and test-only camera focus support the specified artifact and visual checks.
+The existing named animation is sufficient; no authored replacement, Core timing
+change, new runtime controller or gameplay events are needed. The required native
+visual check then exposed a second presentation defect: the hunter's wrist axes hold
+the bow almost horizontally (86.46529 degrees from vertical), whereas the player's
+bow is vertical. `12bc3bd29292706cb2eeb9f695dba24f5138b849` reproduces this after the
+clip repair. Its player-angle assertion also failed because it treated the bow's
+undirected long axis as a directed vector (172.5169 degrees means 7.4831 degrees
+from vertical); the assertion now correctly accepts either sign of that axis.
+
+The added grip adapter uses Unity's canonical left-palm frame, with the authored
+bow orientation measured on the existing player rig, to accommodate each avatar's
+different wrist axes. It reads IK but writes only weapon-local rotation; source
+rigs, clips, Core and saves stay untouched. The original diagnosis remains valid.
+Repeated actual companion hits at ticks 62,68,74 already confirm the unchanged
+six-tick cadence and moving production controller; final grip and full regression
+results remain subject to the verification report. Test-only JPEG captures record
+the same native camera output with smaller transfer size; legacy PNG captures remain.
 
 ## Follow-ups
 

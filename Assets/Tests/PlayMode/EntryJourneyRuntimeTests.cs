@@ -887,7 +887,8 @@ namespace AreArpg.PlayMode.Tests
                 pixels.ReadPixels(new Rect(0, 0, 1280, 720), 0, 0);
                 pixels.Apply();
                 System.IO.Directory.CreateDirectory(directory);
-                System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, name), pixels.EncodeToPNG());
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, name),
+                    name.EndsWith(".jpg",System.StringComparison.OrdinalIgnoreCase)?pixels.EncodeToJPG(90):pixels.EncodeToPNG());
             }
             finally
             {

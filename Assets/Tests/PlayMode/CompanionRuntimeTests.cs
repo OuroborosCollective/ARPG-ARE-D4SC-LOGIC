@@ -159,9 +159,10 @@ namespace AreArpg.PlayMode.Tests
                     if(normalized==.5f)
                     {
                         gripAngle=Vector3.Angle(actor.transform.up,bow.up);
+                        gripAngle=Mathf.Min(gripAngle,180f-gripAngle); // A bow's long axis is undirected.
                         TestContext.WriteLine("Hunter bow grip angle="+gripAngle+"; boneToPalm="+(Quaternion.Inverse(animator.GetBoneTransform(HumanBodyBones.LeftHand).rotation)*gripProbe.LeftGoalRotation)+"; palm up/right/forward="+(gripProbe.LeftGoalRotation*Vector3.up)+" / "+(gripProbe.LeftGoalRotation*Vector3.right)+" / "+(gripProbe.LeftGoalRotation*Vector3.forward)+"; IK observed="+gripProbe.Observed);
                     }
-                    yield return Capture("hunter-bow-"+Mathf.RoundToInt(normalized*100)+".png",actorDetail:actor.transform);
+                    yield return Capture("hunter-bow-"+Mathf.RoundToInt(normalized*100)+".jpg",actorDetail:actor.transform);
                 }
             }
             finally{animator.speed=speed;}
@@ -210,7 +211,7 @@ namespace AreArpg.PlayMode.Tests
                         if(elapsed==0||elapsed==2||elapsed==5)
                         {
                             animator.speed=0;
-                            yield return Capture("hunter-bow-cadence-"+((elapsed+1)*100)+"ms.png",actorDetail:actor.transform);
+                            yield return Capture("hunter-bow-cadence-"+((elapsed+1)*100)+"ms.jpg",actorDetail:actor.transform);
                             animator.speed=1;
                         }
                     }

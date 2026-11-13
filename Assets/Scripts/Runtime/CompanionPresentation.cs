@@ -107,6 +107,7 @@ namespace AreArpg.UnityClient
                         controller=_companionBowController;
                     }
                     _companionAnimator.runtimeAnimatorController=controller;
+                    HumanoidBowGrip.Bind(_companionAnimator,weapon.Family==WeaponFamily.Bow?_companionWeaponVisual:null);
                 }
             }
             if(_companionShieldId!=shield)

@@ -133,10 +133,11 @@ namespace AreArpg.PlayMode.Tests
                     if(normalized==.5f)
                     {
                         float angle=Vector3.Angle(hero.transform.up,bowVisual.up);
+                        angle=Mathf.Min(angle,180f-angle);
                         TestContext.WriteLine("Player bow grip angle="+angle+"; boneToPalm="+(Quaternion.Inverse(animator.GetBoneTransform(HumanBodyBones.LeftHand).rotation)*gripProbe.LeftGoalRotation)+"; palm up/right/forward="+(gripProbe.LeftGoalRotation*Vector3.up)+" / "+(gripProbe.LeftGoalRotation*Vector3.right)+" / "+(gripProbe.LeftGoalRotation*Vector3.forward)+"; IK observed="+gripProbe.Observed);
                         Assert.Less(angle,30f,"The player must retain an upright bow at full draw");
                     }
-                    yield return Capture("player-bow-"+Mathf.RoundToInt(normalized*100)+".png",heroDetail:true);
+                    yield return Capture("player-bow-"+Mathf.RoundToInt(normalized*100)+".jpg",heroDetail:true);
                 }
             }
             finally{animator.speed=speed;}
