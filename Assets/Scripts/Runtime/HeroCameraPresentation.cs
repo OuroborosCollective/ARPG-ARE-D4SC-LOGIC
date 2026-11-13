@@ -24,6 +24,7 @@ namespace AreArpg.UnityClient
         /// </summary>
         private void CameraRelativeMove(ref long x, ref long z)
         {
+            if (_cameraRig != null) _cameraRig.SetMovementIntent(x);
             if (_cameraRig == null || (x == 0 && z == 0)) return;
             float yaw = _cameraRig.Yaw * Mathf.Deg2Rad, sin = Mathf.Sin(yaw), cos = Mathf.Cos(yaw);
             float worldX = x * cos + z * sin, worldZ = z * cos - x * sin;
@@ -35,10 +36,25 @@ namespace AreArpg.UnityClient
         /// <summary>Desktop: hold the right mouse button on free world space and drag to turn the view.</summary>
         private void PollMouseOrbit(ArenaHudLayout layout)
         {
-            if (Application.isMobilePlatform || !Input.GetMouseButton(1)) { _orbitMouseHeld = false; return; }
-            Vector2 point = layout.ToGuiTouch(Input.mousePosition);
-            if (_orbitMouseHeld) _cameraRig.Orbit(point - _orbitMouse);
-            _orbitMouse = point; _orbitMouseHeld = true;
+            if (Application.isMobilePlatform) { _orbitMouseHeld = false; return; }
+            HandleMouseOrbit(layout, Input.mousePosition, Input.GetMouseButtonDown(1), Input.GetMouseButton(1));
+        }
+
+        private void HandleMouseOrbit(ArenaHudLayout layout, Vector2 screenPosition, bool pressed, bool held)
+        {
+            if (!held || _cameraRig == null) { _orbitMouseHeld = false; return; }
+            Vector2 point = layout.ToGuiTouch(screenPosition);
+            if (pressed)
+            {
+                _orbitMouseHeld = layout.IsWithinSafeArea(screenPosition) &&
+                    !layout.BlocksCameraGesture(point, _game.GameOver, _game.NearestNpc() != null,
+                        _game.IsVillage, _game.Progression.UnspentMasteryPoints > 0, _game.Progression.EntryAct == 2);
+                _orbitMouse = point;
+                return;
+            }
+            if (!_orbitMouseHeld) return;
+            _cameraRig.Orbit(point - _orbitMouse);
+            _orbitMouse = point;
         }
 
         /// <summary>

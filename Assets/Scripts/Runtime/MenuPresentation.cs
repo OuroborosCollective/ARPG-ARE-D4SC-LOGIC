@@ -23,6 +23,9 @@ namespace AreArpg.UnityClient
         private Canvas _menuCanvas;
         private RectTransform _menuRoot;
         private int _selectedItem;
+        private int _inventoryPage;
+        private Vector2 _menuScreenSize;
+        private Rect _menuSafeArea;
         private bool _menuCredits;
         private Camera _portraitCamera;
         private RenderTexture _portraitTexture;
@@ -83,6 +86,8 @@ namespace AreArpg.UnityClient
             EnsureEventSystem();
             ArenaHudLayout l = CurrentHudLayout();
             EnsureMenuCanvas(l);
+            _menuScreenSize = new Vector2(HudScreenWidth, HudScreenHeight);
+            _menuSafeArea = l.SafeArea;
             if (_menuRoot != null) Destroy(_menuRoot.gameObject);
             _menuRoot = AshenUiTheme.Node("SafeRoot", _menuCanvas.transform);
             float screenH = Mathf.Max(HudScreenHeight, 1f);
@@ -323,15 +328,27 @@ namespace AreArpg.UnityClient
             float detailW = Mathf.Round(size.x * 0.34f);
             float gridW = size.x - detailW - 14f;
             const int cols = 6, rows = 5;
-            float cell = Mathf.Floor(Mathf.Min((gridW - (cols - 1) * 8f) / cols, (size.y - 44f - (rows - 1) * 8f) / rows));
+            float cell = Mathf.Floor(Mathf.Min((gridW - (cols - 1) * 8f) / cols, (size.y - 80f - (rows - 1) * 8f) / rows));
 
             var purse = AshenUiTheme.Label("Purse", body, 14, AshenUiTheme.Parchment, TextAnchor.MiddleLeft, FontStyle.Bold);
             AshenUiTheme.Place(purse.rectTransform, new Rect(0f, 0f, gridW, 28f));
             purse.text = "<color=#F2C14E>●</color> Münzen " + p.Social.Coins + "      <color=#C9A26B>■</color> Proviant " + p.Social.Provisions +
                 "      Gegenstände " + items.Count;
 
-            int first = Mathf.Max(0, items.Count - cols * rows);
-            if (_selectedItem >= items.Count) _selectedItem = items.Count - 1;
+            const int pageSize = cols * rows;
+            int pages = items.Count == 0 ? 1 : (items.Count - 1) / pageSize + 1;
+            _inventoryPage = Mathf.Clamp(_inventoryPage, 0, pages - 1);
+            int first = _inventoryPage * pageSize;
+            _selectedItem = items.Count == 0 ? -1 : Mathf.Clamp(_selectedItem, first, Mathf.Min(items.Count - 1, first + pageSize - 1));
+            var previous = AshenUiTheme.MenuButton("PreviousPage", body, new Rect(0, size.y - 32f, 90, 30), "ZURÜCK",
+                () => { _inventoryPage--; _selectedItem = _inventoryPage * pageSize; BuildMenu(); }, fontSize: 12);
+            previous.interactable = _inventoryPage > 0;
+            var next = AshenUiTheme.MenuButton("NextPage", body, new Rect(gridW - 90, size.y - 32f, 90, 30), "WEITER",
+                () => { _inventoryPage++; _selectedItem = _inventoryPage * pageSize; BuildMenu(); }, fontSize: 12);
+            next.interactable = _inventoryPage < pages - 1;
+            var pageLabel = AshenUiTheme.Label("Page", body, 12, AshenUiTheme.Muted, TextAnchor.MiddleCenter);
+            AshenUiTheme.Place(pageLabel.rectTransform, new Rect(94, size.y - 32f, gridW - 188, 30));
+            pageLabel.text = (_inventoryPage + 1) + " / " + pages;
             for (int i = 0; i < cols * rows; i++)
             {
                 int index = first + i;
@@ -471,6 +488,8 @@ namespace AreArpg.UnityClient
         /// <summary>Keep the portrait camera aimed while the character screen is visible.</summary>
         private void UpdateMenu()
         {
+            if (MenuOpen && (_menuScreenSize != new Vector2(HudScreenWidth, HudScreenHeight) ||
+                _menuSafeArea != CurrentHudLayout().SafeArea)) { BuildMenu(); return; }
             if (_menuTab == MenuCharacter) AimPortraitCamera();
             else if (_portraitCamera != null && _portraitCamera.enabled) _portraitCamera.enabled = false;
         }

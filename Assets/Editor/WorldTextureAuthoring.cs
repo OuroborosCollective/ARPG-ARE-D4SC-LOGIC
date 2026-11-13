@@ -19,6 +19,7 @@ namespace AreArpg.EditorTools
             public float smoothness = .16f, normalScale = .65f, metallic, emission;
         }
         [Serializable] private sealed class MaterialEdit { public string path, surface; }
+        [Serializable] private sealed class MeshSource { public string guid; public long localId; }
         [Serializable] private sealed class PrefabEdit
         {
             public string path, rendererContains, surface;
@@ -177,7 +178,7 @@ namespace AreArpg.EditorTools
                 if (material == null) throw new InvalidOperationException("Missing authored world surface: " + surface.id);
                 materials.Add(material);
             }
-            foreach (string path in recipe.worldPrefabs)
+            foreach (string path in recipe.worldPrefabs ?? new string[0])
             {
                 ValidatePrivatePath(path);
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -210,7 +211,24 @@ namespace AreArpg.EditorTools
             if (!(metersPerTile > 0f)) throw new InvalidOperationException("Invalid texture scale");
             string sourcePath = AssetDatabase.GetAssetPath(source);
             ValidatePrivatePath(sourcePath);
-            if (sourcePath.StartsWith(Root + "Meshes/", StringComparison.Ordinal)) return source;
+            if (sourcePath.StartsWith(Root + "Meshes/", StringComparison.Ordinal))
+            {
+                string provenance = AssetImporter.GetAtPath(sourcePath).userData;
+                if (!string.IsNullOrEmpty(provenance))
+                {
+                    MeshSource original = JsonUtility.FromJson<MeshSource>(provenance);
+                    string originalPath = AssetDatabase.GUIDToAssetPath(original.guid);
+                    ValidatePrivatePath(originalPath);
+                    Mesh resolved = null;
+                    foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(originalPath))
+                        if (asset is Mesh candidate && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(candidate, out string candidateGuid, out long candidateId) &&
+                            candidateGuid == original.guid && candidateId == original.localId) { resolved = candidate; break; }
+                    if (resolved == null) throw new InvalidOperationException("Original world mesh is unavailable: " + originalPath);
+                    source = resolved;
+                }
+                // Older derived meshes have no provenance. Their unchanged triangle geometry is a
+                // stable migration source; recalculate UVs instead of silently retaining the old scale.
+            }
             AssetDatabase.TryGetGUIDAndLocalFileIdentifier(source, out string guid, out long localId);
             string key = Hash128.Compute(guid + "/" + localId + "/" + metersPerTile.ToString("R", System.Globalization.CultureInfo.InvariantCulture)).ToString();
             string path = Root + "Meshes/" + key + ".asset";
@@ -252,6 +270,9 @@ namespace AreArpg.EditorTools
             for (int i = 0; i < submeshes.Count; i++) mesh.SetTriangles(submeshes[i], i);
             mesh.RecalculateBounds(); mesh.RecalculateTangents();
             AssetDatabase.CreateAsset(mesh, path);
+            var importer = AssetImporter.GetAtPath(path);
+            importer.userData = JsonUtility.ToJson(new MeshSource { guid = guid, localId = localId });
+            importer.SaveAndReimport();
             return mesh;
         }
 

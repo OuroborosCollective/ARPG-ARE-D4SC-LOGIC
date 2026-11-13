@@ -144,6 +144,7 @@ namespace AreArpg.UnityClient
         private void ReleasePresentationTouches()
         {
             _movementTouch.Reset();
+            _orbitMouseHeld = false;
             if (_cameraRig != null) _cameraRig.ClearTouches();
         }
 
@@ -709,9 +710,9 @@ namespace AreArpg.UnityClient
             }
 
             if (PollMenuInput()) return;
-            if (PollRoadInput(layout)) return;
-            if (PollHungerInput(layout)) return;
-            if (PollRattlerInput(layout)) return;
+            if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
+            if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
+            if (PollRattlerInput(layout)) { ReleasePresentationTouches(); return; }
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
             bool hasMastery = _game.Progression.UnspentMasteryPoints > 0;
