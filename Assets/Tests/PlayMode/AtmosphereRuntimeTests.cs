@@ -152,6 +152,7 @@ namespace AreArpg.PlayMode.Tests
             audio.Suspend(true); float before = particles[0].remainingLifetime;
             audio.Suspend(false); yield return new WaitForSeconds(.15f);
             int count = sparks.GetParticles(particles);
+            TestContext.WriteLine("Resumed hit motes: before="+before+", count="+count+", remaining="+(count>0?particles[0].remainingLifetime:0)+", playing="+sparks.isPlaying+", paused="+sparks.isPaused+", visible="+sparks.GetComponent<ParticleSystemRenderer>().isVisible+", culling="+sparks.main.cullingMode+", scale="+Time.timeScale);
             Assert.IsTrue(count == 0 || particles[0].remainingLifetime < before - .05f, "Paused hit particles must resume real simulation.");
         }
 
