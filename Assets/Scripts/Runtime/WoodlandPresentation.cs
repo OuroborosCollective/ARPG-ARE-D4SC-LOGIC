@@ -10,6 +10,17 @@ namespace AreArpg.UnityClient
         private readonly List<Transform> _woodlandPortals=new List<Transform>();
         private readonly Transform[] _forestChestLids=new Transform[4];
         private readonly Transform[] _bearCubs=new Transform[3];
+        private Material _woodlandFallbackMaterial;
+        private Material WoodlandFallbackMaterial()
+        {
+            if(_woodlandFallbackMaterial!=null)return _woodlandFallbackMaterial;
+            _woodlandFallbackMaterial=new Material(Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard"))
+                {name="Woodland_Fallback",color=new Color(.25f,.27f,.22f)};
+            var owner=new GameObject("Woodland_Fallback_Owner").AddComponent<WoodlandMeshOwner>();
+            owner.Material=_woodlandFallbackMaterial;
+            _chapterScenery.Add(owner.transform);
+            return _woodlandFallbackMaterial;
+        }
         private float GroundHeight(float x,float z) => _game.InForest?_game.Progression.Woodland.Layout.HeightMm((long)(x*1000),(long)(z*1000))/1000f:0f;
         private HungerAction[] WoodlandActions()
         {
@@ -54,7 +65,7 @@ namespace AreArpg.UnityClient
             var backdrop=OutdoorBackdrop.Create(8);backdrop.localScale=new Vector3(1.7f,1f,2f);_chapterScenery.Add(backdrop);
             var map=_game.Progression.Woodland.Layout;
             var ground=Resources.Load<Material>("ARE/Visuals/WoodlandGround");
-            if(ground==null)ground=new Material(Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard")){color=new Color(.28f,.31f,.33f)};
+            if(ground==null)ground=WoodlandFallbackMaterial();
             var rng=new DeterministicRng(map.Seed ^ 0xA47UL);
             // Eight metre chunks share the exact same world-space height and UV field; shared materials and distance culling.
             for(int cz=-14;cz<14;cz+=2)for(int cx=-12;cx<12;cx+=2)
@@ -112,7 +123,7 @@ namespace AreArpg.UnityClient
             {
                 var fallback=GameObject.CreatePrimitive(key.Contains("Tree")?PrimitiveType.Cylinder:PrimitiveType.Sphere);Destroy(fallback.GetComponent<Collider>());
                 fallback.transform.SetParent(t,false);fallback.transform.localScale=new Vector3(height*.25f,height*.5f,height*.25f);fallback.transform.localPosition=Vector3.up*height*.5f;
-                fallback.GetComponent<Renderer>().material.color=new Color(.25f,.27f,.22f);
+                fallback.GetComponent<Renderer>().sharedMaterial=WoodlandFallbackMaterial();
             }
         }
         private void BuildWoodlandAnchor()
