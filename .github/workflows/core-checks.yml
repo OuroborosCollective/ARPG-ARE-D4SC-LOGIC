@@ -30,3 +30,5 @@ jobs:
         run: |
           python3 -m unittest discover -s Tests/Preflight -v
           python3 scripts/ci/unity_contract.py preflight
+      - name: Verify official Unity Director routing (not engine or device execution)
+        run: python3 -m unittest discover -s Tools/Director -v
