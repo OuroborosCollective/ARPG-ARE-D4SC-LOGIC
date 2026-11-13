@@ -10,6 +10,8 @@ Reviewkorrekturen: Helden-Layer nach Portraetansicht wiederherstellen; Legacy-Ka
 
 Letzter Nachreviewpunkt: Der neue Autorierungstest musste seinen ignorierten Ausgabeordner auch in einem sauberen Checkout selbst anlegen und nur als eigenen leeren Ordner entfernen. Nativ reproduziert auf01dd3813a261049a8631b97966ec84a03a542ff7; korrigiert auf5cb18744f87a42691de42d60cb4cd148b504001b mit2/2 Tests ohne privates Welt-Overlay und33/33 EditMode mit privatem Bestand,0Skips. Private Dateien unveraendert, Prefs/Settings wiederhergestellt. Runtime-Tree717e5ce25a29ce93d6cd11faf7cecdba6490a4f0 und Editor-Tree28b1c8151dff88826f4df3fa4918dc2703357d97 sind bytegleich zum111/111-PlayMode-Stand ef2926f; keine erneute Laufzeitaenderung.
 
+Der abschliessende Fixturetest reproduzierte ausserdem den Verlust einer bereits auf Platte vorhandenen, noch nicht importierten Datei (REDccef6e2f08c9a6a15598b787d73b47fd4fbeddd6). Die Bestandsaufnahme erfolgt nun nach dem synchronen Import. GREENdf36319e2bf4d13e7a6467664a949719d561543e:34/34 private EditMode-Tests und3/3 gezielte Tests im sauberen Checkout,0Skips; private Assets unveraendert, Prefs/Settings wiederhergestellt. Runtime-/Editor-Quelltrees bleiben identisch; neue Regression betrifft ausschliesslich Testisolation. XML-SHA256 in Memory.md.
+
 Die nachfolgenden datierten Abschnitte bewahren den jeweiligen historischen Reviewstand.
 
 ## Entwicklungsblock: MaulwurfRattler (12.11.2026)
