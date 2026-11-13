@@ -68,6 +68,11 @@ class SpecWorkflowTests(unittest.TestCase):
         self.assertNotIn('spec_workflow', plan('Wald ansehen', project=self.root))
         self.assertNotIn('spec_workflow', plan('Bug fix'))
 
+    def test_absent_catalog_keeps_requested_capabilities_visible_as_missing(self):
+        (self.root / 'spec-workflow-catalog.json').unlink()
+        result = plan('Bug fix', project=self.root)
+        self.assertTrue(all(s['status'] == 'MISSING' for s in result['spec_workflow']['skills']))
+
 
 if __name__ == '__main__':
     unittest.main()

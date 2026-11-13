@@ -53,6 +53,7 @@ asset-intake-receipts/
 # Python verification caches
 __pycache__/
 *.pyc
+/Tools/spec-workflow-catalog.json
 
 # Standalone .NET verification outputs
 Tests/**/bin/
