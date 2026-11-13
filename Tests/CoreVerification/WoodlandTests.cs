@@ -86,6 +86,27 @@ internal static class WoodlandTests
         post=Reload(post);HunterEncounterTests.Move(post,0,-18000);w=post.TryTraversePassage();
         require(w!=null&&w.Progression.Woodland.Run==2&&w.Progression.Woodland.Seed!=before.Seed&&w.Monsters.All(m=>!m.IsDead)&&w.GroundLoot.Count==0,"full-exit-reentry-new-run");
         require(w.Progression.Woodland.Choice==CubChoice.Spared&&w.Progression.Rattler.Reported,"new-run-retains-story");
+        var savedStory=w.Progression;
+        savedStory.TravelHunger(2,false);var village=new ArenaSimulation(71,savedStory,1,LootCatalog.Version1);
+        var mara=village.Npcs.Find(n=>n.Id==SocialLedger.MaraNpcId);mara.Xmm=village.PlayerXmm+1000;mara.Zmm=village.PlayerZmm;
+        require(village.ActOnHunger(HungerAction.ReportCubs).Accepted&&!village.ActOnHunger(HungerAction.OrganizeCubProtection).Accepted,"personal-report-and-cooldown-before-organized-protection");
+        village.SetMoveInput(0,0);for(int i=0;i<10;i++)village.Step();
+        require(village.ActOnHunger(HungerAction.OrganizeCubProtection).Accepted&&village.Progression.Woodland.WarBearEligibility,"actual-protection-establishes-future-eligibility");
+        require(!village.ActOnHunger(HungerAction.CraftPeltArmor).Accepted&&village.Progression.Woodland.Pelts==0,"spared-branch-grants-no-pelts");
+        require(Reload(village).Progression.Woodland.WarBearEligibility,"protection-permanent-after-load");
+        var killed=Enter(47);Walk(killed,-36000,0);Collect(killed);Walk(killed,-36000,0);killed=killed.TryTraversePassage();HunterEncounterTests.Move(killed,0,5000);
+        require(killed.ActOnHunger(HungerAction.InspectCubs).Accepted&&killed.ActOnHunger(HungerAction.SkinCubs).Accepted,"second-character-can-choose-pelts");
+        require(!killed.ActOnHunger(HungerAction.SkinCubs).Accepted&&killed.Progression.Woodland.Pelts==3,"pelts-awarded-only-once");
+        killed.Progression.TravelHunger(2,false);killed=new ArenaSimulation(47,killed.Progression,1,LootCatalog.Version1);
+        mara=killed.Npcs.Find(n=>n.Id==SocialLedger.MaraNpcId);mara.Xmm=killed.PlayerXmm+1000;mara.Zmm=killed.PlayerZmm;
+        require(killed.ActOnHunger(HungerAction.CraftPeltArmor).Accepted&&killed.Progression.Woodland.ArmorCrafted&&killed.Progression.Woodland.Pelts==0,"separate-crafting-consumes-three-pelts");
+        require(!killed.ActOnHunger(HungerAction.CraftPeltArmor).Accepted&&!Reload(killed).Progression.Woodland.WarBearEligibility,"armor-not-repeatable-and-no-war-bears");
+        var unarmored=new ArenaSimulation(47,new CharacterProgression());var armored=new ArenaSimulation(47,killed.Progression);
+        int rawHp=unarmored.PlayerHealth,armorHp=armored.PlayerHealth;
+        typeof(ArenaSimulation).GetMethod("ReceiveDamage",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(unarmored,new object[]{100});
+        typeof(ArenaSimulation).GetMethod("ReceiveDamage",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Invoke(armored,new object[]{100});
+        require(rawHp-unarmored.PlayerHealth==100&&armorHp-armored.PlayerHealth==90,"crafted-armor-actually-reduces-incoming-damage");
+        w=Enter(71);
         var seedBefore=w.Progression.Woodland.Seed;w.Progression.Woodland.RestartPlayer();w=Reload(w);require(w.Progression.Woodland.Seed==seedBefore,"restart-does-not-reroll");
     }
 }

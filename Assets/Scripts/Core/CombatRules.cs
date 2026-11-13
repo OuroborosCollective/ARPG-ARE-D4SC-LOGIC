@@ -14,8 +14,8 @@ namespace AreArpg.Core
         public CombatStats(CharacterProgression progression, int skillSlot)
         {
             if (progression == null) throw new ArgumentNullException(nameof(progression));
-            WeaponPoints = 95L + progression.WeaponBonus;
-            AdditiveDamageBp = 2000 + progression.MightDamageBonusBp + progression.PracticeDamageBonusBp(skillSlot);
+            WeaponPoints = (progression.Equipment.Weapon?.Definition.BasePower ?? 95L) + progression.WeaponBonus;
+            AdditiveDamageBp = 2000 + progression.Equipment.Bonus(WeaponAffix.Power) + progression.MightDamageBonusBp + progression.PracticeDamageBonusBp(skillSlot);
             MaximumHealth = CombatRules.MaximumHealth(progression);
             HealingBonus = progression.ResolveHealBonus + progression.PracticeHealingBonus;
         }

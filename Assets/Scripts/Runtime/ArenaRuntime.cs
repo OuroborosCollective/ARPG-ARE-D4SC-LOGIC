@@ -68,6 +68,7 @@ namespace AreArpg.UnityClient
             }
             _game = new ArenaSimulation(DemoSeed, saved,
                 saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1);
+            if (!_storageFault) _game.Progression.Equipment.Enable(_game.Progression);
             if (_game.IsVillage)
                 _message = "Aschengrenze: Lager, Wache und Nordpass. Deine Taten bleiben in Erinnerung.";
             if (_game.Progression.EntryAct == 1)
@@ -224,6 +225,8 @@ namespace AreArpg.UnityClient
                         blade.localScale = new Vector3(size.x / parentScale.x, size.y / parentScale.y, size.z / parentScale.z);
                         break;
                     }
+            _weaponHost=blade; foreach(Transform part in blade)_starterWeaponParts.Add(part);
+            UpdateEquipmentPresentation();
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
             BuildNpcVisuals();
 
@@ -870,6 +873,7 @@ namespace AreArpg.UnityClient
         private void InstallNewRun(ArenaSimulation next, string message)
         {
             _game = next;
+            _game.Progression.Equipment.Enable(_game.Progression);
             _actorAnimations.Clear();
             RegisterActorMotion(_hero);
             _passageAnnounced = false;
@@ -983,7 +987,7 @@ namespace AreArpg.UnityClient
                 if (_pendingPickup)
                 {
                     bool pickedUp = _game.TryCollectLoot();
-                    _message = pickedUp ? "Beute aufgenommen – deine Waffe wird stärker." : "Keine Beute in Reichweite.";
+                    _message = pickedUp ? "Beute aufgenommen. Neue Waffen kannst du im Inventar vergleichen und ausrüsten." : "Keine Beute in Reichweite.";
                     if (pickedUp) SaveCharacter();
                     _pendingPickup = false;
                 }
@@ -1026,6 +1030,7 @@ namespace AreArpg.UnityClient
             }
             UpdateDungeonPresentation();
             UpdateWoodlandPresentation();
+            UpdateEquipmentPresentation();
             if (_worldPassage != null)
                 _worldPassage.gameObject.SetActive((_game.Progression.EntryAct >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && _game.GroundLoot.Count == 0);
             if (_game.Progression.EntryAct < 2 && _game.CryptCleared && !_passageAnnounced)

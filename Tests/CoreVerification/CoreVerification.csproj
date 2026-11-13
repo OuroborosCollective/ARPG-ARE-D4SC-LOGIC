@@ -27,5 +27,7 @@
     <Compile Include="../../Assets/Scripts/Core/WoodlandLayout.cs" Link="WoodlandLayout.cs" />
     <Compile Include="../../Assets/Scripts/Core/WoodlandState.cs" Link="WoodlandState.cs" />
     <Compile Include="../../Assets/Scripts/Core/WoodlandJourney.cs" Link="WoodlandJourney.cs" />
+    <Compile Include="../../Assets/Scripts/Core/WeaponCatalog.cs" Link="WeaponCatalog.cs" />
+    <Compile Include="../../Assets/Scripts/Core/WeaponEquipment.cs" Link="WeaponEquipment.cs" />
   </ItemGroup>
 </Project>

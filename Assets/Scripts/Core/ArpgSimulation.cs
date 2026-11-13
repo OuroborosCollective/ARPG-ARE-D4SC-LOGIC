@@ -599,6 +599,7 @@ namespace AreArpg.Core
             long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
             int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
+            PlayerHealth = Math.Min(MaxPlayerHealth,PlayerHealth+(int)((long)appliedDamage*Progression.Equipment.Bonus(WeaponAffix.Siphon)/10000));
             Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
             result.Hits++;
@@ -643,17 +644,17 @@ namespace AreArpg.Core
                 PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + skill.BaseHealing + Progression.ResolveHealBonus + Progression.PracticeHealingBonus);
                 int restored = PlayerHealth - previousHealth;
                 if (restored > 0) Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(restored));
-                Cooldowns[slot] = skill.CooldownTicks;
+                Cooldowns[slot] = AttackCooldown(slot);
                 result.Activated = true;
                 result.Message = skill.DisplayName + ": restored " + restored + " HP";
                 SaveRoadPlayer(); SaveInvestigationPlayer(); SaveWoodlandPlayer();
                 return result;
             }
-            long range = skill.RangeMm;
+            long range = AttackRange(slot);
             MonsterState nearest = NearestMonster(range);
             if (nearest == null) { result.Message = "No enemy within reach"; return result; }
             Resource = Math.Min(100, Resource - skill.FocusCost + skill.FocusGain);
-            Cooldowns[slot] = skill.CooldownTicks;
+            Cooldowns[slot] = AttackCooldown(slot);
             result.Activated = true;
             if (skill.Target == SkillTarget.Area)
             {

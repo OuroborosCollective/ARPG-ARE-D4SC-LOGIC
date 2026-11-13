@@ -149,7 +149,7 @@ namespace AreArpg.Core
         }
 
         /// <summary>Keep legacy AC5/AC7 bytes; explicit entry profiles bind revision/act and receipts in AC8.</summary>
-        private string Payload()
+        private string BasePayload()
         {
             return (Woodland.Active ? "AC15|" : Dungeon.Active ? "AC14|" : Rattler.Active ? "AC12|" : Investigation.Active ? "AC11|" : Road.Started ? "AC10|" : HungerStage > 0 ? "AC9|" : EntryAct > 0 ? "AC8|" : (_items.Count == 0 ? "AC5|" : "AC7|")) + TotalExperience.ToString(CultureInfo.InvariantCulture) +
                 "|" + WeaponBonus.ToString(CultureInfo.InvariantCulture) +
@@ -194,6 +194,7 @@ namespace AreArpg.Core
         {
             progress = null;
             if (string.IsNullOrEmpty(saved)) return false;
+            if(saved.StartsWith("AC16|",StringComparison.Ordinal))return TryLoadEquipment(saved,out progress);
             string[] parts = saved.Split('|');
             bool legacy = parts[0] == "AC1" && parts.Length == 6;
             bool ac2 = parts[0] == "AC2" && parts.Length == 9;
