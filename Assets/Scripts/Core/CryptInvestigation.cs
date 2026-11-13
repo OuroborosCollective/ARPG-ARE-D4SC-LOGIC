@@ -101,7 +101,7 @@ namespace AreArpg.Core
                     {
                         c.TrapTicks = -1;
                         if (DistanceSquared(PlayerXmm, PlayerZmm, 0, CryptTrapZmm) <= FixedMath.Square(CryptTrapRadiusMm))
-                            PlayerHealth = Math.Max(0, PlayerHealth - 320);
+                            ReceiveDamage(320);
                     }
                 }
                 else if (c.TrapTicks == 0 && DistanceSquared(PlayerXmm, PlayerZmm, 0, CryptTrapZmm) <= FixedMath.Square(3000))

@@ -24,5 +24,8 @@
     <Compile Include="../../Assets/Scripts/Core/RattlerEncounter.cs" Link="RattlerEncounter.cs" />
     <Compile Include="../../Assets/Scripts/Core/CryptInvestigation.cs" Link="CryptInvestigation.cs" />
     <Compile Include="../../Assets/Scripts/Core/NpcSpeech.cs" Link="NpcSpeech.cs" />
+    <Compile Include="../../Assets/Scripts/Core/WoodlandLayout.cs" Link="WoodlandLayout.cs" />
+    <Compile Include="../../Assets/Scripts/Core/WoodlandState.cs" Link="WoodlandState.cs" />
+    <Compile Include="../../Assets/Scripts/Core/WoodlandJourney.cs" Link="WoodlandJourney.cs" />
   </ItemGroup>
 </Project>
