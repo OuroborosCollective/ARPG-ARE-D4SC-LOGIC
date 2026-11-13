@@ -52,6 +52,14 @@ internal static class CompanionForgeTests
         check(!gear.TryEquipCompanionWeapon(999999),"companion-cannot-equip-unowned-receipt");
         check(CharacterProgression.TryLoad(gear.Progression.SaveString(),out var gearedSave)&&gearedSave.Companion.WeaponOrdinal==owned.KillOrdinal,"companion-equipment-survives-save-load");
         check(gear.TryUnequipCompanionWeapon()&&gear.TryEquipWeapon(owned.KillOrdinal),"companion-returned-weapon-is-not-duplicated-or-lost");
+        var care=RescueFixture();care.RecruitHunter();var patient=care.Progression.Companion;
+        patient.Health=500;patient.Hunger=900;patient.Fatigue=500;
+        var food=care.Progression.Social.Provisions;var remembered=care.Progression.Social.Forge.Archive.Events.Count;
+        check(care.FeedCompanion().Accepted&&care.Progression.Social.Provisions==food-1&&patient.Health==620&&patient.Hunger==500,"companion-care-consumes-one-real-provision");
+        check(care.Progression.Social.Forge.Archive.Events.Count==remembered+1&&patient.TotalExperience.IsZero,"companion-care-creates-personal-memory-not-free-experience");
+        patient.Health=CompanionState.MaximumHealth;patient.Hunger=0;patient.Fatigue=0;
+        check(!care.FeedCompanion().Accepted&&care.Progression.Social.Provisions==food-1,"companion-care-rejects-unneeded-resource-spend");
+        check(CharacterProgression.TryLoad(care.Progression.SaveString(),out _),"companion-care-memory-roundtrip");
     }
     private static ArenaSimulation RescueFixture()
     {
