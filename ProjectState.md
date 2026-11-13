@@ -27,22 +27,29 @@ Private Assets unverändert, Besitzer-Spielstände und Projekteinstellungen
 wiederhergestellt. Für diese letzten Spieländerungen fehlt ein neuer Spiel-APK-
 und physischer Tab-A9-Nachweis.
 
-Memory Forge **1.0.2** ist als eigenständiges Unity-Paket fertig:99 Export-/Importdateien
-bytegleich, URP und Built-in-Upgrade jeweils12/12 Editor+2/2 PlayMode,
-tatsächlicher Linux-Player mit unabhängig gelesenem Save und neuer geprüfter
-ARM64/IL2CPP-Beispielbuild. [Releasebelege](docs/evidence/memory-forge-package-20261113/release-1.0.2).
-Der Besitzer veröffentlicht selbst für **9.50USD einmalig**; kein erneuter
-Publisher-Login und kein behaupteter Store-Upload.
+Memory Forge **1.0.3** ist als eigenständiges Unity-Paket fertig; der Besitzer
+übernimmt die Veröffentlichung für **9.50 USD einmalig**. URP 12 EditMode + 5 PlayMode
+(zwei reine Prüftreiberfälle), Built-in-Upgrade 12 + 3, echter Linux-Player mit
+Save-Readback und ARM64/IL2CPP-Beispielbuild sind revisionsgebunden belegt.
+[Releasebelege](docs/evidence/memory-forge-package-20261113/release-1.0.3).
+Kein erneuter Publisher-Login und kein behaupteter Store-Upload oder Gerätetest.
 
-Nächster Grafikblock: neue eigene My-Assets-Pakete laden und gezielt integrieren.
-Sechs Quellen sind vollständig und CRC-geprüft: Hunter, Animals FREE,
-GanzSe-Zubehör, Viking-Waffen und beide EmbersStorm-Rüstungspakete.
-Die weiteren Downloads laufen separat. Privater Probeimport bestätigt ein gültiges
-Hunter-Humanoid-Skelett sowie tatsächliche Ruhe-/Laufbewegungen. Die bisherige
-WeaponBowShot-Datei ist eine einzelne0.033s-Pose, kein vollständiger Schussclip;
-Materialanpassung und Prüfung im realen Begleiter-Controller stehen noch aus.
-Die neuen Rohassets sind nicht Bestandteil des Verkaufsplugins oder öffentlichen Git.
-Entscheidende neue Story-/Gameplayfragen gehen weiterhin an den Besitzer.
+Der Besitzer hat die **Prolog-Demo bis Aschenzoll** als erste Veröffentlichung
+gewählt. [Umfang und verbleibende Abnahme](docs/PROLOGUE_RELEASE.md).
+Die offiziellen Unity-Werkzeuge ergänzen den Director; Logcat wird als Editorpaket
+übernommen, Netcode bleibt im separaten Prüfprojekt.
+[Installation, Quellstände und Grenzen](docs/OFFICIAL_UNITY_TOOLING.md).
+
+Nächster Grafikblock: den erworbenen Hunter gezielt als Straßenjäger und Begleiter
+integrieren. Hunter, Horseman, Priest, Orc und Borshin sind vollständig geladen und
+CRC-/SHA-geprüft; das bestätigt noch keine spielbare Integration oder Bossrolle.
+Privater Probeimport bestätigt ein gültiges Hunter-Humanoid-Skelett und tatsächliche
+Ruhe-/Laufbewegungen. Der neue native Regressionstest auf
+`9af7842b05bde3157a9461587babbd90a2fe4408` belegt den eingefrorenen Bogenschuss:
+0 Grad Armbewegung über die tatsächliche WeaponBowShot-Animation. Der Test ist
+bewusst noch RED; Materialanpassung, vollständige Schussbewegung und Integration
+stehen aus. Lizenzierte Rohassets bleiben privat. Entscheidende neue Story- und
+Gameplayfragen gehen weiterhin an den Besitzer.
 
 Die nachfolgenden Abschnitte dokumentieren frühere, revisionsgebundene Stände.
 
