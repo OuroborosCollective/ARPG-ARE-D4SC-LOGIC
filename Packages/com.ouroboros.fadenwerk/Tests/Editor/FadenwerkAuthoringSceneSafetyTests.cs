@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -22,7 +23,16 @@ namespace Fadenwerk.Tests
             var create = sample.GetMethod("CreateAuthoringScene", BindingFlags.Public | BindingFlags.Static);
             Assert.IsNotNull(create, "An isolated authoring-only sample entry point is required");
             Scene original = SceneManager.GetActiveScene();
-            Scene fixture = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
+            string fixturePath = AssetDatabase.GenerateUniqueAssetPath("Assets/FadenwerkAuthoringFixture.unity");
+            Assert.IsTrue(AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity", fixturePath));
+            Scene fixture = EditorSceneManager.OpenScene(fixturePath, OpenSceneMode.Additive);
+            // The batch runner starts with an empty unsaved scene; never discard scene content.
+            if (original.IsValid() && original.isLoaded && string.IsNullOrEmpty(original.path))
+            {
+                Assert.IsEmpty(original.GetRootGameObjects(), "fixture must not discard an existing scene");
+                Assert.IsFalse(original.isDirty, "fixture must not discard unsaved edits");
+                EditorSceneManager.CloseScene(original, true);
+            }
             SceneManager.SetActiveScene(fixture);
             var sentinel = new GameObject("existing-scene-sentinel");
             GameObject[] before = fixture.GetRootGameObjects();
@@ -45,12 +55,22 @@ namespace Fadenwerk.Tests
                 Assert.AreEqual(3, root.GetComponentsInChildren<FadenwerkNpc>(true).Length);
                 Assert.AreEqual(3, root.GetComponentsInChildren<FadenwerkMarker>(true).Length);
                 Assert.AreEqual(authored.handle, SceneManager.GetActiveScene().handle);
+                string[] databases = AssetDatabase.FindAssets("t:FadenwerkDatabase");
+                sample.GetMethod("Create", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
+                CollectionAssert.AreEquivalent(databases, AssetDatabase.FindAssets("t:FadenwerkDatabase"), "unsaved scene guard must not create a database");
+                Assert.AreEqual(authored.handle, SceneManager.GetActiveScene().handle);
+                Assert.Throws<TargetInvocationException>(() => create.Invoke(null, new object[] { db }));
             }
             finally
             {
-                if (original.IsValid() && original.isLoaded) SceneManager.SetActiveScene(original);
                 if (authored.IsValid() && authored.isLoaded) EditorSceneManager.CloseScene(authored, true);
-                if (fixture.IsValid() && fixture.isLoaded) EditorSceneManager.CloseScene(fixture, true);
+                if (original.IsValid() && original.isLoaded)
+                {
+                    SceneManager.SetActiveScene(original);
+                    if (fixture.IsValid() && fixture.isLoaded) EditorSceneManager.CloseScene(fixture, true);
+                }
+                else EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(fixturePath);
                 UnityEngine.Object.DestroyImmediate(db);
             }
         }

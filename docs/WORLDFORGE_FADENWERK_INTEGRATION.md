@@ -92,3 +92,8 @@ regression failed at the missing safe entry point before implementation; its
 first compile-error fixture is retained separately and is not behavioral RED.
 
 Owner: Thomas Markgraf, using the artist pseudonym OuroborosCollective (one person).
+
+Unity refuses creation of an additive scene while an untitled scene is open.
+The authoring command now rejects that condition before creating a database or
+changing a scene. The native fixture opens its own copy of the saved Arena scene,
+preserves a real sentinel, and checks rejection leaves unsaved state/data intact.

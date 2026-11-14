@@ -13,6 +13,12 @@ namespace Fadenwerk.EditorTools
         public static void Create()
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode) return;
+            if (HasUntitledScene())
+            {
+                if (!Application.isBatchMode)
+                    EditorUtility.DisplayDialog("Fadenwerk", "Bitte offene unbenannte Szenen zuerst speichern. Dein Entwurf bleibt unverändert.", "OK");
+                return;
+            }
             var db = FadenwerkEditorData.CreateDatabase();
             CreateAuthoringScene(db);
             if (!Application.isBatchMode)
@@ -27,6 +33,8 @@ namespace Fadenwerk.EditorTools
             if (db == null) throw new System.ArgumentNullException(nameof(db));
             if (EditorApplication.isPlayingOrWillChangePlaymode)
                 throw new System.InvalidOperationException("Authoring requires Edit Mode");
+            if (HasUntitledScene())
+                throw new System.InvalidOperationException("Save untitled scenes before creating an additive authoring scene");
             var previous = SceneManager.GetActiveScene();
             var authored = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             SceneManager.SetActiveScene(authored);
@@ -167,6 +175,13 @@ namespace Fadenwerk.EditorTools
                 if (previous.IsValid() && previous.isLoaded) SceneManager.SetActiveScene(previous);
                 throw;
             }
+        }
+
+        static bool HasUntitledScene()
+        {
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+                if (string.IsNullOrEmpty(SceneManager.GetSceneAt(i).path)) return true;
+            return false;
         }
 
         static FadenwerkNpc Npc(GameObject root, string name, string role, Vector3 pos, string lore)
