@@ -1,0 +1,7 @@
+{
+  "name": "AshenCrypt.WorldForge.Core",
+  "rootNamespace": "AshenCrypt.WorldForge.Core",
+  "references": [],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}

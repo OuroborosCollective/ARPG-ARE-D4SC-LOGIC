@@ -1,0 +1,10 @@
+{
+  "name": "Fadenwerk.Editor.SafetyTests",
+  "rootNamespace": "Fadenwerk.Tests",
+  "references": ["Fadenwerk.Runtime"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll"],
+  "autoReferenced": false
+}

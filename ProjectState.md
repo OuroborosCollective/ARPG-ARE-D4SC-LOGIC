@@ -233,3 +233,12 @@ Source1dde63549cd8ffb8d205d5d716d8a8767ac10f48, Treebff55cf3dd5a7d613f3c15c53b01
 - `approved`: Technische Anbindung autonom; wesentliche neue Story-/Gameplayentscheidungen bleiben beim Besitzer.
 - `next`: Nach Werkzeugabnahme die ursprüngliche Jäger-Bogenschuss-Reproduktion reparieren und nativ erneut prüfen.
 - `blocked`: Jäger-Animation bleibt RED auf9af7842b05bde3157a9461587babbd90a2fe4408; die neue Fehlerakte ist keine Gameplay-Reparatur.
+
+
+## World Forge / Fadenwerk und Gestaltungsübergabe (14.11.2026)
+- `phase`: Autorenwerkzeuge nativ geprüft; nächste Asset-/UI-Integration läuft.
+- `current_goal`: Sieben vom Owner erworbene Medieval-/Alchemy-/Fruit-/Bones-Prop-Pakete im Editor verfügbar machen und Fables UI-Arbeitsstand nachvollziehbar übernehmen.
+- `approved`: Technische Integration, private Downloads/Imports und Zusammenlegung der vorhandenen UI-Arbeit; professionelle Oberfläche erhalten.
+- `verified`: Source f67e20736b3561b549fa66d5faefd20460176d8e, Unity6000.6.8f1 Edit71/71 + Play129/129 mit0Skips; unabhängiger Readback in docs/evidence/forges-20261114/acceptance.json.
+- `blocked`: Autorenimport aktiviert noch keine kanonischen Fadenwerk-Quests oder Belohnungen. Core-Transaktion/Save-/Replay-Adapter, World-Forge-Waldprojektion und Tablet-Abnahme bleiben separate offene Integrationsgrenzen.
+- `next`: Fable-Diff gegen spätere Verbesserungen abgleichen; authentifizierten My-Assets-Bestand lesen; sieben Pakete privat prüfen/importieren und native Asset-/URP-Ergebnisse zurücklesen.

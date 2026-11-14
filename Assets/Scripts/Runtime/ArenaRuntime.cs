@@ -938,9 +938,11 @@ namespace AreArpg.UnityClient
                 }
                 if (_pendingHungerAction >= 0)
                 {
-                    var story = _game.ActOnHunger((HungerAction)_pendingHungerAction);
+                    var action = (HungerAction)_pendingHungerAction;
+                    var boundId = AuthoredHungerBinding.ActionId(action);
+                    var story = boundId != null ? AuthoredHungerBinding.Execute(_game, boundId) : _game.ActOnHunger(action);
                     _pendingHungerAction = -1;
-                    _message = story.Text;
+                    _message = PresentedStoryResult(action, story);
                     _atmosphere.AcceptedSpeech(story);
                     if (story.Accepted) SaveCharacter();
                     if (_storageFault) break;

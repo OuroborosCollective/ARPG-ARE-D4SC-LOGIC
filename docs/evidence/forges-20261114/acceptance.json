@@ -1,0 +1,152 @@
+{
+  "schema": "ashen.forges-independent-readback.v1",
+  "source": "f67e20736b3561b549fa66d5faefd20460176d8e",
+  "tree": "bb6c0ca95f44ba3890b2b4e1865843d5a477c3dc",
+  "base": "4622c94866f45e129a7d60e3734538c45dd1465f",
+  "sourceTrees": {
+    "Assets": "eea66b6eecac4a32898b2900b89dbc8469519559",
+    "Packages": "f42928a2d0067fc160ae86c0b4d51a979f91d268",
+    "ProjectSettings": "3eaa19e161975df64cad5bb1a96f582dedda1bc2",
+    "Assets/Scripts/Core": "80f091968e7b4123ee1c80698d3c2038625df100"
+  },
+  "nativeRuns": {
+    "undo-isolation-edit": {
+      "source": "f67e20736b3561b549fa66d5faefd20460176d8e",
+      "tree": "bb6c0ca95f44ba3890b2b4e1865843d5a477c3dc",
+      "tests": {
+        "id": "2",
+        "testcasecount": "71",
+        "result": "Passed",
+        "total": "71",
+        "passed": "71",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-14 04:23:24Z",
+        "end-time": "2026-11-14 04:25:04Z",
+        "duration": "99.4966314"
+      },
+      "files": {
+        "unity.log": "a1a0e70f9238f1fed851309366ec11ad7f75513a1170e6cd5281f05c3e7a7e46",
+        "tests.xml": "839e46b3a573ab094838fb810cb73e8b2f490bf19d4e476d967b423c603a7526"
+      },
+      "resultSha256": "70cac49055c449122125e407005b9d9587404ed45246616f21bfe52d57085a7f",
+      "restoration": {
+        "prefsRestored": true,
+        "settingsRestored": true,
+        "privateUnchanged": true,
+        "trackedDiff": ""
+      }
+    },
+    "final-playmode": {
+      "source": "f67e20736b3561b549fa66d5faefd20460176d8e",
+      "tree": "bb6c0ca95f44ba3890b2b4e1865843d5a477c3dc",
+      "tests": {
+        "id": "2",
+        "testcasecount": "129",
+        "result": "Passed",
+        "total": "129",
+        "passed": "129",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-14 04:28:47Z",
+        "end-time": "2026-11-14 04:33:56Z",
+        "duration": "308.3190126"
+      },
+      "files": {
+        "unity.log": "9535e79b7f939aaf7b5794d4a5e7dc2e657b1f1e4ab8ea812d6c6818be60b6c8",
+        "tests.xml": "bcf35ab19d55f660d5aec986baad12e9248745f9278cd3c9997d4b42b4d386c1"
+      },
+      "resultSha256": "d5920a72044a2af3609c17c259ee1707f3e8334f7ea6809e5dd4d6c311344b4b",
+      "restoration": {
+        "prefsRestored": true,
+        "settingsRestored": true,
+        "privateUnchanged": true,
+        "trackedDiff": ""
+      }
+    }
+  },
+  "staticChecks": {
+    "source": "eecc2fceb491ef4dc931c4a8baa1da70c4ca8de5",
+    "resultSha256": "8c33cf8869e93cbd1702fb76e7be9582ed96d509442772e8aaa27cc6f241c0cf",
+    "allCommandsExitZero": true,
+    "unchangedInputBindings": {
+      "Assets/Scripts/Core": true,
+      "Tests/CoreVerification": true,
+      "Tests/FadenwerkJsonVerification": true,
+      "Tests/WorldForgeCoreVerification": true,
+      "Assets/AshenCrypt/WorldForge/Core": true,
+      "Packages/com.ouroboros.fadenwerk/Editor/FwJson.cs": true,
+      "Tests/Preflight": true,
+      "Tools/Director": true,
+      "scripts/ci": true
+    }
+  },
+  "privateInputs": {
+    "count": 4348,
+    "bytes": 2401501653,
+    "plannedMetadataOnlyChanges": [
+      {
+        "path": "Assets/PrivateArt/OwnerForestReview/Editor/AshenKryptAssetSetup.cs.meta",
+        "beforeSha256": "a9fba8bfec0a1bdf6f03d1d67c415593bc0d195bad9e73b907c21a19de3af162",
+        "afterSha256": "5c06e92af9bc6fda2fe08b6aa1eb5128b3e6ded8900f3e86746190dc3f23bea6",
+        "guidPreserved": "f58d5efd6bbd17ed4ad82f9455020a8a",
+        "originalWorkspaceUnmodified": true,
+        "change": "Add explicit default MonoImporter metadata from the pinned native Editor; source/model/texture bytes unchanged"
+      },
+      {
+        "path": "Assets/PrivateArt/OwnerForestReview/Editor/ForestTerrainReview.cs.meta",
+        "beforeSha256": "1fa28fd51e71e986b9025d4f58b1852656e43fb3c0f4a2f84a39a9a7a410e78f",
+        "afterSha256": "575db7f7ea46a06fcaad18cfbc2a8dbd619c30ebdbbe2aae6e98823ab5887188",
+        "guidPreserved": "ab99ea2d39c04f2b687d7fe3c2a2bbc5",
+        "originalWorkspaceUnmodified": true
+      },
+      {
+        "path": "Assets/PrivateArt/OwnerForestReview/Editor/ForestPreviewScene.cs.meta",
+        "beforeSha256": "0981db7c58c0e0f7699044308eb8d6e773662ddd07e15b212621a35c1dc1f204",
+        "afterSha256": "be542f940dab39db333f2d7f489c0c63a7b8c80ded13140552c06c650cc4a2c1",
+        "guidPreserved": "7b6171ce02725ea15ba8134ed7d981e2",
+        "originalWorkspaceUnmodified": true
+      },
+      {
+        "path": "Assets/PrivateArt/OwnerForestReview/Editor/ForestAssetReview.cs.meta",
+        "beforeSha256": "e35c43632eca252b6523f87ca1b7504cf049d02737cd856559a1340e45fd4f61",
+        "afterSha256": "95ca75ace7aa34026d49fe68e7dc3574f2a83726fb2e3fdfad82a641068a3419",
+        "guidPreserved": "e3236795dcefa8905bbcec4d17bf5cd7",
+        "originalWorkspaceUnmodified": true
+      }
+    ],
+    "allOriginalInputFilesUnchanged": true
+  },
+  "fableFilesUnchanged": {
+    "Assets/Scripts/Runtime/ArenaHudLayout.cs": "c2b247421becd4d448b2c1a30d4409ddb5dc0899e6afd7c8fc846a4bc33f51e3",
+    "Assets/Scripts/Runtime/AshenUiTheme.cs": "7b462613e694137288f3ff07f7289a4153e3b33e86cf3e20e618abc13604ea2c",
+    "Assets/Scripts/Runtime/HudPresentation.cs": "1f7126099da6fcd6ea5f4d526616a26db47a654e82d9e340725b5f77b633d680",
+    "Assets/Scripts/Runtime/MenuPresentation.cs": "348af52d0364295ead7445f238b89504114ae05c6bd9349a20ec6f52d00a472e",
+    "Assets/Scripts/Runtime/ArenaCameraRig.cs": "61ad36575f4446314acf52025766d9416ff265af5c593db2e33683334380c640",
+    "Assets/Scripts/Runtime/HeroCameraPresentation.cs": "4ce065ebbf557f63c7292a69ea32b666ec3757ba57b879614061e99027afd7bd"
+  },
+  "importedBinaryInputCount": 32,
+  "importedBinaryInputManifestSha256": "35ef6cc884fad99b3c4c91df30a56328f1483bca580472a2efb9614d252e9402",
+  "prefsSha256": "71e941facd5e2df37edb85efbca94c3d3cf86b9a2852f0180daa476c5467ecba",
+  "trackedDiff": "",
+  "review": {
+    "scope": "No remaining static findings at tested source",
+    "standards": "No remaining static findings at tested source"
+  },
+  "limits": [
+    "Authoring-only integration",
+    "No canonical quest/reward/save adapter",
+    "No procedural woodland scene replacement",
+    "No Android APK or tablet run",
+    "No new visual-quality acceptance",
+    "No merge"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "AshenCrypt.WorldForge",
+  "rootNamespace": "AshenCrypt.WorldForge",
+  "references": ["AshenCrypt.WorldForge.Core"],
+  "autoReferenced": true,
+  "defineConstraints": ["WF_HAS_TERRAIN"],
+  "versionDefines": [
+    { "name": "com.unity.modules.terrain", "expression": "1.0.0", "define": "WF_HAS_TERRAIN" }
+  ]
+}
