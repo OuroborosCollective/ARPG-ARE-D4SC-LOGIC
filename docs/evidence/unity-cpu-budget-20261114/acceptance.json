@@ -1,0 +1,32 @@
+{
+  "schema": "ashen.unity-cpu-budget.v1",
+  "source": "80c32e73a8526a6cc2c539e3d1ad5412f2bce43b",
+  "hostCpuCount": 8,
+  "scopeCpuMax": "50000 100000",
+  "pausedProcesses": 36,
+  "unityCpuPercentMeasuredAfterPause": 0.0,
+  "measurementSeconds": 3,
+  "timerEnabled": true,
+  "serviceResult": "success",
+  "serviceExitCode": 0,
+  "policy": "No automatic resume. At most one main editor active in development. Other services remain separate.",
+  "nativePlaymode": "interrupted, not accepted",
+  "testResults": {
+    "selectionTests": 2,
+    "pythonCompile": true
+  },
+  "files": {
+    "Tools/Operations/ashen-unity-budget-guard.timer": "0671366740b7036cc4246cd49f413d61644ec870555805463a1b651dd66aa7d5",
+    "Tools/Operations/unity_cpu_budget.py": "02592e488f6966031a5168cfc99079953ea1f9bc331c594b9b812a05fb5ee0e8",
+    "Tools/Operations/ashen-unity-budget-guard.service": "0c91999e59a08581ee9ed53e50035fad673bd794ef6781e550cf493138e38f3f"
+  },
+  "ci": {
+    "source": "4128ce460558450db2ec56cf76e4823ca242f0d7",
+    "runId": 43650792887,
+    "jobId": 132618583611,
+    "conclusion": "success"
+  },
+  "diskPrefsRestored": true,
+  "unrelatedContainersUnchanged": true,
+  "ownerInstruction": "Stop after protection and saving; wait for owner before continuing development."
+}
