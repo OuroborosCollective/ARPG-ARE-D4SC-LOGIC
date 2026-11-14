@@ -81,11 +81,13 @@ namespace AshenCrypt.WorldForge.Core
         private readonly byte[] _walk;
         private readonly ForgedObstacle[] _obstacles;
         private readonly ForgedPoiRecord[] _pois;
+        private readonly IReadOnlyList<ForgedObstacle> _obstaclesView;
+        private readonly IReadOnlyList<ForgedPoiRecord> _poisView;
         private readonly int _bucketsX, _bucketsZ, _maxObstacleRadius;
         private readonly int[][] _buckets;
 
-        public IReadOnlyList<ForgedObstacle> Obstacles { get { return _obstacles; } }
-        public IReadOnlyList<ForgedPoiRecord> Pois { get { return _pois; } }
+        public IReadOnlyList<ForgedObstacle> Obstacles { get { return _obstaclesView; } }
+        public IReadOnlyList<ForgedPoiRecord> Pois { get { return _poisView; } }
 
         public ForgedWorldMap(long originXmm, long originZmm, int spacingMm, int nodesX, int nodesZ, int[] heightsMm,
                               bool[] walkableCells, IList<ForgedObstacle> obstacles, IList<ForgedPoiRecord> pois)
@@ -105,6 +107,8 @@ namespace AshenCrypt.WorldForge.Core
             _walk = (byte[])walkBits.Clone();
             _obstacles = obstacles;
             _pois = pois;
+            _obstaclesView = Array.AsReadOnly(_obstacles);
+            _poisView = Array.AsReadOnly(_pois);
 
             _bucketsX = (int)((WidthMm + BucketMm - 1) / BucketMm) + 1;
             _bucketsZ = (int)((DepthMm + BucketMm - 1) / BucketMm) + 1;

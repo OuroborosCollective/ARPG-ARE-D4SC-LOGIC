@@ -283,7 +283,7 @@ namespace Fadenwerk.EditorTools
             if (GUILayout.Button("Ausgewählten Ordner als Gegenstände übernehmen")) ImportSelectedFolder(db, "misc");
 
             EditorGUILayout.Space(10);
-            if (GUILayout.Button("Beispielinhalte in die aktuelle Szene legen")) FadenwerkSample.Create();
+            if (GUILayout.Button("Beispielentwurf in eigener Szene anlegen")) FadenwerkSample.Create();
         }
 
         static void ImportSelectedFolder(FadenwerkDatabase db, string category)

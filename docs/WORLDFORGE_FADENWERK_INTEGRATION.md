@@ -80,3 +80,15 @@ The metadata preflight fails identically in the original private baseline and th
 workspace on the pre-existing OwnerForestReview Editor script meta (missing
 MonoImporter). The assertion remains intact. Repository-only checks and native
 private-overlay checks are reported separately; this is not a clean full gate.
+
+## Independent review corrections
+
+Read-only standards review identified backing-array escapes behind IReadOnlyList;
+real map mutation tests failed 0/2 before cached read-only views. Scope review
+identified the sample command creating a competing manager in the active scene.
+It now creates its own database and additive authoring scene, with no Manager or
+DebugHud and no instruction to activate gameplay. A native scene-sentinel
+regression failed at the missing safe entry point before implementation; its
+first compile-error fixture is retained separately and is not behavioral RED.
+
+Owner: Thomas Markgraf, using the artist pseudonym OuroborosCollective (one person).
