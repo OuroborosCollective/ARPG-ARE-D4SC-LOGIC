@@ -22,11 +22,16 @@ ist noch keine Veröffentlichung oder bestandene Geräteabnahme.
 
 ## Nächster vollständiger Arbeitsblock
 
-Den erworbenen Hunter als tatsächlichen Straßenjäger und Begleiter einbinden,
-seinen eingefrorenen Bogenschuss durch eine geprüfte Bewegung ersetzen und den
-Ablauf mit Ausrüstung und Save/Load im echten Unity-Spiel nachweisen. Lizenzierte
-Rohassets bleiben privat. Neue Ritter-, Priester-, Ork- und Bossmodelle bekommen
-erst nach Prüfung eine passende Rolle; sie erweitern nicht automatisch die Story.
+Der gemeinsame Bogenschuss ist jetzt auf Spieler und bestehendem Jägerbegleiter
+nativ geprüft, einschließlich aufrechter Haltung, wiederholter Treffer und Waffenwechsel.
+[Abnahme](../.specify/bugs/hunter-bow-animation/test.md):129PlayMode/55EditMode,
+0Skips und8112Core-Assertions; kein neuer APK-/Gerätenachweis.
+
+Als Nächstes den erworbenen Inari Hunter als tatsächlichen Straßenjäger und Begleiter
+einbinden, Materialien anpassen und die noch fehlende Straßenjäger-Animatorbindung
+mit Rettung, Kampf und Save/Load prüfen. Lizenzierte Rohassets bleiben privat.
+Neue Ritter-, Priester-, Ork- und Bossmodelle bekommen erst nach Prüfung eine passende
+Rolle; sie erweitern nicht automatisch die Story.
 
 ## Abnahme vor Herausgabe
 

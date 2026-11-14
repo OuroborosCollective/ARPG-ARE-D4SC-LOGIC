@@ -23,6 +23,8 @@ derived asset identity. Native verification is recorded separately in test.md.
 | Assets/Tests/EditMode/BowAnimationEditModeTests.cs | Three native authoring tests | Exact source curves, invalid take rejection, repeatability, GUID/source preservation |
 | Assets/Scripts/Runtime/HumanoidBowGrip.cs | Bow-only palm-frame adapter | Read actual humanoid IK orientation once; rotate only the live weapon, preserve the reviewed player grip |
 | Assets/Scripts/Runtime/EquipmentPresentation.cs, CompanionPresentation.cs | Bind or clear bow grip on equipment change | Sword/shield attachments and Core actions unchanged |
+| Assets/Tests/PlayMode/AtmosphereRuntimeTests.cs | Isolate app resume from particle visibility/culling; assert paused lifetime and resumed playback | Test instance only; restore culling in finally; no manual particle simulation |
+| Assets/AshenCrypt/MemoryForge/Tests/Runtime/RememberingVillageTests.cs | Compare actual material channels within 1e-6 | Measured native URP round-trip error is at most 5.96e-8; sight and material-identity assertions retained |
 
 ## Tests Added or Updated
 
@@ -62,6 +64,21 @@ Repeated actual companion hits at ticks 62,68,74 already confirm the unchanged
 six-tick cadence and moving production controller; final grip and full regression
 results remain subject to the verification report. Test-only JPEG captures record
 the same native camera output with smaller transfer size; legacy PNG captures remain.
+
+The full native run on `497413a0384fd2a4d9565ac4aef090719b5c07b7` passed both bow
+tests but exposed two neighboring fixture failures (127/129 passed, no skips):
+particle lifetime after app resume and exact material-color equality. Diagnostic
+revision `cbbe523ebe97027959051425d0000bedfb8ce0f1` measured URP color component
+deltas of 0, -5.96046448e-8, -2.98023224e-8, 0. The particle case passed alone with
+native aging and an invisible renderer using Automatic culling; its full-suite
+failure is not evidence of a broken runtime resume path. The corrected fixture
+excludes visibility-dependent culling and additionally checks that pause preserves
+particle lifetime and resume restores playback. No production atmosphere or sample
+code changed. Final acceptance requires the complete suites, not just these isolated
+cases. The separately delivered Memory Forge 1.0.3 package is not rebuilt by this change.
+Review requested separating these adjacent fixture corrections from the bow repair;
+they are tracked in [PR42](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/42)
+with their own evidence and Memory entry. The combined native run retains both changes.
 
 ## Follow-ups
 

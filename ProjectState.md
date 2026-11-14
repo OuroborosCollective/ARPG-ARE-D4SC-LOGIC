@@ -15,14 +15,15 @@ Die Hauptspur bleibt sichtbar, auch wenn Mara noch über die verschonten Bärenj
 informiert werden muss. Nordwechsel ist bisher nur ein Hinweis, kein fertiges Gebiet.
 [Stationsablauf und Grenzen](docs/ASCHENZOLL_FREIGHT.md).
 
-Gemeinsamer geprüfter Code: **5977f4c494c07a7a94d24c9e67b29419e0f2673e**,
-CI43441375613 erfolgreich: **8112 Core-Assertions und 40 Preflights**.
-Unity6000.6.8f1: **126/126 PlayMode und 52/52 EditMode**, jeweils keine Skips;
+Aktueller geprüfter Code: **6b989e7a5cd85465933688d6f80c7a9d5d4b4846**,
+CI43530269464 erfolgreich: **8112 Core-Assertions, 40 Preflights und 20 Director-Tests**.
+Unity6000.6.8f1: **129/129 PlayMode und 55/55 EditMode**, jeweils keine Skips;
 die Gesamtzahlen enthalten auch die separat exportierbaren Pakettests.
 Dorfneustart erhält NPCs, Uhr und Erinnerungen und speichert den geheilten Spieler.
 B bleibt NPC-Angriff, O öffnet Begleiter. Der Jäger folgt außerhalb des Kampfes
 mit Spielergeschwindigkeit. Ungültige NPC-Archive werden sauber abgelehnt.
-[Revisionen, REDs und XML-Prüfsummen](docs/evidence/npc-forge-20261113/review-2-native.json).
+[Frühere NPC-Korrekturen](docs/evidence/npc-forge-20261113/review-2-native.json),
+[aktuelle Regression und XML-Prüfsummen](docs/evidence/bow-repair-20261113/acceptance.json).
 Private Assets unverändert, Besitzer-Spielstände und Projekteinstellungen
 wiederhergestellt. Für diese letzten Spieländerungen fehlt ein neuer Spiel-APK-
 und physischer Tab-A9-Nachweis.
@@ -45,16 +46,25 @@ verfügbaren Lizenzbestand nachgewiesen und wurden nicht installiert.
 [Installation, Quellstände und Grenzen](docs/OFFICIAL_UNITY_TOOLING.md).
 [Animations-/Design-Skills und Besitzer-Anhang](docs/GAMEDEV_SKILLS.md).
 
-Nächster Grafikblock: den erworbenen Hunter gezielt als Straßenjäger und Begleiter
-integrieren. Hunter, Horseman, Priest, Orc und Borshin sind vollständig geladen und
-CRC-/SHA-geprüft; das bestätigt noch keine spielbare Integration oder Bossrolle.
-Privater Probeimport bestätigt ein gültiges Hunter-Humanoid-Skelett und tatsächliche
-Ruhe-/Laufbewegungen. Der neue native Regressionstest auf
-`9af7842b05bde3157a9461587babbd90a2fe4408` belegt den eingefrorenen Bogenschuss:
-0 Grad Armbewegung über die tatsächliche WeaponBowShot-Animation. Der Test ist
-bewusst noch RED; Materialanpassung, vollständige Schussbewegung und Integration
-stehen aus. Lizenzierte Rohassets bleiben privat. Entscheidende neue Story- und
-Gameplayfragen gehen weiterhin an den Besitzer.
+Der gemeinsame Bogenschuss für Spieler und Jägerbegleiter ist repariert: Der
+Importer verwendet den bewegten BowShot-Take statt der T-Pose; eine lokale
+Handflächenbindung hält den Jägerbogen aufrecht. Echte wiederholte Treffer bleiben
+sechs Ticks auseinander, Ausrüsten und Rückwechsel zum Nahkampf bestehen.
+Code `6b989e7a5cd85465933688d6f80c7a9d5d4b4846`: **129/129 PlayMode, 55/55 EditMode, 0 Skips**,
+**8112 Core-Assertions, 40 Preflights, 20 Director-Tests**, CI43530269464 erfolgreich.
+Neun native Bogenaufnahmen gesichtet. Nur der abgeleitete private Bogenclip wurde
+gezielt neu erzeugt; Quellmodelle/GUIDs erhalten, Tests verändern private Dateien
+nicht und stellen Besitzer-Prefs/Settings wieder her.
+[Fehlerbehebung und Prüfung](.specify/bugs/hunter-bow-animation/test.md),
+[revisionsgebundene Nachweise](docs/evidence/bow-repair-20261113/acceptance.json).
+
+Nächster Grafikblock: den erworbenen Inari Hunter gezielt als Straßenjäger und
+Begleiter integrieren, einschließlich Materialanpassung und der bisher separaten
+Straßenjäger-Animatorbindung. Hunter, Horseman, Priest, Orc und Borshin sind geladen
+und CRC-/SHA-geprüft; das bestätigt noch keine spielbare Integration oder Bossrolle.
+Private Hunter-Proben belegen ein gültiges Humanoid-Skelett und Ruhe-/Laufbewegungen.
+Lizenzierte Rohassets bleiben privat. Neue Story-/Gameplayfragen gehen an den Besitzer.
+Ein neuer Spiel-APK- und physischer Tablet-Nachweis bleiben offen.
 
 Die nachfolgenden Abschnitte dokumentieren frühere, revisionsgebundene Stände.
 
