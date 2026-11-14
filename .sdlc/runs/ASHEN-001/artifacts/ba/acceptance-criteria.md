@@ -3,7 +3,7 @@ run_id: "ASHEN-001"
 task_id: "BA-001"
 producer: ba
 status: draft
-revision: 1
+revision: 2
 ---
 
 # Acceptance criteria
@@ -235,11 +235,11 @@ evidence_expected: Recorded owner decision or still-open question; proposal coun
 requirement_id: REQ-013
 claim_ids: [CLAIM-016]
 
-Given FACT-016 has value null and status unresolved
-When the spy’s promised investigative disclosure is needed for design or implementation
-Then Q-001 remains open and dependent disclosure content is not treated as approved; the approved military request may be specified independently
+Given the spy offers investigative help in exchange for troop strength and march plans
+When the player hears the offer or later reviews its recorded terms
+Then the promised information is both the name and the next handover location of a transport intermediary, initially recorded as an unverified promise; hearing that promise alone neither supplies the actual information nor verifies it, identifies who ordered the transports or establishes the missing people’s fate
 
-evidence_expected: PM reconciliation of CLAIM-016, Q-001 and dependent tasks; a later owner decision must update the authoritative facts before dependent content can pass.
+evidence_expected: Core and native dialogue/journal checks for both promised information types and both exchange terms; compare knowledge/evidence state before the offer, after hearing it, and after save/load to show that a promise alone does not become received or verified information. Q-001 is recorded as answered; no fulfillment or corroboration is claimed without its own causal event.
 
 ## AC-022
 

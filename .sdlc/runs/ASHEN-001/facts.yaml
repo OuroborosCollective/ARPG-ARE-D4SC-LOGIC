@@ -2,7 +2,7 @@
   "schema_version": 1,
   "run_id": "ASHEN-001",
   "producer": "pm",
-  "revision": 2,
+  "revision": 3,
   "facts": [
     {
       "id": "FACT-001",
@@ -164,8 +164,18 @@
       "id": "FACT-016",
       "subject": "spy.help_disclosure",
       "relation": "equals",
-      "value": null,
-      "status": "unresolved"
+      "value": {
+        "promised_information": [
+          "transport_intermediary_name",
+          "next_handover_location"
+        ],
+        "initially": "unverified_promise",
+        "exchange_for": [
+          "troop_strength",
+          "march_plans"
+        ]
+      },
+      "status": "approved"
     },
     {
       "id": "FACT-017",

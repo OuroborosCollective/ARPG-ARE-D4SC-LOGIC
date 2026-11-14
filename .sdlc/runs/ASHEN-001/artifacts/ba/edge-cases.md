@@ -3,7 +3,7 @@ run_id: "ASHEN-001"
 task_id: "BA-001"
 producer: ba
 status: draft
-revision: 1
+revision: 2
 ---
 
 # Edge cases
@@ -22,6 +22,6 @@ revision: 1
 | EDGE-010 | REQ-010 | A crowded cave or long objective obscures existing controls at tablet dimensions. | Resolve layout/readability within the preserved HUD/menu/camera contract and review the native result. | Unusable touch interaction despite correct Core state. | CLAIM-013 |
 | EDGE-011 | REQ-011 | Core checks pass but native Unity, Android build or physical tablet checks have not run. | Report only the executed result for its pinned revision; keep absent platform evidence explicitly pending. | Fabricated acceptance or concealed prerequisites. | CLAIM-014 |
 | EDGE-012 | REQ-012 | The owner has not answered a proposal while routine generation or save work can proceed. | Keep the lore decision unresolved and continue authorized independent technical work. | Invented approval or avoidable technical stoppage. | CLAIM-015 |
-| EDGE-013 | REQ-013 | A developer needs the spy’s promised revelation to finish a quest. | Refer to Q-001 and leave dependent revelation content pending. | Invented transport culprit, motive or missing-person fate. | CLAIM-016 |
+| EDGE-013 | REQ-013 | The player hears the promise, leaves or reloads before any actual disclosure or verification. | Retain the promised name and handover-location terms as an unverified offer; do not grant actual knowledge or corroboration merely from hearing, journalling or reloading it. | Promise mistaken for proof, automatic knowledge or invented transport culprit/missing-person fate. | CLAIM-016 |
 | EDGE-014 | REQ-014 | Route geometry can reach Immergrün before its main story encounter is chosen. | Keep geometry planning distinct from unresolved encounter acceptance under Q-002. | A location shell is mistaken for full story delivery. | CLAIM-017 |
 | EDGE-015 | REQ-015 | One or both post-Immergrün areas have provisional biome names but no approved purpose. | Retain both areas in scope and keep story purposes unresolved under Q-003. | Working labels imply approved later canon or reduced scope. | CLAIM-018 |

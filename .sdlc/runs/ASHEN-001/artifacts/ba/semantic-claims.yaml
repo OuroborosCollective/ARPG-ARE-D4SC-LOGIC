@@ -3,7 +3,7 @@
   "run_id": "ASHEN-001",
   "task_id": "BA-001",
   "producer": "ba",
-  "revision": 1,
+  "revision": 2,
   "claims": [
     {
       "id": "CLAIM-001",
@@ -241,14 +241,22 @@
       "source_fact_id": "FACT-016",
       "subject": "spy.help_disclosure",
       "relation": "equals",
-      "value": null,
-      "status": "unresolved",
+      "value": {
+        "promised_information": [
+          "transport_intermediary_name",
+          "next_handover_location"
+        ],
+        "initially": "unverified_promise",
+        "exchange_for": [
+          "troop_strength",
+          "march_plans"
+        ]
+      },
+      "status": "approved",
       "requirement_ids": [
         "REQ-013"
       ],
-      "question_ids": [
-        "Q-001"
-      ]
+      "question_ids": []
     },
     {
       "id": "CLAIM-017",

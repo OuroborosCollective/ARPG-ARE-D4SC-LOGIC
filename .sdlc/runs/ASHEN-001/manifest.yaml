@@ -6,7 +6,7 @@ run:
   status: requirements
   current_stage: requirements
   created_at: 2026-11-14T22:36:25.635Z
-  updated_at: 2026-11-14T22:47:06.664Z
+  updated_at: 2026-11-14T23:57:03.268Z
   created_by: product-owner
   current_owner: ba
   branch: null
@@ -135,6 +135,18 @@ tasks:
         reason: Seven artifacts delivered; 19 exact claims and unresolved story choices
           retained for PM review
         at: 2026-11-14T22:47:06.664Z
+      - from: awaiting_review
+        to: running
+        actor: pm
+        reason: Owner answered spy help disclosure; reconcile fact revision 3 and retain
+          remaining unresolved lore
+        at: 2026-11-14T23:54:11.785Z
+      - from: running
+        to: awaiting_review
+        actor: ba
+        reason: Owner spy disclosure reconciled exactly with facts revision 3 across
+          seven BA artifacts; two material lore choices remain unresolved
+        at: 2026-11-14T23:57:03.268Z
     started_at: 2026-11-14T22:39:44.877Z
     completed_at: null
     commit: null

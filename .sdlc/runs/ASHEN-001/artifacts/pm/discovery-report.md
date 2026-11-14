@@ -3,7 +3,7 @@ run_id: ASHEN-001
 task_id: PM-001
 producer: pm
 status: draft
-revision: 1
+revision: 2
 ---
 
 # Discovery report
@@ -22,8 +22,12 @@ Only existing Unity mobile game, including its C# Core, Unity presentation, edit
 
 ## Delivery risks
 
-The owner corrected the geography and selected espionage with politically risky military information. Lore unknowns FACT-016–018 must remain explicit questions with three proposals each, answered in sequence as useful. Requirements may not treat guesses as approved facts. Plan technical interfaces and independent dungeon generation while those decisions are open.
+The owner corrected the geography and selected espionage with politically risky military information. Lore unknowns FACT-017–018 must remain explicit questions with three proposals each, answered in sequence as useful. Requirements may not treat guesses as approved facts. Plan technical interfaces and independent dungeon generation while those decisions are open.
 
 Runtime checks are distinct: local C# tests/build, Python static preflight and Director checks; native Edit/PlayMode on exact VPS revision; IL2CPP/ARM64 build; physical tablet acceptance. The generic SDLC checks are configured to real existing tools. Offline collector calls run inside an actual unshare network namespace before setting the runtime policy attestation. No unverified network restriction or synthetic evidence.
 
 The SDLC plugin supplies role instructions; the pinned npm CLI 1.0.1 owns .sdlc bookkeeping. Existing Director/Spec Kit/SPD remain the execution/contract sources, not competing product authorities. The new run remains open until its full scope and required owner decisions are satisfied.
+
+## Owner follow-up
+
+FACT-016 is now explicit: the spy promises the name and next handover location of a transport intermediary in exchange for troop strength and march plans; this begins as an unverified promise. Record Q-001 as answered, preserve the two remaining consequential lore questions. The owner resumed CPU-bounded game development and requires a real playable World Forge use with measured utility before world/save backup and later standalone tool release. Tool marketing and submission are later work, outside this journey implementation run. Prices are Fadenwerk USD6 and World Forge USD35 one time, recorded in owner-decisions.md.

@@ -3,7 +3,7 @@ run_id: "ASHEN-001"
 task_id: "BA-001"
 producer: ba
 status: draft
-revision: 1
+revision: 2
 ---
 
 # Validation rules
@@ -22,6 +22,6 @@ revision: 1
 | VAL-010 | REQ-010 | Interface and asset changes | Retain Fable interface/camera behavior and use available licensed assets with readable projected objectives. | Unauthorized redesign or asset substitution cannot be labelled compliance with preservation. | CLAIM-013 |
 | VAL-011 | REQ-011 | Prerequisite and platform evidence | Fadenwerk acceptance precedes expansion mutation; each test/build claim cites its actual revision and platform. | Missing native evidence, inherited historical APK evidence or fabricated device claims fail review. | CLAIM-014 |
 | VAL-012 | REQ-012 | Material lore proposal and owner response | Three concrete proposals are presented; an explicit response determines the canonical choice. | Silence, a technical go-ahead or BA prose cannot approve a lore option. | CLAIM-015 |
-| VAL-013 | REQ-013 | FACT-016 / Q-001 | Keep equals/null/unresolved until the owner decides and PM updates the fact. | Do not replace null with invented investigative information or mark it approved. | CLAIM-016 |
+| VAL-013 | REQ-013 | Spy offer terms and knowledge/evidence state under FACT-016 | Offer both the intermediary’s name and next handover location for troop strength and march plans; record the initial state as an unverified promise and Q-001 as answered. | A missing promised information type, substituted register/witness offer, automatic receipt/verification or inferred transport culprit/missing-person fate is invalid. | CLAIM-016 |
 | VAL-014 | REQ-014 | FACT-017 / Q-002 | Keep equals/null/unresolved while preserving the Immergrün destination requirement. | Do not substitute a guessed encounter or remove the destination. | CLAIM-017 |
 | VAL-015 | REQ-015 | FACT-018 / Q-003 | Keep equals/null/unresolved while preserving two later areas. | Do not substitute guessed story purposes or silently defer either area out of scope. | CLAIM-018 |

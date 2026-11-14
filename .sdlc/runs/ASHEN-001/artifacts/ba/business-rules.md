@@ -3,7 +3,7 @@ run_id: "ASHEN-001"
 task_id: "BA-001"
 producer: ba
 status: draft
-revision: 1
+revision: 2
 ---
 
 # Business rules
@@ -22,6 +22,6 @@ revision: 1
 | BR-010 | REQ-010 | Preserve Fable HUD, menus, camera and licensed original assets. | No unsolicited interface or camera redesign is in scope. | product-owner | CLAIM-013 |
 | BR-011 | REQ-011 | Fadenwerk acceptance comes first; playable expansion comes before final balancing; native checks are required and Android evidence is distinct. | Core or editor evidence cannot be relabelled as APK/device acceptance. | product-owner | CLAIM-014 |
 | BR-012 | REQ-012 | Important lore choices require three concrete owner proposals; routine authorized technical decisions proceed autonomously. | No repeated owner approval for already-authorized routine work. | product-owner | CLAIM-015 |
-| BR-013 | REQ-013 | No authoritative spy-disclosure rule exists yet: CLAIM-016 is unresolved; use Q-001. | Dependent story remains pending, without selecting a temporary answer. | product-owner | CLAIM-016 |
+| BR-013 | REQ-013 | In exchange for troop strength and march plans, the spy promises a transport intermediary’s name and next handover location. This starts as an unverified promise; Q-001 is answered. | The offer alone supplies no actual name/location or verified transport fact. Access to a freight register and contact with a surviving transport companion were not selected. | product-owner | CLAIM-016 |
 | BR-014 | REQ-014 | No authoritative Immergrün main encounter exists yet: CLAIM-017 is unresolved; use Q-002. | Immergrün remains in scope while its dependent content is pending. | product-owner | CLAIM-017 |
 | BR-015 | REQ-015 | No authoritative story purpose for the two later areas exists yet: CLAIM-018 is unresolved; use Q-003. | Both areas remain in scope while their dependent content is pending. | product-owner | CLAIM-018 |

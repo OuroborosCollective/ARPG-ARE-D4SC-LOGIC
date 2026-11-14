@@ -23,3 +23,7 @@ Der Besitzer hebt die Entwicklungspause nach der CPU-Sicherung ausdrücklich auf
 Zuerst wird am Spiel weitergearbeitet: Fadenwerk-Anbindung abschließen und World Forge tatsächlich für ein begehbares Spielgebiet einsetzen. Mindestens ein realer Einsatz und dessen belegter Nutzen sind Voraussetzung für die folgende Vermarktung; ein Import, eine Vorschau oder eine theoretische Zeitersparnis genügen nicht.
 
 Nach diesem Nachweis werden Welt und Spielstand gesichert und ihre Wiederherstellbarkeit geprüft. Erst danach folgen eigenständige Unity-Werkzeugpakete, geprüfte Anleitung, professionelle Beschreibung und aufmerksamkeitsstarke Bilder sowie die Asset-Store-Einreichung: **Fadenwerk USD 6 einmalig**, **World Forge USD 35 einmalig**. Vorhandene lizenzierte Spielassets gehören nicht automatisch zum weiterverkaufbaren Paket. „Gaia-Alternative“ ist der gewünschte Einsatzzweck, kein bereits belegter Anspruch auf vollständigen Gaia-Pro-Funktionsumfang. Die vorliegenden Tests belegen noch keinen abgeschlossenen Spieleinsatz von World Forge.
+
+## Angebot des Spions – ausdrückliche Besitzerwahl
+
+Als Gegenleistung verspricht der Spion **den Namen und den nächsten Übergabeort eines Transportvermittlers**. Dies ist zunächst sein Angebot, kein bereits bewiesener Hinweis oder automatisch bekanntes Wissen. Zugang zu einem Frachtregister und Kontakt zu einem überlebenden Transportbegleiter wurden nicht gewählt. Die spätere überprüfbare Frachtspur darf nicht vorwegnehmen, wer die Transporte beauftragt hat oder was den Vermissten zugestoßen ist.
