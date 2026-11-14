@@ -38,3 +38,5 @@ jobs:
         run: python3 -m unittest discover -s Tools/Director -v
       - name: Verify Fadenwerk gateway request policy (not browser or Unity execution)
         run: python3 -m unittest discover -s Tests/FadenwerkGateway -v
+      - name: Verify Unity CPU guard process selection (not a VPS deployment)
+        run: python3 -m unittest discover -s Tests/Operations -v
