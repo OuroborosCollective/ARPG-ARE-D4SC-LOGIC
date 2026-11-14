@@ -22,6 +22,8 @@ jobs:
         run: dotnet run --project Tests/CoreVerification/CoreVerification.csproj --configuration Release
       - name: Verify real Fadenwerk JSON escaping and roundtrip
         run: dotnet run --project Tests/FadenwerkJsonVerification/FadenwerkJsonVerification.csproj --configuration Release
+      - name: Verify World Forge map immutability
+        run: dotnet run --project Tests/WorldForgeCoreVerification/WorldForgeCoreVerification.csproj --configuration Release
       - name: Check repository has playable Unity entrypoint
         run: |
           test -f Assets/Scripts/Runtime/ArenaRuntime.cs
