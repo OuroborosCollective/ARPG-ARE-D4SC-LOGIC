@@ -7,6 +7,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../Assets/Scripts/Core/AuthoredHungerBinding.cs" Link="AuthoredHungerBinding.cs" />
     <Compile Include="../../Assets/AshenCrypt/MemoryForge/Core/**/*.cs" LinkBase="MemoryForge" />
     <Compile Include="../../Assets/Scripts/Core/NpcForge*.cs" LinkBase="Core" />
     <Compile Include="../../Assets/Scripts/Core/ArpgSimulation.cs" Link="ArpgSimulation.cs" />

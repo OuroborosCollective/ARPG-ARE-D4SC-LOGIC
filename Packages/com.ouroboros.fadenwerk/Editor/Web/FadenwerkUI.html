@@ -238,7 +238,7 @@ async function act(path, body, okMsg){
   if (S.busy) return null;
   S.busy = true;
   try {
-    const r = await api(path, body);
+    const r = await api(path, { ...body, expectedRevision: S.rev });
     if (r.warning) toast(r.warning, "warn"); else if (okMsg) toast(okMsg, "ok");
     await poll(true);
     return r;
@@ -278,12 +278,13 @@ function buildIndex(){
 }
 
 function onStateChanged(first){
+  if (first && S.state.game && S.state.game.installed && !(S.state.npcs || []).length) S.tab = "quests";
   if (S.draft && !S.draftDirty && !S.draftNew){
     const fresh = currentRemote();
     if (fresh) { S.draft = clone(fresh); S.draftBase = JSON.stringify(fresh); }
   } else if (S.draft && S.draftDirty && !S.draftNew){
     const fresh = currentRemote();
-    S.remoteChanged = !!fresh && JSON.stringify(fresh) !== S.draftBase;
+    S.remoteChanged = !fresh || JSON.stringify(fresh) !== S.draftBase;
   }
   if (first) render();
   else renderSoft();
@@ -297,6 +298,7 @@ function currentRemote(){
 
 /* ---------- Anmeldung ---------- */
 function readToken(){
+  if (document.querySelector('meta[name="fadenwerk-owner-proxy"]')){ S.token = "proxy"; return; }
   const m = location.hash.match(/[#&]t=([^&]+)/);
   if (m){
     S.token = decodeURIComponent(m[1]);
@@ -939,6 +941,7 @@ function usageOfItem(id){
 async function saveDraft(){
   const d = S.draft;
   if (!d) return;
+  if (!S.draftNew && (!currentRemote() || JSON.stringify(currentRemote()) !== S.draftBase)){ toast("Dieser Eintrag wurde inzwischen geändert oder gelöscht. Bitte den Unity-Stand laden und vergleichen.", "err"); return; }
   let path, body, label;
   if (S.draftKind === "npc"){
     path = "/api/npc/save"; label = "NPC";
@@ -1380,6 +1383,12 @@ function renderSettings(m){
       <span class="k">Automatisch speichern</span><span>${st.autoSave ? "an" : "aus – mit 💾 oben speichern"}</span></div>
       <div class="hint" style="margin-top:8px">Bodenebene und automatisches Speichern stellst du in Unity ein: Window → Fadenwerk → Start.</div>
     </div>
+    ${st.game ? `<div class="card"><div class="sec">Ashen Crypt – Spielanbindung</div>
+      <p>Hunger hinter den Mauern: ${st.game.installed ? "angebunden" : "noch nicht eingerichtet"}. ${st.game.published ? "Geprüfte Textfassung vorhanden." : "Noch keine Textfassung im Spiel."}</p>
+      <div class="hint">Bearbeite Questtitel, Zieltexte und den Dialog „Ilyan / Mühle“. Übernimm sie danach mit dem Knopf ins Spiel; sichtbar beim nächsten Spielstart. Die Entscheidungskosten und Folgen bleiben verbindlich. Weitere Quests und Kits bleiben zunächst Entwürfe.</div>
+      <p class="hint">Spielstatus: ${esc(st.game.questStatus)} · Fassung: ${esc((st.game.publishedHash || "—").slice(0,12))}</p>
+      <div class="toolbar"><button class="btn" data-act="gameSetup">Ashen-Datenbank öffnen</button><button class="btn pri" data-act="gamePublish">Prüfen und ins Spiel übernehmen</button></div>
+    </div>` : ""}
     <div class="card"><div class="sec" style="margin:0 0 8px">Welt-Seed</div>
       <div class="hint">Startwert für alle Belohnungs-Würfe. Gleicher Seed = gleiche Belohnungen für dieselbe Quest – auf jedem Gerät.</div>
       <div class="toolbar" style="margin:8px 0 0"><input class="inp grow" id="seedInp" value="${esc(st.db ? st.db.worldSeed : "")}" ${st.db ? "" : "disabled"}><button class="btn" data-act="saveSeed" ${st.db ? "" : "disabled"}>Übertragen</button></div>
@@ -1389,7 +1398,7 @@ function renderSettings(m){
       <div class="toolbar" style="margin:8px 0 0"><button class="btn" data-act="renderAuto">🖼️ Ganze Szene rendern</button></div>
     </div>
     <div class="card"><div class="sec" style="margin:0 0 8px">Verbindung</div>
-      <div class="hint">Angemeldet mit einem Zugangsschlüssel aus Unity. Wenn du in Unity einen neuen Schlüssel erzeugst, musst du dich hier neu anmelden.</div>
+      <div class="hint">${S.token === "proxy" ? "Geschützter HTTPS-Zugang. Unity muss geöffnet und bereit sein; beim Kompilieren kurz warten." : "Angemeldet mit einem Zugangsschlüssel aus Unity."}</div>
       <div class="toolbar" style="margin:8px 0 0"><button class="btn danger" data-act="logout">Abmelden</button></div>
     </div>
     <div class="card"><div class="sec" style="margin:0 0 8px">So arbeitest du</div>
@@ -1533,7 +1542,7 @@ document.addEventListener("click", async e => {
   const d = a.dataset, D = S.draft;
   switch (d.act){
     case "login": { const t = ($("#tok").value || "").trim(); if (!t) return; S.token = t; try { localStorage.setItem("fw.token", t); } catch (x) {} render(); poll(true); break; }
-    case "logout": if (confirm("Abmelden?")) logout(); break;
+    case "logout": if (S.token === "proxy"){ location.reload(); break; } if (confirm("Abmelden?")) logout(); break;
     case "createDb": await act("/api/db/create", {}, "Datenbank angelegt."); break;
     case "saveScene": await act("/api/scene/save", {}, "In Unity gespeichert."); break;
     case "new": {
@@ -1653,6 +1662,8 @@ document.addEventListener("click", async e => {
       break;
     }
     case "placeConfirm": await placeConfirm(); break;
+    case "gameSetup": await act("/api/game/setup", {}, "Ashen-Datenbank geöffnet."); break;
+    case "gamePublish": await act("/api/game/publish", {}, "Geprüfte Texte übernommen. Beim nächsten Spielstart verfügbar."); break;
     case "saveSeed": await act("/api/seed/save", { worldSeed: $("#seedInp").value }, "Seed übertragen."); break;
   }
 });

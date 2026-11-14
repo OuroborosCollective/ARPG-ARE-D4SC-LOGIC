@@ -26,6 +26,7 @@ namespace Fadenwerk.EditorTools
     [Serializable]
     public class FwReq
     {
+        public string expectedRevision = "";
         public string id = "";
         public string kind = "";
         public float u;
@@ -66,6 +67,7 @@ namespace Fadenwerk.EditorTools
     /// <summary>Alle /api-Befehle. Läuft ausschließlich im Unity-Hauptthread.</summary>
     internal static class FadenwerkApi
     {
+        [Serializable] class RevisionOnly { public string rev; }
         static readonly Regex IdRe = new Regex("^[A-Za-z0-9_.:-]{1,80}$");
         static readonly Dictionary<string, byte[]> PreviewCache = new Dictionary<string, byte[]>();
 
@@ -99,6 +101,17 @@ namespace Fadenwerk.EditorTools
                 return FwResponse.Error("Unity ist im Play-Modus – Änderungen sind gesperrt, bis du ihn beendest.", 409);
             if (EditorApplication.isCompiling)
                 return FwResponse.Error("Unity kompiliert gerade – gleich noch einmal versuchen.", 503);
+
+            var snapshot = State(new FwRequest { method = "GET", path = "/api/state" });
+            string revision = JsonUtility.FromJson<RevisionOnly>(System.Text.Encoding.UTF8.GetString(snapshot.body)).rev;
+            if (string.IsNullOrEmpty(q.expectedRevision) || q.expectedRevision != revision)
+                return FwResponse.Error("Der Unity-Stand hat sich geändert. Bitte aktualisieren und deine Eingaben vergleichen.", 409);
+            if (p.StartsWith("/api/game/", StringComparison.Ordinal))
+            {
+                if (FadenwerkAuthoringBridge.Command == null) return FwResponse.Error("Keine Spielanbindung installiert.", 404);
+                try { return FwResponse.Json(FadenwerkAuthoringBridge.Command(p.Substring("/api/game/".Length))); }
+                catch (InvalidOperationException e) { return FwResponse.Error(e.Message, 422); }
+            }
 
             switch (p)
             {
@@ -158,6 +171,7 @@ namespace Fadenwerk.EditorTools
             j.Prop("playing", EditorApplication.isPlayingOrWillChangePlaymode);
             j.Prop("plane", FadenwerkSettings.PlaneXY ? "XY" : "XZ");
             j.Prop("autoSave", FadenwerkSettings.AutoSave);
+            if (FadenwerkAuthoringBridge.ReadState != null) j.Key("game").Raw(FadenwerkAuthoringBridge.ReadState());
 
             if (db != null)
                 j.Key("db").BeginObject().Prop("path", AssetDatabase.GetAssetPath(db)).Prop("worldSeed", db.worldSeed).EndObject();
