@@ -257,7 +257,7 @@ async function poll(force){
       onStateChanged(first);
     }
   } catch (e) {
-    S.lastError = e.message;
+    S.online = false; S.lastError = e.message;
   }
   renderStatus();
   S.pollTimer = setTimeout(poll, S.online ? 3000 : 6000);
