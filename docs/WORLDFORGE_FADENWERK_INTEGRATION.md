@@ -93,7 +93,14 @@ first compile-error fixture is retained separately and is not behavioral RED.
 
 Owner: Thomas Markgraf, using the artist pseudonym OuroborosCollective (one person).
 
-Unity refuses creation of an additive scene while an untitled scene is open.
-The authoring command now rejects that condition before creating a database or
-changing a scene. The native fixture opens its own copy of the saved Arena scene,
-preserves a real sentinel, and checks rejection leaves unsaved state/data intact.
+The Editor cannot create a second untitled scene additively. Instead, authoring
+uses an empty native scene template (derived from the pinned Arena scene, with
+zero GameObjects and zero MonoBehaviours), copies it to a unique owned asset and
+opens that copy additively. Existing unsaved scenes retain their objects, path and
+dirty flag; no caller scene is saved or closed. The native regression checks this.
+The initial fixture setup failures remain recorded separately from production bugs.
+
+The isolated copy upgrades the pre-existing OwnerForestReview Editor script meta
+to an explicit native MonoImporter while preserving its GUID and all source/raw
+asset bytes. The original workspace is unchanged; the exact metadata delta is in
+the private input recipe.
