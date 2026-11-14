@@ -1,0 +1,13 @@
+[Unit]
+Description=Enforce a shared CPU ceiling for Ashen Unity editors
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/ashen-unity/unity_cpu_budget.py enforce
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/sys/fs/cgroup
+CPUQuota=5%
+TasksMax=16
+TimeoutStartSec=20

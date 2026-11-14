@@ -1,0 +1,11 @@
+[Unit]
+Description=Reapply the shared Unity CPU ceiling to newly launched editors
+
+[Timer]
+OnBootSec=30s
+OnUnitInactiveSec=30s
+AccuracySec=3s
+Unit=ashen-unity-budget-guard.service
+
+[Install]
+WantedBy=timers.target
