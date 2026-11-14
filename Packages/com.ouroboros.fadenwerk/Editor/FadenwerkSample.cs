@@ -38,8 +38,6 @@ namespace Fadenwerk.EditorTools
             {
                 authored = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
                 SceneManager.SetActiveScene(authored);
-                Undo.IncrementCurrentGroup();
-                int group = Undo.GetCurrentGroup();
 
                 SceneView sv = SceneView.lastActiveSceneView;
                 Vector3 c = sv != null ? sv.pivot : Vector3.zero;
@@ -47,7 +45,6 @@ namespace Fadenwerk.EditorTools
                 System.Func<float, float, Vector3> at = (a, b) => xy ? c + new Vector3(a, b, 0f) : c + new Vector3(a, 0f, b);
 
                 var root = new GameObject("Fadenwerk Beispiel");
-                Undo.RegisterCreatedObjectUndo(root, "Fadenwerk: Beispiel");
                 root.transform.position = c;
 
                 FadenwerkNpc mira = Npc(root, "Mira", "Kräuterhändlerin", at(-4f, 0f),
@@ -64,7 +61,6 @@ namespace Fadenwerk.EditorTools
                 ole.goalText = "Bewacht den Weg zum Waldrand.";
                 ole.goalMarkerId = forest.markerId;
 
-                Undo.RecordObject(db, "Fadenwerk: Beispiel");
                 AddItem(db, "heilkraut", "Heilkraut", "material", "common");
                 AddItem(db, "eisenerz", "Eisenerz", "material", "common");
                 AddItem(db, "heiltrank", "Heiltrank", "consumable", "common");
@@ -163,7 +159,6 @@ namespace Fadenwerk.EditorTools
                 foreach (Component comp in root.GetComponentsInChildren<Component>(true))
                     if (comp is FadenwerkNpc || comp is FadenwerkMarker) EditorUtility.SetDirty(comp);
                 UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(root.scene);
-                Undo.CollapseUndoOperations(group);
                 Selection.activeGameObject = root;
                 return root;
             }
@@ -179,7 +174,6 @@ namespace Fadenwerk.EditorTools
         static FadenwerkNpc Npc(GameObject root, string name, string role, Vector3 pos, string lore)
         {
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            Undo.RegisterCreatedObjectUndo(go, "Fadenwerk: Beispiel");
             go.name = name;
             go.transform.SetParent(root.transform, false);
             go.transform.position = pos + (FadenwerkSettings.PlaneXY ? Vector3.zero : Vector3.up);
@@ -194,7 +188,6 @@ namespace Fadenwerk.EditorTools
         static FadenwerkMarker Marker(GameObject root, string label, string kind, Vector3 pos)
         {
             var go = new GameObject("Marker " + label);
-            Undo.RegisterCreatedObjectUndo(go, "Fadenwerk: Beispiel");
             go.transform.SetParent(root.transform, false);
             go.transform.position = pos;
             FadenwerkMarker m = go.AddComponent<FadenwerkMarker>();
