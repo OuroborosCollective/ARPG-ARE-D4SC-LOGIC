@@ -1,0 +1,367 @@
+schema_version: 1
+run:
+  id: ASHEN-001
+  title: Weite Reise nach Immergrün und zwei Folgegebiete
+  workflow: feature-development
+  status: requirements
+  current_stage: requirements
+  created_at: 2026-11-14T22:36:25.635Z
+  updated_at: 2026-11-14T22:47:06.664Z
+  created_by: product-owner
+  current_owner: ba
+  branch: null
+  framework_version: 1.0.1
+request:
+  source: product-owner-prompt
+  file: request.md
+scope:
+  status: draft
+  approved: false
+  approval_reference: null
+affected_applications:
+  backend: false
+  web: false
+  mobile: true
+  database: false
+  shared_packages: false
+design:
+  provided: false
+  references: []
+assumptions: []
+open_questions: []
+decisions: []
+blockers: []
+tasks:
+  - id: PM-001
+    title: Intake and discovery
+    stage: intake
+    role: pm
+    target: null
+    status: completed
+    dependencies: []
+    required_inputs: []
+    required_outputs:
+      - request.md
+      - manifest.yaml
+      - scope.md
+      - assumptions.md
+      - facts.yaml
+      - artifacts/pm/discovery-report.md
+    outputs:
+      - request.md
+      - manifest.yaml
+      - scope.md
+      - assumptions.md
+      - facts.yaml
+      - artifacts/pm/discovery-report.md
+    evidence:
+      - evidence/commands/EVD-68213d92ba264c76/evidence.json
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: Initial task has no dependencies
+        at: 2026-11-14T22:36:25.635Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Owner decisions and actual Unity repository identified; no product
+          changes in intake
+        at: 2026-11-14T22:36:50.266Z
+      - from: running
+        to: awaiting_review
+        actor: pm
+        reason: Intake artifacts bind actual repository, owner espionage choice and
+          unresolved lore
+        at: 2026-11-14T22:38:52.592Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Reviewed intake against owner replies and repository; later lore remains
+          unresolved, no implementation approval fabricated
+        at: 2026-11-14T22:39:11.641Z
+    started_at: 2026-11-14T22:36:50.266Z
+    completed_at: 2026-11-14T22:39:11.641Z
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+  - id: BA-001
+    title: Business requirements
+    stage: requirements
+    role: ba
+    target: null
+    status: awaiting_review
+    dependencies:
+      - PM-001
+    required_inputs:
+      - request.md
+      - manifest.yaml
+      - scope.md
+      - assumptions.md
+      - facts.yaml
+      - artifacts/pm/discovery-report.md
+    required_outputs:
+      - artifacts/ba/user-stories.md
+      - artifacts/ba/acceptance-criteria.md
+      - artifacts/ba/business-rules.md
+      - artifacts/ba/validation-rules.md
+      - artifacts/ba/edge-cases.md
+      - artifacts/ba/traceability.md
+      - artifacts/ba/semantic-claims.yaml
+    outputs:
+      - artifacts/ba/user-stories.md
+      - artifacts/ba/acceptance-criteria.md
+      - artifacts/ba/business-rules.md
+      - artifacts/ba/validation-rules.md
+      - artifacts/ba/edge-cases.md
+      - artifacts/ba/traceability.md
+      - artifacts/ba/semantic-claims.yaml
+    evidence: []
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: "Dependencies completed: PM-001"
+        at: 2026-11-14T22:39:11.641Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Independent BA spawned under inherited role plan; approved intake and
+          unresolved lore retained
+        at: 2026-11-14T22:39:44.877Z
+      - from: running
+        to: awaiting_review
+        actor: ba
+        reason: Seven artifacts delivered; 19 exact claims and unresolved story choices
+          retained for PM review
+        at: 2026-11-14T22:47:06.664Z
+    started_at: 2026-11-14T22:39:44.877Z
+    completed_at: null
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+    agent_dispatches:
+      - plan:
+          schema_version: 1
+          run_id: ASHEN-001
+          task_id: BA-001
+          role: ba
+          task_revision: 1
+          activation: 1
+          policy_sha256: e3d787e6dd23b327b61a2d8ee5eee30815e6abf453971f8262e98331851dc77f
+          requested: null
+          selected: null
+          fallback_used: false
+          skill: sdlc-ba
+          execution: spawn
+          context: task-only
+          capabilities:
+            source: Current collaboration.spawn_agent tool schema
+            model_selection: true
+            reasoning_selection: true
+            omitted_reasoning_effort: inherit-parent
+            models:
+              - id: gpt-6.1-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+                default_reasoning_effort: medium
+              - id: gpt-6.1-terra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+                default_reasoning_effort: low
+              - id: gpt-6-astra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+                default_reasoning_effort: medium
+              - id: gpt-6-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+                default_reasoning_effort: medium
+              - id: gpt-6-luna
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                default_reasoning_effort: low
+        agent_id: /root/journey_ba
+        actual_model: null
+        actual_reasoning_effort: null
+        observation_source: null
+        recorded_at: 2026-11-14T22:39:44.877Z
+  - id: PM-002
+    title: Requirements review
+    stage: requirements_review
+    role: pm
+    target: null
+    status: pending
+    dependencies:
+      - BA-001
+    required_inputs:
+      - artifacts/ba/user-stories.md
+      - artifacts/ba/acceptance-criteria.md
+      - artifacts/ba/business-rules.md
+      - artifacts/ba/validation-rules.md
+      - artifacts/ba/edge-cases.md
+      - artifacts/ba/traceability.md
+      - artifacts/ba/semantic-claims.yaml
+    required_outputs:
+      - artifacts/pm/requirements-review.md
+    outputs: []
+    evidence: []
+    transitions: []
+    started_at: null
+    completed_at: null
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+  - id: MOB-001
+    title: Mobile implementation
+    stage: mobile_implementation
+    role: frontend
+    target: mobile
+    status: pending
+    dependencies:
+      - PM-002
+    required_inputs:
+      - artifacts/pm/requirements-review.md
+      - tasks/MOB-001.assignment.yaml
+    required_outputs:
+      - artifacts/mobile/implementation-summary.md
+      - artifacts/mobile/MOB-001-delivery-report.yaml
+    outputs: []
+    evidence: []
+    transitions: []
+    started_at: null
+    completed_at: null
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+  - id: INT-001
+    title: Integration review
+    stage: integration
+    role: pm
+    target: integration
+    status: pending
+    dependencies:
+      - MOB-001
+    required_inputs:
+      - artifacts/mobile/implementation-summary.md
+      - artifacts/mobile/MOB-001-delivery-report.yaml
+    required_outputs:
+      - artifacts/integration/integration-report.md
+    outputs: []
+    evidence: []
+    transitions: []
+    started_at: null
+    completed_at: null
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+  - id: QC-001
+    title: Independent QC
+    stage: qc
+    role: qc
+    target: qc
+    status: pending
+    dependencies:
+      - INT-001
+    required_inputs:
+      - artifacts/integration/integration-report.md
+    required_outputs:
+      - artifacts/qc/test-plan.md
+      - artifacts/qc/test-cases.md
+      - artifacts/qc/execution-results.md
+      - artifacts/qc/requirement-coverage.md
+      - artifacts/qc/defects.md
+      - artifacts/qc/qc-recommendation.md
+    outputs: []
+    evidence: []
+    transitions: []
+    started_at: null
+    completed_at: null
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+  - id: PM-004
+    title: Product Owner delivery package
+    stage: product_owner_review
+    role: pm
+    target: null
+    status: pending
+    dependencies:
+      - QC-001
+    required_inputs:
+      - artifacts/qc/test-plan.md
+      - artifacts/qc/test-cases.md
+      - artifacts/qc/execution-results.md
+      - artifacts/qc/requirement-coverage.md
+      - artifacts/qc/defects.md
+      - artifacts/qc/qc-recommendation.md
+    required_outputs:
+      - final-report.md
+    outputs: []
+    evidence: []
+    transitions: []
+    started_at: null
+    completed_at: null
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+quality_gates:
+  requirements:
+    status: pending
+    evidence: []
+  api_contract:
+    status: not_applicable
+    evidence: []
+  backend:
+    status: not_applicable
+    evidence: []
+  web:
+    status: not_applicable
+    evidence: []
+  mobile:
+    status: pending
+    evidence: []
+  integration:
+    status: pending
+    evidence: []
+  qc:
+    status: pending
+    evidence: []
+defects:
+  blocker: 0
+  critical: 0
+  major: 0
+  minor: 0
+product_owner_review:
+  status: pending
+  decision: null
+  comments: null
+  decided_at: null
+final_result:
+  status: pending
+  completed_at: null
+  report: final-report.md

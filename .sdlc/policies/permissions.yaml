@@ -1,0 +1,113 @@
+schema_version: 1
+policy: permissions
+roles:
+  pm:
+    read_paths:
+      - "**"
+    write_paths:
+      - .sdlc/runs/*/manifest.yaml
+      - .sdlc/runs/*/request.md
+      - .sdlc/runs/*/scope.md
+      - .sdlc/runs/*/assumptions.md
+      - .sdlc/runs/*/facts.yaml
+      - .sdlc/runs/*/tasks/*.assignment.yaml
+      - .sdlc/runs/*/artifacts/pm/**
+      - .sdlc/runs/*/artifacts/integration/**
+      - .sdlc/runs/*/final-report.md
+    terminal: limited
+    deployment: prohibited
+  ba:
+    read_paths:
+      - "**"
+    write_paths:
+      - .sdlc/runs/*/artifacts/ba/**
+    product_code_changes: prohibited
+  backend:
+    read_paths:
+      - "**"
+    write_paths:
+      - .sdlc/runs/*/artifacts/backend/**
+    write_locations: []
+    prohibited_product_paths:
+      - "**"
+  frontend:
+    read_paths:
+      - "**"
+    write_paths:
+      - "**"
+      - .sdlc/runs/*/artifacts/web/**
+      - .sdlc/runs/*/artifacts/mobile/**
+    write_locations:
+      - repository: coordinator
+        path: "**"
+    prohibited_product_paths: []
+  qc:
+    read_paths:
+      - "**"
+    write_paths:
+      - "**"
+      - .sdlc/runs/*/artifacts/qc/**
+    write_locations:
+      - repository: coordinator
+        path: "**"
+    initial_product_repair: prohibited
+  po:
+    read_paths:
+      - "**"
+    write_paths:
+      - .sdlc/runs/*/artifacts/po/**
+    product_code_changes: prohibited
+    human_decisions: prohibited
+  runtime_collector:
+    read_paths:
+      - "**"
+    write_paths:
+      - .sdlc/runs/*/evidence/diffs/changed-files.json
+evidence_capture:
+  writer: deterministic_runtime
+  command: sdlc evidence
+  path_pattern: .sdlc/runs/*/evidence/commands/*/evidence.json
+  direct_role_writes: prohibited
+authority_publication:
+  writer: deterministic_runtime
+  command: sdlc publish-authority
+  input: stdin_json
+  per_run_lock: shared
+  version_check: required
+  direct_role_writes: prohibited
+protected_paths:
+  - .sdlc/project.yaml
+  - .sdlc/framework.yaml
+  - .sdlc/framework.lock.yaml
+  - .sdlc/runtime.cjs
+  - .sdlc/tooling/**
+  - .sdlc/policies/**
+  - .sdlc/schemas/**
+  - .sdlc/workflows/**
+  - .sdlc/templates/**
+  - .env
+  - .env.*
+  - "**/.env"
+  - "**/.env.*"
+  - "**/secrets/**"
+  - .git/**
+  - .github/workflows/**
+  - AGENTS.md
+  - "**/AGENTS.md"
+all_roles:
+  production_credentials: prohibited
+  production_deployment: prohibited
+  destructive_git_actions: prohibited
+  destructive_database_actions: prohibited
+  writes_outside_permitted_repository_paths: prohibited
+  network_access: declared_policy_and_approval_only
+structured_delivery:
+  assignment_writer: pm
+  backend_report_writer: backend
+  frontend_report_writer: frontend
+  assignment_path_pattern: .sdlc/runs/*/tasks/*.assignment.yaml
+  report_path_patterns:
+    - .sdlc/runs/*/artifacts/backend/*-delivery-report.yaml
+    - .sdlc/runs/*/artifacts/web/*-delivery-report.yaml
+    - .sdlc/runs/*/artifacts/mobile/*-delivery-report.yaml
+  authority_reconciliation: required
