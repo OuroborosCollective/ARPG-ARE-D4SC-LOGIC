@@ -144,15 +144,28 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
-            Game.Monsters[0].Xmm = Game.PlayerXmm + 1000; Game.Monsters[0].Zmm = Game.PlayerZmm;
-            var hit = Game.ActivateSkill(0); Assert.Greater(hit.Hits, 0); audio.Skill(hit, 0, Game);
             var sparks = Find("Confirmed hit motes").GetComponent<ParticleSystem>();
-            yield return null;
-            var particles = new ParticleSystem.Particle[30]; Assert.Greater(sparks.GetParticles(particles), 0);
-            audio.Suspend(true); float before = particles[0].remainingLifetime;
-            audio.Suspend(false); yield return new WaitForSeconds(.15f);
-            int count = sparks.GetParticles(particles);
-            Assert.IsTrue(count == 0 || particles[0].remainingLifetime < before - .05f, "Paused hit particles must resume real simulation.");
+            var main = sparks.main; var culling = main.cullingMode;
+            try
+            {
+                // Isolate app pause/resume from visibility-dependent native particle culling.
+                // Play/Pause and aging still run through Unity; do not manually Simulate particles.
+                main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
+                Game.Monsters[0].Xmm = Game.PlayerXmm + 1000; Game.Monsters[0].Zmm = Game.PlayerZmm;
+                var hit = Game.ActivateSkill(0); Assert.Greater(hit.Hits, 0); audio.Skill(hit, 0, Game);
+                yield return null;
+                var particles = new ParticleSystem.Particle[30]; Assert.Greater(sparks.GetParticles(particles), 0);
+                audio.Suspend(true); Assert.IsTrue(sparks.isPaused); float before = particles[0].remainingLifetime;
+                yield return new WaitForSeconds(.15f);
+                Assert.Greater(sparks.GetParticles(particles), 0);
+                Assert.AreEqual(before, particles[0].remainingLifetime, .0001f, "Suspension must preserve the existing hit particles.");
+                audio.Suspend(false); Assert.IsTrue(sparks.isPlaying); Assert.IsFalse(sparks.isPaused);
+                yield return new WaitForSeconds(.15f);
+                int count = sparks.GetParticles(particles);
+                TestContext.WriteLine("Resumed hit motes: before="+before+", count="+count+", remaining="+(count>0?particles[0].remainingLifetime:0)+", playing="+sparks.isPlaying+", paused="+sparks.isPaused+", visible="+sparks.GetComponent<ParticleSystemRenderer>().isVisible+", culling="+sparks.main.cullingMode+", scale="+Time.timeScale);
+                Assert.IsTrue(count == 0 || particles[0].remainingLifetime < before - .05f, "Paused hit particles must resume real simulation.");
+            }
+            finally { main.cullingMode = culling; audio.Suspend(false); }
         }
 
         [UnityTest]

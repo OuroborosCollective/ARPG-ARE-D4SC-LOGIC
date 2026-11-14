@@ -1,0 +1,233 @@
+{
+  "schema": "ashen.native-fixture-acceptance.v1",
+  "fixtureSource": "168718cdddd0b3a51df4a03af7c153d8b31324ba",
+  "nativeExecutionSource": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+  "matchingInputs": {
+    "Assets/Tests/PlayMode/AtmosphereRuntimeTests.cs": "6e9776910d50c70f9701bee33d6a16926029c5d5",
+    "Assets/Scripts/Runtime/AshenAtmosphere.cs": "d406ae5612539b2b2e9f1b6df655360405e6587c",
+    "Assets/AshenCrypt/MemoryForge/Tests/Runtime/RememberingVillageTests.cs": "665c77e0952600443570ce601459071af0356f1c",
+    "Assets/AshenCrypt/MemoryForge/Core": "b727c350b7179dcd967ebc49163b850fa81dce95",
+    "Assets/AshenCrypt/MemoryForge/Samples": "15bebb1710b5b1e046e5d879764ca50a5184bad1",
+    "ProjectSettings": "3eaa19e161975df64cad5bb1a96f582dedda1bc2",
+    "Packages": "3c719b5efd5c8ffd64571723da76869fafc8a05b"
+  },
+  "runs": {
+    "final-play": {
+      "head": "497413a0384fd2a4d9565ac4aef090719b5c07b7",
+      "tree": "d4eb23fa09943bb4fc0f28d0e8647da11f916c11",
+      "exit": 2,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/final-play/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/final-play/tests.xml"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "db709f0ab60247fae279d855b85276a88e65fbc5b0b5d23a5598bd1a1a5692e5",
+        "tests.xml": "05cd58c52a51f703716423786d386529c52f0837cc017fe26ef5510e2cf378d1"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "129",
+        "result": "Failed(Child)",
+        "total": "129",
+        "passed": "127",
+        "failed": "2",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:40:52Z",
+        "end-time": "2026-11-13 23:45:47Z",
+        "duration": "295.2951029"
+      },
+      "failures": [
+        {
+          "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "message": "  Paused hit particles must resume real simulation.\n  Expected: True\n  But was:  False\n"
+        },
+        {
+          "name": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "message": "  The actual unlit material must show the occluded sight color\n  Expected: RGBA(0.670, 0.270, 0.220, 0.700)\n  But was:  RGBA(0.670, 0.270, 0.220, 0.700)\n"
+        }
+      ],
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "result": "Failed",
+          "output": null
+        },
+        {
+          "test": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "result": "Failed",
+          "output": "Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ],
+      "independentReadbackVerified": true
+    },
+    "regression-diagnostic": {
+      "head": "cbbe523ebe97027959051425d0000bedfb8ce0f1",
+      "tree": "c9b3836c3f79690e3754e77ecc492e12857b0a1e",
+      "exit": 2,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/regression-diagnostic/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/regression-diagnostic/tests.xml",
+        "-testFilter",
+        "ConfirmedHitMotesContinueAgingAfterAppResume;SightLineMaterialTracksActualClearAndOccludedSight"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "ae1e7091a7e6501d84e62d91cdfefba108187ed631e9d682e6a4e8f35d530427",
+        "tests.xml": "59903ace3a6180dd2678fc71857f5dd34c437b0a1dd8c3517f4087e771f0809d"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Failed(Child)",
+        "total": "2",
+        "passed": "1",
+        "failed": "1",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:50:09Z",
+        "end-time": "2026-11-13 23:50:19Z",
+        "duration": "10.7205911"
+      },
+      "failures": [
+        {
+          "name": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "message": "  The actual unlit material must show the occluded sight color\n  Expected: RGBA(0.670, 0.270, 0.220, 0.700)\n  But was:  RGBA(0.670, 0.270, 0.220, 0.700)\n"
+        }
+      ],
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "result": "Passed",
+          "output": "Resumed hit motes: before=0.3339828, count=9, remaining=0.1332421, playing=True, paused=False, visible=False, culling=Automatic, scale=1\n"
+        },
+        {
+          "test": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "result": "Failed",
+          "output": "Sight material Universal Render Pipeline/Unlit: component deltas=0,-5.96046448E-08,-2.98023224E-08,0\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ],
+      "independentReadbackVerified": true
+    },
+    "regression-green": {
+      "head": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+      "tree": "84d8cba24436d34e2af861589168a3af72dcd7bc",
+      "exit": 0,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/regression-green/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/regression-green/tests.xml",
+        "-testFilter",
+        "ConfirmedHitMotesContinueAgingAfterAppResume;SightLineMaterialTracksActualClearAndOccludedSight"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "6395aaf9858b1ab7b3b361840575389ae110946ec97745f012afc47ded680dce",
+        "tests.xml": "99b3d6dce0662c55333811e8122dda06430726f48ab93bdad9b80fba56229524"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Passed",
+        "total": "2",
+        "passed": "2",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:53:58Z",
+        "end-time": "2026-11-13 23:54:15Z",
+        "duration": "16.7162231"
+      },
+      "failures": [],
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "result": "Passed",
+          "output": "Resumed hit motes: before=0.2644711, count=9, remaining=0.06228632, playing=True, paused=False, visible=False, culling=AlwaysSimulate, scale=1\n"
+        },
+        {
+          "test": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "result": "Passed",
+          "output": "Sight material Universal Render Pipeline/Unlit: component deltas=0,-5.96046448E-08,-2.98023224E-08,0\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ],
+      "independentReadbackVerified": true
+    }
+  },
+  "rootCause": {
+    "color": "URP/Unlit native round trip measured at most5.96046448e-8 error; per-channel1e-6 retains actual material checks.",
+    "particle": "First full-suite failure is unproven. Isolated original fixture passed with an invisible renderer and Automatic culling. Fixture now isolates pause/resume from visibility, asserts preserved paused lifetime and resumed playback, then native aging. Production unchanged."
+  },
+  "review": {
+    "findings": [],
+    "source": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+    "scope": "Corrected native regression fixtures"
+  },
+  "boundary": "Focused native tests executed at nativeExecutionSource, not fixtureSource; tested fixtures, effect/sample implementations and project settings match. Combined full bow integration is separately tested. No new package export or Android execution."
+}
