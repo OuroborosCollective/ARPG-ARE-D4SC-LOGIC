@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEditor.SceneManagement;
@@ -26,7 +25,7 @@ namespace Fadenwerk.Tests
             Scene fixture = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             SceneManager.SetActiveScene(fixture);
             var sentinel = new GameObject("existing-scene-sentinel");
-            int[] before = fixture.GetRootGameObjects().Select(o => o.GetInstanceID()).ToArray();
+            GameObject[] before = fixture.GetRootGameObjects();
             var db = ScriptableObject.CreateInstance<FadenwerkDatabase>();
             Scene authored = default(Scene);
             try
@@ -35,7 +34,7 @@ namespace Fadenwerk.Tests
                 Assert.IsNotNull(root);
                 authored = root.scene;
                 Assert.AreNotEqual(fixture.handle, authored.handle, "sample must use its own scene");
-                CollectionAssert.AreEquivalent(before, fixture.GetRootGameObjects().Select(o => o.GetInstanceID()).ToArray());
+                CollectionAssert.AreEquivalent(before, fixture.GetRootGameObjects());
                 Assert.AreEqual(fixture.handle, sentinel.scene.handle);
                 foreach (var obj in authored.GetRootGameObjects())
                 {
