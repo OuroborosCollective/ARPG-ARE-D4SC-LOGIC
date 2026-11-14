@@ -1,0 +1,878 @@
+{
+  "schema": "ashen.bow-repair-acceptance.v1",
+  "source": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+  "tree": "84d8cba24436d34e2af861589168a3af72dcd7bc",
+  "subtrees": {
+    "Assets/Scripts": "6676586b3c68f2d82b9d5da97b3dc111a2d62254",
+    "Assets/Editor": "f06aa7a8583cb2e06b2d7c2e20f6fa567ce44ae5",
+    "Assets/Tests": "2e6be277c32d630221157c33fae7aa91022e8cba",
+    "Assets/AshenCrypt/MemoryForge": "dca1268b8333a7e882057c925260961f5396c704",
+    "Packages": "3c719b5efd5c8ffd64571723da76869fafc8a05b",
+    "ProjectSettings": "3eaa19e161975df64cad5bb1a96f582dedda1bc2"
+  },
+  "base": "0ebeb9b1e9436f7515d971b88db5767a334d1fcd",
+  "pullRequest": 41,
+  "issue": 40,
+  "fixturePullRequest": 42,
+  "fixtureMerge": "69370f4cb9a67396a415347668fc5e9731d7b906",
+  "unity": "6000.6.8f1",
+  "nativeEvidenceRoot": "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113",
+  "nativeRuns": {
+    "red": {
+      "head": "4d068e4551e84c98266d8a368682cd17ad1638ca",
+      "tree": "ba4dff763ab3ba99a1b77a00cba5a466a3e15398",
+      "exit": 2,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/red/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/red/tests.xml",
+        "-testFilter",
+        "BowShot"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "037f3b17b535d59a6c0a87d20f119b3fc9a8de89e6f53c5505b3ad6902304972",
+        "tests.xml": "41b6e57af8ce4c4e3d72bb19fc2c5db4b5d8e967eab0660cfe422b3c8b2402b9"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Failed(Child)",
+        "total": "2",
+        "passed": "0",
+        "failed": "2",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:10:20Z",
+        "end-time": "2026-11-13 23:10:48Z",
+        "duration": "28.3037344"
+      },
+      "failures": [
+        {
+          "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave",
+          "message": "  The actual bow clip is a still pose: the hunter's arms must move within the attack, independently of transition blends\n  Expected: greater than 0.100000001f\n  But was:  0.0f\n"
+        },
+        {
+          "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.PlayerBowShotMovesAfterAcceptedHitAndInventoryRestoresMelee",
+          "message": "  The player's equipped bow must move inside its clip, not merely blend to a frozen pose\n  Expected: greater than 0.100000001f\n  But was:  0.0f\n"
+        }
+      ],
+      "independentReadbackVerified": true,
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave",
+          "result": "Failed",
+          "output": "Actual bow clip: WeaponBowShot, length=0.03333334s, sampled arm motion=0 degrees\n"
+        },
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.PlayerBowShotMovesAfterAcceptedHitAndInventoryRestoresMelee",
+          "result": "Failed",
+          "output": "Player bound bow clip: WeaponBowShot, duration=0.03333334s, arm motion=0 degrees\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ]
+    },
+    "red-edit": {
+      "head": "9d8e05f7722f2adca220436c84e332ee0af2127b",
+      "tree": "fd3659b35930d8843e1d93ce5ec26acb618dbef9",
+      "exit": 2,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/red-edit/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/red-edit/tests.xml",
+        "-testFilter",
+        "BowAnimationEditModeTests"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "e39cef92b6542fdd945c28ab39be41c7c83f46e7c8a4fbd6f6505a7ef49ff551",
+        "tests.xml": "1d6d5600d524ffb0343cc16a0d2a2e6cad74ce3bf661ab89932524f32bf7dcf2"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "3",
+        "result": "Failed(Child)",
+        "total": "3",
+        "passed": "0",
+        "failed": "3",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:15:27Z",
+        "end-time": "2026-11-13 23:15:28Z",
+        "duration": "0.7925821"
+      },
+      "failures": [
+        {
+          "name": "AreArpg.EditMode.Tests.BowAnimationEditModeTests.BowSelectionRejectsMissingDuplicateAndRenamedStillTakes",
+          "message": "  Expected: not null\n  But was:  null\n"
+        },
+        {
+          "name": "AreArpg.EditMode.Tests.BowAnimationEditModeTests.ExportedBowContainsTheReviewedShotInsteadOfTheSourceTPose",
+          "message": "  The private export must contain the reviewed BowShot take, not the one-frame T-pose\n  Expected: 0.96666675806045532d +/- 9.9999997473787516E-05d\n  But was:  0.033333335071802139d\n"
+        },
+        {
+          "name": "AreArpg.EditMode.Tests.BowAnimationEditModeTests.RebuildingOnlyTheBowPreservesIdentityAndPrivateSourceBytes",
+          "message": "  Expected: not null\n  But was:  null\n"
+        }
+      ],
+      "independentReadbackVerified": true,
+      "selectedOutputs": []
+    },
+    "green-bow": {
+      "head": "d3942fad21a5760ba7f30330fb21512971068012",
+      "tree": "f39b51152c216ce5f56a3867bac7de5cd1c6689b",
+      "exit": 0,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/green-bow/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/green-bow/tests.xml",
+        "-testFilter",
+        "BowShot"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "211e5bec47dc63e94f398d504f44b29ed7742ab5c1e0da5c90cc9133f1657a17",
+        "tests.xml": "1b814923433da250d3da9575f061298cfd92aae1ae0e5586a1e1fa82be41ef6d"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Passed",
+        "total": "2",
+        "passed": "2",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:21:14Z",
+        "end-time": "2026-11-13 23:21:47Z",
+        "duration": "32.4866404"
+      },
+      "failures": [],
+      "independentReadbackVerified": true,
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave",
+          "result": "Passed",
+          "output": "Actual bow clip: WeaponBowShot, length=0.9666668s, sampled arm motion=50.10859 degrees\n"
+        },
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.PlayerBowShotMovesAfterAcceptedHitAndInventoryRestoresMelee",
+          "result": "Passed",
+          "output": "Player bound bow clip: WeaponBowShot, duration=0.9666668s, arm motion=50.10859 degrees\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ]
+    },
+    "green-edit": {
+      "head": "d3942fad21a5760ba7f30330fb21512971068012",
+      "tree": "f39b51152c216ce5f56a3867bac7de5cd1c6689b",
+      "exit": 0,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/green-edit/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/green-edit/tests.xml"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "946f6a021abf55d0adf9d24d63139fc0d61026c9d25d559c5e61937b15fadc86",
+        "tests.xml": "94aede3de6260c36268e008777ea86122db1b4feb116b454fa8c1c7005716e60"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "55",
+        "result": "Passed",
+        "total": "55",
+        "passed": "55",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:23:15Z",
+        "end-time": "2026-11-13 23:24:53Z",
+        "duration": "98.1025357"
+      },
+      "failures": [],
+      "independentReadbackVerified": true,
+      "selectedOutputs": []
+    },
+    "grip-red": {
+      "head": "12bc3bd29292706cb2eeb9f695dba24f5138b849",
+      "tree": "e6269d323fae78b10fbaeae0ff39f509794ef6e3",
+      "exit": 2,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/grip-red/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/grip-red/tests.xml",
+        "-testFilter",
+        "BowShot"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "8157f40c82d2d850574c569717d38fc4d70a5991c8fab9d15bbb45e31dc9c101",
+        "tests.xml": "d87baebfd099c689473ca85d9e3974eae2277024f63e562c28e02372f2080ff0"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Failed(Child)",
+        "total": "2",
+        "passed": "0",
+        "failed": "2",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:30:29Z",
+        "end-time": "2026-11-13 23:31:04Z",
+        "duration": "34.9132547"
+      },
+      "failures": [
+        {
+          "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave",
+          "message": "  The hunter must hold the bow upright at full draw rather than across his forearm/neck\n  Expected: less than 30.0f\n  But was:  86.4652863f\n"
+        },
+        {
+          "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.PlayerBowShotMovesAfterAcceptedHitAndInventoryRestoresMelee",
+          "message": "  The player must retain an upright bow at full draw\n  Expected: less than 30.0f\n  But was:  172.516907f\n"
+        }
+      ],
+      "independentReadbackVerified": true,
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave",
+          "result": "Failed",
+          "output": "Actual bow clip: WeaponBowShot, length=0.9666668s, sampled arm motion=50.10859 degrees\nHunter bow grip angle=86.46529; boneToPalm=(-0.03272, 0.80118, -0.09211, -0.59038); palm up/right/forward=(0.08, 0.01, 1.00) / (-0.04, 1.00, -0.01) / (1.00, 0.04, -0.08); IK observed=True\nContinuous bow hits at Core ticks 62,68,74; repeated-cycle arm motion=72.1728 degrees\n"
+        },
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.PlayerBowShotMovesAfterAcceptedHitAndInventoryRestoresMelee",
+          "result": "Failed",
+          "output": "Player bound bow clip: WeaponBowShot, duration=0.9666668s, arm motion=50.10859 degrees\nPlayer bow grip angle=172.5169; boneToPalm=(-0.54204, 0.50064, -0.45147, 0.50173); palm up/right/forward=(-1.00, 0.01, 0.08) / (0.01, 1.00, -0.04) / (0.08, 0.04, 1.00); IK observed=True\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ]
+    },
+    "grip-green": {
+      "head": "497413a0384fd2a4d9565ac4aef090719b5c07b7",
+      "tree": "d4eb23fa09943bb4fc0f28d0e8647da11f916c11",
+      "exit": 0,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/grip-green/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/grip-green/tests.xml",
+        "-testFilter",
+        "BowShot"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "1012f8954f0950b35615e0a7d5335ff41dd8bc1e4e532e70ad1fa4b0305bbbb5",
+        "tests.xml": "cab9e8bfabbafd52a5bead958fd77e602c139e42957355311a2e973a29206417"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Passed",
+        "total": "2",
+        "passed": "2",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:37:15Z",
+        "end-time": "2026-11-13 23:37:45Z",
+        "duration": "29.4831652"
+      },
+      "failures": [],
+      "independentReadbackVerified": true,
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave",
+          "result": "Passed",
+          "output": "Actual bow clip: WeaponBowShot, length=0.9666668s, sampled arm motion=50.10859 degrees\nHunter bow grip angle=13.81635; boneToPalm=(-0.03272, 0.80118, -0.09211, -0.59038); palm up/right/forward=(0.08, 0.01, 1.00) / (-0.04, 1.00, -0.01) / (1.00, 0.04, -0.08); IK observed=True\nContinuous bow hits at Core ticks 62,68,74; repeated-cycle arm motion=72.1728 degrees\n"
+        },
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.PlayerBowShotMovesAfterAcceptedHitAndInventoryRestoresMelee",
+          "result": "Passed",
+          "output": "Player bound bow clip: WeaponBowShot, duration=0.9666668s, arm motion=50.10859 degrees\nPlayer bow grip angle=7.739716; boneToPalm=(-0.54204, 0.50064, -0.45147, 0.50173); palm up/right/forward=(-1.00, 0.01, 0.08) / (0.01, 1.00, -0.04) / (0.08, 0.04, 1.00); IK observed=True\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ]
+    },
+    "final-play": {
+      "head": "497413a0384fd2a4d9565ac4aef090719b5c07b7",
+      "tree": "d4eb23fa09943bb4fc0f28d0e8647da11f916c11",
+      "exit": 2,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/final-play/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/final-play/tests.xml"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "db709f0ab60247fae279d855b85276a88e65fbc5b0b5d23a5598bd1a1a5692e5",
+        "tests.xml": "05cd58c52a51f703716423786d386529c52f0837cc017fe26ef5510e2cf378d1"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "129",
+        "result": "Failed(Child)",
+        "total": "129",
+        "passed": "127",
+        "failed": "2",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:40:52Z",
+        "end-time": "2026-11-13 23:45:47Z",
+        "duration": "295.2951029"
+      },
+      "failures": [
+        {
+          "name": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "message": "  Paused hit particles must resume real simulation.\n  Expected: True\n  But was:  False\n"
+        },
+        {
+          "name": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "message": "  The actual unlit material must show the occluded sight color\n  Expected: RGBA(0.670, 0.270, 0.220, 0.700)\n  But was:  RGBA(0.670, 0.270, 0.220, 0.700)\n"
+        }
+      ],
+      "independentReadbackVerified": true,
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "result": "Failed",
+          "output": null
+        },
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave",
+          "result": "Passed",
+          "output": "Actual bow clip: WeaponBowShot, length=0.9666668s, sampled arm motion=50.10859 degrees\nHunter bow grip angle=14.29158; boneToPalm=(-0.03272, 0.80118, -0.09211, -0.59038); palm up/right/forward=(0.08, 0.01, 1.00) / (-0.04, 1.00, -0.01) / (1.00, 0.04, -0.08); IK observed=True\nContinuous bow hits at Core ticks 60,66,72; repeated-cycle arm motion=72.1728 degrees\n"
+        },
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.PlayerBowShotMovesAfterAcceptedHitAndInventoryRestoresMelee",
+          "result": "Passed",
+          "output": "Player bound bow clip: WeaponBowShot, duration=0.9666668s, arm motion=50.10859 degrees\nPlayer bow grip angle=7.739716; boneToPalm=(-0.54204, 0.50064, -0.45147, 0.50173); palm up/right/forward=(-1.00, 0.01, 0.08) / (0.01, 1.00, -0.04) / (0.08, 0.04, 1.00); IK observed=True\n"
+        },
+        {
+          "test": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "result": "Failed",
+          "output": "Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ]
+    },
+    "regression-diagnostic": {
+      "head": "cbbe523ebe97027959051425d0000bedfb8ce0f1",
+      "tree": "c9b3836c3f79690e3754e77ecc492e12857b0a1e",
+      "exit": 2,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/regression-diagnostic/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/regression-diagnostic/tests.xml",
+        "-testFilter",
+        "ConfirmedHitMotesContinueAgingAfterAppResume;SightLineMaterialTracksActualClearAndOccludedSight"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "ae1e7091a7e6501d84e62d91cdfefba108187ed631e9d682e6a4e8f35d530427",
+        "tests.xml": "59903ace3a6180dd2678fc71857f5dd34c437b0a1dd8c3517f4087e771f0809d"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Failed(Child)",
+        "total": "2",
+        "passed": "1",
+        "failed": "1",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:50:09Z",
+        "end-time": "2026-11-13 23:50:19Z",
+        "duration": "10.7205911"
+      },
+      "failures": [
+        {
+          "name": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "message": "  The actual unlit material must show the occluded sight color\n  Expected: RGBA(0.670, 0.270, 0.220, 0.700)\n  But was:  RGBA(0.670, 0.270, 0.220, 0.700)\n"
+        }
+      ],
+      "independentReadbackVerified": true,
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "result": "Passed",
+          "output": "Resumed hit motes: before=0.3339828, count=9, remaining=0.1332421, playing=True, paused=False, visible=False, culling=Automatic, scale=1\n"
+        },
+        {
+          "test": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "result": "Failed",
+          "output": "Sight material Universal Render Pipeline/Unlit: component deltas=0,-5.96046448E-08,-2.98023224E-08,0\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ]
+    },
+    "regression-green": {
+      "head": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+      "tree": "84d8cba24436d34e2af861589168a3af72dcd7bc",
+      "exit": 0,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/regression-green/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/regression-green/tests.xml",
+        "-testFilter",
+        "ConfirmedHitMotesContinueAgingAfterAppResume;SightLineMaterialTracksActualClearAndOccludedSight"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "6395aaf9858b1ab7b3b361840575389ae110946ec97745f012afc47ded680dce",
+        "tests.xml": "99b3d6dce0662c55333811e8122dda06430726f48ab93bdad9b80fba56229524"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "2",
+        "result": "Passed",
+        "total": "2",
+        "passed": "2",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:53:58Z",
+        "end-time": "2026-11-13 23:54:15Z",
+        "duration": "16.7162231"
+      },
+      "failures": [],
+      "independentReadbackVerified": true,
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "result": "Passed",
+          "output": "Resumed hit motes: before=0.2644711, count=9, remaining=0.06228632, playing=True, paused=False, visible=False, culling=AlwaysSimulate, scale=1\n"
+        },
+        {
+          "test": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "result": "Passed",
+          "output": "Sight material Universal Render Pipeline/Unlit: component deltas=0,-5.96046448E-08,-2.98023224E-08,0\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ]
+    },
+    "accepted-play": {
+      "head": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+      "tree": "84d8cba24436d34e2af861589168a3af72dcd7bc",
+      "exit": 0,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/accepted-play/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "PlayMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/accepted-play/tests.xml"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "37e003530021df182b69ba24a741e9894da854d476b4d732f24c862489d8b649",
+        "tests.xml": "8585ddf9cabd35c12b99ae8a9fb9979f4afbe3525460d4b238af98e382c3678d"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "129",
+        "result": "Passed",
+        "total": "129",
+        "passed": "129",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-13 23:56:14Z",
+        "end-time": "2026-11-14 00:01:28Z",
+        "duration": "314.2895991"
+      },
+      "failures": [],
+      "independentReadbackVerified": true,
+      "selectedOutputs": [
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ConfirmedHitMotesContinueAgingAfterAppResume",
+          "result": "Passed",
+          "output": "Resumed hit motes: before=0.3342085, count=9, remaining=0.1259432, playing=True, paused=False, visible=False, culling=AlwaysSimulate, scale=1\n"
+        },
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave",
+          "result": "Passed",
+          "output": "Actual bow clip: WeaponBowShot, length=0.9666668s, sampled arm motion=50.10859 degrees\nHunter bow grip angle=14.28661; boneToPalm=(-0.03272, 0.80118, -0.09211, -0.59038); palm up/right/forward=(0.08, 0.01, 1.00) / (-0.04, 1.00, -0.01) / (1.00, 0.04, -0.08); IK observed=True\nContinuous bow hits at Core ticks 60,66,72; repeated-cycle arm motion=72.1728 degrees\n"
+        },
+        {
+          "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.PlayerBowShotMovesAfterAcceptedHitAndInventoryRestoresMelee",
+          "result": "Passed",
+          "output": "Player bound bow clip: WeaponBowShot, duration=0.9666668s, arm motion=50.10859 degrees\nPlayer bow grip angle=7.739761; boneToPalm=(-0.54204, 0.50064, -0.45147, 0.50173); palm up/right/forward=(-1.00, 0.01, 0.08) / (0.01, 1.00, -0.04) / (0.08, 0.04, 1.00); IK observed=True\n"
+        },
+        {
+          "test": "AshenCrypt.MemoryForge.Tests.RememberingVillageTests.SightLineMaterialTracksActualClearAndOccludedSight",
+          "result": "Passed",
+          "output": "Sight material Universal Render Pipeline/Unlit: component deltas=0,-5.96046448E-08,-2.98023224E-08,0\nSaving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml\n"
+        }
+      ]
+    },
+    "accepted-edit": {
+      "head": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+      "tree": "84d8cba24436d34e2af861589168a3af72dcd7bc",
+      "exit": 0,
+      "command": [
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-s",
+        "-screen 0 1280x720x24",
+        "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+        "-batchmode",
+        "-force-glcore",
+        "-buildTarget",
+        "Android",
+        "-projectPath",
+        "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+        "-logFile",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/accepted-edit/unity.log",
+        "-runTests",
+        "-testPlatform",
+        "EditMode",
+        "-testResults",
+        "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/accepted-edit/tests.xml"
+      ],
+      "prefsRestored": true,
+      "settingsRestored": true,
+      "privateUnchanged": true,
+      "trackedDiff": "",
+      "files": {
+        "unity.log": "ecd58aedebf0bb72b72584d4ec3aa7c4b9d60725210c64cc0d72e2c58a4842a5",
+        "tests.xml": "3f9366f7506b9a2b3fbc1ac4fb232238d9f1e39e8b187cb0c941ed2b5b21ff07"
+      },
+      "tests": {
+        "id": "2",
+        "testcasecount": "55",
+        "result": "Passed",
+        "total": "55",
+        "passed": "55",
+        "failed": "0",
+        "inconclusive": "0",
+        "skipped": "0",
+        "asserts": "0",
+        "engine-version": "3.5.0.0",
+        "clr-version": "4.0.30319.42000",
+        "start-time": "2026-11-14 00:03:09Z",
+        "end-time": "2026-11-14 00:04:42Z",
+        "duration": "92.8878903"
+      },
+      "failures": [],
+      "independentReadbackVerified": true,
+      "selectedOutputs": []
+    }
+  },
+  "authoring": {
+    "head": "d3942fad21a5760ba7f30330fb21512971068012",
+    "tree": "f39b51152c216ce5f56a3867bac7de5cd1c6689b",
+    "exit": 0,
+    "command": [
+      "/usr/bin/xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1280x720x24",
+      "/var/lib/unityarpg/Unity/Hub/Editor/6000.6.8f1/Editor/Unity",
+      "-batchmode",
+      "-force-glcore",
+      "-buildTarget",
+      "Android",
+      "-quit",
+      "-projectPath",
+      "/var/lib/unityarpg/workspaces/are-arpg-woodland-20261113",
+      "-logFile",
+      "/var/lib/unityarpg/.local/share/are-arpg/bow-repair-20261113/author/unity.log",
+      "-executeMethod",
+      "AreArpg.EditorTools.WoodlandArtBuilder.BuildBowAnimation"
+    ],
+    "success": true,
+    "privateChanges": [
+      "Assets/Resources/ARE/Visuals/WeaponBowShot.anim"
+    ],
+    "otherPrivateUnchanged": true,
+    "artifactBefore": "18f75416cab24e46fdb4b2b41d3f69ec6a6ac37f7d3de209112d09cb6718c664",
+    "artifactAfter": "e1fbbea7633b07699898ed13f85a55c020680f29fcc20b5ef08192bc2447e6f1",
+    "metaPreserved": true,
+    "prefsRestored": true,
+    "settingsRestored": true,
+    "trackedDiff": "",
+    "files": {
+      "unity.log": "4b32f19d6b167a3bea8c82d4e541b7e6e2b37c35ebecf3bc14ba92082dd63589",
+      "take.json": "6566b42004a9f43849c41f26dcca4d1f9b5fa6a2991b3f46b8f0791b9a86bbbb"
+    },
+    "take": {
+      "source": "Assets/Resources/ARE/Visuals/Vendor/AnimationsStarterPack/Combat/BowShot.fbx",
+      "take": "BowShot",
+      "duration": 0.966666758,
+      "frameRate": 30,
+      "output": "Assets/Resources/ARE/Visuals/WeaponBowShot.anim",
+      "guid": "df69a178ca0892550ae6fb0ca6d77988"
+    },
+    "independentReadbackVerified": true
+  },
+  "preservation": {
+    "currentPrivateFiles": 4351,
+    "privateUnchangedSinceLastRun": true,
+    "privateInventorySha256": "41a303ee136958b5cfff1d62f0dc916aef336edf14292e45ae8c183d8c3c3837",
+    "ownerPrefsIndependentlyRestored": true,
+    "trackedDiff": ""
+  },
+  "artifactHashes": {
+    "Assets/Resources/ARE/Visuals/WeaponBowShot.anim": "e1fbbea7633b07699898ed13f85a55c020680f29fcc20b5ef08192bc2447e6f1",
+    "Assets/Resources/ARE/Visuals/WeaponBowShot.anim.meta": "ca6b9e2411f230b9c6b93c1ffaa0c59eb93799fc0d1f7493fe428e6cd8f7e1e7",
+    "Assets/Resources/ARE/Visuals/Vendor/AnimationsStarterPack/Combat/BowShot.fbx": "f198d5131386dccb7f2684065243911ecdb0c7896fe1397752628a872aeea802",
+    "Assets/Resources/ARE/Visuals/Vendor/AnimationsStarterPack/Combat/BowShot.fbx.meta": "c13a5fa97aae601cabc5685741663010383942a7ebe18fb7ec39ec36bfd89611"
+  },
+  "coreCI": {
+    "source": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+    "run": 43530269464,
+    "job": 132245928906,
+    "conclusion": "success",
+    "coreAssertions": 8112,
+    "preflightTests": 40,
+    "directorTests": 20,
+    "actualJobLogRead": true
+  },
+  "githubUnity": {
+    "run": 43530269453,
+    "conclusion": "skipped",
+    "nativeEvidence": false
+  },
+  "visualReview": {
+    "source": "497413a0384fd2a4d9565ac4aef090719b5c07b7",
+    "frames": {
+      "hunter-bow-20.jpg": "5b2cd6e3a48c6d2dda90a916e5882a3fddf957156fe8e82154733a672328cb8a",
+      "hunter-bow-50.jpg": "cbee4c5f683ddd08b62cda4a5ff76120ff1451eff53eb3786ca5d5d2d76640f3",
+      "hunter-bow-80.jpg": "fd2b0d93d1a54d3ed493330fe4989f3ce742546eb4f692083241890181f66853",
+      "hunter-bow-cadence-100ms.jpg": "918f837f1c4daca05cbcc02154cd3da23857c6f121985278492d57cbf9e4c466",
+      "hunter-bow-cadence-300ms.jpg": "68b3dfbe7bc083bd8ea98309c8b0309777f0a79e78a27df571939f46768fe586",
+      "hunter-bow-cadence-600ms.jpg": "eb8476334a63f63cac7aab0dae352dcbf307a92b9f7331afedf3f656791c5019",
+      "player-bow-20.jpg": "83d1adb38cd0c1f447e0a20d4b0dde722157edc9d7b34d9550ed4460dda3700c",
+      "player-bow-50.jpg": "fb10109ab1de50dd96dfaf270669cf1680b0a9f969545dabab9cb57cd649e424",
+      "player-bow-80.jpg": "e116fa40ad16c60e2e0ad3d7c91b75ab1033b3ebbd7a559fff0c59ad38bc2675"
+    },
+    "allNineNativeFramesViewed": true,
+    "runtimeAndEditorTreesUnchangedAtFinalSource": true,
+    "observations": [
+      "Both real humanoids move through draw, release and recovery poses.",
+      "Hunter bow is upright and its grip remains at the left hand, instead of lying across the forearm/neck.",
+      "The existing player orientation and visible bow proportions are retained.",
+      "Three native frames also inspect the actual production controller between genuine six-tick companion hits."
+    ],
+    "limits": [
+      "Static captures do not establish device frame pacing, bowstring deformation or complete art polish."
+    ]
+  },
+  "review": {
+    "skill": "review-spd",
+    "findings": [],
+    "productionReviewSource": "497413a0384fd2a4d9565ac4aef090719b5c07b7",
+    "regressionFixtureReviewSource": "6b989e7a5cd85465933688d6f80c7a9d5d4b4846",
+    "focuses": [
+      "Correctness and compatibility of take export and humanoid palm binding",
+      "Original reproduction, player regression, repeated hits and test fixture preservation"
+    ]
+  },
+  "limitations": [
+    "Road-encounter hunter Animator and Inari Hunter model integration are separate.",
+    "No new Android APK, physical Tab A9 execution or FPS/performance claim.",
+    "Memory Forge package 1.0.3 was not rebuilt or republished.",
+    "The isolated particle test passed before fixture repair; its original full-suite failure cause is unproven.",
+    "Native tests use arranged gameplay fixtures and real Core actions, not an unattended player playthrough."
+  ]
+}

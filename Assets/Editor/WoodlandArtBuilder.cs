@@ -12,6 +12,7 @@ namespace AreArpg.EditorTools
     {
         private const string Forest="Assets/PrivateArt/OwnerForestReview/";
         private const string Output="Assets/Resources/ARE/Visuals/";
+        private const string BowSource=Output+"Vendor/AnimationsStarterPack/Combat/BowShot.fbx";
         [MenuItem("ARE/Art/Build Woodland and Equipment Bindings")]
         public static void Build()
         {
@@ -46,13 +47,7 @@ namespace AreArpg.EditorTools
                     if(path==null)throw new IOException("Missing model for "+def.Id+" / "+def.ModelStem);
                     BuildWeapon(path,def);
                 }
-                string bowSource="Assets/Resources/ARE/Visuals/Vendor/AnimationsStarterPack/Combat/BowShot.fbx";
-                var bow=AssetDatabase.LoadAllAssetsAtPath(bowSource).OfType<AnimationClip>().FirstOrDefault(c=>!c.name.StartsWith("__"));
-                if(bow==null)throw new IOException("Missing bow animation");
-                var clip=UnityEngine.Object.Instantiate(bow);clip.name="WeaponBowShot";
-                AnimationUtility.SetEditorCurve(clip,EditorCurveBinding.FloatCurve("",typeof(Animator),AreArpg.UnityClient.EntryWeaponGrip.WeightParameter),AnimationCurve.Constant(0,clip.length,0));
-                var previous=AssetDatabase.LoadAssetAtPath<AnimationClip>(Output+"WeaponBowShot.anim");
-                if(previous!=null){EditorUtility.CopySerialized(clip,previous);UnityEngine.Object.DestroyImmediate(clip);}else AssetDatabase.CreateAsset(clip,Output+"WeaponBowShot.anim");
+                BuildBowAnimation();
                 AssetDatabase.SaveAssets();AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
                 var report=new { catalog=WeaponCatalog.Count,forestBindings=7,modelBindings=Enumerable.Range(0,WeaponCatalog.Count).Select(i=>new {id=WeaponCatalog.Get(i).Id,source=WeaponCatalog.Get(i).ModelStem}).ToArray() };
                 string evidence=Environment.GetEnvironmentVariable("ARE_WOODLAND_AUTHOR_REPORT");
@@ -60,6 +55,41 @@ namespace AreArpg.EditorTools
                 if(Application.isBatchMode)EditorApplication.Exit(0);
             }
             catch(Exception e){Debug.LogException(e);if(Application.isBatchMode)EditorApplication.Exit(1);else throw;}
+        }
+
+        // This FBX also contains a one-frame tpose. Asset enumeration order is not a take contract.
+        private static AnimationClip SelectBowTake(UnityEngine.Object[] assets)
+        {
+            var matches=assets.OfType<AnimationClip>().Where(c=>string.Equals(c.name,"BowShot",StringComparison.Ordinal)).ToArray();
+            if(matches.Length!=1)throw new InvalidOperationException("Expected exactly one reviewed BowShot take in "+BowSource);
+            var shot=matches[0];
+            if(!shot.humanMotion||shot.legacy||shot.frameRate<=0||shot.length*shot.frameRate<=1.5f)
+                throw new InvalidOperationException("BowShot must be the moving humanoid take, not a one-frame reference pose");
+            return shot;
+        }
+
+        /// <summary>Rebuild only the shared bow projection; keep its identity and all private source models.</summary>
+        [MenuItem("ARE/Art/Rebuild Shared Bow Animation")]
+        public static void BuildBowAnimation()
+        {
+            var bow=SelectBowTake(AssetDatabase.LoadAllAssetsAtPath(BowSource));
+            var clip=UnityEngine.Object.Instantiate(bow);
+            try
+            {
+                clip.name="WeaponBowShot";
+                AnimationUtility.SetAnimationEvents(clip,Array.Empty<AnimationEvent>());
+                var settings=AnimationUtility.GetAnimationClipSettings(clip);settings.loopTime=false;
+                AnimationUtility.SetAnimationClipSettings(clip,settings);
+                AnimationUtility.SetEditorCurve(clip,EditorCurveBinding.FloatCurve("",typeof(Animator),AreArpg.UnityClient.EntryWeaponGrip.WeightParameter),AnimationCurve.Constant(0,clip.length,0));
+                string path=Output+"WeaponBowShot.anim";
+                var previous=AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+                if(previous!=null){EditorUtility.CopySerialized(clip,previous);EditorUtility.SetDirty(previous);AssetDatabase.SaveAssetIfDirty(previous);}
+                else{AssetDatabase.CreateAsset(clip,path);AssetDatabase.SaveAssetIfDirty(clip);}
+                string evidence=Environment.GetEnvironmentVariable("ARE_BOW_AUTHOR_REPORT");
+                if(!string.IsNullOrEmpty(evidence))File.WriteAllText(evidence,Newtonsoft.Json.JsonConvert.SerializeObject(new
+                {source=BowSource,take=bow.name,duration=bow.length,frameRate=bow.frameRate,output=path,guid=AssetDatabase.AssetPathToGUID(path)},Newtonsoft.Json.Formatting.Indented));
+            }
+            finally{if(!AssetDatabase.Contains(clip))UnityEngine.Object.DestroyImmediate(clip);}
         }
         private static void Strip(GameObject go)
         {

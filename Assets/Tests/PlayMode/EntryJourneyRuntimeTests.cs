@@ -837,7 +837,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>Optional real camera render for private visual inspection; never a gameplay input.</summary>
-        private IEnumerator Capture(string name, bool heroDetail = false, bool patientDetail = false, bool refugeDetail = false)
+        private IEnumerator Capture(string name, bool heroDetail = false, bool patientDetail = false, bool refugeDetail = false, Transform actorDetail = null)
         {
             string directory = System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
             if (string.IsNullOrEmpty(directory)) yield break;
@@ -863,9 +863,9 @@ namespace AreArpg.PlayMode.Tests
             var pixels = new Texture2D(1280, 720, TextureFormat.RGB24, false);
             try
             {
-                if (heroDetail)
+                if (heroDetail || actorDetail != null)
                 {
-                    Vector3 focus = Find("Wanderer").transform.position;
+                    Vector3 focus = (actorDetail != null ? actorDetail : Find("Wanderer").transform).position;
                     focus.y = 1f;
                     camera.transform.position = focus + new Vector3(3f, 1.2f, 4f);
                     camera.transform.LookAt(focus);
@@ -887,7 +887,8 @@ namespace AreArpg.PlayMode.Tests
                 pixels.ReadPixels(new Rect(0, 0, 1280, 720), 0, 0);
                 pixels.Apply();
                 System.IO.Directory.CreateDirectory(directory);
-                System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, name), pixels.EncodeToPNG());
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, name),
+                    name.EndsWith(".jpg",System.StringComparison.OrdinalIgnoreCase)?pixels.EncodeToJPG(90):pixels.EncodeToPNG());
             }
             finally
             {

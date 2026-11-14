@@ -58,7 +58,13 @@ The [Hunter assessment](../.specify/bugs/hunter-bow-animation/assessment.md) app
 `$speckit-bug-assess`, SPD analysis/planning/review and
 Director readback of actual native RED. Original test: zero arm movement. Shared
 player/companion clip and separate road-hunter Animator gap are explicit acceptance gates.
-There is no fix.md or test.md yet.
+The pilot now has a real [fix report](../.specify/bugs/hunter-bow-animation/fix.md)
+and [native verification](../.specify/bugs/hunter-bow-animation/test.md).
+The exact moving source take repairs both actors; native frame review then caught
+the hunter's different wrist axes, leading to a bow-only palm binding. Full suites
+pass129PlayMode/55EditMode with0skips, plus8112Core assertions. Initial failures and
+the two neighboring fixture corrections remain in the evidence. Road-hunter Animator
+and Inari model work are still separate. The original assessment remains unchanged.
 
 One tooling batch: [installation #36](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues/36),
 [routing #37](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues/37),

@@ -4,6 +4,8 @@ using AreArpg.Core;
 using AreArpg.UnityClient;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.Animations;
+using UnityEngine.Playables;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using AshenCrypt.MemoryForge;
@@ -33,6 +35,204 @@ namespace AreArpg.PlayMode.Tests
             int health=world.PlayerHealth;for(int i=0;i<20;i++)TickOnce();
             Assert.AreEqual(ForgeAction.Wait,creature.Mind.DecisionState.Action);Assert.AreEqual(0,creature.BossWindupTicks);Assert.AreEqual(health,world.PlayerHealth);
         }
+
+        /// <summary>A real companion strike needs moving arm poses inside its clip, not just blends to and from a still.</summary>
+        [UnityTest]
+        public IEnumerator HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave()
+        {
+            if(string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private hunter and animation overlay");
+            _runtime.enabled=false;
+            var p=CharacterProgression.CreateEntryProfile();
+            typeof(CharacterProgression).GetMethod("EnterVillage",Flags).Invoke(p,null);
+            typeof(CharacterProgression).GetMethod("DiscoverHungerClue",Flags).Invoke(p,null);
+            typeof(CharacterProgression).GetMethod("TravelHunger",Flags).Invoke(p,new object[]{3,false});p.Social.EnableForge();p.Equipment.Enable(p);
+            var world=new ArenaSimulation(73,p,1,LootCatalog.Version1);
+            // Arrange encounter contact only; rescue and recruitment use the existing gameplay path.
+            DungeonFixtureSet(p.Road,"Started",true);p.Road.Bear.Xmm=world.PlayerXmm+1000;p.Road.Bear.Zmm=world.PlayerZmm;p.Road.Bear.Health=1;
+            Assert.Greater(world.ActivateSkill(0).Hits,0);
+            typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{world,"Jäger gerettet"});
+            MoveStory(2000,9000);yield return null;
+            typeof(ArenaRuntime).GetMethod("QueueCompanionAction",Flags).Invoke(_runtime,new object[]{0});TickOnce();yield return null;
+            Assert.AreEqual(CompanionStatus.Following,p.Companion.Status);
+
+            var actor=Find("ARE_Companion_Hunter");Assert.IsNotNull(actor);
+            Assert.IsNotEmpty(actor.GetComponentsInChildren<SkinnedMeshRenderer>(),"Inspect the actual skinned hunter, not its fallback capsule");
+            var animator=actor.GetComponentInChildren<Animator>();Assert.IsNotNull(animator);Assert.IsTrue(animator.isHuman);
+            Assert.IsFalse(animator.applyRootMotion);
+            var gripProbe=animator.gameObject.AddComponent<BowGripReadback>();
+            var bow=actor.GetComponentsInChildren<Transform>().FirstOrDefault(t=>t.name=="CompanionWeapon_bow_newbie.1");
+            Assert.IsNotNull(bow);Assert.IsTrue(bow.IsChildOf(animator.GetBoneTransform(HumanBodyBones.LeftHand)));
+            var arms=new[]{HumanBodyBones.LeftUpperArm,HumanBodyBones.LeftLowerArm,HumanBodyBones.RightUpperArm,HumanBodyBones.RightLowerArm}
+                .Select(animator.GetBoneTransform).ToArray();
+            foreach(var bone in arms)Assert.IsNotNull(bone,"The real humanoid arms must be available for pose inspection");
+            int attackState=Animator.StringToHash("Melee"),idleState=Animator.StringToHash("Idle");
+            animator.ResetTrigger("Melee");animator.SetFloat("MoveMagnitude",0f);animator.Play(idleState,0,0f);animator.Update(0f);
+
+            var target=new MonsterState{Id=91,Kind=0,Xmm=p.Companion.Xmm+1400,Zmm=p.Companion.Zmm,Health=1000,MaxHealth=1000};
+            Game.Monsters.Add(target);
+            for(int tick=0;tick<40&&target.Health==1000;tick++)TickOnce();
+            Assert.Less(target.Health,1000,"A real companion hit must precede the bow presentation");
+            Assert.Greater(p.Companion.AttackFlash,0);
+            animator.Update(0f);
+            Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).shortNameHash==attackState||
+                animator.IsInTransition(0)&&animator.GetNextAnimatorStateInfo(0).shortNameHash==attackState,
+                "The accepted companion strike must enter the actual attack controller state");
+
+            ulong hash=Game.ComputeWorldHash();string save=p.SaveString();
+            var stored=_keys.Select(key=>PlayerPrefs.GetString(key,"")).ToArray();
+            var hadKeys=_keys.Select(PlayerPrefs.HasKey).ToArray();
+            var actorPosition=actor.transform.position;var actorRotation=actor.transform.rotation;
+            var rigPosition=animator.transform.localPosition;var rigRotation=animator.transform.localRotation;
+            var controller=animator.runtimeAnimatorController as AnimatorOverrideController;
+            Assert.IsNotNull(controller,"Inspect the actual equipped bow controller");
+            var overrides=new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<AnimationClip,AnimationClip>>();
+            controller.GetOverrides(overrides);
+            var attacks=overrides.Where(pair=>pair.Key.name.Contains("Strike")).ToArray();
+            Assert.AreEqual(1,attacks.Length,"The production controller must expose one attack binding");
+            var shot=attacks[0].Value??attacks[0].Key;
+            Assert.IsNotNull(shot);Assert.IsTrue(shot.humanMotion);Assert.Greater(shot.length,0f);
+            Assert.AreSame(Resources.Load<AnimationClip>("ARE/Visuals/WeaponBowShot"),shot,
+                "Sample the bow clip actually bound to the production attack state");
+
+            // Finish the genuinely triggered controller cycle before isolated clip inspection.
+            // Positive, bounded presentation steps traverse its .04 entry and .08 exit blends.
+            animator.SetFloat("MoveMagnitude",0f);
+            for(int step=0;step<32;step++)animator.Update((shot.length+.2f)/32f);
+            Assert.AreEqual(idleState,animator.GetCurrentAnimatorStateInfo(0).shortNameHash,"The accepted shot must recover to locomotion");
+            Assert.IsFalse(animator.IsInTransition(0),"The actual attack exit must complete");
+
+            var poses=new Quaternion[13][];
+            var graph=PlayableGraph.Create("HunterBowMotionRegression");
+            try
+            {
+                // A single clip drives the real humanoid with manual evaluation. No controller
+                // transition or empty ClipInfo result can substitute for movement inside the clip.
+                animator.runtimeAnimatorController=null;
+                graph.SetTimeUpdateMode(DirectorUpdateMode.Manual);
+                var playable=AnimationClipPlayable.Create(graph,shot);
+                playable.SetApplyFootIK(false);playable.SetApplyPlayableIK(false);playable.SetSpeed(0d);
+                var output=AnimationPlayableOutput.Create(graph,"Hunter bow pose",animator);
+                output.SetSourcePlayable(playable);output.SetWeight(1f);graph.Play();
+                playable.SetTime(0d);graph.Evaluate(0f); // Initialize native bindings before recording.
+                for(int sample=0;sample<poses.Length;sample++)
+                {
+                    playable.SetTime((double)shot.length*sample/(poses.Length-1));graph.Evaluate(0f);
+                    poses[sample]=arms.Select(bone=>bone.localRotation).ToArray();
+                }
+                playable.SetTime(0d);graph.Evaluate(0f);
+                Assert.LessOrEqual(HunterArmPoseDistance(poses[0],arms.Select(bone=>bone.localRotation).ToArray()),.1f,
+                    "Sampling the same clip time twice must reproduce the same arm pose");
+            }
+            finally
+            {
+                if(graph.IsValid())graph.Destroy();
+                animator.runtimeAnimatorController=controller;
+            }
+            Assert.AreEqual(actorPosition,actor.transform.position);Assert.AreEqual(actorRotation,actor.transform.rotation);
+            Assert.AreEqual(rigPosition,animator.transform.localPosition);Assert.AreEqual(rigRotation,animator.transform.localRotation);
+            Assert.AreEqual(hash,Game.ComputeWorldHash(),"Animation must not advance or mutate the authoritative world");
+            Assert.AreEqual(save,p.SaveString(),"Animation must not change companion progress or save contents");
+            for(int i=0;i<_keys.Length;i++)
+            {Assert.AreEqual(hadKeys[i],PlayerPrefs.HasKey(_keys[i]));Assert.AreEqual(stored[i],PlayerPrefs.GetString(_keys[i],""));}
+
+            // Match the existing rig-motion test's .1-degree noise tolerance; this is a still-pose
+            // regression gate, not an invented art-direction threshold for the final draw timing.
+            int second=-1,third=-1;float maximumMotion=0f;
+            for(int sample=1;sample<poses.Length;sample++)
+            {
+                float fromStart=HunterArmPoseDistance(poses[0],poses[sample]);maximumMotion=Mathf.Max(maximumMotion,fromStart);
+                if(fromStart<=.1f)continue;
+                if(second<0)second=sample;
+                else if(third<0&&HunterArmPoseDistance(poses[second],poses[sample])>.1f)third=sample;
+            }
+            TestContext.WriteLine("Actual bow clip: "+shot.name+", length="+shot.length+"s, sampled arm motion="+maximumMotion+" degrees");
+            Assert.Greater(maximumMotion,.1f,"The actual bow clip is a still pose: the hunter's arms must move within the attack, independently of transition blends");
+            Assert.Greater(third,second,"The bow shot needs at least three distinct arm poses through its motion, not a switch between two frozen poses");
+
+            float speed=animator.speed;float gripAngle=0;
+            try
+            {
+                foreach(float normalized in new[]{.2f,.5f,.8f})
+                {
+                    animator.speed=1;animator.Play(attackState,0,normalized);animator.Update(0);animator.speed=0;
+                    if(normalized==.5f)
+                    {
+                        gripAngle=Vector3.Angle(actor.transform.up,bow.up);
+                        gripAngle=Mathf.Min(gripAngle,180f-gripAngle); // A bow's long axis is undirected.
+                        TestContext.WriteLine("Hunter bow grip angle="+gripAngle+"; boneToPalm="+(Quaternion.Inverse(animator.GetBoneTransform(HumanBodyBones.LeftHand).rotation)*gripProbe.LeftGoalRotation)+"; palm up/right/forward="+(gripProbe.LeftGoalRotation*Vector3.up)+" / "+(gripProbe.LeftGoalRotation*Vector3.right)+" / "+(gripProbe.LeftGoalRotation*Vector3.forward)+"; IK observed="+gripProbe.Observed);
+                    }
+                    yield return Capture("hunter-bow-"+Mathf.RoundToInt(normalized*100)+".jpg",actorDetail:actor.transform);
+                }
+            }
+            finally{animator.speed=speed;}
+            Assert.AreEqual(actorPosition,actor.transform.position);Assert.AreEqual(actorRotation,actor.transform.rotation);
+            Assert.AreEqual(rigPosition,animator.transform.localPosition);Assert.AreEqual(rigRotation,animator.transform.localRotation);
+            Assert.AreEqual(hash,Game.ComputeWorldHash());Assert.AreEqual(save,p.SaveString());
+            for(int i=0;i<_keys.Length;i++)
+            {Assert.AreEqual(hadKeys[i],PlayerPrefs.HasKey(_keys[i]));Assert.AreEqual(stored[i],PlayerPrefs.GetString(_keys[i],""));}
+
+            // Observe repeated real hits at the unchanged six-tick cadence. Pause automatic frame
+            // time so TickOnce cannot absorb slow capture frames; presentation advances explicitly.
+            Assert.AreEqual("bow_newbie.1",Game.CompanionWeaponDefinition.Id);
+            target.Health=target.MaxHealth=100000;
+            float timeScale=Time.timeScale;
+            var hitTicks=new System.Collections.Generic.List<ulong>();
+            Quaternion[] cycleStart=null;float cycleMotion=0;
+            try
+            {
+                Time.timeScale=0;yield return null;
+                animator.speed=1;animator.ResetTrigger("Melee");animator.Play(idleState,0,0);animator.Update(0);
+                for(int attempt=0;attempt<30&&hitTicks.Count<3;attempt++)
+                {
+                    ulong tick=Game.CurrentTick;int health=target.Health;
+                    TickOnce();
+                    Assert.AreEqual(tick+1,Game.CurrentTick,"Each cadence observation must contain exactly one canonical tick");
+                    bool hit=target.Health<health;
+                    if(hit)
+                    {
+                        Assert.AreEqual(target.Id,p.Companion.TargetId);Assert.AreEqual(3,p.Companion.AttackFlash);
+                        if(hitTicks.Count>0)Assert.AreEqual(6UL,Game.CurrentTick-hitTicks[hitTicks.Count-1],"Default bow hits must stay six ticks apart");
+                        hitTicks.Add(Game.CurrentTick);
+                    }
+                    hash=Game.ComputeWorldHash();save=p.SaveString();
+                    animator.Update(0);animator.Update(.1f);
+                    if(hit)
+                    {
+                        var state=animator.GetCurrentAnimatorStateInfo(0);
+                        Assert.AreEqual(attackState,state.shortNameHash,"Each accepted hit must enter the production attack state");
+                        Assert.Less(state.normalizedTime,.25f,"Each accepted hit must restart the take, not remain inside the previous shot");
+                    }
+                    if(hitTicks.Count==2)
+                    {
+                        int elapsed=(int)(Game.CurrentTick-hitTicks[1]);
+                        var pose=arms.Select(bone=>bone.localRotation).ToArray();
+                        if(cycleStart==null)cycleStart=pose;else cycleMotion=Mathf.Max(cycleMotion,HunterArmPoseDistance(cycleStart,pose));
+                        if(elapsed==0||elapsed==2||elapsed==5)
+                        {
+                            animator.speed=0;
+                            yield return Capture("hunter-bow-cadence-"+((elapsed+1)*100)+"ms.jpg",actorDetail:actor.transform);
+                            animator.speed=1;
+                        }
+                    }
+                    Assert.AreEqual(hash,Game.ComputeWorldHash(),"Presentation between cadence ticks must not advance the Core");
+                    Assert.AreEqual(save,p.SaveString(),"Presentation between cadence ticks must not change progression/save data");
+                }
+                Assert.AreEqual(3,hitTicks.Count,"Observe three genuine companion hits, including two full repeat intervals");
+                Assert.Greater(cycleMotion,.1f,"The production controller must move the arms between repeated hits");
+                TestContext.WriteLine("Continuous bow hits at Core ticks "+string.Join(",",hitTicks)+"; repeated-cycle arm motion="+cycleMotion+" degrees");
+            }
+            finally{animator.speed=speed;Time.timeScale=timeScale;}
+            Assert.Less(gripAngle,30f,"The hunter must hold the bow upright at full draw rather than across his forearm/neck");
+        }
+
+        private static float HunterArmPoseDistance(Quaternion[] first,Quaternion[] second)
+        {
+            float angle=0f;
+            for(int bone=0;bone<first.Length;bone++)angle=Mathf.Max(angle,Quaternion.Angle(first[bone],second[bone]));
+            return angle;
+        }
+
         [UnityTest]
         public IEnumerator RescuedCompanionHasRealModelControlsCombatAndSavedIndividualProgress()
         {
@@ -84,6 +284,18 @@ namespace AreArpg.PlayMode.Tests
             Assert.Less(Vector3.Distance(actor.transform.position,new Vector3(Game.Progression.Companion.Xmm/1000f,1,Game.Progression.Companion.Zmm/1000f)),.02f);
             yield return null;
             yield return Capture("forge-hunter-companion-after-load.png");
+        }
+    }
+
+    /// <summary>Read Unity's canonical humanoid palm frame during the valid IK callback; never writes a pose.</summary>
+    public sealed class BowGripReadback : MonoBehaviour
+    {
+        public Quaternion LeftGoalRotation;
+        public bool Observed;
+        private void OnAnimatorIK(int layer)
+        {
+            if(layer!=0)return;
+            LeftGoalRotation=GetComponent<Animator>().GetIKRotation(AvatarIKGoal.LeftHand);Observed=true;
         }
     }
 }
