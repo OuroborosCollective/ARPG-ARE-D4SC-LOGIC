@@ -1,0 +1,19 @@
+{
+  "name": "com.ouroboros.fadenwerk",
+  "displayName": "Fadenwerk",
+  "version": "1.0.0",
+  "unity": "6000.0",
+  "description": "Quests, Dialoge und Belohnungs-Kits: Unity-Fenster, Browser-Oberfläche (auch für Unity auf einem VPS) und Offline-Laufzeit für dein Spiel.",
+  "keywords": [
+    "quest",
+    "dialogue",
+    "rpg",
+    "arpg",
+    "editor",
+    "loot"
+  ],
+  "author": {
+    "name": "Ouroboros Collective"
+  },
+  "license": "SEE LICENSE IN README.md"
+}

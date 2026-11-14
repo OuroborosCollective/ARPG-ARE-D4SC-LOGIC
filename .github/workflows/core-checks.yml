@@ -20,6 +20,8 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Compile and execute the real shared C# simulation
         run: dotnet run --project Tests/CoreVerification/CoreVerification.csproj --configuration Release
+      - name: Verify real Fadenwerk JSON escaping and roundtrip
+        run: dotnet run --project Tests/FadenwerkJsonVerification/FadenwerkJsonVerification.csproj --configuration Release
       - name: Check repository has playable Unity entrypoint
         run: |
           test -f Assets/Scripts/Runtime/ArenaRuntime.cs

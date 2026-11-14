@@ -1,0 +1,12 @@
+{
+  "name": "AshenCrypt.WorldForge.Editor",
+  "rootNamespace": "AshenCrypt.WorldForge.EditorTools",
+  "references": ["AshenCrypt.WorldForge", "AshenCrypt.WorldForge.Core"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true,
+  "defineConstraints": ["WF_HAS_TERRAIN", "WF_HAS_TERRAINPHYSICS"],
+  "versionDefines": [
+    { "name": "com.unity.modules.terrain", "expression": "1.0.0", "define": "WF_HAS_TERRAIN" },
+    { "name": "com.unity.modules.terrainphysics", "expression": "1.0.0", "define": "WF_HAS_TERRAINPHYSICS" }
+  ]
+}

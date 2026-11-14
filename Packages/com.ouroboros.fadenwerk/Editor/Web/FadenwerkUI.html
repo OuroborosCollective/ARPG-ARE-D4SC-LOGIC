@@ -1,0 +1,1730 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f0e15">
+<title>Fadenwerk</title>
+<style>
+:root{
+  --bg:#0f0e15; --panel:#17151f; --panel2:#1e1b29; --line:#2c2839; --txt:#ede6da; --mut:#8d84a3;
+  --acc:#f0b429; --acc2:#ffcf5c; --teal:#14b8a6; --violet:#a371f7; --red:#f85149; --ora:#f97316; --grn:#3fb950;
+  --r:10px; --tap:44px;
+  --rc-common:#9ca3af; --rc-uncommon:#3fb950; --rc-rare:#58a6ff; --rc-epic:#a371f7; --rc-legendary:#f0b429;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--acc)}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh}
+header{display:flex;align-items:center;gap:8px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));background:var(--panel);border-bottom:1px solid var(--line);flex-shrink:0;min-height:52px}
+.logo{font-weight:900;letter-spacing:-.03em;font-size:17px;white-space:nowrap}
+.logo b{color:var(--acc)}
+.scene-sel{flex:1;min-width:0;max-width:340px}
+.status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mut);flex-shrink:0}
+.dot.ok{background:var(--grn)} .dot.warn{background:var(--ora)} .dot.bad{background:var(--red)}
+.layout{flex:1;display:flex;min-height:0}
+nav.side{display:none;flex-direction:column;gap:2px;padding:8px;background:var(--panel);border-right:1px solid var(--line);width:170px;flex-shrink:0}
+nav.bottom{display:flex;background:var(--panel);border-top:1px solid var(--line);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);overflow-x:auto}
+.navbtn{flex:1 0 auto;min-width:62px;background:none;border:0;border-top:2px solid transparent;color:var(--mut);padding:6px 4px 7px;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;position:relative}
+.navbtn .ic{font-size:19px;line-height:1.1}
+.navbtn.on{color:var(--acc);border-top-color:var(--acc)}
+nav.bottom .navbtn{min-width:0;flex:1 1 0;padding:6px 0 7px;font-size:9px;letter-spacing:0}
+nav.bottom .navbtn .ic{font-size:18px}
+.navbtn .badge{position:absolute;top:3px;right:calc(50% - 20px);background:var(--red);color:#fff;border-radius:9px;font-size:9px;padding:0 5px;line-height:15px}
+nav.side .navbtn{flex:0 0 auto;flex-direction:row;justify-content:flex-start;gap:10px;font-size:13px;text-transform:none;letter-spacing:0;padding:10px 12px;border-top:0;border-radius:8px;min-height:var(--tap)}
+nav.side .navbtn.on{background:var(--panel2)}
+nav.side .navbtn .badge{position:static;margin-left:auto}
+main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative}
+.banner{padding:8px 12px;font-size:13px;flex-shrink:0}
+.banner.warn{background:#3a2a10;color:#ffd38a;border-bottom:1px solid #5a4214}
+.banner.bad{background:#3a1414;color:#ffb3ad;border-bottom:1px solid #5a1f1f}
+.view{flex:1;min-height:0;display:flex}
+.split{flex:1;display:flex;min-height:0}
+.pane-list{flex:1;min-width:0;overflow:auto;padding:12px}
+.pane-edit{display:none;flex-direction:column;min-width:0;min-height:0;background:var(--panel);border-left:1px solid var(--line)}
+.split.editing .pane-list{display:none}
+.split.editing .pane-edit{display:flex;flex:1}
+.edit-head{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);flex-shrink:0;background:var(--panel)}
+.edit-head h2{flex:1;margin:0;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.edit-body{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:12px}
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.toolbar .grow{flex:1;min-width:140px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap);padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);font-weight:700;font-size:14px;white-space:nowrap;touch-action:manipulation}
+.btn:active{transform:translateY(1px)}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#1a1308}
+.btn.ok{background:#14301c;border-color:#235c33;color:#7ee39a}
+.btn.danger{background:#321617;border-color:#5a2426;color:#ff9a93}
+.btn.ghost{background:transparent}
+.btn.sm{min-height:34px;padding:0 10px;font-size:13px}
+.btn.icon{width:var(--tap);padding:0}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;min-height:58px;cursor:pointer;text-align:left;width:100%}
+.row:hover{border-color:#3d3750}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .s{font-size:12px;color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;background:#3a2e12;color:var(--acc)}
+.av.m{background:#0f3330;color:var(--teal);border-radius:9px}
+.av img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;border:1px solid var(--line);color:var(--mut);white-space:nowrap}
+.chip.acc{color:var(--acc);border-color:#5a4416}
+.chip.teal{color:var(--teal);border-color:#145a52}
+.chip.red{color:var(--red);border-color:#5a2426}
+.chip.ora{color:var(--ora);border-color:#5a3514}
+.chip.vio{color:var(--violet);border-color:#43306a}
+button.chip{cursor:pointer;background:none;min-height:28px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut);font-weight:600;min-width:0}
+label.f.inline{flex-direction:row;align-items:center;gap:10px;font-size:14px;color:var(--txt);min-height:var(--tap)}
+.inp,select.inp,textarea.inp{width:100%;background:#0c0b11;border:1px solid var(--line);border-radius:8px;padding:10px 11px;min-height:var(--tap);outline:none;color:var(--txt)}
+textarea.inp{min-height:96px;resize:vertical;line-height:1.5}
+textarea.inp.big{min-height:170px}
+.inp:focus{border-color:var(--acc)}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--acc)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.sec{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:6px 0 -4px}
+.sub{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:10px}
+.sub-head{display:flex;align-items:center;gap:8px}
+.sub-head .t{flex:1;font-weight:700;font-size:13px}
+.muted{color:var(--mut);font-size:13px}
+.hint{color:var(--mut);font-size:12px;line-height:1.5}
+.empty{color:var(--mut);text-align:center;padding:30px 10px}
+.count{font-size:11px;color:var(--mut);text-align:right}
+.issue{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:var(--r);border:1px solid var(--line);background:var(--panel);cursor:pointer;width:100%;text-align:left;font-size:13px}
+.issue.error{border-color:#5a2426;color:#ffb3ad}
+.issue.warn{border-color:#5a3514;color:#ffcc99}
+.issue.info{color:var(--mut)}
+/* Karte */
+.mapwrap{flex:1;display:flex;min-height:0;position:relative}
+.mapbox{flex:1;position:relative;min-width:0;overflow:hidden;background:#0c0b11}
+canvas#map{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.mapbar{position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none;z-index:2}
+.mapbar > *{pointer-events:auto}
+.seg{display:flex;background:rgba(23,21,31,.92);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:none;border:0;min-height:40px;padding:0 11px;font-weight:700;font-size:13px;color:var(--mut);white-space:nowrap}
+.seg button.on{background:var(--acc);color:#1a1308}
+.mapbar .btn{min-height:40px;background:rgba(23,21,31,.92)}
+.maphint{position:absolute;left:50%;bottom:44px;transform:translateX(-50%);background:rgba(23,21,31,.94);border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:13px;z-index:2;pointer-events:none;max-width:90%;text-align:center}
+.mappanel{display:none;flex-direction:column;background:var(--panel);border-left:1px solid var(--line);width:360px;flex-shrink:0;min-height:0}
+.mappanel.open{display:flex}
+.legend{position:absolute;right:8px;bottom:8px;background:rgba(23,21,31,.9);border:1px solid var(--line);border-radius:9px;padding:6px 9px;font-size:11px;color:var(--mut);z-index:2;display:flex;flex-direction:column;gap:2px}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+/* Overlays */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:14px 14px 0 0;width:100%;max-width:640px;max-height:88dvh;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+.modal-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.modal-head h3{flex:1;margin:0;font-size:16px}
+.modal-body{overflow:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.assets{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.asset{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:6px;text-align:center;font-size:11px;cursor:pointer;display:flex;flex-direction:column;gap:4px}
+.asset.on{border-color:var(--acc)}
+.asset .img{aspect-ratio:1;background:#0c0b11;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--mut);font-size:22px}
+.asset .img img{width:100%;height:100%;object-fit:contain}
+.asset .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.toast-box{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:80;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;width:92%;max-width:520px}
+.toast{background:#17151f;border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.toast.ok{border-color:#235c33;color:#7ee39a}.toast.warn{border-color:#5a3514;color:#ffcc99}.toast.err{border-color:#5a2426;color:#ffb3ad}
+.login{max-width:440px;margin:8vh auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.dlg-preview{background:var(--panel2);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.dlg-preview .who{color:var(--acc);font-weight:800}
+.dlg-preview .say{white-space:pre-wrap}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px}
+.kv .k{color:var(--mut)}
+.lore{white-space:pre-wrap;font-size:13px;color:#d8d0c3;max-height:120px;overflow:auto}
+.rar-common{color:var(--rc-common)}.rar-uncommon{color:var(--rc-uncommon)}.rar-rare{color:var(--rc-rare)}.rar-epic{color:var(--rc-epic)}.rar-legendary{color:var(--rc-legendary)}
+@media (min-width:1000px){
+  nav.side{display:flex}
+  nav.bottom{display:none}
+  .split .pane-list{max-width:430px;border-right:1px solid var(--line)}
+  .split .pane-edit{display:flex;flex:1}
+  .split.editing .pane-list{display:block}
+  .split:not(.editing) .pane-edit{align-items:center;justify-content:center;color:var(--mut)}
+  .modal-bg{align-items:center}
+  .modal{border-radius:14px}
+}
+@media (max-width:999px){
+  .mappanel.open{position:absolute;left:0;right:0;bottom:0;width:auto;max-height:62%;border-left:0;border-top:1px solid var(--line);border-radius:14px 14px 0 0;z-index:5;box-shadow:0 -10px 30px rgba(0,0,0,.45)}
+  .legend{display:none}
+}
+@media (max-width:520px){ .grid3{grid-template-columns:1fr 1fr} .hide-sm{display:none} .seg button{padding:0 9px} }
+@media (min-width:1000px){ .toast-box{bottom:24px} }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast-box" id="toasts"></div>
+<script>
+"use strict";
+/* ============================================================
+   Fadenwerk – Browser-Oberfläche für den Unity-Editor
+   Spricht mit dem Fadenwerk-Server im Editor (/api/*).
+   ============================================================ */
+const TABS = [
+  ["map","🗺️","Karte"],["npcs","🧑","NPCs"],["quests","📜","Quests"],["dialogues","💬","Dialoge"],
+  ["kits","🎁","Kits"],["items","⚔️","Items"],["check","✅","Prüfen"],["settings","⚙️","Mehr"]
+];
+const OBJ_TYPES = [["talk","Sprechen mit NPC"],["reach","Ort erreichen (Marker)"],["collect","Item sammeln"],["deliver","Item abliefern"],["kill","Gegner besiegen"],["custom","Eigenes Ereignis"]];
+const ACTIONS = [["none","—"],["offerQuest","Quest annehmen"],["completeQuest","Quest abschließen"],["giveKit","Kit geben"],["setFlag","Flag setzen"],["end","Gespräch beenden"]];
+const STATES = [["","immer"],["available","Quest annehmbar"],["active","Quest läuft"],["ready","Quest abgabebereit"],["completed","Quest abgeschlossen"],["notCompleted","noch nie abgeschlossen"]];
+const CATS = [["weapon","Waffe"],["armor","Rüstung"],["consumable","Verbrauchbar"],["material","Material"],["quest","Quest-Item"],["misc","Sonstiges"]];
+const RARS = [["common","Gewöhnlich"],["uncommon","Ungewöhnlich"],["rare","Selten"],["epic","Episch"],["legendary","Legendär"]];
+const MARKER_KINDS = [["ziel","Ziel"],["ort","Ort"],["tafel","Anschlagtafel"],["spawn","Spawn"]];
+
+const S = {
+  token: "", state: null, rev: "", online: false, lastError: "", tab: "map",
+  idx: {}, draft: null, draftKind: "", draftNew: false, draftDirty: false, draftBase: "", remoteChanged: false,
+  search: {}, itemCat: "", sel: null, mapMode: "view", showLinks: true, focusQuest: "",
+  view: null, img: null, imgRev: -1, dragging: null, pending: null, pollTimer: 0, busy: false
+};
+
+/* ---------- Hilfen ---------- */
+const $ = (s, r) => (r || document).querySelector(s);
+const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+function slug(s){
+  return String(s || "").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
+    .replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,24).replace(/_+$/,"");
+}
+function newId(prefix, name){
+  const r = Math.random().toString(16).slice(2,6);
+  const s = slug(name);
+  return s ? prefix + "_" + s + "_" + r : prefix + "_" + r;
+}
+function opts(list, sel){ return list.map(([v,l]) => `<option value="${esc(v)}"${v===sel?" selected":""}>${esc(l)}</option>`).join(""); }
+function toast(msg, kind){
+  const el = document.createElement("div");
+  el.className = "toast " + (kind || "ok");
+  el.textContent = msg;
+  const box = $("#toasts");
+  box.appendChild(el);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => el.remove(), kind === "err" ? 6000 : 3200);
+}
+function getPath(o, path){ return path.split(".").reduce((a,k) => a == null ? a : a[k], o); }
+function setPath(o, path, val){
+  const ks = path.split("."); let cur = o;
+  for (let i = 0; i < ks.length - 1; i++) cur = cur[ks[i]];
+  cur[ks[ks.length - 1]] = val;
+}
+function rarClass(r){ return "rar-" + (r || "common"); }
+function initials(s){ const t = String(s || "?").trim(); return esc(t.slice(0,1).toUpperCase() || "?"); }
+
+/* ---------- Server ---------- */
+async function api(path, body){
+  const o = { method: body === undefined ? "GET" : "POST", headers: { "X-Fadenwerk-Token": S.token } };
+  if (body !== undefined){ o.headers["Content-Type"] = "application/json"; o.body = JSON.stringify(body); }
+  let res;
+  // Relativ zur Seite: funktioniert auch hinter einem Reverse-Proxy unter einem Unterpfad (z. B. /fadenwerk/)
+  try { res = await fetch("." + path, o); }
+  catch (e) { S.online = false; renderStatus(); throw new Error("Keine Verbindung zu Unity."); }
+  if (res.status === 401){ logout("Der Zugangsschlüssel stimmt nicht (mehr)."); throw new Error("Zugangsschlüssel falsch"); }
+  const type = res.headers.get("content-type") || "";
+  if (!type.includes("json")){
+    if (!res.ok) throw new Error("Fehler " + res.status);
+    return res;
+  }
+  const data = await res.json();
+  if (!res.ok || data.ok === false){ const err = new Error(data.error || ("Fehler " + res.status)); err.status = res.status; throw err; }
+  return data;
+}
+
+async function act(path, body, okMsg){
+  if (S.busy) return null;
+  S.busy = true;
+  try {
+    const r = await api(path, body);
+    if (r.warning) toast(r.warning, "warn"); else if (okMsg) toast(okMsg, "ok");
+    await poll(true);
+    return r;
+  } catch (e) { toast(e.message, "err"); return null; }
+  finally { S.busy = false; }
+}
+
+async function poll(force){
+  clearTimeout(S.pollTimer);
+  try {
+    const d = await api("/api/state" + (force || !S.rev ? "" : "?rev=" + encodeURIComponent(S.rev)));
+    S.online = true; S.lastError = "";
+    if (!d.same){
+      const first = !S.state;
+      S.state = d; S.rev = d.rev; buildIndex();
+      onStateChanged(first);
+    }
+  } catch (e) {
+    S.lastError = e.message;
+  }
+  renderStatus();
+  S.pollTimer = setTimeout(poll, S.online ? 3000 : 6000);
+}
+
+function buildIndex(){
+  const st = S.state, I = {};
+  for (const k of ["npcs","markers","quests","dialogues","kits","items"]){
+    I[k] = new Map((st[k] || []).map(x => [x.id, x]));
+  }
+  I.issuesBy = new Map();
+  for (const i of st.issues || []){
+    if (!i.id) continue;
+    const key = i.kind + ":" + i.id;
+    I.issuesBy.set(key, (I.issuesBy.get(key) || 0) + (i.level === "info" ? 0 : 1));
+  }
+  S.idx = I;
+}
+
+function onStateChanged(first){
+  if (S.draft && !S.draftDirty && !S.draftNew){
+    const fresh = currentRemote();
+    if (fresh) { S.draft = clone(fresh); S.draftBase = JSON.stringify(fresh); }
+  } else if (S.draft && S.draftDirty && !S.draftNew){
+    const fresh = currentRemote();
+    S.remoteChanged = !!fresh && JSON.stringify(fresh) !== S.draftBase;
+  }
+  if (first) render();
+  else renderSoft();
+}
+
+function currentRemote(){
+  if (!S.draft) return null;
+  const map = { npc: "npcs", quest: "quests", dialogue: "dialogues", kit: "kits", item: "items" }[S.draftKind];
+  return map && S.idx[map] ? S.idx[map].get(S.draft.id) : null;
+}
+
+/* ---------- Anmeldung ---------- */
+function readToken(){
+  const m = location.hash.match(/[#&]t=([^&]+)/);
+  if (m){
+    S.token = decodeURIComponent(m[1]);
+    try { localStorage.setItem("fw.token", S.token); } catch (e) {}
+    history.replaceState(null, "", location.pathname + location.search);
+  } else {
+    try { S.token = localStorage.getItem("fw.token") || ""; } catch (e) { S.token = ""; }
+  }
+}
+function logout(msg){
+  try { localStorage.removeItem("fw.token"); } catch (e) {}
+  S.token = ""; S.state = null; S.rev = "";
+  clearTimeout(S.pollTimer);
+  renderLogin(msg);
+}
+function renderLogin(msg){
+  $("#app").innerHTML = `<div class="login">
+    <div class="logo" style="font-size:26px">◈ <b>Faden</b>werk</div>
+    <div class="muted">Browser-Oberfläche für deinen Unity-Editor.</div>
+    ${msg ? `<div class="banner bad" style="border-radius:8px">${esc(msg)}</div>` : ""}
+    <label class="f">Zugangsschlüssel
+      <input class="inp" id="tok" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="aus Unity: Window → Fadenwerk → Start">
+    </label>
+    <button class="btn pri" data-act="login">Verbinden</button>
+    <div class="hint">Am einfachsten: In Unity unter <b>Window → Fadenwerk</b> bei der Adresse auf „Kopieren“ tippen und diesen Link hier öffnen – der Schlüssel steckt im Link.</div>
+  </div>`;
+  setTimeout(() => { const t = $("#tok"); if (t) t.focus(); }, 50);
+}
+
+/* ---------- Grundgerüst ---------- */
+function render(){
+  if (!S.token){ renderLogin(); return; }
+  const navBtns = TABS.map(([id, ic, label]) => `<button class="navbtn${S.tab===id?" on":""}" data-tab="${id}"><span class="ic">${ic}</span><span>${label}</span><span class="badge" data-badge="${id}" hidden></span></button>`).join("");
+  $("#app").innerHTML = `
+    <header>
+      <div class="logo">◈ <b>Faden</b>werk</div>
+      <select class="inp scene-sel" id="sceneSel" title="Szene in Unity öffnen"></select>
+      <div class="status" id="status"><span class="dot"></span><span class="hide-sm">…</span></div>
+      <button class="btn sm" id="saveBtn" data-act="saveScene" title="Szenen und Datenbank in Unity speichern">💾</button>
+    </header>
+    <div id="banners"></div>
+    <div class="layout">
+      <nav class="side">${navBtns}</nav>
+      <main id="main"></main>
+    </div>
+    <nav class="bottom">${navBtns}</nav>`;
+  renderStatus();
+  renderMain();
+}
+
+function renderStatus(){
+  const st = S.state, el = $("#status");
+  if (!el) return;
+  let cls = "bad", txt = "offline";
+  if (S.online && st){ cls = st.playing ? "warn" : "ok"; txt = st.playing ? "Play-Modus" : (st.unity ? "Unity " + st.unity : "verbunden"); }
+  else if (S.lastError) txt = S.lastError;
+  el.innerHTML = `<span class="dot ${cls}"></span><span class="hide-sm">${esc(txt)}</span>`;
+  const b = $("#banners");
+  if (b){
+    let h = "";
+    if (!S.online && S.state) h += `<div class="banner bad">Keine Verbindung zu Unity – läuft der Editor und der Fadenwerk-Server? Ich versuche es weiter.</div>`;
+    if (st && st.playing) h += `<div class="banner warn">Unity ist im Play-Modus – Änderungen sind gesperrt, bis du ihn beendest.</div>`;
+    if (st && !st.db) h += `<div class="banner warn">Noch keine Fadenwerk-Datenbank im Projekt. <button class="btn sm" data-act="createDb">Jetzt anlegen</button></div>`;
+    if (b.innerHTML !== h) b.innerHTML = h;
+  }
+  const sel = $("#sceneSel");
+  if (sel && st){
+    const active = (st.scenes || []).find(s => s.active) || {};
+    const list = st.projectScenes || [];
+    const key = active.path + "|" + list.join(",");
+    if (sel.dataset.key !== key){
+      sel.dataset.key = key;
+      const names = list.map(p => [p, p.replace(/^Assets\//, "").replace(/\.unity$/, "")]);
+      if (!active.path) names.unshift(["", (active.name || "Unbenannte Szene") + " (nicht gespeichert)"]);
+      sel.innerHTML = opts(names, active.path || "");
+    }
+  }
+  const dirty = st && (st.scenes || []).some(s => s.dirty);
+  const sb = $("#saveBtn");
+  if (sb){ sb.classList.toggle("pri", !!dirty); sb.title = dirty ? "Ungespeicherte Änderungen in Unity – jetzt speichern" : "Alles gespeichert"; }
+  const errs = st ? (st.issues || []).filter(i => i.level === "error").length : 0;
+  document.querySelectorAll('[data-badge="check"]').forEach(x => { x.hidden = !errs; x.textContent = errs; });
+}
+
+function renderMain(){
+  const m = $("#main");
+  if (!m) return;
+  if (!S.state){ m.innerHTML = `<div class="empty">Verbinde mit Unity …</div>`; return; }
+  document.querySelectorAll(".navbtn").forEach(b => b.classList.toggle("on", b.dataset.tab === S.tab));
+  switch (S.tab){
+    case "map": renderMap(m); break;
+    case "npcs": case "quests": case "dialogues": case "kits": case "items": renderSplit(m); break;
+    case "check": renderCheck(m); break;
+    case "settings": renderSettings(m); break;
+  }
+}
+
+/* Aktualisierung nach einem Poll, ohne Formulare zu zerstören */
+function renderSoft(){
+  renderStatus();
+  if (S.tab === "map"){ refreshMapPanel(); drawMap(); loadMapImage(); return; }
+  if (["npcs","quests","dialogues","kits","items"].includes(S.tab)){
+    renderList();
+    if (S.draft){
+      const h = $("#remoteNote");
+      if (h) h.hidden = !S.remoteChanged;
+      if (!S.draftDirty) renderEditor();
+    }
+    return;
+  }
+  if (S.tab === "check" || S.tab === "settings") renderMain();
+}
+
+function switchTab(tab){
+  if (S.draftDirty && !confirm("Ungespeicherte Änderungen verwerfen?")) return;
+  closeEditor(true);
+  S.tab = tab;
+  renderMain();
+  window.scrollTo(0, 0);
+}
+
+/* ============================================================
+   Listen + Editoren
+   ============================================================ */
+const KIND_OF_TAB = { npcs: "npc", quests: "quest", dialogues: "dialogue", kits: "kit", items: "item" };
+
+function renderSplit(m){
+  const kind = KIND_OF_TAB[S.tab];
+  m.innerHTML = `<div class="view"><div class="split${S.draft ? " editing" : ""}" id="split">
+    <div class="pane-list" id="paneList"></div>
+    <div class="pane-edit" id="paneEdit">${S.draft ? "" : `<div>Links etwas auswählen oder neu anlegen.</div>`}</div>
+  </div></div>`;
+  renderList();
+  if (S.draft && S.draftKind === kind) renderEditor();
+}
+
+function listToolbar(newLabel, extra){
+  const q = S.search[S.tab] || "";
+  return `<div class="toolbar">
+    <input class="inp grow" data-search="${S.tab}" value="${esc(q)}" placeholder="Suchen …" type="search">
+    ${newLabel ? `<button class="btn pri" data-act="new">${newLabel}</button>` : ""}
+    ${extra || ""}
+  </div>`;
+}
+
+function matches(text){
+  const q = (S.search[S.tab] || "").trim().toLowerCase();
+  return !q || String(text).toLowerCase().includes(q);
+}
+
+function renderList(){
+  const el = $("#paneList");
+  if (!el) return;
+  const st = S.state;
+  const keepFocus = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.search;
+  let h = "";
+  const selId = S.draft ? S.draft.id : "";
+  if (S.tab === "npcs"){
+    h += listToolbar("", `<button class="btn" data-act="candidates">＋ Aus Szene</button>`);
+    const list = st.npcs.filter(n => matches(n.name + " " + n.role + " " + n.id + " " + n.scene));
+    h += `<div class="list">` + list.map(n => {
+      const gives = st.quests.filter(q => q.giverNpcId === n.id).length;
+      const iss = S.idx.issuesBy.get("npc:" + n.id) || 0;
+      return `<button class="row" data-open="npc" data-id="${esc(n.id)}" style="${n.id===selId?"border-color:var(--acc)":""}">
+        <div class="av">${initials(n.name)}</div>
+        <div class="main"><div class="t">${esc(n.name)}</div><div class="s">${esc(n.role || "—")} · ${esc(n.scene)}</div></div>
+        <div class="chips">${gives ? `<span class="chip acc">${gives} Quest${gives>1?"s":""}</span>` : ""}${n.dialogueId ? `<span class="chip vio">Dialog</span>` : ""}${iss ? `<span class="chip red">${iss}</span>` : ""}</div>
+      </button>`;
+    }).join("") + `</div>`;
+    if (!st.npcs.length) h += `<div class="empty">Keine NPCs in den geladenen Szenen.<br><br>Tippe „＋ Aus Szene“, um Figuren aus deiner Szene zu NPCs zu machen, oder setze neue NPCs auf der Karte.</div>`;
+  }
+  if (S.tab === "quests"){
+    h += listToolbar("＋ Quest");
+    const list = st.quests.filter(q => matches(q.title + " " + q.id + " " + npcName(q.giverNpcId)));
+    h += `<div class="list">` + list.map(q => {
+      const iss = S.idx.issuesBy.get("quest:" + q.id) || 0;
+      return `<button class="row" data-open="quest" data-id="${esc(q.id)}" style="${q.id===selId?"border-color:var(--acc)":""}">
+        <div class="av">📜</div>
+        <div class="main"><div class="t">${esc(q.title || q.id)}</div><div class="s">${esc(npcName(q.giverNpcId) || "kein Auftraggeber")} · ${q.objectives.length} Ziel${q.objectives.length===1?"":"e"} · Stufe ${q.requiredLevel}</div></div>
+        <div class="chips">${q.rewardKitId ? `<span class="chip acc">🎁</span>` : ""}${iss ? `<span class="chip red">${iss}</span>` : ""}</div>
+      </button>`;
+    }).join("") + `</div>`;
+    if (!st.quests.length) h += `<div class="empty">Noch keine Quests.</div>`;
+  }
+  if (S.tab === "dialogues"){
+    h += listToolbar("＋ Dialog");
+    const list = st.dialogues.filter(d => matches(d.title + " " + d.id));
+    h += `<div class="list">` + list.map(d => {
+      const users = st.npcs.filter(n => n.dialogueId === d.id).map(n => n.name);
+      const iss = S.idx.issuesBy.get("dialogue:" + d.id) || 0;
+      return `<button class="row" data-open="dialogue" data-id="${esc(d.id)}" style="${d.id===selId?"border-color:var(--acc)":""}">
+        <div class="av">💬</div>
+        <div class="main"><div class="t">${esc(d.title || d.id)}</div><div class="s">${d.nodes.length} Knoten · ${users.length ? esc(users.join(", ")) : "keinem NPC zugewiesen"}</div></div>
+        <div class="chips">${iss ? `<span class="chip red">${iss}</span>` : ""}</div>
+      </button>`;
+    }).join("") + `</div>`;
+    if (!st.dialogues.length) h += `<div class="empty">Noch keine Dialoge. Am schnellsten: im NPC-Tab „Standard-Dialog erzeugen“.</div>`;
+  }
+  if (S.tab === "kits"){
+    h += listToolbar("＋ Kit");
+    const list = st.kits.filter(k => matches(k.name + " " + k.id));
+    h += `<div class="list">` + list.map(k => {
+      const used = st.quests.filter(q => q.rewardKitId === k.id).length;
+      const iss = S.idx.issuesBy.get("kit:" + k.id) || 0;
+      return `<button class="row" data-open="kit" data-id="${esc(k.id)}" style="${k.id===selId?"border-color:var(--acc)":""}">
+        <div class="av">🎁</div>
+        <div class="main"><div class="t">${esc(k.name || k.id)}</div><div class="s">${k.goldMin}–${k.goldMax} Gold · ${k.xpMin}–${k.xpMax} XP · ${k.entries.length} Einträge</div></div>
+        <div class="chips">${used ? `<span class="chip">${used}× in Quests</span>` : ""}${iss ? `<span class="chip red">${iss}</span>` : ""}</div>
+      </button>`;
+    }).join("") + `</div>`;
+    if (!st.kits.length) h += `<div class="empty">Noch keine Belohnungs-Kits.</div>`;
+  }
+  if (S.tab === "items"){
+    h += listToolbar("＋ Item", `<button class="btn" data-act="importFolder">📁 Ordner übernehmen</button>`);
+    h += `<div class="toolbar"><select class="inp" data-itemcat style="max-width:220px"><option value="">Alle Kategorien</option>${opts(CATS, S.itemCat)}</select><span class="count">${st.items.length} Items</span></div>`;
+    const list = st.items.filter(it => (!S.itemCat || it.category === S.itemCat) && matches(it.displayName + " " + it.id + " " + it.assetName));
+    h += `<div class="list">` + list.map(it => `<button class="row" data-open="item" data-id="${esc(it.id)}" style="${it.id===selId?"border-color:var(--acc)":""}">
+        <div class="av m">${it.assetGuid ? thumbImg(it.assetGuid) : "⚔️"}</div>
+        <div class="main"><div class="t ${rarClass(it.rarity)}">${esc(it.displayName || it.id)}</div><div class="s">${esc(catName(it.category))} · ${it.assetPath ? esc(it.assetPath) : "kein Asset verknüpft"}</div></div>
+      </button>`).join("") + `</div>`;
+    if (!st.items.length) h += `<div class="empty">Noch keine Items. Tippe „📁 Ordner übernehmen“ und wähle z. B. deinen Waffen-Ordner – jedes Prefab wird ein Katalog-Eintrag.</div>`;
+  }
+  el.innerHTML = h;
+  if (keepFocus){
+    const s = el.querySelector("[data-search]");
+    if (s){ s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+  }
+  hydrateThumbs(el);
+}
+
+function npcName(id){ const n = S.idx.npcs && S.idx.npcs.get(id); return n ? n.name : (id || ""); }
+function markerName(id){ const m = S.idx.markers && S.idx.markers.get(id); return m ? m.label : (id || ""); }
+function itemName(id){ const i = S.idx.items && S.idx.items.get(id); return i ? (i.displayName || i.id) : (id || ""); }
+function catName(c){ const f = CATS.find(x => x[0] === c); return f ? f[1] : c; }
+
+/* ---------- Editor öffnen/schließen ---------- */
+function openEditor(kind, id){
+  if (S.draftDirty && !confirm("Ungespeicherte Änderungen verwerfen?")) return;
+  const map = { npc: "npcs", quest: "quests", dialogue: "dialogues", kit: "kits", item: "items" }[kind];
+  const src = S.idx[map].get(id);
+  if (!src){ toast("Nicht gefunden: " + id, "err"); return; }
+  S.draft = clone(src); S.draftKind = kind; S.draftNew = false; S.draftDirty = false; S.remoteChanged = false;
+  S.draftBase = JSON.stringify(src);
+  const tab = Object.keys(KIND_OF_TAB).find(t => KIND_OF_TAB[t] === kind);
+  if (S.tab !== tab){ S.tab = tab; renderMain(); }
+  else { const sp = $("#split"); if (sp) sp.classList.add("editing"); renderEditor(); renderList(); }
+}
+
+function openDraft(kind, obj, meta){
+  if (S.draftDirty && !confirm("Ungespeicherte Änderungen verwerfen?")) return;
+  S.draft = obj; S.draftKind = kind; S.draftNew = true; S.draftDirty = true; S.remoteChanged = false;
+  S.draftMeta = meta || {};
+  S.draftBase = "";
+  const tab = Object.keys(KIND_OF_TAB).find(t => KIND_OF_TAB[t] === kind);
+  if (S.tab !== tab){ S.tab = tab; renderMain(); }
+  else { const sp = $("#split"); if (sp) sp.classList.add("editing"); renderEditor(); }
+}
+
+function closeEditor(silent){
+  S.draft = null; S.draftKind = ""; S.draftDirty = false; S.draftNew = false; S.remoteChanged = false; S.draftMeta = {};
+  if (silent) return;
+  const sp = $("#split");
+  if (sp){ sp.classList.remove("editing"); $("#paneEdit").innerHTML = `<div>Links etwas auswählen oder neu anlegen.</div>`; }
+  renderList();
+}
+
+function markDirty(){
+  if (!S.draftDirty){ S.draftDirty = true; const b = $("#draftSave"); if (b) b.classList.add("pri"); }
+}
+
+function editorShell(title, body, opts2){
+  const o = opts2 || {};
+  return `<div class="edit-head">
+      <button class="btn icon ghost" data-act="closeEditor" title="Zurück">←</button>
+      <h2>${esc(title)}</h2>
+      ${o.extraHead || ""}
+      <button class="btn${S.draftDirty ? " pri" : ""}" id="draftSave" data-act="saveDraft">Übertragen</button>
+    </div>
+    <div class="banner warn" id="remoteNote" ${S.remoteChanged ? "" : "hidden"}>Dieser Eintrag wurde inzwischen in Unity geändert. <button class="btn sm" data-act="reloadDraft">Unity-Stand laden</button></div>
+    <div class="edit-body">${body}</div>`;
+}
+
+function renderEditor(){
+  const el = $("#paneEdit");
+  if (!el || !S.draft) return;
+  const scroll = el.querySelector(".edit-body") ? el.querySelector(".edit-body").scrollTop : 0;
+  let html = "";
+  switch (S.draftKind){
+    case "npc": html = npcEditor(S.draft); break;
+    case "quest": html = questEditor(S.draft); break;
+    case "dialogue": html = dialogueEditor(S.draft); break;
+    case "kit": html = kitEditor(S.draft); break;
+    case "item": html = itemEditor(S.draft); break;
+  }
+  el.innerHTML = html;
+  const body = el.querySelector(".edit-body");
+  if (body) body.scrollTop = scroll;
+  hydrateThumbs(el);
+}
+
+/* ---------- Auswahllisten ---------- */
+function selNpc(path, val, emptyLabel){
+  const list = S.state.npcs.map(n => [n.id, n.name + (n.role ? " · " + n.role : "")]);
+  if (val && !S.idx.npcs.has(val)) list.push([val, "⚠ " + val + " (nicht in geladener Szene)"]);
+  return `<select class="inp" data-b="${path}">${opts([["", emptyLabel || "— keiner —"]].concat(list), val || "")}</select>`;
+}
+function selMarker(path, val){
+  const list = S.state.markers.map(m => [m.id, m.label]);
+  if (val && !S.idx.markers.has(val)) list.push([val, "⚠ " + val]);
+  return `<select class="inp" data-b="${path}">${opts([["", "— keiner —"]].concat(list), val || "")}</select>`;
+}
+function selQuest(path, val, excludeId){
+  const list = S.state.quests.filter(q => q.id !== excludeId).map(q => [q.id, q.title || q.id]);
+  if (val && !S.idx.quests.has(val)) list.push([val, "⚠ " + val]);
+  return `<select class="inp" data-b="${path}">${opts([["", "— keine —"]].concat(list), val || "")}</select>`;
+}
+function selDialogue(path, val){
+  const list = S.state.dialogues.map(d => [d.id, d.title || d.id]);
+  if (val && !S.idx.dialogues.has(val)) list.push([val, "⚠ " + val]);
+  return `<select class="inp" data-b="${path}">${opts([["", "— keiner —"]].concat(list), val || "")}</select>`;
+}
+function selKit(path, val){
+  const list = S.state.kits.map(k => [k.id, k.name || k.id]);
+  if (val && !S.idx.kits.has(val)) list.push([val, "⚠ " + val]);
+  return `<select class="inp" data-b="${path}">${opts([["", "— keins —"]].concat(list), val || "")}</select>`;
+}
+function selItem(path, val){
+  const list = S.state.items.map(i => [i.id, (i.displayName || i.id) + " · " + catName(i.category)]);
+  if (val && !S.idx.items.has(val)) list.push([val, "⚠ " + val]);
+  return `<select class="inp" data-b="${path}">${opts([["", "— Item wählen —"]].concat(list), val || "")}</select>`;
+}
+function txt(path, val, ph, big){ return `<textarea class="inp${big ? " big" : ""}" data-b="${path}" placeholder="${esc(ph || "")}">${esc(val)}</textarea>`; }
+function inp(path, val, ph, type){ return `<input class="inp" data-b="${path}" value="${esc(val)}" placeholder="${esc(ph || "")}"${type === "int" ? ` type="number" inputmode="numeric" data-t="int"` : type === "float" ? ` type="number" step="0.1" inputmode="decimal" data-t="float"` : ""}>`; }
+function chk(path, val, label){ return `<label class="f inline"><input type="checkbox" data-b="${path}" data-t="bool"${val ? " checked" : ""}> ${esc(label)}</label>`; }
+
+/* ---------- NPC ---------- */
+function npcEditor(n){
+  const st = S.state;
+  const gives = st.quests.filter(q => q.giverNpcId === n.id);
+  const takes = st.quests.filter(q => q.turnInNpcId === n.id && q.giverNpcId !== n.id);
+  const talks = st.quests.filter(q => q.objectives.some(o => o.type === "talk" && o.targetId === n.id));
+  const body = `
+    <div class="kv"><span class="k">Szene</span><span>${esc(n.scene)}</span><span class="k">Objekt</span><span>${esc(n.path)}</span><span class="k">ID</span><span style="font-family:monospace">${esc(n.id)}</span></div>
+    <div class="toolbar" style="margin:0">
+      <button class="btn sm" data-act="selectInUnity" data-kind="npc" data-id="${esc(n.id)}">🎯 In Unity zeigen</button>
+      <button class="btn sm" data-act="showOnMap" data-kind="npc" data-id="${esc(n.id)}">🗺️ Auf Karte</button>
+    </div>
+    <div class="grid2">
+      <label class="f">Anzeigename ${inp("name", n.name, "z. B. Mira")}</label>
+      <label class="f">Rolle ${inp("role", n.role, "Händlerin, Wache …")}</label>
+    </div>
+    <label class="f">Lore- und Sprechtext <span class="hint">Was der NPC sagt, wenn kein Dialog zugewiesen ist – und Startsatz für erzeugte Dialoge.</span>
+      ${txt("lore", n.lore, "Die Wiesen hinter der Mühle …", true)}
+    </label>
+    <label class="f">Ziel des NPCs ${txt("goal", n.goal, "Was will er, wohin will er?")}</label>
+    <div class="grid2">
+      <label class="f">Ziel-Marker ${selMarker("goalMarkerId", n.goalMarkerId)}</label>
+      <label class="f">Sprechradius (m) ${inp("radius", n.radius, "", "float")}</label>
+    </div>
+    <div class="sec">Dialog</div>
+    <div class="sub">
+      <label class="f">Zugewiesener Dialog ${selDialogue("dialogueId", n.dialogueId)}</label>
+      <div class="toolbar" style="margin:0">
+        <button class="btn sm" data-act="genDialogue">✨ Standard-Dialog erzeugen</button>
+        ${n.dialogueId && S.idx.dialogues.has(n.dialogueId) ? `<button class="btn sm" data-act="openRef" data-kind="dialogue" data-id="${esc(n.dialogueId)}">Dialog bearbeiten</button>` : ""}
+      </div>
+      <div class="hint">Der Standard-Dialog nutzt den Lore-Text und baut für jede Quest dieses NPCs Angebots-, Fortschritts- und Abgabe-Antworten – mit passenden Bedingungen.</div>
+    </div>
+    <div class="sec">Quests</div>
+    <div class="sub">
+      ${gives.length ? `<div class="muted">Vergibt:</div><div class="chips">${gives.map(q => `<button class="chip acc" data-act="openRef" data-kind="quest" data-id="${esc(q.id)}">${esc(q.title || q.id)}</button>`).join("")}</div>` : `<div class="muted">Vergibt noch keine Quest.</div>`}
+      ${takes.length ? `<div class="muted">Nimmt ab:</div><div class="chips">${takes.map(q => `<button class="chip vio" data-act="openRef" data-kind="quest" data-id="${esc(q.id)}">${esc(q.title || q.id)}</button>`).join("")}</div>` : ""}
+      ${talks.length ? `<div class="muted">Gesprächsziel in:</div><div class="chips">${talks.map(q => `<button class="chip" data-act="openRef" data-kind="quest" data-id="${esc(q.id)}">${esc(q.title || q.id)}</button>`).join("")}</div>` : ""}
+      <button class="btn sm" data-act="newQuestFor" data-id="${esc(n.id)}">＋ Neue Quest von ${esc(n.name)}</button>
+    </div>
+    <div class="sec">Gefahrenzone</div>
+    <button class="btn danger sm" data-act="deleteEntity" data-kind="npc" data-id="${esc(n.id)}">Fadenwerk-NPC entfernen (Figur bleibt)</button>`;
+  return editorShell(n.name || "NPC", body);
+}
+
+/* ---------- Quest ---------- */
+function blankQuest(giver){
+  return { id: newId("q", "quest"), title: "", description: "", giverNpcId: giver || "", turnInNpcId: "", requiredLevel: 1, repeatable: false,
+    prerequisiteQuestIds: [], objectives: [], rewardKitId: "", offerText: "", progressText: "", completeText: "" };
+}
+function objTarget(o, i){
+  const p = "objectives." + i + ".targetId";
+  if (o.type === "talk") return selNpc(p, o.targetId);
+  if (o.type === "reach") return selMarker(p, o.targetId);
+  if (o.type === "collect" || o.type === "deliver") return selItem(p, o.targetId);
+  return `<input class="inp" data-b="${p}" value="${esc(o.targetId)}" placeholder="${o.type === "kill" ? "z. B. wolf (meldest du per ReportKill)" : "Kennung, die dein Spiel meldet"}" list="dl-targets">`;
+}
+function questEditor(q){
+  const known = new Set();
+  S.state.quests.forEach(x => x.objectives.forEach(o => { if ((o.type === "kill" || o.type === "custom") && o.targetId) known.add(o.targetId); }));
+  const body = `
+    <label class="f">Titel ${inp("title", q.title, "z. B. Kräuter für Mira")}</label>
+    <label class="f">Beschreibung (Questlog) ${txt("description", q.description, "Worum geht es?")}</label>
+    <div class="grid2">
+      <label class="f">Auftraggeber ${selNpc("giverNpcId", q.giverNpcId)}</label>
+      <label class="f">Abgabe bei ${selNpc("turnInNpcId", q.turnInNpcId, "— beim Auftraggeber —")}</label>
+    </div>
+    <div class="grid2">
+      <label class="f">Mindeststufe ${inp("requiredLevel", q.requiredLevel, "", "int")}</label>
+      ${chk("repeatable", q.repeatable, "Wiederholbar")}
+    </div>
+    <div class="sec">Voraussetzungen</div>
+    <div class="sub">
+      ${q.prerequisiteQuestIds.map((pid, i) => `<div class="sub-head">${selQuest("prerequisiteQuestIds." + i, pid, q.id)}<button class="btn sm danger" data-act="rmPrereq" data-i="${i}">✕</button></div>`).join("") || `<div class="muted">Keine – sofort verfügbar.</div>`}
+      <button class="btn sm" data-act="addPrereq">＋ Quest muss vorher erledigt sein</button>
+    </div>
+    <div class="sec">Ziele</div>
+    ${q.objectives.map((o, i) => `<div class="sub">
+      <div class="sub-head"><span class="t">Ziel ${i + 1}</span>
+        <button class="btn sm ghost" data-act="mvObj" data-i="${i}" data-d="-1" ${i === 0 ? "disabled" : ""}>↑</button>
+        <button class="btn sm ghost" data-act="mvObj" data-i="${i}" data-d="1" ${i === q.objectives.length - 1 ? "disabled" : ""}>↓</button>
+        <button class="btn sm danger" data-act="rmObj" data-i="${i}">✕</button></div>
+      <div class="grid2">
+        <label class="f">Art <select class="inp" data-b="objectives.${i}.type" data-rerender>${opts(OBJ_TYPES, o.type)}</select></label>
+        <label class="f">Anzahl ${inp("objectives." + i + ".count", o.count, "", "int")}</label>
+      </div>
+      <label class="f">Ziel ${objTarget(o, i)}</label>
+      <label class="f">Text im Questlog ${inp("objectives." + i + ".text", o.text, "z. B. Heilkraut sammeln")}</label>
+    </div>`).join("")}
+    <button class="btn" data-act="addObj">＋ Ziel hinzufügen</button>
+    <datalist id="dl-targets">${[...known].map(k => `<option value="${esc(k)}">`).join("")}</datalist>
+    <div class="sec">Belohnung</div>
+    <div class="sub">
+      <label class="f">Belohnungs-Kit ${selKit("rewardKitId", q.rewardKitId)}</label>
+      <div class="toolbar" style="margin:0">
+        <button class="btn sm" data-act="newKitForQuest">＋ Neues Kit</button>
+        ${q.rewardKitId && S.idx.kits.has(q.rewardKitId) ? `<button class="btn sm" data-act="openRef" data-kind="kit" data-id="${esc(q.rewardKitId)}">Kit bearbeiten</button>` : ""}
+      </div>
+    </div>
+    <div class="sec">Was der Auftraggeber sagt</div>
+    <label class="f">Beim Anbieten ${txt("offerText", q.offerText, "Bring mir fünf Heilkräuter …")}</label>
+    <label class="f">Während die Quest läuft ${txt("progressText", q.progressText, "Noch nicht genug?")}</label>
+    <label class="f">Bei der Abgabe ${txt("completeText", q.completeText, "Wunderbar, danke!")}</label>
+    <div class="kv"><span class="k">ID</span><span style="font-family:monospace">${esc(q.id)}</span></div>
+    ${S.draftNew ? "" : `<button class="btn danger sm" data-act="deleteDraft">Quest löschen</button>`}`;
+  return editorShell(q.title || "Neue Quest", body, { extraHead: S.draftNew ? "" : `<button class="btn sm hide-sm" data-act="focusQuestMap" data-id="${esc(q.id)}">🗺️</button>` });
+}
+
+/* ---------- Dialog ---------- */
+function blankDialogue(title){
+  return { id: newId("d", title || "dialog"), title: title || "", startNodeId: "start",
+    nodes: [{ id: "start", speaker: "", text: "", choices: [{ text: "Auf Wiedersehen.", nextNodeId: "", action: "end", actionParam: "", requiresFlag: "", conditionQuestId: "", conditionState: "" }] }] };
+}
+function blankChoice(){ return { text: "", nextNodeId: "", action: "none", actionParam: "", requiresFlag: "", conditionQuestId: "", conditionState: "" }; }
+function choiceParam(c, p){
+  if (c.action === "offerQuest" || c.action === "completeQuest") return `<label class="f">Quest ${selQuest(p + ".actionParam", c.actionParam)}</label>`;
+  if (c.action === "giveKit") return `<label class="f">Kit ${selKit(p + ".actionParam", c.actionParam)}</label>`;
+  if (c.action === "setFlag") return `<label class="f">Flag ${inp(p + ".actionParam", c.actionParam, "z. B. mira_vertraut")}</label>`;
+  return "";
+}
+function dialogueEditor(d){
+  const nodeOpts = d.nodes.map(n => [n.id, n.id]);
+  const users = S.state.npcs.filter(n => n.dialogueId === d.id);
+  const body = `
+    <div class="grid2">
+      <label class="f">Titel ${inp("title", d.title, "z. B. Mira – Gespräch")}</label>
+      <label class="f">Startknoten <select class="inp" data-b="startNodeId">${opts(nodeOpts, d.startNodeId)}</select></label>
+    </div>
+    <div class="toolbar" style="margin:0">
+      <button class="btn sm" data-act="previewDialogue">▶ Vorschau</button>
+      <span class="muted">${users.length ? "Benutzt von: " + esc(users.map(n => n.name).join(", ")) : "Noch keinem NPC zugewiesen."}</span>
+    </div>
+    ${d.nodes.map((n, i) => `<div class="sub" id="node-${esc(n.id)}">
+      <div class="sub-head"><span class="t">Knoten</span>
+        <input class="inp" style="max-width:180px;min-height:34px;padding:4px 8px;font-family:monospace" data-node-id="${i}" value="${esc(n.id)}">
+        <button class="btn sm danger" data-act="rmNode" data-i="${i}" ${d.nodes.length < 2 ? "disabled" : ""}>✕</button></div>
+      <label class="f">Sprecher <span class="hint">leer = der NPC</span> ${inp("nodes." + i + ".speaker", n.speaker, "")}</label>
+      <label class="f">Text ${txt("nodes." + i + ".text", n.text, "Was gesagt wird …")}</label>
+      ${n.choices.map((c, k) => {
+        const p = "nodes." + i + ".choices." + k;
+        return `<div class="sub" style="background:var(--panel)">
+          <div class="sub-head"><span class="t">Antwort ${k + 1}</span><button class="btn sm danger" data-act="rmChoice" data-i="${i}" data-k="${k}">✕</button></div>
+          ${inp(p + ".text", c.text, "Was der Spieler antwortet")}
+          <div class="grid2">
+            <label class="f">Weiter zu <select class="inp" data-b="${p}.nextNodeId">${opts([["", "— Ende —"]].concat(nodeOpts), c.nextNodeId)}</select></label>
+            <label class="f">Aktion <select class="inp" data-b="${p}.action" data-rerender>${opts(ACTIONS, c.action || "none")}</select></label>
+          </div>
+          ${choiceParam(c, p)}
+          <details ${c.conditionState || c.requiresFlag ? "open" : ""}><summary class="muted" style="cursor:pointer;padding:6px 0">Bedingung ${c.conditionState || c.requiresFlag ? "· aktiv" : ""}</summary>
+            <div class="grid2" style="margin-top:6px">
+              <label class="f">Nur wenn <select class="inp" data-b="${p}.conditionState" data-rerender>${opts(STATES, c.conditionState || "")}</select></label>
+              ${c.conditionState ? `<label class="f">Quest ${selQuest(p + ".conditionQuestId", c.conditionQuestId)}</label>` : `<span></span>`}
+            </div>
+            <label class="f" style="margin-top:8px">… und Flag gesetzt ${inp(p + ".requiresFlag", c.requiresFlag, "leer = egal")}</label>
+          </details>
+        </div>`;
+      }).join("")}
+      <div class="toolbar" style="margin:0">
+        <button class="btn sm" data-act="addChoice" data-i="${i}">＋ Antwort</button>
+        <button class="btn sm" data-act="addNodeFrom" data-i="${i}">＋ Antwort mit neuem Knoten</button>
+      </div>
+    </div>`).join("")}
+    <button class="btn" data-act="addNode">＋ Knoten</button>
+    <div class="kv"><span class="k">ID</span><span style="font-family:monospace">${esc(d.id)}</span></div>
+    ${S.draftNew ? "" : `<button class="btn danger sm" data-act="deleteDraft">Dialog löschen</button>`}`;
+  return editorShell(d.title || "Neuer Dialog", body);
+}
+
+function generateDialogue(npc){
+  const st = S.state;
+  const d = blankDialogue(npc.name + " – Gespräch");
+  d.id = newId("d", npc.name);
+  const start = d.nodes[0];
+  start.text = npc.lore || ("Hallo, ich bin " + npc.name + ".");
+  start.choices = [];
+  const gives = st.quests.filter(q => q.giverNpcId === npc.id);
+  const takes = st.quests.filter(q => (q.turnInNpcId || q.giverNpcId) === npc.id);
+  for (const q of gives){
+    const k = slug(q.title || q.id) || q.id;
+    start.choices.push({ ...blankChoice(), text: "Hast du Arbeit für mich?" + (gives.length > 1 ? " (" + (q.title || q.id) + ")" : ""), nextNodeId: "angebot_" + k, conditionQuestId: q.id, conditionState: "available" });
+    start.choices.push({ ...blankChoice(), text: "Wegen „" + (q.title || q.id) + "“ …", nextNodeId: "lauf_" + k, conditionQuestId: q.id, conditionState: "active" });
+    d.nodes.push({ id: "angebot_" + k, speaker: "", text: q.offerText || q.description || "Ich hätte da etwas für dich.", choices: [
+      { ...blankChoice(), text: "Ich übernehme das.", action: "offerQuest", actionParam: q.id },
+      { ...blankChoice(), text: "Vielleicht später.", nextNodeId: "start" } ] });
+    d.nodes.push({ id: "lauf_" + k, speaker: "", text: q.progressText || "Wie kommst du voran?", choices: [
+      { ...blankChoice(), text: "Ich bin dran.", action: "end" } ] });
+  }
+  for (const q of takes){
+    const k = slug(q.title || q.id) || q.id;
+    start.choices.push({ ...blankChoice(), text: "Ich habe „" + (q.title || q.id) + "“ erledigt.", nextNodeId: "fertig_" + k, conditionQuestId: q.id, conditionState: "ready" });
+    d.nodes.push({ id: "fertig_" + k, speaker: "", text: q.completeText || "Hervorragend, danke!", choices: [
+      { ...blankChoice(), text: "Gern geschehen.", action: "completeQuest", actionParam: q.id } ] });
+  }
+  start.choices.push({ ...blankChoice(), text: "Auf Wiedersehen.", action: "end" });
+  return d;
+}
+
+function previewDialogue(d){
+  const nodeOf = id => d.nodes.find(n => n.id === id);
+  let node = nodeOf(d.startNodeId) || d.nodes[0];
+  const users = S.state.npcs.filter(n => n.dialogueId === d.id);
+  const who = users.length ? users[0].name : "NPC";
+  const show = () => {
+    if (!node){ modal("Vorschau", `<div class="dlg-preview"><div class="muted">Gespräch beendet.</div></div><button class="btn" data-act="closeModal">Schließen</button>`); return; }
+    const ch = node.choices.map((c, i) => {
+      const tags = [];
+      if (c.conditionState) tags.push(`<span class="chip ora">nur wenn ${esc((STATES.find(s => s[0] === c.conditionState) || [, c.conditionState])[1])}: ${esc(S.idx.quests.get(c.conditionQuestId) ? S.idx.quests.get(c.conditionQuestId).title : c.conditionQuestId)}</span>`);
+      if (c.requiresFlag) tags.push(`<span class="chip ora">Flag ${esc(c.requiresFlag)}</span>`);
+      if (c.action && c.action !== "none") tags.push(`<span class="chip acc">${esc((ACTIONS.find(a => a[0] === c.action) || [, c.action])[1])}${c.actionParam ? ": " + esc(c.actionParam) : ""}</span>`);
+      return `<button class="btn" style="justify-content:flex-start;text-align:left;white-space:normal;height:auto;padding:8px 12px;flex-direction:column;align-items:flex-start" data-pv="${i}">${esc(c.text || "(leer)")}${tags.length ? `<span class="chips">${tags.join("")}</span>` : ""}</button>`;
+    }).join("");
+    modal("Vorschau", `<div class="dlg-preview"><div class="who">${esc(node.speaker || who)}</div><div class="say">${esc(node.text || "(kein Text)")}</div></div>
+      <div class="list">${ch || `<div class="muted">Keine Antworten – Gespräch endet.</div>`}</div>
+      <div class="hint">In der Vorschau werden alle Antworten gezeigt; im Spiel nur die, deren Bedingung erfüllt ist.</div>`);
+    document.querySelectorAll("[data-pv]").forEach(b => b.onclick = () => {
+      const c = node.choices[+b.dataset.pv];
+      if (c.action && c.action !== "none" && c.action !== "end") toast((ACTIONS.find(a => a[0] === c.action) || [, c.action])[1] + (c.actionParam ? ": " + c.actionParam : ""), "ok");
+      node = c.action === "end" || !c.nextNodeId ? null : nodeOf(c.nextNodeId);
+      show();
+    });
+  };
+  show();
+}
+
+/* ---------- Kit ---------- */
+function blankKit(name){ return { id: newId("kit", name || "kit"), name: name || "", goldMin: 0, goldMax: 0, xpMin: 0, xpMax: 0, rolls: 1, entries: [] }; }
+function kitEditor(k){
+  const totalW = k.entries.filter(e => !e.guaranteed && e.weight > 0).reduce((a, e) => a + (+e.weight || 0), 0);
+  const body = `
+    <label class="f">Name ${inp("name", k.name, "z. B. Kräuterlohn")}</label>
+    <div class="grid2">
+      <label class="f">Gold min ${inp("goldMin", k.goldMin, "", "int")}</label>
+      <label class="f">Gold max ${inp("goldMax", k.goldMax, "", "int")}</label>
+      <label class="f">XP min ${inp("xpMin", k.xpMin, "", "int")}</label>
+      <label class="f">XP max ${inp("xpMax", k.xpMax, "", "int")}</label>
+    </div>
+    <label class="f">Zufallswürfe <span class="hint">Wie oft aus den nicht garantierten Einträgen gezogen wird.</span> ${inp("rolls", k.rolls, "", "int")}</label>
+    <div class="sec">Einträge</div>
+    ${k.entries.map((e, i) => `<div class="sub">
+      <div class="sub-head"><span class="t">${esc(itemName(e.itemId) || "Eintrag " + (i + 1))}</span>
+        ${!e.guaranteed && e.weight > 0 && totalW > 0 ? `<span class="chip acc">${Math.round(e.weight * 1000 / totalW) / 10} % je Wurf</span>` : e.guaranteed ? `<span class="chip teal">immer</span>` : `<span class="chip">nie</span>`}
+        <button class="btn sm danger" data-act="rmEntry" data-i="${i}">✕</button></div>
+      <label class="f">Item ${selItem("entries." + i + ".itemId", e.itemId)}</label>
+      <div class="grid3">
+        <label class="f">Menge min ${inp("entries." + i + ".minQuantity", e.minQuantity, "", "int")}</label>
+        <label class="f">Menge max ${inp("entries." + i + ".maxQuantity", e.maxQuantity, "", "int")}</label>
+        <label class="f">Gewicht ${inp("entries." + i + ".weight", e.weight, "", "int")}</label>
+      </div>
+      ${chk("entries." + i + ".guaranteed", e.guaranteed, "Immer enthalten (garantiert)")}
+    </div>`).join("")}
+    <button class="btn" data-act="addEntry">＋ Eintrag</button>
+    <div class="sec">Probewurf in Unity</div>
+    <div class="sub">
+      <div class="hint">Würfelt mit genau der Rechnung, die dein Spiel benutzt. Gleicher Seed = gleiches Ergebnis. Erst „Übertragen“, dann würfeln.</div>
+      <div class="toolbar" style="margin:0">
+        <input class="inp grow" id="rollSeed" value="${esc(S.rollSeed || "test-1")}" placeholder="Seed">
+        <button class="btn" data-act="rollKit" ${S.draftNew ? "disabled" : ""}>🎲 Würfeln</button>
+        <button class="btn" data-act="rollNext" ${S.draftNew ? "disabled" : ""}>Nächster</button>
+      </div>
+      <div id="rollOut"></div>
+    </div>
+    <div class="kv"><span class="k">ID</span><span style="font-family:monospace">${esc(k.id)}</span></div>
+    ${S.draftNew ? "" : `<button class="btn danger sm" data-act="deleteDraft">Kit löschen</button>`}`;
+  return editorShell(k.name || "Neues Kit", body);
+}
+
+/* ---------- Item ---------- */
+function blankItem(){ return { id: "", displayName: "", category: "weapon", rarity: "common", description: "", assetGuid: "", assetPath: "", assetName: "", assetType: "" }; }
+function itemEditor(it){
+  const body = `
+    ${S.draftNew ? `<label class="f">ID <span class="hint">Feste Kennung, auf die Quests und Kits verweisen. Wird aus dem Namen vorgeschlagen.</span>${inp("id", it.id, "z. B. bronzeschwert")}</label>` : `<div class="kv"><span class="k">ID</span><span style="font-family:monospace">${esc(it.id)}</span></div>`}
+    <label class="f">Anzeigename ${inp("displayName", it.displayName, "z. B. Bronzeschwert")}</label>
+    <div class="grid2">
+      <label class="f">Kategorie <select class="inp" data-b="category">${opts(CATS, it.category)}</select></label>
+      <label class="f">Seltenheit <select class="inp" data-b="rarity">${opts(RARS, it.rarity)}</select></label>
+    </div>
+    <label class="f">Beschreibung ${txt("description", it.description, "")}</label>
+    <div class="sec">Unity-Asset</div>
+    <div class="sub">
+      ${it.assetGuid ? `<div style="display:flex;gap:12px;align-items:center">
+          <div class="av m" style="width:72px;height:72px">${thumbImg(it.assetGuid)}</div>
+          <div style="min-width:0"><div style="font-weight:700">${esc(it.assetName)}</div><div class="hint" style="word-break:break-all">${esc(it.assetPath)}</div><div class="hint">${esc(it.assetType)}</div></div>
+        </div>` : `<div class="muted">Kein Asset verknüpft. Verknüpfe dein Waffen-Prefab oder ScriptableObject – im Spiel bekommst du es bei der Belohnung direkt mitgeliefert.</div>`}
+      <div class="toolbar" style="margin:0">
+        <button class="btn sm" data-act="pickAsset">${it.assetGuid ? "Anderes Asset" : "Asset wählen"}</button>
+        ${it.assetGuid ? `<button class="btn sm danger" data-act="clearAsset">Verknüpfung lösen</button>` : ""}
+      </div>
+    </div>
+    ${usageOfItem(it.id)}
+    ${S.draftNew ? "" : `<button class="btn danger sm" data-act="deleteDraft">Item löschen</button>`}`;
+  return editorShell(it.displayName || it.id || "Neues Item", body);
+}
+function usageOfItem(id){
+  if (!id) return "";
+  const st = S.state;
+  const q = st.quests.filter(x => x.objectives.some(o => (o.type === "collect" || o.type === "deliver") && o.targetId === id));
+  const k = st.kits.filter(x => x.entries.some(e => e.itemId === id));
+  if (!q.length && !k.length) return "";
+  return `<div class="sec">Verwendet in</div><div class="chips">
+    ${q.map(x => `<button class="chip acc" data-act="openRef" data-kind="quest" data-id="${esc(x.id)}">📜 ${esc(x.title || x.id)}</button>`).join("")}
+    ${k.map(x => `<button class="chip" data-act="openRef" data-kind="kit" data-id="${esc(x.id)}">🎁 ${esc(x.name || x.id)}</button>`).join("")}</div>`;
+}
+
+/* ---------- Speichern ---------- */
+async function saveDraft(){
+  const d = S.draft;
+  if (!d) return;
+  let path, body, label;
+  if (S.draftKind === "npc"){
+    path = "/api/npc/save"; label = "NPC";
+    body = { npcId: d.id, displayName: d.name || "", role: d.role || "", loreText: d.lore || "", goalText: d.goal || "",
+      goalMarkerId: d.goalMarkerId || "", dialogueId: d.dialogueId || "", interactRadius: +d.radius || 2.5 };
+  } else if (S.draftKind === "quest"){
+    if (!d.title.trim()){ toast("Bitte einen Titel eingeben.", "warn"); return; }
+    path = "/api/quest/save"; label = "Quest"; body = { quest: d };
+  } else if (S.draftKind === "dialogue"){
+    path = "/api/dialogue/save"; label = "Dialog"; body = { dialogue: d };
+  } else if (S.draftKind === "kit"){
+    path = "/api/kit/save"; label = "Kit"; body = { kit: d };
+  } else if (S.draftKind === "item"){
+    if (!d.id) d.id = slug(d.displayName);
+    if (!/^[A-Za-z0-9_.:-]{1,80}$/.test(d.id)){ toast("Die ID darf nur Buchstaben, Ziffern und _ . : - enthalten.", "warn"); return; }
+    if (S.draftNew && S.idx.items.has(d.id)){ toast("Diese Item-ID gibt es schon.", "warn"); return; }
+    path = "/api/item/save"; label = "Item";
+    body = { item: { id: d.id, displayName: d.displayName, category: d.category, rarity: d.rarity, description: d.description, assetGuid: d.assetGuid || "" } };
+  }
+  const meta = S.draftMeta || {};
+  const r = await act(path, body, label + " in Unity übertragen" + (S.state.autoSave ? " und gespeichert" : "") + ".");
+  if (!r) return;
+  const id = r.id || d.id;
+  S.draftDirty = false; S.draftNew = false;
+  if (meta.assignDialogueTo){
+    const npc = S.idx.npcs.get(meta.assignDialogueTo);
+    if (npc) await act("/api/npc/save", { npcId: npc.id, displayName: npc.name, role: npc.role, loreText: npc.lore, goalText: npc.goal, goalMarkerId: npc.goalMarkerId, dialogueId: id, interactRadius: npc.radius }, "Dialog " + npc.name + " zugewiesen.");
+  }
+  if (meta.assignKitToQuest){
+    const q = S.idx.quests.get(meta.assignKitToQuest);
+    if (q){ const qq = clone(q); qq.rewardKitId = id; await act("/api/quest/save", { quest: qq }, "Kit der Quest zugewiesen."); }
+  }
+  S.draftMeta = {};
+  const map = { npc: "npcs", quest: "quests", dialogue: "dialogues", kit: "kits", item: "items" }[S.draftKind];
+  const fresh = S.idx[map].get(id);
+  if (fresh){ S.draft = clone(fresh); S.draftBase = JSON.stringify(fresh); }
+  S.remoteChanged = false;
+  renderEditor(); renderList();
+}
+
+async function deleteDraft(){
+  const d = S.draft;
+  const names = { quest: "Quest", dialogue: "Dialog", kit: "Kit", item: "Item" };
+  if (!confirm(names[S.draftKind] + " „" + (d.title || d.name || d.displayName || d.id) + "“ wirklich löschen? (In Unity mit Strg+Z rückgängig machbar.)")) return;
+  const r = await act("/api/" + S.draftKind + "/delete", { id: d.id }, names[S.draftKind] + " gelöscht.");
+  if (r) closeEditor();
+}
+
+/* ============================================================
+   Karte
+   ============================================================ */
+function renderMap(m){
+  m.innerHTML = `<div class="mapwrap">
+    <div class="mapbox" id="mapbox">
+      <canvas id="map"></canvas>
+      <div class="mapbar">
+        <div class="seg" id="modeSeg">
+          <button data-mode="view" title="Ansehen">✋<span class="hide-sm"> Ansehen</span></button><button data-mode="move" title="Verschieben">↔<span class="hide-sm"> Verschieben</span></button><button data-mode="npc">＋ NPC</button><button data-mode="marker">＋ Marker</button>
+        </div>
+        <button class="btn sm" data-act="fitMap" title="Alles zeigen">⤢</button>
+        <button class="btn sm" data-act="mapMenu" title="Kartenhintergrund">🖼️<span class="hide-sm"> Karte</span></button>
+        <button class="btn sm${S.showLinks ? " ok" : ""}" data-act="toggleLinks" title="Verbindungslinien">🔗</button>
+      </div>
+      <div class="maphint" id="maphint" hidden></div>
+      <div class="legend"><span><i style="background:var(--acc)"></i>Quest → Ziel</span><span><i style="background:var(--teal)"></i>NPC → eigenes Ziel</span><span><i style="background:var(--violet)"></i>Abgabe bei</span></div>
+    </div>
+    <div class="mappanel" id="mappanel"></div>
+  </div>`;
+  setupMap();
+  refreshMapPanel();
+  loadMapImage();
+}
+
+function mapBounds(){
+  const b = S.state.map;
+  return { minU: b.minU, minV: b.minV, maxU: b.maxU, maxV: b.maxV };
+}
+
+function fitMap(){
+  const c = $("#map"); if (!c) return;
+  const b = mapBounds();
+  const w = c.clientWidth || 300, h = c.clientHeight || 300;
+  const bw = Math.max(1, b.maxU - b.minU), bh = Math.max(1, b.maxV - b.minV);
+  const scale = Math.min(w / bw, h / bh) * 0.92;
+  S.view = { cu: (b.minU + b.maxU) / 2, cv: (b.minV + b.maxV) / 2, scale };
+  drawMap();
+}
+
+function w2s(u, v){
+  const c = $("#map"), V = S.view;
+  return [(u - V.cu) * V.scale + c.clientWidth / 2, (V.cv - v) * V.scale + c.clientHeight / 2];
+}
+function s2w(x, y){
+  const c = $("#map"), V = S.view;
+  return [(x - c.clientWidth / 2) / V.scale + V.cu, V.cv - (y - c.clientHeight / 2) / V.scale];
+}
+
+function setupMap(){
+  const c = $("#map");
+  const box = $("#mapbox");
+  const ro = new ResizeObserver(() => { sizeCanvas(); if (!S.view) fitMap(); else drawMap(); });
+  ro.observe(box);
+  document.querySelectorAll("#modeSeg button").forEach(b => b.classList.toggle("on", b.dataset.mode === S.mapMode));
+  updateMapHint();
+  const pts = new Map();
+  let gesture = null;
+  c.addEventListener("pointerdown", e => {
+    c.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, { x: e.offsetX, y: e.offsetY });
+    if (pts.size === 2){
+      const [a, b] = [...pts.values()];
+      gesture = { type: "pinch", d: Math.hypot(a.x - b.x, a.y - b.y), scale: S.view.scale, mid: s2w((a.x + b.x) / 2, (a.y + b.y) / 2) };
+      S.dragging = null;
+      return;
+    }
+    const hit = hitTest(e.offsetX, e.offsetY);
+    gesture = { type: "pan", x0: e.offsetX, y0: e.offsetY, cu: S.view.cu, cv: S.view.cv, t: Date.now(), moved: false, hit };
+    if (S.mapMode === "move" && hit){
+      S.dragging = { kind: hit.kind, id: hit.id, u: hit.u, v: hit.v, ou: hit.u, ov: hit.v };
+      gesture.type = "drag";
+    }
+  });
+  c.addEventListener("pointermove", e => {
+    if (!pts.has(e.pointerId) || !gesture) return;
+    pts.set(e.pointerId, { x: e.offsetX, y: e.offsetY });
+    if (gesture.type === "pinch" && pts.size >= 2){
+      const [a, b] = [...pts.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      S.view.scale = clampScale(gesture.scale * d / Math.max(1, gesture.d));
+      const [mu, mv] = s2w((a.x + b.x) / 2, (a.y + b.y) / 2);
+      S.view.cu += gesture.mid[0] - mu; S.view.cv += gesture.mid[1] - mv;
+      drawMap(); return;
+    }
+    const dx = e.offsetX - gesture.x0, dy = e.offsetY - gesture.y0;
+    if (Math.hypot(dx, dy) > 6) gesture.moved = true;
+    if (gesture.type === "drag" && S.dragging){
+      const [u, v] = s2w(e.offsetX, e.offsetY);
+      S.dragging.u = u; S.dragging.v = v; drawMap(); return;
+    }
+    if (gesture.type === "pan" && gesture.moved){
+      S.view.cu = gesture.cu - dx / S.view.scale; S.view.cv = gesture.cv + dy / S.view.scale; drawMap();
+    }
+  });
+  const end = e => {
+    if (!pts.has(e.pointerId)) return;
+    pts.delete(e.pointerId);
+    if (!gesture) return;
+    if (gesture.type === "pinch"){ if (pts.size === 0) gesture = null; return; }
+    const g = gesture; gesture = null;
+    if (g.type === "drag" && S.dragging){
+      const d = S.dragging;
+      if (g.moved) moveEntity(d.kind, d.id, d.u, d.v);
+      else { S.dragging = null; selectEntity(g.hit); }
+      return;
+    }
+    if (!g.moved && Date.now() - g.t < 700) onMapTap(e.offsetX, e.offsetY, g.hit);
+  };
+  c.addEventListener("pointerup", end);
+  c.addEventListener("pointercancel", e => { pts.delete(e.pointerId); gesture = null; S.dragging = null; drawMap(); });
+  c.addEventListener("wheel", e => {
+    e.preventDefault();
+    const before = s2w(e.offsetX, e.offsetY);
+    S.view.scale = clampScale(S.view.scale * Math.pow(1.0015, -e.deltaY));
+    const after = s2w(e.offsetX, e.offsetY);
+    S.view.cu += before[0] - after[0]; S.view.cv += before[1] - after[1];
+    drawMap();
+  }, { passive: false });
+  sizeCanvas();
+  if (!S.view) fitMap(); else drawMap();
+}
+function clampScale(s){ return Math.max(0.01, Math.min(400, s)); }
+function sizeCanvas(){
+  const c = $("#map"); if (!c) return;
+  const r = window.devicePixelRatio || 1;
+  c.width = Math.round(c.clientWidth * r); c.height = Math.round(c.clientHeight * r);
+}
+
+function entityPoints(){
+  const st = S.state, list = [];
+  for (const n of st.npcs) list.push({ kind: "npc", id: n.id, u: n.u, v: n.v, label: n.name, obj: n });
+  for (const m of st.markers) list.push({ kind: "marker", id: m.id, u: m.u, v: m.v, label: m.label, obj: m });
+  if (S.dragging){
+    const p = list.find(x => x.kind === S.dragging.kind && x.id === S.dragging.id);
+    if (p){ p.u = S.dragging.u; p.v = S.dragging.v; }
+  }
+  return list;
+}
+
+function hitTest(x, y){
+  let best = null, bd = 22;
+  for (const p of entityPoints()){
+    const [sx, sy] = w2s(p.u, p.v);
+    const d = Math.hypot(sx - x, sy - y);
+    if (d < bd){ bd = d; best = p; }
+  }
+  return best;
+}
+
+function onMapTap(x, y, hit){
+  const [u, v] = s2w(x, y);
+  if (S.mapMode === "npc"){ placeDialog("npc", u, v); return; }
+  if (S.mapMode === "marker"){ placeDialog("marker", u, v); return; }
+  selectEntity(hit);
+}
+
+function selectEntity(hit){
+  S.sel = hit ? { kind: hit.kind, id: hit.id } : null;
+  refreshMapPanel(); drawMap();
+}
+
+async function moveEntity(kind, id, u, v){
+  const r = await act("/api/entity/move", { kind, id, u, v }, "Verschoben.");
+  S.dragging = null;
+  if (!r) drawMap();
+}
+
+function niceStep(px){
+  const raw = 80 / px;
+  const p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const n = raw / p;
+  return (n < 2 ? 2 : n < 5 ? 5 : 10) * p;
+}
+
+function drawMap(){
+  const c = $("#map");
+  if (!c || !S.view || !S.state) return;
+  const r = window.devicePixelRatio || 1;
+  const g = c.getContext("2d");
+  g.setTransform(r, 0, 0, r, 0, 0);
+  const W = c.clientWidth, H = c.clientHeight;
+  g.fillStyle = "#0c0b11"; g.fillRect(0, 0, W, H);
+  const st = S.state;
+
+  if (S.img && st.map.hasImage){
+    const [x0, y0] = w2s(st.map.minU, st.map.maxV);
+    const [x1, y1] = w2s(st.map.maxU, st.map.minV);
+    g.globalAlpha = 0.92; g.drawImage(S.img, x0, y0, x1 - x0, y1 - y0); g.globalAlpha = 1;
+  }
+  // Raster
+  const step = niceStep(S.view.scale);
+  const [wu0, wv1] = s2w(0, 0), [wu1, wv0] = s2w(W, H);
+  g.strokeStyle = S.img ? "rgba(255,255,255,.06)" : "rgba(255,255,255,.07)"; g.lineWidth = 1;
+  g.beginPath();
+  for (let u = Math.floor(wu0 / step) * step; u <= wu1; u += step){ const [x] = w2s(u, 0); g.moveTo(Math.round(x) + .5, 0); g.lineTo(Math.round(x) + .5, H); }
+  for (let v = Math.floor(wv0 / step) * step; v <= wv1; v += step){ const [, y] = w2s(0, v); g.moveTo(0, Math.round(y) + .5); g.lineTo(W, Math.round(y) + .5); }
+  g.stroke();
+  g.fillStyle = "rgba(255,255,255,.35)"; g.font = "11px system-ui";
+  g.fillText(step + " m", 8, H - 8);
+
+  const pts = entityPoints();
+  const P = new Map(pts.map(p => [p.kind + ":" + p.id, p]));
+  const sel = S.sel;
+  const line = (a, b, color, dash, width) => {
+    const [x0, y0] = w2s(a.u, a.v), [x1, y1] = w2s(b.u, b.v);
+    g.strokeStyle = color; g.lineWidth = width || 2; g.setLineDash(dash || []);
+    g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); g.setLineDash([]);
+    // Pfeilspitze
+    const ang = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0);
+    if (len > 30){
+      const mx = x0 + (x1 - x0) * 0.6, my = y0 + (y1 - y0) * 0.6;
+      g.fillStyle = color; g.beginPath(); g.moveTo(mx + Math.cos(ang) * 7, my + Math.sin(ang) * 7);
+      g.lineTo(mx + Math.cos(ang + 2.5) * 7, my + Math.sin(ang + 2.5) * 7); g.lineTo(mx + Math.cos(ang - 2.5) * 7, my + Math.sin(ang - 2.5) * 7); g.fill();
+    }
+  };
+  if (S.showLinks){
+    const involves = (a, b) => !sel || (a.kind === sel.kind && a.id === sel.id) || (b.kind === sel.kind && b.id === sel.id);
+    for (const n of st.npcs){
+      const a = P.get("npc:" + n.id), b = P.get("marker:" + n.goalMarkerId);
+      if (a && b) line(a, b, involves(a, b) ? "rgba(20,184,166,.9)" : "rgba(20,184,166,.25)", [6, 5], 2);
+    }
+    for (const q of st.quests){
+      const a = P.get("npc:" + q.giverNpcId);
+      if (!a) continue;
+      const focus = S.focusQuest === q.id;
+      for (const o of q.objectives){
+        const b = o.type === "talk" ? P.get("npc:" + o.targetId) : o.type === "reach" ? P.get("marker:" + o.targetId) : null;
+        if (!b) continue;
+        const strong = focus || (!S.focusQuest && involves(a, b));
+        line(a, b, strong ? "rgba(240,180,41,.95)" : "rgba(240,180,41,.25)", [], strong ? 3 : 2);
+      }
+      const t = P.get("npc:" + q.turnInNpcId);
+      if (t && q.turnInNpcId !== q.giverNpcId){
+        const strong = focus || (!S.focusQuest && involves(a, t));
+        line(a, t, strong ? "rgba(163,113,247,.9)" : "rgba(163,113,247,.25)", [3, 5], 2);
+      }
+    }
+  }
+  const showLabels = pts.length <= 60 || S.view.scale > 6;
+  const givers = new Set(st.quests.map(q => q.giverNpcId));
+  for (const p of pts){
+    const [x, y] = w2s(p.u, p.v);
+    if (x < -40 || y < -40 || x > W + 40 || y > H + 40) continue;
+    const isSel = sel && sel.kind === p.kind && sel.id === p.id;
+    if (p.kind === "marker"){
+      const rad = p.obj.radius * S.view.scale;
+      if (rad > 10){ g.strokeStyle = "rgba(20,184,166,.35)"; g.lineWidth = 1; g.beginPath(); g.arc(x, y, rad, 0, Math.PI * 2); g.stroke(); }
+      g.fillStyle = "#14b8a6"; g.strokeStyle = "#0c0b11"; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(x, y - 9); g.lineTo(x + 9, y); g.lineTo(x, y + 9); g.lineTo(x - 9, y); g.closePath(); g.fill(); g.stroke();
+      if (p.obj.kind === "tafel"){ g.fillStyle = "#0c0b11"; g.font = "bold 10px system-ui"; g.textAlign = "center"; g.fillText("▤", x, y + 3.5); g.textAlign = "left"; }
+    } else {
+      g.fillStyle = "#f0b429"; g.strokeStyle = "#0c0b11"; g.lineWidth = 2.5;
+      g.beginPath(); g.arc(x, y, 9, 0, Math.PI * 2); g.fill(); g.stroke();
+      if (givers.has(p.id)){ g.fillStyle = "#1a1308"; g.font = "bold 12px system-ui"; g.textAlign = "center"; g.fillText("!", x, y + 4); g.textAlign = "left"; }
+    }
+    if (isSel){ g.strokeStyle = "#fff"; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 15, 0, Math.PI * 2); g.stroke(); }
+    if (showLabels || isSel){
+      g.font = (isSel ? "bold " : "") + "12px system-ui";
+      g.lineWidth = 3.5; g.strokeStyle = "rgba(12,11,17,.9)"; g.strokeText(p.label, x + 13, y + 4);
+      g.fillStyle = p.kind === "npc" ? "#ede6da" : "#9ee9df"; g.fillText(p.label, x + 13, y + 4);
+    }
+  }
+  if (!pts.length){
+    g.fillStyle = "rgba(237,230,218,.6)"; g.font = "14px system-ui"; g.textAlign = "center";
+    g.fillText("Keine NPCs oder Marker in der Szene – oben „＋ NPC“ oder „＋ Marker“ wählen und auf die Karte tippen.", W / 2, H / 2);
+    g.textAlign = "left";
+  }
+}
+
+async function loadMapImage(){
+  const st = S.state;
+  if (!st || !st.map.hasImage){ if (S.img){ S.img = null; S.imgRev = -1; drawMap(); } return; }
+  if (S.imgRev === st.map.rev) return;
+  S.imgRev = st.map.rev;
+  try {
+    const res = await api("/api/map/image");
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => { if (S.imgUrl) URL.revokeObjectURL(S.imgUrl); S.imgUrl = url; S.img = img; drawMap(); };
+    img.src = url;
+  } catch (e) { S.imgRev = -1; }
+}
+
+function updateMapHint(){
+  const h = $("#maphint"); if (!h) return;
+  const t = { view: "", move: "NPCs und Marker mit dem Finger an die neue Stelle ziehen.", npc: "Auf die Karte tippen, um einen NPC zu setzen.", marker: "Auf die Karte tippen, um einen Marker zu setzen." }[S.mapMode];
+  h.textContent = t; h.hidden = !t;
+}
+
+function refreshMapPanel(){
+  const p = $("#mappanel");
+  if (!p) return;
+  const sel = S.sel;
+  const obj = sel && (sel.kind === "npc" ? S.idx.npcs.get(sel.id) : S.idx.markers.get(sel.id));
+  if (!obj){ p.classList.remove("open"); p.innerHTML = ""; if (sel) S.sel = null; return; }
+  const editingHere = p.dataset.key === sel.kind + ":" + sel.id && p.querySelector("[data-mk]") && p.contains(document.activeElement);
+  if (editingHere) return; // nicht in ein Formular hineinschreiben, während getippt wird
+  p.dataset.key = sel.kind + ":" + sel.id;
+  p.classList.add("open");
+  const st = S.state;
+  let body = "";
+  if (sel.kind === "npc"){
+    const gives = st.quests.filter(q => q.giverNpcId === obj.id);
+    const takes = st.quests.filter(q => q.turnInNpcId === obj.id && q.giverNpcId !== obj.id);
+    body = `<div class="edit-head"><div class="av">${initials(obj.name)}</div><h2>${esc(obj.name)}</h2><button class="btn icon ghost" data-act="closeSel">✕</button></div>
+      <div class="edit-body">
+        <div class="muted">${esc(obj.role || "ohne Rolle")} · ${esc(obj.scene)}</div>
+        ${obj.lore ? `<div class="lore">${esc(obj.lore)}</div>` : `<div class="muted">Noch kein Lore-Text.</div>`}
+        ${obj.goal || obj.goalMarkerId ? `<div class="kv"><span class="k">Ziel</span><span>${esc(obj.goal || "—")}${obj.goalMarkerId ? " → ◆ " + esc(markerName(obj.goalMarkerId)) : ""}</span></div>` : ""}
+        <div class="kv"><span class="k">Dialog</span><span>${obj.dialogueId ? esc((S.idx.dialogues.get(obj.dialogueId) || {}).title || obj.dialogueId) : "—"}</span></div>
+        ${gives.length ? `<div class="chips">${gives.map(q => `<button class="chip acc" data-act="openRef" data-kind="quest" data-id="${esc(q.id)}">📜 ${esc(q.title || q.id)}</button>`).join("")}</div>` : ""}
+        ${takes.length ? `<div class="chips">${takes.map(q => `<button class="chip vio" data-act="openRef" data-kind="quest" data-id="${esc(q.id)}">Abgabe: ${esc(q.title || q.id)}</button>`).join("")}</div>` : ""}
+        <div class="list">
+          <button class="btn pri" data-act="openRef" data-kind="npc" data-id="${esc(obj.id)}">✏️ Texte, Ziel und Dialog bearbeiten</button>
+          <button class="btn" data-act="newQuestFor" data-id="${esc(obj.id)}">＋ Quest von ${esc(obj.name)}</button>
+          <button class="btn" data-act="selectInUnity" data-kind="npc" data-id="${esc(obj.id)}">🎯 In Unity zeigen</button>
+        </div>
+      </div>`;
+  } else {
+    const uses = st.quests.filter(q => q.objectives.some(o => o.type === "reach" && o.targetId === obj.id));
+    const goalOf = st.npcs.filter(n => n.goalMarkerId === obj.id);
+    body = `<div class="edit-head"><div class="av m">◆</div><h2>${esc(obj.label)}</h2><button class="btn icon ghost" data-act="closeSel">✕</button></div>
+      <div class="edit-body">
+        <label class="f">Bezeichnung <input class="inp" data-mk="label" value="${esc(obj.label)}"></label>
+        <div class="grid2">
+          <label class="f">Art <select class="inp" data-mk="kind">${opts(MARKER_KINDS, obj.kind)}</select></label>
+          <label class="f">Radius (m) <input class="inp" data-mk="radius" type="number" step="0.1" value="${esc(obj.radius)}"></label>
+        </div>
+        <label class="f inline"><input type="checkbox" data-mk="autoReport" ${obj.autoReport ? "checked" : ""}> Erreichen automatisch melden (Spieler mit Tag „Player“)</label>
+        <button class="btn pri" data-act="saveMarker" data-id="${esc(obj.id)}">Übertragen</button>
+        ${uses.length ? `<div class="muted">Ziel in:</div><div class="chips">${uses.map(q => `<button class="chip acc" data-act="openRef" data-kind="quest" data-id="${esc(q.id)}">📜 ${esc(q.title || q.id)}</button>`).join("")}</div>` : ""}
+        ${goalOf.length ? `<div class="muted">Ziel von:</div><div class="chips">${goalOf.map(n => `<button class="chip teal" data-act="openRef" data-kind="npc" data-id="${esc(n.id)}">${esc(n.name)}</button>`).join("")}</div>` : ""}
+        <div class="kv"><span class="k">ID</span><span style="font-family:monospace">${esc(obj.id)}</span></div>
+        <div class="list">
+          <button class="btn" data-act="selectInUnity" data-kind="marker" data-id="${esc(obj.id)}">🎯 In Unity zeigen</button>
+          <button class="btn danger" data-act="deleteEntity" data-kind="marker" data-id="${esc(obj.id)}">Marker löschen</button>
+        </div>
+      </div>`;
+  }
+  p.innerHTML = body;
+}
+
+function placeDialog(kind, u, v){
+  S.pending = { kind, u, v, prefabGuid: "", prefabName: "" };
+  const body = kind === "npc"
+    ? `<label class="f">Name <input class="inp" id="plName" placeholder="z. B. Mira"></label>
+       <div class="sub"><div class="muted" id="plPrefab">Platzhalter-Kapsel (du kannst sie später durch dein Modell ersetzen)</div>
+       <button class="btn sm" data-act="pickPrefab">Eigenes Prefab wählen</button></div>
+       <button class="btn pri" data-act="placeConfirm">NPC hier platzieren</button>`
+    : `<label class="f">Bezeichnung <input class="inp" id="plName" placeholder="z. B. Alte Mühle"></label>
+       <label class="f">Art <select class="inp" id="plKind">${opts(MARKER_KINDS, "ziel")}</select></label>
+       <button class="btn pri" data-act="placeConfirm">Marker hier setzen</button>`;
+  modal(kind === "npc" ? "Neuer NPC" : "Neuer Marker", body + `<div class="hint">Position: ${u.toFixed(1)} / ${v.toFixed(1)}</div>`);
+  setTimeout(() => { const n = $("#plName"); if (n) n.focus(); }, 60);
+}
+
+async function placeConfirm(){
+  const p = S.pending; if (!p) return;
+  const name = ($("#plName") || {}).value || "";
+  let r;
+  if (p.kind === "npc") r = await act("/api/npc/create", { name: name.trim() || "Neuer NPC", u: p.u, v: p.v, prefabGuid: p.prefabGuid }, "NPC in der Szene angelegt.");
+  else r = await act("/api/marker/create", { label: name.trim() || "Neuer Marker", kind: ($("#plKind") || {}).value || "ziel", u: p.u, v: p.v }, "Marker gesetzt.");
+  closeModal();
+  if (r && r.id){ S.sel = { kind: p.kind, id: r.id }; S.mapMode = "view"; document.querySelectorAll("#modeSeg button").forEach(b => b.classList.toggle("on", b.dataset.mode === "view")); updateMapHint(); refreshMapPanel(); drawMap(); }
+}
+
+/* ============================================================
+   Prüfen / Einstellungen
+   ============================================================ */
+function renderCheck(m){
+  const iss = S.state.issues || [];
+  const n = l => iss.filter(i => i.level === l).length;
+  m.innerHTML = `<div class="pane-list" style="max-width:860px;margin:0 auto;width:100%">
+    <div class="toolbar"><span class="chip red">${n("error")} Fehler</span><span class="chip ora">${n("warn")} Warnungen</span><span class="chip">${n("info")} Hinweise</span></div>
+    ${iss.length ? `<div class="list">${iss.map((i, k) => `<button class="issue ${i.level}" data-issue="${k}"><span>${i.level === "error" ? "⛔" : i.level === "warn" ? "⚠️" : "ℹ️"}</span><span>${esc(i.message)}</span></button>`).join("")}</div>` : `<div class="empty">✓ Keine Probleme gefunden.</div>`}
+    <div class="hint" style="margin-top:12px">Die Prüfung läuft in Unity – dieselbe Liste siehst du unter Window → Fadenwerk → Prüfen. „Nicht in geladener Szene“ ist ein Hinweis: der NPC kann in einer anderen Szene stehen.</div>
+  </div>`;
+}
+
+function renderSettings(m){
+  const st = S.state;
+  const active = (st.scenes || []).find(s => s.active) || {};
+  m.innerHTML = `<div class="pane-list" style="max-width:760px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:12px">
+    <div class="card"><div class="sec" style="margin:0 0 8px">Projekt</div>
+      <div class="kv"><span class="k">Projekt</span><span>${esc(st.project)}</span><span class="k">Unity</span><span>${esc(st.unity)}</span>
+      <span class="k">Szene</span><span>${esc(active.name || "—")}${active.dirty ? " · ungespeichert" : ""}</span>
+      <span class="k">Datenbank</span><span>${st.db ? esc(st.db.path) : "—"}</span>
+      <span class="k">Bodenebene</span><span>${st.plane === "XY" ? "XY (2D)" : "XZ (3D)"}</span>
+      <span class="k">Automatisch speichern</span><span>${st.autoSave ? "an" : "aus – mit 💾 oben speichern"}</span></div>
+      <div class="hint" style="margin-top:8px">Bodenebene und automatisches Speichern stellst du in Unity ein: Window → Fadenwerk → Start.</div>
+    </div>
+    <div class="card"><div class="sec" style="margin:0 0 8px">Welt-Seed</div>
+      <div class="hint">Startwert für alle Belohnungs-Würfe. Gleicher Seed = gleiche Belohnungen für dieselbe Quest – auf jedem Gerät.</div>
+      <div class="toolbar" style="margin:8px 0 0"><input class="inp grow" id="seedInp" value="${esc(st.db ? st.db.worldSeed : "")}" ${st.db ? "" : "disabled"}><button class="btn" data-act="saveSeed" ${st.db ? "" : "disabled"}>Übertragen</button></div>
+    </div>
+    <div class="card"><div class="sec" style="margin:0 0 8px">Karte</div>
+      <div class="hint">Unity rendert eine Draufsicht der geladenen Szenen als Kartenhintergrund.</div>
+      <div class="toolbar" style="margin:8px 0 0"><button class="btn" data-act="renderAuto">🖼️ Ganze Szene rendern</button></div>
+    </div>
+    <div class="card"><div class="sec" style="margin:0 0 8px">Verbindung</div>
+      <div class="hint">Angemeldet mit einem Zugangsschlüssel aus Unity. Wenn du in Unity einen neuen Schlüssel erzeugst, musst du dich hier neu anmelden.</div>
+      <div class="toolbar" style="margin:8px 0 0"><button class="btn danger" data-act="logout">Abmelden</button></div>
+    </div>
+    <div class="card"><div class="sec" style="margin:0 0 8px">So arbeitest du</div>
+      <div class="hint">• Auf der <b>Karte</b> NPCs und Marker antippen, verschieben oder neu setzen.<br>
+      • Unter <b>NPCs</b> Lore-Text, Ziel und Dialog bearbeiten – „✨ Standard-Dialog erzeugen“ baut aus den Quests des NPCs fertige Gesprächsoptionen.<br>
+      • <b>Übertragen</b> schreibt sofort in den Unity-Editor${st.autoSave ? " und speichert" : ""}. In Unity kannst du jede Änderung mit Strg+Z zurücknehmen.<br>
+      • Im Spiel: <code>FadenwerkManager</code> in die Start-Szene legen, Fortschritt mit <code>ReportKill</code>, <code>ReportCollect</code> usw. melden.</div>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   Asset-Auswahl, Ordner-Import, Kandidaten
+   ============================================================ */
+const thumbs = new Map();
+function thumbImg(guid){
+  const t = thumbs.get(guid);
+  if (t && t.url) return `<img src="${t.url}" alt="">`;
+  return `<img data-guid="${esc(guid)}" alt="" style="opacity:0">`;
+}
+function hydrateThumbs(root){
+  (root || document).querySelectorAll("img[data-guid]").forEach(img => loadThumb(img.dataset.guid));
+}
+async function loadThumb(guid, attempt){
+  attempt = attempt || 0;
+  let t = thumbs.get(guid);
+  if (t && (t.url || (t.loading && !attempt))) { if (t.url) applyThumb(guid); return; }
+  thumbs.set(guid, { loading: true });
+  try {
+    const res = await fetch("./api/assets/preview?guid=" + encodeURIComponent(guid), { headers: { "X-Fadenwerk-Token": S.token } });
+    if (res.status === 202 && attempt < 8){ setTimeout(() => loadThumb(guid, attempt + 1), 600); return; }
+    if (!res.ok){ thumbs.set(guid, { failed: true }); return; }
+    const url = URL.createObjectURL(await res.blob());
+    thumbs.set(guid, { url });
+    applyThumb(guid);
+  } catch (e) { thumbs.delete(guid); }
+}
+function applyThumb(guid){
+  const t = thumbs.get(guid);
+  if (!t || !t.url) return;
+  document.querySelectorAll(`img[data-guid="${CSS.escape(guid)}"]`).forEach(img => { img.src = t.url; img.style.opacity = 1; img.removeAttribute("data-guid"); });
+}
+
+function modal(title, body){
+  closeModal();
+  const bg = document.createElement("div");
+  bg.className = "modal-bg"; bg.id = "modal";
+  bg.innerHTML = `<div class="modal" role="dialog"><div class="modal-head"><h3>${esc(title)}</h3><button class="btn icon ghost" data-act="closeModal">✕</button></div><div class="modal-body">${body}</div></div>`;
+  // Nur schließen, wenn der Tipp auch auf dem Hintergrund begann. Sonst würde der "Geisterklick",
+  // den Touch-Browser nach dem Antippen der Karte nachschicken, den Dialog sofort wieder schließen.
+  let downOnBg = false;
+  bg.addEventListener("pointerdown", e => { downOnBg = e.target === bg; });
+  bg.addEventListener("click", e => { if (e.target === bg && downOnBg) closeModal(); downOnBg = false; });
+  document.body.appendChild(bg);
+  hydrateThumbs(bg);
+}
+function closeModal(){ const m = $("#modal"); if (m) m.remove(); }
+
+let assetPick = null;
+function openAssetPicker(type, onPick){
+  assetPick = { type, onPick, q: "" };
+  modal("Asset aus deinem Projekt", `<div class="toolbar" style="margin:0">
+      <input class="inp grow" id="assetQ" placeholder="Name suchen, z. B. sword" type="search">
+      <select class="inp" id="assetT" style="max-width:170px">${opts([["prefab","Prefabs"],["so","ScriptableObjects"],["model","3D-Modelle"],["all","Alles"]], type)}</select>
+    </div><div id="assetRes"><div class="muted">Suche …</div></div>`);
+  const run = debounce(searchAssets, 300);
+  $("#assetQ").addEventListener("input", e => { assetPick.q = e.target.value; run(); });
+  $("#assetT").addEventListener("change", e => { assetPick.type = e.target.value; searchAssets(); });
+  searchAssets();
+}
+async function searchAssets(){
+  if (!assetPick) return;
+  const el = $("#assetRes"); if (!el) return;
+  try {
+    const r = await api("/api/assets?q=" + encodeURIComponent(assetPick.q) + "&type=" + assetPick.type);
+    if (!r.assets.length){ el.innerHTML = `<div class="empty">Nichts gefunden.</div>`; return; }
+    el.innerHTML = `<div class="assets">${r.assets.map((a, i) => `<div class="asset" data-asset="${i}"><div class="img">${thumbImg(a.guid)}</div><div class="n">${esc(a.name)}</div><div class="hint">${esc(a.type)}</div></div>`).join("")}</div>
+      ${r.total > r.assets.length ? `<div class="hint">${r.total} Treffer – die ersten ${r.assets.length} werden gezeigt. Suche genauer.</div>` : ""}`;
+    el.querySelectorAll("[data-asset]").forEach(d => d.onclick = () => { const a = r.assets[+d.dataset.asset]; const cb = assetPick.onPick; closeModal(); assetPick = null; cb(a); });
+    hydrateThumbs(el);
+  } catch (e) { el.innerHTML = `<div class="banner bad">${esc(e.message)}</div>`; }
+}
+function debounce(fn, ms){ let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+
+async function openFolderImport(){
+  modal("Items aus Ordner übernehmen", `<div class="muted">Lade Ordner …</div>`);
+  let folders = [];
+  try { folders = (await api("/api/folders")).folders; } catch (e) { toast(e.message, "err"); closeModal(); return; }
+  const body = `<div class="hint">Jedes Prefab und ScriptableObject im Ordner (inkl. Unterordnern) wird ein Katalog-Eintrag mit Verknüpfung zum Asset. Bereits verknüpfte Assets werden übersprungen.</div>
+    <label class="f">Ordner <input class="inp" id="fldQ" placeholder="filtern, z. B. Weapons" type="search"></label>
+    <select class="inp" id="fldSel" size="8" style="min-height:200px">${folders.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join("")}</select>
+    <div class="grid2"><label class="f">Kategorie <select class="inp" id="fldCat">${opts(CATS, "weapon")}</select></label>
+    <label class="f">Seltenheit <select class="inp" id="fldRar">${opts(RARS, "common")}</select></label></div>
+    <button class="btn pri" data-act="folderImport">Übernehmen</button>`;
+  $("#modal .modal-body").innerHTML = body;
+  $("#fldQ").addEventListener("input", e => {
+    const q = e.target.value.toLowerCase();
+    $("#fldSel").innerHTML = folders.filter(f => f.toLowerCase().includes(q)).map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join("");
+  });
+}
+
+async function openCandidates(){
+  modal("Figuren aus der Szene zu NPCs machen", `<div class="muted">Lade …</div>`);
+  let r;
+  try { r = await api("/api/candidates"); } catch (e) { toast(e.message, "err"); closeModal(); return; }
+  const row = c => `<div class="row" style="cursor:default"><div class="av">${initials(c.name)}</div><div class="main"><div class="t">${esc(c.name)}</div><div class="s">${esc(c.path)} · ${esc(c.scene)}</div></div><button class="btn sm pri" data-act="convert" data-goid="${esc(c.goid)}">Zum NPC</button></div>`;
+  $("#modal .modal-body").innerHTML = `
+    <div class="sec">In Unity ausgewählt</div>
+    ${r.selected.length ? `<div class="list">${r.selected.map(row).join("")}</div>` : `<div class="hint">Nichts ausgewählt. Tipp: Figuren in der Unity-Hierarchie markieren – sie erscheinen dann hier.</div>`}
+    <div class="sec">Figuren in der Szene <span class="hint">(mit Animator, Skinned Mesh oder Character Controller)</span></div>
+    ${r.objects.length ? `<div class="list">${r.objects.map(row).join("")}</div>` : `<div class="hint">Keine weiteren Figuren gefunden.</div>`}`;
+}
+
+/* ============================================================
+   Ereignisse
+   ============================================================ */
+document.addEventListener("click", async e => {
+  const tabBtn = e.target.closest("[data-tab]");
+  if (tabBtn){ switchTab(tabBtn.dataset.tab); return; }
+  const mode = e.target.closest("[data-mode]");
+  if (mode){
+    S.mapMode = mode.dataset.mode;
+    document.querySelectorAll("#modeSeg button").forEach(b => b.classList.toggle("on", b.dataset.mode === S.mapMode));
+    // Beim Setzen/Verschieben braucht man die ganze Karte – Detailkarte zuklappen
+    if (S.mapMode !== "view" && S.sel){ S.sel = null; refreshMapPanel(); drawMap(); }
+    updateMapHint();
+    return;
+  }
+  const open = e.target.closest("[data-open]");
+  if (open){ openEditor(open.dataset.open, open.dataset.id); return; }
+  const iss = e.target.closest("[data-issue]");
+  if (iss){
+    const i = S.state.issues[+iss.dataset.issue];
+    if (!i || !i.id) return;
+    if (i.kind === "marker"){ S.sel = { kind: "marker", id: i.id }; switchTab("map"); return; }
+    if (["npc","quest","dialogue","kit","item"].includes(i.kind)) openEditor(i.kind, i.id);
+    return;
+  }
+  const a = e.target.closest("[data-act]");
+  if (!a) return;
+  const d = a.dataset, D = S.draft;
+  switch (d.act){
+    case "login": { const t = ($("#tok").value || "").trim(); if (!t) return; S.token = t; try { localStorage.setItem("fw.token", t); } catch (x) {} render(); poll(true); break; }
+    case "logout": if (confirm("Abmelden?")) logout(); break;
+    case "createDb": await act("/api/db/create", {}, "Datenbank angelegt."); break;
+    case "saveScene": await act("/api/scene/save", {}, "In Unity gespeichert."); break;
+    case "new": {
+      const kind = KIND_OF_TAB[S.tab];
+      if (kind === "quest") openDraft("quest", blankQuest());
+      if (kind === "dialogue") openDraft("dialogue", blankDialogue(""));
+      if (kind === "kit") openDraft("kit", blankKit(""));
+      if (kind === "item") openDraft("item", blankItem());
+      break;
+    }
+    case "closeEditor": if (!S.draftDirty || confirm("Ungespeicherte Änderungen verwerfen?")) closeEditor(); break;
+    case "saveDraft": await saveDraft(); break;
+    case "deleteDraft": await deleteDraft(); break;
+    case "reloadDraft": { const f = currentRemote(); if (f){ S.draft = clone(f); S.draftBase = JSON.stringify(f); S.draftDirty = false; S.remoteChanged = false; renderEditor(); } break; }
+    case "openRef":
+      if (S.draftDirty && S.draft && !(S.draftKind === d.kind && S.draft.id === d.id) && !confirm("Ungespeicherte Änderungen verwerfen?")) return;
+      S.draftDirty = false; openEditor(d.kind, d.id); break;
+    case "selectInUnity": await act("/api/entity/select", { kind: d.kind, id: d.id }, "In Unity ausgewählt."); break;
+    case "showOnMap": S.sel = { kind: d.kind, id: d.id }; switchTab("map"); { const o = S.idx[d.kind === "npc" ? "npcs" : "markers"].get(d.id); if (o && S.view){ S.view.cu = o.u; S.view.cv = o.v; drawMap(); } } break;
+    case "deleteEntity": {
+      const msg = d.kind === "npc" ? "Fadenwerk-Komponente von diesem NPC entfernen? Die Figur bleibt in der Szene." : "Marker löschen?";
+      if (!confirm(msg)) return;
+      const r = await act("/api/entity/delete", { kind: d.kind, id: d.id }, "Entfernt.");
+      if (r){ S.sel = null; if (S.draftKind === "npc") closeEditor(); refreshMapPanel(); drawMap(); }
+      break;
+    }
+    case "newQuestFor": { const q = blankQuest(d.id); const n = S.idx.npcs.get(d.id); q.id = newId("q", n ? n.name : "quest"); openDraft("quest", q); break; }
+    case "genDialogue": {
+      const n = S.draft; if (!n) return;
+      if (n.dialogueId && S.idx.dialogues.has(n.dialogueId) && !confirm("Dieser NPC hat schon einen Dialog. Einen neuen erzeugen und nach dem Übertragen zuweisen?")) return;
+      const src = S.idx.npcs.get(n.id) || n;
+      const merged = Object.assign({}, src, { lore: n.lore, name: n.name });
+      S.draftDirty = false;
+      openDraft("dialogue", generateDialogue(merged), { assignDialogueTo: n.id });
+      toast("Dialog erzeugt – prüfen und „Übertragen“ tippen.", "ok");
+      break;
+    }
+    case "newKitForQuest": {
+      if (!D) return;
+      const questId = D.id;
+      if (S.draftNew || S.draftDirty){ toast("Bitte die Quest zuerst übertragen.", "warn"); return; }
+      openDraft("kit", blankKit((D.title || "Quest") + " – Belohnung"), { assignKitToQuest: questId });
+      break;
+    }
+    case "focusQuestMap": S.focusQuest = d.id; { const q = S.idx.quests.get(d.id); S.sel = q && q.giverNpcId ? { kind: "npc", id: q.giverNpcId } : null; } switchTab("map"); break;
+    case "addObj": D.objectives.push({ type: "talk", targetId: "", count: 1, text: "" }); markDirty(); renderEditor(); break;
+    case "rmObj": D.objectives.splice(+d.i, 1); markDirty(); renderEditor(); break;
+    case "mvObj": { const i = +d.i, j = i + (+d.d); [D.objectives[i], D.objectives[j]] = [D.objectives[j], D.objectives[i]]; markDirty(); renderEditor(); break; }
+    case "addPrereq": D.prerequisiteQuestIds.push(""); markDirty(); renderEditor(); break;
+    case "rmPrereq": D.prerequisiteQuestIds.splice(+d.i, 1); markDirty(); renderEditor(); break;
+    case "addNode": D.nodes.push({ id: uniqueNodeId(D, "knoten"), speaker: "", text: "", choices: [] }); markDirty(); renderEditor(); scrollToNode(D.nodes[D.nodes.length - 1].id); break;
+    case "addNodeFrom": {
+      const nid = uniqueNodeId(D, "knoten");
+      D.nodes.push({ id: nid, speaker: "", text: "", choices: [] });
+      D.nodes[+d.i].choices.push({ ...blankChoice(), nextNodeId: nid });
+      markDirty(); renderEditor(); break;
+    }
+    case "rmNode": {
+      const gone = D.nodes[+d.i].id;
+      D.nodes.splice(+d.i, 1);
+      D.nodes.forEach(n => n.choices.forEach(c => { if (c.nextNodeId === gone) c.nextNodeId = ""; }));
+      if (D.startNodeId === gone) D.startNodeId = D.nodes[0] ? D.nodes[0].id : "";
+      markDirty(); renderEditor(); break;
+    }
+    case "addChoice": D.nodes[+d.i].choices.push(blankChoice()); markDirty(); renderEditor(); break;
+    case "rmChoice": D.nodes[+d.i].choices.splice(+d.k, 1); markDirty(); renderEditor(); break;
+    case "previewDialogue": previewDialogue(D); break;
+    case "addEntry": D.entries.push({ itemId: "", minQuantity: 1, maxQuantity: 1, weight: 100, guaranteed: false }); markDirty(); renderEditor(); break;
+    case "rmEntry": D.entries.splice(+d.i, 1); markDirty(); renderEditor(); break;
+    case "rollNext": { const s = $("#rollSeed"); const m2 = (s.value || "test-1").match(/^(.*?)(\d+)$/); s.value = m2 ? m2[1] + (+m2[2] + 1) : s.value + "-2"; } /* falls through */
+    case "rollKit": {
+      if (S.draftDirty){ toast("Erst übertragen, dann würfeln – sonst würfelt Unity den alten Stand.", "warn"); return; }
+      const seed = $("#rollSeed").value; S.rollSeed = seed;
+      try {
+        const r = await api("/api/kit/roll", { id: D.id, seed });
+        $("#rollOut").innerHTML = `<div class="card" style="margin-top:8px"><div><b>${r.gold}</b> Gold · <b>${r.xp}</b> XP</div>${r.items.length ? `<div class="chips" style="margin-top:6px">${r.items.map(x => `<span class="chip acc">${x.quantity}× ${esc(x.displayName)}</span>`).join("")}</div>` : `<div class="muted">keine Gegenstände</div>`}</div>`;
+      } catch (x) { toast(x.message, "err"); }
+      break;
+    }
+    case "pickAsset": openAssetPicker("prefab", a2 => { D.assetGuid = a2.guid; D.assetPath = a2.path; D.assetName = a2.name; D.assetType = a2.type; if (!D.displayName) D.displayName = a2.name; if (S.draftNew && !D.id) D.id = slug(a2.name); markDirty(); renderEditor(); }); break;
+    case "clearAsset": D.assetGuid = ""; D.assetPath = ""; D.assetName = ""; D.assetType = ""; markDirty(); renderEditor(); break;
+    case "importFolder": openFolderImport(); break;
+    case "folderImport": {
+      const f = $("#fldSel").value; if (!f){ toast("Bitte einen Ordner auswählen.", "warn"); return; }
+      const r = await act("/api/items/import", { folder: f, category: $("#fldCat").value, rarity: $("#fldRar").value });
+      if (r){ toast(r.added + " Item(s) übernommen.", r.added ? "ok" : "warn"); closeModal(); }
+      break;
+    }
+    case "candidates": openCandidates(); break;
+    case "convert": { const r = await act("/api/npc/convert", { goid: d.goid }, "NPC angelegt."); if (r){ closeModal(); if (r.id) openEditor("npc", r.id); } break; }
+    case "closeModal": closeModal(); break;
+    case "fitMap": fitMap(); break;
+    case "toggleLinks": S.showLinks = !S.showLinks; a.classList.toggle("ok", S.showLinks); if (!S.showLinks) S.focusQuest = ""; drawMap(); break;
+    case "mapMenu": modal("Kartenhintergrund", `<div class="hint">Unity rendert eine Draufsicht als Hintergrund. Das dauert je nach Szene ein paar Sekunden.</div>
+        <button class="btn pri" data-act="renderAuto">Ganze Szene rendern</button>
+        <button class="btn" data-act="renderView">Sichtbaren Ausschnitt rendern (schärfer)</button>
+        ${S.focusQuest ? `<button class="btn" data-act="clearFocus">Quest-Hervorhebung aufheben</button>` : ""}`); break;
+    case "clearFocus": S.focusQuest = ""; closeModal(); drawMap(); break;
+    case "renderAuto": closeModal(); toast("Unity rendert die Karte …", "ok"); if (await act("/api/map/render", { mode: "auto", size: 1536 }, "Karte aktualisiert.")){ S.view = null; if (S.tab === "map") fitMap(); } break;
+    case "renderView": {
+      closeModal();
+      const c = $("#map"); const [u0, v1] = s2w(0, 0), [u1, v0] = s2w(c.clientWidth, c.clientHeight);
+      toast("Unity rendert den Ausschnitt …", "ok");
+      await act("/api/map/render", { mode: "area", minU: u0, minV: v0, maxU: u1, maxV: v1, size: 1536 }, "Karte aktualisiert.");
+      break;
+    }
+    case "closeSel": S.sel = null; refreshMapPanel(); drawMap(); break;
+    case "saveMarker": {
+      const p = $("#mappanel"); const g = k => p.querySelector(`[data-mk="${k}"]`);
+      await act("/api/marker/save", { markerId: d.id, label: g("label").value, kind: g("kind").value, radius: parseFloat(g("radius").value) || 2, autoReport: g("autoReport").checked }, "Marker übertragen.");
+      refreshMapPanel(); break;
+    }
+    case "pickPrefab": {
+      const pend = S.pending;
+      const keepName = ($("#plName") || {}).value || "";
+      openAssetPicker("prefab", a2 => { placeDialog("npc", pend.u, pend.v); S.pending.prefabGuid = a2.guid; S.pending.prefabName = a2.name; $("#plName").value = keepName || a2.name; $("#plPrefab").innerHTML = `Prefab: <b>${esc(a2.name)}</b>`; });
+      break;
+    }
+    case "placeConfirm": await placeConfirm(); break;
+    case "saveSeed": await act("/api/seed/save", { worldSeed: $("#seedInp").value }, "Seed übertragen."); break;
+  }
+});
+
+function uniqueNodeId(d, base){ let i = d.nodes.length + 1, id = base + "_" + i; while (d.nodes.some(n => n.id === id)) id = base + "_" + (++i); return id; }
+function scrollToNode(id){ setTimeout(() => { const el = document.getElementById("node-" + id); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30); }
+
+/* Eingaben in Formularen → Entwurf */
+document.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset.search !== undefined){ S.search[t.dataset.search] = t.value; renderList(); return; }
+  if (t.dataset.b && S.draft){ applyBinding(t); return; }
+});
+document.addEventListener("change", e => {
+  const t = e.target;
+  if (t.dataset.itemcat !== undefined){ S.itemCat = t.value; renderList(); return; }
+  if (t.id === "sceneSel"){
+    const path = t.value; if (!path) return;
+    if (!confirm("Szene „" + path + "“ in Unity öffnen?" + (S.state.autoSave ? " Offene Änderungen werden vorher gespeichert." : ""))){ t.dataset.key = ""; renderStatus(); return; }
+    closeEditor(true); S.sel = null; S.view = null;
+    act("/api/scene/open", { path }, "Szene geöffnet.").then(() => { if (S.tab === "map") fitMap(); renderMain(); });
+    return;
+  }
+  if (t.dataset.nodeId !== undefined && S.draft){
+    const i = +t.dataset.nodeId, D = S.draft, old = D.nodes[i].id;
+    const nid = t.value.trim().replace(/[^A-Za-z0-9_.:-]/g, "_");
+    if (!nid || D.nodes.some((n, k) => k !== i && n.id === nid)){ toast("Knoten-ID leer oder schon vergeben.", "warn"); t.value = old; return; }
+    D.nodes[i].id = nid;
+    D.nodes.forEach(n => n.choices.forEach(c => { if (c.nextNodeId === old) c.nextNodeId = nid; }));
+    if (D.startNodeId === old) D.startNodeId = nid;
+    markDirty(); renderEditor(); return;
+  }
+  if (t.dataset.b && S.draft){
+    applyBinding(t);
+    if (t.dataset.rerender !== undefined) renderEditor();
+  }
+});
+function applyBinding(t){
+  let v;
+  if (t.dataset.t === "bool") v = t.checked;
+  else if (t.dataset.t === "int") v = t.value === "" ? 0 : Math.trunc(+t.value) || 0;
+  else if (t.dataset.t === "float") v = t.value === "" ? 0 : +t.value || 0;
+  else v = t.value;
+  setPath(S.draft, t.dataset.b, v);
+  if (S.draftKind === "item" && S.draftNew && t.dataset.b === "displayName" && !S.draft._idTouched){
+    S.draft.id = slug(v);
+    const idf = document.querySelector('[data-b="id"]'); if (idf) idf.value = S.draft.id;
+  }
+  if (t.dataset.b === "id") S.draft._idTouched = true;
+  markDirty();
+}
+
+window.addEventListener("beforeunload", e => { if (S.draftDirty){ e.preventDefault(); e.returnValue = ""; } });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && S.token) poll(true); });
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s"){ e.preventDefault(); if (S.draft) saveDraft(); else act("/api/scene/save", {}, "In Unity gespeichert."); }
+  if (e.key === "Enter" && e.target.id === "tok") { const b = document.querySelector('[data-act="login"]'); if (b) b.click(); }
+});
+
+/* Link mit Schlüssel im selben Tab eingefügt: Seite lädt nicht neu, nur der #-Teil ändert sich */
+window.addEventListener("hashchange", () => {
+  if (!/[#&]t=/.test(location.hash)) return;
+  readToken();
+  S.state = null; S.rev = "";
+  render();
+  poll(true);
+});
+
+/* Start */
+readToken();
+render();
+if (S.token) poll(true);
+</script>
+</body>
+</html>

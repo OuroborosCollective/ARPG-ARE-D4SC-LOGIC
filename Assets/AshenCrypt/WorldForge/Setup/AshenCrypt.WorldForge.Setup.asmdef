@@ -1,0 +1,11 @@
+{
+  "name": "AshenCrypt.WorldForge.Setup",
+  "rootNamespace": "AshenCrypt.WorldForge.Setup",
+  "references": [],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false,
+  "versionDefines": [
+    { "name": "com.unity.modules.terrain", "expression": "1.0.0", "define": "WF_HAS_TERRAIN" },
+    { "name": "com.unity.modules.terrainphysics", "expression": "1.0.0", "define": "WF_HAS_TERRAINPHYSICS" }
+  ]
+}
