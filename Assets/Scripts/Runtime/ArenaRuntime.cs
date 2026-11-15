@@ -731,6 +731,7 @@ namespace AreArpg.UnityClient
                 return;
             }
 
+            if (PollArrivalScene()) return;
             if (PollMenuInput()) return;
             if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
@@ -738,14 +739,16 @@ namespace AreArpg.UnityClient
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
             bool hasMastery = _game.Progression.UnspentMasteryPoints > 0;
-            bool canTakeRation = _game.Progression.EntryAct == 2;
+            // Mara's ration panel exists only while its single decision is open (story village).
+            bool campOpen = _game.CampPanelVisible;
+            bool canTakeRation = _game.Progression.EntryAct == 2 && campOpen;
             bool canDonate = _game.CanDonateCampRation;
             if (_cameraRig != null)
             {
                 if (!Application.isMobilePlatform && Input.mouseScrollDelta.y != 0f &&
                     layout.IsWithinSafeArea(Input.mousePosition) &&
                     !layout.BlocksCameraGesture(layout.ToGuiTouch(Input.mousePosition), false,
-                        nearNpc, _game.IsVillage, hasMastery, canTakeRation, canDonate))
+                        nearNpc, campOpen, hasMastery, canTakeRation, canDonate))
                     _cameraRig.ZoomSteps(Input.mouseScrollDelta.y);
                 PollMouseOrbit(layout);
                 _cameraRig.BeginTouchFrame();
@@ -765,13 +768,13 @@ namespace AreArpg.UnityClient
                 // finger keeps its ownership outside MOVE and SafeArea.
                 ArenaHudControl control = touch.phase == TouchPhase.Began && insideSafeArea
                     ? layout.HitTest(guiPoint, false,
-                        nearNpc, _game.IsVillage, hasMastery, canTakeRation, canDonate)
+                        nearNpc, campOpen, hasMastery, canTakeRation, canDonate)
                     : ArenaHudControl.None;
 
                 if (_cameraRig != null)
                     _cameraRig.ObserveTouch(touch.fingerId, touch.phase, guiPoint,
                         insideSafeArea && !layout.BlocksCameraGesture(guiPoint, false,
-                            nearNpc, _game.IsVillage, hasMastery, canTakeRation, canDonate));
+                            nearNpc, campOpen, hasMastery, canTakeRation, canDonate));
 
                 Vector2 direction;
                 if (_movementTouch.TryMove(touch.fingerId, touch.phase, guiPoint,
@@ -792,7 +795,7 @@ namespace AreArpg.UnityClient
                 layout.IsWithinSafeArea(Input.mousePosition))
             {
                 ArenaHudControl clicked = layout.HitTest(layout.ToGuiTouch(Input.mousePosition), false,
-                    nearNpc, _game.IsVillage, hasMastery, canTakeRation, canDonate);
+                    nearNpc, campOpen, hasMastery, canTakeRation, canDonate);
                 if (clicked != ArenaHudControl.Move) RouteHudControl(clicked);
             }
 
@@ -816,8 +819,9 @@ namespace AreArpg.UnityClient
             if (Input.GetKeyDown(KeyCode.V)) QueueNpcAction(NpcAction.Help);
             if (Input.GetKeyDown(KeyCode.B)) QueueNpcAction(NpcAction.Attack);
             if (Input.GetKeyDown(KeyCode.H)) QueueNpcAction(NpcAction.Rob);
-            if (Input.GetKeyDown(KeyCode.T) && _game.Progression.EntryAct == 2) _pendingTakeRation = true;
-            if (Input.GetKeyDown(KeyCode.G)) _pendingCampDonation = true;
+            // Shortcuts follow the ration panel: once Mara's rations are decided, neither key acts any more.
+            if (Input.GetKeyDown(KeyCode.T) && _game.Progression.EntryAct == 2 && _game.CampPanelVisible) _pendingTakeRation = true;
+            if (Input.GetKeyDown(KeyCode.G) && _game.CampPanelVisible) _pendingCampDonation = true;
         }
 
         /// <summary>One routing table for touch and mouse; Core actions are only queued, never applied here.</summary>
@@ -833,9 +837,9 @@ namespace AreArpg.UnityClient
                 _pendingSkills.Enqueue((int)control - (int)ArenaHudControl.Skill0);
             else if (control >= ArenaHudControl.MasteryMight && control <= ArenaHudControl.MasteryResolve)
                 _pendingMastery.Enqueue((MasteryPath)((int)control - (int)ArenaHudControl.MasteryMight));
-            else if (control == ArenaHudControl.Donate)
+            else if (control == ArenaHudControl.Donate && _game.CampPanelVisible)
                 _pendingCampDonation = true;
-            else if (control == ArenaHudControl.TakeRation && _game.Progression.EntryAct == 2)
+            else if (control == ArenaHudControl.TakeRation && _game.Progression.EntryAct == 2 && _game.CampPanelVisible)
             {
                 // A first tap only arms the theft; a second tap within three seconds confirms it.
                 if (TakeRationArmed) { _pendingTakeRation = true; _takeRationArmedUntil = -1f; }
@@ -942,9 +946,9 @@ namespace AreArpg.UnityClient
             _regionFade = Mathf.Max(0f, _regionFade - Time.deltaTime / 0.75f);
             PollInputs();
             // The modal menu pauses the deterministic simulation; no ticks accumulate while it is open.
-            if (!MenuOpen) _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
+            if (!SimulationPaused) _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
             int steps = 0;
-            while (!MenuOpen && _accumulator >= TickSeconds && steps < CatchUpLimit)
+            while (!SimulationPaused && _accumulator >= TickSeconds && steps < CatchUpLimit)
             {
                 _accumulator -= TickSeconds;
                 steps++;
@@ -1065,7 +1069,14 @@ namespace AreArpg.UnityClient
                     var direction=new Vector3((_game.PlayerXmm-npc.Xmm)/1000f,0f,(_game.PlayerZmm-npc.Zmm)/1000f);
                     if(direction.sqrMagnitude>.001f)visual.rotation=Quaternion.LookRotation(direction);
                 }
-                if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
+                if (_sceneActive && npc.Memory.Health > 0 && _hero != null)
+                {
+                    // During the paused arrival scene everyone stands still and listens to the conversation at the hero.
+                    var toHero = _hero.position - visual.position; toHero.y = 0f;
+                    if (toHero.sqrMagnitude > .001f) visual.rotation = Quaternion.LookRotation(toHero);
+                    AnimateActor(visual, 0, 0);
+                }
+                else if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
             }
             UpdateJourneyPresentation();
             UpdateDungeonPresentation();
@@ -1084,7 +1095,7 @@ namespace AreArpg.UnityClient
                 float x = Mathf.Lerp(_game.PrevPlayerXmm, _game.PlayerXmm, alpha) / 1000f;
                 float z = Mathf.Lerp(_game.PrevPlayerZmm, _game.PlayerZmm, alpha) / 1000f;
                 _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z), z);
-                AnimateActor(_hero, _game.PlayerXmm - _game.PrevPlayerXmm, _game.PlayerZmm - _game.PrevPlayerZmm);
+                AnimateActor(_hero, _sceneActive ? 0 : _game.PlayerXmm - _game.PrevPlayerXmm, _sceneActive ? 0 : _game.PlayerZmm - _game.PrevPlayerZmm);
                 HoldTargetFacing();
             }
             UpdateHeroCameraContext();
@@ -1180,7 +1191,8 @@ namespace AreArpg.UnityClient
         /// </summary>
         private void OnGUI()
         {
-            if (_game == null || _storageFault || MenuOpen || _game.GameOver) return;
+            // The fixed arrival scene owns the screen: no journal, choices or subtitles from the IMGUI layer.
+            if (!ImguiLayerVisible) return;
             ArenaHudLayout layout = CurrentHudLayout();
             Matrix4x4 previousMatrix = GUI.matrix;
             GUISkin previousSkin = GUI.skin;

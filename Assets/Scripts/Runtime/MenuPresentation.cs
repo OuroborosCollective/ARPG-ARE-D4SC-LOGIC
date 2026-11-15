@@ -442,7 +442,7 @@ namespace AreArpg.UnityClient
             var list = new List<KeyValuePair<string, bool>>();
             System.Action<string, bool> add = (n, d) => list.Add(new KeyValuePair<string, bool>(n, d));
             add("Aus der Krypta entkommen", p.EntryAct >= 2);
-            add("Nebenaufgabe: Maras Lager aufgefüllt", p.Social.CampRefilled);
+            add("Über Maras fehlende Rationen entschieden", p.CampDecisionMade);
             add("Ilyans Geheimnis gehört", p.HungerStage >= 1);
             add("Spuren an der Aschestraße", p.HungerStage >= 2);
             add("Das Verletztenlager in der alten Mühle", p.HungerStage >= 3);

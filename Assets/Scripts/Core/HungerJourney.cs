@@ -131,6 +131,7 @@ namespace AreArpg.Core
             NpcAgent contact = null;
             if (action == HungerAction.HearIlyan && Progression.EntryAct == 2 && stage == 0)
             {
+                if (ArrivalScenePending) { result.Text = ListenFirst; return result; }
                 contact = HungerContact(0);
                 if (contact == null) { result.Text = "Sprich direkt mit Ilyan, wenn er ansprechbar ist."; return result; }
                 Progression.DiscoverHungerClue();

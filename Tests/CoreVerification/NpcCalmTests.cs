@@ -39,6 +39,7 @@ internal static class NpcCalmTests
         // Two attacks leave a legacy grudge that the save format keeps; calming sets it aside for contact and flight.
         var q=CharacterProgression.CreateEntryProfile();q.EnterVillage();q.Social.EnableForge();
         var twice=new ArenaSimulation(92,q,BigInteger.One,LootCatalog.Version1);
+        check(twice.CompleteArrivalScene(),"calm-second-profile-witnessed-arrival-scene");
         var target=twice.Npcs.First(n=>n.Id==0);
         for(int hit=0;hit<2;hit++)
         {
@@ -80,6 +81,7 @@ internal static class NpcCalmTests
         // Mara's camp side task: exactly the missing rations, recorded once, then disabled.
         var c=CharacterProgression.CreateEntryProfile();c.EnterVillage();c.Social.EnableForge();
         var camp=new ArenaSimulation(94,c,BigInteger.One,LootCatalog.Version1);
+        check(camp.CompleteArrivalScene(),"camp-arrival-scene-witnessed");
         var mara=camp.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
         int missing=SocialLedger.CampCapacity-c.Social.CampProvisions;
         check(missing==2&&camp.CanDonateCampRation&&!c.Social.CampRefilled,"camp-side-task-open");
@@ -107,32 +109,28 @@ internal static class NpcCalmTests
         var migrated=new ArenaSimulation(95,x,BigInteger.One,LootCatalog.Version1);
         for(int i=0;i<20;i++)migrated.Step();
         check(x.Social.CampRefilled,"camp-pre-forge-refill-credited-on-migration");
+        check(!migrated.ArrivalScenePending&&!migrated.CampPanelVisible,"camp-pre-forge-refill-is-the-decision-no-scene-replay");
 
-        // Someone who robbed Mara as often as they helped gets no thanks for filling her camp.
+        // One earlier hostile act against Mara is outweighed by filling her camp: the net contribution is credited.
+        // (Stealing from the camp itself already is the decision; see CampDecisionTests.)
         var y=CharacterProgression.CreateEntryProfile();y.EnterVillage();y.Social.EnableForge();
         var robbed=new ArenaSimulation(96,y,BigInteger.One,LootCatalog.Version1);
+        check(robbed.CompleteArrivalScene(),"camp-net-arrival-scene-witnessed");
         var robbedMara=robbed.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
+        robbedMara.Xmm=robbed.PlayerXmm+1000;robbedMara.Zmm=robbed.PlayerZmm;robbedMara.InteractionCooldownTicks=0;
+        for(int k=0;k<robbed.Cooldowns.Length;k++)robbed.Cooldowns[k]=0;
+        check(robbed.InteractNpc(SocialLedger.MaraNpcId,NpcAction.Rob).Accepted&&robbed.CampDecisionOpen,"camp-net-robbery-is-not-the-camp-decision");
         for(int i=0;i<2;i++)
         {
             robbedMara.Xmm=robbed.PlayerXmm+1000;robbedMara.Zmm=robbed.PlayerZmm;robbedMara.InteractionCooldownTicks=0;
-            check(robbed.TakeCampRation().Accepted,"camp-net-theft-"+i);
+            check(robbed.DonateCampRation().Accepted,"camp-net-donation-"+i);
         }
-        for(int i=0;i<2;i++)
-        {
-            robbedMara.Xmm=robbed.PlayerXmm+1000;robbedMara.Zmm=robbed.PlayerZmm;robbedMara.InteractionCooldownTicks=0;
-            check(robbed.DonateCampRation().Accepted,"camp-net-return-"+i);
-        }
-        check(y.Social.CampProvisions==8&&!y.Social.CampRefilled,"camp-returned-rations-alone-do-not-fill-the-camp");
-        for(int i=0;i<2;i++)
-        {
-            robbedMara.Xmm=robbed.PlayerXmm+1000;robbedMara.Zmm=robbed.PlayerZmm;robbedMara.InteractionCooldownTicks=0;
-            robbed.DonateCampRation();
-        }
-        check(y.Social.CampProvisions==SocialLedger.CampCapacity&&y.Social.CampRefilled,"camp-net-contribution-after-theft-is-credited");
+        check(y.Social.CampProvisions==SocialLedger.CampCapacity&&y.Social.CampRefilled,"camp-net-contribution-after-a-robbery-is-credited");
 
         // The rule itself: a full camp from someone with as many hostile acts against Mara as helps earns no thanks.
         var z=CharacterProgression.CreateEntryProfile();z.EnterVillage();z.Social.EnableForge();
         var thief=new ArenaSimulation(97,z,BigInteger.One,LootCatalog.Version1);
+        check(thief.CompleteArrivalScene(),"camp-robber-arrival-scene-witnessed");
         var thiefMara=thief.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
         for(int i=0;i<2;i++)
         {
