@@ -61,6 +61,7 @@ namespace AreArpg.EditorTools
             // Profile, biome and terrain are rewritten before the immutable map can be compared; keep a byte copy.
             string snapshot=SnapshotFolder(folder,"Temp/JourneyAuthoringBackup/"+folder.Replace('/','_'));
             if(!AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity",scratch))throw new InvalidOperationException("Missing saved empty authoring template");
+            var loadedAssets=CaptureLoadedAuthoringAssets(folder);
             Scene scene=default;
             bool completed=false,recovering=false,rescued=false;
             try
@@ -82,10 +83,14 @@ namespace AreArpg.EditorTools
                     throw new InvalidOperationException("Repeated World Forge seed changed canonical bytes");
                 canonical[seed]=bytes;
                 string path=maps+"/Wald_v1_"+seed.ToString(CultureInfo.InvariantCulture)+".bytes";
-                // Published identities are immutable: a different map requires a new authored version.
-                if(File.Exists(path)&&!File.ReadAllBytes(path).SequenceEqual(bytes))
-                    throw new InvalidOperationException("Existing map differs; retain it and author a new version: "+path);
-                File.WriteAllBytes(path,bytes);
+                // Published identities are immutable: a different map requires a new authored version, and a matching
+                // published map is never rewritten (an interrupted rewrite could leave a partial file outside the snapshot).
+                if(File.Exists(path))
+                {
+                    if(!File.ReadAllBytes(path).SequenceEqual(bytes))
+                        throw new InvalidOperationException("Existing map differs; retain it and author a new version: "+path);
+                }
+                else File.WriteAllBytes(path,bytes);
                 AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
                 world.coreMap=AssetDatabase.LoadAssetAtPath<TextAsset>(path);
                 if(!save(scene,folder+"/Authored.unity"))
@@ -106,13 +111,61 @@ namespace AreArpg.EditorTools
             }
             finally
             {
-                if(prior.IsValid()&&prior.isLoaded)SceneManager.SetActiveScene(prior);
-                // A generated world that could not be saved anywhere stays open; every other run closes its scene.
-                if(scene.IsValid()&&scene.isLoaded&&!(recovering&&!rescued))EditorSceneManager.CloseScene(scene,true);
-                if(!recovering)AssetDatabase.DeleteAsset(scratch);
-                // A failed run must leave the authoring assets able to reproduce the retained published map.
-                if(!completed&&!recovering)RestoreFolder(snapshot,folder,null);
+                try
+                {
+                    if(prior.IsValid()&&prior.isLoaded)SceneManager.SetActiveScene(prior);
+                    if(scene.IsValid()&&scene.isLoaded&&!(recovering&&!rescued))EditorSceneManager.CloseScene(scene,true);
+                    if(!recovering)AssetDatabase.DeleteAsset(scratch);
+                    if(!completed&&!recovering)
+                    {
+                        try { RestoreFolder(snapshot,folder,null); }
+                        finally { RestoreLoadedAuthoringAssets(loadedAssets); }
+                    }
+                }
+                finally { ReleaseLoadedAuthoringAssets(loadedAssets); }
             }
+        }
+
+        private sealed class LoadedAuthoringAsset
+        {
+            public UnityEngine.Object target;
+            public UnityEngine.Object before;
+        }
+
+        // Editor-only rollback: snapshots never enter deterministic simulation.
+        private static List<LoadedAuthoringAsset> CaptureLoadedAuthoringAssets(string folder)
+        {
+            var result=new List<LoadedAuthoringAsset>();
+            if(!AssetDatabase.IsValidFolder(folder))return result;
+            try
+            {
+                foreach(string guid in AssetDatabase.FindAssets("",new[]{folder}))
+                {
+                    string path=AssetDatabase.GUIDToAssetPath(guid);
+                    if(AssetDatabase.IsValidFolder(path))continue;
+                    var asset=AssetDatabase.LoadMainAssetAtPath(path);
+                    if(asset is ScriptableObject || asset is TerrainData)
+                        result.Add(new LoadedAuthoringAsset{target=asset,before=UnityEngine.Object.Instantiate(asset)});
+                }
+                return result;
+            }
+            catch { ReleaseLoadedAuthoringAssets(result); throw; }
+        }
+
+        private static void RestoreLoadedAuthoringAssets(List<LoadedAuthoringAsset> snapshots)
+        {
+            foreach(var item in snapshots)
+            {
+                if(item.target==null || item.before==null)continue;
+                EditorUtility.CopySerialized(item.before,item.target);
+                EditorUtility.ClearDirty(item.target);
+            }
+        }
+
+        private static void ReleaseLoadedAuthoringAssets(List<LoadedAuthoringAsset> snapshots)
+        {
+            foreach(var item in snapshots)
+                if(item.before!=null)UnityEngine.Object.DestroyImmediate(item.before);
         }
 
         /// <summary>Throw before any change when an asset of this authoring folder has unsaved in-memory edits.</summary>
@@ -156,8 +209,8 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>
-        /// Restore the snapshot byte for byte; files created since are removed except an explicitly kept one. Files whose
-        /// bytes are unchanged are not touched, so they are neither reimported nor reloaded.
+        /// Restore disk bytes; AuthorSeed restores the loaded objects using their pre-run in-memory checkpoint.
+        /// Existing user edits are rejected before capture and cannot be overwritten by this rollback.
         /// </summary>
         public static void RestoreFolder(string backup,string folder,string keep)
         {
