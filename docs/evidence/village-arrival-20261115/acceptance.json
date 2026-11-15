@@ -5,10 +5,54 @@
   "defectsFoundDuringIntegration": [
     "The act change rebuilt the HUD and destroyed the scene panel after the first line (subtitles would have vanished on device); the scene now restores its panel",
     "Per-frame NPC sync reset speakers to face north and the paused last tick kept actors walking in place; during the scene villagers face the hero and everyone stands still",
-    "Letting villagers learn the scene changed exact NPC memory counts in two existing tests; the scene is now recorded only as the player's story event"
+    "Letting villagers learn the scene changed exact NPC memory counts in two existing tests; the scene is now recorded only as the player's story event",
+    "After the scene the journal opens with both ways and hides the gameplay HUD on purpose; the ration panel appears once it is closed (a test first expected it underneath the journal)"
   ],
-  "core": "CoreVerification ALL PASS 19690 assertions (8 arrival-scene assertions: once, persisted, not for advanced saves, not without the memory owner, not in the crypt)",
-  "fullRegression": {"EditMode": "85/85", "PlayMode": "138/138", "skipped": 0,
-    "xmlSha256": {"EditMode": "1d0aab4c5bce9e831c8c108283ea737d0d6c2d5073ef2124ed3c45730a4737c8", "PlayMode": "0e4edb9b1fb13c01ded39c47f88904b81fc1b955e6b7bac7a5e91adeb77efc2c"}},
-  "notClaimed": ["voice-over for the scene (text only)", "Fadenwerk browser editing of the scene", "physical tablet run"]
+  "notClaimed": [
+    "voice-over for the scene (text only)",
+    "Fadenwerk browser editing of the scene",
+    "physical tablet run"
+  ],
+  "initialIntegration": {
+    "core": "CoreVerification ALL PASS 19690 assertions (8 arrival-scene assertions: once, persisted, not for advanced saves, not without the memory owner, not in the crypt)",
+    "fullRegression": {
+      "EditMode": "85/85",
+      "PlayMode": "138/138",
+      "skipped": 0,
+      "xmlSha256": {
+        "EditMode": "1d0aab4c5bce9e831c8c108283ea737d0d6c2d5073ef2124ed3c45730a4737c8",
+        "PlayMode": "0e4edb9b1fb13c01ded39c47f88904b81fc1b955e6b7bac7a5e91adeb77efc2c"
+      }
+    }
+  },
+  "ownerRule20261115": "Mara's missing rations are decided once: a full refill, a theft or asking Ilyan. The decision is persisted; the ration panel, its touch fields and the G/T shortcuts disappear; later attempts are rejected by the Core without effect; the story continues on every path. A partial donation does not decide yet. The legacy arena village keeps its open camp.",
+  "reviewFixes": {
+    "4579911420": "IMGUI layer (journal toggle, choices, subtitles) no longer draws during the arrival scene; story, camp and NPC input queued before or during the scene is discarded when it starts and ends",
+    "4579911422": "Core rejects HearIlyan (also through AuthoredHungerBinding), camp donation and camp theft while the arrival scene is pending, without changing the save"
+  },
+  "decisionTests": {
+    "core": "CampDecisionTests: pending scene rejects every way with an explanation and no save change; partial donation keeps the decision open; refill, theft and asking Ilyan each close it once, survive save/load and reject later ways; the story continues after refill and theft; legacy village keeps its camp",
+    "playMode": [
+      "VillageGreetingAskingAndRationsBehaveLikeTheShownObjective",
+      "StealingFromMaraIsTheDecisionAndRemovesTheRationPanel",
+      "AskingIlyanIsTheDecisionAndRemovesTheRationPanel",
+      "ArrivalSceneOwnsAllInputUntilItEnds"
+    ]
+  },
+  "red": {
+    "coreGatesRemoved": "6 CampDecisionTests checks failed (pending scene, later ways after refill/theft/Ilyan)",
+    "panelLikeBefore": "3/3 decision PlayMode tests failed: 'The ration panel disappears ...'",
+    "imguiUngated": "ArrivalSceneOwnsAllInputUntilItEnds failed: 'Neither journal nor choices draw over the scene'",
+    "queueKept": "ArrivalSceneOwnsAllInputUntilItEnds failed: 'A story action queued before the scene is dropped'"
+  },
+  "core": "CoreVerification ALL PASS 19731 assertions",
+  "fullRegression": {
+    "EditMode": "90/90",
+    "PlayMode": "146/146",
+    "skipped": 0,
+    "xmlSha256": {
+      "EditMode": "9d48e1152a3cd2fd8f5bf69b5611cf51ba322d471472dc865178ebb6dcce9c2f",
+      "PlayMode": "a46f6cf6477b4d07a86eb4a24f5cab421a159661c55022542de707ffeec4adf3"
+    }
+  }
 }

@@ -44,6 +44,7 @@ namespace AreArpg.UnityClient
         private void BeginArrivalScene()
         {
             _sceneActive = true; _sceneIndex = 0; _hungerJournalOpen = false;
+            DiscardQueuedStoryInput();
             _accumulator = 0f; _game.SetMoveInput(0, 0);
             BuildSceneUi();
             ShowSceneLine();
@@ -56,6 +57,7 @@ namespace AreArpg.UnityClient
             _sceneIndex++;
             if (_sceneIndex < ArrivalScene.Lines.Length) { ShowSceneLine(); return; }
             _sceneActive = false;
+            DiscardQueuedStoryInput();
             if (_sceneRoot != null) _sceneRoot.SetActive(false);
             if (_cameraRig != null) { _cameraRig.ClearCinematic(); _cameraRig.SnapToTarget(); }
             if (_game.CompleteArrivalScene()) SaveCharacter();
@@ -63,6 +65,19 @@ namespace AreArpg.UnityClient
             _message = ArrivalScene.Paths;
             _hungerJournalOpen = true;
         }
+
+        /// <summary>
+        /// Review fix (#47): the scene owns all input. Story, camp and NPC actions queued before or during it are
+        /// dropped, so none of them can run the moment the scene ends.
+        /// </summary>
+        private void DiscardQueuedStoryInput()
+        {
+            _pendingHungerAction = -1; _pendingCampDonation = false; _pendingTakeRation = false; _takeRationArmedUntil = -1f;
+            _pendingNpcActions.Clear();
+        }
+
+        /// <summary>The IMGUI layer (journal, choices, subtitles) draws only outside menus, defeat and the arrival scene.</summary>
+        private bool ImguiLayerVisible { get { return _game != null && !_storageFault && !MenuOpen && !_game.GameOver && !_sceneActive; } }
 
         private void ShowSceneTexts()
         {

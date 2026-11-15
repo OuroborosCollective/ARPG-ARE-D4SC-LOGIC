@@ -325,6 +325,9 @@ namespace AreArpg.Core
                 result.Text = "Du bist kampfunfaehig und kannst nichts abgeben.";
                 return result;
             }
+            if (ArrivalScenePending) { result.Text = ListenFirst; return result; }
+            // The story village decides Mara's rations once; the legacy arena village keeps its open camp.
+            if (Progression.EntryAct == 2 && !CampDecisionOpen) { result.Text = CampAlreadyDecided; return result; }
             NpcAgent mara = Npcs.Find(n => n.Id == SocialLedger.MaraNpcId);
             if (mara == null)
             {
@@ -357,6 +360,8 @@ namespace AreArpg.Core
             mara.InteractionCooldownTicks = 10;
             RememberNpcAction(mara,NpcAction.Help,true,"camp.donation");
             bool refilled = RecordCampRefill();
+            // Filling the camp is the decision for the first way, with or without Mara's thanks.
+            if (Progression.Social.CampProvisions >= SocialLedger.CampCapacity) RecordCampDecision("replaced");
             result.Accepted = true;
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.ThankHelp;
             int missing = SocialLedger.CampCapacity - Progression.Social.CampProvisions;
@@ -371,6 +376,7 @@ namespace AreArpg.Core
         {
             var result = new SocialResult();
             if (Progression.EntryAct != 2 || GameOver) return result;
+            if (!CampDecisionOpen) { result.Text = ArrivalScenePending ? ListenFirst : CampAlreadyDecided; return result; }
             NpcAgent mara = Npcs.Find(n => n.Id == SocialLedger.MaraNpcId);
             if (mara == null || mara.InteractionCooldownTicks > 0 || mara.Memory.Health == 0 ||
                 DistanceSquared(PlayerXmm, PlayerZmm, mara.Xmm, mara.Zmm) > FixedMath.Square(NpcInteractionRadiusMm) ||
@@ -380,6 +386,7 @@ namespace AreArpg.Core
             { result.Text = "Das Lager ist leer. Du nimmst nichts."; return result; }
             mara.InteractionCooldownTicks = 10;
             result.Accepted = true;
+            RecordCampDecision("stolen");
             NpcAgent guard = Npcs.Find(n => n.Id == 2);
             bool witnessed = guard != null && guard.Memory.Health > 0 &&
                 DistanceSquared(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm) <= FixedMath.Square(8000) &&

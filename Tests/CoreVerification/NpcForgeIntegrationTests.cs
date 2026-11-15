@@ -36,6 +36,7 @@ internal static class NpcForgeIntegrationTests
         {
             var crimeProfile=CharacterProgression.CreateEntryProfile();crimeProfile.EnterVillage();crimeProfile.Social.EnableForge();
             var crime=new ArenaSimulation(72,crimeProfile,BigInteger.One,LootCatalog.Version1);
+            check(crime.CompleteArrivalScene(),"forge-crime-arrival-scene-witnessed-"+hidden);
             // Legal positions on either side of a real village building; only the Core sight query decides witnessing.
             Move(crime,0,-8700);Move(crime,-9000,-8700);
             var merchant=crime.Npcs[1];merchant.Xmm=-8000;merchant.Zmm=-8700;

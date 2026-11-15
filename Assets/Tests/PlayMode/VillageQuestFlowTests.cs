@@ -10,7 +10,10 @@ namespace AreArpg.PlayMode.Tests
     /// <summary>Owner report 2026-11-15: greeting Ilyan makes him flee, asking him does not advance, rations loop without progress.</summary>
     public sealed partial class EntryJourneyRuntimeTests
     {
-        /// <summary>Plays the first village like a player through the shared HUD routing table and the story journal.</summary>
+        /// <summary>
+        /// Plays the first village like a player through the shared HUD routing table and the story journal. Owner rule
+        /// 2026-11-15: refilling Mara's camp is one of the single ration decisions; afterwards the panel is gone for good.
+        /// </summary>
         [UnityTest]
         public IEnumerator VillageGreetingAskingAndRationsBehaveLikeTheShownObjective()
         {
@@ -19,31 +22,25 @@ namespace AreArpg.PlayMode.Tests
             Game.ActivateSkill(3);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
-            Assert.IsTrue(Game.IsVillage);
+            Assert.IsTrue(Game.IsVillage && Game.CampDecisionOpen, "After the arrival scene Mara's rations wait for one decision");
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
             Debug.Log("QUEST_START objective=" + Game.HungerObjective + " stage=" + Game.Progression.HungerStage);
 
-            // Walk to Ilyan with real ticks; he may move while we approach.
+            // Walk to Ilyan with real ticks; he may move while we approach. A normal greeting must not make him flee.
             for (int attempt = 0; attempt < 6 && Distance(ilyan) > 1800; attempt++) MoveNear(ilyan.Xmm, ilyan.Zmm);
             LogIlyan("before-greet", ilyan);
             Route(ArenaHudControl.NpcGreet);
             yield return RunFrames(3);
             LogIlyan("after-greet", ilyan);
             for (int t = 0; t < 40; t++) { Game.Step(); if (t % 5 == 0) LogIlyan("greet+" + t, ilyan); }
-            bool fled = ilyan.Behavior == NpcBehavior.Flee;
-            var disposition = ilyan.Memory.Disposition(ilyan.Personality);
+            Assert.AreNotEqual(NpcBehavior.Flee, ilyan.Behavior, "A normal greeting must not make Ilyan flee");
+            Assert.AreNotEqual(NpcDisposition.Hostile, ilyan.Memory.Disposition(ilyan.Personality), "A normal greeting must not make Ilyan hostile");
 
-            // Ask through the journal action the objective points to.
-            for (int attempt = 0; attempt < 6 && Distance(ilyan) > 1800; attempt++) MoveNear(ilyan.Xmm, ilyan.Zmm);
-            LogIlyan("before-ask", ilyan);
-            typeof(ArenaRuntime).GetField("_pendingHungerAction", Flags).SetValue(_runtime, (int)HungerAction.HearIlyan);
-            yield return RunFrames(3);
-            Debug.Log("QUEST_ASK stage=" + Game.Progression.HungerStage + " message=" + Message());
-            int stageAfterAsk = Game.Progression.HungerStage;
-
-            // Hand rations to Mara repeatedly through the HUD.
+            // First way: hand rations to Mara through the HUD until her camp is full.
             var mara = Game.Npcs.Find(n => n.Id == SocialLedger.MaraNpcId);
             for (int attempt = 0; attempt < 6 && Distance(mara) > 1800; attempt++) MoveNear(mara.Xmm, mara.Zmm);
+            yield return RunFrames(1);
+            Assert.IsTrue(CampPanel().activeSelf, "The ration panel is offered while the decision is open");
             int accepted = 0, missingAtStart = SocialLedger.CampCapacity - Game.Progression.Social.CampProvisions;
             Assert.Greater(missingAtStart, 0, "A fresh village begins with stolen rations");
             for (int i = 0; i < 8; i++)
@@ -56,27 +53,26 @@ namespace AreArpg.PlayMode.Tests
                 Debug.Log("QUEST_DONATE " + i + " provisions=" + Game.Progression.Social.Provisions + " camp=" + Game.Progression.Social.CampProvisions +
                     " stage=" + Game.Progression.HungerStage + " objective=" + Game.HungerObjective + " message=" + Message());
             }
-            Assert.AreEqual(missingAtStart, accepted, "Exactly the missing rations are accepted; a full camp consumes nothing");
+            Assert.AreEqual(missingAtStart, accepted, "Exactly the missing rations are accepted; afterwards nothing is consumed");
             Assert.IsTrue(Game.Progression.Social.CampRefilled, "Refilling Mara's camp completes the recorded side task");
-            Assert.IsFalse(Game.CanDonateCampRation, "A full camp disables the donation");
-            var layout = new ArenaHudLayout(1340, 800, new Rect(0, 0, 1340, 800));
-            Assert.AreEqual(ArenaHudControl.None, layout.HitTest(layout.DonationRect.center, false, false, true, false, true, Game.CanDonateCampRation),
-                "The disabled donation button no longer reacts");
-            Assert.IsTrue(ArenaRuntime.QuestMilestones(Game.Progression).Exists(m => m.Key.Contains("Maras Lager") && m.Value), "The quest log shows the completed side task");
+            Assert.IsTrue(Game.Progression.CampDecisionMade && !Game.CampPanelVisible, "The refill is the ration decision");
+            Assert.IsFalse(CampPanel().activeSelf, "The ration panel disappears once the decision is made");
+            AssertRationButtonsGone();
+            Assert.IsTrue(ArenaRuntime.QuestMilestones(Game.Progression).Exists(m => m.Key.Contains("fehlende Rationen") && m.Value), "The quest log shows the decision");
 
-            // Theft needs a deliberate second tap.
+            // The hidden panel cannot steal either: routed taps on the former theft button do nothing.
             int stock = Game.Progression.Social.CampProvisions;
-            Route(ArenaHudControl.TakeRation);
-            yield return RunFrames(3);
-            Assert.AreEqual(stock, Game.Progression.Social.CampProvisions, "A single tap on theft must only ask for confirmation");
-            StringAssert.Contains("erneut tippen", Message());
-            Route(ArenaHudControl.TakeRation);
-            yield return RunFrames(3);
-            Assert.AreEqual(stock - 1, Game.Progression.Social.CampProvisions, "The confirmed second tap performs the theft");
+            Route(ArenaHudControl.TakeRation); yield return RunFrames(3);
+            Route(ArenaHudControl.TakeRation); yield return RunFrames(3);
+            Assert.AreEqual(stock, Game.Progression.Social.CampProvisions, "After the decision nothing can be taken from the camp");
 
-            Assert.IsFalse(fled, "A normal greeting must not make Ilyan flee");
-            Assert.AreNotEqual(NpcDisposition.Hostile, disposition, "A normal greeting must not make Ilyan hostile");
-            Assert.AreEqual(1, stageAfterAsk, "Asking Ilyan as the objective shows must advance the story");
+            // The story continues: asking Ilyan through the journal action the objective points to.
+            for (int attempt = 0; attempt < 6 && Distance(ilyan) > 1800; attempt++) MoveNear(ilyan.Xmm, ilyan.Zmm);
+            LogIlyan("before-ask", ilyan);
+            typeof(ArenaRuntime).GetField("_pendingHungerAction", Flags).SetValue(_runtime, (int)HungerAction.HearIlyan);
+            yield return RunFrames(3);
+            Debug.Log("QUEST_ASK stage=" + Game.Progression.HungerStage + " message=" + Message());
+            Assert.AreEqual(1, Game.Progression.HungerStage, "Asking Ilyan as the objective shows must advance the story");
         }
 
         /// <summary>One mistaken hostile tap must not lock the main quest that requires talking to Ilyan.</summary>
@@ -154,6 +150,19 @@ namespace AreArpg.PlayMode.Tests
         }
 
         private string Message() { return (string)typeof(ArenaRuntime).GetField("_message", Flags).GetValue(_runtime); }
+
+        private GameObject CampPanel() { return (GameObject)typeof(ArenaRuntime).GetField("_hudCamp", Flags).GetValue(_runtime); }
+
+        /// <summary>The shared touch table, fed exactly like the runtime feeds it, offers no ration control any more.</summary>
+        private void AssertRationButtonsGone()
+        {
+            var layout = new ArenaHudLayout(1340, 800, new Rect(0, 0, 1340, 800));
+            bool open = Game.CampPanelVisible, canTake = Game.Progression.EntryAct == 2 && open;
+            Assert.AreNotEqual(ArenaHudControl.Donate, layout.HitTest(layout.DonationRect.center, false, false, open, false, canTake, Game.CanDonateCampRation),
+                "No donation button after the decision");
+            Assert.AreNotEqual(ArenaHudControl.TakeRation, layout.HitTest(layout.TakeRationRect.center, false, false, open, false, canTake, Game.CanDonateCampRation),
+                "No theft button after the decision");
+        }
 
         private void LogIlyan(string label, NpcAgent ilyan)
         {

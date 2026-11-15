@@ -64,7 +64,7 @@ namespace AreArpg.Core
         {
             get
             {
-                if (!IsVillage || GameOver) return false;
+                if (!CampPanelVisible) return false;
                 var mara = Npcs.Find(n => n.Id == SocialLedger.MaraNpcId);
                 return mara != null && mara.Memory.Health > 0 && !Progression.Social.Provisions.IsZero &&
                     Progression.Social.CampProvisions < SocialLedger.CampCapacity;
@@ -77,8 +77,8 @@ namespace AreArpg.Core
             get
             {
                 int missing = SocialLedger.CampCapacity - Progression.Social.CampProvisions;
-                if (Progression.Social.CampRefilled) return "Erledigt: Maras Lager aufgefüllt. Mara dankt dir.";
-                return missing > 0 ? "Nebenaufgabe: Bring Mara " + missing + (missing == 1 ? " Ration" : " Rationen") + " für ihr Lager." :
+                if (Progression.Social.CampRefilled) return "Maras Lager ist aufgefüllt. Mara dankt dir.";
+                return missing > 0 ? (missing == 1 ? "Eine Ration fehlt." : missing + " Rationen fehlen.") + " Gib Mara Ersatz – oder finde heraus, wer sie nahm." :
                     "Maras Lager ist voll.";
             }
         }

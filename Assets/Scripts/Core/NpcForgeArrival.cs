@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using AshenCrypt.MemoryForge;
 
@@ -32,15 +33,50 @@ namespace AreArpg.Core
             "Oder finde heraus, wer sie nahm und warum: Sprich mit Ilyan.";
     }
 
+    public sealed partial class CharacterProgression
+    {
+        internal const string CampDecisionPrefix = "camp.decision.";
+        /// <summary>
+        /// Owner rule 2026-11-15: Mara's missing rations are decided once. The decision is made by refilling the camp,
+        /// stealing from it, or asking Ilyan (the investigation); it is persisted and never reopens.
+        /// </summary>
+        public bool CampDecisionMade =>
+            HungerStage >= 1 || Social.CampRefilled || Social.CampProvisions >= SocialLedger.CampCapacity || CampDecisionRecorded;
+
+        /// <summary>A refill or theft was recorded as the decision in the player's story archive.</summary>
+        internal bool CampDecisionRecorded =>
+            Social.Forge != null && Social.Forge.Archive.Events.Any(e => e.Kind == MemoryKind.Quest && e.Context.StartsWith(CampDecisionPrefix, StringComparison.Ordinal));
+    }
+
     public sealed partial class ArenaSimulation
     {
-        /// <summary>The arrival scene is due: first village visit, story not yet begun, scene not yet witnessed.</summary>
+        internal const string ListenFirst = "Hör zuerst zu, was im Lager geschehen ist.";
+        internal const string CampAlreadyDecided = "Über Maras fehlende Rationen ist bereits entschieden.";
+
+        /// <summary>The ration panel exists only between the arrival scene and the player's single decision.</summary>
+        public bool CampDecisionOpen => IsVillage && !GameOver && Progression.EntryAct == 2 && !ArrivalScenePending && !Progression.CampDecisionMade;
+
+        /// <summary>Story village: only while the decision is open. Legacy arena village: whenever the village is shown.</summary>
+        public bool CampPanelVisible => Progression.EntryAct == 2 ? CampDecisionOpen : IsVillage && !GameOver;
+
+        /// <summary>Persist which way the player chose for Mara's rations (once, story village only).</summary>
+        private void RecordCampDecision(string way)
+        {
+            var forge = Progression.Social.Forge;
+            if (forge == null || Progression.EntryAct != 2 || Progression.CampDecisionRecorded) return;
+            forge.Archive.Append(MemoryKind.Quest, "player", "mara", forge.ProcessedTicks, 4000, true, CharacterProgression.CampDecisionPrefix + way, new RelationshipChange());
+        }
+
+        /// <summary>
+        /// The arrival scene is due: first village visit, rations not yet decided (an older save may already have refilled
+        /// the camp or heard Ilyan before the scene existed), scene not yet witnessed.
+        /// </summary>
         public bool ArrivalScenePending
         {
             get
             {
                 var forge = Progression.Social.Forge;
-                return forge != null && !GameOver && IsVillage && Progression.EntryAct == 2 && Progression.HungerStage == 0 &&
+                return forge != null && !GameOver && IsVillage && Progression.EntryAct == 2 && !Progression.CampDecisionMade &&
                     !forge.Archive.Events.Any(e => e.Kind == MemoryKind.Quest && e.Context == ArrivalScene.Context);
             }
         }

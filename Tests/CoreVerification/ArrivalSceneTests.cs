@@ -18,11 +18,13 @@ internal static class ArrivalSceneTests
             new[]{"ilyan","mara","dorn"}.All(id=>p.Social.Forge.Archive.Get(id).Known.Count==0),"arrival-scene-recorded-without-touching-npc-memories");
         check(CharacterProgression.TryLoad(p.SaveString(),out var loaded)&&!new ArenaSimulation(81,loaded,BigInteger.One,LootCatalog.Version1).ArrivalScenePending,"arrival-scene-survives-load");
 
-        // A save that already heard Ilyan's secret never gets the scene injected afterwards.
-        var q=CharacterProgression.CreateEntryProfile();q.EnterVillage();q.Social.EnableForge();
+        // An older save that heard Ilyan's secret before the scene existed never gets the scene injected afterwards.
+        var q=CharacterProgression.CreateEntryProfile();q.EnterVillage();
         var advanced=new ArenaSimulation(82,q,BigInteger.One,LootCatalog.Version1);
         var ilyan=advanced.Npcs.First(n=>n.Id==0);ilyan.Xmm=advanced.PlayerXmm+1000;ilyan.Zmm=advanced.PlayerZmm;
-        check(advanced.ActOnHunger(HungerAction.HearIlyan).Accepted&&!advanced.ArrivalScenePending,"arrival-scene-not-for-advanced-saves");
+        check(advanced.ActOnHunger(HungerAction.HearIlyan).Accepted,"arrival-scene-older-save-heard-ilyan");
+        q.Social.EnableForge();
+        check(!new ArenaSimulation(82,q,BigInteger.One,LootCatalog.Version1).ArrivalScenePending,"arrival-scene-not-for-advanced-saves");
 
         // Without the memory owner there is nowhere to record it: never shown, so it can never loop.
         var r=CharacterProgression.CreateEntryProfile();r.EnterVillage();

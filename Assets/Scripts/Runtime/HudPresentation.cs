@@ -404,8 +404,9 @@ namespace AreArpg.UnityClient
             _hudMessage.text = redundant ? "" : message;
             _hudMenuBadge.SetActive(p.UnspentMasteryPoints > BigInteger.Zero);
 
-            _hudCamp.SetActive(_game.IsVillage);
-            if (_game.IsVillage)
+            bool campOpen = _game.CampPanelVisible;
+            _hudCamp.SetActive(campOpen);
+            if (campOpen)
             {
                 int missing = SocialLedger.CampCapacity - p.Social.CampProvisions;
                 _hudCampStock.text = "Maras Lager: " + p.Social.CampProvisions + "/" + SocialLedger.CampCapacity + "   Fehlbestand: " + missing;
