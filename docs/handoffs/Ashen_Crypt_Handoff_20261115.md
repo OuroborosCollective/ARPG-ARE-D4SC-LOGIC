@@ -167,6 +167,16 @@ Bei Bugs zuerst echten fehlschlagenden Verhaltenstest, danach Fix und benachbart
 - Beide Pakete haben weiter Release-Gates: eigenständige Beispiele ohne private Spielassets, Fadenwerk-UPM-Beispielpfad/Anleitung/Lizenzvorlage, World-Forge-Spieltestabhängigkeit und Modul-Setup, frische Import-/Funktionsprüfung und finale Storevalidierung. Upload als Draft ist keine technische Verkaufsabnahme.
 - Store-Evidence liegt im separaten Zweig `release/unity-tools-drafts-20261115`, SHA `fa714ab52a64a14642336809420846fed57475a3`.
 
+## Laufender APK-Auftrag: Übernahme ohne Doppelstart
+
+Der aktuelle Build wurde mit Runner-PID 1064012 gestartet; die nachgeschaltete Prüfung/Auslieferung mit Finalizer-PID 1098256. Das sind historische Start-IDs, keine Erlaubnis, später gleichlautende fremde Prozesse zu beenden.
+
+Im VPS-Auftragsverzeichnis `game-apk-handoff-20261115` zuerst `state.json` und `finalization-status.json` lesen. Der Finalizer wartet auf `build-result.json`, führt `verify-current-apk.py` aus und fügt erst danach über `deliver-current-apk.py` eine neue, revisionsbenannte Downloadroute zum bestehenden geschützten APK-Dienst hinzu. Vorhandene Routen und Authentifizierung bleiben erhalten. Der Finalizer ist ein konkreter gestarteter Prozess, keine Zusage einer Chat-Antwort im Hintergrund.
+
+Bei `complete`: `apk-receipt.json` und `delivery-readback.json` auslesen, Quelle/Hash/Status unabhängig vergleichen und den darin dokumentierten Download anbieten. Bei `failed`: `finalize.log` lesen und gezielt die gescheiterte Stufe behandeln. **Keinen zweiten Build/Finalizer starten**, solange der erste noch aktiv ist. Das Auslieferungsskript lehnt das Überschreiben einer bereits abgelegten APK absichtlich ab.
+
+Die allgemeinen Android-Connectorprüfungen bezogen sich auf einen anderen, Capacitor-basierten Studio-Workspace und sind kein Ashen-Crypt-Buildbeleg. Für diese APK gelten ausschließlich Unity-Quellrevision, native Buildausgabe und APK-Inspektion.
+
 ## 10. Startprompt für eine neue Sitzung
 
 > Setze Ashen Crypt anhand dieses Handoffs fort. Lies zuerst AGENTS.md, Memory.md, die aktuelle ASHEN-001-Authority, Besitzerentscheidungen und die neuesten APK-/World-Forge-Evidence-Dateien. Prüfe den tatsächlich vorhandenen Git-/VPS-/Editorzustand, bevor du etwas startest. Erhalte den 100-ms-Core, historische Saves, private Assets, Fable-HUD und Kamera. Höchstens ein aktiver Unity-Editor im gemeinsamen Ein-Kern-Budget. Berichte zunächst den belegten Stand und erledige den nächsten angeforderten Block; neue folgenschwere Lore-/Gameplayfragen mit drei Vorschlägen an den Besitzer. Keine bestehenden uncommitteten Arbeiten verwerfen und keinen Store-Draft ungefragt veröffentlichen.
