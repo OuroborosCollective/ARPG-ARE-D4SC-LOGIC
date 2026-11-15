@@ -27,7 +27,8 @@ namespace AreArpg.PlayMode.Tests
             // Prepared prior-story/power fixture. New travel, combat, loot and persistence below use production paths.
             typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{new ArenaSimulation(71,p,1,LootCatalog.Version1,NativeJourneyMaps),"Aschenzoll"});
         }
-        [UnityTest]
+        // Software-rendered native verification runs under the shared one-core VPS budget.
+        [UnityTest, Timeout(600000)]
         public IEnumerator WorldForgePilotWalksFightsSavesAndRegeneratesItsFourFloorSideCave()
         {
             InstallJourneyStationFixture();MoveStory(0,18000);TravelStory();yield return null;DungeonProject();
@@ -57,6 +58,12 @@ namespace AreArpg.PlayMode.Tests
             Game.JourneyGeometry.Chest(0,out var tx,out var tz);JourneyNativeWalk(tx,tz);yield return StoryAction(HungerAction.OpenWestChest);Assert.IsTrue(Game.TryCollectLoot());
             typeof(ArenaRuntime).GetMethod("SaveCharacter",Flags,null,Type.EmptyTypes,null).Invoke(_runtime,null);
             string saved=PlayerPrefs.GetString(_keys[0]);Assert.IsTrue(CharacterProgression.TryLoad(saved,NativeJourneyMaps,out var p));Assert.AreEqual(saved,p.SaveString());
+            string captureDirectory=Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
+            if(!string.IsNullOrEmpty(captureDirectory))
+            {
+                System.IO.Directory.CreateDirectory(captureDirectory);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(captureDirectory,"journey-pilot-test-save.txt"),saved);
+            }
             typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{new ArenaSimulation(71,p,1,LootCatalog.Version1,NativeJourneyMaps),"Wald geladen"});yield return null;
             Assert.AreEqual(1,Game.Progression.Journey.Route.OpenChests);
             var route=(JourneyRouteLayout)Game.JourneyGeometry;JourneyNativeWalk(route.CaveX,route.CaveZ);TravelStory();yield return null;
