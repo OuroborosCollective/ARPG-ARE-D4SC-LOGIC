@@ -15,6 +15,7 @@ import subprocess
 UNIT = 'ashen-unity-budget.scope'
 CGROUP = Path('/sys/fs/cgroup/system.slice') / UNIT
 EDITOR_ROOT = '/var/lib/unityarpg/Unity/Hub/Editor/'
+CPU_QUOTA_PERCENT = 100  # One core shared by every selected Unity process tree.
 
 
 def select_family(processes, uid):
@@ -65,11 +66,12 @@ def enforce(processes, family):
                         'org.freedesktop.systemd1.Manager', 'StartTransientUnit', 'ssa(sv)a(sa(sv))',
                         UNIT, 'fail', '5', 'Description', 's', 'Bounded Ashen Unity editors',
                         'PIDs', 'au', str(len(ids)), *ids, 'CPUAccounting', 'b', 'true',
-                        'CPUQuotaPerSecUSec', 't', '500000', 'CPUWeight', 't', '10', '0'],
+                        'CPUQuotaPerSecUSec', 't', str(CPU_QUOTA_PERCENT * 10000), 'CPUWeight', 't', '10', '0'],
                        check=True, capture_output=True, text=True)
     quota, period = (CGROUP / 'cpu.max').read_text().split()
-    if quota == 'max' or int(quota) * 2 != int(period):
-        subprocess.run(['systemctl', 'set-property', '--runtime', UNIT, 'CPUQuota=50%', 'CPUWeight=10'], check=True)
+    if quota == 'max' or int(quota) * 100 != int(period) * CPU_QUOTA_PERCENT:
+        subprocess.run(['systemctl', 'set-property', '--runtime', UNIT,
+                        f'CPUQuota={CPU_QUOTA_PERCENT}%', 'CPUWeight=10'], check=True)
     moved = 0
     for pid in sorted(family):
         if not still_same(pid, processes[pid]):

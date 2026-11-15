@@ -5,9 +5,14 @@ Unity editors were the largest measured consumers. Both and their descendant
 workers were paused with SIGSTOP to preserve memory and stop CPU consumption.
 This is not a disk save and is not evidence of a completed PlayMode test.
 
-`ashen-unity-budget.scope` limits the combined Unity process trees to **half of
-one CPU core** (`cpu.max` = `50000 100000`), not 50% of the whole VPS. On this
-8-vCPU host the ceiling is 6.25% of nominal total CPU capacity. Other services and
+The initial recovery ceiling was half a core. After the owner's question about
+using more capacity on 2026-11-15, a five-second host baseline with Unity paused
+measured 13.13% busy CPU (about 1.05 of 8 cores), 18.56% I/O wait and 0.70% steal.
+This is a sample, not a guaranteed bound on unrelated services.
+
+`ashen-unity-budget.scope` now limits the combined Unity process trees to **one
+CPU core** (`cpu.max` = `100000 100000`), not 100% of the whole VPS. On this
+8-vCPU host the ceiling is 12.5% of nominal total CPU capacity. Other services and
 the hoster's own restriction are separate; this does not promise the host will
 remove its restriction or that total server use stays below a fixed percentage.
 
