@@ -1,0 +1,14 @@
+{
+  "ownerFeedback": "Entering the village started the ration quest with choices before players understood the situation.",
+  "unity": "6000.6.8f1, batchmode, -force-glcore, Android build target, shared one-core CPU budget",
+  "featureTest": "ArrivalSceneExplainsTheMissingRationsBeforeAnyChoice: scene starts on first arrival, choice HUD hidden, simulation paused (tick unchanged), hasty taps ignored, all six lines shown with Mara/Dorn/Ilyan, camera frames each speaker who faces it, Core records the scene, a loaded save does not replay it, ticks resume",
+  "defectsFoundDuringIntegration": [
+    "The act change rebuilt the HUD and destroyed the scene panel after the first line (subtitles would have vanished on device); the scene now restores its panel",
+    "Per-frame NPC sync reset speakers to face north and the paused last tick kept actors walking in place; during the scene villagers face the hero and everyone stands still",
+    "Letting villagers learn the scene changed exact NPC memory counts in two existing tests; the scene is now recorded only as the player's story event"
+  ],
+  "core": "CoreVerification ALL PASS 19690 assertions (8 arrival-scene assertions: once, persisted, not for advanced saves, not without the memory owner, not in the crypt)",
+  "fullRegression": {"EditMode": "85/85", "PlayMode": "138/138", "skipped": 0,
+    "xmlSha256": {"EditMode": "1d0aab4c5bce9e831c8c108283ea737d0d6c2d5073ef2124ed3c45730a4737c8", "PlayMode": "0e4edb9b1fb13c01ded39c47f88904b81fc1b955e6b7bac7a5e91adeb77efc2c"}},
+  "notClaimed": ["voice-over for the scene (text only)", "Fadenwerk browser editing of the scene", "physical tablet run"]
+}
