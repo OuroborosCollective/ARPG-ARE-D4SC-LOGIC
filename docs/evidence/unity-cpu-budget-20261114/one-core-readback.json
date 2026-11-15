@@ -1,0 +1,31 @@
+{
+  "schema": "ashen.unity-cpu-budget-readback.v1",
+  "date": "2026-11-15",
+  "codeSource": "52ab9b5e72c3c579c3c9554121cfb1a6647a7d6a",
+  "installedGuardSha256": "99c144d92cd0158cf37181cfe452ab4cefad17d39e7bf5196947a055b87ff2de",
+  "ownerResumedGameDevelopment": true,
+  "hostVcpus": 8,
+  "hostRestrictionReportedByOwnerPercent": 30,
+  "sharedUnityCpuMax": "100000 100000",
+  "idleHostSample": {"seconds": 5.04, "busyPercent": 13.13, "iowaitPercent": 18.56, "stealPercent": 0.70},
+  "activeSample": {"seconds": 5.01, "unityCores": 0.999, "hostBusyPercent": 26.36, "hostIowaitPercent": 11.36, "hostStealPercent": 0.49},
+  "renderer": {
+    "initialOuterEnvironmentDroppedBySudo": true,
+    "fixedEnvironmentPlacement": "after sudo user switch",
+    "mainEditorLpNumThreadsReadback": "1",
+    "mainEditorObservedLlvmPipeThreads": 1,
+    "assetImportWorkerObservedLlvmPipeThreads": 1,
+    "unityJobWorkerCount": 1,
+    "sharedCgroupMembershipVerified": true,
+    "editorScriptExecutionSucceeded": true
+  },
+  "previousEditorClose": {"method": "graceful", "closed": true, "unsavedScenes": [], "forceTerminationUsed": false},
+  "ci": {"runId": 43656971516, "jobId": 132637547381, "conclusion": "success"},
+  "limitations": [
+    "Short CPU samples are not a bound on unrelated workloads or the hoster's policy.",
+    "Eight busy llvmpipe threads and a waiting main thread were observed; a driver deadlock was not proven.",
+    "The previous 130-test PlayMode run was cancelled; this readback does not accept it.",
+    "A new focused native game test was started separately; startup is not test completion.",
+    "No Android device, FPS, World Forge game-use or store-publication claim."
+  ]
+}

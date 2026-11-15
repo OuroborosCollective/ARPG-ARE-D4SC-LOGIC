@@ -45,3 +45,25 @@ until its work can be saved deliberately. No force-kill of unsaved editor work.
 The browser Fadenwerk gateway remains protected, but the editor-backed UI is
 unavailable while its Unity process is paused. Do not claim an interrupted run
 passed or silently merge pending gameplay changes on the strength of Core tests.
+
+## Software-renderer startup
+
+The recovery inspection found eight busy `llvmpipe` threads while the main editor
+thread waited on a futex. This observation does not prove a driver deadlock. The
+protected close eventually completed; a later fresh editor also closed gracefully
+with an empty unsaved-scenes list. No force termination was used.
+
+On this host `/usr/local/bin/unity` delegates through `sudo`, which strips an
+outer `LP_NUM_THREADS=1` setting. Supply that setting **after** the user switch,
+using the same unityarpg home, PATH and XDG runtime settings as the wrapper.
+Supply the actual protected display/Xauthority path there too. Run the official
+`/var/lib/unityarpg/.local/bin/unity` as unityarpg, pass `-job-worker-count 1`,
+and attach the launcher to the existing shared cgroup before it spawns children.
+Never expose the Xauthority cookie, CLI authentication arguments or editor tokens.
+
+Read back `/proc/<pid>/environ` only for the whitelisted renderer setting, count
+`llvmpipe-*` task names, and verify `cpu.max` and membership. The verified fresh
+main editor and its asset-import worker each had one llvmpipe thread and inherited
+the one-core shared limit. Startup alone is not a completed game test or a
+performance improvement measurement. Do not increase the limit to 2.5 cores
+while the reported 30% host restriction and other workloads remain in effect.
