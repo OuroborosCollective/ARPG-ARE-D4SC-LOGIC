@@ -154,7 +154,8 @@ namespace AreArpg.UnityClient
         public Rect QuestTrackerRect { get { return new Rect(12f, 116f, LeftColumnWidth, 60f); } }
         public Rect CampPanelRect { get { return new Rect(12f, 184f, LeftColumnWidth, 140f); } }
         public Rect DonationRect { get { return new Rect(16f, 248f, LeftColumnWidth - 8f, 34f); } }
-        public Rect TakeRationRect { get { return new Rect(16f, 288f, LeftColumnWidth - 8f, 34f); } }
+        /// <summary>Theft sits apart from the donation: right half, below a clear gap, and needs a second tap.</summary>
+        public Rect TakeRationRect { get { float w = (LeftColumnWidth - 8f) * .5f; return new Rect(16f + w + 4f, 292f, w - 4f, 28f); } }
 
         // ---- Bottom-left floating stick zone ----
         public Rect MoveRect { get { return new Rect(24f, Height - 212f, 188f, 188f); } }
@@ -244,13 +245,13 @@ namespace AreArpg.UnityClient
 
         /// <summary>Pinches can start only in free world space, never in visible HUD panels or gameplay controls.</summary>
         public bool BlocksCameraGesture(Vector2 point, bool gameOver, bool nearNpc,
-            bool chapterOne, bool hasMastery, bool canTakeRation = false)
+            bool chapterOne, bool hasMastery, bool canTakeRation = false, bool canDonate = true)
         {
             if (gameOver || StatusPanelRect.Contains(point) || CameraPanelRect.Contains(point) ||
                 MinimapRect.Contains(point) || QuestTrackerRect.Contains(point)) return true;
             if (nearNpc && NpcPanelRect.Contains(point)) return true;
             if (chapterOne && CampPanelRect.Contains(point)) return true;
-            return HitTest(point, false, nearNpc, chapterOne, hasMastery, canTakeRation) != ArenaHudControl.None;
+            return HitTest(point, false, nearNpc, chapterOne, hasMastery, canTakeRation, canDonate) != ArenaHudControl.None;
         }
 
         /// <summary>
@@ -258,7 +259,7 @@ namespace AreArpg.UnityClient
         /// every gameplay action is disabled and only Restart can be selected.
         /// </summary>
         public ArenaHudControl HitTest(Vector2 point, bool gameOver,
-            bool nearNpc, bool chapterOne, bool hasMastery, bool canTakeRation = false)
+            bool nearNpc, bool chapterOne, bool hasMastery, bool canTakeRation = false, bool canDonate = true)
         {
             if (gameOver)
                 return RestartRect.Contains(point) ? ArenaHudControl.Restart : ArenaHudControl.None;
@@ -279,7 +280,7 @@ namespace AreArpg.UnityClient
             }
 
             if (chapterOne && DonationRect.Contains(point))
-                return ArenaHudControl.Donate;
+                return canDonate ? ArenaHudControl.Donate : ArenaHudControl.None;
             if (canTakeRation && chapterOne && TakeRationRect.Contains(point))
                 return ArenaHudControl.TakeRation;
 

@@ -38,6 +38,9 @@ namespace AreArpg.UnityClient
         private bool _pendingPickup;
         private bool _pendingCampDonation;
         private bool _pendingTakeRation;
+        /// <summary>Presentation-only confirmation window for the theft button; never saved or read by the Core.</summary>
+        private float _takeRationArmedUntil = -1f;
+        public bool TakeRationArmed { get { return _takeRationArmedUntil >= Time.unscaledTime; } }
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
         private readonly ArenaHudTouchCapture _movementTouch = new ArenaHudTouchCapture();
         private bool _storageFault;
@@ -733,12 +736,13 @@ namespace AreArpg.UnityClient
             bool nearNpc = _game.NearestNpc() != null;
             bool hasMastery = _game.Progression.UnspentMasteryPoints > 0;
             bool canTakeRation = _game.Progression.EntryAct == 2;
+            bool canDonate = _game.CanDonateCampRation;
             if (_cameraRig != null)
             {
                 if (!Application.isMobilePlatform && Input.mouseScrollDelta.y != 0f &&
                     layout.IsWithinSafeArea(Input.mousePosition) &&
                     !layout.BlocksCameraGesture(layout.ToGuiTouch(Input.mousePosition), false,
-                        nearNpc, _game.IsVillage, hasMastery, canTakeRation))
+                        nearNpc, _game.IsVillage, hasMastery, canTakeRation, canDonate))
                     _cameraRig.ZoomSteps(Input.mouseScrollDelta.y);
                 PollMouseOrbit(layout);
                 _cameraRig.BeginTouchFrame();
@@ -758,13 +762,13 @@ namespace AreArpg.UnityClient
                 // finger keeps its ownership outside MOVE and SafeArea.
                 ArenaHudControl control = touch.phase == TouchPhase.Began && insideSafeArea
                     ? layout.HitTest(guiPoint, false,
-                        nearNpc, _game.IsVillage, hasMastery, canTakeRation)
+                        nearNpc, _game.IsVillage, hasMastery, canTakeRation, canDonate)
                     : ArenaHudControl.None;
 
                 if (_cameraRig != null)
                     _cameraRig.ObserveTouch(touch.fingerId, touch.phase, guiPoint,
                         insideSafeArea && !layout.BlocksCameraGesture(guiPoint, false,
-                            nearNpc, _game.IsVillage, hasMastery, canTakeRation));
+                            nearNpc, _game.IsVillage, hasMastery, canTakeRation, canDonate));
 
                 Vector2 direction;
                 if (_movementTouch.TryMove(touch.fingerId, touch.phase, guiPoint,
@@ -785,7 +789,7 @@ namespace AreArpg.UnityClient
                 layout.IsWithinSafeArea(Input.mousePosition))
             {
                 ArenaHudControl clicked = layout.HitTest(layout.ToGuiTouch(Input.mousePosition), false,
-                    nearNpc, _game.IsVillage, hasMastery, canTakeRation);
+                    nearNpc, _game.IsVillage, hasMastery, canTakeRation, canDonate);
                 if (clicked != ArenaHudControl.Move) RouteHudControl(clicked);
             }
 
@@ -829,7 +833,11 @@ namespace AreArpg.UnityClient
             else if (control == ArenaHudControl.Donate)
                 _pendingCampDonation = true;
             else if (control == ArenaHudControl.TakeRation && _game.Progression.EntryAct == 2)
-                _pendingTakeRation = true;
+            {
+                // A first tap only arms the theft; a second tap within three seconds confirms it.
+                if (TakeRationArmed) { _pendingTakeRation = true; _takeRationArmedUntil = -1f; }
+                else { _takeRationArmedUntil = Time.unscaledTime + 3f; _message = "Wirklich eine Ration von Mara stehlen? Zum Bestätigen erneut tippen."; }
+            }
             else if (control == ArenaHudControl.Pickup)
                 _pendingPickup = true;
         }

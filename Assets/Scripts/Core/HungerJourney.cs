@@ -105,7 +105,7 @@ namespace AreArpg.Core
         {
             var npc = Npcs.Find(n => n.Id == id);
             return npc != null && npc.Memory.Health > 0 && npc.InteractionCooldownTicks == 0 &&
-                npc.Memory.Disposition(npc.Personality) != NpcDisposition.Hostile &&
+                npc.Mood != NpcDisposition.Hostile &&
                 DistanceSquared(PlayerXmm, PlayerZmm, npc.Xmm, npc.Zmm) <= FixedMath.Square(NpcInteractionRadiusMm) &&
                 EntryWorldLayout.HasSight(PlayerXmm, PlayerZmm, npc.Xmm, npc.Zmm) ? npc : null;
         }
@@ -159,6 +159,7 @@ namespace AreArpg.Core
                     if (Progression.Social.Provisions < missing)
                     { result.Text = "Zum Auffuellen fehlen dir Rationen. Kosten: " + missing + ". Nichts wurde verbraucht."; return result; }
                     for (int i = 0; i < missing; i++) Progression.Social.DonateCampRation(SocialLedger.MaraNpcId);
+                    RecordCampRefill();
                     Progression.ChooseHungerSupply(HungerChoice.Replace);
                     result.Text = "Das Lager ist versorgt. Mara kennt Ilyans Geheimnis nicht. Kehre zum Verletztenlager zurueck.";
                 }

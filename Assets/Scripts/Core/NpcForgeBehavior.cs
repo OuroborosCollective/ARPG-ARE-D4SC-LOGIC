@@ -13,12 +13,13 @@ namespace AreArpg.Core
             var witnesses=explicitWitnesses??(action==NpcAction.Attack||action==NpcAction.Rob?
                 Npcs.Where(n=>n.Id!=target.Id&&n.Memory.Health>0&&DistanceSquared(n.Xmm,n.Zmm,PlayerXmm,PlayerZmm)<=FixedMath.Square(8000)&&CombatSight(n.Xmm,n.Zmm,PlayerXmm,PlayerZmm)).Select(n=>n.Id).ToArray():Array.Empty<int>());
             forge.Record(target.Id,action,wasAware||action==NpcAction.Help,witnesses,context);
+            Reconcile(target,action);
         }
         private bool StepForgeNpc(NpcAgent npc,long distance,bool oldHostile)
         {
             if(npc.Mind==null)return false;
             var memory=npc.Memory;var relation=npc.Mind.RelationshipTo("player");
-            bool hostile=oldHostile||relation.Hostility>=2000;
+            bool hostile=oldHostile||relation.Hostility>=NpcAgent.FleeHostility;
             bool visible=distance<FixedMath.Square(14000)&&CombatSight(npc.Xmm,npc.Zmm,PlayerXmm,PlayerZmm);
             bool danger=hostile&&visible;
             bool atFood=DistanceSquared(npc.Xmm,npc.Zmm,CampXmm,CampZmm)<=FixedMath.Square(500);

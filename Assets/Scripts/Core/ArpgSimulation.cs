@@ -351,9 +351,13 @@ namespace AreArpg.Core
             }
             mara.InteractionCooldownTicks = 10;
             RememberNpcAction(mara,NpcAction.Help,true,"camp.donation");
+            bool refilled = RecordCampRefill();
             result.Accepted = true;
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.ThankHelp;
-            result.Text = "Mara nimmt eine echte Ration an. Das Lager wird sicherer; sie merkt sich deine Hilfe.";
+            int missing = SocialLedger.CampCapacity - Progression.Social.CampProvisions;
+            result.Text = refilled ? "Mara: Das Lager ist wieder voll. Danke, das vergesse ich dir nicht. Nebenaufgabe erledigt." :
+                missing > 0 ? "Mara nimmt eine echte Ration an. Noch " + missing + (missing == 1 ? " Ration fehlt." : " Rationen fehlen.") :
+                "Mara nimmt eine echte Ration an. Das Lager ist voll.";
             return result;
         }
 
@@ -458,7 +462,7 @@ namespace AreArpg.Core
                 }
                 if (CurrentTick % 20 == 0) npc.Memory.Hunger = Math.Min(1000, npc.Memory.Hunger + 1);
                 long distance = DistanceSquared(npc.Xmm, npc.Zmm, PlayerXmm, PlayerZmm);
-                bool hostile = npc.Memory.Disposition(npc.Personality) == NpcDisposition.Hostile;
+                bool hostile = npc.Mood == NpcDisposition.Hostile;
                 if(StepForgeNpc(npc,distance,hostile)){if(GameOver)break;continue;}
                 if (hostile && distance < FixedMath.Square(14000))
                 {
@@ -549,6 +553,7 @@ namespace AreArpg.Core
             if (GameOver) { StepRoadEncounter(); SaveInvestigationPlayer(); SaveDungeonPlayer(); SaveWoodlandPlayer(); return; }
             MovePlayer();
             StepFreight();
+            CalmVillagers();
             StepNpcs();
             StepRoadEncounter();
             StepCompanion();

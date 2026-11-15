@@ -29,6 +29,7 @@ namespace AreArpg.UnityClient
         private int _hudBuiltAct = -1;
         private Text _hudChapter, _hudLevel, _hudHealthText, _hudFocusText, _hudObjective, _hudMessage;
         private Image _hudHealthFill, _hudFocusFill, _hudXpFill, _hudFade;
+        private Image _hudDonate; private Text _hudDonateLabel, _hudTakeRationLabel;
         private GameObject _hudCamp, _hudTakeRation, _hudNpc, _hudMastery, _hudDefeat, _hudFault, _hudGameplay, _hudMenuBadge;
         private Text _hudCampStock, _hudCampState, _hudNpcName, _hudNpcLine1, _hudNpcLine2, _hudMinimapLabel;
         private readonly Image[] _hudSkillCooldown = new Image[4];
@@ -160,11 +161,14 @@ namespace AreArpg.UnityClient
             AshenUiTheme.Place(_hudCampStock.rectTransform, new Rect(14f, 28f, l.CampPanelRect.width - 28f, 18f));
             _hudCampState = AshenUiTheme.Label("State", c, 12, AshenUiTheme.Muted, TextAnchor.UpperLeft);
             AshenUiTheme.Place(_hudCampState.rectTransform, new Rect(14f, 45f, l.CampPanelRect.width - 28f, 20f));
-            HudButton("Donate", g, l.DonationRect, Application.isMobilePlatform ? DonationButtonLabel(true) : DonationButtonLabel(false),
-                new Color(0.32f, 0.27f, 0.18f, 1f)).transform.SetParent(c, true);
-            _hudTakeRation = HudButton("TakeRation", g, l.TakeRationRect, Application.isMobilePlatform ? "RATION ENTWENDEN" : "T: RATION ENTWENDEN",
-                new Color(0.42f, 0.18f, 0.14f, 1f));
+            var donate = HudButton("Donate", g, l.DonationRect, Application.isMobilePlatform ? DonationButtonLabel(true) : DonationButtonLabel(false),
+                new Color(0.32f, 0.27f, 0.18f, 1f));
+            donate.transform.SetParent(c, true);
+            _hudDonate = donate.GetComponent<Image>(); _hudDonateLabel = donate.GetComponentInChildren<Text>();
+            _hudTakeRation = HudButton("TakeRation", g, l.TakeRationRect, Application.isMobilePlatform ? "ENTWENDEN" : "T: ENTWENDEN",
+                new Color(0.42f, 0.18f, 0.14f, 1f), 11);
             _hudTakeRation.transform.SetParent(c, true);
+            _hudTakeRationLabel = _hudTakeRation.GetComponentInChildren<Text>();
         }
 
         private GameObject HudButton(string name, Transform parent, Rect rect, string text, Color tint, int size = 13)
@@ -402,9 +406,13 @@ namespace AreArpg.UnityClient
             {
                 int missing = SocialLedger.CampCapacity - p.Social.CampProvisions;
                 _hudCampStock.text = "Maras Lager: " + p.Social.CampProvisions + "/" + SocialLedger.CampCapacity + "   Fehlbestand: " + missing;
-                _hudCampState.text = p.HungerStage > 0 ? "Ilyan hilft Verletzten. Mehr unter Spuren / Entscheidung." :
-                    missing > 0 ? "Ilyan hungert. Niemand kennt den Täter." : "Das Lager ist versorgt. Die Schuldfrage bleibt offen.";
+                _hudCampState.text = _game.CampSideTask;
+                bool canDonate = _game.CanDonateCampRation;
+                _hudDonate.color = canDonate ? new Color(0.32f, 0.27f, 0.18f, 1f) : new Color(0.20f, 0.19f, 0.17f, .75f);
+                _hudDonateLabel.text = canDonate ? DonationButtonLabel(Application.isMobilePlatform) :
+                    p.Social.CampProvisions >= SocialLedger.CampCapacity ? "LAGER VOLL" : "KEIN PROVIANT";
                 _hudTakeRation.SetActive(p.EntryAct == 2);
+                _hudTakeRationLabel.text = TakeRationArmed ? "ERNEUT TIPPEN" : Application.isMobilePlatform ? "ENTWENDEN" : "T: ENTWENDEN";
             }
             _hudMastery.SetActive(p.UnspentMasteryPoints > BigInteger.Zero);
 
@@ -412,7 +420,7 @@ namespace AreArpg.UnityClient
             _hudNpc.SetActive(npc != null);
             if (npc != null)
             {
-                NpcDisposition mood = npc.Memory.Disposition(npc.Personality);
+                NpcDisposition mood = npc.Mood;
                 string moodText = mood == NpcDisposition.Friendly ? "<color=#8FD16A>freundlich</color>" :
                     mood == NpcDisposition.Wary ? "<color=#E8C25A>misstrauisch</color>" :
                     mood == NpcDisposition.Hostile ? "<color=#E0472C>feindselig</color>" : "<color=#BBB2A2>neutral</color>";
