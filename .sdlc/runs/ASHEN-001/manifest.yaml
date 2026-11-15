@@ -3,10 +3,10 @@ run:
   id: ASHEN-001
   title: Weite Reise nach Immergrün und zwei Folgegebiete
   workflow: feature-development
-  status: blocked
+  status: implementation
   current_stage: mobile_implementation
   created_at: 2026-11-14T22:36:25.635Z
-  updated_at: 2026-11-15T02:22:29.678Z
+  updated_at: 2026-11-15T05:24:20.289Z
   created_by: product-owner
   current_owner: frontend
   branch: null
@@ -37,7 +37,7 @@ blockers:
       forest checkpoint and prioritizes Fadenwerk/World Forge Asset Store draft
       uploads. Full journey and alchemy requirements remain incomplete; resume
       after the tool-upload priority is resolved.
-    status: open
+    status: resolved
 tasks:
   - id: PM-001
     title: Intake and discovery
@@ -319,7 +319,7 @@ tasks:
     stage: mobile_implementation
     role: frontend
     target: mobile
-    status: blocked
+    status: ready
     dependencies:
       - PM-002
     required_inputs:
@@ -351,6 +351,13 @@ tasks:
           uploads. Full journey and alchemy requirements remain incomplete;
           resume after the tool-upload priority is resolved.
         at: 2026-11-15T02:22:29.678Z
+      - from: blocked
+        to: ready
+        actor: pm
+        reason: Owner resumed game implementation on 2026-11-15 after reporting the
+          Asset Store draft priority done; continue with native pilot
+          integration toward main
+        at: 2026-11-15T05:24:20.289Z
     started_at: 2026-11-15T01:07:50.627Z
     completed_at: null
     commit: null
