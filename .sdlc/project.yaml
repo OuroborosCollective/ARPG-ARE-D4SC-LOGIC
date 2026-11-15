@@ -1,0 +1,68 @@
+schema_version: 1
+framework:
+  name: codex-sdlc
+  version: 1.0.1
+project:
+  name: Ashen Crypt Journey
+  type: mobile-application
+  default_branch: main
+  repository_structure: repository
+applications:
+  mobile:
+    lifecycle: active
+    root: .
+    framework: generic
+    language: generic
+resources:
+  documentation:
+    repository: coordinator
+    root: docs
+data:
+  primary_database: none
+  redis:
+    enabled: false
+    roles: []
+  media:
+    object_storage: none
+    cdn: false
+  future_capabilities: {}
+security:
+  secret_environment_variables: []
+  network_policy_attestation_environment: CODEX_SDLC_NETWORK_POLICY
+commands:
+  sdlc_test:
+    executable: dotnet
+    args: [run, --project, Tests/CoreVerification/CoreVerification.csproj, --configuration, Release]
+    cwd: .
+    network: disabled
+    mutates: true
+  sdlc_typecheck:
+    executable: dotnet
+    args: [build, Tests/CoreVerification/CoreVerification.csproj, --configuration, Release, --no-restore]
+    cwd: .
+    network: disabled
+    mutates: true
+  mobile_analyze:
+    executable: python3
+    args: [-m, unittest, discover, -s, Tests/Preflight, -v]
+    cwd: .
+    network: disabled
+    mutates: true
+  foundation_verify:
+    executable: python3
+    args: [-m, unittest, discover, -s, Tools/Director, -v]
+    cwd: .
+    network: disabled
+    mutates: true
+  sdlc_validate:
+    executable: node
+    args: [.sdlc/runtime.cjs, validate-config]
+    cwd: .
+    network: disabled
+    mutates: false
+  contracts_check:
+    executable: node
+    args: [.sdlc/runtime.cjs, validate-run, ASHEN-001]
+    cwd: .
+    network: disabled
+    mutates: false

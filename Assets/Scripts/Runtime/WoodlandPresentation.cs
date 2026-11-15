@@ -21,7 +21,7 @@ namespace AreArpg.UnityClient
             _chapterScenery.Add(owner.transform);
             return _woodlandFallbackMaterial;
         }
-        private float GroundHeight(float x,float z) => _game.InForest?_game.Progression.Woodland.Layout.HeightMm((long)(x*1000),(long)(z*1000))/1000f:0f;
+        private float GroundHeight(float x,float z) => _game.InJourney?_game.JourneyGeometry.HeightMm((long)(x*1000),(long)(z*1000))/1000f:_game.InForest?_game.Progression.Woodland.Layout.HeightMm((long)(x*1000),(long)(z*1000))/1000f:0f;
         private HungerAction[] WoodlandActions()
         {
             var w=_game.Progression.Woodland; int act=_game.Progression.EntryAct;
@@ -52,9 +52,9 @@ namespace AreArpg.UnityClient
         }
         private void WoodlandPortal(string name,float x,float z)
         {
-            var t=ChapterShape(PrimitiveType.Cylinder,"Woodland_Passage_"+name,new Vector3(x,.04f,z),new Vector3(3.6f,.02f,3.6f),new Color(.45f,.73f,.78f));
+            var t=ChapterShape(PrimitiveType.Cylinder,"Woodland_Passage_"+name,new Vector3(x,GroundHeight(x,z)+.04f,z),new Vector3(3.6f,.02f,3.6f),new Color(.45f,.73f,.78f));
             _woodlandPortals.Add(t);
-            var marker=ChapterShape(PrimitiveType.Cube,"Woodland_Sign_"+name,new Vector3(x+2,1.2f,z),new Vector3(.12f,2.4f,.12f),new Color(.27f,.21f,.15f));
+            var marker=ChapterShape(PrimitiveType.Cube,"Woodland_Sign_"+name,new Vector3(x+2,GroundHeight(x+2,z)+1.2f,z),new Vector3(.12f,2.4f,.12f),new Color(.27f,.21f,.15f));
             var label=new GameObject("Sign_Text").AddComponent<TextMesh>();label.transform.SetParent(marker,false);label.transform.localScale=new Vector3(1/.12f,1/2.4f,1/.12f)*.07f;label.transform.localPosition=Vector3.up*.35f;label.anchor=TextAnchor.MiddleCenter;label.text=name;label.fontSize=35;label.color=new Color(.87f,.8f,.65f);
         }
         private void BuildWoodlandScenery()
@@ -157,6 +157,7 @@ namespace AreArpg.UnityClient
                 ChapterShape(PrimitiveType.Cube,"Aschenzoll_NoticeBoard",new Vector3(-5,1.3f,-12),new Vector3(2,2.6f,.2f),new Color(.41f,.3f,.21f));
                 FreightSign("Freight_NoticeSign","Aushang",new Vector3(-5,1.2f,-12.2f));
                 BuildFreightScenery();
+                if(_game.Progression.Freight.Reported)WoodlandPortal("Waldweg jenseits von Aschenzoll",0,18);
             }
         }
         private void UpdateWoodlandPresentation()

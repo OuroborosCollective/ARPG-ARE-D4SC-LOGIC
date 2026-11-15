@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "run_id": "ASHEN-001",
+  "task_id": "BA-001",
+  "producer": "ba",
+  "revision": 5,
+  "claims": [
+    {
+      "id": "CLAIM-001",
+      "source_fact_id": "FACT-001",
+      "subject": "journey.scope",
+      "relation": "equals",
+      "value": {
+        "destination": "immergruen",
+        "subsequent_areas": 2,
+        "long_journey": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-001"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-002",
+      "source_fact_id": "FACT-002",
+      "subject": "spy.encounter",
+      "relation": "equals",
+      "value": {
+        "place": "next trading post or village outside kingdom",
+        "before_immergruen": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-002"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-003",
+      "source_fact_id": "FACT-003",
+      "subject": "spy.identity",
+      "relation": "equals",
+      "value": "spy of another kingdom",
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-002"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-004",
+      "source_fact_id": "FACT-004",
+      "subject": "spy.request",
+      "relation": "set",
+      "value": [
+        "troop_strength",
+        "march_plans"
+      ],
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-003"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-005",
+      "source_fact_id": "FACT-005",
+      "subject": "spy.information_risk",
+      "relation": "equals",
+      "value": "Information could enable an attack; an actual attack is not confirmed.",
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-003"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-006",
+      "source_fact_id": "FACT-006",
+      "subject": "dungeon.per_connection_minimum",
+      "relation": "equals",
+      "value": 1,
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-004"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-007",
+      "source_fact_id": "FACT-007",
+      "subject": "dungeon.floors",
+      "relation": "range",
+      "value": {
+        "min": 3,
+        "max": 6,
+        "unit": "floors",
+        "inclusive_min": true,
+        "inclusive_max": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-004"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-008",
+      "source_fact_id": "FACT-008",
+      "subject": "dungeon.depth_progression",
+      "relation": "equals",
+      "value": {
+        "enemies": "harder on deeper floors",
+        "loot": "more valuable on deeper floors",
+        "treasure": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-005"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-009",
+      "source_fact_id": "FACT-009",
+      "subject": "world.persistence",
+      "relation": "equals",
+      "value": {
+        "fixed_story_sites": true,
+        "completed_choices_persist": true,
+        "procedural_combat_runs_regenerate": true,
+        "rattler_farmable": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-006"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-010",
+      "source_fact_id": "FACT-010",
+      "subject": "game.authority",
+      "relation": "equals",
+      "value": {
+        "owner": "AreArpg.Core",
+        "tick_ms": 100,
+        "deterministic": true,
+        "old_saves_preserved": true,
+        "second_authority": false
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-007",
+        "REQ-017",
+        "REQ-018",
+        "REQ-019"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-011",
+      "source_fact_id": "FACT-011",
+      "subject": "companion.continuity",
+      "relation": "equals",
+      "value": {
+        "hunter_optional": true,
+        "dead_stays_dead": true,
+        "paused_not_auto_levelled": true,
+        "solo_kill_xp": "hunter_only",
+        "player_training": "own_actions"
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-008",
+        "REQ-018"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-012",
+      "source_fact_id": "FACT-012",
+      "subject": "evidence.royal_brand",
+      "relation": "equals",
+      "value": "Connects the Rattler to Immergrün; does not prove a personal royal order.",
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-009"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-013",
+      "source_fact_id": "FACT-013",
+      "subject": "presentation.preserve",
+      "relation": "equals",
+      "value": {
+        "fable_hud": true,
+        "menus": true,
+        "camera": true,
+        "licensed_original_assets": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-010"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-014",
+      "source_fact_id": "FACT-014",
+      "subject": "delivery.order",
+      "relation": "equals",
+      "value": {
+        "fadenwerk_first": true,
+        "playable_expansion_before_final_balancing": true,
+        "native_tests_required": true,
+        "android_evidence_distinct": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-011"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-015",
+      "source_fact_id": "FACT-015",
+      "subject": "owner.lore_decisions",
+      "relation": "equals",
+      "value": {
+        "ask_owner": true,
+        "concrete_proposals": 3,
+        "routine_technical_decisions": "autonomous"
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-012"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-016",
+      "source_fact_id": "FACT-016",
+      "subject": "spy.help_disclosure",
+      "relation": "equals",
+      "value": {
+        "promised_information": [
+          "transport_intermediary_name",
+          "next_handover_location"
+        ],
+        "initially": "unverified_promise",
+        "exchange_for": [
+          "troop_strength",
+          "march_plans"
+        ]
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-013"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-017",
+      "source_fact_id": "FACT-017",
+      "subject": "immergruen.main_encounter",
+      "relation": "equals",
+      "value": {
+        "arrival": "gate_closing",
+        "encounter": "expelled_people",
+        "lead": "possible_transport_witness",
+        "witness_reliability": "unverified"
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-014"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-018",
+      "source_fact_id": "FACT-018",
+      "subject": "journey.post_immergruen_story",
+      "relation": "equals",
+      "value": {
+        "first_area": "seek_possible_transport_witness",
+        "second_area": "verify_witness_claims_at_second_transport_site",
+        "culprit_and_missing_people_fates": "not_prejudged"
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-015"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-019",
+      "source_fact_id": "FACT-019",
+      "subject": "dungeon.run_boundary",
+      "relation": "equals",
+      "value": {
+        "external_reentry": "new_seed_enemies_and_loot",
+        "floor_transition": "same_run",
+        "save_load": "same_run"
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-006"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-020",
+      "source_fact_id": "FACT-020",
+      "subject": "journey.transport_witness",
+      "relation": "equals",
+      "value": {
+        "role": "local_master_alchemist",
+        "received_order": "sedative_for_oversized_rattler",
+        "statement_and_corroboration_separate": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-016"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-021",
+      "source_fact_id": "FACT-021",
+      "subject": "professions.herbalism_alchemy",
+      "relation": "equals",
+      "value": {
+        "branches": [
+          "herbalism",
+          "alchemy"
+        ],
+        "harvestable_herbs": true,
+        "craftable_potions": [
+          "healing",
+          "buffs"
+        ],
+        "individual_skill_progression": true,
+        "introduced_with_master_alchemist": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-017",
+        "REQ-018",
+        "REQ-019"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-022",
+      "source_fact_id": "FACT-022",
+      "subject": "journey.alchemist_coercion",
+      "relation": "equals",
+      "value": {
+        "sedative_order": "coerced",
+        "assistance_requires": "group_protects_him_from_commissioners"
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-016"
+      ],
+      "question_ids": []
+    }
+  ]
+}

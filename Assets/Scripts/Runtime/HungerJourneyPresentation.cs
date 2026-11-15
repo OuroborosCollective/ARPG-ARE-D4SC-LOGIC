@@ -26,6 +26,7 @@ namespace AreArpg.UnityClient
         private HungerAction[] HungerActions()
         {
             var p = _game.Progression;
+            if (_game.InJourney) return JourneyActions();
             if (_game.InDungeon) return DungeonActions();
             var freight=FreightActions(); if(freight!=null)return freight;
             var woodland=WoodlandActions(); if(woodland!=null)return woodland;
@@ -126,7 +127,7 @@ namespace AreArpg.UnityClient
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;
             if (!_hungerJournalOpen) return false;
             Rect panel = HungerPanel(layout);
-            GUI.Box(panel, _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : _game.InAschenzoll ? "ASCHENZOLL — DIE TRANSPORTSPUR" : (AuthoredHunger!=null?AuthoredHunger.title:"HUNGER HINTER DEN MAUERN"));
+            GUI.Box(panel, _game.InJourney ? _game.ChapterName : _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : _game.InAschenzoll ? "ASCHENZOLL — DIE TRANSPORTSPUR" : (AuthoredHunger!=null?AuthoredHunger.title:"HUNGER HINTER DEN MAUERN"));
             GUI.Label(new Rect(panel.x + 15, panel.y + 30, 530, 70), PresentedHungerObjective(), _smallStyle);
             GUI.Label(new Rect(panel.x + 15, panel.y + 105, 530, 30), "Proviant: " + _game.Progression.Social.Provisions +
                 "  |  Entscheidung: " + HungerChoiceLabel(_game.Progression.SupplyChoice), _smallStyle);

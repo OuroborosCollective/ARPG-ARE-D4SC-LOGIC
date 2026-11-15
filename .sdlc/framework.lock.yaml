@@ -1,0 +1,18 @@
+schema_version: 1
+product: codex-sdlc
+version: 1.0.1
+runtime_spec: 1.0.1
+schema_family: 1
+skill_contract_version: 1
+presets:
+  mobile: generic
+  database: none
+  redis: none
+repository_edits:
+  agents_file_created: false
+  gitignore_file_created: false
+  gitignore_added_entries:
+    - .sdlc/tooling/node_modules/
+    - .sdlc/*.lock
+    - .sdlc/*.tmp
+    - .sdlc/local.yaml

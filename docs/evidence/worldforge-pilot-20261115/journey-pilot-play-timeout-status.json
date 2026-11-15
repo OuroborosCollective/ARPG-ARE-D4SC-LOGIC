@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 210.07,
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.WorldForgePilotWalksFightsSavesAndRegeneratesItsFourFloorSideCave",
+      "Status": "Failed",
+      "Duration": 209.767028,
+      "Message": "Timeout value of 180000 ms was exceeded. If this is intended, increase the timeout value using a TimeoutAttribute.",
+      "StackTrace": ""
+    }
+  ]
+}

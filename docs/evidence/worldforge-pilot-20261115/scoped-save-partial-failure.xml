@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="17" result="Failed(Child)" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:52Z" duration="41.8894317">
+  <test-suite type="TestSuite" id="1136" name="ARE Ashen Crypt" fullname="ARE Ashen Crypt" runstate="Runnable" testcasecount="84" result="Failed" site="Child" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:52Z" duration="41.889432" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1114" name="AshenCrypt.WorldForge.Tests.dll" fullname="/var/lib/unityarpg/workspaces/are-arpg-forges-20261114/Library/ScriptAssemblies/AshenCrypt.WorldForge.Tests.dll" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:52Z" duration="41.843523" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="558637" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1115" name="AshenCrypt" fullname="AshenCrypt" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:52Z" duration="41.842751" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1116" name="WorldForge" fullname="AshenCrypt.WorldForge" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:52Z" duration="41.842404" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1117" name="Tests" fullname="AshenCrypt.WorldForge.Tests" runstate="Runnable" testcasecount="17" result="Failed" site="Child" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:52Z" duration="41.842076" total="17" passed="16" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1094" name="WorldForgeEditModeTests" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" testcasecount="12" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.436441" total="12" passed="12" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1103" name="CircularActorCannotIntrudeIntoBlockedCellBetweenFiveOldSamples" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.CircularActorCannotIntrudeIntoBlockedCellBetweenFiveOldSamples" methodname="CircularActorCannotIntrudeIntoBlockedCellBetweenFiveOldSamples" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="227303550" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.010737" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1104" name="CircularActorCanTouchButCannotEnterBlockedCell" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.CircularActorCanTouchButCannotEnterBlockedCell" methodname="CircularActorCanTouchButCannotEnterBlockedCell" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="683591845" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.000712" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1105" name="CoreMapRejectsCorruptOrTruncatedData" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.CoreMapRejectsCorruptOrTruncatedData" methodname="CoreMapRejectsCorruptOrTruncatedData" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="727496961" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.003746" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1102" name="CoreMapRoundTripsAndAnswersQueries" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.CoreMapRoundTripsAndAnswersQueries" methodname="CoreMapRoundTripsAndAnswersQueries" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="1178885077" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.006437" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1100" name="HeightStackIsDeterministicSeedSensitiveAndInRange" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.HeightStackIsDeterministicSeedSensitiveAndInRange" methodname="HeightStackIsDeterministicSeedSensitiveAndInRange" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="1665561441" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.103501" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1095" name="NatureSetupUsesItsOwnAssetsAndDoesNotOverrideExistingMenu" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.NatureSetupUsesItsOwnAssetsAndDoesNotOverrideExistingMenu" methodname="NatureSetupUsesItsOwnAssetsAndDoesNotOverrideExistingMenu" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="555168554" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.070115" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1098" name="NoiseMatchesReference" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.NoiseMatchesReference" methodname="NoiseMatchesReference" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="147887908" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.000853" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1099" name="PoissonIsDeterministicAndRespectsSpacing" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.PoissonIsDeterministicAndRespectsSpacing" methodname="PoissonIsDeterministicAndRespectsSpacing" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="545022216" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.122440" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1097" name="RandomStreamMatchesReference" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.RandomStreamMatchesReference" methodname="RandomStreamMatchesReference" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="80915373" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.000545" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1106" name="ReferenceCoreMapMatchesPythonExactly" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.ReferenceCoreMapMatchesPythonExactly" methodname="ReferenceCoreMapMatchesPythonExactly" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="900532086" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.058642" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1096" name="SeedMixingMatchesReference" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.SeedMixingMatchesReference" methodname="SeedMixingMatchesReference" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="334404621" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.001283" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1101" name="TilesCutFromTheGlobalGridShareEdges" fullname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.TilesCutFromTheGlobalGridShareEdges" methodname="TilesCutFromTheGlobalGridShareEdges" classname="AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests" runstate="Runnable" seed="496983937" result="Passed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:10Z" duration="0.028003" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1107" name="WorldForgeScopedSaveTests" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:52Z" duration="41.403849" total="5" passed="4" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1108" name="GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene" methodname="GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" seed="720634627" result="Failed" start-time="2026-11-15 01:34:10Z" end-time="2026-11-15 01:34:16Z" duration="5.905302" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Unrelated edits must remain unsaved
+  Expected: True
+  But was:  False
+]]></message>
+                  <stack-trace><![CDATA[at AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.VerifyScope (System.String operation) [0x001a4] in /var/lib/unityarpg/workspaces/are-arpg-forges-20261114/Assets/AshenCrypt/WorldForge/Tests/Editor/WorldForgeScopedSaveTests.cs:53
+at AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene () [0x00000] in /var/lib/unityarpg/workspaces/are-arpg-forges-20261114/Assets/AshenCrypt/WorldForge/Tests/Editor/WorldForgeScopedSaveTests.cs:15
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1113" name="OtherTerrainOperationsRetainUnrelatedUnsavedAssets" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-11-15 01:34:16Z" end-time="2026-11-15 01:34:52Z" duration="35.489159" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1109" name="OtherTerrainOperationsRetainUnrelatedUnsavedAssets(&quot;all&quot;)" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets(&quot;all&quot;)" methodname="OtherTerrainOperationsRetainUnrelatedUnsavedAssets" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" seed="516521035" result="Passed" start-time="2026-11-15 01:34:32Z" end-time="2026-11-15 01:34:37Z" duration="5.574623" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1110" name="OtherTerrainOperationsRetainUnrelatedUnsavedAssets(&quot;repaint&quot;)" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets(&quot;repaint&quot;)" methodname="OtherTerrainOperationsRetainUnrelatedUnsavedAssets" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" seed="1286933322" result="Passed" start-time="2026-11-15 01:34:37Z" end-time="2026-11-15 01:34:42Z" duration="4.708482" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1111" name="OtherTerrainOperationsRetainUnrelatedUnsavedAssets(&quot;respawn&quot;)" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets(&quot;respawn&quot;)" methodname="OtherTerrainOperationsRetainUnrelatedUnsavedAssets" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" seed="799715591" result="Passed" start-time="2026-11-15 01:34:42Z" end-time="2026-11-15 01:34:47Z" duration="5.002670" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1112" name="OtherTerrainOperationsRetainUnrelatedUnsavedAssets(&quot;clear&quot;)" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets(&quot;clear&quot;)" methodname="OtherTerrainOperationsRetainUnrelatedUnsavedAssets" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" seed="1024358334" result="Passed" start-time="2026-11-15 01:34:47Z" end-time="2026-11-15 01:34:52Z" duration="4.681594" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

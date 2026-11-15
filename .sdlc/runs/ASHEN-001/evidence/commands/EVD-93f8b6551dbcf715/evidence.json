@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "id": "EVD-93f8b6551dbcf715",
+  "run_id": "ASHEN-001",
+  "task_id": "BA-001",
+  "command_id": "contracts_check",
+  "executable": "node",
+  "args": [
+    ".sdlc/runtime.cjs",
+    "validate-run",
+    "ASHEN-001"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-15T01:04:30.760Z",
+  "completed_at": "2026-11-15T01:04:31.496Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-93f8b6551dbcf715/evidence.json",
+  "stdout_path": "evidence/commands/EVD-93f8b6551dbcf715/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-93f8b6551dbcf715/stderr.txt"
+}

@@ -1,0 +1,14 @@
+{
+  "source": "2f296b26767ad0746a2ca26468ef299f91e43b57",
+  "archive": "/var/lib/unityarpg/.local/share/are-arpg/checkpoints/worldforge-pilot-20261115/project-and-saves.tar",
+  "archiveBytes": 3411281920,
+  "archiveSha256": "8a35a06e7cf2ba697cb920e489b7bf2c697c300ea35779104e38e93e7502e98b",
+  "manifestSha256": "2426cf518e632176867aa62f3abfac83681c581fbd7995e7c486de9a73c1227e",
+  "sourceBundleSha256": "6e53f9b4ffebdb1c69154b72c6dbb8542b01a100baaccd2097eff2d45683163e",
+  "restoredFileCount": 6980,
+  "allRestoredFileHashesMatch": true,
+  "unityReopenedRestoredProject": false,
+  "saveSemanticReadback": "separate Core verification required",
+  "privateLicensedAssetsIncluded": true,
+  "publicDistributionAllowed": false
+}

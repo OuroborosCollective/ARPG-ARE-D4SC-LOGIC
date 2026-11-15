@@ -1,0 +1,192 @@
+schema_version: 1
+kind: delivery_assignment
+assignment_id: ASN-1563395320697759983
+run_id: ASHEN-001
+task_id: MOB-001
+producer: pm
+revision: 1
+role: frontend
+target: mobile
+stage: mobile_implementation
+scenario: full_task
+facts_revision: 6
+facts_sha256: d71c66b86eec700bb377fdd268d3badc731f16658c078d06235505466d643d93
+task_status: running
+scaffold_status: scaffolded
+dependencies:
+  - task_id: PM-002
+    status: completed
+required_inputs:
+  - path: .sdlc/runs/ASHEN-001/artifacts/pm/requirements-review.md
+    producer: pm
+    revision: 1
+    exists: true
+    sha256: 958c6510ac1e9982b6e5a3ef323890c2a4ec8f5414f58b1debf6933659709c95
+    status: available
+required_outputs:
+  - path: .sdlc/runs/ASHEN-001/artifacts/mobile/implementation-summary.md
+    artifact_kind: implementation_summary
+    producer: frontend
+    required: true
+allowed_write_roots:
+  - .
+  - .sdlc/runs/ASHEN-001/artifacts/mobile
+available_evidence: []
+evidence_requirements:
+  - command_key: sdlc_test
+    required: true
+    owner: runtime_collector
+  - command_key: sdlc_typecheck
+    required: true
+    owner: runtime_collector
+  - command_key: mobile_analyze
+    required: true
+    owner: runtime_collector
+  - command_key: foundation_verify
+    required: true
+    owner: runtime_collector
+  - command_key: contracts_check
+    required: true
+    owner: runtime_collector
+transition_policy:
+  current_status: running
+  allowed_request: awaiting_review
+  unmet_disposition: refuse
+controls:
+  api_contract_status: approved
+  gaps: []
+  questions: []
+  requirements:
+    - requirement_id: REQ-001
+      capability: complete_journey
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-001
+    - requirement_id: REQ-002
+      capability: foreign_spy_encounter
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-002
+    - requirement_id: REQ-003
+      capability: military_information_disclosure
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-004
+    - requirement_id: REQ-004
+      capability: regenerating_side_caves
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-007
+    - requirement_id: REQ-005
+      capability: depth_rewards
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-008
+    - requirement_id: REQ-006
+      capability: persistent_story_and_runs
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-009
+    - requirement_id: REQ-007
+      capability: deterministic_save_compatibility
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-010
+    - requirement_id: REQ-008
+      capability: causal_companion_continuity
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-011
+    - requirement_id: REQ-009
+      capability: evidence_without_royal_guilt
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-012
+    - requirement_id: REQ-010
+      capability: preserved_mobile_presentation
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-013
+    - requirement_id: REQ-011
+      capability: revision_bound_native_delivery
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-014
+    - requirement_id: REQ-012
+      capability: owner_choices_preserved
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-015
+    - requirement_id: REQ-013
+      capability: unverified_spy_offer
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-016
+    - requirement_id: REQ-014
+      capability: immergruen_gate_encounter
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-017
+    - requirement_id: REQ-015
+      capability: witness_search_and_verification
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-018
+    - requirement_id: REQ-016
+      capability: protected_alchemist_witness
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-020
+    - requirement_id: REQ-017
+      capability: harvestable_herbs
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-021
+    - requirement_id: REQ-018
+      capability: separate_profession_progression
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-021
+    - requirement_id: REQ-019
+      capability: atomic_potions_and_effects
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-021

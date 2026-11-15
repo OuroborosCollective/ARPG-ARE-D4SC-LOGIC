@@ -1,0 +1,39 @@
+---
+run_id: ASHEN-001
+task_id: PM-001
+producer: pm
+status: draft
+revision: 5
+---
+
+# Discovery report
+
+## Existing patterns
+
+Source baseline: 6699652371a6755c58c69dc8578dd724e1206f8e (Fadenwerk code inputs match native becf6e84ba3dbf311b6518a794a1d53de7dc64fd). Unity pin ProjectSettings/ProjectVersion.txt: 6000.6.8f1. Read AGENTS.md, Memory.md and docs/SPEC_DIRECTOR_WORKFLOW.md.
+
+Core: WoodlandJourney.cs, WoodlandState.cs, CryptDungeon.cs, CryptDungeonState.cs, CryptDungeonLayout.cs, AschenzollFreight.cs, HungerJourney.cs and CharacterProgression/ArpgSimulation partials. Existing forest is act 8, bear nest 9, Aschenzoll 10. Side-cave floor machinery is currently tied to the three-floor story crypt. Inspect every save/travel/companion/input caller before extending acts or formats. Use existing loot catalog and equipment receipts; do not invent an independent inventory.
+
+Canon sources: docs/ASCHENZOLL_FREIGHT.md, docs/RATTLER_IMMERGRUEN.md, docs/specs/immergruen-journey/owner-decisions.md. World Forge is an authoring data generator; Fadenwerk's first production binding is validated Hunger text, not a general runtime quest authority. Existing Assets/Editor/AshenFadenwerkEditor.cs demonstrates the boundary.
+
+## Affected applications
+
+Only existing Unity mobile game, including its C# Core, Unity presentation, editor authoring, tests and save contracts. No web/backend application, network service, SQL store or Redis in this run. The earlier Fadenwerk gateway is a separate accepted integration block. The generic mobile preset describes Unity in SDLC; it does not introduce Flutter.
+
+## Delivery risks
+
+The owner corrected the geography and selected espionage with politically risky military information. The owner has now answered FACT-017–018: gate-closing encounter with expelled people, then seek a possible transport witness and verify their claims at a second transport site. These are approved facts; witness reliability, perpetrators and missing people’s fates remain unproven.
+
+Runtime checks are distinct: local C# tests/build, Python static preflight and Director checks; native Edit/PlayMode on exact VPS revision; IL2CPP/ARM64 build; physical tablet acceptance. The generic SDLC checks are configured to real existing tools. Offline collector calls run inside an actual unshare network namespace before setting the runtime policy attestation. No unverified network restriction or synthetic evidence.
+
+The SDLC plugin supplies role instructions; the pinned npm CLI 1.0.1 owns .sdlc bookkeeping. Existing Director/Spec Kit/SPD remain the execution/contract sources, not competing product authorities. The new run remains open until its full scope and required owner decisions are satisfied.
+
+## Owner follow-up
+
+FACT-016 is now explicit: the spy promises the name and next handover location of a transport intermediary in exchange for troop strength and march plans; this begins as an unverified promise. Record Q-001 as answered, Q-002 and Q-003 are now answered as recorded in facts revision 4 and owner-decisions.md. The owner resumed CPU-bounded game development and requires a real playable World Forge use with measured utility before world/save backup and later standalone tool release. Tool marketing and submission are later work, outside this journey implementation run. Prices are Fadenwerk USD6 and World Forge USD35 one time, recorded in owner-decisions.md.
+
+## Owner addendum: alchemy
+
+FACT-020/021 (facts revision 5) extend the approved witness and professions scope. The witness is a local master alchemist with a sedative order for an oversized Rattler. Implement real herb collection and separately advancing herbalism/alchemy for healing and buff potions. No claim that these systems or the interior pack are already integrated. New save/effect/recipe contracts must preserve existing Core inventory, causal training, replay, death and equipment behavior. Current Fadenwerk prerequisite is accepted and merged: PR43, merge abc9eb01e8e654eb73e7656b9d5c00ff14a51190; native/browser proof remains under docs/evidence/fadenwerk-connect-20261114.
+
+FACT-022 / Q-004: owner selected coercion and protection before assistance. Facts revision 6 binds this approved prerequisite. The protection quest precedes his help/teaching; identify neither commissioners nor king as culprit by inference. Asset presence readback found 120 total prefabs in private AlchemyLabProps, including books, mortar, retort, potion bottles and furniture; material/visual suitability remains a native check.

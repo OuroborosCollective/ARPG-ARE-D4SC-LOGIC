@@ -1,0 +1,72 @@
+{
+  "tool": "World Forge",
+  "revision": 1,
+  "unity": "6000.6.8f1",
+  "repeatedSeedIdentical": true,
+  "differentSeedVaries": true,
+  "runs": [
+    {
+      "seed": 731904,
+      "revision": 1,
+      "profile": "Assets/WorldForgeData/JourneyPilot/Seed731904/Profile.asset",
+      "scene": "Assets/WorldForgeData/JourneyPilot/Seed731904/Authored.unity",
+      "map": "Assets/Resources/ARE/JourneyMaps/Wald_v1_731904.bytes",
+      "hash": "82B0FA9F7D342123",
+      "sha256": "a6fc8fafb852d0b51bb0e2da0ac445f12ece5a263cfe9cecb8f65e7a8b948415",
+      "nodes": 16641,
+      "areaSquareMetres": 16384,
+      "obstacles": 136,
+      "pois": 9,
+      "paths": 5,
+      "seconds": 2.8604922999999998,
+      "treeInstances": 0,
+      "gameObjects": 136,
+      "warnings": [
+        "No biome / texture rules assigned – texturing skipped."
+      ],
+      "manualTerrainEdits": 0
+    },
+    {
+      "seed": 731905,
+      "revision": 1,
+      "profile": "Assets/WorldForgeData/JourneyPilot/Seed731905/Profile.asset",
+      "scene": "Assets/WorldForgeData/JourneyPilot/Seed731905/Authored.unity",
+      "map": "Assets/Resources/ARE/JourneyMaps/Wald_v1_731905.bytes",
+      "hash": "845EB114B07AC26E",
+      "sha256": "5d774ced0df653b6f1573b9bb2ac7e64011b8158516824b00997236669e33188",
+      "nodes": 16641,
+      "areaSquareMetres": 16384,
+      "obstacles": 118,
+      "pois": 9,
+      "paths": 5,
+      "seconds": 2.7072854,
+      "treeInstances": 0,
+      "gameObjects": 118,
+      "warnings": [
+        "No biome / texture rules assigned – texturing skipped."
+      ],
+      "manualTerrainEdits": 0
+    },
+    {
+      "seed": 731904,
+      "revision": 1,
+      "profile": "Assets/WorldForgeData/JourneyPilot/Seed731904/Profile.asset",
+      "scene": "Assets/WorldForgeData/JourneyPilot/Seed731904/Authored.unity",
+      "map": "Assets/Resources/ARE/JourneyMaps/Wald_v1_731904.bytes",
+      "hash": "82B0FA9F7D342123",
+      "sha256": "a6fc8fafb852d0b51bb0e2da0ac445f12ece5a263cfe9cecb8f65e7a8b948415",
+      "nodes": 16641,
+      "areaSquareMetres": 16384,
+      "obstacles": 136,
+      "pois": 9,
+      "paths": 5,
+      "seconds": 1.9101323,
+      "treeInstances": 0,
+      "gameObjects": 136,
+      "warnings": [
+        "No biome / texture rules assigned – texturing skipped."
+      ],
+      "manualTerrainEdits": 0
+    }
+  ]
+}

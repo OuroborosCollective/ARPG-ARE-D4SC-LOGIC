@@ -1,0 +1,18 @@
+{
+  "independent_processes": true,
+  "same_digest": true,
+  "runs": [
+    {
+      "path": "/workspace/scratch/ashen-journey-20261115/pilot-authored-core-a.log",
+      "sha256": "1d585fb55f13f0a02e7fd475abcdaf103170cf29abd6211182364116e2d3821f",
+      "digest": "JOURNEY_SWEEP_HASH 0348A18904A209D6 distinct=200 map=82B0FA9F7D342123",
+      "result": "ALL PASS: 19650 deterministic core assertions"
+    },
+    {
+      "path": "/workspace/scratch/ashen-journey-20261115/pilot-authored-core-b.log",
+      "sha256": "1d585fb55f13f0a02e7fd475abcdaf103170cf29abd6211182364116e2d3821f",
+      "digest": "JOURNEY_SWEEP_HASH 0348A18904A209D6 distinct=200 map=82B0FA9F7D342123",
+      "result": "ALL PASS: 19650 deterministic core assertions"
+    }
+  ]
+}

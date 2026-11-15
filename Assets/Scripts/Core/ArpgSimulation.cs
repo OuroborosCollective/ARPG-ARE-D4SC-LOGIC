@@ -135,11 +135,12 @@ namespace AreArpg.Core
         public const long CampXmm = -4500L;
         public const long CampZmm = -6000L;
         public const long NpcInteractionRadiusMm = 2400L;
-        public bool AtWorldPassage { get { return !InWoodlandRegion && DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
+        public bool AtWorldPassage { get { return !InJourney && !InWoodlandRegion && DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
 
         /// <summary>Use the existing passage gate and carry surviving player resources into the next approved world.</summary>
         public ArenaSimulation TryTraversePassage()
         {
+            if (AtJourneyPassage) return TraverseJourney();
             if (AtWoodlandPassage) return TraverseWoodland();
             if (!AtAnyPassage || GameOver) return null;
             ArenaSimulation next = Progression.EntryAct >= 2 ? TraverseHunger(AtReturnPassage) : TryAdvanceCrypt();
@@ -159,7 +160,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return InJourney ? (InJourneyCave ? "Seitenhöhle – Ebene " + Progression.Journey.Depth : "Waldweg jenseits von Aschenzoll") : InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -194,17 +195,26 @@ namespace AreArpg.Core
         /// <summary>Explicit versioned loot opt-in preserves the legacy simulation and hash contract.</summary>
         public ArenaSimulation(ulong seed, CharacterProgression progression,
             System.Numerics.BigInteger cryptDepth, LootCatalog lootCatalog)
+            : this(seed, progression, cryptDepth, lootCatalog, progression?.Journey.Maps) { }
+
+        public ArenaSimulation(ulong seed, CharacterProgression progression,
+            System.Numerics.BigInteger cryptDepth, LootCatalog lootCatalog, JourneyMapCatalog journeyMaps)
         {
             if (cryptDepth < System.Numerics.BigInteger.One)
                 throw new ArgumentOutOfRangeException(nameof(cryptDepth));
             _runSeed = seed;
             _lootCatalog = lootCatalog;
+            _journeyMaps = journeyMaps;
             CryptDepth = cryptDepth;
             Progression = progression ?? new CharacterProgression();
+            if (Progression.Journey.Active && journeyMaps?.Resolve(Progression.Journey.MapHash) == null)
+                throw new InvalidOperationException("Exact authored journey map unavailable");
             if (Progression.EntryAct > 0 && !cryptDepth.IsOne)
                 throw new ArgumentOutOfRangeException(nameof(cryptDepth), "Entry revision 1 uses its own two-act checkpoint.");
             PlayerHealth = MaxPlayerHealth;
-            _rng = new DeterministicRng(InForest ? Progression.Woodland.Seed : InDungeon ? Progression.Dungeon.Seed : seed);
+            _rng = new DeterministicRng(InJourney ? JourneySeed : InForest ? Progression.Woodland.Seed : InDungeon ? Progression.Dungeon.Seed : seed);
+            if (InJourney) { InitializeJourney(); Progression.JourneyCapture = SaveJourneyPlayer; BindForge(); return; }
+            Progression.JourneyCapture = SaveJourneyPlayer;
             if (IsVillage)
             {
                 Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -3600, -3400));
@@ -253,15 +263,15 @@ namespace AreArpg.Core
             if (!CryptCleared || GroundLoot.Count != 0 ||
                 CryptDepth != Progression.UnlockedCryptDepth) return null;
             CharacterProgression nextProgress;
-            if (!CharacterProgression.TryLoad(Progression.SaveString(), out nextProgress)) return null;
+            if (!CharacterProgression.TryLoad(Progression.SaveString(), _journeyMaps, out nextProgress)) return null;
             if (Progression.EntryAct == 1)
             {
                 if (!nextProgress.EnterVillage()) return null;
-                return new ArenaSimulation(_runSeed, nextProgress, CryptDepth, _lootCatalog);
+                return new ArenaSimulation(_runSeed, nextProgress, CryptDepth, _lootCatalog, _journeyMaps);
             }
             if (!nextProgress.TryUnlockNextCryptDepth(CryptDepth)) return null;
             return new ArenaSimulation(_runSeed, nextProgress,
-                nextProgress.UnlockedCryptDepth, _lootCatalog);
+                nextProgress.UnlockedCryptDepth, _lootCatalog, _journeyMaps);
         }
 
         private static MonsterState NewMonster(int id, int kind, long x, long z, int health)
@@ -498,6 +508,7 @@ namespace AreArpg.Core
         /// <summary>Apply arena bounds and the active chapter collision model using integer coordinates.</summary>
         public bool CanStand(long x, long z)
         {
+            if (InJourney) return JourneyGeometry.CanStand(x,z) && (!InJourneyCave || Progression.Journey.Depth==Progression.Journey.FloorCount || z<=21000 || JourneyForwardOpen);
             if (InWoodlandRegion) return CanStandInWoodland(Progression.EntryAct, Progression.Woodland.Layout, x, z);
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             if (InDungeon) return Progression.Dungeon.Current.Layout.CanStand(x, z) && (z <= 21000 || DungeonForwardOpen);
@@ -643,9 +654,9 @@ namespace AreArpg.Core
                     Progression.EarnExperience(new System.Numerics.BigInteger(enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
                 }
                 else Progression.RecordCompanionKill();
-                GroundLoot.Add(new LootState { Id = InDungeon || InForest ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
+                GroundLoot.Add(new LootState { Id = InJourney || InDungeon || InForest ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
                     WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8),
-                    Item = InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) :
+                    Item = InJourney ? LootCatalog.Version1.Generate(JourneySeed, InJourneyCave ? Progression.Journey.Depth : 1, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) :
                         _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
                         CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) });
             }

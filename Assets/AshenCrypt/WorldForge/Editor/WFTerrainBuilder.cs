@@ -107,6 +107,7 @@ namespace AshenCrypt.WorldForge.EditorTools
         {
             ForgedWorld world = FindWorld(p);
             if (world == null) return;
+            EnsureTerrainInOutputFolder(p, world);
             ClearSpawnedInternal(world);
             MarkDirty(world);
         }
@@ -209,7 +210,7 @@ namespace AshenCrypt.WorldForge.EditorTools
                 for (int tx = 0; tx < p.tilesX; tx++)
                     world.GetTile(tx, tz).SetNeighbors(world.GetTile(tx - 1, tz), world.GetTile(tx, tz + 1), world.GetTile(tx + 1, tz), world.GetTile(tx, tz - 1));
             Terrain.SetConnectivityDirty();
-            AssetDatabase.SaveAssets();
+            SaveOwnedTerrainData(world);
             return world;
         }
 
@@ -279,6 +280,7 @@ namespace AshenCrypt.WorldForge.EditorTools
                 Validate(p);
                 ForgedWorld world = FindWorld(p);
                 if (world == null) throw new InvalidOperationException("No generated world for this profile in the open scene. Run 'Generate All' first.");
+                EnsureTerrainInOutputFolder(p, world);
                 WFHeightContext ctx = ReadFromTerrains(p, world);
                 var fields = new WFWorldFields(ctx);
                 step(world, ctx, fields, report);
@@ -677,7 +679,39 @@ namespace AshenCrypt.WorldForge.EditorTools
             if (world == null) return;
             EditorUtility.SetDirty(world);
             EditorSceneManager.MarkSceneDirty(world.gameObject.scene);
-            AssetDatabase.SaveAssets();
+            SaveOwnedTerrainData(world);
+        }
+
+        // Generation owns the terrain data it writes, not every dirty asset in the editor.
+        // Profile, biome, material overrides and unrelated scenes remain under their callers' save ownership.
+        /// <summary>
+        /// Edits are saved only for terrain data inside the profile's output folder. Refuse to modify terrain data that
+        /// lives elsewhere (for example after the output folder was changed) instead of leaving the changes unsaved.
+        /// </summary>
+        private static void EnsureTerrainInOutputFolder(WorldProfile p, ForgedWorld world)
+        {
+            string prefix = p.outputFolder.TrimEnd('/') + "/";
+            foreach (var terrain in world.tiles)
+            {
+                if (terrain == null || terrain.terrainData == null) continue;
+                string path = AssetDatabase.GetAssetPath(terrain.terrainData);
+                if (!string.IsNullOrEmpty(path) && !path.StartsWith(prefix, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Terrain data '" + path + "' lies outside the output folder '" + p.outputFolder +
+                        "'. Restore the output folder or run 'Generate All' again.");
+            }
+        }
+
+        private static void SaveOwnedTerrainData(ForgedWorld world)
+        {
+            string prefix=world.profile.outputFolder.TrimEnd('/')+"/";
+            foreach(var terrain in world.tiles)
+            {
+                if(terrain==null||terrain.terrainData==null)continue;
+                var data=terrain.terrainData;
+                if(!AssetDatabase.GetAssetPath(data).StartsWith(prefix,StringComparison.Ordinal))continue;
+                EditorUtility.SetDirty(data);
+                AssetDatabase.SaveAssetIfDirty(data);
+            }
         }
 
         private static void Progress(string info, float t)

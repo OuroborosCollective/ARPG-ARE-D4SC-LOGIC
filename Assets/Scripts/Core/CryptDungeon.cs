@@ -43,7 +43,7 @@ namespace AreArpg.Core
         private ArenaSimulation TraverseDungeon(bool backwards)
         {
             if(GameOver || GroundLoot.Count!=0 || (!backwards && !DungeonForwardOpen)) return null;
-            if(!CharacterProgression.TryLoad(Progression.SaveString(),out var p)) return null;
+            if(!CharacterProgression.TryLoad(Progression.SaveString(),_journeyMaps,out var p)) return null;
             int depth=p.Dungeon.Depth+(backwards?-1:1);
             if(depth==0) { p.TravelHunger(5,true); p.Dungeon.NeedsNewRun=true; }
             else
@@ -57,7 +57,7 @@ namespace AreArpg.Core
                     r.Creature.Zmm=r.Creature.PreviousZmm=17000; r.TargetX=0; r.TargetZ=17000;
                 }
             }
-            return new ArenaSimulation(_runSeed,p,CryptDepth,_lootCatalog);
+            return new ArenaSimulation(_runSeed,p,CryptDepth,_lootCatalog,_journeyMaps);
         }
 
         public string DungeonObjective

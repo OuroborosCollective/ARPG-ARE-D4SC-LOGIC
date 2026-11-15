@@ -117,7 +117,7 @@ internal static class CompanionForgeTests
         check(forestResume.ActivateSkill(0).Kills==1&&forestLoaded.LifetimeKills==forestKills+1&&forestLoaded.TotalExperience>forestXp,"next-player-defeat-still-credits-player");
         check(forestResume.GroundLoot.Count==2&&forestResume.GroundLoot.Select(l=>l.Item.KillOrdinal).Distinct().Count()==2&&CharacterProgression.TryLoad(forestLoaded.SaveString(),out _),"mixed-actor-defeats-have-unique-loadable-loot-ordinals");
     }
-    private static ArenaSimulation RescueFixture()
+    internal static ArenaSimulation RescueFixture()
     {
         var p=CharacterProgression.CreateEntryProfile();p.EnterVillage();p.DiscoverHungerClue();p.TravelHunger(3,false);p.Social.EnableForge();
         var world=new ArenaSimulation(73,p,BigInteger.One,LootCatalog.Version1);

@@ -50,6 +50,7 @@ internal static class Program
             AschenzollTests.Run(Require);
             ForgePolicyTests.Run(Require);
             ForgePopulationTests.Run(Require);
+            JourneyPilotTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-15 01:28:06Z" end-time="2026-11-15 01:28:15Z" duration="8.647938">
+  <test-suite type="TestSuite" id="1131" name="ARE Ashen Crypt" fullname="ARE Ashen Crypt" runstate="Runnable" testcasecount="80" result="Failed" site="Child" start-time="2026-11-15 01:28:06Z" end-time="2026-11-15 01:28:15Z" duration="8.647938" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1109" name="AshenCrypt.WorldForge.Tests.dll" fullname="/var/lib/unityarpg/workspaces/are-arpg-forges-20261114/Library/ScriptAssemblies/AshenCrypt.WorldForge.Tests.dll" runstate="Runnable" testcasecount="13" result="Failed" site="Child" start-time="2026-11-15 01:28:06Z" end-time="2026-11-15 01:28:15Z" duration="8.597980" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="558637" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1110" name="AshenCrypt" fullname="AshenCrypt" runstate="Runnable" testcasecount="13" result="Failed" site="Child" start-time="2026-11-15 01:28:06Z" end-time="2026-11-15 01:28:15Z" duration="8.597272" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1111" name="WorldForge" fullname="AshenCrypt.WorldForge" runstate="Runnable" testcasecount="13" result="Failed" site="Child" start-time="2026-11-15 01:28:06Z" end-time="2026-11-15 01:28:15Z" duration="8.596895" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1112" name="Tests" fullname="AshenCrypt.WorldForge.Tests" runstate="Runnable" testcasecount="13" result="Failed" site="Child" start-time="2026-11-15 01:28:06Z" end-time="2026-11-15 01:28:15Z" duration="8.596595" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1107" name="WorldForgeScopedSaveTests" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-11-15 01:28:06Z" end-time="2026-11-15 01:28:15Z" duration="8.595090" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1108" name="GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene" fullname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene" methodname="GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene" classname="AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests" runstate="Runnable" seed="1614597144" result="Failed" start-time="2026-11-15 01:28:06Z" end-time="2026-11-15 01:28:15Z" duration="8.577703" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  Generation saved an unrelated dirty asset
+  Expected is <System.Byte[976]>, actual is <System.Byte[973]>
+  Values differ at index [626]
+  Expected: 55
+  But was:  57
+]]></message>
+                  <stack-trace><![CDATA[at NUnit.Framework.CollectionAssert.AreEqual (System.Collections.IEnumerable expected, System.Collections.IEnumerable actual, System.String message, System.Object[] args) [0x00008] in <8b63e8ac0a4746599ed207982825ae6c>:0
+at AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene () [0x0011f] in /var/lib/unityarpg/workspaces/are-arpg-forges-20261114/Assets/AshenCrypt/WorldForge/Tests/Editor/WorldForgeScopedSaveTests.cs:37
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -44,17 +44,18 @@ namespace AreArpg.Core
         internal string Token()
         {
             object[] values={2,(int)Status,Health,Hunger,Fatigue,Area,AreaSeed,Xmm,Zmm,PreviousXmm,PreviousZmm,AttackCooldown,AttackFlash,TargetId,TotalExperience,_practice[0],_practice[1],_practice[2],_practice[3],WeaponOrdinal,ShieldOrdinal,LastPracticeTick,AreaDepth};
-            if(LifetimeKills>0){values[0]=3;values=values.Concat(new object[]{LifetimeKills}).ToArray();}
+            if(LifetimeKills>0||Area>10){values[0]=Area>10?4:3;values=values.Concat(new object[]{LifetimeKills}).ToArray();}
             return string.Join(",",values.Select(x=>Convert.ToString(x,CultureInfo.InvariantCulture)));
         }
         internal static bool TryRead(string token,CharacterProgression p,out CompanionState state)
         {
             state=null;var f=token.Split(',');bool legacy=f.Length==22&&f[0]=="1";
-            bool attributed=f.Length==24&&f[0]=="3";
+            bool journey=f.Length==24&&f[0]=="4"&&p.Journey.Active;
+            bool attributed=f.Length==24&&(f[0]=="3"||journey);
             if(!legacy&&!attributed&&(f.Length!=23||f[0]!="2")||p.Social.Forge==null||!p.Road.Rescued)return false;
             var n=new BigInteger[f.Length];for(int i=0;i<n.Length;i++)if(!BigInteger.TryParse(f[i],NumberStyles.AllowLeadingSign,CultureInfo.InvariantCulture,out n[i])||n[i].ToString(CultureInfo.InvariantCulture)!=f[i])return false;
-            if(n[1]<1||n[1]>3||n[2]<0||n[2]>MaximumHealth||(n[1]==3)!=(n[2]==0)||n[3]<0||n[3]>1000||n[4]<0||n[4]>1000||n[5]<2||n[5]>10||n[6]<0||n[6]>ulong.MaxValue)return false;
-            for(int i=7;i<=10;i++)if(n[i]<-60000||n[i]>60000)return false;
+            if(n[1]<1||n[1]>3||n[2]<0||n[2]>MaximumHealth||(n[1]==3)!=(n[2]==0)||n[3]<0||n[3]>1000||n[4]<0||n[4]>1000||n[5]<2||n[5]>(journey?12:10)||n[6]<0||n[6]>ulong.MaxValue)return false;
+            for(int i=7;i<=10;i++)if(n[i]<-(journey?70000:60000)||n[i]>(journey?70000:60000))return false;
             if(n[11]<0||n[11]>100||n[12]<0||n[12]>3||n[13]<-1||n[13]>int.MaxValue)return false;
             for(int i=14;i<=21;i++)if(n[i]<0)return false;
             if(n[14]!=n[15]+n[16]+n[17]+n[18]||n[21]>p.Social.Forge.ProcessedTicks)return false;
@@ -65,9 +66,10 @@ namespace AreArpg.Core
                 if(!p.Dungeon.Active||c.AreaSeed!=unchecked(p.Dungeon.Seed+(ulong)p.Dungeon.Depth))return false;
                 c.AreaSeed=p.Dungeon.Seed;c.AreaDepth=p.Dungeon.Depth;
             }
-            else if(!legacy){if(n[22]<0||n[22]>3)return false;c.AreaDepth=(int)n[22];}
-            if(attributed){if(n[23]<1||n[23]>p.LootOrdinal)return false;c.LifetimeKills=n[23];}
-            if(c.AreaDepth>0&&c.Area!=6&&c.Area!=7)return false;
+            else if(!legacy){if(n[22]<0||n[22]>(journey?6:3))return false;c.AreaDepth=(int)n[22];}
+            if(attributed){if(n[23]<(journey?0:1)||n[23]>p.LootOrdinal)return false;c.LifetimeKills=n[23];}
+            if(c.AreaDepth>0&&c.Area!=6&&c.Area!=7&&!(journey&&c.Area==12))return false;
+            if(journey&&(c.Area<11||c.Area==11&&c.AreaDepth!=0||c.Area==12&&(c.AreaDepth<1||c.AreaDepth>p.Journey.FloorCount)))return false;
             foreach(var ordinal in new[]{c.WeaponOrdinal,c.ShieldOrdinal})if(ordinal>0&&(!p.Items.Any(x=>x.KillOrdinal==ordinal)||ordinal==p.Equipment.Weapon?.Ordinal||ordinal==p.Equipment.Shield?.Ordinal))return false;
             var weapon=c.WeaponOrdinal>0?p.Equipment.ForItem(p.Items.FirstOrDefault(x=>x.KillOrdinal==c.WeaponOrdinal)):null;
             var shield=c.ShieldOrdinal>0?p.Equipment.ForItem(p.Items.FirstOrDefault(x=>x.KillOrdinal==c.ShieldOrdinal)):null;
@@ -82,7 +84,7 @@ namespace AreArpg.Core
         public CompanionState Companion { get; private set; }=new CompanionState();
         private string CompanionPayload()
         {
-            string body=ForgePayload();if(!Companion.HasJoined)return body;
+            string body=ForgePayload();if(!Companion.HasJoined||Journey.Active)return body;
             string prior=body+"|"+HashText(body).ToString("X16",CultureInfo.InvariantCulture);
             return "AC18|"+Convert.ToBase64String(Encoding.UTF8.GetBytes(prior))+"|"+Companion.Token();
         }
@@ -111,9 +113,9 @@ namespace AreArpg.Core
             forge.Archive.Learn("hunter",e.Id,KnowledgeOrigin.Self,"hunter",forge.ProcessedTicks);
             r.Accepted=true;r.Text="Jäger: Danke für den Proviant. Ich erinnere mich an deine Hilfe.";return r;
         }
-        private ulong CompanionAreaSeed => InForest?Progression.Woodland.Seed:InDungeon?Progression.Dungeon.Seed:0;
-        private int CompanionAreaDepth => InDungeon?Progression.Dungeon.Depth:0;
-        public bool CompanionPresent => Progression.Companion.HasJoined&&Progression.Companion.Area==Progression.EntryAct&&Progression.Companion.AreaSeed==CompanionAreaSeed&&Progression.Companion.AreaDepth==CompanionAreaDepth;
+        private ulong CompanionAreaSeed => InJourney?JourneySeed:InForest?Progression.Woodland.Seed:InDungeon?Progression.Dungeon.Seed:0;
+        private int CompanionAreaDepth => InJourneyCave?Progression.Journey.Depth:InDungeon?Progression.Dungeon.Depth:0;
+        public bool CompanionPresent => Progression.Companion.HasJoined&&Progression.Companion.Area==CurrentAreaId&&Progression.Companion.AreaSeed==CompanionAreaSeed&&Progression.Companion.AreaDepth==CompanionAreaDepth;
         private void BindCompanion(bool passageArrival=false)
         {
             var forge=Progression.Social.Forge;if(forge==null)return;
@@ -121,7 +123,7 @@ namespace AreArpg.Core
             var c=Progression.Companion;
             if(c.Status==CompanionStatus.Following&&(passageArrival||!CompanionPresent))
             {
-                c.Area=Progression.EntryAct;c.AreaSeed=CompanionAreaSeed;c.AreaDepth=CompanionAreaDepth;c.Xmm=c.PreviousXmm=PlayerXmm;c.Zmm=c.PreviousZmm=PlayerZmm;
+                c.Area=CurrentAreaId;c.AreaSeed=CompanionAreaSeed;c.AreaDepth=CompanionAreaDepth;c.Xmm=c.PreviousXmm=PlayerXmm;c.Zmm=c.PreviousZmm=PlayerZmm;
                 foreach(var offset in new[]{(-1200L,0L),(1200L,0L),(0L,-1200L),(0L,1200L)})
                     if(CanStand(PlayerXmm+offset.Item1,PlayerZmm+offset.Item2)){c.Xmm=c.PreviousXmm=PlayerXmm+offset.Item1;c.Zmm=c.PreviousZmm=PlayerZmm+offset.Item2;break;}
             }
@@ -135,14 +137,14 @@ namespace AreArpg.Core
             if(DistanceSquared(PlayerXmm,PlayerZmm,x,z)>FixedMath.Square(2400)||!CombatSight(PlayerXmm,PlayerZmm,x,z))return r;
             if(!c.HasJoined&&!Progression.Road.FavorClaimed&&!InteractHunter(false).Accepted)return r;
             Progression.Social.Forge.Ensure("hunter","companion");
-            if(!c.HasJoined){c.Health=Progression.Road.HunterHealth;c.Xmm=c.PreviousXmm=x;c.Zmm=c.PreviousZmm=z;c.Area=Progression.EntryAct;c.AreaSeed=CompanionAreaSeed;}
+            if(!c.HasJoined){c.Health=Progression.Road.HunterHealth;c.Xmm=c.PreviousXmm=x;c.Zmm=c.PreviousZmm=z;c.Area=CurrentAreaId;c.AreaSeed=CompanionAreaSeed;}
             c.Status=CompanionStatus.Following;r.Accepted=true;r.SpeakerId=3;r.Text="Jäger: Du hast mich gerettet. Ich komme mit dir. Meine Erfahrung werde ich mir selbst verdienen.";return r;
         }
         public SocialResult DismissCompanion()
         {
             var c=Progression.Companion;var r=new SocialResult();
             if(GameOver||!CompanionPresent||c.Status!=CompanionStatus.Following||DistanceSquared(PlayerXmm,PlayerZmm,c.Xmm,c.Zmm)>FixedMath.Square(3500))return r;
-            if(!(Progression.EntryAct==2||Progression.EntryAct==3||Progression.EntryAct==4||Progression.EntryAct==10)||Monsters.Any(e=>!e.IsDead&&DistanceSquared(c.Xmm,c.Zmm,e.Xmm,e.Zmm)<FixedMath.Square(14000)))
+            if(InJourney||!(Progression.EntryAct==2||Progression.EntryAct==3||Progression.EntryAct==4||Progression.EntryAct==10)||Monsters.Any(e=>!e.IsDead&&DistanceSquared(c.Xmm,c.Zmm,e.Xmm,e.Zmm)<FixedMath.Square(14000)))
             {r.Text="Bringe den Jäger zuerst an einen sicheren Ort im Dorf, an der Straße, der Mühle oder der Handelsstation.";return r;}
             c.Status=CompanionStatus.Waiting;c.TargetId=-1;r.Accepted=true;r.SpeakerId=3;r.Text="Jäger: Ich warte hier auf dich.";return r;
         }

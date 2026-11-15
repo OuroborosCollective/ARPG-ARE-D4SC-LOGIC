@@ -46,7 +46,7 @@ namespace AreArpg.Core
     public sealed partial class CharacterProgression
     {
         public FreightState Freight { get; private set; } = new FreightState();
-        private string Payload()
+        private string FreightPayload()
         {
             string body = CompanionPayload();
             if (!Freight.HasProgress) return body;
@@ -78,7 +78,7 @@ namespace AreArpg.Core
 
     public sealed partial class ArenaSimulation
     {
-        public bool InAschenzoll => Progression.EntryAct==10 && Progression.Woodland.Active;
+        public bool InAschenzoll => !InJourney && Progression.EntryAct==10 && Progression.Woodland.Active;
         private void StepFreight()
         {
             var f=Progression.Freight;
@@ -123,7 +123,7 @@ namespace AreArpg.Core
             get
             {
                 var f=Progression.Freight;
-                if(f.Reported) return f.OriginalCollected ? "Originalbeleg an Ilyan gemeldet. Die Spur führt zum Nordwechsel; der weitere Weg ist noch nicht zugänglich." : "Überprüfte Weitergabe an Ilyan gemeldet. Die Spur führt zum Nordwechsel; der weitere Weg ist noch nicht zugänglich.";
+                if(f.Reported) return f.OriginalCollected ? "Originalbeleg an Ilyan gemeldet. Die Spur führt zum Nordwechsel; im Norden führt jetzt der Waldweg weiter." : "Überprüfte Weitergabe an Ilyan gemeldet. Die Spur führt zum Nordwechsel; im Norden führt jetzt der Waldweg weiter.";
                 if(f.EvidenceReady) return "Bringe Ilyan persönlich die Transportspur. Rückweg: Wald → Mühle → Aschestraße → Dorf.";
                 if(f.Choice==FreightChoice.Secured) return "Die Fracht ist festgesetzt. Sichere den Originalbeleg am Pult; die Weiterfahrt kann nicht mehr beobachtet werden.";
                 if(f.Choice==FreightChoice.Released) return f.MotionTicks<FreightState.JourneyTicks ? "Der leere Käfig fährt zur oberen Rampe. Folge dem freien Fußweg; der Originalbeleg bleibt bei der Fracht." : "Prüfe Sendungsnummer und Abladezeichen am Käfig an der oberen Rampe. Ankunft allein ist noch kein Beweis.";
