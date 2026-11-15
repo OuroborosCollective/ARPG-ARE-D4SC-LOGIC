@@ -97,20 +97,54 @@ internal static class NpcCalmTests
         check(c.Social.Forge.Archive.Events.Count(e=>e.Context=="quest.camp.refilled")==1,"camp-completion-recorded-once");
         check(CharacterProgression.TryLoad(c.SaveString(),out var campLoaded)&&campLoaded.Social.CampRefilled,"camp-completion-survives-load");
 
-        // A camp that was already full: stealing a ration and handing it back is not help.
+        // Review fix: a camp refilled before the memory archive existed is credited once the archive is enabled.
         var x=CharacterProgression.CreateEntryProfile();x.EnterVillage();
         var plain=new ArenaSimulation(95,x,BigInteger.One,LootCatalog.Version1);
         var plainMara=plain.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
         for(int i=0;i<2;i++){plainMara.Xmm=plain.PlayerXmm+1000;plainMara.Zmm=plain.PlayerZmm;plainMara.InteractionCooldownTicks=0;check(plain.DonateCampRation().Accepted,"camp-pre-forge-donation-"+i);}
+        check(x.Social.CampProvisions==SocialLedger.CampCapacity&&!x.Social.CampRefilled,"camp-pre-forge-refill-has-no-archive-record");
         x.Social.EnableForge();
-        var exploit=new ArenaSimulation(95,x,BigInteger.One,LootCatalog.Version1);
-        var exploitMara=exploit.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
-        exploitMara.Xmm=exploit.PlayerXmm+1000;exploitMara.Zmm=exploit.PlayerZmm;
-        check(x.Social.CampProvisions==SocialLedger.CampCapacity&&exploit.TakeCampRation().Accepted,"camp-exploit-theft-from-full-camp");
-        for(int i=0;i<12;i++)exploit.Step();
-        exploitMara.Xmm=exploit.PlayerXmm+1000;exploitMara.Zmm=exploit.PlayerZmm;exploitMara.InteractionCooldownTicks=0;
-        var returned=exploit.DonateCampRation();
-        for(int i=0;i<30;i++)exploit.Step();
-        check(returned.Accepted&&x.Social.CampProvisions==SocialLedger.CampCapacity&&!x.Social.CampRefilled&&!returned.Text.Contains("Nebenaufgabe"),"camp-returning-stolen-ration-is-not-the-side-task");
+        var migrated=new ArenaSimulation(95,x,BigInteger.One,LootCatalog.Version1);
+        for(int i=0;i<20;i++)migrated.Step();
+        check(x.Social.CampRefilled,"camp-pre-forge-refill-credited-on-migration");
+
+        // Someone who robbed Mara as often as they helped gets no thanks for filling her camp.
+        var y=CharacterProgression.CreateEntryProfile();y.EnterVillage();y.Social.EnableForge();
+        var robbed=new ArenaSimulation(96,y,BigInteger.One,LootCatalog.Version1);
+        var robbedMara=robbed.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
+        for(int i=0;i<2;i++)
+        {
+            robbedMara.Xmm=robbed.PlayerXmm+1000;robbedMara.Zmm=robbed.PlayerZmm;robbedMara.InteractionCooldownTicks=0;
+            check(robbed.TakeCampRation().Accepted,"camp-net-theft-"+i);
+        }
+        for(int i=0;i<2;i++)
+        {
+            robbedMara.Xmm=robbed.PlayerXmm+1000;robbedMara.Zmm=robbed.PlayerZmm;robbedMara.InteractionCooldownTicks=0;
+            check(robbed.DonateCampRation().Accepted,"camp-net-return-"+i);
+        }
+        check(y.Social.CampProvisions==8&&!y.Social.CampRefilled,"camp-returned-rations-alone-do-not-fill-the-camp");
+        for(int i=0;i<2;i++)
+        {
+            robbedMara.Xmm=robbed.PlayerXmm+1000;robbedMara.Zmm=robbed.PlayerZmm;robbedMara.InteractionCooldownTicks=0;
+            robbed.DonateCampRation();
+        }
+        check(y.Social.CampProvisions==SocialLedger.CampCapacity&&y.Social.CampRefilled,"camp-net-contribution-after-theft-is-credited");
+
+        // The rule itself: a full camp from someone with as many hostile acts against Mara as helps earns no thanks.
+        var z=CharacterProgression.CreateEntryProfile();z.EnterVillage();z.Social.EnableForge();
+        var thief=new ArenaSimulation(97,z,BigInteger.One,LootCatalog.Version1);
+        var thiefMara=thief.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
+        for(int i=0;i<2;i++)
+        {
+            thiefMara.Xmm=thief.PlayerXmm+1000;thiefMara.Zmm=thief.PlayerZmm;thiefMara.InteractionCooldownTicks=0;
+            for(int k=0;k<thief.Cooldowns.Length;k++)thief.Cooldowns[k]=0;
+            check(thief.InteractNpc(SocialLedger.MaraNpcId,i==0?NpcAction.Rob:NpcAction.Attack).Accepted&&thiefMara.Memory.Health>0,"camp-hostile-act-against-mara-"+i);
+        }
+        for(int i=0;i<2;i++)
+        {
+            thiefMara.Xmm=thief.PlayerXmm+1000;thiefMara.Zmm=thief.PlayerZmm;thiefMara.InteractionCooldownTicks=0;
+            check(thief.DonateCampRation().Accepted,"camp-robber-donation-"+i);
+        }
+        check(z.Social.CampProvisions==SocialLedger.CampCapacity&&!z.Social.CampRefilled,"camp-full-from-a-robber-earns-no-thanks");
     }
 }

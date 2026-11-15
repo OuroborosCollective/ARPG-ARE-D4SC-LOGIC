@@ -4,10 +4,24 @@
   "productionCodeEqualTo": "2f296b26767ad0746a2ca26468ef299f91e43b57 (checkpoint adds documentation only)",
   "unity": "6000.6.8f1, batchmode, -force-glcore, Android build target, shared one-core CPU budget (cpu.max 100000 100000)",
   "runs": [
-    {"platform": "EditMode", "total": 85, "passed": 85, "failed": 0, "skipped": 0, "seconds": 80.0,
-     "xmlSha256": "dc633bbd2466db8646b409eb7a9364a7ad674fc4309bf687f938a7805ec5a527"},
-    {"platform": "PlayMode", "total": 132, "passed": 132, "failed": 0, "skipped": 0, "seconds": 255.6,
-     "xmlSha256": "ec6195489df77ba7b1385a2a13b2e550395f5305c0d0336b020c09dca357651a"}
+    {
+      "platform": "EditMode",
+      "total": 85,
+      "passed": 85,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 80.0,
+      "xmlSha256": "dc633bbd2466db8646b409eb7a9364a7ad674fc4309bf687f938a7805ec5a527"
+    },
+    {
+      "platform": "PlayMode",
+      "total": 132,
+      "passed": 132,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 255.6,
+      "xmlSha256": "ec6195489df77ba7b1385a2a13b2e550395f5305c0d0336b020c09dca357651a"
+    }
   ],
   "handoffGapsClosed": [
     "MissingAuthoredJourneyMapDoesNotLoadOlderBackupOrOverwritePrimary ran natively and passed (previously not executed natively)",
@@ -15,5 +29,35 @@
   ],
   "sideEffectFinding": "Quitting the editor after the PlayMode run saved a Unity-generated URP change (disabledShaderPasses: MOTIONVECTORS) into one licensed vendor foliage material. No project script performs this. The file was restored byte-exactly from the verified checkpoint archive; later runs restore such content automatically and record it.",
   "protectedState": "Owner prefs and ProjectSettings restored after every run; private overlay compared by content against the checkpoint manifest; tracked tree unchanged by the runs.",
-  "notClaimed": ["Android device execution", "performance", "natural progression balancing", "GitHub-hosted Unity build"]
+  "notClaimed": [
+    "Android device execution",
+    "performance",
+    "natural progression balancing",
+    "GitHub-hosted Unity build"
+  ],
+  "reviewFixes": {
+    "addressed": [
+      "Codex P1: a corrupted AC20 primary now falls back to a backup only when that backup is itself a valid AC20 checkpoint for the bound maps; older backups stay refused",
+      "Codex P2: journey authoring snapshots its seed folder and restores it byte for byte when a run fails (e.g. immutable map mismatch)",
+      "CodeRabbit major: journey authoring refuses a profile that an already open world uses",
+      "CodeRabbit minor: journey authoring checks the scene save result and keeps the scratch scene for recovery",
+      "CodeRabbit minor: World Forge refuses repaint/respawn/clear for terrain outside the changed output folder instead of leaving edits unsaved",
+      "Codex P1 (Memory.md): the PR now adds exactly one consolidated Memory entry"
+    ],
+    "notChanged": "CodeRabbit minor on MOB-001.assignment.yaml: codex-sdlc deliberately filters *-delivery-report.yaml from assignment outputs and generates the report itself through handoff-task; editing the published assignment would break the authority hashes.",
+    "red": {
+      "WorldForgeScopedSaveTests.OperationsRefuseTerrainOutsideTheChangedOutputFolder": "3/3 failed on the previous code (no exception)",
+      "CorruptedJourneyCheckpointRecoversOnlyFromAMatchingJourneyBackup": "failed on the previous code (backup not tried)"
+    },
+    "fullRegression": {
+      "EditMode": "90/90",
+      "PlayMode": "133/133",
+      "skipped": 0,
+      "xmlSha256": {
+        "EditMode": "209c2bae98a72511cbafd5734255f9c82638b9ca7fe72c73afcca7d26876f91f",
+        "PlayMode": "cda4fd164e7236ded2ad3aab75b6f230c058736b6672009a6657af4eb87393ac"
+      }
+    },
+    "untested": "The scene-save failure branch has no automated test (Unity cannot be made to fail SaveScene deterministically in a test)."
+  }
 }

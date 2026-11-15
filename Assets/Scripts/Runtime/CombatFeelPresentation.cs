@@ -14,6 +14,10 @@ namespace AreArpg.UnityClient
     {
         private const float HitReactionSeconds = .28f, HitReactionMetres = .34f, HitTiltDegrees = 14f, HitStopSeconds = .06f;
         private const float ToppleSeconds = .45f, SinkSeconds = .9f, ToppleDegrees = 84f, LevelBannerSeconds = 3f;
+        private const float FaceTargetSeconds = .45f, HeroActionSpacing = .35f;
+        private readonly Queue<string> _heroActions = new Queue<string>();
+        private float _heroActionAt = -10f, _faceTargetUntil = -1f;
+        private Vector3 _faceTarget;
         private readonly Dictionary<int, Vector3> _hitDirection = new Dictionary<int, Vector3>();
         private readonly Dictionary<int, float> _hitTime = new Dictionary<int, float>();
         private readonly Dictionary<int, Quaternion> _hitBaseRotation = new Dictionary<int, Quaternion>();
@@ -40,18 +44,20 @@ namespace AreArpg.UnityClient
             if (outcome.HasTarget)
             {
                 var toward = new Vector3(outcome.TargetXmm / 1000f - _hero.position.x, 0f, outcome.TargetZmm / 1000f - _hero.position.z);
-                if (toward.sqrMagnitude > .0001f) _hero.rotation = Quaternion.LookRotation(toward);
+                if (toward.sqrMagnitude > .0001f)
+                {
+                    // Movement facing is projected later in the frame; hold the target facing for the action.
+                    _faceTarget = toward.normalized; _faceTargetUntil = Time.time + FaceTargetSeconds;
+                    _hero.rotation = Quaternion.LookRotation(_faceTarget);
+                }
             }
-            string trigger = slot == 2 ? "Guard" : slot == 3 ? "Cast" : "Melee";
-            foreach (var animator in _heroMeleeAnimations)
-            {
-                if (animator == null) continue;
-                string use = HasTrigger(animator, trigger) ? trigger : "Melee";
-                animator.ResetTrigger(use); animator.SetTrigger(use);
-            }
+            // One visible action per executed ability, even when two abilities resolve in the same tick.
+            _heroActions.Enqueue(slot == 2 ? "Guard" : slot == 3 ? "Cast" : "Melee");
+            PumpHeroActions();
             foreach (int id in outcome.HitMonsterIds)
             {
-                if (!_monsterVisuals.TryGetValue(id, out var visual) || visual == null) continue;
+                var visual = HitVisual(id);
+                if (visual == null) continue;
                 var away = visual.position - _hero.position; away.y = 0f;
                 _hitDirection[id] = away.sqrMagnitude > .0001f ? away.normalized : _hero.forward;
                 _hitTime[id] = Time.time;
@@ -74,6 +80,47 @@ namespace AreArpg.UnityClient
                 _guardShimmer.transform.position = _hero.position + Vector3.up * .9f;
                 _guardShimmer.Emit(reduced ? 12 : 40);
             }
+        }
+
+        /// <summary>Start the next queued hero action once the previous one had a moment to show.</summary>
+        private void PumpHeroActions()
+        {
+            if (_heroActions.Count == 0 || Time.time - _heroActionAt < HeroActionSpacing) return;
+            string trigger = _heroActions.Dequeue();
+            _heroActionAt = Time.time;
+            foreach (var animator in _heroMeleeAnimations)
+            {
+                if (animator == null) continue;
+                string use = HasTrigger(animator, trigger) ? trigger : "Melee";
+                animator.ResetTrigger(use); animator.SetTrigger(use);
+            }
+        }
+
+        /// <summary>Keep the hero turned to the accepted target while its action plays, after movement facing was applied.</summary>
+        private void HoldTargetFacing()
+        {
+            if (_hero != null && Time.time < _faceTargetUntil && _faceTarget.sqrMagnitude > .0001f)
+                _hero.rotation = Quaternion.LookRotation(_faceTarget);
+        }
+
+        /// <summary>Regular enemies use their pooled visual; the road bear and the MaulwurfRattler have dedicated ones.</summary>
+        private Transform HitVisual(int id)
+        {
+            if (_monsterVisuals.TryGetValue(id, out var visual) && visual != null) return visual;
+            var monster = _game.Monsters.Find(m => m.Id == id);
+            if (monster == null) return null;
+            if (monster.Kind == 4) return _roadBear;
+            if (monster.Kind == 5) return _rattler;
+            return null;
+        }
+
+        private readonly Dictionary<Transform, Animator[]> _visualAnimators = new Dictionary<Transform, Animator[]>();
+        /// <summary>Every animator of a visual, not only those registered for locomotion; cached per visual.</summary>
+        private Animator[] AnimatorsOf(Transform visual)
+        {
+            if (visual == null) return System.Array.Empty<Animator>();
+            if (!_visualAnimators.TryGetValue(visual, out var animators)) _visualAnimators[visual] = animators = visual.GetComponentsInChildren<Animator>(true);
+            return animators;
         }
 
         private static bool HasTrigger(Animator animator, string name)
@@ -111,8 +158,9 @@ namespace AreArpg.UnityClient
                 if (!visual.gameObject.activeSelf) return false;
                 start = Time.time; _deathTime[id] = start;
                 _deathPosition[id] = visual.position; _deathRotation[id] = _hitBaseRotation.TryGetValue(id, out var r) ? r : visual.rotation;
-                if (_actorAnimations.TryGetValue(visual, out var animators)) foreach (var animator in animators) if (animator != null) animator.speed = 0f;
             }
+            // A defeated enemy's skeleton stays frozen while it falls, also after a brief hit-stop ends.
+            foreach (var animator in AnimatorsOf(visual)) if (animator != null) animator.speed = 0f;
             float t = Time.time - start;
             if (t > ToppleSeconds + SinkSeconds) return false;
             Vector3 direction = _hitDirection.TryGetValue(id, out var d) ? d : -visual.forward;
@@ -134,14 +182,14 @@ namespace AreArpg.UnityClient
             {
                 // Only the struck enemy stalls: the Core resolves hits at activation, so freezing the hero would delay its swing.
                 foreach (int id in _hitTime.Keys)
-                    if (_monsterVisuals.TryGetValue(id, out var visual) && visual != null && _actorAnimations.TryGetValue(visual, out var animators))
-                        foreach (var animator in animators) Freeze(animator);
+                    foreach (var animator in AnimatorsOf(HitVisual(id))) Freeze(animator);
             }
             else if (!stop && _hitStopped.Count > 0)
             {
                 foreach (var pair in _hitStopped) if (pair.Key != null && pair.Key.speed == 0f) pair.Key.speed = pair.Value;
                 _hitStopped.Clear();
             }
+            PumpHeroActions();
             var level = _game.Progression.Level;
             if (_shownLevel < 0 || level < _shownLevel) _shownLevel = level;
             else if (level > _shownLevel) { _shownLevel = level; PresentLevelUp(level); }
@@ -213,7 +261,7 @@ namespace AreArpg.UnityClient
         {
             _hitDirection.Clear(); _hitTime.Clear(); _hitBaseRotation.Clear(); _hitAppliedRotation.Clear();
             _deathTime.Clear(); _deathPosition.Clear(); _deathRotation.Clear(); _seenAlive.Clear(); _hitStopped.Clear();
-            _hitStopUntil = -1f;
+            _hitStopUntil = -1f; _heroActions.Clear(); _faceTargetUntil = -1f; _visualAnimators.Clear();
         }
     }
 }

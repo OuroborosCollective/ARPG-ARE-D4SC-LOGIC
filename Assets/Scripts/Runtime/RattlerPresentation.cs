@@ -94,6 +94,7 @@ namespace AreArpg.UnityClient
             _rattler.position = new Vector3(m.Xmm / 1000f, 0, m.Zmm / 1000f);
             Vector3 facing = new Vector3((r.TargetX - m.Xmm) / 1000f, 0, (r.TargetZ - m.Zmm) / 1000f);
             if (!m.IsDead && facing.sqrMagnitude > .01f) _rattler.rotation = Quaternion.LookRotation(facing);
+            if (!m.IsDead) ApplyHitReaction(m.Id, _rattler);
             string state = m.IsDead ? "Death" : m.BossWindupTicks > 0 ? "Attack" :
                 m.Xmm != m.PreviousXmm || m.Zmm != m.PreviousZmm ? "Run" : "Idle";
             if (_rattlerAnimator != null && _rattlerAnimation != state)

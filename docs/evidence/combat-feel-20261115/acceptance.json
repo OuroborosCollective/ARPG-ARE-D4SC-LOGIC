@@ -14,9 +14,42 @@
     "levelUp": "light enabled, banner 'STUFE 3 ERREICHT' (experience via the canonical EarnExperience fixture)",
     "regressionsFound": "Hit-stop first froze the hero animator and broke three hand-stepped animation tests (melee, grip release, bow recovery); hit-stop now applies to the struck enemy only and all three pass again."
   },
-  "fullRegression": {"EditMode": "85/85", "PlayMode": "137/137", "skipped": 0,
-    "xmlSha256": {"EditMode": "cd997b243866182ed55ee5f5dec1d44da57fb0217a4d9a1347a036581130316d", "PlayMode": "997e931c9ac64406fd7b89cb8d7457596a0d82a77a5056e16a224920a40f3973"}},
+  "fullRegression": {
+    "EditMode": "85/85",
+    "PlayMode": "137/137",
+    "skipped": 0,
+    "xmlSha256": {
+      "EditMode": "cd997b243866182ed55ee5f5dec1d44da57fb0217a4d9a1347a036581130316d",
+      "PlayMode": "997e931c9ac64406fd7b89cb8d7457596a0d82a77a5056e16a224920a40f3973"
+    }
+  },
   "core": "CoreVerification ALL PASS 19682 assertions (SkillResult only gained report fields)",
   "privateOverlay": "Generated EntryGuard/EntryCast clips and the extended hero controller were written by EntryCombatArtBuilder.AddAbilityPoses; the original controller is backed up privately. The full controller build now adds the same states.",
-  "notClaimed": ["physical tablet run", "new APK", "professional animation clips (poses are generated from the combat idle)"]
+  "notClaimed": [
+    "physical tablet run",
+    "new APK",
+    "professional animation clips (poses are generated from the combat idle)"
+  ],
+  "prReview": {
+    "addressed": [
+      "Hero keeps the target facing for the action while movement continues (applied after movement facing)",
+      "Defeated enemies stay frozen after hit-stop; all animators of a visual are used, not only locomotion-registered ones",
+      "Abilities resolved in the same tick each play their own hero action through a short action queue",
+      "Hits on the road bear and the MaulwurfRattler reach their dedicated visuals (knockback and hit-stop)"
+    ],
+    "red": "TargetFacingHoldsWhileRunningDuringTheAction, SameTickAbilitiesEachShowAnAction, DefeatedEnemiesStayFrozenAfterHitStop and RoadBearReactsToHitsOptically all failed on the previous code",
+    "green": {
+      "facing": "0.99+ towards target during the action, then towards movement",
+      "sameTick": "2 separate Melee starts",
+      "bear": "max optical offset 0.315 m, final 0.000 m",
+      "EditMode": "90/90",
+      "PlayMode": "142/142",
+      "skipped": 0,
+      "xmlSha256": {
+        "EditMode": "1c04d7833b8e5a5cc8c3f1c2b4920f765ea84481d4a9b2aed0d2392f5d2eef47",
+        "PlayMode": "7ae7fc0c3179f0aa29d792edb5f33f035b4c538daae485786e7c0a4c53f97ae7"
+      }
+    },
+    "untested": "The MaulwurfRattler path uses the same HitVisual/ApplyHitReaction code as the bear but has no dedicated test."
+  }
 }

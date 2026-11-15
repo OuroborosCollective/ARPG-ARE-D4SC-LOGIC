@@ -24,7 +24,7 @@ namespace AreArpg.Core
             var forge = Progression.Social.Forge;
             if (forge == null || forge.ProcessedTicks % 10 != 0) return;
             // Saves from before the side task existed: a camp the player already refilled is credited once.
-            if (!Progression.Social.CampRefilled && Progression.Social.CampProvisions >= SocialLedger.CampCapacity) RecordCampRefill(0);
+            if (!Progression.Social.CampRefilled && Progression.Social.CampProvisions >= SocialLedger.CampCapacity) RecordCampRefill();
             foreach (NpcAgent npc in Npcs)
             {
                 if (npc.Id > 2 || npc.Memory.Health == 0 || npc.Mind == null) continue;
@@ -85,22 +85,15 @@ namespace AreArpg.Core
 
         /// <summary>
         /// Record the one-time side task completion when the player's own rations filled Mara's camp. Only a net
-        /// contribution counts: returning rations the player stole earlier is not help. <paramref name="paidNow"/> covers
-        /// rations handed over in the current transaction without a separate donation event (the replace decision).
+        /// contribution counts: Mara's persisted memory records every handed-over ration as help and every camp theft or
+        /// assault as a hostile act, in old saves from before the memory archive as well. Returning a stolen ration is no help.
         /// </summary>
-        private bool RecordCampRefill(int paidNow)
+        private bool RecordCampRefill()
         {
             var forge = Progression.Social.Forge;
             if (forge == null || Progression.Social.CampRefilled || Progression.Social.CampProvisions < SocialLedger.CampCapacity) return false;
-            int given = paidNow, stolen = 0;
-            foreach (var e in forge.Archive.Events)
-            {
-                if (e.Actor != "player") continue;
-                if (e.Context == "camp.donation") given++;
-                else if (e.Context == "camp.theft") stolen++;
-                else if (e.Context == "story.replace") given += SocialLedger.CampCapacity;
-            }
-            if (given <= stolen) return false;
+            var mara = Progression.Social.GetMemory(SocialLedger.MaraNpcId);
+            if (mara.HelpfulActions <= mara.HostileActions) return false;
             var ev = forge.Archive.Append(MemoryKind.Quest, "player", "mara", forge.ProcessedTicks, 6000, true, SocialLedger.CampRefillContext,
                 new RelationshipChange(gratitude: 1000, trust: 500));
             forge.Archive.Learn("mara", ev.Id, KnowledgeOrigin.Self, "mara", forge.ProcessedTicks);

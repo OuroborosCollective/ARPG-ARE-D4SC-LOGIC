@@ -97,6 +97,21 @@ namespace AreArpg.PlayMode.Tests
             }
             finally{field.SetValue(_runtime,maps);}
         }
+        /// <summary>Review fix: a corrupted AC20 primary recovers from a valid AC20 backup, never from an older one.</summary>
+        [UnityTest]
+        public IEnumerator CorruptedJourneyCheckpointRecoversOnlyFromAMatchingJourneyBackup()
+        {
+            InstallJourneyStationFixture();string legacy=Game.Progression.SaveString();MoveStory(0,18000);TravelStory();yield return null;
+            string saved=PlayerPrefs.GetString(_keys[0]);Assert.That(saved,Does.StartWith("AC20|"));
+            string corrupted=saved.Substring(0,saved.Length-24);
+            PlayerPrefs.SetString(_keys[0],corrupted);PlayerPrefs.SetString(_keys[1],saved);
+            object[] args={null};
+            Assert.IsTrue((bool)typeof(ArenaRuntime).GetMethod("TryLoadCharacter",Flags).Invoke(_runtime,args),"A valid AC20 backup must recover a truncated AC20 primary");
+            Assert.AreEqual(Game.Progression.SaveString(),((CharacterProgression)args[0]).SaveString(),"The recovered checkpoint is the exact backup");
+            PlayerPrefs.SetString(_keys[1],legacy);args[0]=null;
+            Assert.IsFalse((bool)typeof(ArenaRuntime).GetMethod("TryLoadCharacter",Flags).Invoke(_runtime,args),"An older backup must still be refused");
+            Assert.IsNull(args[0]);Assert.AreEqual(corrupted,PlayerPrefs.GetString(_keys[0]));Assert.AreEqual(legacy,PlayerPrefs.GetString(_keys[1]));
+        }
         private void JourneyNativeWalk(long x,long z,bool fight=true)
         {
             var g=Game.JourneyGeometry;Func<long,long,(int,int)> cell=(a,b)=>((int)((a-g.OriginMm+g.CellMm/2)/g.CellMm),(int)((b-g.OriginMm+g.CellMm/2)/g.CellMm));
