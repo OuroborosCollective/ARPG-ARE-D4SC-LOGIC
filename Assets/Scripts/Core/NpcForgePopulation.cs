@@ -35,8 +35,9 @@ namespace AreArpg.Core
             }
             if(_forgePopulationKey==null)
             {
-                string key=Progression.EntryAct.ToString(CultureInfo.InvariantCulture)+"/"+_runSeed.ToString("X16",CultureInfo.InvariantCulture)+"/"+CryptDepth.ToString(CultureInfo.InvariantCulture)+"/"+
-                    (InForest?Progression.Woodland.Seed:InDungeon?Progression.Dungeon.Seed:0).ToString("X16",CultureInfo.InvariantCulture)+"/"+(InDungeon?Progression.Dungeon.Depth:0).ToString(CultureInfo.InvariantCulture);
+                string key=CurrentAreaId.ToString(CultureInfo.InvariantCulture)+"/"+_runSeed.ToString("X16",CultureInfo.InvariantCulture)+"/"+CryptDepth.ToString(CultureInfo.InvariantCulture)+"/"+
+                    (InJourney?JourneySeed:InForest?Progression.Woodland.Seed:InDungeon?Progression.Dungeon.Seed:0).ToString("X16",CultureInfo.InvariantCulture)+"/"+(InJourneyCave?Progression.Journey.Depth:InDungeon?Progression.Dungeon.Depth:0).ToString(CultureInfo.InvariantCulture);
+                if(InJourney)key+="/"+Progression.Journey.MapHash.ToString("X16",CultureInfo.InvariantCulture);
                 using(var sha=SHA256.Create())_forgePopulationKey=string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(key)).Select(b=>b.ToString("x2",CultureInfo.InvariantCulture)));
             }
             return "mob."+_forgePopulationKey+"."+enemy.Kind.ToString(CultureInfo.InvariantCulture)+"."+enemy.Id.ToString(CultureInfo.InvariantCulture);

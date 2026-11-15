@@ -71,7 +71,7 @@ namespace AreArpg.UnityClient
             _hudRoot.sizeDelta = new Vector2(l.Width, l.Height);
             _hudGeometry = new Vector4(HudScreenWidth, HudScreenHeight, l.SafeArea.xMin + l.SafeArea.width * 3f, l.SafeArea.yMin + l.SafeArea.height * 7f);
 
-            _hudBuiltAct = _game != null ? _game.Progression.EntryAct : -1;
+            _hudBuiltAct = _game != null ? _game.PresentationLocation : -1;
             _hudGameplay = AshenUiTheme.Node("Gameplay", _hudRoot).gameObject;
             AshenUiTheme.Stretch((RectTransform)_hudGameplay.transform);
             Transform g = _hudGameplay.transform;
@@ -371,7 +371,7 @@ namespace AreArpg.UnityClient
             if (_game == null) return;
             ArenaHudLayout l = CurrentHudLayout();
             var geometry = new Vector4(HudScreenWidth, HudScreenHeight, l.SafeArea.xMin + l.SafeArea.width * 3f, l.SafeArea.yMin + l.SafeArea.height * 7f);
-            if (_hudCanvas == null || _hudRoot == null || geometry != _hudGeometry || _hudBuiltAct != _game.Progression.EntryAct) BuildHud();
+            if (_hudCanvas == null || _hudRoot == null || geometry != _hudGeometry || _hudBuiltAct != _game.PresentationLocation) BuildHud();
 
             _hudFault.SetActive(_storageFault);
             bool over = _game.GameOver;
@@ -480,9 +480,9 @@ namespace AreArpg.UnityClient
             foreach (var loot in _game.GroundLoot)
                 PlaceDot(ref used, loot.Xmm, loot.Zmm, new Color(1f, 0.95f, 0.55f), 8f, PerMetre, Radius);
             if (_worldPassage != null)
-                PlaceDot(ref used, ArenaSimulation.PassageXmm, ArenaSimulation.PassageZmm, new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
+                PlaceDot(ref used, (long)(_worldPassage.position.x*1000), (long)(_worldPassage.position.z*1000), new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
             if (_returnPassage != null)
-                PlaceDot(ref used, 0, ArenaSimulation.ReturnPassageZmm, new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
+                PlaceDot(ref used, (long)(_returnPassage.position.x*1000), (long)(_returnPassage.position.z*1000), new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
             foreach(var portal in _woodlandPortals) if(portal!=null) PlaceDot(ref used,(long)(portal.position.x*1000),(long)(portal.position.z*1000),new Color(.35f,.85f,1f),12f,PerMetre,Radius);
             for (int i = used; i < _hudDots.Count; i++) _hudDots[i].enabled = false;
             _hudMinimapLabel.text = DisplayChapterName(_game);

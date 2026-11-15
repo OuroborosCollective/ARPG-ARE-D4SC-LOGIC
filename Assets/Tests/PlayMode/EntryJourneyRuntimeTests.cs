@@ -823,7 +823,7 @@ namespace AreArpg.PlayMode.Tests
                 yield return null;
             _runtime.enabled = false;
             Assert.AreEqual(-1, (int)typeof(ArenaRuntime).GetField("_pendingHungerAction", Flags).GetValue(_runtime));
-            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), NativeJourneyMaps, out var saved));
             Assert.AreEqual(Game.Progression.HungerStage, saved.HungerStage);
         }
 

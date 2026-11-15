@@ -63,6 +63,8 @@ namespace AreArpg.UnityClient
         {
             _entryProfile = gameObject.scene.name == "AshenEntry";
             Application.targetFrameRate = 60;
+            try { _journeyMaps=LoadJourneyMaps(); }
+            catch (Exception e) when(e is FormatException || e is ArgumentException) { Debug.LogError("Journey map validation failed: "+e.Message); }
             CharacterProgression saved;
             if (!TryLoadCharacter(out saved))
             {
@@ -72,7 +74,7 @@ namespace AreArpg.UnityClient
             }
             if(!_storageFault&&saved!=null)saved.Social.EnableForge();
             _game = new ArenaSimulation(DemoSeed, saved,
-                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1);
+                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1, _journeyMaps);
             if (!_storageFault) _game.Progression.Equipment.Enable(_game.Progression);
             if (_game.IsVillage)
                 _message = "Aschengrenze: Lager, Wache und Nordpass. Deine Taten bleiben in Erinnerung.";
@@ -96,8 +98,9 @@ namespace AreArpg.UnityClient
                 saved = _entryProfile ? CharacterProgression.CreateEntryProfile() : new CharacterProgression();
                 return true;
             }
-            if (CharacterProgression.TryLoad(primary, out saved)) return true;
-            if (CharacterProgression.TryLoad(backup, out saved)) return true;
+            if (CharacterProgression.TryLoad(primary, _journeyMaps, out saved)) return true;
+            if (primary.StartsWith("AC20|",StringComparison.Ordinal)) return false;
+            if (CharacterProgression.TryLoad(backup, _journeyMaps, out saved)) return true;
             saved = null;
             return false;
         }
@@ -114,13 +117,13 @@ namespace AreArpg.UnityClient
             if (_storageFault || progress == null) return;
             string primary = PlayerPrefs.GetString(CharacterSaveKey, "");
             CharacterProgression previous;
-            if (CharacterProgression.TryLoad(primary, out previous))
+            if (CharacterProgression.TryLoad(primary, _journeyMaps, out previous))
                 PlayerPrefs.SetString(CharacterBackupKey, primary);
             string next = progress.SaveString();
             PlayerPrefs.SetString(CharacterSaveKey, next);
             PlayerPrefs.Save();
             CharacterProgression verified;
-            if (!CharacterProgression.TryLoad(PlayerPrefs.GetString(CharacterSaveKey, ""), out verified) ||
+            if (!CharacterProgression.TryLoad(PlayerPrefs.GetString(CharacterSaveKey, ""), _journeyMaps, out verified) ||
                 verified.StableHash != progress.StableHash)
             {
                 _storageFault = true;
@@ -334,6 +337,7 @@ namespace AreArpg.UnityClient
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
             if (_entryProfile && _game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4)
                 _chapterScenery.Add(OutdoorBackdrop.Create(_game.Progression.EntryAct));
+            if (_game.InJourney) { BuildJourneyScenery(); return; }
             if (_game.InWoodlandRegion) { BuildWoodlandScenery(); return; }
             if (_game.InDungeon) { BuildDungeonScenery(); return; }
             if (_game.Progression.EntryAct == 7) { BuildRattlerDen(); return; }
@@ -843,13 +847,17 @@ namespace AreArpg.UnityClient
         private void Restart()
         {
             if (_storageFault) return;
-            _game.Progression.Road.RestartPlayer();
-            _game.Progression.Investigation.RestartPlayer();
-            _game.Progression.Woodland.RestartPlayer();
-            _game.PrepareVillagePlayerRestart();
+            if(_game.InJourney)_game.RestartJourneyPlayer();
+            else
+            {
+                _game.Progression.Road.RestartPlayer();
+                _game.Progression.Investigation.RestartPlayer();
+                _game.Progression.Woodland.RestartPlayer();
+                _game.PrepareVillagePlayerRestart();
+            }
             SaveCharacter();
             if (_storageFault) return;
-            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version1),
+            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version1, _journeyMaps),
                 "Crypt restarted - character progression retained.");
         }
 
@@ -872,7 +880,7 @@ namespace AreArpg.UnityClient
                 "AKT II: Folge dem Dorfweg zu Ilyan, Mara und Dorn. Zwei Rationen fehlen." :
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;
-            _hero.position = new Vector3(next.PlayerXmm / 1000f, 1.05f, next.PlayerZmm / 1000f);
+            _hero.position = new Vector3(next.PlayerXmm / 1000f, 1.05f + GroundHeight(next.PlayerXmm / 1000f,next.PlayerZmm / 1000f), next.PlayerZmm / 1000f);
             if (_cameraRig != null) { RefreshCameraOccluders(); _cameraRig.SnapToTarget(); }
         }
 
@@ -1047,6 +1055,7 @@ namespace AreArpg.UnityClient
                 }
                 if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
             }
+            UpdateJourneyPresentation();
             UpdateDungeonPresentation();
             UpdateWoodlandPresentation();
             UpdateEquipmentPresentation();

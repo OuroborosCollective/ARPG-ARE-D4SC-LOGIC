@@ -4,7 +4,7 @@ namespace AreArpg.Core
 {
     public sealed partial class ArenaSimulation
     {
-        public bool InWoodlandRegion => Progression.EntryAct>=8&&Progression.EntryAct<=10;
+        public bool InWoodlandRegion => !InJourney && Progression.EntryAct>=8&&Progression.EntryAct<=10;
         public bool InForest => Progression.EntryAct==8;
         public const long MillForestXmm=-20000,MillForestZmm=18000;
         private bool Near(long x,long z,long radius=PassageRadiusMm) => DistanceSquared(PlayerXmm,PlayerZmm,x,z)<=FixedMath.Square(radius);
@@ -12,7 +12,7 @@ namespace AreArpg.Core
         {
             get
             {
-                if(!Progression.Woodland.Active) return 0;
+                if(InJourney||!Progression.Woodland.Active) return 0;
                 int act=Progression.EntryAct;
                 if(act==4&&Near(MillForestXmm,MillForestZmm))return 8;
                 if(act==8) { if(Near(0,-48000))return 4; if(Near(0,48000))return 10; if(Near(-36000,0))return 9; }
@@ -27,7 +27,7 @@ namespace AreArpg.Core
             if(act==9)return Math.Abs(x)<=10000&&z>=-20000&&z<=14000;
             return act==10&&Math.Abs(x)<=14000&&z>=-20000&&z<=20000;
         }
-        private bool CombatSight(long ax,long az,long bx,long bz) => Progression.EntryAct==2?EntryWorldLayout.HasSight(ax,az,bx,bz):InForest?Progression.Woodland.Layout.HasSight(ax,az,bx,bz):!InDungeon||Progression.Dungeon.Current.Layout.HasSight(ax,az,bx,bz);
+        private bool CombatSight(long ax,long az,long bx,long bz) => InJourney?JourneyGeometry.HasSight(ax,az,bx,bz):Progression.EntryAct==2?EntryWorldLayout.HasSight(ax,az,bx,bz):InForest?Progression.Woodland.Layout.HasSight(ax,az,bx,bz):!InDungeon||Progression.Dungeon.Current.Layout.HasSight(ax,az,bx,bz);
         private void InitializeWoodland()
         {
             var w=Progression.Woodland;
@@ -44,6 +44,7 @@ namespace AreArpg.Core
         }
         private void SaveWoodlandPlayer()
         {
+            SaveJourneyPlayer();
             if(!InWoodlandRegion)return;
             var w=Progression.Woodland;w.Tick=CurrentTick;
             w.SavedAct=Progression.EntryAct;w.SavedX=PlayerXmm;w.SavedZ=PlayerZmm;w.SavedHealth=PlayerHealth;w.SavedResource=Resource;
@@ -55,13 +56,13 @@ namespace AreArpg.Core
             int target=WoodlandPassage,from=Progression.EntryAct;
             if(target==0||GameOver||GroundLoot.Count!=0)return null;
             SaveWoodlandPlayer();
-            if(!CharacterProgression.TryLoad(Progression.SaveString(),out var p))return null;
+            if(!CharacterProgression.TryLoad(Progression.SaveString(),_journeyMaps,out var p))return null;
             var w=p.Woodland;
             if(from==8&&(target==4||target==10))w.NeedsNewRun=true;
             if(target==10)w.ReachedAschenzoll=true;
             if(target==8&&from!=9)w.Enter();
             p.TravelHunger(target,false);
-            var next=new ArenaSimulation(_runSeed,p,CryptDepth,_lootCatalog);
+            var next=new ArenaSimulation(_runSeed,p,CryptDepth,_lootCatalog,_journeyMaps);
             long x=0,z=-15000;
             if(target==8) { x=from==9?-33000:0; z=from==4?-45000:from==10?45000:0; }
             if(target==4) { x=MillForestXmm+3000;z=MillForestZmm; }

@@ -209,7 +209,7 @@ namespace AshenCrypt.WorldForge.EditorTools
                 for (int tx = 0; tx < p.tilesX; tx++)
                     world.GetTile(tx, tz).SetNeighbors(world.GetTile(tx - 1, tz), world.GetTile(tx, tz + 1), world.GetTile(tx + 1, tz), world.GetTile(tx, tz - 1));
             Terrain.SetConnectivityDirty();
-            AssetDatabase.SaveAssets();
+            SaveOwnedTerrainData(world);
             return world;
         }
 
@@ -677,7 +677,22 @@ namespace AshenCrypt.WorldForge.EditorTools
             if (world == null) return;
             EditorUtility.SetDirty(world);
             EditorSceneManager.MarkSceneDirty(world.gameObject.scene);
-            AssetDatabase.SaveAssets();
+            SaveOwnedTerrainData(world);
+        }
+
+        // Generation owns the terrain data it writes, not every dirty asset in the editor.
+        // Profile, biome, material overrides and unrelated scenes remain under their callers' save ownership.
+        private static void SaveOwnedTerrainData(ForgedWorld world)
+        {
+            string prefix=world.profile.outputFolder.TrimEnd('/')+"/";
+            foreach(var terrain in world.tiles)
+            {
+                if(terrain==null||terrain.terrainData==null)continue;
+                var data=terrain.terrainData;
+                if(!AssetDatabase.GetAssetPath(data).StartsWith(prefix,StringComparison.Ordinal))continue;
+                EditorUtility.SetDirty(data);
+                AssetDatabase.SaveAssetIfDirty(data);
+            }
         }
 
         private static void Progress(string info, float t)

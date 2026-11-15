@@ -1,7 +1,7 @@
 {
   "name": "AreArpg.Core",
   "rootNamespace": "AreArpg.Core",
-  "references": ["AshenCrypt.MemoryForge"],
+  "references": ["AshenCrypt.MemoryForge", "AshenCrypt.WorldForge.Core"],
   "autoReferenced": true,
   "noEngineReferences": true
 }

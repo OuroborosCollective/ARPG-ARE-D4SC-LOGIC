@@ -44,7 +44,7 @@ namespace AreArpg.UnityClient
             var care=AshenUiTheme.MenuButton("CompanionCare",panel.transform,new Rect(44+width*2,size.y-56,width,38),"PROVIANT GEBEN",()=>QueueCompanionAction(2),fontSize:13);
             care.interactable=joined&&near&&c.Health>0&&p.Social.Provisions>0&&(c.Health<CompanionState.MaximumHealth||c.Hunger>=400||c.Fatigue>=300);
         }
-        private static string CompanionAreaName(int area) => area==2?"Immergrün":area==3?"Waldstraße":area==4?"Alte Mühle":area==10?"Aschenzoll":"Eure letzte gemeinsame Reise";
+        private static string CompanionAreaName(int area) => area==2?"Immergrün":area==3?"Waldstraße":area==4?"Alte Mühle":area==10?"Aschenzoll":area==11?"Waldweg jenseits von Aschenzoll":area==12?"Seitenhöhle":"Eure letzte gemeinsame Reise";
         private void EquipCompanionInventoryItem(WeaponItem item)
         {
             var c=_game.Progression.Companion;bool worn=c.WeaponOrdinal==item.Ordinal||c.ShieldOrdinal==item.Ordinal;

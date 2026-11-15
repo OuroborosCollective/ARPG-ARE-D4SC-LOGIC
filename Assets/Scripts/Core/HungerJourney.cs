@@ -49,13 +49,13 @@ namespace AreArpg.Core
     public sealed partial class ArenaSimulation
     {
         public const long ReturnPassageZmm = -24000L;
-        public bool AtReturnPassage { get { return !InWoodlandRegion && Progression.EntryAct >= 3 &&
+        public bool AtReturnPassage { get { return !InJourney && !InWoodlandRegion && Progression.EntryAct >= 3 &&
             DistanceSquared(PlayerXmm, PlayerZmm, 0, ReturnPassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
-        public bool AtAnyPassage { get { return AtWoodlandPassage || AtWorldPassage || AtReturnPassage; } }
+        public bool AtAnyPassage { get { return AtJourneyPassage || AtWoodlandPassage || AtWorldPassage || AtReturnPassage; } }
         /// <summary>Authored shelter encounter: one patient is missing on the return visit, on every supply branch.</summary>
         public int HungerShelterPatients { get { return Progression.EntryAct != 4 ? 0 :
             Progression.SupplyChoice == HungerChoice.Undecided ? 3 : 2; } }
-        public bool HungerForwardOpen { get { return InWoodlandRegion ? false : InDungeon ? DungeonForwardOpen : Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
+        public bool HungerForwardOpen { get { return InJourney ? JourneyForwardOpen : InWoodlandRegion ? false : InDungeon ? DungeonForwardOpen : Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
             Progression.EntryAct == 3 ? Progression.HungerStage >= 2 :
             Progression.EntryAct == 4 ? Progression.HungerStage == 4 :
             Progression.EntryAct == 5 ? Progression.Investigation.Approach != SealApproach.Undecided :
@@ -66,13 +66,13 @@ namespace AreArpg.Core
         {
             if (InDungeon) return TraverseDungeon(backwards);
             if (GameOver || GroundLoot.Count != 0 || (backwards ? Progression.EntryAct < 3 : !HungerForwardOpen)) return null;
-            if (!CharacterProgression.TryLoad(Progression.SaveString(), out var next)) return null;
+            if (!CharacterProgression.TryLoad(Progression.SaveString(), _journeyMaps, out var next)) return null;
             if (Progression.EntryAct == 5 && !backwards && next.Dungeon.Active && next.Dungeon.NeedsNewRun)
             {
                 next.Dungeon.NextRun(); next.Rattler.RestartDungeonRun();
             }
             next.TravelHunger(Progression.EntryAct + (backwards ? -1 : 1), backwards);
-            return new ArenaSimulation(_runSeed, next, CryptDepth, _lootCatalog);
+            return new ArenaSimulation(_runSeed, next, CryptDepth, _lootCatalog, _journeyMaps);
         }
 
         public const long MillShelterPostHalfWidthMm = 120;
@@ -119,6 +119,7 @@ namespace AreArpg.Core
         }
         private SocialResult ActOnHungerCore(HungerAction action)
         {
+            if (InJourney) return action==HungerAction.OpenWestChest?OpenJourneyChest(0):action==HungerAction.OpenEastChest?OpenJourneyChest(1):new SocialResult();
             if (action >= HungerAction.InspectFreightNotice) return ActOnFreight(action);
             if (action >= HungerAction.AcceptTransportLead) return ActOnWoodland(action);
             if (action >= HungerAction.OpenDungeonSeal && action <= HungerAction.BeginDungeonRun) return ActOnDungeon(action);
@@ -200,6 +201,7 @@ namespace AreArpg.Core
             get
             {
                 if (InDungeon) return DungeonObjective;
+                if (InJourney) return JourneyObjective;
                 if (Progression.Woodland.Active && Progression.EntryAct != 5 && Progression.EntryAct != 6 && Progression.EntryAct != 7) return WoodlandObjective;
                 if (Progression.EntryAct == 5 && Progression.Dungeon.NeedsNewRun) return "Beim naechsten Abstieg beginnt ein neuer Dungeon-Run mit neuen Wegen, Gegnern und Beute. Deine Storyfortschritte bleiben erhalten.";
                 switch (Progression.HungerStage)

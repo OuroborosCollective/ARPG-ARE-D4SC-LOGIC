@@ -19,8 +19,8 @@ namespace AreArpg.UnityClient
         private void RebuildAtmosphere()
         {
             if (_atmosphere == null) return;
-            _atmosphere.EnterRegion(_game.Progression.EntryAct);
-            int act = _game.Progression.EntryAct;
+            _atmosphere.EnterRegion(_game.CurrentAreaId);
+            int act = _game.CurrentAreaId;
             if (act == 3)
                 foreach (int side in new[] { -1, 1 }) ChapterShape(PrimitiveType.Cube, "Grass verge", new Vector3(side * 8, -.015f, 0),
                     new Vector3(4, .04f, 36), new Color(.20f, .25f, .14f));
