@@ -1,0 +1,197 @@
+{
+  "state": "bounded forest pilot source and real maps; Core repeated in two processes, native gameplay acceptance pending",
+  "files": [
+    {
+      "path": "Assets/AshenCrypt/WorldForge/Editor/WFTerrainBuilder.cs",
+      "sha256": "6ea634a255765ec732b82febd3839e0f7d061520200ffa2c909da529205e4090"
+    },
+    {
+      "path": "Assets/AshenCrypt/WorldForge/Tests/Editor/AshenCrypt.WorldForge.Tests.asmdef",
+      "sha256": "b60cbe52d0a8a0bb8d4d29194d92179d668f319bd6fd19f2b5d51231ff00b625"
+    },
+    {
+      "path": "Assets/Scripts/Core/AreArpg.Core.asmdef",
+      "sha256": "72da79ca161056208020d61e4fea1b5428d5e1c657618e16535bd99d6833f81b"
+    },
+    {
+      "path": "Assets/Scripts/Core/ArpgSimulation.cs",
+      "sha256": "ae29d691178467b502e55821f289aa7c9a612fc860d3974630079fabc7da7041"
+    },
+    {
+      "path": "Assets/Scripts/Core/AschenzollFreight.cs",
+      "sha256": "adfae0a98b754675f72b58cda4412f680f5cd7081e6d5f3bc07c1f61d2633103"
+    },
+    {
+      "path": "Assets/Scripts/Core/CryptDungeon.cs",
+      "sha256": "b0d041beafcecf81c1139ad57936fdfe72876fffa9a322fe15f87babd82dfa62"
+    },
+    {
+      "path": "Assets/Scripts/Core/HungerJourney.cs",
+      "sha256": "f8079cb3f8a08e62de12b43ceca84f3ea3cfd6756e8b969bcd7f90c7c5ec7301"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeCompanion.cs",
+      "sha256": "1427a4667acae575c58c6bdc1e384547ac71563ef5a80152dd3d00df16603e46"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgePopulation.cs",
+      "sha256": "244c2ec7f8cd70f3bb6699740409d38351b15f5cfe8667b45ae25b06b4eb28e6"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeStory.cs",
+      "sha256": "3b3891d77e042d65ba0ccf6522869cc626ff9175d44e8b6dbc860a3485d0d41b"
+    },
+    {
+      "path": "Assets/Scripts/Core/WoodlandJourney.cs",
+      "sha256": "45c93e00d7ce8bb3f1658679bc4807885981cb7beba8c5fa3079551c3522014c"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/AreArpg.Runtime.asmdef",
+      "sha256": "4a5f175ffb20201eebab66ff56070c2ebaacc25358773078b9ddfc730badb308"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/ArenaRuntime.cs",
+      "sha256": "6b46103a506983d7cb14a101424ac940411c8af05720eb7c2fb280cc191de6c4"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/AshenAtmosphere.cs",
+      "sha256": "17c048393ab56dbea09580455d31f318148cea2867498c0358056b37585254ea"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/AtmosphereLibrary.cs",
+      "sha256": "1d61906c5510938b7a4d22ac2821da174b016057444265f5d90e4020cc86b90e"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/AtmospherePresentation.cs",
+      "sha256": "ba096cca3b167c7ca6711f307c001b75b1ea3735774b1e3b8368b2d1642fc3f0"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/CompanionPresentation.cs",
+      "sha256": "0562d5f78245c5ff4e324b8944bab7b924a9643dd357c9ed67e1a260660b35d7"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/HudPresentation.cs",
+      "sha256": "8536c532a9d3a307dd0ef2bc431bfa1b887c13e19ef8238f25fa346aa9674084"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/HungerJourneyPresentation.cs",
+      "sha256": "0c114ae878f0deedf79069a3a21126b278010f0d83ae218b3655b22d660a08a7"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/WoodlandPresentation.cs",
+      "sha256": "927c768740220db610b02074dbc1d99868b2a94bafcd9c032d388375030392c5"
+    },
+    {
+      "path": "Assets/Tests/EditMode/AreArpg.EditMode.Tests.asmdef",
+      "sha256": "a70171d505a981349a6e48a670bd4c0f8371073d7943a883e063cc0ea267093e"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/AreArpg.PlayMode.Tests.asmdef",
+      "sha256": "6b35d0252b84f09ffc485f93488331cae5766c8ce47ea56e4742ecf8c039f762"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/EntryJourneyRuntimeTests.cs",
+      "sha256": "151c0d1f3f416f798c8447c4b47107563ed7a0e59517ab9e5638fa491c3f9456"
+    },
+    {
+      "path": "Tests/CoreVerification/CompanionForgeTests.cs",
+      "sha256": "44b692ccdf9dcb5958eb8be4c232f32a0f7244d62287f22f0bc090211febf17f"
+    },
+    {
+      "path": "Tests/CoreVerification/CoreVerification.csproj",
+      "sha256": "026c24d39bcc0900d2a66f534b6e1c96aefcec0e01cd97ec23cd6ecae06a124e"
+    },
+    {
+      "path": "Tests/CoreVerification/Program.cs",
+      "sha256": "b07524c93ef1a427693aedad73a04a5e10865afa251dea39a242fd8a649ba042"
+    },
+    {
+      "path": "Assets/AshenCrypt/WorldForge/Tests/Editor/WorldForgeScopedSaveTests.cs",
+      "sha256": "8159ac5d0880422c260e10249ddea4c92021eed7ee3862d13ec7c2efcd31ecaa"
+    },
+    {
+      "path": "Assets/AshenCrypt/WorldForge/Tests/Editor/WorldForgeScopedSaveTests.cs.meta",
+      "sha256": "ebe3dec482a039d8da8bdecdf3b01946874b11e7669815513e1fda2a2da8a244"
+    },
+    {
+      "path": "Assets/Editor/JourneyWorldAuthoring.cs",
+      "sha256": "769d596346944f8eaf6fe4e433d4237766f950165ebf31f1a740d37cf7ccf6a0"
+    },
+    {
+      "path": "Assets/Editor/JourneyWorldAuthoring.cs.meta",
+      "sha256": "0b6e34a99c51b3131e352dc07a27447ef8636c1128858b70e54269c63b4c889d"
+    },
+    {
+      "path": "Assets/Resources/ARE/JourneyMaps.meta",
+      "sha256": "7ec1b817351af2ddf4929d4ac115e3e22b024a47ee462125c2a53b3f0449f17b"
+    },
+    {
+      "path": "Assets/Resources/ARE/JourneyMaps/Wald_v1_731904.bytes",
+      "sha256": "a6fc8fafb852d0b51bb0e2da0ac445f12ece5a263cfe9cecb8f65e7a8b948415"
+    },
+    {
+      "path": "Assets/Resources/ARE/JourneyMaps/Wald_v1_731904.bytes.meta",
+      "sha256": "866dc17d44611b1a321cd3fc071b9be8eb62a9f078cdfa0abfa3066c0eecf368"
+    },
+    {
+      "path": "Assets/Resources/ARE/JourneyMaps/Wald_v1_731905.bytes",
+      "sha256": "5d774ced0df653b6f1573b9bb2ac7e64011b8158516824b00997236669e33188"
+    },
+    {
+      "path": "Assets/Resources/ARE/JourneyMaps/Wald_v1_731905.bytes.meta",
+      "sha256": "d5abae85803cb494f70010780f1ad2883363625047e398cdb832a4d753fc10c1"
+    },
+    {
+      "path": "Assets/Scripts/Core/JourneyLayout.cs",
+      "sha256": "093b80079511c52b7c18ae4b51bc30dc52b20179a81e8bd3ee9ccff6e5063448"
+    },
+    {
+      "path": "Assets/Scripts/Core/JourneyLayout.cs.meta",
+      "sha256": "ba21c9e4060729c2c9f283eb10b74d470cceb17cfc89b453f2a66f91b92a89fd"
+    },
+    {
+      "path": "Assets/Scripts/Core/JourneySimulation.cs",
+      "sha256": "fe470fad9f60c4143bf058ce71b85ae258da71af50ae6dc00f24e74e27ca234c"
+    },
+    {
+      "path": "Assets/Scripts/Core/JourneySimulation.cs.meta",
+      "sha256": "ceb1b1ccbf9edb83f5e81a07315fd1a66b6484d59fa6586cbfb0eefe52980003"
+    },
+    {
+      "path": "Assets/Scripts/Core/JourneyState.cs",
+      "sha256": "6b2174db811c905b06afd1f60cf5778435423d8c528e68ca1c8557436bb40406"
+    },
+    {
+      "path": "Assets/Scripts/Core/JourneyState.cs.meta",
+      "sha256": "38595f0bfe42acde97860366e9848979e496d9770b2fb0a542455e1378e09bdc"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/JourneyPresentation.cs",
+      "sha256": "2bd9f2b9f33c12c36523051d9c040a9ed3452e937cdc96f585837c6915d8cf17"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/JourneyPresentation.cs.meta",
+      "sha256": "aaf4df42a9d1a9cd5eac25dc67ac440979f7e1fb2795918efa627192a713abf6"
+    },
+    {
+      "path": "Assets/Tests/EditMode/JourneyMapEditModeTests.cs",
+      "sha256": "dc273372772c6bb8c1f8b0153facb57dc65ab10fbb4083f98fa5b65b7d8d6b1b"
+    },
+    {
+      "path": "Assets/Tests/EditMode/JourneyMapEditModeTests.cs.meta",
+      "sha256": "34f4bf53bedea1d8b1a8be2b022622218684f886f2423678ab679ead975d2270"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/JourneyPilotRuntimeTests.cs",
+      "sha256": "211355545dde42d944f66c22b1175af666777a25296a19ef7f0bf9441239542c"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/JourneyPilotRuntimeTests.cs.meta",
+      "sha256": "5011edb4994a33b67c64b19678dbb071b401a5fb3ab657768cc540b63299d9a3"
+    },
+    {
+      "path": "Tests/CoreVerification/JourneyPilotTests.cs",
+      "sha256": "afc42d2f73c6a26b30bde5b7c1c6109bdfe1ef5fd855370d1322f236a26c4af8"
+    }
+  ]
+}

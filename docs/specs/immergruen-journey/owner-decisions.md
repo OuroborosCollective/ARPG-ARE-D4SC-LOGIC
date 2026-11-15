@@ -45,3 +45,23 @@ Mit dieser Begegnung werden **Kräutersammeln und Alchemie** als zwei eigene ste
 ## Alchemist unter Zwang – ausdrückliche Besitzerwahl
 
 Der Meisteralchemist **wurde zur Herstellung gezwungen**. Er hilft der Gruppe erst, wenn sie ihn **vor seinen Auftraggebern schützt**. Die Schutzaufgabe gehört zur Suche nach dem Zeugen im ersten Gebiet nach Immergrün; seine Hilfe und die Einführung des Alchemie-Unterrichts folgen dem tatsächlich erreichten Schutz. Die Alternativen gutgläubiger Tiertransport und bewusste Geldgier wurden nicht gewählt. Diese Wahl benennt die Hintermänner nicht und beweist keinen königlichen Auftrag.
+
+## Reihenfolge geändert – Besitzerauftrag vom 15.11.2026
+
+Nach der laufenden Waldgenerierung wird die weitere Spielentwicklung pausiert.
+Der bereits vereinbarte reale Funktionsnachweis und die geprüfte Sicherung des
+Welt-/Spielstands gehören noch zum aktuellen Waldblock. Danach erhalten die
+eigenständigen Asset-Store-Pakete Vorrang: Fadenwerk für USD 6 und World Forge für
+USD 35, jeweils einmalig, mit Anleitung, Beschreibung, Vorschauen und Cover.
+Die weitere Reise, Immergrün und die Alchemie bleiben beauftragt, aber bis zur
+Fortsetzung zurückgestellt. Der vollständige SDLC-Spielauftrag ist durch diesen
+Zwischenstand ausdrücklich nicht abgeschlossen.
+
+## 2026-11-15: Upload als Entwurf hat Vorrang
+
+Besitzer priorisiert jetzt den Upload beider Verkaufsmodule **über den Unity-Editor**
+in den Asset Store und das Speichern als **Draft**. Präsentationsbilder,
+Beschreibung und weitere Feinheiten folgen danach. Preise bleiben Fadenwerk USD 6
+und World Forge USD 35 einmalig. Keine Einreichung zur Prüfung oder Veröffentlichung
+in diesem Schritt. Aktuellen Spiel-/Weltstand vor dem Projektwechsel sichern;
+keine weitere Story- oder Gameplay-Ausweitung.

@@ -1,0 +1,32 @@
+{
+  "source": "603a30fe7f71fc594309ae8606d8d9441f265f4f",
+  "capture": "Unity Camera.Render 1280x720 PNG",
+  "status": "Play test reached four floors but exceeded 180s; no pass claimed",
+  "images": [
+    {
+      "name": "journey-cave-floor1.png",
+      "bytes": 1052024,
+      "sha256": "afb7d1dbc16ecaa1c55993a75e1f175e5d724a98c153bc0b0c95479625c7ac23"
+    },
+    {
+      "name": "journey-cave-floor2.png",
+      "bytes": 1052655,
+      "sha256": "a23a29e6e8d25c84f8ce4f2631a3499230f0cbad7e55c18b38dcd831846acc71"
+    },
+    {
+      "name": "journey-cave-floor3.png",
+      "bytes": 1071041,
+      "sha256": "d1f0db7c8e75e7eb324b1ba082728f829adfed7b29e3f1c423bfad17514e9761"
+    },
+    {
+      "name": "journey-cave-floor4.png",
+      "bytes": 1055537,
+      "sha256": "89b735840de8541e6a211b802eb5d627855d0f63dbffd455cf0530c2b57d8975"
+    },
+    {
+      "name": "journey-worldforge-entry.png",
+      "bytes": 702446,
+      "sha256": "2d6a291cda0e9f6d25fcb2be29fd42c0e4cac698bc9e5f2058953ddfdefc6630"
+    }
+  ]
+}

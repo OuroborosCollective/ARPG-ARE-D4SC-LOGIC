@@ -1,0 +1,12 @@
+{
+  "diskSource": "2f296b26767ad0746a2ca26468ef299f91e43b57",
+  "priorSource": "603a30fe7f71fc594309ae8606d8d9441f265f4f",
+  "observedRetry": {
+    "passed": 1,
+    "failed": 0,
+    "durationSeconds": 184.68
+  },
+  "loadedTestHadTimeoutAttribute": false,
+  "capturedTestSaveExisted": false,
+  "acceptance": "Do not attribute observed retry to new test source; explicit asset import and loaded-attribute check required before final rerun. Production source unchanged between revisions."
+}

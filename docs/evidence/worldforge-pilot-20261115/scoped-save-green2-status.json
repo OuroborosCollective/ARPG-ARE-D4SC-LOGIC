@@ -1,0 +1,132 @@
+{
+  "status": "completed",
+  "duration": 41.53,
+  "summary": {
+    "total": 17,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.CircularActorCannotIntrudeIntoBlockedCellBetweenFiveOldSamples",
+      "Status": "Passed",
+      "Duration": 0.0122966,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.CircularActorCanTouchButCannotEnterBlockedCell",
+      "Status": "Passed",
+      "Duration": 0.0007,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.CoreMapRejectsCorruptOrTruncatedData",
+      "Status": "Passed",
+      "Duration": 0.0041026,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.CoreMapRoundTripsAndAnswersQueries",
+      "Status": "Passed",
+      "Duration": 0.0065719,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.HeightStackIsDeterministicSeedSensitiveAndInRange",
+      "Status": "Passed",
+      "Duration": 0.1058942,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.NatureSetupUsesItsOwnAssetsAndDoesNotOverrideExistingMenu",
+      "Status": "Passed",
+      "Duration": 0.0686332,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.NoiseMatchesReference",
+      "Status": "Passed",
+      "Duration": 0.0010656,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.PoissonIsDeterministicAndRespectsSpacing",
+      "Status": "Passed",
+      "Duration": 0.1419485,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.RandomStreamMatchesReference",
+      "Status": "Passed",
+      "Duration": 0.0003756,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.ReferenceCoreMapMatchesPythonExactly",
+      "Status": "Passed",
+      "Duration": 0.0252806,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.SeedMixingMatchesReference",
+      "Status": "Passed",
+      "Duration": 0.000953,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeEditModeTests.TilesCutFromTheGlobalGridShareEdges",
+      "Status": "Passed",
+      "Duration": 0.0236413,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.GenerationDoesNotSaveAnUnrelatedDirtyAssetOrScene",
+      "Status": "Passed",
+      "Duration": 6.6223704,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets(\"all\")",
+      "Status": "Passed",
+      "Duration": 5.7875554,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets(\"repaint\")",
+      "Status": "Passed",
+      "Duration": 4.6319507,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets(\"respawn\")",
+      "Status": "Passed",
+      "Duration": 4.8326187,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "AshenCrypt.WorldForge.Tests.WorldForgeScopedSaveTests.OtherTerrainOperationsRetainUnrelatedUnsavedAssets(\"clear\")",
+      "Status": "Passed",
+      "Duration": 4.4760981,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

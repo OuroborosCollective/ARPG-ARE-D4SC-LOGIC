@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-15 01:52:07Z" end-time="2026-11-15 01:52:08Z" duration="0.2366362">
+  <test-suite type="TestSuite" id="1138" name="ARE Ashen Crypt" fullname="ARE Ashen Crypt" runstate="Runnable" testcasecount="85" result="Passed" start-time="2026-11-15 01:52:07Z" end-time="2026-11-15 01:52:08Z" duration="0.236636" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1073" name="AreArpg.EditMode.Tests.dll" fullname="/var/lib/unityarpg/workspaces/are-arpg-forges-20261114/Library/ScriptAssemblies/AreArpg.EditMode.Tests.dll" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-11-15 01:52:07Z" end-time="2026-11-15 01:52:08Z" duration="0.182282" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="558637" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1074" name="AreArpg" fullname="AreArpg" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-11-15 01:52:07Z" end-time="2026-11-15 01:52:08Z" duration="0.181466" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1075" name="EditMode" fullname="AreArpg.EditMode" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-11-15 01:52:07Z" end-time="2026-11-15 01:52:08Z" duration="0.181152" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1076" name="Tests" fullname="AreArpg.EditMode.Tests" runstate="Runnable" testcasecount="51" result="Passed" start-time="2026-11-15 01:52:07Z" end-time="2026-11-15 01:52:08Z" duration="0.180849" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1045" name="JourneyMapEditModeTests" fullname="AreArpg.EditMode.Tests.JourneyMapEditModeTests" classname="AreArpg.EditMode.Tests.JourneyMapEditModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-11-15 01:52:07Z" end-time="2026-11-15 01:52:08Z" duration="0.179418" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1046" name="ActualAuthoredMapsBindByHashAndSupportAllCaveFloorBounds" fullname="AreArpg.EditMode.Tests.JourneyMapEditModeTests.ActualAuthoredMapsBindByHashAndSupportAllCaveFloorBounds" methodname="ActualAuthoredMapsBindByHashAndSupportAllCaveFloorBounds" classname="AreArpg.EditMode.Tests.JourneyMapEditModeTests" runstate="Runnable" seed="528306455" result="Passed" start-time="2026-11-15 01:52:07Z" end-time="2026-11-15 01:52:08Z" duration="0.163894" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

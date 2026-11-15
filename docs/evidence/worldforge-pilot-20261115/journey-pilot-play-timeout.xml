@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-15 01:58:14Z" end-time="2026-11-15 02:01:44Z" duration="210.0731024">
+  <test-suite type="TestSuite" id="1159" name="ARE Ashen Crypt" fullname="ARE Ashen Crypt" runstate="Runnable" testcasecount="132" result="Failed" site="Child" start-time="2026-11-15 01:58:14Z" end-time="2026-11-15 02:01:44Z" duration="210.073102" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1145" name="AreArpg.PlayMode.Tests.dll" fullname="/var/lib/unityarpg/workspaces/are-arpg-forges-20261114/Library/ScriptAssemblies/AreArpg.PlayMode.Tests.dll" runstate="Runnable" testcasecount="129" result="Failed" site="Child" start-time="2026-11-15 01:58:14Z" end-time="2026-11-15 02:01:44Z" duration="210.016493" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="558637" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1146" name="AreArpg" fullname="AreArpg" runstate="Runnable" testcasecount="129" result="Failed" site="Child" start-time="2026-11-15 01:58:14Z" end-time="2026-11-15 02:01:44Z" duration="209.974930" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1147" name="PlayMode" fullname="AreArpg.PlayMode" runstate="Runnable" testcasecount="129" result="Failed" site="Child" start-time="2026-11-15 01:58:14Z" end-time="2026-11-15 02:01:44Z" duration="209.922186" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1148" name="Tests" fullname="AreArpg.PlayMode.Tests" runstate="Runnable" testcasecount="129" result="Failed" site="Child" start-time="2026-11-15 01:58:14Z" end-time="2026-11-15 02:01:44Z" duration="209.867504" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1051" name="EntryJourneyRuntimeTests" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" testcasecount="47" result="Failed" site="Child" start-time="2026-11-15 01:58:14Z" end-time="2026-11-15 02:01:44Z" duration="209.831570" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1087" name="WorldForgePilotWalksFightsSavesAndRegeneratesItsFourFloorSideCave" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.WorldForgePilotWalksFightsSavesAndRegeneratesItsFourFloorSideCave" methodname="WorldForgePilotWalksFightsSavesAndRegeneratesItsFourFloorSideCave" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="42083816" result="Failed" start-time="2026-11-15 01:58:14Z" end-time="2026-11-15 02:01:44Z" duration="209.767028" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[Timeout value of 180000 ms was exceeded. If this is intended, increase the timeout value using a TimeoutAttribute.]]></message>
+                  <stack-trace><![CDATA[]]></stack-trace>
+                </failure>
+                <output><![CDATA[Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

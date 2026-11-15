@@ -1,0 +1,12 @@
+{
+  "source": "faa944e2e14827eccc4e612c361f49ac11686135",
+  "tree": "e7318350a7dcbf07c3d3673eadd45a4db2afac95",
+  "unity": "6000.6.8f1",
+  "stage": "behavioral-red",
+  "files": {
+    "scoped-save-red.xml": "ab508b8c32986c12ead56dfcf162adbfc7a7f2e6dceed1440afc8e21e14c92d4",
+    "scoped-save-red-status.json": "0a438f4a5318cddbaa8b7405a422d7cef4eb2e37924930e617a2e9f0f568b543",
+    "scoped-save-fixture-failure.xml": "282eda56521656c531e78148e9e7919b2be7c5e70a98eee506028ee29bfcf841",
+    "scoped-save-fixture-failure-2.xml": "109e3a89d767f8d9270fab0821986241c2b7e25bff3da3d8581f820897ed078a"
+  }
+}

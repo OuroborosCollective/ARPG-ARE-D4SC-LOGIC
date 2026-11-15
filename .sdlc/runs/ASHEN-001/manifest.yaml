@@ -3,10 +3,10 @@ run:
   id: ASHEN-001
   title: Weite Reise nach Immergrün und zwei Folgegebiete
   workflow: feature-development
-  status: implementation
+  status: blocked
   current_stage: mobile_implementation
   created_at: 2026-11-14T22:36:25.635Z
-  updated_at: 2026-11-15T01:06:27.192Z
+  updated_at: 2026-11-15T02:22:29.678Z
   created_by: product-owner
   current_owner: frontend
   branch: null
@@ -30,7 +30,14 @@ design:
 assumptions: []
 open_questions: []
 decisions: []
-blockers: []
+blockers:
+  - id: BLK-c84866622e8e
+    task_id: MOB-001
+    description: Owner explicitly pauses further game implementation after bounded
+      forest checkpoint and prioritizes Fadenwerk/World Forge Asset Store draft
+      uploads. Full journey and alchemy requirements remain incomplete; resume
+      after the tool-upload priority is resolved.
+    status: open
 tasks:
   - id: PM-001
     title: Intake and discovery
@@ -312,7 +319,7 @@ tasks:
     stage: mobile_implementation
     role: frontend
     target: mobile
-    status: ready
+    status: blocked
     dependencies:
       - PM-002
     required_inputs:
@@ -329,11 +336,99 @@ tasks:
         actor: system
         reason: "Dependencies completed: PM-002"
         at: 2026-11-15T01:06:27.192Z
-    started_at: null
+      - from: ready
+        to: running
+        actor: pm
+        reason: Independent mobile role launched with reviewed facts6 and bounded first
+          World Forge checkpoint; model inherited, native editor remains
+          parent-owned
+        at: 2026-11-15T01:07:50.627Z
+      - from: running
+        to: blocked
+        actor: pm
+        reason: Owner explicitly pauses further game implementation after bounded forest
+          checkpoint and prioritizes Fadenwerk/World Forge Asset Store draft
+          uploads. Full journey and alchemy requirements remain incomplete;
+          resume after the tool-upload priority is resolved.
+        at: 2026-11-15T02:22:29.678Z
+    started_at: 2026-11-15T01:07:50.627Z
     completed_at: null
     commit: null
-    blocker_reason: null
+    blocker_reason: Owner explicitly pauses further game implementation after
+      bounded forest checkpoint and prioritizes Fadenwerk/World Forge Asset
+      Store draft uploads. Full journey and alchemy requirements remain
+      incomplete; resume after the tool-upload priority is resolved.
     failure_reason: null
+    agent_dispatches:
+      - plan:
+          schema_version: 1
+          run_id: ASHEN-001
+          task_id: MOB-001
+          role: frontend
+          task_revision: 1
+          activation: 1
+          policy_sha256: e3d787e6dd23b327b61a2d8ee5eee30815e6abf453971f8262e98331851dc77f
+          requested: null
+          selected: null
+          fallback_used: false
+          skill: sdlc-frontend
+          execution: spawn
+          context: task-only
+          capabilities:
+            source: Current collaboration.spawn_agent tool schema
+            model_selection: true
+            reasoning_selection: true
+            omitted_reasoning_effort: inherit-parent
+            models:
+              - id: gpt-6.1-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+                default_reasoning_effort: medium
+              - id: gpt-6.1-terra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+                default_reasoning_effort: low
+              - id: gpt-6-astra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+                default_reasoning_effort: medium
+              - id: gpt-6-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+                default_reasoning_effort: medium
+              - id: gpt-6-luna
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                default_reasoning_effort: medium
+        agent_id: /root/journey_implementation
+        actual_model: null
+        actual_reasoning_effort: null
+        observation_source: null
+        recorded_at: 2026-11-15T01:07:50.627Z
   - id: INT-001
     title: Integration review
     stage: integration
