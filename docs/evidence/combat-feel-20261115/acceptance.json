@@ -1,0 +1,22 @@
+{
+  "ownerReport": "Attacks at the start enemies produced combat sound but no attack animation; owner asked for combat animations, hit physics, a level-up animation and particle effects.",
+  "unity": "6000.6.8f1, batchmode, -force-glcore, Android build target, shared one-core CPU budget",
+  "reproduction": {
+    "test": "EveryExecutedAbilityShowsAVisibleHeroAction (real runtime flow: shared HUD route, fixed ticks, real frames)",
+    "red": "slot 0 Idle>Melee>Idle, slot 1 Idle>Melee>Idle, slot 2 (Guard) Idle only, slot 3 (Ruin Storm, 1158 damage) Idle only",
+    "redXmlSha256": "see combat-red-1 private run record",
+    "note": "Strike and Heavy Strike already animated in this flow; the device report most likely came from Guard/Ruin Storm, missing target facing and absent enemy reactions. No physical tablet run was possible."
+  },
+  "green": {
+    "abilities": "slot 0 Melee, slot 1 Melee, slot 2 Guard, slot 3 Cast",
+    "hitReaction": "max optical offset 0.340 m, final offset 0.000 m from the Core position, camera shake observed",
+    "death": "toppled to 84 degrees, visible while falling, removed afterwards",
+    "levelUp": "light enabled, banner 'STUFE 3 ERREICHT' (experience via the canonical EarnExperience fixture)",
+    "regressionsFound": "Hit-stop first froze the hero animator and broke three hand-stepped animation tests (melee, grip release, bow recovery); hit-stop now applies to the struck enemy only and all three pass again."
+  },
+  "fullRegression": {"EditMode": "85/85", "PlayMode": "137/137", "skipped": 0,
+    "xmlSha256": {"EditMode": "cd997b243866182ed55ee5f5dec1d44da57fb0217a4d9a1347a036581130316d", "PlayMode": "997e931c9ac64406fd7b89cb8d7457596a0d82a77a5056e16a224920a40f3973"}},
+  "core": "CoreVerification ALL PASS 19682 assertions (SkillResult only gained report fields)",
+  "privateOverlay": "Generated EntryGuard/EntryCast clips and the extended hero controller were written by EntryCombatArtBuilder.AddAbilityPoses; the original controller is backed up privately. The full controller build now adds the same states.",
+  "notClaimed": ["physical tablet run", "new APK", "professional animation clips (poses are generated from the combat idle)"]
+}
