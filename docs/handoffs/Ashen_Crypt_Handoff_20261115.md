@@ -80,7 +80,7 @@ Offen bleiben insbesondere konkrete Namen/Herkunftskönigreich des Spions, Ident
 | Begrenztes Terrain-Speichern | Echter RED und 17/17 GREEN auf `4c914a2d4efc145c33235ed5e1c6eeb38cdd4888`; keine globale Speicherung fremder schmutziger Assets/Szenen mehr. |
 | Neuer nativer Gesamtpilot | 1/1 auf `2f296b26767ad0746a2ca26468ef299f91e43b57`, 192,3 s, 0 Skips. XML SHA256 `dfd5e6591657d7724e2bc1bcc184783a8d730936a71193248ea24e813feddf34`. |
 | Save-Wiederherstellung | Separater vorbereiteter Test-Save lädt unabhängig exakt; 100 Core-Ticks reproduziert. Worldhash `7B865D4FAC38E01F`. |
-| Neues Spiel-APK | Ergebnis wird in `docs/evidence/apk-handoff-20261115/` separat abgelegt; ein gestarteter Build allein ist kein erfolgreicher Build. |
+| Neues Spiel-APK | Erfolgreich gebaut und geprüft: Quelle 2f296b26767ad0746a2ca26468ef299f91e43b57, ARM64/IL2CPP, gültige Signatur, ZIP-CRC und 16-KiB-ZIP-Ausrichtung. Native Builddauer 1781,71 s (29 min 42 s); kein Gerätebeleg. |
 | Reales Tablet | Neuer Tab-A9-Installationstest, Touchprüfung, Performance, längere Kämpfe und Save/Load bleiben nötig. |
 
 Wichtig: Ein Git-Checkout aktualisierte zuvor Unitys geladene Testassembly nicht zuverlässig. Vor neuen nativen Belegen explizit importieren/rekompilieren und die tatsächlich geladene Revision bzw. Testattribute lesen. Der erste Pilot scheiterte am 180-s-Zeitlimit; ein späterer Lauf mit alter geladener Assembly wurde korrekt als revisionsungebunden abgelegt. Beide Befunde sind erhalten und dürfen nicht nachträglich umetikettiert werden.
@@ -147,7 +147,7 @@ Git-Bundle SHA256: `6e53f9b4ffebdb1c69154b72c6dbb8542b01a100baaccd2097eff2d45683
 
 ## 8. Konkrete nächste Schritte
 
-1. **APK/Übergabe abschließen:** `state.json` und `build-result.json` lesen. Nur bei erfolgreichem Build und verifizierter Quelle APK anbieten; ZIP-Struktur, Manifest/Application-ID, ARM64/IL2CPP, Signatur und 16-KiB-Ausrichtung prüfen. Keine alte Datei als aktuellen Build ausgeben. Besitzerprefs, private Assets und Settings-Restore überprüfen.
+1. **GitHub-gehosteten APK-Build einrichten:** aktuelle APK/Übergabe ist abgeschlossen. Lizenz, private Assetinputs, Signierung und gepinnte Toolchain gemäß Abschnitt unten prüfen, danach ersten tatsächlichen Cloud-Build nachweisen. Den VPS nicht als Self-hosted Runner verwenden.
 2. **Auf dem Tablet abnehmen:** vorhandenen Spielstand sichern; APK installieren/aktualisieren; Einstieg, Touch, Kamera/Zoom, HUD-Sicherheitsflächen, Kampf, Inventar, Jäger, Save/Load und Rückkehr in erneuerte Runs prüfen. Bei Signaturkonflikt nicht ungefragt deinstallieren. Tatsächliche Logcat-Ausgabe für Fehler nutzen.
 3. **Arbeitsauthority bewusst wieder aufnehmen:** aktuelle Besitzerpriorität jetzt APK/Handoff. Für weiteren Featureausbau nach Fortsetzungsauftrag den MOB-001-Blocker mit `node .sdlc/runtime.cjs` über die unterstützten Lifecycle-Befehle lösen (zuerst `--help` lesen). Manifest nicht manuell umschreiben; keine doppelte Reise-Spezifikation erzeugen.
 4. **Piloten vollständig integrieren:** Grenzen der gebackenen Karten und erneuerten Runs prüfen; nativen Missing-Map-Fall nachholen, vollständige relevante Regression an der endgültigen Integrationsrevision ausführen, finalen Diff reviewen. Der Checkpointbranch ist kein Main-Merge. Danach gezielt einen überprüfbaren Integrations-PR erstellen.
@@ -167,13 +167,32 @@ Bei Bugs zuerst echten fehlschlagenden Verhaltenstest, danach Fix und benachbart
 - Beide Pakete haben weiter Release-Gates: eigenständige Beispiele ohne private Spielassets, Fadenwerk-UPM-Beispielpfad/Anleitung/Lizenzvorlage, World-Forge-Spieltestabhängigkeit und Modul-Setup, frische Import-/Funktionsprüfung und finale Storevalidierung. Upload als Draft ist keine technische Verkaufsabnahme.
 - Store-Evidence liegt im separaten Zweig `release/unity-tools-drafts-20261115`, SHA `fa714ab52a64a14642336809420846fed57475a3`.
 
-## Laufender APK-Auftrag: Übernahme ohne Doppelstart
+## Neueste Besitzersteuerung: künftige APKs auf GitHub bauen
 
-Der aktuelle Build wurde mit Runner-PID 1064012 gestartet; die nachgeschaltete Prüfung/Auslieferung mit Finalizer-PID 1098256. Das sind historische Start-IDs, keine Erlaubnis, später gleichlautende fremde Prozesse zu beenden.
+Der Besitzer fragt während des laufenden APK-Builds ausdrücklich nach GitHub-Runnern, um die VPS-CPU zu entlasten. **Die Umstellung auf einen GitHub-gehosteten Android-Build ist der nächste Infrastrukturpunkt.** Ein selbst gehosteter Runner auf demselben VPS würde das Lastproblem nicht lösen. Der bereits laufende VPS-Build wurde erfolgreich beendet; kein zweiter Build wurde gestartet.
 
-Im VPS-Auftragsverzeichnis `game-apk-handoff-20261115` zuerst `state.json` und `finalization-status.json` lesen. Der Finalizer wartet auf `build-result.json`, führt `verify-current-apk.py` aus und fügt erst danach über `deliver-current-apk.py` eine neue, revisionsbenannte Downloadroute zum bestehenden geschützten APK-Dienst hinzu. Vorhandene Routen und Authentifizierung bleiben erhalten. Der Finalizer ist ein konkreter gestarteter Prozess, keine Zusage einer Chat-Antwort im Hintergrund.
+Die aktuelle GitHub-Integration darf Actions-Secrets und Repository-Variablen nicht einmal auflisten (HTTP403). Ihre Existenz ist deshalb **unbekannt**, nicht als fehlend belegt. Für die Einrichtung ist geeigneter Repository-Settings-Zugriff nötig.
 
-Bei `complete`: `apk-receipt.json` und `delivery-readback.json` auslesen, Quelle/Hash/Status unabhängig vergleichen und den darin dokumentierten Download anbieten. Bei `failed`: `finalize.log` lesen und gezielt die gescheiterte Stufe behandeln. **Keinen zweiten Build/Finalizer starten**, solange der erste noch aktiv ist. Das Auslieferungsskript lehnt das Überschreiben einer bereits abgelegten APK absichtlich ab.
+Vorhanden ist `.github/workflows/unity-android-build.yml` mit `ubuntu-latest`, Unity6000.6.8f1, Android/IL2CPP-Buildmethode und APK-Artifact-Upload. Ein erfolgreicher Lauf dieses vollständigen Spielworkflows ist bisher nicht belegt. Die Voraussetzungen sind gezielt herzustellen:
+
+1. Für den aktuellen Unity-Account zulässige CI-Lizenzierung/Activation prüfen und über GitHub Secrets konfigurieren. Native Hub-Anmeldung ist kein Beweis einer funktionierenden Cloud-Lizenz; keine Zugangsdaten oder Lizenzdateien in Git schreiben.
+2. Die notwendigen privaten, lizenzierten Spielassets als revisionsgebundenes, hashgeprüftes Inputpaket geschützt für den privaten CI-Job verfügbar machen. Nicht das komplette VPS-Backup mit Spielständen und privaten Einstellungen hochladen. Speicher-/Transferkontingente berücksichtigen.
+3. Unity6000.6.8f1 und tatsächliche Verfügbarkeit des passenden Android-Runner-/Container-Toolchains verifizieren. Library-/IL2CPP-/Gradle-Caches nach Unity-Version, Plattform, Packages und Asset-Input-Hash trennen.
+4. Erst einen manuellen Cloud-Build der bekannten Spielrevision ausführen; APK-Herkunft, ARM64, IL2CPP, Signatur und Ausrichtung wie beim nativen Build prüfen. Den bisherigen App-Signierschlüssel nur über einen geschützten Secretweg übernehmen, damit Updates vorhandene Saves erhalten können.
+5. Private APK-Artefakte mit begrenzter Aufbewahrung ausgeben; Dauer und VPS-Entlastung messen. Keine Beschleunigung in Prozent vorwegnehmen. Erst nach erfolgreichem Vergleich zum Standardweg machen.
+
+## Abgeschlossener APK-Auftrag und Download
+
+Download mit bestehendem privaten Zugang: https://arelogic.space/arpg-apk/Ashen-Crypt-2f296b2-20261115.apk
+
+- Datei: **242.200.939 Bytes** (242,2 MB), SHA256 **a8cc3241790dbd8b55f74f5368e770ae0ea517dcdba4c9e550e2d3fd6497850f**.
+- Quelle: **2f296b26767ad0746a2ca26468ef299f91e43b57**, Unity6000.6.8f1, ARM64/IL2CPP, App-ID `com.ouroboroscollective.areashencrypt`.
+- Unity-Exit0; Builddauer **1781,71 Sekunden**. Signatur gültig und identisch mit der früheren HUD-APK; ZIP-CRC, IL2CPP-Inhalt und 16-KiB-ZIP-Ausrichtung geprüft. Kein physischer Tablet-, Performance- oder vollständiger ELF-/Gerätekompatibilitätsnachweis daraus ableiten.
+- Private Assets und Besitzerprefs unverändert. ProjectSettings restauriert; drei vom Build erzeugte URP-Assetänderungen vor Wiederherstellung separat gesichert. Getrackter Spielbaum wieder sauber.
+- Unabhängiger SHA-/Größenreadback stimmt mit APK-Beleg und vollständigem HTTP-Readback des lokalen Live-Dienstes überein. Bestehende Routen bleiben erhalten, anonymer HTTPS-Zugriff liefert wie vorgesehen401; Authentifizierung nicht verändert.
+- `state.json` meldet completed; `finalization-status.json` complete. Unabhängige Prozessprüfung: kein Unity-Haupteditor mehr für das Spielprojekt. Alte pausierte Intake-Prozesse wurden nicht wieder aufgeweckt.
+- Belege: `docs/evidence/apk-handoff-20261115/` mit Buildresultat, APK-Receipt, Auslieferungsreadback und unabhängiger Prüfung. Native Originale liegen in `/var/lib/unityarpg/.local/share/are-arpg/game-apk-handoff-20261115`.
+- Ausgelieferte Datei: `/var/lib/unityarpg/.local/share/are-arpg/private-apk/Ashen-Crypt-2f296b2-20261115.apk`. Der abgeschlossene Finalizer darf nicht erneut gestartet werden; Auslieferung verweigert absichtlich ein Überschreiben vorhandener Dateien.
 
 Die allgemeinen Android-Connectorprüfungen bezogen sich auf einen anderen, Capacitor-basierten Studio-Workspace und sind kein Ashen-Crypt-Buildbeleg. Für diese APK gelten ausschließlich Unity-Quellrevision, native Buildausgabe und APK-Inspektion.
 

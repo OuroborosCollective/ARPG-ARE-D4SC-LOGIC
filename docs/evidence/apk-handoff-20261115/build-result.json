@@ -1,0 +1,15 @@
+{
+  "exit": 0,
+  "source": "2f296b26767ad0746a2ca26468ef299f91e43b57",
+  "elapsedSeconds": 1781.71,
+  "privateUnchanged": true,
+  "prefsUnchanged": true,
+  "trackedDiff": "Assets/Settings/Rendering/AreUrpDefaultVolumeProfile.asset\nAssets/Settings/Rendering/AreUrpGlobalSettings.asset\nAssets/Settings/Rendering/AreUrpPipeline.asset",
+  "settingsRestored": true,
+  "logSha256": "49f7e2e53ef3876ca83b7cc5918797d0c02194a7198b6dac97aff74979077c3a",
+  "apk": {
+    "path": "/var/lib/unityarpg/.local/share/are-arpg/game-apk-handoff-20261115/Ashen-Crypt-2f296b2-20261115.apk",
+    "bytes": 242200939,
+    "sha256": "a8cc3241790dbd8b55f74f5368e770ae0ea517dcdba4c9e550e2d3fd6497850f"
+  }
+}

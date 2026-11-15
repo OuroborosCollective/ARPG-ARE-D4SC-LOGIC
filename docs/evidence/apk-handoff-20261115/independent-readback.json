@@ -1,0 +1,7 @@
+{
+  "apkBytes": 242200939,
+  "apkSha256": "a8cc3241790dbd8b55f74f5368e770ae0ea517dcdba4c9e550e2d3fd6497850f",
+  "inspectionRetry": "Python <3.11 lacks file_digest; streamed SHA256 used",
+  "trackedDiff": "",
+  "gameUnityPids": []
+}

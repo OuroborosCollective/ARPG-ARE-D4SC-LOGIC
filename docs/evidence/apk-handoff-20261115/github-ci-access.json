@@ -1,0 +1,9 @@
+{
+  "repository": "OuroborosCollective/ARPG-ARE-D4SC-LOGIC",
+  "workflow": "unity-android-build.yml",
+  "openPullRequests": 0,
+  "actionsSecretsInventory": "HTTP 403 Resource not accessible by integration",
+  "actionsVariablesInventory": "HTTP 403 Resource not accessible by integration",
+  "secretPresence": "UNKNOWN, not absent",
+  "nextStep": "Configure licensed hosted runner and protected private asset inputs with suitable repository settings access"
+}

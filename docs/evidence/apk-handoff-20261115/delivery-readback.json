@@ -1,0 +1,23 @@
+{
+  "source": "2f296b26767ad0746a2ca26468ef299f91e43b57",
+  "staging": {
+    "status": 200,
+    "bytes": 242200939,
+    "sha256": "a8cc3241790dbd8b55f74f5368e770ae0ea517dcdba4c9e550e2d3fd6497850f",
+    "contentType": "application/vnd.android.package-archive",
+    "unknownPath": 404
+  },
+  "live": {
+    "status": 200,
+    "bytes": 242200939,
+    "sha256": "a8cc3241790dbd8b55f74f5368e770ae0ea517dcdba4c9e550e2d3fd6497850f",
+    "contentType": "application/vnd.android.package-archive",
+    "unknownPath": 404
+  },
+  "url": "https://arelogic.space/arpg-apk/Ashen-Crypt-2f296b2-20261115.apk",
+  "anonymousHttpsStatus": 401,
+  "oldScriptSha256": "9d42540aa68c54f759a543d6cce291b30f1f30170a98d57f820e8d3b61a8d136",
+  "newScriptSha256": "b5ea1f47c6a9e54055cd98f130d4dc12e85a2f9153e17ace2043b6974e36f789",
+  "existingRoutesPreserved": true,
+  "authConfigurationChanged": false
+}

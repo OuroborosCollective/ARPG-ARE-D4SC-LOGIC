@@ -1,0 +1,36 @@
+{
+  "schema": "ashen.game-apk-handoff.v1",
+  "source_commit_sha": "2f296b26767ad0746a2ca26468ef299f91e43b57",
+  "artifact_name": "Ashen-Crypt-2f296b2-20261115.apk",
+  "artifact_sha256": "a8cc3241790dbd8b55f74f5368e770ae0ea517dcdba4c9e550e2d3fd6497850f",
+  "artifact_size_bytes": 242200939,
+  "unity": "6000.6.8f1",
+  "package_id": "com.ouroboroscollective.areashencrypt",
+  "architecture": "arm64-v8a",
+  "scripting_backend": "IL2CPP",
+  "apk_signature_verified": true,
+  "signer_sha256": "7b6c7bffa6cc5ff397b317fe10169ab9ba56a2440e90fa19d13308f490377f4a",
+  "matches_previous_hud_signer": true,
+  "zip_integrity_verified": true,
+  "zipalign_16k_verified": true,
+  "unity_build_exit": 0,
+  "build_origin": "native VPS, not GitHub Actions",
+  "device_installation": "UNVERIFIED",
+  "device_runtime": "UNVERIFIED",
+  "device_performance": "UNVERIFIED",
+  "private_assets_unchanged": true,
+  "prefs_unchanged": true,
+  "settings_restored": true,
+  "tracked_tree_restored_clean": true,
+  "generated_assets_restored": [
+    "Assets/Settings/Rendering/AreUrpDefaultVolumeProfile.asset",
+    "Assets/Settings/Rendering/AreUrpGlobalSettings.asset",
+    "Assets/Settings/Rendering/AreUrpPipeline.asset"
+  ],
+  "build_log_sha256": "49f7e2e53ef3876ca83b7cc5918797d0c02194a7198b6dac97aff74979077c3a",
+  "elapsed_seconds": 1781.71,
+  "entry_scenes": [
+    "Assets/Scenes/AshenEntry.unity",
+    "Assets/Scenes/Arena.unity"
+  ]
+}
