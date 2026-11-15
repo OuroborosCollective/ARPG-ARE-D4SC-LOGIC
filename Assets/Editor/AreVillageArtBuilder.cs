@@ -42,6 +42,10 @@ namespace AreArpg.EditorTools
         }
         private const string Output = "Assets/Resources/ARE/Visuals/";
         private const float HouseScale = 0.6f;
+        /// <summary>Visible village ground. Houses, trees, shrubs and grounded actors stand at this height.</summary>
+        internal const float GroundSurfaceY = 0f;
+        /// <summary>Paving tops sit just above the ground so roads read as laid stones, not as a raised slab.</summary>
+        internal const float PavingRise = 0.02f;
 
         /// <summary>Compose reviewed private inputs into passive village prefabs.</summary>
         [MenuItem("ARE ARPG/Art/Build Aschengrenze Village Visuals")]
@@ -112,7 +116,7 @@ namespace AreArpg.EditorTools
                     new Vector3(bushSpots[index].x, 0f, bushSpots[index].y), index * 71f, 0.6f);
         }
 
-        /// <summary>Trodden earth over the crypt slab; just below the road strips.</summary>
+        /// <summary>Trodden earth at the height every village piece stands on; road strips rise only slightly above it.</summary>
         internal static void Ground(Transform root)
         {
             Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(InputPath("ground.base"));
@@ -139,7 +143,7 @@ namespace AreArpg.EditorTools
 
             var ground = new GameObject("Ground");
             ground.transform.SetParent(root, false);
-            ground.transform.localPosition = new Vector3(0f, -0.32f, 0f);
+            ground.transform.localPosition = new Vector3(0f, GroundSurfaceY, 0f);
             ground.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
             ground.transform.localScale = new Vector3(120f, 120f, 1f);
             ground.AddComponent<MeshFilter>().sharedMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");

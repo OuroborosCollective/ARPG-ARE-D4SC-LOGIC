@@ -1,0 +1,148 @@
+using System.Collections;
+using System.Collections.Generic;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace AreArpg.PlayMode.Tests
+{
+    /// <summary>Owner report 2026-11-15: houses, villagers and shrubs in the first village floated above the ground.</summary>
+    public sealed partial class EntryJourneyRuntimeTests
+    {
+        private const float GroundContactTolerance = .05f;
+
+        /// <summary>Every standing village piece and villager touches the visible ground directly beneath it.</summary>
+        [UnityTest]
+        public IEnumerator VillageArtAndVillagersStandOnTheVisibleGround()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private village and character overlay");
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3);
+            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            Assert.IsTrue(Game.IsVillage, "The report concerns the first village after the crypt");
+            yield return null;
+
+            var grounds = new List<Renderer>();
+            foreach (var root in _scene.GetRootGameObjects())
+                foreach (var renderer in root.GetComponentsInChildren<Renderer>())
+                {
+                    Bounds b = renderer.bounds;
+                    if (renderer.enabled && b.size.y < .6f && b.size.x > 3f && b.size.z > 3f)
+                    {
+                        grounds.Add(renderer);
+                        Debug.Log("VILLAGE_GROUND " + Path(renderer.transform) + " top=" + b.max.y.ToString("0.000") + " size=" + b.size);
+                    }
+                }
+            Assert.IsNotEmpty(grounds, "The village needs a visible ground surface");
+
+            var floating = new List<string>();
+            var art = Find("EntryVillageWorld(Clone)") ?? Find(AreArpg.UnityClient.AschengrenzeArt.BackdropLabel);
+            Assert.IsNotNull(art, "Private village art must be bound");
+            foreach (Transform piece in StandingPieces(art.transform))
+                Check(piece.gameObject, PieceBottom(piece.gameObject), grounds, floating);
+            foreach (string actor in new[] { "Wanderer", "ARE_NPC_0", "ARE_NPC_1", "ARE_NPC_2" })
+            {
+                var figure = Find(actor);
+                Check(figure, SkinBottom(figure), grounds, floating);
+            }
+            yield return Capture("village-grounding.png");
+            Assert.IsEmpty(floating, "Floating village pieces:\n" + string.Join("\n", floating));
+            float ground = float.MinValue;
+            foreach (var g in grounds) if (g.name == "Ground") ground = Mathf.Max(ground, g.bounds.max.y);
+            int roads = 0;
+            foreach (Transform piece in art.GetComponentsInChildren<Transform>())
+            {
+                if (piece.name != "Old village road") continue;
+                roads++;
+                float surface = PavingSurfaceHeight(piece);
+                Debug.Log("VILLAGE_ROAD " + Path(piece) + " surface=" + surface.ToString("0.000") + " ground=" + ground.ToString("0.000"));
+                Assert.That(surface - ground, Is.InRange(0f, .08f), "The laid road must stay visible just above the ground, not buried or raised as a slab");
+            }
+            Assert.Greater(roads, 0, "The old village road must be present");
+        }
+
+        /// <summary>Composed pieces below the village art root: wrapper levels are skipped, ground-like surfaces excluded.</summary>
+        private static IEnumerable<Transform> StandingPieces(Transform art)
+        {
+            Transform node = art;
+            while (node.GetComponent<Renderer>() == null && node.childCount == 1) node = node.GetChild(0);
+            foreach (Transform child in node)
+            {
+                var renderers = child.GetComponentsInChildren<Renderer>();
+                if (renderers.Length == 0) continue;
+                Bounds b = renderers[0].bounds;
+                foreach (var r in renderers) b.Encapsulate(r.bounds);
+                if (b.size.y < .6f && b.size.x > 3f && b.size.z > 3f) continue;
+                yield return child;
+            }
+        }
+
+        private void Check(GameObject piece, float bottom, List<Renderer> grounds, List<string> floating)
+        {
+            Vector3 p = piece.transform.position;
+            float ground = float.MinValue;
+            string surface = "none";
+            foreach (var g in grounds)
+            {
+                Bounds b = g.bounds;
+                if (p.x < b.min.x || p.x > b.max.x || p.z < b.min.z || p.z > b.max.z) continue;
+                if (b.max.y <= bottom + .6f && b.max.y > ground) { ground = b.max.y; surface = g.name; }
+            }
+            float gap = bottom - ground;
+            Debug.Log("VILLAGE_CONTACT " + Path(piece.transform) + " bottom=" + bottom.ToString("0.000") + " ground=" + ground.ToString("0.000") + " surface=" + surface + " gap=" + gap.ToString("0.000"));
+            if (ground > float.MinValue && gap > GroundContactTolerance) floating.Add(Path(piece.transform) + " floats " + gap.ToString("0.00") + " m above " + surface);
+        }
+
+        private static float PieceBottom(GameObject piece)
+        {
+            float bottom = float.MaxValue;
+            foreach (var r in piece.GetComponentsInChildren<Renderer>()) bottom = Mathf.Min(bottom, r.bounds.min.y);
+            return bottom;
+        }
+
+        /// <summary>Lowest vertex of the posed visible skin; renderer bounds of skinned meshes are conservative.</summary>
+        private static float SkinBottom(GameObject actor)
+        {
+            Assert.IsNotNull(actor, "Villager projection is missing");
+            var mesh = new Mesh();
+            float bottom = float.MaxValue;
+            try
+            {
+                foreach (var skin in actor.GetComponentsInChildren<SkinnedMeshRenderer>())
+                {
+                    if (!skin.enabled) continue;
+                    skin.BakeMesh(mesh, true);
+                    var toWorld = Matrix4x4.TRS(skin.transform.position, skin.transform.rotation, Vector3.one);
+                    foreach (var vertex in mesh.vertices) bottom = Mathf.Min(bottom, toWorld.MultiplyPoint3x4(vertex).y);
+                }
+            }
+            finally { Object.Destroy(mesh); }
+            Assert.Less(bottom, float.MaxValue, actor.name + " has no visible skinned body");
+            return bottom;
+        }
+
+        /// <summary>Median height of the upward-facing faces of the visible highest-detail paving meshes.</summary>
+        private static float PavingSurfaceHeight(Transform strip)
+        {
+            var heights = new List<float>();
+            foreach (var filter in strip.GetComponentsInChildren<MeshFilter>())
+            {
+                var renderer = filter.GetComponent<Renderer>();
+                if (renderer == null || !renderer.enabled || filter.sharedMesh == null || filter.name.EndsWith("_LOD01")) continue;
+                Vector3[] vertices = filter.sharedMesh.vertices, normals = filter.sharedMesh.normals;
+                if (normals.Length != vertices.Length) continue;
+                var toWorld = filter.transform.localToWorldMatrix;
+                for (int i = 0; i < vertices.Length; i++)
+                    if (toWorld.MultiplyVector(normals[i]).normalized.y > .7f) heights.Add(toWorld.MultiplyPoint3x4(vertices[i]).y);
+            }
+            Assert.IsNotEmpty(heights, strip.name + " has no readable upward paving surface");
+            heights.Sort();
+            return heights[heights.Count / 2];
+        }
+
+        private static string Path(Transform t) { return t.parent == null ? t.name : Path(t.parent) + "/" + t.name; }
+    }
+}
