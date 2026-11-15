@@ -356,7 +356,7 @@ namespace AreArpg.Core
             }
             mara.InteractionCooldownTicks = 10;
             RememberNpcAction(mara,NpcAction.Help,true,"camp.donation");
-            bool refilled = RecordCampRefill(0);
+            bool refilled = RecordCampRefill();
             result.Accepted = true;
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.ThankHelp;
             int missing = SocialLedger.CampCapacity - Progression.Social.CampProvisions;

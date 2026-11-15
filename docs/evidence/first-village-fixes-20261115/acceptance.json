@@ -80,5 +80,20 @@
       }
     },
     "untested": "The one-time credit for pre-feature saves (camp already refilled before the side task existed) has no dedicated test; it cannot be constructed through the public API."
+  },
+  "prReview": {
+    "comment": "Codex P2: a camp refilled before the memory archive existed could never complete the side task",
+    "change": "Completion now uses Mara's persisted legacy memory, present in every save: every handed-over ration counts as help, every camp theft, robbery or assault as a hostile act; completion needs a full camp and more helps than hostile acts. Pre-archive refills are credited on the first village tick after migration.",
+    "red": "camp-pre-forge-refill-credited-on-migration failed on the previous code",
+    "green": {
+      "core": "ALL PASS 19693 assertions (incl. camp-full-from-a-robber-earns-no-thanks)",
+      "EditMode": "90/90",
+      "PlayMode": "136/136",
+      "skipped": 0,
+      "xmlSha256": {
+        "PlayMode": "e559421761b81a2eb5e89498dba19877b0b8422863e6b0f42fda5302c0f7f305"
+      }
+    },
+    "note": "The first PlayMode attempt was interrupted by the owner; its owner-prefs change was restored byte for byte from a verified backup (hash 71e941fa…) before the rerun."
   }
 }

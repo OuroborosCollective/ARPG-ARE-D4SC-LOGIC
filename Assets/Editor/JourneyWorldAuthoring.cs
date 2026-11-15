@@ -35,8 +35,13 @@ namespace AreArpg.EditorTools
                     EnsureFolder(folder);EnsureFolder(Maps);
                     string scratch=folder+"/GenerationScratch.unity";
                     if(AssetDatabase.LoadAssetAtPath<SceneAsset>(scratch)!=null)throw new InvalidOperationException("Previous authoring scratch scene needs review: "+scratch);
+                    // Never write into a world that another open scene already uses for this profile.
+                    RejectLoadedWorldFor(folder+"/Profile.asset");
+                    // Profile, biome and terrain are rewritten before the immutable map can be compared; keep a byte copy.
+                    string snapshot=SnapshotFolder(folder,"Temp/JourneyAuthoringBackup/Seed"+seed.ToString(CultureInfo.InvariantCulture));
                     if(!AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity",scratch))throw new InvalidOperationException("Missing saved empty authoring template");
                     Scene scene=default;
+                    bool completed=false,keepScratch=false;
                     try
                     {
                         scene=EditorSceneManager.OpenScene(scratch,OpenSceneMode.Additive);
@@ -62,18 +67,22 @@ namespace AreArpg.EditorTools
                         File.WriteAllBytes(path,bytes);
                         AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
                         world.coreMap=AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-                        EditorSceneManager.SaveScene(scene,folder+"/Authored.unity");
+                        if(!EditorSceneManager.SaveScene(scene,folder+"/Authored.unity"))
+                        { keepScratch=true; throw new InvalidOperationException("Authored scene could not be saved; scratch scene kept for recovery: "+scratch); }
                         rows.Add(new {seed,revision=Revision,profile=AssetDatabase.GetAssetPath(p),scene=scene.path,map=path,
                             hash=map.ContentHash.ToString("X16"),sha256=Sha(bytes),nodes=map.NodesX*map.NodesZ,
                             areaSquareMetres=16384,obstacles=map.Obstacles.Count,pois=map.Pois.Count,
                             paths=p.paths.Count,seconds=report.seconds,report.treeInstances,report.gameObjects,
                             warnings=report.warnings.ToArray(),manualTerrainEdits=0});
+                        completed=true;
                     }
                     finally
                     {
                         SceneManager.SetActiveScene(prior);
                         if(scene.IsValid()&&scene.isLoaded)EditorSceneManager.CloseScene(scene,true);
-                        AssetDatabase.DeleteAsset(scratch);
+                        if(!keepScratch)AssetDatabase.DeleteAsset(scratch);
+                        // A failed run must leave the authoring assets able to reproduce the retained published map.
+                        if(!completed)RestoreFolder(snapshot,folder,keepScratch?scratch:null);
                     }
                 }
                 if(canonical[731904].SequenceEqual(canonical[731905]))throw new InvalidOperationException("Different seeds produced identical maps");
@@ -86,6 +95,50 @@ namespace AreArpg.EditorTools
             }
             catch(Exception e){Debug.LogException(e);if(Application.isBatchMode)EditorApplication.Exit(1);else throw;}
             finally{if(prior.IsValid()&&prior.isLoaded)SceneManager.SetActiveScene(prior);}
+        }
+
+        /// <summary>Throw when a loaded scene contains a world that already uses the profile at this path.</summary>
+        public static void RejectLoadedWorldFor(string profilePath)
+        {
+            var existing=AssetDatabase.LoadAssetAtPath<WorldProfile>(profilePath);
+            if(existing==null)return;
+            foreach(var world in UnityEngine.Object.FindObjectsByType<ForgedWorld>(FindObjectsInactive.Include,FindObjectsSortMode.None))
+                if(world.profile==existing)
+                    throw new InvalidOperationException("Close the open scene that already uses "+profilePath+" before authoring: "+world.gameObject.scene.path);
+        }
+
+        /// <summary>Copy every file of an authoring folder (with metas) outside Assets; null when the folder is new.</summary>
+        public static string SnapshotFolder(string folder,string backup)
+        {
+            if(!Directory.Exists(folder))return null;
+            if(Directory.Exists(backup))Directory.Delete(backup,true);
+            foreach(string file in Directory.GetFiles(folder,"*",SearchOption.AllDirectories))
+            {
+                string target=System.IO.Path.Combine(backup,System.IO.Path.GetRelativePath(folder,file));
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target));
+                File.Copy(file,target,true);
+            }
+            return backup;
+        }
+
+        /// <summary>Restore the snapshot byte for byte; files created since are removed except an explicitly kept one.</summary>
+        public static void RestoreFolder(string backup,string folder,string keep)
+        {
+            if(backup==null||!Directory.Exists(folder))return;
+            string kept=keep==null?null:System.IO.Path.GetFullPath(keep);
+            foreach(string file in Directory.GetFiles(folder,"*",SearchOption.AllDirectories))
+            {
+                string full=System.IO.Path.GetFullPath(file);
+                if(kept!=null&&(full==kept||full==kept+".meta"))continue;
+                if(!File.Exists(System.IO.Path.Combine(backup,System.IO.Path.GetRelativePath(folder,file))))File.Delete(file);
+            }
+            foreach(string file in Directory.GetFiles(backup,"*",SearchOption.AllDirectories))
+            {
+                string target=System.IO.Path.Combine(folder,System.IO.Path.GetRelativePath(backup,file));
+                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target));
+                File.Copy(file,target,true);
+            }
+            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
         }
 
         public static WorldProfile CreateProfile(int seed,string folder)

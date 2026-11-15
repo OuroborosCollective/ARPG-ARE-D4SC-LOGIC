@@ -107,6 +107,7 @@ namespace AshenCrypt.WorldForge.EditorTools
         {
             ForgedWorld world = FindWorld(p);
             if (world == null) return;
+            EnsureTerrainInOutputFolder(p, world);
             ClearSpawnedInternal(world);
             MarkDirty(world);
         }
@@ -279,6 +280,7 @@ namespace AshenCrypt.WorldForge.EditorTools
                 Validate(p);
                 ForgedWorld world = FindWorld(p);
                 if (world == null) throw new InvalidOperationException("No generated world for this profile in the open scene. Run 'Generate All' first.");
+                EnsureTerrainInOutputFolder(p, world);
                 WFHeightContext ctx = ReadFromTerrains(p, world);
                 var fields = new WFWorldFields(ctx);
                 step(world, ctx, fields, report);
@@ -682,6 +684,23 @@ namespace AshenCrypt.WorldForge.EditorTools
 
         // Generation owns the terrain data it writes, not every dirty asset in the editor.
         // Profile, biome, material overrides and unrelated scenes remain under their callers' save ownership.
+        /// <summary>
+        /// Edits are saved only for terrain data inside the profile's output folder. Refuse to modify terrain data that
+        /// lives elsewhere (for example after the output folder was changed) instead of leaving the changes unsaved.
+        /// </summary>
+        private static void EnsureTerrainInOutputFolder(WorldProfile p, ForgedWorld world)
+        {
+            string prefix = p.outputFolder.TrimEnd('/') + "/";
+            foreach (var terrain in world.tiles)
+            {
+                if (terrain == null || terrain.terrainData == null) continue;
+                string path = AssetDatabase.GetAssetPath(terrain.terrainData);
+                if (!string.IsNullOrEmpty(path) && !path.StartsWith(prefix, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Terrain data '" + path + "' lies outside the output folder '" + p.outputFolder +
+                        "'. Restore the output folder or run 'Generate All' again.");
+            }
+        }
+
         private static void SaveOwnedTerrainData(ForgedWorld world)
         {
             string prefix=world.profile.outputFolder.TrimEnd('/')+"/";

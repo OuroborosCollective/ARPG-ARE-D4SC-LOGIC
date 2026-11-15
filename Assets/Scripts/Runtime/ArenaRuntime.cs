@@ -102,8 +102,11 @@ namespace AreArpg.UnityClient
                 return true;
             }
             if (CharacterProgression.TryLoad(primary, _journeyMaps, out saved)) return true;
-            if (primary.StartsWith("AC20|",StringComparison.Ordinal)) return false;
-            if (CharacterProgression.TryLoad(backup, _journeyMaps, out saved)) return true;
+            // A failed AC20 checkpoint may only fall back to another AC20 checkpoint that validates against the bound
+            // map catalog. An older backup would silently drop journey progress and later overwrite it.
+            bool journeyCheckpoint = primary.StartsWith("AC20|", StringComparison.Ordinal);
+            if ((!journeyCheckpoint || backup.StartsWith("AC20|", StringComparison.Ordinal)) &&
+                CharacterProgression.TryLoad(backup, _journeyMaps, out saved)) return true;
             saved = null;
             return false;
         }
