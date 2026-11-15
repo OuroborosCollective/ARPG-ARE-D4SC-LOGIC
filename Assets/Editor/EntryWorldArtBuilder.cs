@@ -11,6 +11,10 @@ namespace AreArpg.EditorTools
     {
         private const string Output = "Assets/Resources/ARE/Visuals/";
         private static System.Collections.Generic.Dictionary<string, Material> _materials;
+        private const float PavingThickness = .23f;
+        private const float PavingFootY = AreVillageArtBuilder.GroundSurfaceY + AreVillageArtBuilder.PavingRise - PavingThickness;
+        private static readonly string[] PavingLabels = { "Old village road", "Supply court paving" };
+        private static readonly string[] GroundedActors = { "EntryHero", "EntryNpc0", "EntryNpc1", "EntryNpc2" };
 
         /// <summary>Build a private authoring preview; this never replaces the Core-backed entry worlds.</summary>
         public static string BuildDungeonPreview(string json) { return DungeonPreviewBuilder.Build(json); }
@@ -87,7 +91,129 @@ namespace AreArpg.EditorTools
             Bounds bounds = RenderBounds(art);
             art.transform.localScale *= height / bounds.size.y;
             bounds = RenderBounds(art);
-            art.transform.localPosition -= new Vector3(bounds.center.x, bounds.min.y, bounds.center.z);
+            art.transform.localPosition -= new Vector3(bounds.center.x, 0f, bounds.center.z);
+            StandOnVisibleFeet(art);
+        }
+
+        /// <summary>
+        /// Apply the village ground contact to the existing private prefabs without rebuilding the world: the ground plane
+        /// moves to the shared surface, paving tops rise just above it and actors stand on their visible feet. Materials,
+        /// animation controllers, weapons and actor sizes stay untouched.
+        /// </summary>
+        [MenuItem("ARE ARPG/Art/Ground Village Art")]
+        public static void GroundVillageArt()
+        {
+            foreach (string key in new[] { "EntryVillageWorld", "VillageBackdrop" })
+                EditPrefab(key, root =>
+                {
+                    Transform ground = root.transform.Find("Ground");
+                    if (ground == null) throw new InvalidOperationException("Village art has no ground: " + key);
+                    ground.localPosition = new Vector3(ground.localPosition.x, AreVillageArtBuilder.GroundSurfaceY, ground.localPosition.z);
+                    RaisePaving(root.transform);
+                    Debug.Log("ENTRY_GROUNDING " + key + " ground=" + ground.position.y.ToString("0.000"));
+                });
+            foreach (string key in GroundedActors)
+                EditPrefab(key, root =>
+                {
+                    if (root.transform.childCount != 1) throw new InvalidOperationException("Unexpected actor layout: " + key);
+                    GameObject art = root.transform.GetChild(0).gameObject;
+                    StandOnVisibleFeet(art);
+                    Debug.Log("ENTRY_GROUNDING " + key + " feet=" + VisibleBody(art).min.y.ToString("0.000"));
+                });
+            AssetDatabase.SaveAssets();
+        }
+
+        /// <summary>
+        /// Stand every paving strip so the median height of its upward-facing stone faces sits just above the ground.
+        /// Single tall stones must not define the height, otherwise the ground plane covers the laid surface.
+        /// </summary>
+        private static void RaisePaving(Transform root)
+        {
+            foreach (Transform child in root)
+            {
+                if (Array.IndexOf(PavingLabels, child.name) < 0) continue;
+                float surface = PavingSurface(child);
+                child.position += Vector3.up * (AreVillageArtBuilder.GroundSurfaceY + AreVillageArtBuilder.PavingRise - surface);
+            }
+        }
+
+        /// <summary>Median world height of upward-facing vertices of the highest-detail paving meshes.</summary>
+        private static float PavingSurface(Transform strip)
+        {
+            var lower = new System.Collections.Generic.HashSet<Renderer>();
+            foreach (LODGroup group in strip.GetComponentsInChildren<LODGroup>(true))
+            {
+                LOD[] lods = group.GetLODs();
+                for (int level = 1; level < lods.Length; level++)
+                    foreach (Renderer renderer in lods[level].renderers) if (renderer != null) lower.Add(renderer);
+            }
+            var heights = new System.Collections.Generic.List<float>();
+            foreach (MeshFilter filter in strip.GetComponentsInChildren<MeshFilter>(true))
+            {
+                Renderer renderer = filter.GetComponent<Renderer>();
+                Mesh mesh = filter.sharedMesh;
+                if (renderer == null || lower.Contains(renderer) || mesh == null) continue;
+                Vector3[] vertices = mesh.vertices, normals = mesh.normals;
+                if (normals.Length != vertices.Length) continue;
+                Matrix4x4 toWorld = filter.transform.localToWorldMatrix;
+                for (int i = 0; i < vertices.Length; i++)
+                    if (toWorld.MultiplyVector(normals[i]).normalized.y > .7f) heights.Add(toWorld.MultiplyPoint3x4(vertices[i]).y);
+            }
+            if (heights.Count == 0) throw new InvalidOperationException("Paving has no readable upward surface: " + strip.name);
+            heights.Sort();
+            return heights[heights.Count / 2];
+        }
+
+        /// <summary>Open one existing private prefab, edit it, validate passivity and save it in place.</summary>
+        private static void EditPrefab(string key, Action<GameObject> edit)
+        {
+            string path = Output + key + ".prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null) throw new InvalidOperationException("Missing private art: " + key);
+            GameObject root = PrefabUtility.LoadPrefabContents(path);
+            try
+            {
+                edit(root);
+                foreach (Component component in root.GetComponentsInChildren<Component>(true))
+                    if (!(component is Transform || component is MeshFilter || component is Renderer || component is LODGroup || component is Animator))
+                        throw new InvalidOperationException("Non-passive entry art: " + key);
+                if (PrefabUtility.SaveAsPrefabAsset(root, path) == null) throw new IOException("Could not save private entry art: " + key);
+            }
+            finally { PrefabUtility.UnloadPrefabContents(root); }
+        }
+
+        /// <summary>Lower or raise the actor so its lowest visible vertex touches the actor origin.</summary>
+        private static void StandOnVisibleFeet(GameObject art)
+        {
+            Transform parent = art.transform.parent;
+            float feet = VisibleBody(art).min.y - parent.position.y;
+            art.transform.localPosition -= parent.InverseTransformVector(Vector3.up * feet);
+        }
+
+        /// <summary>
+        /// Extents of the active skinned meshes in their current pose. Inactive outfit variants are ignored; their
+        /// renderer bounds reach lower than the worn boots and previously left villagers floating.
+        /// </summary>
+        private static Bounds VisibleBody(GameObject art)
+        {
+            var mesh = new Mesh();
+            bool any = false;
+            var bounds = new Bounds();
+            try
+            {
+                foreach (SkinnedMeshRenderer skin in art.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                {
+                    if (!skin.enabled || !skin.gameObject.activeInHierarchy || skin.sharedMesh == null) continue;
+                    skin.BakeMesh(mesh, true);
+                    Matrix4x4 toWorld = Matrix4x4.TRS(skin.transform.position, skin.transform.rotation, Vector3.one);
+                    foreach (Vector3 vertex in mesh.vertices)
+                    {
+                        Vector3 point = toWorld.MultiplyPoint3x4(vertex);
+                        if (any) bounds.Encapsulate(point); else { bounds = new Bounds(point, Vector3.zero); any = true; }
+                    }
+                }
+            }
+            finally { UnityEngine.Object.DestroyImmediate(mesh); }
+            return any ? bounds : RenderBounds(art);
         }
 
         /// <summary>Write import diagnostics to the private Editor log for visual integration review.</summary>
@@ -150,9 +276,10 @@ namespace AreArpg.EditorTools
                     new Vector3(b.HalfWidth / 500f, i < 4 ? heights[i] : 6f, b.HalfDepth / 500f));
             }
             for (int z = -24; z <= 12; z += 4)
-                Fit(root, "AshStoneFloor", "Old village road", new Vector3(0, -.25f, z), new Vector3(3.8f, .23f, 4f));
+                Fit(root, "AshStoneFloor", "Old village road", new Vector3(0, PavingFootY, z), new Vector3(3.8f, PavingThickness, 4f));
             for (int x = -10; x <= -2; x += 4)
-                Fit(root, "AshStoneFloor", "Supply court paving", new Vector3(x, -.24f, -11f), new Vector3(4f, .23f, 2f));
+                Fit(root, "AshStoneFloor", "Supply court paving", new Vector3(x, PavingFootY, -11f), new Vector3(4f, PavingThickness, 2f));
+            RaisePaving(root);
             string[] homes = { "building.04", "building.05", "building.06", "building.07", "building.08", "building.10" };
             for (int i = 0; i < homes.Length; i++)
             {

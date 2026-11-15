@@ -201,7 +201,7 @@ namespace AreArpg.Core
         }
     }
 
-    public sealed class NpcAgent
+    public sealed partial class NpcAgent
     {
         public int Id { get; private set; }
         public string Role { get { return Id == 0 ? "Abenteurer" : (Id == 1 ? "Versorger" : "Wache"); } }
@@ -219,7 +219,7 @@ namespace AreArpg.Core
 
         public string Greeting()
         {
-            NpcDisposition disposition = Memory.Disposition(Personality);
+            NpcDisposition disposition = Mood;
             if (disposition == NpcDisposition.Hostile) return "Bleib weg. Deine Taten sind nicht vergessen.";
             if (disposition == NpcDisposition.Wary) return "Ich erinnere mich an deinen Uebergriff. Halte Abstand.";
             if(Mind!=null&&Mind.RelationshipTo("player").Gratitude>0)

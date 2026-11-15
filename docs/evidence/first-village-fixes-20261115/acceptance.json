@@ -1,0 +1,99 @@
+{
+  "ownerReport": "Tablet play, first village after the crypt: houses, villagers and shrubs floated; greeting Ilyan made him flee; asking him did not advance; rations could be handed over endlessly without progress.",
+  "unity": "6000.6.8f1, batchmode, -force-glcore, Android build target, shared one-core CPU budget",
+  "grounding": {
+    "cause": "Village ground plane at -0.32 m while houses, trees, shrubs and actors stood at 0; villagers additionally 0.14 m higher because inactive outfit variants defined their feet.",
+    "red": {
+      "test": "VillageArtAndVillagersStandOnTheVisibleGround",
+      "result": "failed: pieces 0.32 m, villagers 0.455-0.469 m above ground",
+      "xmlSha256": "211492b5a2a7e40fde7d22a0ba92bf97eee3b314272f2e1664018b9a21c144c6"
+    },
+    "redRoadVisibility": {
+      "result": "failed after first correction: paving surface 0.071 m below the ground (road buried)",
+      "xmlSha256": "4e482eb707ff3d54b4dea21bd46ae336028a1bc99715f74bcb26def408249278"
+    },
+    "green": {
+      "result": "passed: 39 pieces at 0.000 m, road surface 0.020 m above ground",
+      "xmlSha256": "18a677feb3119aa8634d098f88d73b1824b3c1cdfee2bdc656cb9d1ab8ce139b"
+    },
+    "privateOverlay": "Applied with the narrow editor command EntryWorldArtBuilder.GroundVillageArt to six private prefabs; originals backed up privately; no other private file changed."
+  },
+  "villageSocial": {
+    "diagnosis": "Through the shared HUD routing a fresh greeting does not cause flight and the journal action advances the story. One attack set Ilyan to hostility 2500 (flight threshold 2000) with no decay over 3000 ticks; he fled from every approach. The first diagnostic test only reached him because he was cornered at the map edge.",
+    "honestRedNote": "The strengthened acceptance assertions were written after the diagnosis and were not executed as a formal RED before the fix; the diagnostic logs are the reproduction.",
+    "green": {
+      "tests": [
+        "VillageGreetingAskingAndRationsBehaveLikeTheShownObjective",
+        "OneMistakenAttackDoesNotLockIlyansMainQuest"
+      ],
+      "passed": 2,
+      "xmlSha256": "14a0fed504061a5d10ba0cb72feda5fb267a857abbc7158f35a3f150106c537a"
+    },
+    "core": "CoreVerification ALL PASS 19676 assertions (26 new calm/camp assertions incl. save/load replay of the next calming step)"
+  },
+  "fullRegression": [
+    {
+      "after": "grounding",
+      "EditMode": "85/85",
+      "PlayMode": "133/133",
+      "skipped": 0,
+      "xmlSha256": {
+        "EditMode": "9515dadbfd6d54ec920d2db56660be39404a943ad3a9f99887d14b3f8f887335",
+        "PlayMode": "69b08683cb5d4c67ead71259872ec82fbcac855eaf8d7c8898e2e6fb71abbc95"
+      }
+    },
+    {
+      "after": "grounding + village social",
+      "EditMode": "85/85",
+      "PlayMode": "135/135",
+      "skipped": 0,
+      "xmlSha256": {
+        "EditMode": "3572ec539b8912fa5943d881543d9f344ccdd98faa3a51f58c9a7ba8b5dcc25c",
+        "PlayMode": "b6175d3b50dfa93ace6fa7f92b92cf0bc2b3fe84da699520e0e061dba8d5607d"
+      }
+    }
+  ],
+  "revisionNote": "Native runs executed on the working tree whose tracked files equal the committed fixes, except that Unity had generated a compact NpcForgeCalm.cs.meta; the committed meta adds the full MonoImporter block with the same GUID. Static preflight 40/40 and the Unity/Android contract pass on the committed files.",
+  "notClaimed": [
+    "new APK",
+    "physical tablet run",
+    "GitHub-hosted Unity build"
+  ],
+  "reviewFixes": {
+    "findings": [
+      "Returning a stolen ration to an already full camp completed the side task with Mara's gratitude bonus",
+      "Greeting spam (1 s cooldown) reconciled a frightened villager within about 13 s instead of gradually"
+    ],
+    "changes": [
+      "Side task requires a net contribution: own donations (plus a paid replace decision) must exceed own thefts; saves that already refilled the camp with real donations are credited once",
+      "Greeting reconciles at most once per 300 ticks (30 s); help still reconciles because it spends real provisions"
+    ],
+    "red": "Both new Core assertions failed against the pre-review revision ce402ec (calm-greeting-spam-reconciles-once-per-interval, camp-returning-stolen-ration-is-not-the-side-task)",
+    "green": {
+      "core": "ALL PASS 19682 assertions",
+      "EditMode": "85/85",
+      "PlayMode": "135/135",
+      "skipped": 0,
+      "xmlSha256": {
+        "EditMode": "898e5e404b60aa1aea4a116749e34f0688c11714de19cd68e41e938159b0b320",
+        "PlayMode": "ffe0df8b2ee7818d029c7b1b744e1ea31350f85426a6fcab037d0b1602f83487"
+      }
+    },
+    "untested": "The one-time credit for pre-feature saves (camp already refilled before the side task existed) has no dedicated test; it cannot be constructed through the public API."
+  },
+  "prReview": {
+    "comment": "Codex P2: a camp refilled before the memory archive existed could never complete the side task",
+    "change": "Completion now uses Mara's persisted legacy memory, present in every save: every handed-over ration counts as help, every camp theft, robbery or assault as a hostile act; completion needs a full camp and more helps than hostile acts. Pre-archive refills are credited on the first village tick after migration.",
+    "red": "camp-pre-forge-refill-credited-on-migration failed on the previous code",
+    "green": {
+      "core": "ALL PASS 19693 assertions (incl. camp-full-from-a-robber-earns-no-thanks)",
+      "EditMode": "90/90",
+      "PlayMode": "136/136",
+      "skipped": 0,
+      "xmlSha256": {
+        "PlayMode": "e559421761b81a2eb5e89498dba19877b0b8422863e6b0f42fda5302c0f7f305"
+      }
+    },
+    "note": "The first PlayMode attempt was interrupted by the owner; its owner-prefs change was restored byte for byte from a verified backup (hash 71e941fa…) before the rerun."
+  }
+}

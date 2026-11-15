@@ -37,7 +37,7 @@ namespace AreArpg.Core
 
         public static SpeechLine Greeting(NpcAgent npc)
         {
-            switch (npc.Memory.Disposition(npc.Personality))
+            switch (npc.Mood)
             {
                 case NpcDisposition.Hostile: return SpeechLine.Hostile;
                 case NpcDisposition.Wary: return SpeechLine.Wary;

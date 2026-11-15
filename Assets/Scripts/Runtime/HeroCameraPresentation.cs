@@ -97,7 +97,7 @@ namespace AreArpg.UnityClient
             var road = _game.Progression.Road;
             if (_game.Progression.EntryAct == 3 && road.Started && !road.Bear.IsDead && CameraDangerNear(road.Bear.Xmm, road.Bear.Zmm)) danger = true;
             foreach (var npc in _game.Npcs)
-                if (npc.Memory.Health > 0 && npc.Memory.Disposition(npc.Personality) == NpcDisposition.Hostile && CameraDangerNear(npc.Xmm, npc.Zmm)) danger = true;
+                if (npc.Memory.Health > 0 && npc.Mood == NpcDisposition.Hostile && CameraDangerNear(npc.Xmm, npc.Zmm)) danger = true;
             bool speaking = _atmosphere != null && _atmosphere.Subtitle.Length > 0;
             Vector3 speaker = _hero.position;
             if (speaking)
