@@ -728,6 +728,7 @@ namespace AreArpg.UnityClient
                 return;
             }
 
+            if (PollArrivalScene()) return;
             if (PollMenuInput()) return;
             if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
@@ -939,9 +940,9 @@ namespace AreArpg.UnityClient
             _regionFade = Mathf.Max(0f, _regionFade - Time.deltaTime / 0.75f);
             PollInputs();
             // The modal menu pauses the deterministic simulation; no ticks accumulate while it is open.
-            if (!MenuOpen) _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
+            if (!SimulationPaused) _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
             int steps = 0;
-            while (!MenuOpen && _accumulator >= TickSeconds && steps < CatchUpLimit)
+            while (!SimulationPaused && _accumulator >= TickSeconds && steps < CatchUpLimit)
             {
                 _accumulator -= TickSeconds;
                 steps++;
@@ -1062,7 +1063,14 @@ namespace AreArpg.UnityClient
                     var direction=new Vector3((_game.PlayerXmm-npc.Xmm)/1000f,0f,(_game.PlayerZmm-npc.Zmm)/1000f);
                     if(direction.sqrMagnitude>.001f)visual.rotation=Quaternion.LookRotation(direction);
                 }
-                if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
+                if (_sceneActive && npc.Memory.Health > 0 && _hero != null)
+                {
+                    // During the paused arrival scene everyone stands still and listens to the conversation at the hero.
+                    var toHero = _hero.position - visual.position; toHero.y = 0f;
+                    if (toHero.sqrMagnitude > .001f) visual.rotation = Quaternion.LookRotation(toHero);
+                    AnimateActor(visual, 0, 0);
+                }
+                else if (npc.Memory.Health > 0) AnimateActor(visual, npc.Xmm - npc.PreviousXmm, npc.Zmm - npc.PreviousZmm);
             }
             UpdateJourneyPresentation();
             UpdateDungeonPresentation();
@@ -1081,7 +1089,7 @@ namespace AreArpg.UnityClient
                 float x = Mathf.Lerp(_game.PrevPlayerXmm, _game.PlayerXmm, alpha) / 1000f;
                 float z = Mathf.Lerp(_game.PrevPlayerZmm, _game.PlayerZmm, alpha) / 1000f;
                 _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z), z);
-                AnimateActor(_hero, _game.PlayerXmm - _game.PrevPlayerXmm, _game.PlayerZmm - _game.PrevPlayerZmm);
+                AnimateActor(_hero, _sceneActive ? 0 : _game.PlayerXmm - _game.PrevPlayerXmm, _sceneActive ? 0 : _game.PlayerZmm - _game.PrevPlayerZmm);
             }
             UpdateHeroCameraContext();
             foreach (MonsterState enemy in _game.Monsters)

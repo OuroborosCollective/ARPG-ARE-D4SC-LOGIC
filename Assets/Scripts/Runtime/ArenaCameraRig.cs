@@ -223,6 +223,20 @@ namespace AreArpg.UnityClient
         }
 
         private float _shakeUntil = -1f, _shakeAmplitude, _shakeSeconds;
+        private bool _cinematic;
+        private Vector3 _cinematicFocus, _cinematicFrom;
+        /// <summary>True while a story scene owns the camera.</summary>
+        public bool Cinematic { get { return _cinematic; } }
+
+        /// <summary>Let a story scene frame a speaker; follow, zoom and orbit resume after <see cref="ClearCinematic"/>.</summary>
+        public void SetCinematic(Vector3 focus, Vector3 from)
+        {
+            if ((focus - from).sqrMagnitude < .01f) return;
+            if (!_cinematic) transform.SetPositionAndRotation(from, Quaternion.LookRotation(focus - from));
+            _cinematic = true; _cinematicFocus = focus; _cinematicFrom = from;
+        }
+
+        public void ClearCinematic() { _cinematic = false; }
         /// <summary>True during a cosmetic hit shake.</summary>
         public bool Shaking { get { return Time.unscaledTime < _shakeUntil; } }
 
@@ -242,6 +256,13 @@ namespace AreArpg.UnityClient
         {
             if (_target == null || !Finite(seconds) || seconds <= 0) return;
             float dt = Mathf.Min(seconds, .1f);
+            if (_cinematic)
+            {
+                float glide = 1f - Mathf.Exp(-5f * dt);
+                transform.position = Vector3.Lerp(transform.position, _cinematicFrom, glide);
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(_cinematicFocus - _cinematicFrom), glide);
+                return;
+            }
             _dangerHold = _danger ? 1.5f : Mathf.Max(0, _dangerHold - dt);
             _idleSeconds = _moving || _dangerHold > 0 || _speaking ? 0 : _idleSeconds + dt;
             Framing = _manual ? HeroFraming.Manual : !_entryProfile ? HeroFraming.Travel :

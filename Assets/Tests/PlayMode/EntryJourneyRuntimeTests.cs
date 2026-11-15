@@ -140,6 +140,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(Game.AtWorldPassage);
             typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
             Assert.AreEqual(2, Game.Progression.EntryAct);
+            // This checkpoint test models a player who watched the arrival scene; its playback has its own test.
+            Assert.IsTrue(Game.CompleteArrivalScene());
             Assert.AreEqual(chosenCameraDistance, cameraRig.Distance);
             Assert.LessOrEqual(Vector3.Distance(Camera.main.transform.position, cameraRig.FocusPoint), chosenCameraDistance + .01f,
                 "The region transition must retain the chosen zoom without snapping away");
@@ -812,6 +814,14 @@ namespace AreArpg.PlayMode.Tests
 
         /// <summary>Invoke the real travel adapter, including checkpoint write/readback and projection replacement.</summary>
         private void TravelStory()
+        {
+            typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
+            // Story tests model a player who already watched the first-arrival scene; its own test covers playback.
+            if (Game.ArrivalScenePending) Assert.IsTrue(Game.CompleteArrivalScene());
+        }
+
+        /// <summary>Travel like <see cref="TravelStory"/> but leave the first-arrival scene to the runtime.</summary>
+        private void TravelStoryWithArrivalScene()
         { typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null); }
 
         /// <summary>Feed the same request queue used by touch/GUI, then wait for an actual Unity tick and save.</summary>

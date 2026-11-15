@@ -384,9 +384,9 @@ namespace AreArpg.UnityClient
             bool over = _game.GameOver;
             bool menuOpen = MenuOpen;
             _hudDefeat.SetActive(!_storageFault && over);
-            _hudGameplay.SetActive(!_storageFault && !over && !menuOpen && !_hungerJournalOpen);
+            _hudGameplay.SetActive(!_storageFault && !over && !menuOpen && !_hungerJournalOpen && !_sceneActive);
             var fade = _hudFade.color; fade.a = _regionFade; fade.r = fade.g = fade.b = 0f; _hudFade.color = fade;
-            if (_storageFault || over || menuOpen || _hungerJournalOpen) return;
+            if (_storageFault || over || menuOpen || _hungerJournalOpen || _sceneActive) return;
 
             var p = _game.Progression;
             _hudLevel.text = p.Level.ToString();
@@ -427,7 +427,7 @@ namespace AreArpg.UnityClient
                 string moodText = mood == NpcDisposition.Friendly ? "<color=#8FD16A>freundlich</color>" :
                     mood == NpcDisposition.Wary ? "<color=#E8C25A>misstrauisch</color>" :
                     mood == NpcDisposition.Hostile ? "<color=#E0472C>feindselig</color>" : "<color=#BBB2A2>neutral</color>";
-                string who = npc.Id == 0 ? "Ilyan  <size=12><color=#A88A5A>Pfadleser</color></size>" :
+                string who = npc.Id == 0 ? "Ilyan  <size=12><color=#A88A5A>verarmter Pfadleser</color></size>" :
                     npc.Id == 1 ? "Mara  <size=12><color=#A88A5A>Versorgerin</color></size>" : "Dorn  <size=12><color=#A88A5A>Wache</color></size>";
                 _hudNpcName.text = who + "   " + moodText;
                 _hudNpcLine1.text = "Gute Taten +" + npc.Memory.PositivePoints + "   ·   Übergriffe −" + npc.Memory.NegativePoints;
