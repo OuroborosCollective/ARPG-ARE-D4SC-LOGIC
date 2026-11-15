@@ -1,0 +1,14 @@
+{
+  "observedDateUtc": "2026-11-15",
+  "method": "Authenticated official Asset Store Uploader package-list model in Unity 6000.6.8f1",
+  "packages": [
+    {"name": "Ouroboros Dungeon Blueprints", "status": "draft", "packageId": "428468", "versionId": "1554078", "category": "Tools/Level Design", "size": ""},
+    {"name": "Memory Forge — Deterministic NPC AI", "status": "pendingReview", "packageId": "429860", "versionId": "1557618", "category": "Tools/Behavior AI", "size": "54479"}
+  ],
+  "matchingTargetDrafts": [],
+  "saleModuleFilesChecked": 148,
+  "changedSaleModuleFiles": [],
+  "uploadedByThisBlock": false,
+  "submittedByThisBlock": false,
+  "blocker": "Create Fadenwerk and World Forge draft products in Publisher Portal before selecting either in the official Editor uploader."
+}

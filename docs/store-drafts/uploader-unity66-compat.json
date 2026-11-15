@@ -1,0 +1,26 @@
+{
+  "upstream": "944773fcec4d9e1551bc8058523e5ccb649ab87e",
+  "upstreamVersion": "12.0.0",
+  "localCompatibilityPatch": true,
+  "saleModulesChanged": false,
+  "changes": [
+    {
+      "path": "Editor/Exporter/Abstractions/PackageExporterBase.cs",
+      "beforeSha256": "8432b822f89b522d6c9865180d55f4558f2f5806615557e39d7bd980882dc813",
+      "afterSha256": "1fc4201bbacd8d6d63442e58e9c403d65dbe428aa5a9d7d923fd1a5c1fd1063e",
+      "replacements": 1
+    },
+    {
+      "path": "Editor/Validator/Scripts/Test Methods/Generic/CheckAudioClipping.cs",
+      "beforeSha256": "2e0685efe623ae6dbf7d63deb81925a7de02557870bf777157d52c17fb9313b4",
+      "afterSha256": "b66e8d7408b5cc69b4f37a327d94da5660e261464e883bf5c0a342e5f0a42e1a",
+      "replacements": 2
+    },
+    {
+      "path": "Editor/Previews/Scripts/Generators/NativePreviewGenerator.cs",
+      "beforeSha256": "54e9be063811ffe04ed666c77858327c9a130588e9bb8089dd36e2102bde9265",
+      "afterSha256": "7f1d41aaf6aa5773f55d65560abccda481e8f1ed10b9f53b1be86000ab8efdb0",
+      "replacements": 1
+    }
+  ]
+}

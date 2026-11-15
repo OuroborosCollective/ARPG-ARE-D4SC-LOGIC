@@ -1,0 +1,12 @@
+{
+  "source": "2f296b26767ad0746a2ca26468ef299f91e43b57",
+  "desiredState": "draft",
+  "submitForReview": false,
+  "publish": false,
+  "imagesAndPolishDeferred": true,
+  "packages": [
+    {"title": "Fadenwerk", "priceUsd": 6, "payment": "one-time", "exportRoot": "Assets/Fadenwerk", "uploaded": false},
+    {"title": "World Forge", "priceUsd": 35, "payment": "one-time", "exportRoot": "Assets/WorldForge", "uploaded": false}
+  ],
+  "note": "Requested state only. Replace uploaded=false only after actual official uploader and server readback."
+}

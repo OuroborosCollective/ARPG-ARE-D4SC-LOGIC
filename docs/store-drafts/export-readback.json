@@ -1,0 +1,22 @@
+{
+  "source": "2f296b26767ad0746a2ca26468ef299f91e43b57",
+  "packages": [
+    {
+      "name": "Fadenwerk-1.0.0-draft.unitypackage",
+      "bytes": 85364,
+      "sha256": "8c7d509d13362478f520b0f1e4e6067d95b4fb7324ef84722c912bbf365195ce",
+      "assetPaths": 38,
+      "root": "Assets/Fadenwerk",
+      "onlyOwnRoot": true
+    },
+    {
+      "name": "WorldForge-1.0.0-draft.unitypackage",
+      "bytes": 820669,
+      "sha256": "85ff90eb26bd36b93ef19f3edde9eccbd1574baa8e3a98fccf7298c29ef449c3",
+      "assetPaths": 45,
+      "root": "Assets/WorldForge",
+      "onlyOwnRoot": true
+    }
+  ],
+  "uploaded": false
+}
