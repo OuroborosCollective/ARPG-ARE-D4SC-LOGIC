@@ -30,61 +30,7 @@ namespace AreArpg.EditorTools
             try
             {
                 foreach(int seed in new[]{731904,731905,731904})
-                {
-                    string folder=Output+"/Seed"+seed.ToString(CultureInfo.InvariantCulture);
-                    EnsureFolder(folder);EnsureFolder(Maps);
-                    string scratch=folder+"/GenerationScratch.unity";
-                    if(AssetDatabase.LoadAssetAtPath<SceneAsset>(scratch)!=null)throw new InvalidOperationException("Previous authoring scratch scene needs review: "+scratch);
-                    // Never write into a world that another open scene already uses for this profile.
-                    RejectLoadedWorldFor(folder+"/Profile.asset");
-                    // Profile, biome and terrain are rewritten before the immutable map can be compared; keep a byte copy.
-                    string snapshot=SnapshotFolder(folder,"Temp/JourneyAuthoringBackup/Seed"+seed.ToString(CultureInfo.InvariantCulture));
-                    if(!AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity",scratch))throw new InvalidOperationException("Missing saved empty authoring template");
-                    Scene scene=default;
-                    bool completed=false,keepScratch=false;
-                    try
-                    {
-                        scene=EditorSceneManager.OpenScene(scratch,OpenSceneMode.Additive);
-                        if(scene.rootCount!=0)throw new InvalidOperationException("Authoring template must remain empty");
-                        SceneManager.SetActiveScene(scene);
-                        // Only this saved additive scene is the generation target. All other open scenes stay open.
-                        var p=CreateProfile(seed,folder);
-                        var root=new GameObject(p.rootObjectName);
-                        root.transform.position=new Vector3(-64,0,-64);
-                        var world=root.AddComponent<ForgedWorld>();world.profile=p;
-                        var report=WFTerrainBuilder.GenerateAll(p);
-                        var map=WFCoreMapExporter.Build(p,world,report);
-                        if(map.NodesX!=129||map.NodesZ!=129||map.WidthMm!=128000||map.DepthMm!=128000)
-                            throw new InvalidOperationException("Pilot map dimensions differ from 128m / 129 nodes");
-                        byte[] bytes=map.ToBytes();
-                        if(canonical.TryGetValue(seed,out var first)&&!first.SequenceEqual(bytes))
-                            throw new InvalidOperationException("Repeated World Forge seed changed canonical bytes");
-                        canonical[seed]=bytes;
-                        string path=Maps+"/Wald_v1_"+seed.ToString(CultureInfo.InvariantCulture)+".bytes";
-                        // Published identities are immutable: a different map requires a new authored version.
-                        if(File.Exists(path)&&!File.ReadAllBytes(path).SequenceEqual(bytes))
-                            throw new InvalidOperationException("Existing map differs; retain it and author a new version: "+path);
-                        File.WriteAllBytes(path,bytes);
-                        AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
-                        world.coreMap=AssetDatabase.LoadAssetAtPath<TextAsset>(path);
-                        if(!EditorSceneManager.SaveScene(scene,folder+"/Authored.unity"))
-                        { keepScratch=true; throw new InvalidOperationException("Authored scene could not be saved; scratch scene kept for recovery: "+scratch); }
-                        rows.Add(new {seed,revision=Revision,profile=AssetDatabase.GetAssetPath(p),scene=scene.path,map=path,
-                            hash=map.ContentHash.ToString("X16"),sha256=Sha(bytes),nodes=map.NodesX*map.NodesZ,
-                            areaSquareMetres=16384,obstacles=map.Obstacles.Count,pois=map.Pois.Count,
-                            paths=p.paths.Count,seconds=report.seconds,report.treeInstances,report.gameObjects,
-                            warnings=report.warnings.ToArray(),manualTerrainEdits=0});
-                        completed=true;
-                    }
-                    finally
-                    {
-                        SceneManager.SetActiveScene(prior);
-                        if(scene.IsValid()&&scene.isLoaded)EditorSceneManager.CloseScene(scene,true);
-                        if(!keepScratch)AssetDatabase.DeleteAsset(scratch);
-                        // A failed run must leave the authoring assets able to reproduce the retained published map.
-                        if(!completed)RestoreFolder(snapshot,folder,keepScratch?scratch:null);
-                    }
-                }
+                    rows.Add(AuthorSeed(seed,Output+"/Seed"+seed.ToString(CultureInfo.InvariantCulture),Maps,canonical,(scene,path)=>EditorSceneManager.SaveScene(scene,path)));
                 if(canonical[731904].SequenceEqual(canonical[731905]))throw new InvalidOperationException("Different seeds produced identical maps");
                 string evidence=Environment.GetEnvironmentVariable("ARE_JOURNEY_AUTHOR_REPORT");
                 if(string.IsNullOrEmpty(evidence))evidence="Library/JourneyPilotAuthoring.json";
@@ -97,6 +43,92 @@ namespace AreArpg.EditorTools
             finally{if(prior.IsValid()&&prior.isLoaded)SceneManager.SetActiveScene(prior);}
         }
 
+        /// <summary>
+        /// Author one seed into its folder. Any failure restores the folder byte for byte, with one exception: when only
+        /// saving the authored scene fails, the published map has already been verified, so the generated world and its
+        /// assets are kept for recovery — saved into the scratch scene when possible, otherwise left open in the editor.
+        /// </summary>
+        public static object AuthorSeed(int seed,string folder,string maps,Dictionary<int,byte[]> canonical,Func<Scene,string,bool> save)
+        {
+            var prior=SceneManager.GetActiveScene();
+            string scratch=folder+"/GenerationScratch.unity";
+            if(AssetDatabase.LoadAssetAtPath<SceneAsset>(scratch)!=null)throw new InvalidOperationException("Previous authoring scratch scene needs review: "+scratch);
+            // Never write into a world that another open scene already uses for this profile.
+            RejectLoadedWorldFor(folder+"/Profile.asset");
+            // Refuse before anything is touched, so neither the run nor its rollback can overwrite unsaved edits.
+            RejectUnsavedAuthoringEdits(folder);
+            EnsureFolder(folder);EnsureFolder(maps);
+            // Profile, biome and terrain are rewritten before the immutable map can be compared; keep a byte copy.
+            string snapshot=SnapshotFolder(folder,"Temp/JourneyAuthoringBackup/"+folder.Replace('/','_'));
+            if(!AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity",scratch))throw new InvalidOperationException("Missing saved empty authoring template");
+            Scene scene=default;
+            bool completed=false,recovering=false,rescued=false;
+            try
+            {
+                scene=EditorSceneManager.OpenScene(scratch,OpenSceneMode.Additive);
+                if(scene.rootCount!=0)throw new InvalidOperationException("Authoring template must remain empty");
+                SceneManager.SetActiveScene(scene);
+                // Only this saved additive scene is the generation target. All other open scenes stay open.
+                var p=CreateProfile(seed,folder);
+                var root=new GameObject(p.rootObjectName);
+                root.transform.position=new Vector3(-64,0,-64);
+                var world=root.AddComponent<ForgedWorld>();world.profile=p;
+                var report=WFTerrainBuilder.GenerateAll(p);
+                var map=WFCoreMapExporter.Build(p,world,report);
+                if(map.NodesX!=129||map.NodesZ!=129||map.WidthMm!=128000||map.DepthMm!=128000)
+                    throw new InvalidOperationException("Pilot map dimensions differ from 128m / 129 nodes");
+                byte[] bytes=map.ToBytes();
+                if(canonical.TryGetValue(seed,out var first)&&!first.SequenceEqual(bytes))
+                    throw new InvalidOperationException("Repeated World Forge seed changed canonical bytes");
+                canonical[seed]=bytes;
+                string path=maps+"/Wald_v1_"+seed.ToString(CultureInfo.InvariantCulture)+".bytes";
+                // Published identities are immutable: a different map requires a new authored version.
+                if(File.Exists(path)&&!File.ReadAllBytes(path).SequenceEqual(bytes))
+                    throw new InvalidOperationException("Existing map differs; retain it and author a new version: "+path);
+                File.WriteAllBytes(path,bytes);
+                AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+                world.coreMap=AssetDatabase.LoadAssetAtPath<TextAsset>(path);
+                if(!save(scene,folder+"/Authored.unity"))
+                {
+                    // The map is verified and published, so the generated assets still reproduce it: keep them, never roll back.
+                    recovering=true;
+                    rescued=save(scene,scratch);
+                    throw new InvalidOperationException(rescued?"Authored scene could not be saved; the generated world was saved for recovery: "+scratch:
+                        "Authored scene could not be saved; the generated world stays open in the editor for manual saving: "+scratch);
+                }
+                var row=new {seed,revision=Revision,profile=AssetDatabase.GetAssetPath(p),scene=scene.path,map=path,
+                    hash=map.ContentHash.ToString("X16"),sha256=Sha(bytes),nodes=map.NodesX*map.NodesZ,
+                    areaSquareMetres=16384,obstacles=map.Obstacles.Count,pois=map.Pois.Count,
+                    paths=p.paths.Count,seconds=report.seconds,report.treeInstances,report.gameObjects,
+                    warnings=report.warnings.ToArray(),manualTerrainEdits=0};
+                completed=true;
+                return row;
+            }
+            finally
+            {
+                if(prior.IsValid()&&prior.isLoaded)SceneManager.SetActiveScene(prior);
+                // A generated world that could not be saved anywhere stays open; every other run closes its scene.
+                if(scene.IsValid()&&scene.isLoaded&&!(recovering&&!rescued))EditorSceneManager.CloseScene(scene,true);
+                if(!recovering)AssetDatabase.DeleteAsset(scratch);
+                // A failed run must leave the authoring assets able to reproduce the retained published map.
+                if(!completed&&!recovering)RestoreFolder(snapshot,folder,null);
+            }
+        }
+
+        /// <summary>Throw before any change when an asset of this authoring folder has unsaved in-memory edits.</summary>
+        public static void RejectUnsavedAuthoringEdits(string folder)
+        {
+            if(!AssetDatabase.IsValidFolder(folder))return;
+            foreach(string guid in AssetDatabase.FindAssets("",new[]{folder}))
+            {
+                string path=AssetDatabase.GUIDToAssetPath(guid);
+                if(AssetDatabase.IsValidFolder(path))continue;
+                var asset=AssetDatabase.LoadMainAssetAtPath(path);
+                if(asset!=null&&EditorUtility.IsDirty(asset))
+                    throw new InvalidOperationException("Authoring output has unsaved edits; save or revert them first: "+path);
+            }
+        }
+
         /// <summary>Throw when a loaded scene contains a world that already uses the profile at this path.</summary>
         public static void RejectLoadedWorldFor(string profilePath)
         {
@@ -107,11 +139,13 @@ namespace AreArpg.EditorTools
                     throw new InvalidOperationException("Close the open scene that already uses "+profilePath+" before authoring: "+world.gameObject.scene.path);
         }
 
-        /// <summary>Copy every file of an authoring folder (with metas) outside Assets; null when the folder is new.</summary>
+        /// <summary>Copy every file of an authoring folder (with metas) outside Assets; null when the folder does not exist.</summary>
         public static string SnapshotFolder(string folder,string backup)
         {
             if(!Directory.Exists(folder))return null;
             if(Directory.Exists(backup))Directory.Delete(backup,true);
+            // An existing empty folder still gets an (empty) snapshot, so a later restore finds it.
+            Directory.CreateDirectory(backup);
             foreach(string file in Directory.GetFiles(folder,"*",SearchOption.AllDirectories))
             {
                 string target=System.IO.Path.Combine(backup,System.IO.Path.GetRelativePath(folder,file));
@@ -121,24 +155,30 @@ namespace AreArpg.EditorTools
             return backup;
         }
 
-        /// <summary>Restore the snapshot byte for byte; files created since are removed except an explicitly kept one.</summary>
+        /// <summary>
+        /// Restore the snapshot byte for byte; files created since are removed except an explicitly kept one. Files whose
+        /// bytes are unchanged are not touched, so they are neither reimported nor reloaded.
+        /// </summary>
         public static void RestoreFolder(string backup,string folder,string keep)
         {
             if(backup==null||!Directory.Exists(folder))return;
             string kept=keep==null?null:System.IO.Path.GetFullPath(keep);
+            bool changed=false;
             foreach(string file in Directory.GetFiles(folder,"*",SearchOption.AllDirectories))
             {
                 string full=System.IO.Path.GetFullPath(file);
                 if(kept!=null&&(full==kept||full==kept+".meta"))continue;
-                if(!File.Exists(System.IO.Path.Combine(backup,System.IO.Path.GetRelativePath(folder,file))))File.Delete(file);
+                if(!File.Exists(System.IO.Path.Combine(backup,System.IO.Path.GetRelativePath(folder,file)))){File.Delete(file);changed=true;}
             }
-            foreach(string file in Directory.GetFiles(backup,"*",SearchOption.AllDirectories))
-            {
-                string target=System.IO.Path.Combine(folder,System.IO.Path.GetRelativePath(backup,file));
-                Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target));
-                File.Copy(file,target,true);
-            }
-            AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
+            if(Directory.Exists(backup))
+                foreach(string file in Directory.GetFiles(backup,"*",SearchOption.AllDirectories))
+                {
+                    string target=System.IO.Path.Combine(folder,System.IO.Path.GetRelativePath(backup,file));
+                    if(File.Exists(target)&&File.ReadAllBytes(target).SequenceEqual(File.ReadAllBytes(file)))continue;
+                    Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target));
+                    File.Copy(file,target,true);changed=true;
+                }
+            if(changed)AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
         }
 
         public static WorldProfile CreateProfile(int seed,string folder)
