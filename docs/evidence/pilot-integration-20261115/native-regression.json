@@ -57,7 +57,48 @@
         "EditMode": "209c2bae98a72511cbafd5734255f9c82638b9ca7fe72c73afcca7d26876f91f",
         "PlayMode": "cda4fd164e7236ded2ad3aab75b6f230c058736b6672009a6657af4eb87393ac"
       }
+    }
+  },
+  "reviewFollowUp": {
+    "addressed": [
+      "CodeRabbit major: authoring refuses unsaved in-memory edits of any asset in the seed folder before anything is touched, so neither the run nor its rollback can overwrite them; the rollback now rewrites only files whose bytes changed",
+      "CodeRabbit minor: an existing empty seed folder gets a real (empty) snapshot, so a failed run restores it instead of masking the error with DirectoryNotFoundException",
+      "CodeRabbit follow-up on the scene-save check: when only saving the authored scene fails, the published map is already verified, so the generated world and its assets are kept — saved into the scratch scene when possible, otherwise left open in the editor — and the folder is not rolled back"
+    ],
+    "tests": [
+      "EmptyFolderSnapshotRestoresWithoutError",
+      "UnsavedAuthoringEditsAreRefusedBeforeAnythingIsTouched",
+      "FailedSceneSaveKeepsTheGeneratedWorldForRecovery (injected save wrapper: success, rescue into the scratch scene, left open)"
+    ],
+    "red": "With the three fixes removed, all 3 new tests failed; without the up-front check the dirty biome was not even refused — the run completed and rewrote it",
+    "editModeFull": {
+      "total": 93,
+      "passed": 93,
+      "skipped": 0,
+      "xmlSha256": "c0f1be27d1272ba8b93b9768a7da5bac41e295d1b6bb2b8d1e413eb3e3da9960"
     },
-    "untested": "The scene-save failure branch has no automated test (Unity cannot be made to fail SaveScene deterministically in a test)."
+    "realAuthoringABA": {
+      "exit": 0,
+      "repeatedSeedIdentical": true,
+      "differentSeedVaries": true,
+      "maps": [
+        {
+          "seed": 731904,
+          "hash": "82B0FA9F7D342123",
+          "sha256": "a6fc8fafb852d0b51bb0e2da0ac445f12ece5a263cfe9cecb8f65e7a8b948415"
+        },
+        {
+          "seed": 731905,
+          "hash": "845EB114B07AC26E",
+          "sha256": "5d774ced0df653b6f1573b9bb2ac7e64011b8158516824b00997236669e33188"
+        },
+        {
+          "seed": 731904,
+          "hash": "82B0FA9F7D342123",
+          "sha256": "a6fc8fafb852d0b51bb0e2da0ac445f12ece5a263cfe9cecb8f65e7a8b948415"
+        }
+      ],
+      "note": "Published maps, terrain and biome byte-identical; profile and scene differ only in serialization IDs. The local authoring outputs were restored to their previous bytes afterwards."
+    }
   }
 }
