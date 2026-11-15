@@ -38,18 +38,26 @@ namespace AshenCrypt.WorldForge.Tests
                 var sentinel=ScriptableObject.CreateInstance<WorldProfile>();
                 AssetDatabase.CreateAsset(sentinel,folder+"/Unrelated.asset");
                 AssetDatabase.SaveAssetIfDirty(sentinel);
+                // Finish the fixture's first import before making an unrelated user edit.
+                // Terrain asset creation must not get credit for settling a pending fixture import.
+                AssetDatabase.ImportAsset(folder+"/Unrelated.asset",ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
+                sentinel=AssetDatabase.LoadAssetAtPath<WorldProfile>(folder+"/Unrelated.asset");
+                Assert.IsNotNull(sentinel);
                 byte[] original=File.ReadAllBytes(folder+"/Unrelated.asset");
                 p.tilesX=p.tilesZ=1;p.tileSize=32;p.heightmapResolution=33;
                 p.rootObjectName="WF_ScopedSave_Test";p.outputFolder=folder+"/Generated";
                 p.heightLayers.Add(new WFNoiseLayer{amplitude=1,baseHeight=2});
                 if(operation!="heights")WFTerrainBuilder.GenerateHeightsOnly(p);
                 sentinel.seed=999;EditorUtility.SetDirty(sentinel);
+                Assert.AreEqual(999,sentinel.seed,"Fixture edit must exist before generation");
+                Assert.IsTrue(EditorUtility.IsDirty(sentinel),"Fixture edit must be dirty before generation");
                 if(operation=="heights")WFTerrainBuilder.GenerateHeightsOnly(p);
                 else if(operation=="all")WFTerrainBuilder.GenerateAll(p);
                 else if(operation=="repaint")WFTerrainBuilder.RepaintTextures(p);
                 else if(operation=="respawn")WFTerrainBuilder.Respawn(p);
                 else WFTerrainBuilder.ClearSpawned(p);
                 CollectionAssert.AreEqual(original,File.ReadAllBytes(folder+"/Unrelated.asset"),"Generation saved an unrelated dirty asset");
+                Assert.AreEqual(999,sentinel.seed,"Generation discarded an unrelated edit in memory");
                 Assert.IsTrue(EditorUtility.IsDirty(sentinel),"Unrelated edits must remain unsaved");
                 Assert.IsTrue(scene.isDirty,"Generated scene remains under its caller's save ownership");
             }
