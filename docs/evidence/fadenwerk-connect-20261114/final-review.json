@@ -1,0 +1,49 @@
+{
+  "schema": "ashen.fadenwerk-review.v1",
+  "source": "5beda3809b0a72ab7d2be0344cae3c3b88ce8602",
+  "reviewDate": "2026-11-15",
+  "reviewType": "primary-agent static review plus independent parsing of retained native XML and Git trees; not a second human approval",
+  "findings": [],
+  "reviewed": [
+    "GET routes cannot invoke writes; server rejects non-GET/POST",
+    "optimistic expectedRevision guards editor writes",
+    "compile-before-publish validates exact canonical quest/action whitelist",
+    "runtime delegates to existing Core and only substitutes allowed presentation text",
+    "HTTPS gateway limits paths, bodies, origin and response; token remains private",
+    "fallback preserves canonical text for invalid publication",
+    "existing save and causal consequences remain Core-owned"
+  ],
+  "nativeReadback": [
+    {
+      "file": "fadenwerk-focused.xml",
+      "sha256": "7f41a64f9576a88dc6dc5e44ec335c91571662439c9fd57914d78824ac702db1",
+      "passed": 1
+    },
+    {
+      "file": "hunger-neighbor.xml",
+      "sha256": "a8e416f9711d37b27338adb78a246d39923535d7044931df2d007b4d8f136b81",
+      "passed": 1
+    },
+    {
+      "file": "ilyan-neighbor.xml",
+      "sha256": "b0e71bc23fb5f1ac59a328acb52ce04960a6ebe3570400592aec7857d242409a",
+      "passed": 1
+    }
+  ],
+  "editMode": {
+    "passed": 79,
+    "skipped": 0,
+    "sha256": "63622d457529cf7c139561dbaf6e2a8d46339cdb4036ed063c3712c353816334"
+  },
+  "coreCi": {
+    "run": 43659376409,
+    "job": 132645036445,
+    "status": "success"
+  },
+  "limits": [
+    "Full new 130-case PlayMode run was cancelled; only three targeted new runs are claimed.",
+    "Browser UI requires the editor to be running; it is closed during idle periods.",
+    "Free-form Fadenwerk quests/rewards are drafts, not a second production authority.",
+    "No new Android/device claim."
+  ]
+}

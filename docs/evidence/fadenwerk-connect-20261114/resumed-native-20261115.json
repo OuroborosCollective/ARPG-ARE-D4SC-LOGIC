@@ -1,0 +1,72 @@
+{
+  "schema": "ashen.fadenwerk-native-readback.v1",
+  "date": "2026-11-15",
+  "source": "30e63df00f4251dba76509f239a479ca1e826cc9",
+  "unityVersion": "6000.6.8f1",
+  "playMode": {
+    "scope": "three focused production-adapter and neighboring regressions",
+    "runs": [
+      {
+        "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.FadenwerkTextUsesRealStoryInputAndExistingSaveWithoutDuplicateAuthority",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationSeconds": 62.77,
+        "xmlFile": "fadenwerk-focused.xml",
+        "xmlSha256": "7f41a64f9576a88dc6dc5e44ec335c91571662439c9fd57914d78824ac702db1"
+      },
+      {
+        "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.HungerJourneyReturnsAndPersistsReplacement",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationSeconds": 96.5,
+        "xmlFile": "hunger-neighbor.xml",
+        "xmlSha256": "a8e416f9711d37b27338adb78a246d39923535d7044931df2d007b4d8f136b81"
+      },
+      {
+        "test": "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.IlyanRemembersActualHelpAndReactsAfterNativeSaveReload",
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationSeconds": 66.62,
+        "xmlFile": "ilyan-neighbor.xml",
+        "xmlSha256": "b0e71bc23fb5f1ac59a328acb52ce04960a6ebe3570400592aec7857d242409a"
+      }
+    ],
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "previousFull130Run": "cancelled_not_accepted"
+  },
+  "earlierEditMode": {
+    "source": "becf6e84ba3dbf311b6518a794a1d53de7dc64fd",
+    "passed": 79,
+    "failed": 0,
+    "skipped": 0,
+    "xmlSha256": "63622d457529cf7c139561dbaf6e2a8d46339cdb4036ed063c3712c353816334",
+    "sameGitAssetsTree": "cf95dde9491962fb142b7d5d6bd4932a2f71ad92",
+    "sameGitPackagesTree": "5bbbe2f667a9f6da59cada893b7e9ee6105cb212"
+  },
+  "restoration": "resumed-native-restoration.json",
+  "cpuBudget": {
+    "source": "52ab9b5e72c3c579c3c9554121cfb1a6647a7d6a",
+    "sharedCores": 1,
+    "lpNumThreads": 1,
+    "activeSample": {
+      "sampleSeconds": 5.01,
+      "unityCores": 0.999,
+      "hostBusyPercent": 26.36,
+      "hostIowaitPercent": 11.36,
+      "hostStealPercent": 0.49,
+      "cpuMax": "100000 100000"
+    }
+  },
+  "evidenceLimits": [
+    "Arranged native Unity adapter tests, not an unattended complete player playthrough.",
+    "Original full PlayMode run remains cancelled; three focused tests are not 130 passing tests.",
+    "Selected settings and bow inputs plus tracked source were checked/restored; no new full private-asset hash inventory is claimed.",
+    "No new Android build/device/FPS proof.",
+    "World Forge playable pilot and standalone tool packaging/publication remain future work."
+  ]
+}

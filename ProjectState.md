@@ -236,9 +236,10 @@ Source1dde63549cd8ffb8d205d5d716d8a8767ac10f48, Treebff55cf3dd5a7d613f3c15c53b01
 
 
 ## World Forge / Fadenwerk und Gestaltungsübergabe (14.11.2026)
-- `phase`: Autorenwerkzeuge nativ geprüft; nächste Asset-/UI-Integration läuft.
-- `current_goal`: Sieben vom Owner erworbene Medieval-/Alchemy-/Fruit-/Bones-Prop-Pakete im Editor verfügbar machen und Fables UI-Arbeitsstand nachvollziehbar übernehmen.
-- `approved`: Technische Integration, private Downloads/Imports und Zusammenlegung der vorhandenen UI-Arbeit; professionelle Oberfläche erhalten.
+- `phase`: Autorenwerkzeuge und erste Fadenwerk-Textanbindung nativ geprüft; World-Forge-Spieleinsatz folgt.
+- `current_goal`: Fadenwerk-Nachweise abschließen, dann einen mit World Forge gestalteten begehbaren Verbindungsabschnitt samt Kampf/Beute/Seitendungeon umsetzen. Der vorhandene Prop-Bestand reicht laut Besitzer; zusätzliche Paketimporte haben keine Priorität.
+- `approved`: Besitzer hat die Entwicklungspause aufgehoben. Wichtige Lorefragen weiter mit drei Vorschlägen; Routineentscheidungen autonom. Nach belegtem World-Forge-Spieleinsatz Welt und Spielstand sichern/Restore prüfen, erst danach eigenständige Werkzeuge vorbereiten/einreichen: Fadenwerk USD6, World Forge USD35, jeweils einmalig.
 - `verified`: Source f67e20736b3561b549fa66d5faefd20460176d8e, Unity6000.6.8f1 Edit71/71 + Play129/129 mit0Skips; unabhängiger Readback in docs/evidence/forges-20261114/acceptance.json.
-- `blocked`: Autorenimport aktiviert noch keine kanonischen Fadenwerk-Quests oder Belohnungen. Core-Transaktion/Save-/Replay-Adapter, World-Forge-Waldprojektion und Tablet-Abnahme bleiben separate offene Integrationsgrenzen.
-- `next`: Fable-Diff gegen spätere Verbesserungen abgleichen; authentifizierten My-Assets-Bestand lesen; sieben Pakete privat prüfen/importieren und native Asset-/URP-Ergebnisse zurücklesen.
+- `verified_update`: Native Source30e63df00f4251dba76509f239a479ca1e826cc9: drei gezielte PlayMode-Prüfungen für Fadenwerk-Text/Save, Hunger-Vorratsersatz und Ilyans Hilfe-Erinnerung bestanden. Assets-/Packages-Trees sind identisch zum79/79-EditMode-Standbecf6e84ba3dbf311b6518a794a1d53de7dc64fd. Der unterbrochene130erGesamtlauf zählt nicht als bestanden; getrenntes Dossier unter docs/evidence/fadenwerk-connect-20261114.
+- `blocked`: Freie Fadenwerk-Quests/Belohnungen bleiben Entwürfe; kein zweiter Gameplay-Speicher. World-Forge-Waldprojektion, regenerierende Reisegebiete/Seitendungeons und Tablet-Abnahme sind offen. Keine Store-Veröffentlichung oder belegte Gaia-Pro-Parität.
+- `next`: Review der ersten Fadenwerk-Anbindung, dann World-Forge-Pilot gemäß Reiseplanung im Branch feat/immergruen-journey-20261114. Spion verspricht Namen und nächsten Übergabeort eines Transportvermittlers gegen Truppenstärke/Marschpläne; erst ein unbestätigtes Angebot. Immergrün bleibt weit entfernt.

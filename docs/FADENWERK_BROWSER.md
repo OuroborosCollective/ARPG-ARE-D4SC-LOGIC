@@ -86,3 +86,15 @@ Playwright und Chromium (optional `CHROMIUM_PATH`) und prüft die Offline-Anzeig
 mit kontrollierten Browserantworten. Dieser Negativtest ist ausdrücklich kein
 Unity- oder Android-Nachweis. Native Ausführungen und der tatsächliche
 HTTPS-Schreib-/Publikationsablauf werden separat im Evidence-Dossier erfasst.
+
+Am 15.11.2026 bestanden drei gezielte native PlayMode-Prüfungen: veröffentlichter
+Text im bestehenden Hunger-Aktionspfad samt Save/Load, die Hunger-Quest mit
+Vorratsersatz und Ilyans persönliche Hilfe-Erinnerung nach dem Laden. Dazu liegen
+79 bestandene EditMode-Tests auf identischen Assets-/Packages-Trees vor. Der wegen
+der Hoster-Drosselung abgebrochene Lauf mit 130 PlayMode-Tests bleibt ausdrücklich ohne
+Gesamtabnahme. Details und XML-Dateien stehen im Evidence-Verzeichnis.
+
+Unity läuft für begrenzte Arbeitsblöcke unter einem gemeinsamen Ein-Kern-Deckel;
+der weitere Editor bleibt pausiert. Ist der Autoreneditor geschlossen oder
+pausiert, ist die editorgebundene Browserbearbeitung vorübergehend nicht verfügbar.
+Ein laufender Gateway-Dienst allein bedeutet nicht, dass Unity antwortet.

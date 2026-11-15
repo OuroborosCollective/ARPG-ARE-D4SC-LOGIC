@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-14 21:39:36Z" end-time="2026-11-14 21:39:39Z" duration="3.2185084">
+  <test-suite type="TestSuite" id="1120" name="ARE Ashen Crypt" fullname="ARE Ashen Crypt" runstate="Runnable" testcasecount="72" result="Failed" site="Child" start-time="2026-11-14 21:39:36Z" end-time="2026-11-14 21:39:39Z" duration="3.218508" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1110" name="Fadenwerk.Editor.SafetyTests.dll" fullname="/var/lib/unityarpg/workspaces/are-arpg-forges-20261114/Library/ScriptAssemblies/Fadenwerk.Editor.SafetyTests.dll" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-11-14 21:39:38Z" end-time="2026-11-14 21:39:39Z" duration="0.704866" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="1870547" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1111" name="Fadenwerk" fullname="Fadenwerk" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-11-14 21:39:38Z" end-time="2026-11-14 21:39:39Z" duration="0.703292" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1112" name="Tests" fullname="Fadenwerk.Tests" runstate="Runnable" testcasecount="5" result="Failed" site="Child" start-time="2026-11-14 21:39:38Z" end-time="2026-11-14 21:39:39Z" duration="0.702798" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestFixture" id="1104" name="FadenwerkRevisionTests" fullname="Fadenwerk.Tests.FadenwerkRevisionTests" classname="Fadenwerk.Tests.FadenwerkRevisionTests" runstate="Runnable" testcasecount="1" result="Failed" site="Child" start-time="2026-11-14 21:39:38Z" end-time="2026-11-14 21:39:39Z" duration="0.701332" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-case id="1105" name="StaleAndMissingRevisionCannotOverwriteNewerSeed" fullname="Fadenwerk.Tests.FadenwerkRevisionTests.StaleAndMissingRevisionCannotOverwriteNewerSeed" methodname="StaleAndMissingRevisionCannotOverwriteNewerSeed" classname="Fadenwerk.Tests.FadenwerkRevisionTests" runstate="Runnable" seed="791090462" result="Failed" start-time="2026-11-14 21:39:39Z" end-time="2026-11-14 21:39:39Z" duration="0.516740" asserts="0">
+              <properties>
+                <property name="retryIteration" value="0" />
+                <property name="repeatIteration" value="0" />
+              </properties>
+              <failure>
+                <message><![CDATA[  Expected: 409
+  But was:  200
+]]></message>
+                <stack-trace><![CDATA[at Fadenwerk.Tests.FadenwerkRevisionTests.StaleAndMissingRevisionCannotOverwriteNewerSeed () [0x000f1] in ./Packages/com.ouroboros.fadenwerk/Tests/Editor/FadenwerkRevisionTests.cs:34
+]]></stack-trace>
+              </failure>
+              <output><![CDATA[Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml
+]]></output>
+            </test-case>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
