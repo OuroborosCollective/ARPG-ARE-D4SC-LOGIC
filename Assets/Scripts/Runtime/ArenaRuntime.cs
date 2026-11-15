@@ -1085,6 +1085,7 @@ namespace AreArpg.UnityClient
                 float z = Mathf.Lerp(_game.PrevPlayerZmm, _game.PlayerZmm, alpha) / 1000f;
                 _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z), z);
                 AnimateActor(_hero, _game.PlayerXmm - _game.PrevPlayerXmm, _game.PlayerZmm - _game.PrevPlayerZmm);
+                HoldTargetFacing();
             }
             UpdateHeroCameraContext();
             foreach (MonsterState enemy in _game.Monsters)

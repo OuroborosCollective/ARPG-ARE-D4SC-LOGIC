@@ -118,5 +118,125 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(banner != null && banner.gameObject.activeInHierarchy && banner.text.Contains("STUFE"), "A level-up shows the new level");
             yield return Capture("combat-level-up.png", true);
         }
+
+        /// <summary>Review fix: the hero keeps facing its target during the action even while movement continues.</summary>
+        [UnityTest]
+        public IEnumerator TargetFacingHoldsWhileRunningDuringTheAction()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private character and animation overlay");
+            var target = Game.Monsters.Find(m => !m.IsDead);
+            foreach (var other in Game.Monsters) if (other != target) { other.Xmm = 20000; other.Zmm = 20000; }
+            target.Xmm = target.PreviousXmm = Game.PlayerXmm; target.Zmm = target.PreviousZmm = Game.PlayerZmm + 900; target.Health = 100000;
+            var hero = Find("Wanderer").transform;
+            var previousX = typeof(ArenaSimulation).GetProperty("PrevPlayerXmm");
+            yield return null;
+            for (int i = 0; i < Game.Cooldowns.Length; i++) Game.Cooldowns[i] = 0;
+            typeof(ArenaRuntime).GetMethod("RouteHudControl", Flags).Invoke(_runtime, new object[] { ArenaHudControl.Skill0 });
+            float start = Time.time; float duringAction = -1f, afterAction = -1f;
+            while (Time.time - start < .8f)
+            {
+                previousX.SetValue(Game, Game.PlayerXmm - 600); // keep presenting an eastward run
+                yield return null;
+                float north = Vector3.Dot(hero.forward, Vector3.forward), east = Vector3.Dot(hero.forward, Vector3.right);
+                if (Time.time - start > .15f && Time.time - start < .35f) duringAction = Mathf.Max(duringAction, north);
+                if (Time.time - start > .6f) afterAction = Mathf.Max(afterAction, east);
+            }
+            Debug.Log("COMBAT_FACING duringAction=" + duringAction.ToString("0.00") + " afterAction=" + afterAction.ToString("0.00"));
+            Assert.Greater(duringAction, .8f, "While its action plays the running hero faces the accepted target");
+            Assert.Greater(afterAction, .8f, "After the action the hero faces its movement again");
+        }
+
+        /// <summary>Review fix: two abilities resolved in the same tick each show their own hero action.</summary>
+        [UnityTest]
+        public IEnumerator SameTickAbilitiesEachShowAnAction()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private character and animation overlay");
+            var target = Game.Monsters.Find(m => !m.IsDead);
+            foreach (var other in Game.Monsters) if (other != target) { other.Xmm = 20000; other.Zmm = 20000; }
+            target.Xmm = target.PreviousXmm = Game.PlayerXmm + 900; target.Zmm = target.PreviousZmm = Game.PlayerZmm; target.Health = 100000;
+            var animator = Find("Wanderer").GetComponentInChildren<Animator>();
+            yield return null;
+            for (int i = 0; i < Game.Cooldowns.Length; i++) Game.Cooldowns[i] = 0;
+            typeof(ArenaSimulation).GetProperty("Resource").SetValue(Game, 100);
+            var route = typeof(ArenaRuntime).GetMethod("RouteHudControl", Flags);
+            route.Invoke(_runtime, new object[] { ArenaHudControl.Skill0 });
+            route.Invoke(_runtime, new object[] { ArenaHudControl.Skill1 });
+            int starts = 0; bool inMelee = false; float lastTime = 0f;
+            float until = Time.time + 1.6f;
+            while (Time.time < until)
+            {
+                yield return null;
+                var state = animator.GetCurrentAnimatorStateInfo(0);
+                bool melee = state.IsName("Melee");
+                if (melee && (!inMelee || state.normalizedTime + .05f < lastTime)) starts++;
+                inMelee = melee; lastTime = melee ? state.normalizedTime : 0f;
+            }
+            Debug.Log("COMBAT_SAME_TICK starts=" + starts + " message=" + Message());
+            Assert.GreaterOrEqual(starts, 2, "Strike and Heavy Strike in one tick must both be visible");
+        }
+
+        /// <summary>Review fix: a defeated enemy's skeleton stays frozen after the brief hit-stop ends.</summary>
+        [UnityTest]
+        public IEnumerator DefeatedEnemiesStayFrozenAfterHitStop()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private character and animation overlay");
+            var target = Game.Monsters.Find(m => !m.IsDead);
+            foreach (var other in Game.Monsters) if (other != target) { other.Xmm = 20000; other.Zmm = 20000; }
+            target.Xmm = target.PreviousXmm = Game.PlayerXmm + 900; target.Zmm = target.PreviousZmm = Game.PlayerZmm; target.Health = 1;
+            var visuals = (Dictionary<int, Transform>)typeof(ArenaRuntime).GetField("_monsterVisuals", Flags).GetValue(_runtime);
+            var dying = visuals[target.Id];
+            yield return null;
+            for (int i = 0; i < Game.Cooldowns.Length; i++) Game.Cooldowns[i] = 0;
+            typeof(ArenaRuntime).GetMethod("RouteHudControl", Flags).Invoke(_runtime, new object[] { ArenaHudControl.Skill0 });
+            float start = Time.time; bool checkedFrozen = false;
+            while (Time.time - start < .6f)
+            {
+                yield return null;
+                if (target.IsDead && Time.time - start > .25f && dying.gameObject.activeSelf && !checkedFrozen)
+                {
+                    checkedFrozen = true;
+                    foreach (var animator in dying.GetComponentsInChildren<Animator>())
+                        Assert.AreEqual(0f, animator.speed, "The falling enemy's skeleton must stay frozen after hit-stop");
+                }
+            }
+            Assert.IsTrue(target.IsDead && checkedFrozen, "The frozen check must run during the fall");
+        }
+
+        /// <summary>Review fix: hits on the road bear reach its dedicated visual (bosses are not pooled enemies).</summary>
+        [UnityTest]
+        public IEnumerator RoadBearReactsToHitsOptically()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires the reviewed private character and animation overlay");
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
+            yield return StoryAction(HungerAction.HearIlyan);
+            MoveStory(0, 24000); TravelStory(); MoveStory(0, 3000);
+            Assert.IsTrue(Game.Progression.Road.Started, "The road encounter must be running");
+            var bear = Game.Progression.Road.Bear;
+            bear.Xmm = bear.PreviousXmm = Game.PlayerXmm + 900; bear.Zmm = bear.PreviousZmm = Game.PlayerZmm; bear.Health = bear.MaxHealth; bear.BossWindupTicks = 0;
+            _runtime.enabled = true;
+            yield return null;
+            var bearVisual = Find("ARE_Road_Bear").transform;
+            for (int i = 0; i < Game.Cooldowns.Length; i++) Game.Cooldowns[i] = 0;
+            typeof(ArenaRuntime).GetMethod("RouteHudControl", Flags).Invoke(_runtime, new object[] { ArenaHudControl.Skill0 });
+            float maxOffset = 0f, finalOffset = 0f; float start = Time.time;
+            while (Time.time - start < .7f)
+            {
+                yield return null;
+                var core = new Vector3(bear.Xmm / 1000f, 0f, bear.Zmm / 1000f);
+                var seen = bearVisual.position; seen.y = 0f;
+                finalOffset = Vector3.Distance(seen, core); maxOffset = Mathf.Max(maxOffset, finalOffset);
+            }
+            Debug.Log("COMBAT_BOSS maxOffset=" + maxOffset.ToString("0.000") + " finalOffset=" + finalOffset.ToString("0.000") + " message=" + Message());
+            Assert.That(maxOffset, Is.InRange(.15f, .6f), "A hit on the road bear knocks its own visual back");
+            Assert.Less(finalOffset, .06f, "The bear springs back onto its Core position");
+        }
     }
 }

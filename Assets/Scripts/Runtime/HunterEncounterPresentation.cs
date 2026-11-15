@@ -89,6 +89,7 @@ namespace AreArpg.UnityClient
                 Vector3 target = h.AggroTicks > 0 ? new Vector3(_game.PlayerXmm / 1000f, 0, _game.PlayerZmm / 1000f) : new Vector3(2, 0, 9);
                 Vector3 facing = target - _roadBear.position;
                 if (!bear.IsDead && facing.sqrMagnitude > .01f) _roadBear.rotation = Quaternion.LookRotation(facing);
+                if (!bear.IsDead) ApplyHitReaction(bear.Id, _roadBear);
                 string animation = bear.IsDead ? "Death" : bear.BossWindupTicks > 0 ? "Attack" :
                     bear.Xmm != bear.PreviousXmm || bear.Zmm != bear.PreviousZmm ? "Run" : "Idle";
                 if (_roadBearAnimator != null && _roadBearAnimator.isActiveAndEnabled && animation != _roadAnimation)
