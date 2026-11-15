@@ -2,7 +2,7 @@
   "schema_version": 1,
   "run_id": "ASHEN-001",
   "producer": "pm",
-  "revision": 3,
+  "revision": 6,
   "facts": [
     {
       "id": "FACT-001",
@@ -181,15 +181,24 @@
       "id": "FACT-017",
       "subject": "immergruen.main_encounter",
       "relation": "equals",
-      "value": null,
-      "status": "unresolved"
+      "value": {
+        "arrival": "gate_closing",
+        "encounter": "expelled_people",
+        "lead": "possible_transport_witness",
+        "witness_reliability": "unverified"
+      },
+      "status": "approved"
     },
     {
       "id": "FACT-018",
       "subject": "journey.post_immergruen_story",
       "relation": "equals",
-      "value": null,
-      "status": "unresolved"
+      "value": {
+        "first_area": "seek_possible_transport_witness",
+        "second_area": "verify_witness_claims_at_second_transport_site",
+        "culprit_and_missing_people_fates": "not_prejudged"
+      },
+      "status": "approved"
     },
     {
       "id": "FACT-019",
@@ -199,6 +208,46 @@
         "external_reentry": "new_seed_enemies_and_loot",
         "floor_transition": "same_run",
         "save_load": "same_run"
+      },
+      "status": "approved"
+    },
+    {
+      "id": "FACT-020",
+      "subject": "journey.transport_witness",
+      "relation": "equals",
+      "value": {
+        "role": "local_master_alchemist",
+        "received_order": "sedative_for_oversized_rattler",
+        "statement_and_corroboration_separate": true
+      },
+      "status": "approved"
+    },
+    {
+      "id": "FACT-021",
+      "subject": "professions.herbalism_alchemy",
+      "relation": "equals",
+      "value": {
+        "branches": [
+          "herbalism",
+          "alchemy"
+        ],
+        "harvestable_herbs": true,
+        "craftable_potions": [
+          "healing",
+          "buffs"
+        ],
+        "individual_skill_progression": true,
+        "introduced_with_master_alchemist": true
+      },
+      "status": "approved"
+    },
+    {
+      "id": "FACT-022",
+      "subject": "journey.alchemist_coercion",
+      "relation": "equals",
+      "value": {
+        "sedative_order": "coerced",
+        "assistance_requires": "group_protects_him_from_commissioners"
       },
       "status": "approved"
     }

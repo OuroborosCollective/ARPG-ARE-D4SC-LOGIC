@@ -3,7 +3,7 @@
   "run_id": "ASHEN-001",
   "task_id": "BA-001",
   "producer": "ba",
-  "revision": 2,
+  "revision": 5,
   "claims": [
     {
       "id": "CLAIM-001",
@@ -152,7 +152,10 @@
       },
       "status": "approved",
       "requirement_ids": [
-        "REQ-007"
+        "REQ-007",
+        "REQ-017",
+        "REQ-018",
+        "REQ-019"
       ],
       "question_ids": []
     },
@@ -170,7 +173,8 @@
       },
       "status": "approved",
       "requirement_ids": [
-        "REQ-008"
+        "REQ-008",
+        "REQ-018"
       ],
       "question_ids": []
     },
@@ -263,28 +267,33 @@
       "source_fact_id": "FACT-017",
       "subject": "immergruen.main_encounter",
       "relation": "equals",
-      "value": null,
-      "status": "unresolved",
+      "value": {
+        "arrival": "gate_closing",
+        "encounter": "expelled_people",
+        "lead": "possible_transport_witness",
+        "witness_reliability": "unverified"
+      },
+      "status": "approved",
       "requirement_ids": [
         "REQ-014"
       ],
-      "question_ids": [
-        "Q-002"
-      ]
+      "question_ids": []
     },
     {
       "id": "CLAIM-018",
       "source_fact_id": "FACT-018",
       "subject": "journey.post_immergruen_story",
       "relation": "equals",
-      "value": null,
-      "status": "unresolved",
+      "value": {
+        "first_area": "seek_possible_transport_witness",
+        "second_area": "verify_witness_claims_at_second_transport_site",
+        "culprit_and_missing_people_fates": "not_prejudged"
+      },
+      "status": "approved",
       "requirement_ids": [
         "REQ-015"
       ],
-      "question_ids": [
-        "Q-003"
-      ]
+      "question_ids": []
     },
     {
       "id": "CLAIM-019",
@@ -299,6 +308,63 @@
       "status": "approved",
       "requirement_ids": [
         "REQ-006"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-020",
+      "source_fact_id": "FACT-020",
+      "subject": "journey.transport_witness",
+      "relation": "equals",
+      "value": {
+        "role": "local_master_alchemist",
+        "received_order": "sedative_for_oversized_rattler",
+        "statement_and_corroboration_separate": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-016"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-021",
+      "source_fact_id": "FACT-021",
+      "subject": "professions.herbalism_alchemy",
+      "relation": "equals",
+      "value": {
+        "branches": [
+          "herbalism",
+          "alchemy"
+        ],
+        "harvestable_herbs": true,
+        "craftable_potions": [
+          "healing",
+          "buffs"
+        ],
+        "individual_skill_progression": true,
+        "introduced_with_master_alchemist": true
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-017",
+        "REQ-018",
+        "REQ-019"
+      ],
+      "question_ids": []
+    },
+    {
+      "id": "CLAIM-022",
+      "source_fact_id": "FACT-022",
+      "subject": "journey.alchemist_coercion",
+      "relation": "equals",
+      "value": {
+        "sedative_order": "coerced",
+        "assistance_requires": "group_protects_him_from_commissioners"
+      },
+      "status": "approved",
+      "requirement_ids": [
+        "REQ-016"
       ],
       "question_ids": []
     }

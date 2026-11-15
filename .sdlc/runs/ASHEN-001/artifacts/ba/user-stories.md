@@ -3,14 +3,14 @@ run_id: "ASHEN-001"
 task_id: "BA-001"
 producer: ba
 status: draft
-revision: 2
+revision: 5
 ---
 
 # User stories
 
-Basis: `facts.yaml` revision 3, immutable `request.md`, `scope.md`, `assumptions.md` and `artifacts/pm/discovery-report.md`. All statements are draft requirements for PM review. Approved fact status is not BA self-approval or implementation readiness for unresolved story.
+Basis: `facts.yaml` revision 6, immutable `request.md`, `scope.md`, `assumptions.md` and `artifacts/pm/discovery-report.md`. All statements are draft requirements for PM review. Approved fact status records the owner’s choices; it is not BA self-approval, implemented functionality or passing execution evidence.
 
-The authoritative claims mirror all 19 facts exactly. FACT-016 is approved: the spy promises a transport intermediary’s name and next handover location in exchange for troop strength and march plans; the promise is initially unverified. Q-001 is answered. FACT-017–018 retain their typed `null` values and `unresolved` status. Their story alternatives in traceability remain unselected proposals, not additional claims. No number of route segments, journey duration, kingdom name, main encounter, actual attack or later outcome is invented.
+The authoritative claims mirror all 22 approved facts exactly. Q-001–Q-004 are answered. The spy’s promised intermediary name and handover location remain initially unverified; the approved Immergrün gate-closing encounter supplies an unverified possible-witness lead. The two following areas seek that witness and verify their claims at a second transport site. The witness is now specified as a local master alchemist commissioned to prepare a sedative for an oversized Rattler; he was coerced and helps or teaches only after the group actually protects him from his commissioners. His account remains distinct from corroboration. Real herb gathering, two separately advancing herbalism/alchemy branches, and craftable healing/buff potions are introduced with him. No additional route count, journey duration, kingdom name, actual attack, culprit or missing-person fate is invented. Full acceptance still requires the entire long journey and both subsequent areas, not merely the first World Forge pilot.
 
 | REQ ID | Actor | Need | Value | Priority |
 | --- | --- | --- | --- | --- |
@@ -27,5 +27,9 @@ The authoritative claims mirror all 19 facts exactly. FACT-016 is approved: the 
 | REQ-011 | Owner reviewing delivery | Finish Fadenwerk acceptance first, then receive playable expansion coverage before final balancing, with native and Android evidence kept distinct. | Review real revision-bound functionality and know which platforms have actually been exercised. | must_have |
 | REQ-012 | Product Owner | Decide important lore through three concrete alternatives for each decision while routine technical work proceeds autonomously. | Retain authorship without repeatedly approving ordinary technical steps. | must_have |
 | REQ-013 | Player | Hear the spy promise the name and next handover location of a transport intermediary in exchange for troop strength and march plans. | Distinguish this initially unverified promise from information actually received or independently established; Q-001 is answered. | must_have |
-| REQ-014 | Product Owner | Decide the main encounter on reaching Immergrün. | Make the distant destination meaningful without inventing its main story event; Q-002 remains unresolved. | must_have |
-| REQ-015 | Product Owner | Decide the story purpose of both areas after Immergrün. | Preserve the full two-area scope without inventing subsequent canon; Q-003 remains unresolved. | must_have |
+| REQ-014 | Player | Encounter expelled people at gate closing in distant Immergrün and receive their lead to a possible transport witness. | Continue the investigation while the possible witness’s reliability remains unverified; Q-002 is answered. | must_have |
+| REQ-015 | Player | Seek the possible transport witness in the first area after Immergrün, then verify their claims at a second transport site in the second area. | Distinguish claims, observations and supported conclusions without prejudging the culprit or missing people’s fates; Q-003 is answered. | must_have |
+| REQ-016 | Player investigating the transport trail | Find the local master alchemist coerced to prepare a sedative for an oversized Rattler, and protect him from his commissioners before receiving his assistance and teaching. | Earn his help through actual protection while keeping his account distinct from corroboration and leaving commissioner identity, royal guilt and missing-person fates unproved. | must_have |
+| REQ-017 | Player gathering ingredients | Actually harvest herbs from reachable world sources introduced with the master alchemist and retain them in the existing Core-owned inventory/save system. | Obtain usable brewing ingredients through real actions without duplicated harvests, a second inventory authority or lost resources. | must_have |
+| REQ-018 | Player learning professions | Advance herbalism and alchemy as two distinct classless learning-by-doing branches through my own successful gathering and brewing actions. | Keep independent, persistent skill progress without passive rewards, companion-derived player training or reinterpretation of existing combat-practice slots. | must_have |
+| REQ-019 | Player brewing and using potions | Craft and use healing and buff potions introduced with the master alchemist, with real ingredient consumption, inventory outputs and Core-owned effects. | Receive observable potion benefits with atomic resource transactions, causal rewards and save/replay continuity. Recipe costs, effect values and lifecycle coefficients are autonomous technical design, not owner-approved numeric facts. | must_have |

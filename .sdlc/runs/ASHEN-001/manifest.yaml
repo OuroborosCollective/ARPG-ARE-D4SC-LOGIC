@@ -3,12 +3,12 @@ run:
   id: ASHEN-001
   title: Weite Reise nach Immergrün und zwei Folgegebiete
   workflow: feature-development
-  status: requirements
-  current_stage: requirements
+  status: implementation
+  current_stage: mobile_implementation
   created_at: 2026-11-14T22:36:25.635Z
-  updated_at: 2026-11-14T23:57:03.268Z
+  updated_at: 2026-11-15T01:06:27.192Z
   created_by: product-owner
-  current_owner: ba
+  current_owner: frontend
   branch: null
   framework_version: 1.0.1
 request:
@@ -90,7 +90,7 @@ tasks:
     stage: requirements
     role: ba
     target: null
-    status: awaiting_review
+    status: completed
     dependencies:
       - PM-001
     required_inputs:
@@ -116,7 +116,8 @@ tasks:
       - artifacts/ba/edge-cases.md
       - artifacts/ba/traceability.md
       - artifacts/ba/semantic-claims.yaml
-    evidence: []
+    evidence:
+      - evidence/commands/EVD-93f8b6551dbcf715/evidence.json
     transitions:
       - from: pending
         to: ready
@@ -147,8 +148,40 @@ tasks:
         reason: Owner spy disclosure reconciled exactly with facts revision 3 across
           seven BA artifacts; two material lore choices remain unresolved
         at: 2026-11-14T23:57:03.268Z
+      - from: awaiting_review
+        to: running
+        actor: pm
+        reason: Owner answered gate-closing encounter and both subsequent areas;
+          reconcile facts revision 4 without inferring witness truth or royal
+          guilt
+        at: 2026-11-15T00:52:21.876Z
+      - from: running
+        to: awaiting_review
+        actor: pm
+        reason: BA returned seven revision-3 artifacts reconciled to all 19 approved
+          facts, including owner answers Q-002 and Q-003
+        at: 2026-11-15T00:55:10.419Z
+      - from: awaiting_review
+        to: running
+        actor: pm
+        reason: Owner identifies master alchemist witness and adds real
+          herbalism/alchemy progression and healing/buff crafting; reconcile
+          facts revision 5 before requirements approval
+        at: 2026-11-15T00:57:27.972Z
+      - from: running
+        to: awaiting_review
+        actor: pm
+        reason: Independent BA returned seven validated artifacts; real collector
+          EVD-93f8b6551dbcf715 captured before handoff
+        at: 2026-11-15T01:05:05.854Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: All artifacts reviewed against owner facts revision 6; requirements gate
+          passed with structural evidence and substantive PM review
+        at: 2026-11-15T01:05:06.761Z
     started_at: 2026-11-14T22:39:44.877Z
-    completed_at: null
+    completed_at: 2026-11-15T01:05:06.761Z
     commit: null
     blocker_reason: null
     failure_reason: null
@@ -227,7 +260,7 @@ tasks:
     stage: requirements_review
     role: pm
     target: null
-    status: pending
+    status: completed
     dependencies:
       - BA-001
     required_inputs:
@@ -240,11 +273,37 @@ tasks:
       - artifacts/ba/semantic-claims.yaml
     required_outputs:
       - artifacts/pm/requirements-review.md
-    outputs: []
-    evidence: []
-    transitions: []
-    started_at: null
-    completed_at: null
+    outputs:
+      - artifacts/pm/requirements-review.md
+    evidence:
+      - evidence/commands/EVD-19b1578678610a5d/evidence.json
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: "Dependencies completed: BA-001"
+        at: 2026-11-15T01:05:06.761Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Record completed requirements review and bounded implementation order
+          against accepted Fadenwerk prerequisite
+        at: 2026-11-15T01:05:07.632Z
+      - from: running
+        to: awaiting_review
+        actor: pm
+        reason: Requirements review artifact binds approved owner decisions, existing
+          Core APIs, accepted prerequisite and first playable checkpoint;
+          collector EVD-19b1578678610a5d passed
+        at: 2026-11-15T01:06:26.208Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Requirements gate and substantive review complete; full scope retained,
+          implementation may proceed in bounded vertical checkpoints
+        at: 2026-11-15T01:06:27.192Z
+    started_at: 2026-11-15T01:05:07.632Z
+    completed_at: 2026-11-15T01:06:27.192Z
     commit: null
     blocker_reason: null
     failure_reason: null
@@ -253,7 +312,7 @@ tasks:
     stage: mobile_implementation
     role: frontend
     target: mobile
-    status: pending
+    status: ready
     dependencies:
       - PM-002
     required_inputs:
@@ -264,7 +323,12 @@ tasks:
       - artifacts/mobile/MOB-001-delivery-report.yaml
     outputs: []
     evidence: []
-    transitions: []
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: "Dependencies completed: PM-002"
+        at: 2026-11-15T01:06:27.192Z
     started_at: null
     completed_at: null
     commit: null
@@ -343,8 +407,19 @@ tasks:
     failure_reason: null
 quality_gates:
   requirements:
-    status: pending
-    evidence: []
+    status: passed
+    evidence:
+      - evidence/commands/EVD-93f8b6551dbcf715/evidence.json
+    history:
+      - status: passed
+        evidence:
+          - evidence/commands/EVD-93f8b6551dbcf715/evidence.json
+        actor: pm
+        reason: Primary review of all seven BA artifacts and owner answers confirms 22
+          exact facts, 19 requirements, 33 observable criteria, full-scope
+          continuity and existing Core API assumptions; collector validates run
+          structure, not gameplay
+        at: 2026-11-15T01:04:54.492Z
   api_contract:
     status: not_applicable
     evidence: []

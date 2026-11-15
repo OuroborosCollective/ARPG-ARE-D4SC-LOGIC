@@ -10,7 +10,7 @@
 
 Immergrün liegt noch weit entfernt. Die Gruppe trifft den vermeintlichen Frachtprüfer bereits im nächsten Handelsposten oder Dorf außerhalb des Königreichs. Er entpuppt sich als Spion eines anderen Königreichs. Er bietet aufklärende Hilfe zur Transportspur, wenn die Gruppe Informationen über ein außerhalb stationiertes Feldlager der Immergrüner Truppen beschafft.
 
-Diese Festlegung ersetzt die vorgeschlagene direkte Erstbegegnung in Immergrün. Herkunftskönigreich, Name, genaue Enthüllungsreihenfolge, konkreter Informationsauftrag und spätere Treffen sind noch nicht entschieden. Das Brandmal allein beweist weiterhin keinen persönlichen Auftrag des Königs. Die bestehenden Aschenzoll-Beweiszweige, der optionale lebende/tote/wartende Jäger und andere gespeicherte Entscheidungen bleiben gültig.
+Diese Festlegung ersetzt die vorgeschlagene direkte Erstbegegnung in Immergrün. Herkunftskönigreich, Name und genaue Enthüllungsreihenfolge bleiben offen; Informationsauftrag und spätere Begegnungen wurden durch die folgenden Besitzerantworten konkretisiert. Das Brandmal allein beweist weiterhin keinen persönlichen Auftrag des Königs. Die bestehenden Aschenzoll-Beweiszweige, der optionale lebende/tote/wartende Jäger und andere gespeicherte Entscheidungen bleiben gültig.
 
 ## Informationsauftrag – ausdrückliche Besitzerwahl
 
@@ -27,3 +27,21 @@ Nach diesem Nachweis werden Welt und Spielstand gesichert und ihre Wiederherstel
 ## Angebot des Spions – ausdrückliche Besitzerwahl
 
 Als Gegenleistung verspricht der Spion **den Namen und den nächsten Übergabeort eines Transportvermittlers**. Dies ist zunächst sein Angebot, kein bereits bewiesener Hinweis oder automatisch bekanntes Wissen. Zugang zu einem Frachtregister und Kontakt zu einem überlebenden Transportbegleiter wurden nicht gewählt. Die spätere überprüfbare Frachtspur darf nicht vorwegnehmen, wer die Transporte beauftragt hat oder was den Vermissten zugestoßen ist.
+
+## Immergrün bei Torschluss – ausdrückliche Besitzerwahl vom 15.11.2026
+
+Nach der langen Reise begegnet die Gruppe **bei Torschluss hinausgeworfenen Menschen**, die auf **einen möglichen Transportzeugen** hinweisen. Der Hinweis beweist weder die Zuverlässigkeit des Zeugen noch einen persönlichen Auftrag des Königs. Diese Begegnung liegt in Immergrün, nicht beim früheren ausländischen Handelsposten.
+
+## Zwei Gebiete nach Immergrün – ausdrückliche Besitzerwahl vom 15.11.2026
+
+Im ersten Gebiet wird **der mögliche Transportzeuge gesucht**. Im zweiten werden **seine Angaben an einem weiteren Transportort überprüft**. Angaben, tatsächliche Beobachtungen und daraus belastbar folgende Schlüsse bleiben getrennt. Auftraggeber und Schicksale der Vermissten werden nicht vorweggenommen. Die Alternativen Versorgungskette/unabhängiger Kontakt sowie Hinterleute des Spions wurden nicht gewählt.
+
+## Meisteralchemist, Kräutersammeln und Alchemie – Besitzerergänzung vom 15.11.2026
+
+Der mögliche Transportzeuge ist ein **örtlicher Meisteralchemist**, der einen Auftrag für ein **Betäubungsmittel für einen übergroßen Rattler** erhalten hat. Seine Aussage wird im folgenden Gebiet anhand tatsächlich gefundener Belege überprüft; sie beweist allein weder den Auftraggeber der Transporte noch einen persönlichen Befehl des Königs.
+
+Mit dieser Begegnung werden **Kräutersammeln und Alchemie** als zwei eigene steigerbare Fertigkeitszweige eingeführt. Kräuter sind tatsächlich in der Welt sammelbar und dienen zum Brauen von Heil- und Bufftränken. Die vorhandene klassenlose Learning-by-Doing-Regel bleibt bestehen. Zutatenverbrauch, Inventar, Wirkungen und gespeicherte Übung werden über den bestehenden Core integriert; Rezepte, Werte und Sammelplatzierung sind technische Ausgestaltung, kein bereits getesteter Bestand. Der Besitzer nennt ein seit gestern verfügbares Alchemisten-Innenset; Bestand und nutzbare Bindungen werden vor Einsatz geprüft.
+
+## Alchemist unter Zwang – ausdrückliche Besitzerwahl
+
+Der Meisteralchemist **wurde zur Herstellung gezwungen**. Er hilft der Gruppe erst, wenn sie ihn **vor seinen Auftraggebern schützt**. Die Schutzaufgabe gehört zur Suche nach dem Zeugen im ersten Gebiet nach Immergrün; seine Hilfe und die Einführung des Alchemie-Unterrichts folgen dem tatsächlich erreichten Schutz. Die Alternativen gutgläubiger Tiertransport und bewusste Geldgier wurden nicht gewählt. Diese Wahl benennt die Hintermänner nicht und beweist keinen königlichen Auftrag.

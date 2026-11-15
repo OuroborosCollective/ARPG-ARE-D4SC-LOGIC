@@ -60,3 +60,9 @@ commands:
     cwd: .
     network: disabled
     mutates: false
+  contracts_check:
+    executable: node
+    args: [.sdlc/runtime.cjs, validate-run, ASHEN-001]
+    cwd: .
+    network: disabled
+    mutates: false

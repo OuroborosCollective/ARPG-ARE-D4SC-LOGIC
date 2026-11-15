@@ -3,12 +3,12 @@ run_id: "ASHEN-001"
 task_id: "BA-001"
 producer: ba
 status: draft
-revision: 2
+revision: 5
 ---
 
 # Acceptance criteria
 
-These are planned acceptance checks, not executed test evidence. Requirements depending on unresolved owner decisions cannot pass on the strength of the guard checks alone.
+These are planned acceptance checks, not executed test evidence. All 22 current facts are approved and Q-001–Q-004 are answered; approval of story direction does not establish witness reliability, implementation completion or passing execution evidence.
 
 ## AC-001
 
@@ -19,7 +19,7 @@ Given a profile has reached the current Aschenzoll endpoint
 When the complete expansion is evaluated
 Then a playable route reaches the distant Immergrün and continues into two distinct further areas, with the connecting areas, quests, NPCs, scenery and equipment loot accounted for; only delivering the first trading post does not satisfy the scope
 
-evidence_expected: A route and content coverage inventory plus revision-bound traversal evidence for the complete journey; unresolved story content is identified as pending, never passed.
+evidence_expected: A route and content coverage inventory plus revision-bound traversal evidence for the complete journey and both subsequent areas; any unimplemented content is pending, never passed. A successful first World Forge pilot alone does not satisfy full journey acceptance.
 
 ## AC-002
 
@@ -246,22 +246,22 @@ evidence_expected: Core and native dialogue/journal checks for both promised inf
 requirement_id: REQ-014
 claim_ids: [CLAIM-017]
 
-Given FACT-017 has value null and status unresolved
-When the main Immergrün encounter is needed
-Then Q-002 remains open; the route still includes Immergrün, but no main encounter is invented or declared delivered
+Given the group reaches distant Immergrün after the long journey
+When it encounters people being expelled at gate closing and receives their account
+Then those people point to a possible transport witness, whose reliability remains unverified; receiving the lead alone does not establish the witness’s truthfulness or verify any transport claim
 
-evidence_expected: PM reconciliation of CLAIM-017, Q-002 and full-route coverage; owner-approved encounter acceptance must be added after the decision.
+evidence_expected: Core and native interaction/journal checks at the Immergrün gate-closing encounter, comparing unknown, received-lead and unverified-witness states before and after contact and save/load. Route evidence locates this encounter in Immergrün rather than at the earlier trading post. Q-002 is recorded as answered; no witness reliability is inferred from owner approval of the encounter.
 
 ## AC-023
 
 requirement_id: REQ-015
 claim_ids: [CLAIM-018]
 
-Given FACT-018 has value null and status unresolved
-When story content for the two post-Immergrün areas is needed
-Then Q-003 remains open for both areas; both stay in scope and no guessed story purpose is treated as approved or complete
+Given the Immergrün encounter has supplied the possible transport-witness lead
+When the player explores the two subsequent areas in order
+Then the first area supports seeking the possible witness and the second supports verifying their claims at a second transport site; reported claims, actual observations and supported conclusions remain distinct, with neither the culprit nor missing people’s fates prejudged
 
-evidence_expected: PM reconciliation of CLAIM-018, Q-003 and both later areas; dependent implementation stays pending while independent technical planning may continue.
+evidence_expected: Revision-bound traversal and native quest/interaction checks for both separate areas, plus Core evidence-state checks distinguishing the witness’s claims from observations at the second transport site. Merely reaching a location, hearing an account or reloading cannot automatically verify claims; no culprit or missing-person outcome is invented. Q-003 is recorded as answered and both areas remain mandatory for full journey coverage.
 
 ## AC-024
 
@@ -274,3 +274,102 @@ Then the existing progression/inventory authority retains the actual item and it
 
 evidence_expected: Core/native receipt, inventory and equipment-effect checks across collect/save/travel boundaries, duplicate-action rejection and BigInteger progression regression.
 
+
+## AC-025
+
+requirement_id: REQ-016
+claim_ids: [CLAIM-020, CLAIM-022]
+
+Given the player follows the possible-witness lead in the first area after Immergrün and the group has actually protected the alchemist from his commissioners
+When the player receives his assistance and hears his account
+Then the witness is the local master alchemist coerced to prepare a sedative for an oversized Rattler; his account is recorded separately from observations and corroboration obtained at the second transport site, and hearing him alone neither verifies his account nor identifies the client, culprit or missing people’s fates
+
+evidence_expected: Core and native dialogue/journal checks distinguishing unknown, personally heard account and corroborated evidence; second-site interaction checks for actual evidence acquisition. No assertion is made that the sedative was delivered or used, or that a playable sedative recipe exists.
+
+## AC-026
+
+requirement_id: REQ-017
+claim_ids: [CLAIM-010, CLAIM-021]
+
+Given herb gathering has been introduced with the master alchemist and a reachable world herb source is available
+When the player completes an eligible harvest through the normal interaction path
+Then an actual herb quantity is collected into the existing Core-owned resource inventory and the corresponding harvest state is recorded; the herbs are usable as recipe ingredients rather than merely scenery or dialogue
+
+evidence_expected: Core and native gather-to-inventory checks at reachable sources, with before/after source and resource quantities; subsequent recipe eligibility demonstrates that collected herbs are usable ingredients. Species, quantities, placement and renewal policy are documented technical design, not invented owner-approved values.
+
+## AC-027
+
+requirement_id: REQ-017
+claim_ids: [CLAIM-010, CLAIM-021]
+
+Given a harvest event has already been applied or the requested source/action is invalid
+When the same event is retried, replayed, reloaded or invoked without meeting its configured interaction conditions
+Then the same harvest cannot grant duplicate herbs or practice, invalid actions leave resource/progression state unchanged, and save/load preserves the applicable source identity and collected inventory without creating another inventory authority
+
+evidence_expected: Core duplicate-event and invalid-source/interaction checks, replay and native save/load tests around a completed harvest; any renewal is a distinct event under the declared resource lifecycle, not an accidental duplicate caused by reloading.
+
+## AC-028
+
+requirement_id: REQ-018
+claim_ids: [CLAIM-010, CLAIM-011, CLAIM-021]
+
+Given the master alchemist has introduced herbalism and alchemy as distinct classless skill branches
+When the player performs successful herb gathering and successful potion brewing, then opens menus, repeats a rejected action or observes a companion’s action
+Then gathering advances the player’s herbalism and brewing advances the player’s alchemy through their own effective actions; each branch retains its own progress, and menu activity, rejected/duplicate events, passive waiting or companion-only actions grant no player profession training
+
+evidence_expected: Independent before/after practice ledgers for each successful and rejected action; checks show distinct branch identities and no cross-credit between gathering and brewing, with no new class selection or overwrite of blade/force/guard/ruin progress. Exact XP formulas and progression thresholds are documented technical choices.
+
+## AC-029
+
+requirement_id: REQ-018
+claim_ids: [CLAIM-010, CLAIM-011, CLAIM-021]
+
+Given existing save fixtures and profiles with distinct herbalism/alchemy progress, including values beyond fixed-width integer limits, are available
+When the player saves, loads, travels and replays a previously credited profession event
+Then the two branch values remain separate and persistent, existing combat practice and companion attribution retain their prior meaning, and repeating the same credited event cannot grant additional profession progress
+
+evidence_expected: Legacy/current save migration and exact round-trip checks, deterministic replay, large BigInteger progression tests and native profile reload; migrations preserve established behavior rather than reusing one of the four existing combat-practice slots.
+
+## AC-030
+
+requirement_id: REQ-019
+claim_ids: [CLAIM-010, CLAIM-021]
+
+Given healing and buff potion recipes have been introduced with the master alchemist and the player has gathered their configured ingredients
+When the player successfully brews each supported potion family or attempts a recipe with invalid identity, quantity, missing ingredients or unmet configured conditions
+Then a successful recipe consumes exactly its configured ingredient quantities and creates its configured potion output once as one Core-owned transaction; a rejected recipe causes no partial ingredient consumption, output or practice gain
+
+evidence_expected: Core and native gather-to-brew-to-inventory scenarios for healing and buff potions; stock-boundary, invalid-recipe and repeated-event tests compare input/output quantities and practice. Recipe catalogs, costs and unlock/interaction details must be documented and tested as technical design without inventing additional story requirements.
+
+## AC-031
+
+requirement_id: REQ-019
+claim_ids: [CLAIM-010, CLAIM-021]
+
+Given the player owns a crafted healing potion or buff potion and the configured use conditions are met
+When the player consumes the potion through the normal input path
+Then the valid use consumes the configured inventory quantity once and applies a real deterministic Core effect: healing changes actual health within its limits, and a buff changes its declared gameplay value for its declared lifecycle; a rejected use produces no consumption, effect or practice credit
+
+evidence_expected: Native input/HUD and Core state checks for both potion families, including health limits, invalid use, empty stock, equipment interaction and the documented buff stacking/refresh/expiry behavior. Rendering or dialogue alone cannot implement effects; durations and coefficients are technical choices under the existing 100 ms tick.
+
+## AC-032
+
+requirement_id: REQ-019
+claim_ids: [CLAIM-010, CLAIM-021]
+
+Given a profile contains herbs, crafted potions, spent ingredients and an active potion effect
+When the player saves/loads, changes area or floor, restarts after death, or retries an already committed craft/use event
+Then inventory, spent resources, potion receipts and effects follow the documented lifecycle consistently under the existing Core/save owner; already committed transactions are not repeated, consumed items do not reappear, effects do not accidentally stack or restart, and existing death, equipment and companion behavior remains intact
+
+evidence_expected: Deterministic snapshot/replay and legacy/new-save checks spanning harvest, craft and use boundaries, active-effect reload/travel and explicit death/restart behavior, plus native save restoration. The technical contract specifies effect duration, stacking and death handling; no particular coefficient or death-expiry policy is implied by this requirement.
+
+## AC-033
+
+requirement_id: REQ-016
+claim_ids: [CLAIM-022]
+
+Given the group has encountered the coerced alchemist but has not yet protected him from his commissioners
+When the player requests assistance or teaching, accepts or attempts the protection task, and eventually completes the implemented in-world protection objective
+Then only actual completed protection makes his assistance and the introduction of his alchemy teaching eligible; dialogue, task acceptance, an incomplete attempt, elapsed presentation time or save/load alone cannot satisfy the prerequisite, and repeated completion cannot duplicate progression or rewards
+
+evidence_expected: Core tests for unprotected, accepted, attempted and protected states; native interaction and gameplay tests exercise the actual protection-success path before help/teaching, then verify its save/load and repeated-action behavior. The technical assignment must describe observable protection-success conditions without inventing the commissioners’ identities. Protection does not itself corroborate the witness’s account or prove royal guilt.
