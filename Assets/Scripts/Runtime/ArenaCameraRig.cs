@@ -213,6 +213,26 @@ namespace AreArpg.UnityClient
         {
             var rotation = Quaternion.Euler(_pitch, _yaw, 0);
             transform.SetPositionAndRotation(_focus - rotation * Vector3.forward * (_framingDistance - _pullIn), rotation);
+            float left = _shakeUntil - Time.unscaledTime;
+            if (left > 0f && _shakeSeconds > 0f)
+            {
+                float t = Time.unscaledTime * 38f, fade = left / _shakeSeconds;
+                var offset = new Vector3(Mathf.PerlinNoise(t, .3f) - .5f, Mathf.PerlinNoise(.7f, t) - .5f, 0f) * (2f * _shakeAmplitude * fade);
+                transform.position += rotation * offset;
+            }
+        }
+
+        private float _shakeUntil = -1f, _shakeAmplitude, _shakeSeconds;
+        /// <summary>True during a cosmetic hit shake.</summary>
+        public bool Shaking { get { return Time.unscaledTime < _shakeUntil; } }
+
+        /// <summary>Brief cosmetic shake on accepted hits; it never moves the follow focus or anything in the Core.</summary>
+        public void Shake(float amplitude, float seconds)
+        {
+            if (!Finite(amplitude) || !Finite(seconds) || amplitude <= 0f || seconds <= 0f) return;
+            float now = Time.unscaledTime;
+            _shakeAmplitude = now < _shakeUntil ? Mathf.Max(_shakeAmplitude, Mathf.Min(amplitude, .3f)) : Mathf.Min(amplitude, .3f);
+            _shakeSeconds = seconds; _shakeUntil = now + seconds;
         }
 
         private void LateUpdate() { AdvancePresentation(Time.deltaTime); }

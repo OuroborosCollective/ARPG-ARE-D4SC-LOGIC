@@ -169,7 +169,107 @@ namespace AreArpg.EditorTools
             var leave = attack.AddTransition(idle);
             foreach (var transition in new[] { resume, leave })
             { transition.hasExitTime = true; transition.exitTime = .9f; transition.duration = .08f; transition.hasFixedDuration = true; }
+            AddAbilityStates(_controller, idleClip);
             EditorUtility.SetDirty(_controller);
+        }
+
+        /// <summary>
+        /// Add the guard and cast poses to the existing private hero controller without rebuilding its other clips, the
+        /// weapon or the bow export. Idempotent: earlier ability states are replaced.
+        /// </summary>
+        [MenuItem("ARE ARPG/Art/Add Hero Ability Poses")]
+        public static void AddAbilityPoses()
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(Output + "EntryMelee.controller");
+            var idle = AssetDatabase.LoadAssetAtPath<AnimationClip>(Output + "EntryIdle.anim");
+            if (controller == null || idle == null || !idle.humanMotion) throw new InvalidOperationException("Missing private hero controller or humanoid idle");
+            AddAbilityStates(controller, idle);
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssets();
+            Debug.Log("ENTRY_ABILITY_POSES " + string.Join(",", controller.layers[0].stateMachine.states.Select(s => s.state.name)));
+        }
+
+        /// <summary>
+        /// Guard raises both forearms in front of the face; Cast lifts the arms overhead and slams them forward. Both start
+        /// and end in the reviewed combat idle, so they blend into the existing locomotion.
+        /// </summary>
+        private static void AddAbilityStates(AnimatorController controller, AnimationClip idle)
+        {
+            var guard = PoseClip(idle, "EntryGuard", .75f, new[] { 0f, .12f, .5f, .75f }, new[]
+            {
+                new Pose("Arm Down-Up", 0f, .35f, .35f, 0f), new Pose("Arm Front-Back", 0f, .55f, .55f, 0f),
+                new Pose("Forearm Stretch", 0f, -.7f, -.7f, 0f), new Pose("Spine Front-Back", 0f, .15f, .15f, 0f, false),
+                new Pose("Chest Front-Back", 0f, .1f, .1f, 0f, false)
+            });
+            var cast = PoseClip(idle, "EntryCast", .8f, new[] { 0f, .28f, .45f, .8f }, new[]
+            {
+                new Pose("Arm Down-Up", 0f, .9f, -.1f, 0f), new Pose("Arm Front-Back", 0f, .4f, .9f, 0f),
+                new Pose("Forearm Stretch", 0f, .3f, .6f, 0f), new Pose("Spine Front-Back", 0f, -.25f, .35f, 0f, false),
+                new Pose("Chest Front-Back", 0f, -.15f, .25f, 0f, false)
+            });
+            var machine = controller.layers[0].stateMachine;
+            foreach (var transition in machine.anyStateTransitions)
+                if (transition.destinationState != null && (transition.destinationState.name == "Guard" || transition.destinationState.name == "Cast"))
+                    machine.RemoveAnyStateTransition(transition);
+            foreach (var child in machine.states)
+                if (child.state.name == "Guard" || child.state.name == "Cast") machine.RemoveState(child.state);
+            foreach (var parameter in controller.parameters)
+                if (parameter.name == "Guard" || parameter.name == "Cast") controller.RemoveParameter(parameter);
+            AnimatorState idleState = null, moveState = null;
+            foreach (var child in machine.states) { if (child.state.name == "Idle") idleState = child.state; if (child.state.name == "Move") moveState = child.state; }
+            if (idleState == null || moveState == null) throw new InvalidOperationException("Hero controller lacks idle or move state");
+            foreach (var (name, clip) in new[] { ("Guard", guard), ("Cast", cast) })
+            {
+                controller.AddParameter(name, AnimatorControllerParameterType.Trigger);
+                var state = machine.AddState(name); state.motion = clip;
+                var enter = machine.AddAnyStateTransition(state);
+                enter.AddCondition(AnimatorConditionMode.If, 0, name);
+                enter.hasExitTime = false; enter.duration = .05f; enter.hasFixedDuration = true; enter.canTransitionToSelf = true;
+                var resume = state.AddTransition(moveState); resume.AddCondition(AnimatorConditionMode.Greater, .1f, "MoveMagnitude");
+                var leave = state.AddTransition(idleState);
+                foreach (var transition in new[] { resume, leave })
+                { transition.hasExitTime = true; transition.exitTime = .9f; transition.duration = .08f; transition.hasFixedDuration = true; }
+            }
+        }
+
+        /// <summary>Muscle offset keyed at four times on both sides (or once for a centred muscle).</summary>
+        private readonly struct Pose
+        {
+            public readonly string Muscle; public readonly float[] Offsets; public readonly bool Mirrored;
+            public Pose(string muscle, float a, float b, float c, float d, bool mirrored = true) { Muscle = muscle; Offsets = new[] { a, b, c, d }; Mirrored = mirrored; }
+        }
+
+        /// <summary>Copy every curve of the combat idle at its first frame, then key the pose offsets on top.</summary>
+        private static AnimationClip PoseClip(AnimationClip idle, string key, float length, float[] times, Pose[] poses)
+        {
+            string path = Output + key + ".anim";
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if (clip == null) { clip = new AnimationClip(); AssetDatabase.CreateAsset(clip, path); }
+            clip.ClearCurves();
+            var offsets = new System.Collections.Generic.Dictionary<string, float[]>();
+            foreach (var pose in poses)
+                foreach (string side in pose.Mirrored ? new[] { "Left ", "Right " } : new[] { "" })
+                    offsets[side + pose.Muscle] = pose.Offsets;
+            int matched = 0;
+            foreach (var binding in AnimationUtility.GetCurveBindings(idle))
+            {
+                float baseValue = AnimationUtility.GetEditorCurve(idle, binding).Evaluate(0f);
+                var curve = new AnimationCurve();
+                if (offsets.TryGetValue(binding.propertyName, out var o))
+                {
+                    matched++;
+                    for (int i = 0; i < times.Length; i++) curve.AddKey(new Keyframe(times[i], Mathf.Clamp(baseValue + o[i], -1f, 1f)));
+                }
+                else { curve.AddKey(0f, baseValue); curve.AddKey(length, baseValue); }
+                AnimationUtility.SetEditorCurve(clip, binding, curve);
+            }
+            if (matched < offsets.Count) throw new InvalidOperationException("Idle clip lacks muscles for " + key + ": " + matched + "/" + offsets.Count);
+            var settings = AnimationUtility.GetAnimationClipSettings(clip);
+            settings.loopTime = false;
+            AnimationUtility.SetAnimationClipSettings(clip, settings);
+            AnimationUtility.SetAnimationEvents(clip, new AnimationEvent[0]);
+            EditorUtility.SetDirty(clip);
+            return clip;
         }
 
         /// <summary>Animation owns only the visual IK blend; no clock or animation event enters gameplay.</summary>

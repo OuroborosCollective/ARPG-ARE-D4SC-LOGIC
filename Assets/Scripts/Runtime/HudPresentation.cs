@@ -86,6 +86,9 @@ namespace AreArpg.UnityClient
             BuildSkills(g, l);
             BuildMastery(g, l);
             BuildNpcCard(g, l);
+            _hudLevelBanner = AshenUiTheme.Label("LevelBanner", g, 30, AshenUiTheme.Bronze, TextAnchor.MiddleCenter, FontStyle.Bold);
+            AshenUiTheme.Place(_hudLevelBanner.rectTransform, new Rect(l.Width * .5f - 300f, 150f, 600f, 54f));
+            _hudLevelBanner.gameObject.SetActive(false);
 
             var xpBack = AshenUiTheme.Image("XpBack", g, AshenUiTheme.Bar, new Color(0.08f, 0.06f, 0.04f, 0.85f));
             AshenUiTheme.Place(xpBack.rectTransform, l.ExperienceBarRect);

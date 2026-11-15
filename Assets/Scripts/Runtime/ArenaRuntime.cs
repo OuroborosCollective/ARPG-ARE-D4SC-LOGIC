@@ -925,6 +925,8 @@ namespace AreArpg.UnityClient
             foreach (Transform t in _lootVisuals.Values) if (t != null) Destroy(t.gameObject);
             _monsterVisuals.Clear();
             _lootVisuals.Clear();
+            ResetCombatFeel();
+            _shownLevel = System.Numerics.BigInteger.MinusOne;
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
             BuildNpcVisuals();
             _message = message + " / " + next.ChapterName;
@@ -1008,9 +1010,7 @@ namespace AreArpg.UnityClient
                     System.Numerics.BigInteger previousRank = _game.Progression.PracticeLevel(slot);
                     SkillResult outcome = _game.ActivateSkill(slot);
                     _atmosphere.Skill(outcome, slot, _game);
-                    if (_entryProfile && outcome.Activated && outcome.Hits > 0 && (slot == 0 || slot == 1))
-                        foreach (var animator in _heroMeleeAnimations)
-                            if (animator != null) { animator.ResetTrigger("Melee"); animator.SetTrigger("Melee"); }
+                    PresentAbility(outcome, slot);
                     _message = outcome.Message;
                     bool learned = _game.Progression.PracticeLevel(slot) > previousRank;
                     if (learned) _message += " / Durch Uebung gewachsen: Rang " + _game.Progression.PracticeLevel(slot);
@@ -1045,6 +1045,7 @@ namespace AreArpg.UnityClient
         /// <summary>Project actual game state as visuals; never create a second stock owner.</summary>
         private void UpdatePresentation(float alpha)
         {
+            UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
                 Transform ration = _campRationVisuals[index];
@@ -1084,6 +1085,7 @@ namespace AreArpg.UnityClient
                 float z = Mathf.Lerp(_game.PrevPlayerZmm, _game.PlayerZmm, alpha) / 1000f;
                 _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z), z);
                 AnimateActor(_hero, _game.PlayerXmm - _game.PrevPlayerXmm, _game.PlayerZmm - _game.PrevPlayerZmm);
+                HoldTargetFacing();
             }
             UpdateHeroCameraContext();
             foreach (MonsterState enemy in _game.Monsters)
@@ -1108,13 +1110,19 @@ namespace AreArpg.UnityClient
                 else if (_bossWarning != null) _bossWarning.gameObject.SetActive(false);
                 Transform visual;
                 if (!_monsterVisuals.TryGetValue(enemy.Id, out visual) || visual == null) continue;
-                visual.gameObject.SetActive(!enemy.IsDead);
-                if (!enemy.IsDead)
+                if (enemy.IsDead)
                 {
+                    if (!PresentDeath(enemy.Id, visual) && visual.gameObject.activeSelf) visual.gameObject.SetActive(false);
+                }
+                else
+                {
+                    if (!visual.gameObject.activeSelf) visual.gameObject.SetActive(true);
+                    _seenAlive.Add(enemy.Id);
                     float x = Mathf.Lerp(enemy.PreviousXmm, enemy.Xmm, alpha) / 1000f;
                     float z = Mathf.Lerp(enemy.PreviousZmm, enemy.Zmm, alpha) / 1000f;
                     visual.position = new Vector3(x, visual.localScale.y * 0.6f + GroundHeight(x,z), z);
                     AnimateActor(visual, enemy.Xmm - enemy.PreviousXmm, enemy.Zmm - enemy.PreviousZmm);
+                    ApplyHitReaction(enemy.Id, visual);
                 }
             }
             foreach (LootState item in _game.GroundLoot)

@@ -118,6 +118,11 @@ namespace AreArpg.Core
         public int Hits;
         public int Kills;
         public string Message = "";
+        /// <summary>Position of the accepted target when the ability was executed; presentation facing only.</summary>
+        public bool HasTarget;
+        public long TargetXmm, TargetZmm;
+        /// <summary>Monsters that actually took damage, in application order; presentation hit reactions only.</summary>
+        public readonly System.Collections.Generic.List<int> HitMonsterIds = new System.Collections.Generic.List<int>();
     }
 
     /// <summary>Standalone single-player simulation. Not a network server or a clone of any proprietary engine.</summary>
@@ -635,6 +640,7 @@ namespace AreArpg.Core
             Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
             result.Hits++;
+            result.HitMonsterIds.Add(enemy.Id);
             if (enemy.Kind == 4)
             {
                 var h = Progression.Road; h.Started = true; h.AggroTicks = 80;
@@ -694,6 +700,7 @@ namespace AreArpg.Core
             Resource = Math.Min(100, Resource - skill.FocusCost + skill.FocusGain);
             Cooldowns[slot] = AttackCooldown(slot);
             result.Activated = true;
+            result.HasTarget = true; result.TargetXmm = nearest.Xmm; result.TargetZmm = nearest.Zmm;
             if (skill.Target == SkillTarget.Area)
             {
                 foreach (MonsterState enemy in Monsters)

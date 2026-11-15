@@ -220,6 +220,14 @@ namespace AreArpg.UnityClient
             var main = _sparks.main; main.startSpeed = 2.5f; _sparks.Play();
         }
 
+        /// <summary>A burst-only world-space particle system with the shared atmosphere material; emitted by presentation code.</summary>
+        public ParticleSystem CreateEffect(string name, int limit, float size, Color color, float lifetime)
+        {
+            var effect = Particles(name, limit, 0f, size, color, Vector3.one * .2f, lifetime);
+            effect.Play();
+            return effect;
+        }
+
         private ParticleSystem Particles(string name, int limit, float rate, float size, Color color, Vector3 area, float lifetime)
         {
             var go = new GameObject(name); go.transform.SetParent(transform, false); var p = go.AddComponent<ParticleSystem>();
