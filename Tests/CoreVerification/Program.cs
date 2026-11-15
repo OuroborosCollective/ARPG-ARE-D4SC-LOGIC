@@ -37,6 +37,7 @@ internal static class Program
             PracticeRuleTests.Run(Require);
             EntryJourneyTests.Run(Require);
             HungerJourneyTests.Run(Require);
+            AuthoredHungerTests.Run(Require);
             HunterEncounterTests.Run(Require);
             InvestigationJourneyTests.Run(Require);
             RattlerEncounterTests.Run(Require);

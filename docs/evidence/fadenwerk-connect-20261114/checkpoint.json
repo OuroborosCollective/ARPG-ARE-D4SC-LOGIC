@@ -1,0 +1,55 @@
+{
+  "schema": "ashen.fadenwerk-checkpoint.v1",
+  "nativeSource": "becf6e84ba3dbf311b6518a794a1d53de7dc64fd",
+  "editor": "6000.6.8f1",
+  "editMode": {
+    "passed": 79,
+    "failed": 0,
+    "skipped": 0,
+    "xmlSha256": "63622d457529cf7c139561dbaf6e2a8d46339cdb4036ed063c3712c353816334"
+  },
+  "playMode": {
+    "status": "interrupted_for_hoster_cpu_restriction",
+    "accepted": false,
+    "expectedTests": 130
+  },
+  "coreCI": {
+    "source": "6699652371a6755c58c69dc8578dd724e1206f8e",
+    "runId": 43648334572,
+    "jobId": 132611022299,
+    "conclusion": "success",
+    "coreAssertions": 8165,
+    "preflight": 40,
+    "director": 20,
+    "gateway": 4,
+    "json": 4,
+    "map": 2
+  },
+  "browser": {
+    "anonymous_html": 401,
+    "anonymous_api/state": 401,
+    "browser_input_saved": true,
+    "published_hash_changed": true,
+    "stale_write": 409,
+    "invalid_gameplay_publication": 422,
+    "cross_origin_and_form_posts_rejected": true,
+    "original_restored": true,
+    "landscape_overflow": false,
+    "portrait_overflow": false,
+    "javascript_errors": [],
+    "final_hash": "b91d1544189be71ca137375b9cf53365be6fbc8f7b96bd09318b8cda3ae32978",
+    "url": "https://arelogic.space/fadenwerk/"
+  },
+  "temporaryVerificationAccountRevoked": true,
+  "ownerDiskPrefsRestored": true,
+  "editorPaused": true,
+  "ownerInstruction": "Wait for owner before further development or Unity resume.",
+  "remaining": [
+    "Cancel/reconcile the interrupted native test under the shared CPU cap before restarting it.",
+    "Restore temporary editor background override and verify settings.",
+    "Finish native PlayMode acceptance; preserve exact source and input hashes.",
+    "Fadenwerk owner UI is unavailable while its Unity process is paused.",
+    "No merge or Android/device claim."
+  ],
+  "nextJourneyBranch": "feat/immergruen-journey-20261114"
+}

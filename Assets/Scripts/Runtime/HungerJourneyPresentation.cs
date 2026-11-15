@@ -43,6 +43,8 @@ namespace AreArpg.UnityClient
         /// <summary>Show the consequence and real replacement cost before the player commits the branch.</summary>
         private string HungerActionLabel(HungerAction action)
         {
+            var authored=AuthoredHunger;
+            if(authored!=null && ((int)action>=0 && (int)action<=2 || action==HungerAction.InspectBeds)) return authored.labels[(int)action];
             switch (action)
             {
                 case HungerAction.HearIlyan: return "BEI ILYAN: Nach seinem Geheimnis fragen";
@@ -124,8 +126,8 @@ namespace AreArpg.UnityClient
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;
             if (!_hungerJournalOpen) return false;
             Rect panel = HungerPanel(layout);
-            GUI.Box(panel, _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : _game.InAschenzoll ? "ASCHENZOLL — DIE TRANSPORTSPUR" : "HUNGER HINTER DEN MAUERN");
-            GUI.Label(new Rect(panel.x + 15, panel.y + 30, 530, 70), _game.HungerObjective, _smallStyle);
+            GUI.Box(panel, _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : _game.InAschenzoll ? "ASCHENZOLL — DIE TRANSPORTSPUR" : (AuthoredHunger!=null?AuthoredHunger.title:"HUNGER HINTER DEN MAUERN"));
+            GUI.Label(new Rect(panel.x + 15, panel.y + 30, 530, 70), PresentedHungerObjective(), _smallStyle);
             GUI.Label(new Rect(panel.x + 15, panel.y + 105, 530, 30), "Proviant: " + _game.Progression.Social.Provisions +
                 "  |  Entscheidung: " + HungerChoiceLabel(_game.Progression.SupplyChoice), _smallStyle);
             GUI.Label(new Rect(panel.x + 15, panel.y + 140, 530, 75), _message, _smallStyle);

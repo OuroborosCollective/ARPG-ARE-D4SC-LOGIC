@@ -1,0 +1,25 @@
+# Existing infrastructure owner authentication only. No game/account/database dependency.
+http:
+  middlewares:
+    ashen-fadenwerk-strip:
+      stripPrefix:
+        prefixes: [/fadenwerk]
+    ashen-fadenwerk-slash:
+      redirectRegex:
+        regex: '^https://arelogic.space/fadenwerk$'
+        replacement: 'https://arelogic.space/fadenwerk/'
+        permanent: true
+  routers:
+    ashen-fadenwerk-web:
+      entryPoints: [websecure]
+      rule: 'Host(`arelogic.space`) && (Path(`/fadenwerk`) || PathPrefix(`/fadenwerk/`))'
+      priority: 2210
+      middlewares: [aurion-live-auth@file, ashen-fadenwerk-slash, ashen-fadenwerk-strip]
+      service: ashen-fadenwerk-web
+      tls:
+        certResolver: letsencrypt
+  services:
+    ashen-fadenwerk-web:
+      loadBalancer:
+        servers:
+          - url: 'http://127.0.0.1:8096'

@@ -1,0 +1,25 @@
+{
+  "source": "30e63df00f4251dba76509f239a479ca1e826cc9",
+  "testsPassed": 3,
+  "failed": 0,
+  "skipped": 0,
+  "full130SuiteCompleted": false,
+  "editorClosedGracefully": true,
+  "unsavedScenesAtClose": [],
+  "backgroundOverrideRestored": true,
+  "ownerDiskPrefsRestored": true,
+  "prefsSha256": "71e941facd5e2df37edb85efbca94c3d3cf86b9a2852f0180daa476c5467ecba",
+  "settingsAndBowInputChangesBeforeRestore": [
+    "ProjectSettings/ProjectSettings.asset"
+  ],
+  "settingsAndBowInputChangesAfterRestore": [],
+  "trackedChangesAfterRestore": [],
+  "displayStopRequested": true,
+  "displaySocketGone": true,
+  "cpuMax": "100000 100000",
+  "unityCoresAfterClose": 0.0044,
+  "intakeStates": {
+    "98453": "State:\tT (stopped)",
+    "99904": "State:\tT (stopped)"
+  }
+}

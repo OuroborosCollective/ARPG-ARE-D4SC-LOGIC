@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73d4f66df69a452dae5353e6d33cc334, type: 3}
+  m_Name: AshenFadenwerkText
+  m_EditorClassIdentifier: AreArpg.Runtime::AreArpg.UnityClient.AshenFadenwerkText
+  contract: AshenCrypt.Fadenwerk.Hunger.v1
+  title: HUNGER HINTER DEN MAUERN
+  objectives:
+  - Ilyan verbirgt etwas. Sprich mit ihm in der Aschengrenze.
+  - Folge dem Nordweg. Untersuche das Wegzeichen auf der Aschestrasse.
+  - Die Spur fuehrt zur alten Muehle. Untersuche das Verbandszeug westlich des Weges.
+  - 'Kehre ins Dorf zurueck: Mara informieren, Ilyan schuetzen oder Maras Fehlbestand aus eigenem Proviant ersetzen.'
+  - Kehre zur Muehle zurueck. Untersuche die verlassenen Lagerstaetten nordwestlich des Weges.
+  labels:
+  - 'BEI ILYAN: Nach seinem Geheimnis fragen'
+  - 'AM WEGZEICHEN: Verband und Spuren untersuchen'
+  - 'IM LAGER: Verbandszeug und Essensreste untersuchen'
+  - "BEI MARA: Hilfe offenlegen \u2013 Mara erf\xE4hrt das Geheimnis"
+  - "BEI ILYAN: Schweigen zusagen \u2013 Fehlbestand bleibt"
+  - "BEI MARA: Geheimnis bewahren, Lager auff\xFCllen"
+  - 'AN DEN BETTEN: Das Verschwinden untersuchen'
+  responses:
+  - 'Ilyan: Ich bringe Verwundeten heimlich Essen. Folge der Aschestrasse zur alten Muehle.'
+  - Ein Verband haengt am Wegzeichen. Fussspuren fuehren nach Norden zur Muehle.
+  - 'Verbandszeug und Essensreste belegen Ilyans Hilfe. Kehre zurueck: offenlegen, schuetzen oder Vorrat ersetzen.'
+  - "Mara erf\xE4hrt von Ilyans Versorgung."
+  - Ilyans Geheimnis bleibt bewahrt.
+  - "Der Core pr\xFCft und verbraucht die tats\xE4chlich fehlenden Rationen."
+  - Im Verletztenlager fehlt ein Patient.
+  sourceHash: b91d1544189be71ca137375b9cf53365be6fbc8f7b96bd09318b8cda3ae32978

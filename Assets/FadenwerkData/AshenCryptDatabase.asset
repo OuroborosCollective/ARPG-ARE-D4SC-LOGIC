@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a90b707bae770e36f411b064a3a3cb0, type: 3}
+  m_Name: AshenCryptDatabase
+  m_EditorClassIdentifier: Fadenwerk.Runtime::Fadenwerk.FadenwerkDatabase
+  worldSeed: ashen-authoring-v1
+  quests:
+  - id: ashen.hunger
+    title: HUNGER HINTER DEN MAUERN
+    description: "Ilyans geheime Versorgung, die alte M\xFChle und die verschwundenen Verletzten. Die bestehenden Spielregeln bleiben verbindlich."
+    giverNpcId: ilyan
+    turnInNpcId: 
+    requiredLevel: 1
+    repeatable: 0
+    prerequisiteQuestIds: []
+    objectives:
+    - type: custom
+      targetId: ashen.hunger.stage.0
+      count: 1
+      text: Ilyan verbirgt etwas. Sprich mit ihm in der Aschengrenze.
+    - type: custom
+      targetId: ashen.hunger.stage.1
+      count: 1
+      text: Folge dem Nordweg. Untersuche das Wegzeichen auf der Aschestrasse.
+    - type: custom
+      targetId: ashen.hunger.stage.2
+      count: 1
+      text: Die Spur fuehrt zur alten Muehle. Untersuche das Verbandszeug westlich des Weges.
+    - type: custom
+      targetId: ashen.hunger.stage.3
+      count: 1
+      text: 'Kehre ins Dorf zurueck: Mara informieren, Ilyan schuetzen oder Maras Fehlbestand aus eigenem Proviant ersetzen.'
+    - type: custom
+      targetId: ashen.hunger.stage.4
+      count: 1
+      text: Kehre zur Muehle zurueck. Untersuche die verlassenen Lagerstaetten nordwestlich des Weges.
+    rewardKitId: 
+    offerText: 
+    progressText: 
+    completeText: 
+  dialogues:
+  - id: ashen.hunger.actions
+    title: "Ilyan / M\xFChle \u2013 gebundene Handlungen"
+    startNodeId: hear_ilyan
+    nodes:
+    - id: hear_ilyan
+      speaker: 
+      text: 'Ilyan: Ich bringe Verwundeten heimlich Essen. Folge der Aschestrasse zur alten Muehle.'
+      choices:
+      - text: 'BEI ILYAN: Nach seinem Geheimnis fragen'
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+    - id: inspect_trail
+      speaker: 
+      text: Ein Verband haengt am Wegzeichen. Fussspuren fuehren nach Norden zur Muehle.
+      choices:
+      - text: 'AM WEGZEICHEN: Verband und Spuren untersuchen'
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+    - id: inspect_shelter
+      speaker: 
+      text: 'Verbandszeug und Essensreste belegen Ilyans Hilfe. Kehre zurueck: offenlegen, schuetzen oder Vorrat ersetzen.'
+      choices:
+      - text: 'IM LAGER: Verbandszeug und Essensreste untersuchen'
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+    - id: reveal
+      speaker: 
+      text: "Mara erf\xE4hrt von Ilyans Versorgung."
+      choices:
+      - text: "BEI MARA: Hilfe offenlegen \u2013 Mara erf\xE4hrt das Geheimnis"
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+    - id: protect
+      speaker: 
+      text: Ilyans Geheimnis bleibt bewahrt.
+      choices:
+      - text: "BEI ILYAN: Schweigen zusagen \u2013 Fehlbestand bleibt"
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+    - id: replace
+      speaker: 
+      text: "Der Core pr\xFCft und verbraucht die tats\xE4chlich fehlenden Rationen."
+      choices:
+      - text: "BEI MARA: Geheimnis bewahren, Lager auff\xFCllen"
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+    - id: inspect_beds
+      speaker: 
+      text: Im Verletztenlager fehlt ein Patient.
+      choices:
+      - text: 'AN DEN BETTEN: Das Verschwinden untersuchen'
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  kits: []
+  items: []
