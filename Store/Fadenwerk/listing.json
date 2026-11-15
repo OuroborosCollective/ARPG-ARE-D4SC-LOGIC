@@ -1,0 +1,38 @@
+{
+  "title": "Fadenwerk",
+  "suggestedSubtitle": "Quests, Dialogue & Rewards",
+  "packageId": "430392",
+  "versionId": "1558990",
+  "priceUsd": 6,
+  "category": "Tools/Level Design",
+  "summary": "Author quests, branching dialogue and reward kits in your browser. Connect NPCs and scene markers in Unity, then integrate the included offline C# runtime with your game.",
+  "technical": [
+    "Unity Editor: verified import/export on 6000.6.8f1.",
+    "Runtime: C# and Unity components; no external inference service.",
+    "Authoring: browser UI served by the Unity Editor; Editor must remain open.",
+    "UI language: primarily German.",
+    "Progress: JSON API; application-owned save files.",
+    "Rewards: seeded results and callbacks; host applies inventory/XP effects.",
+    "Android/device runtime compatibility is not claimed from these Editor checks."
+  ],
+  "keywords": [
+    "quest",
+    "dialogue",
+    "narrative",
+    "story",
+    "reward",
+    "browser",
+    "editor",
+    "RPG",
+    "NPC",
+    "CSharp",
+    "tools",
+    "quest system"
+  ],
+  "aiDisclosure": "OpenAI Codex/ChatGPT assisted inspection, integration, tests, documentation and listing preparation. OpenAI image generation created the promotional cover and icon. Promotional illustrations are separate from actual tool screenshots. The package runtime does not call a generative AI service.",
+  "portalUrl": "https://publisher.unity.com/packages/1558990/edit",
+  "desiredStatus": "draft",
+  "portalFieldsSaved": false,
+  "priceReadbackVerified": false,
+  "descriptionHtml": "<h3>Weave your game’s story together</h3>\n<p>Build the conversation, connect the objective and define the reward in one authoring workflow. Fadenwerk combines a browser interface with Unity Editor tools and a C# runtime so narrative content can live alongside your existing game systems.</p>\n<h3>Author in your browser</h3>\n<p>Create quest definitions, dialogue nodes and choices, NPC records, markers, item references and reward kits. Use quest prerequisites, level requirements, repeatable quests and conditional dialogue choices to shape progression. Inspect scene connections and validation issues from the Editor.</p>\n<h3>Connect to your game</h3>\n<p>Report talk, kill, collect, reach, deliver or custom events through the runtime API. Read quest state, advance dialogue and export/import quest progress as JSON. Reward kits provide gold, XP and item results from a seed; your game applies those results to its own inventory and progression systems.</p>\n<h3>A local workflow</h3>\n<p>The browser authoring server runs inside your open Unity Editor. The runtime does not require that server, a hosted AI service, API credits or a subscription. Remote access requires your own secure tunnel or HTTPS proxy; this package is not a hosted web service.</p>\n<h3>Included</h3>\n<p>C# source; quest, dialogue, item and reward data types; ScriptableObject database; NPC and marker components; quest manager and dialogue runner; seeded reward calculation; JSON progress serialization; Editor window; browser authoring UI; scene connections and validation tools.</p>\n<h3>Requirements and integration</h3>\n<p>Draft import and export verified in Unity 6000.6.8f1. Current authoring UI and existing documentation are primarily German. This is an integration toolkit: you provide the player-facing UI, combat, navigation, inventory, progression and durable save storage. Reward event handlers are host-owned effects; transaction safety and save coordination remain your responsibility.</p>\n<h3>Scope</h3>\n<p>No Ashen Crypt game content, licensed character or environment models, complete RPG systems or generative dialogue service is included. The current export is a development draft; standalone sample paths, licensing text, complete documentation and final package validation are being prepared before submission.</p>"
+}

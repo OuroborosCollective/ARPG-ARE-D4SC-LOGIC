@@ -3,10 +3,32 @@
   "desiredState": "draft",
   "submitForReview": false,
   "publish": false,
-  "imagesAndPolishDeferred": true,
+  "imagesAndPolishDeferred": false,
   "packages": [
-    {"title": "Fadenwerk", "priceUsd": 6, "payment": "one-time", "exportRoot": "Assets/Fadenwerk", "uploaded": false},
-    {"title": "World Forge", "priceUsd": 35, "payment": "one-time", "exportRoot": "Assets/WorldForge", "uploaded": false}
+    {
+      "title": "Fadenwerk",
+      "priceUsd": 6,
+      "payment": "one-time",
+      "exportRoot": "Assets/Fadenwerk",
+      "uploaded": true,
+      "packageId": "430392",
+      "versionId": "1558990",
+      "statusReadback": "draft",
+      "portalMetadataUpdated": false,
+      "priceReadbackVerified": false
+    },
+    {
+      "title": "World Forge",
+      "priceUsd": 35,
+      "payment": "one-time",
+      "exportRoot": "Assets/WorldForge",
+      "uploaded": true,
+      "packageId": "430394",
+      "versionId": "1558994",
+      "statusReadback": "draft",
+      "portalMetadataUpdated": false,
+      "priceReadbackVerified": false
+    }
   ],
-  "note": "Requested state only. Replace uploaded=false only after actual official uploader and server readback."
+  "note": "Both exact exports uploaded through official Unity Editor uploader and verified after fresh server refresh. Presentation files prepared locally; portal metadata/image writes blocked by unavailable browser. No review submission or publication."
 }

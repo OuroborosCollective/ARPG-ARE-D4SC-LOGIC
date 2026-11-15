@@ -31,10 +31,22 @@ both isolated exports and existing-account login succeeded. All 148 supplied
 module files remained unchanged. Local download hashes and archive paths were
 independently verified; see `export-readback.json`.
 
-Upload is blocked before any target mutation: the authenticated publisher list
-contains no Fadenwerk or World Forge draft. The unrelated Dungeon Blueprints
-draft and pending-review Memory Forge package are left untouched. New products
-must first be created in the Publisher Portal; the available portal browser
-failed to initialize. The owner has been asked to create the two named drafts.
-No package has been uploaded, submitted for review or published by this block.
-Prices are requested values, not verified portal settings.
+The owner subsequently created both drafts. The official Editor uploader has now
+uploaded the exact verified exports to Fadenwerk 430392/version 1558990 and
+World Forge 430394/version 1558994. Both displayed `Upload: Success`; after an
+uncached server refresh, both remain drafts with the expected byte sizes. See
+`upload-receipt.json`. The earlier `publisher-packages-readback.json` is retained
+as the historical pre-creation observation, not current state.
+
+The unrelated Dungeon Blueprints draft and pending-review Memory Forge package
+were left untouched. Nothing was submitted for review or published. Prices were
+entered by the owner and have not been independently read back here.
+
+Product descriptions, technical details, keywords, AI disclosure, EN/DE
+quickstarts and six exact-dimension key images are prepared under `Store/`.
+Original promotional art is under `Marketing/`; artwork is not engine evidence.
+The Portal browser still fails to initialize, so these presentation fields and
+images are NOT yet saved there. World Forge still needs its category changed
+from 3D/Environments to an appropriate Tools category. The initial source
+exports were intentionally uploaded unchanged; release gates remain in
+`Store/README.md` and must be closed before submission.

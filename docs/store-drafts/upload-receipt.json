@@ -1,0 +1,52 @@
+{
+  "source": "2f296b26767ad0746a2ca26468ef299f91e43b57",
+  "unity": "6000.6.8f1",
+  "uploader": "12.0.0 with recorded three-file Unity 6.6 compatibility patch",
+  "workflow": "Pre-exported .unitypackage through official PackageUploadElement.Upload action, exact title/ID/version/draft/hash checked before action",
+  "packages": [
+    {
+      "name": "Fadenwerk",
+      "packageId": "430392",
+      "versionId": "1558990",
+      "status": "draft",
+      "bytes": 85364,
+      "sha256": "8c7d509d13362478f520b0f1e4e6067d95b4fb7324ef84722c912bbf365195ce",
+      "actionRequestId": "9646435997934820ae8533260dc8d6d6",
+      "uiResult": "Upload: Success"
+    },
+    {
+      "name": "World Forge",
+      "packageId": "430394",
+      "versionId": "1558994",
+      "status": "draft",
+      "bytes": 820669,
+      "sha256": "85ff90eb26bd36b93ef19f3edde9eccbd1574baa8e3a98fccf7298c29ef449c3",
+      "actionRequestId": "c78fbd0388884e2eb5d54ef032377886",
+      "uiResult": "Upload: Success"
+    }
+  ],
+  "freshServerRefreshRequestId": "1ea6a8aebe094b96b60766cd3449aa4c",
+  "freshReadbackRequestId": "2519d78bef2c432fbdd2745feca934ab",
+  "otherProductsUnchanged": [
+    {
+      "name": "Ouroboros Dungeon Blueprints",
+      "packageId": "428468",
+      "versionId": "1554078",
+      "status": "draft",
+      "size": ""
+    },
+    {
+      "name": "Memory Forge — Deterministic NPC AI",
+      "packageId": "429860",
+      "versionId": "1557618",
+      "status": "pendingReview",
+      "size": "54479"
+    }
+  ],
+  "submittedForReview": false,
+  "published": false,
+  "portalPresentationSaved": false,
+  "priceReadbackVerified": false,
+  "screenshotSha256": "69649202b2bbc3e0540ede0dcfb6ae8903fc901e051b5d8f225ddfaa9e527fa2",
+  "openPortalBlocker": "CUA browser initialization: the gaas-browser node_repl sandbox cannot be disabled; direct public portal request HTTP 403. No auth bypass attempted."
+}

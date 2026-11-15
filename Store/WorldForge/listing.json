@@ -1,0 +1,39 @@
+{
+  "title": "World Forge",
+  "suggestedSubtitle": "Procedural Terrain & World Authoring",
+  "packageId": "430394",
+  "versionId": "1558994",
+  "priceUsd": 35,
+  "category": "Tools/Terrain",
+  "summary": "Build seeded terrain from reusable profiles. Layer heights, carve paths, place points of interest and scatter your own assets, then export an integer world map for your gameplay systems.",
+  "technical": [
+    "Unity 6000.6.8f1 / URP 17.6.0 used for current draft import/export.",
+    "Terrain and Terrain Physics modules required; AI Navigation optional.",
+    "World and biome ScriptableObject profiles; non-destructive height-layer stack.",
+    "Generated terrain uses your own terrain layers and vegetation/prop assets.",
+    "Integer WFMAP v1 core export with FNV-1a 64 content checksum.",
+    "Same-seed reproduction verified for the documented Editor pilot; not a cross-platform floating-point guarantee.",
+    "Android quality preset exists; this is not a physical-device performance certification.",
+    "Private Ashen Crypt art and the game-side procedural cave system are not included."
+  ],
+  "keywords": [
+    "terrain",
+    "procedural",
+    "world generation",
+    "level design",
+    "biome",
+    "heightmap",
+    "environment",
+    "seed",
+    "paths",
+    "POI",
+    "terrain tools",
+    "CSharp"
+  ],
+  "aiDisclosure": "OpenAI Codex/ChatGPT assisted inspection, integration, tests, documentation and listing preparation. OpenAI image generation created the promotional cover and icon. Promotional landscape illustrations do not show an included art pack or a generated Unity scene. Actual project screenshots are identified separately. No online AI service is required by the generator.",
+  "portalUrl": "https://publisher.unity.com/packages/1558994/edit",
+  "desiredStatus": "draft",
+  "portalFieldsSaved": false,
+  "priceReadbackVerified": false,
+  "descriptionHtml": "<h3>Shape the world around your game</h3>\n<p>World Forge turns a reusable world profile into Unity terrain tiles, paths, biome placement and points of interest. Iterate on a seed and a layer stack, regenerate the terrain and keep your own art and gameplay systems in control.</p>\n<h3>A layered terrain workflow</h3>\n<p>Combine noise, geometric or texture stamps, height remapping, terraces, smoothing and erosion layers. Carve paths, flatten areas around points of interest and define boundaries. Preview your height stack before generating the scene.</p>\n<h3>Use your own environment assets</h3>\n<p>Define biome texture masks from height, slope, noise and proximity to paths. Configure terrain trees, details and GameObject placement with density, spacing, scale and slope alignment. Your TerrainLayers, vegetation and prop prefabs supply the visual style.</p>\n<h3>Iterate where it matters</h3>\n<p>Generate all stages together, regenerate heights, repaint terrain or respawn objects separately. Preserve authored positions for important locations while varying the surrounding layout through profiles and seeds. Optional AI Navigation integration can request a NavMesh bake when that package is available.</p>\n<h3>An exported map your game can read</h3>\n<p>Export a versioned binary map containing integer heights, walkability, obstacles, visibility flags and POI metadata. The engine-independent C# reader supports position, height, line-of-sight and POI queries with a content hash. Your game decides how these results affect navigation, encounters and saved worlds.</p>\n<h3>Included</h3>\n<p>C# source; world and biome profiles; World Designer window; height-layer stack; multi-tile terrain generation; texture and spawn rules; path and POI authoring; integer core-map exporter and reader; reference material, existing German documentation and optional tests.</p>\n<h3>Requirements and scope</h3>\n<p>Draft imported and exported with Unity 6000.6.8f1 and URP 17.6.0. Terrain and Terrain Physics modules are required for terrain features; AI Navigation is optional. Supply your own TerrainLayers, prefabs and art. World Forge is an authoring toolkit, not a complete RPG, cave/dungeon generator, world-streaming framework or automatic quest designer.</p>\n<h3>Verification</h3>\n<p>In Ashen Crypt, a real Editor pilot generated 128 × 128 m worlds with 16,641 map nodes, five paths and nine points of interest. An A/B/A seed check reproduced the first exported map exactly. That is project-specific evidence, not a universal frame-rate, device-performance or cross-platform generation guarantee. Standalone package samples and final submission validation remain in preparation.</p>"
+}
