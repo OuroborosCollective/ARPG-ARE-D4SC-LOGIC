@@ -54,5 +54,17 @@
       "EditMode": "9d48e1152a3cd2fd8f5bf69b5611cf51ba322d471472dc865178ebb6dcce9c2f",
       "PlayMode": "a46f6cf6477b4d07a86eb4a24f5cab421a159661c55022542de707ffeec4adf3"
     }
+  },
+  "finalTreeRegression": {
+    "purpose": "Stack #44-#47 after the forward merges of the #44 follow-up fixes; this code tree is what main receives",
+    "head": "4934721c381c505c69395fd1ff5abd915b7c78a7",
+    "EditMode": "93/93",
+    "PlayMode": "146/146",
+    "skipped": 0,
+    "core": "CoreVerification ALL PASS 19731 assertions",
+    "xmlSha256": {
+      "EditMode": "334316ee284a52710c1e22a0f733840012ef129b3d68c02cada69110c7194299",
+      "PlayMode": "faa0dcba1fad7eaf5d93a1d4b76d2c983370c63043009c7868bf0b493e554455"
+    }
   }
 }
