@@ -73,6 +73,46 @@ namespace AreArpg.EditMode.Tests
             }
         }
 
+        /// <summary>Review follow-up: a rollback also reloads objects that the failed run changed only in memory.</summary>
+        [Test]
+        public void RestoreReloadsObjectsTheFailedRunChangedOnlyInMemory()
+        {
+            const string folder = "Assets/JourneyAuthoringReload_Test";
+            Assert.IsFalse(AssetDatabase.IsValidFolder(folder), "Test output must be isolated");
+            AssetDatabase.CreateFolder("Assets", "JourneyAuthoringReload_Test");
+            try
+            {
+                var type = Find("AshenCrypt.WorldForge.WorldProfile");
+                var profile = ScriptableObject.CreateInstance(type);
+                var seedField = type.GetField("seed");
+                seedField.SetValue(profile, 5);
+                AssetDatabase.CreateAsset(profile, folder + "/Profile.asset");
+                AssetDatabase.SaveAssets();
+                byte[] onDisk = File.ReadAllBytes(folder + "/Profile.asset");
+                var snapshot = (string)Tool("SnapshotFolder").Invoke(null, new object[] { folder, "Temp/JourneyAuthoringReload_Backup" });
+                var owner = Find("AreArpg.EditorTools.JourneyWorldAuthoring");
+                const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
+                object loaded = owner.GetMethod("CaptureLoadedAuthoringAssets", flags).Invoke(null, new object[] { folder });
+                try
+                {
+                    // Like CreateProfile before a failure: only loaded memory changes, not persisted bytes.
+                    seedField.SetValue(profile, 999);
+                    Tool("RestoreFolder").Invoke(null, new object[] { snapshot, folder, null });
+                    owner.GetMethod("RestoreLoadedAuthoringAssets", flags).Invoke(null, new[] { loaded });
+                    CollectionAssert.AreEqual(onDisk, File.ReadAllBytes(folder + "/Profile.asset"));
+                    var reloaded = AssetDatabase.LoadAssetAtPath(folder + "/Profile.asset", type);
+                    Assert.AreSame(profile, reloaded, "Existing references remain valid");
+                    Assert.AreEqual(5, seedField.GetValue(reloaded), "Pre-run state is restored");
+                    Assert.IsFalse(EditorUtility.IsDirty(reloaded), "No uncommitted mutation survives");
+                }
+                finally { owner.GetMethod("ReleaseLoadedAuthoringAssets", flags).Invoke(null, new[] { loaded }); }
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(folder);
+            }
+        }
+
         /// <summary>Review follow-up: unsaved edits are refused before the run or its rollback can touch them.</summary>
         [Test]
         public void UnsavedAuthoringEditsAreRefusedBeforeAnythingIsTouched()
@@ -131,6 +171,16 @@ namespace AreArpg.EditMode.Tests
                 string ok = root + "/Saved";
                 author.Invoke(null, new object[] { seed, ok, root + "/Maps1", new Dictionary<int, byte[]>(), (Func<Scene, string, bool>)((s, p) => EditorSceneManager.SaveScene(s, p)) });
                 Assert.IsTrue(File.Exists(ok + "/Authored.unity") && !File.Exists(ok + "/GenerationScratch.unity"));
+                // A matching published map is not rewritten: a read-only copy must survive a second authoring of the seed.
+                string published = root + "/Maps1/Wald_v1_" + seed + ".bytes";
+                byte[] mapBytes = File.ReadAllBytes(published);
+                File.SetAttributes(published, FileAttributes.ReadOnly);
+                try
+                {
+                    author.Invoke(null, new object[] { seed, root + "/SavedAgain", root + "/Maps1", new Dictionary<int, byte[]>(), (Func<Scene, string, bool>)((s, p) => EditorSceneManager.SaveScene(s, p)) });
+                }
+                finally { File.SetAttributes(published, FileAttributes.Normal); }
+                CollectionAssert.AreEqual(mapBytes, File.ReadAllBytes(published), "The published map keeps its bytes");
 
                 // Saving the authored scene fails, saving the scratch scene works: the world is saved there for recovery.
                 string rescued = root + "/Rescued";
