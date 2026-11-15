@@ -15,12 +15,16 @@ namespace AreArpg.Core
         public const ulong CalmIntervalTicks = 600;
         internal const int CalmHostility = 1000, CalmFear = 600;
         internal const int GreetHostility = 200, GreetFear = 150, HelpHostility = 800, HelpFear = 500;
+        /// <summary>Greetings cost nothing, so they reconcile at most once per 30 s; help spends real provisions.</summary>
+        internal const ulong GreetReconcileIntervalTicks = 300;
 
         /// <summary>Checked once per simulated second; derives everything from the persisted memory archive.</summary>
         private void CalmVillagers()
         {
             var forge = Progression.Social.Forge;
             if (forge == null || forge.ProcessedTicks % 10 != 0) return;
+            // Saves from before the side task existed: a camp the player already refilled is credited once.
+            if (!Progression.Social.CampRefilled && Progression.Social.CampProvisions >= SocialLedger.CampCapacity) RecordCampRefill(0);
             foreach (NpcAgent npc in Npcs)
             {
                 if (npc.Id > 2 || npc.Memory.Health == 0 || npc.Mind == null) continue;
@@ -39,8 +43,12 @@ namespace AreArpg.Core
             if (forge == null || npc.Mind == null || npc.Memory.Health == 0 || action != NpcAction.Greet && action != NpcAction.Help) return;
             var relation = npc.Mind.RelationshipTo("player");
             if (relation.Hostility == 0 && relation.Fear == 0) return;
-            bool help = action == NpcAction.Help;
-            Soothe(forge, npc, NpcAgent.ReconcileContext, help ? HelpHostility : GreetHostility, help ? HelpFear : GreetFear);
+            if (action == NpcAction.Help) { Soothe(forge, npc, NpcAgent.ReconcileContext, HelpHostility, HelpFear); return; }
+            ulong lastGreeting = 0;
+            foreach (var known in npc.Mind.Known)
+                if (known.Event.Actor == "player" && known.Event.Context == NpcAgent.GreetReconcileContext) lastGreeting = Math.Max(lastGreeting, known.Event.Tick);
+            if (lastGreeting > 0 && forge.ProcessedTicks < lastGreeting + GreetReconcileIntervalTicks) return;
+            Soothe(forge, npc, NpcAgent.GreetReconcileContext, GreetHostility, GreetFear);
         }
 
         private static void Soothe(NpcForgeState forge, NpcAgent npc, string context, int hostility, int fear)
@@ -75,11 +83,24 @@ namespace AreArpg.Core
             }
         }
 
-        /// <summary>Record the one-time side task completion when the player's rations filled Mara's camp.</summary>
-        private bool RecordCampRefill()
+        /// <summary>
+        /// Record the one-time side task completion when the player's own rations filled Mara's camp. Only a net
+        /// contribution counts: returning rations the player stole earlier is not help. <paramref name="paidNow"/> covers
+        /// rations handed over in the current transaction without a separate donation event (the replace decision).
+        /// </summary>
+        private bool RecordCampRefill(int paidNow)
         {
             var forge = Progression.Social.Forge;
             if (forge == null || Progression.Social.CampRefilled || Progression.Social.CampProvisions < SocialLedger.CampCapacity) return false;
+            int given = paidNow, stolen = 0;
+            foreach (var e in forge.Archive.Events)
+            {
+                if (e.Actor != "player") continue;
+                if (e.Context == "camp.donation") given++;
+                else if (e.Context == "camp.theft") stolen++;
+                else if (e.Context == "story.replace") given += SocialLedger.CampCapacity;
+            }
+            if (given <= stolen) return false;
             var ev = forge.Archive.Append(MemoryKind.Quest, "player", "mara", forge.ProcessedTicks, 6000, true, SocialLedger.CampRefillContext,
                 new RelationshipChange(gratitude: 1000, trust: 500));
             forge.Archive.Learn("mara", ev.Id, KnowledgeOrigin.Self, "mara", forge.ProcessedTicks);
@@ -98,7 +119,7 @@ namespace AreArpg.Core
     {
         /// <summary>Forge hostility at which a villager treats the player as a threat (shared with the decision step).</summary>
         public const int FleeHostility = 2000;
-        internal const string CalmContext = "npc.calmed", ReconcileContext = "npc.reconciled";
+        internal const string CalmContext = "npc.calmed", ReconcileContext = "npc.reconciled", GreetReconcileContext = "npc.reconciled.greeting";
 
         /// <summary>
         /// Current stance used for flight, quest contact, greetings and the HUD. A strong remembered threat keeps the NPC
@@ -122,7 +143,7 @@ namespace AreArpg.Core
                 var e = known.Event;
                 if (e.Actor != "player") continue;
                 if (e.Kind == MemoryKind.Assault || e.Kind == MemoryKind.Theft) harm = Math.Max(harm, e.Tick);
-                else if (e.Context == CalmContext || e.Context == ReconcileContext) { calm = Math.Max(calm, e.Tick); calmed = true; }
+                else if (e.Context == CalmContext || e.Context == ReconcileContext || e.Context == GreetReconcileContext) { calm = Math.Max(calm, e.Tick); calmed = true; }
             }
             return calmed && calm >= harm;
         }

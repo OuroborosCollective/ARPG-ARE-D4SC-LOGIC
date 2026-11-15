@@ -40,7 +40,7 @@ namespace AreArpg.UnityClient
         private bool _pendingTakeRation;
         /// <summary>Presentation-only confirmation window for the theft button; never saved or read by the Core.</summary>
         private float _takeRationArmedUntil = -1f;
-        public bool TakeRationArmed { get { return _takeRationArmedUntil >= Time.unscaledTime; } }
+        private bool TakeRationArmed { get { return _takeRationArmedUntil >= Time.unscaledTime; } }
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
         private readonly ArenaHudTouchCapture _movementTouch = new ArenaHudTouchCapture();
         private bool _storageFault;

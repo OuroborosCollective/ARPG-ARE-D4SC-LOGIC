@@ -159,7 +159,7 @@ namespace AreArpg.Core
                     if (Progression.Social.Provisions < missing)
                     { result.Text = "Zum Auffuellen fehlen dir Rationen. Kosten: " + missing + ". Nichts wurde verbraucht."; return result; }
                     for (int i = 0; i < missing; i++) Progression.Social.DonateCampRation(SocialLedger.MaraNpcId);
-                    RecordCampRefill();
+                    RecordCampRefill(missing);
                     Progression.ChooseHungerSupply(HungerChoice.Replace);
                     result.Text = "Das Lager ist versorgt. Mara kennt Ilyans Geheimnis nicht. Kehre zum Verletztenlager zurueck.";
                 }

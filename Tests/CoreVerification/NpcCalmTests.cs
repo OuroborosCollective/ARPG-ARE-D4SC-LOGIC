@@ -65,6 +65,17 @@ internal static class NpcCalmTests
         for(int i=0;i<12;i++)greet.Step();
         near.Xmm=greet.PlayerXmm+1000;near.Zmm=greet.PlayerZmm;near.InteractionCooldownTicks=0;
         check(greet.InteractNpc(0,NpcAction.Greet).Accepted&&g.Social.Forge.Archive.Get("ilyan").RelationshipTo("player").Hostility==2300,"calm-greeting-reconciles-slightly");
+        for(int spam=0;spam<5;spam++)
+        {
+            for(int i=0;i<11;i++)greet.Step();
+            near.Xmm=greet.PlayerXmm+1000;near.Zmm=greet.PlayerZmm;near.InteractionCooldownTicks=0;
+            greet.InteractNpc(0,NpcAction.Greet);
+        }
+        check(g.Social.Forge.Archive.Get("ilyan").RelationshipTo("player").Hostility==2300,"calm-greeting-spam-reconciles-once-per-interval");
+        for(int i=0;i<(int)ArenaSimulation.GreetReconcileIntervalTicks;i++)greet.Step();
+        near.Xmm=greet.PlayerXmm+1000;near.Zmm=greet.PlayerZmm;near.InteractionCooldownTicks=0;
+        greet.InteractNpc(0,NpcAction.Greet);
+        check(g.Social.Forge.Archive.Get("ilyan").RelationshipTo("player").Hostility<2300,"calm-greeting-reconciles-again-after-interval");
 
         // Mara's camp side task: exactly the missing rations, recorded once, then disabled.
         var c=CharacterProgression.CreateEntryProfile();c.EnterVillage();c.Social.EnableForge();
@@ -85,5 +96,21 @@ internal static class NpcCalmTests
         check(!camp.CanDonateCampRation&&!camp.DonateCampRation().Accepted&&c.Social.Provisions==provisions,"camp-full-disables-and-consumes-nothing");
         check(c.Social.Forge.Archive.Events.Count(e=>e.Context=="quest.camp.refilled")==1,"camp-completion-recorded-once");
         check(CharacterProgression.TryLoad(c.SaveString(),out var campLoaded)&&campLoaded.Social.CampRefilled,"camp-completion-survives-load");
+
+        // A camp that was already full: stealing a ration and handing it back is not help.
+        var x=CharacterProgression.CreateEntryProfile();x.EnterVillage();
+        var plain=new ArenaSimulation(95,x,BigInteger.One,LootCatalog.Version1);
+        var plainMara=plain.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
+        for(int i=0;i<2;i++){plainMara.Xmm=plain.PlayerXmm+1000;plainMara.Zmm=plain.PlayerZmm;plainMara.InteractionCooldownTicks=0;check(plain.DonateCampRation().Accepted,"camp-pre-forge-donation-"+i);}
+        x.Social.EnableForge();
+        var exploit=new ArenaSimulation(95,x,BigInteger.One,LootCatalog.Version1);
+        var exploitMara=exploit.Npcs.First(n=>n.Id==SocialLedger.MaraNpcId);
+        exploitMara.Xmm=exploit.PlayerXmm+1000;exploitMara.Zmm=exploit.PlayerZmm;
+        check(x.Social.CampProvisions==SocialLedger.CampCapacity&&exploit.TakeCampRation().Accepted,"camp-exploit-theft-from-full-camp");
+        for(int i=0;i<12;i++)exploit.Step();
+        exploitMara.Xmm=exploit.PlayerXmm+1000;exploitMara.Zmm=exploit.PlayerZmm;exploitMara.InteractionCooldownTicks=0;
+        var returned=exploit.DonateCampRation();
+        for(int i=0;i<30;i++)exploit.Step();
+        check(returned.Accepted&&x.Social.CampProvisions==SocialLedger.CampCapacity&&!x.Social.CampRefilled&&!returned.Text.Contains("Nebenaufgabe"),"camp-returning-stolen-ration-is-not-the-side-task");
     }
 }
