@@ -54,7 +54,7 @@ namespace AreArpg.UnityClient
             {if(h.FavorClaimed)OpenMenu(MenuCompanion);else _pendingHunterAction = h.HunterHealth == 0 ? 1 : 0;}
         }
 
-        private void OnDestroy() { ClearRoadVisuals(); ClearCompanionVisuals(); ClearRattlerVisuals(); ClearPortraitVisuals(); }
+        private void OnDestroy() { DisposeWorldSky(); ClearRoadVisuals(); ClearCompanionVisuals(); ClearRattlerVisuals(); ClearPortraitVisuals(); }
 
         private void ClearRoadVisuals()
         {

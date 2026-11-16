@@ -1,0 +1,143 @@
+{
+  "schema": "ashen.quality-sky-acceptance.v1",
+  "repository": "OuroborosCollective/ARPG-ARE-D4SC-LOGIC",
+  "code_sha": "24c4fdd13f896afd18c54bc342aa3ab8ae483937",
+  "baseline_sha": "193c1466e9256185b6980f9ee6a62c3853676813",
+  "unity": "6000.6.8f1",
+  "native": [
+    {
+      "job": "sky-final-play-01",
+      "source_sha": "24c4fdd13f896afd18c54bc342aa3ab8ae483937",
+      "exit": 0,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "xml_sha256": "d99b90209281b52a9670d485772071b7086440edf167c4e97097c1d263011a1d",
+      "unity_log_sha256": "afa0cb15a16585bb8c7762cc08d7509e31e54c567850d3badbc97af9c424844a",
+      "receipt_sha256": "9ff968f9f64c8931f7538568aae8084320c1bee4fa59c772b65083d1919a3de9",
+      "prefs_restored": true,
+      "settings_restored": true,
+      "private_content_unchanged": true,
+      "tests": [
+        "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ArrivalSceneExplainsTheMissingRationsBeforeAnyChoice",
+        "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ArrivalSceneOwnsAllInputUntilItEnds",
+        "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.EntryCameraStartsAtTheCloserHeroDistance",
+        "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.SkyDisposalRestoresLightingOutsideShader",
+        "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.SkyRebindsAfterSameAreaRebuildAndKeepsInteriorLight",
+        "AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.VillageSkyProjectsCoreTicksWithoutWritingAnyRules"
+      ]
+    },
+    {
+      "job": "sky-final-edit-01",
+      "source_sha": "24c4fdd13f896afd18c54bc342aa3ab8ae483937",
+      "exit": 0,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "xml_sha256": "5b476ff6bc627ed7c4b420e6a475499c2cfa76c4896f87720af4e5e6ae6c7b99",
+      "unity_log_sha256": "54666ce2f85e99d6aa1375f53d7e679a329838326319b00e2881e00e23fd88b0",
+      "receipt_sha256": "aeca651c89e0656a118cde808eb0852a6f2254169d1e9d74533b778d6b70d1c0",
+      "prefs_restored": true,
+      "settings_restored": true,
+      "private_content_unchanged": true,
+      "tests": [
+        "AreArpg.EditMode.Tests.WorldSkyEditModeTests.MobileSkyShaderImportsWithSunCloudAndStarControls"
+      ]
+    }
+  ],
+  "red": [
+    {
+      "job": "sky-cloud-red-01",
+      "source_sha": "729bf979f15226097e63f4270518d021d65f0ceb",
+      "failed": 1,
+      "xml_sha256": "1b2e84f4e765362b5af443ec68e0bf5fa29696f6d6a45e4b3b760d1aae03e484",
+      "failure": "Unhandled log message: '[Error] Material 'ARE day-night sky (presentation only)' with Shader 'AshenCrypt/WorldSky' doesn't have a float or range property '_CloudPhase''. Use UnityEngine.TestTools.LogAssert.Expect"
+    },
+    {
+      "job": "sky-moon-red-01",
+      "source_sha": "352c84847872864bf02af45da888f862acf9b993",
+      "failed": 1,
+      "xml_sha256": "876426df967e7c08d5bbe639cda92688b3d2e6d98fb6ddd50f0037c9b3fc4f25",
+      "failure": "  At night the directional proxy must illuminate from the visible moon above the ground\n  Expected: less than -0.100000001f\n  But was:  0.908490419f\n"
+    },
+    {
+      "job": "sky-rebuild-red-01",
+      "source_sha": "3fa7ee6d8b5e448588aa0ef229394d1f5218e5f2",
+      "failed": 1,
+      "xml_sha256": "380243c09d9c55d6762d837b585683fdf8e033aa64f532569cbefa5f739f1ec4",
+      "failure": "  Rebuilding at the same saved tick must bind the new directional light\n  Expected: same as <ARE Moonlight (UnityEngine.Light)>\n  But was:  <ARE Moonlight (UnityEngine.Light)>\n"
+    },
+    {
+      "job": "sky-twilight-red-01",
+      "source_sha": "7857447f595d1c6c69c2e3b8fa446060f76ef1c2",
+      "failed": 1,
+      "xml_sha256": "56378180cc112d75353e9455ae7f44c4a760534cee7fa99a1203ae37fa2b333e",
+      "failure": "  Twilight key light needs enough elevation for readable ground and actors\n  Expected: less than -0.300000012f\n  But was:  0.0f\n"
+    }
+  ],
+  "core": {
+    "assertions": 19739,
+    "log_sha256": "fbc88ed597e778f1fae67e2f9a2387647b184555fda04e2364ddb86c29809096",
+    "executed_head": "673c3bec437212040441948221eb3efac0e8ded9",
+    "core_and_core_tests_byte_identical_to_code_sha": true
+  },
+  "preflight": {
+    "passed": 40,
+    "log_sha256": "e1a4a83ad775392a20f4fe8cc7bd81c5debe0da8b6c5acc56e1f80e11edb6cec"
+  },
+  "render_evidence": [
+    {
+      "file": "village-world-sky-day.png",
+      "sha256": "30c086350a252920f7e62094ed586963bcce7234226a9c09a6ba16bc2b5ca3e0",
+      "bytes": 1048960,
+      "context": "actual native PlayMode test camera; explicit phase fixture, not production session"
+    },
+    {
+      "file": "village-world-sky-evening.png",
+      "sha256": "d9ae8546223ac9531bd12d51a4ae69e8655ef8b0d424ce1480456229da3c2ef6",
+      "bytes": 974224,
+      "context": "actual native PlayMode test camera; explicit phase fixture, not production session"
+    },
+    {
+      "file": "village-world-sky-morning.png",
+      "sha256": "99d6953e8037382896a654e66b3fd427a54f13fe4125c4aef3e2bcdb2461f672",
+      "bytes": 986471,
+      "context": "actual native PlayMode test camera; explicit phase fixture, not production session"
+    },
+    {
+      "file": "village-world-sky-night.png",
+      "sha256": "099a593fa1608b1c6d6ce9935137aaeeb7678b8447ff308ce4ee948f6fd2ee7c",
+      "bytes": 869040,
+      "context": "actual native PlayMode test camera; explicit phase fixture, not production session"
+    }
+  ],
+  "private_material_install_readback": true,
+  "visual_review": "Four native test-camera images reviewed; readable warmer twilight, cool night, no bright landscape strip. Village art composition remains unfinished.",
+  "scope": {
+    "core": "read-only integer sky-phase helper; existing authority/save sources preserved",
+    "projection": [
+      "WorldSkyPresentation",
+      "OutdoorBackdrop",
+      "ArenaRuntime sky invalidation",
+      "AshenWorldSky.shader",
+      "AshenBackdrop.shader"
+    ],
+    "editor": "selected private material recipe via existing builder",
+    "test": "Core clock/save cases, native shader and six projection/regression cases"
+  },
+  "verification_copy": {
+    "source_root_unchanged": true,
+    "unreferenced_vendor_files_held_without_deletion": 607,
+    "cold_import": "interrupted before tests; not counted as a behavioral failure or pass",
+    "native_input_closure": "private receipts native-verification-copy.json and narrow-overlay-applied.json"
+  },
+  "gates": {
+    "native_projection": true,
+    "shader_import": true,
+    "four_phase_camera_review": true,
+    "full_visual_pass": false,
+    "android_build": false,
+    "physical_tab_a9": false,
+    "merge": false
+  }
+}

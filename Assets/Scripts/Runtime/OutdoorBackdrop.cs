@@ -10,6 +10,17 @@ namespace AreArpg.UnityClient
         private const int Segments = 64;
         private readonly List<Mesh> _meshes = new List<Mesh>();
         private Material _land, _sky;
+        private MeshRenderer _skyRenderer;
+
+        public void SetDaylight(float daylight)
+        {
+            if (_land != null) _land.SetFloat("_Exposure", Mathf.Lerp(.10f, 1f, Mathf.Clamp01(daylight)));
+        }
+
+        public void SetSkyDomeVisible(bool visible)
+        {
+            if (_skyRenderer != null) _skyRenderer.enabled = visible;
+        }
 
         public static Transform Create(int act)
         {
@@ -139,6 +150,7 @@ namespace AreArpg.UnityClient
             var part = new GameObject(label); part.transform.SetParent(transform, false);
             part.AddComponent<MeshFilter>().sharedMesh = mesh;
             var renderer = part.AddComponent<MeshRenderer>(); renderer.sharedMaterial = material;
+            if (label == "Outdoor_Sky") _skyRenderer = renderer;
             renderer.shadowCastingMode = ShadowCastingMode.Off; renderer.receiveShadows = false;
         }
 

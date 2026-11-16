@@ -87,6 +87,7 @@ namespace AreArpg.UnityClient
                 _message = "AKT II: Folge dem Dorfweg. Ilyan hungert; Mara und Dorn erwarten dich.";
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
             BuildWorld();
+            InitializeWorldSky();
             BuildHud();
         }
 
@@ -199,6 +200,9 @@ namespace AreArpg.UnityClient
         /// <summary>Build passive Unity scenery around the single canonical ArenaSimulation.</summary>
         private void BuildWorld()
         {
+            // Scene objects are rebuilt even when the saved area and clock phase are unchanged.
+            _worldSkyArea = int.MinValue;
+            _worldSkyPhase = ulong.MaxValue;
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.27f, 0.30f, 0.39f);
             RenderSettings.fog = true;
@@ -1049,6 +1053,7 @@ namespace AreArpg.UnityClient
         /// <summary>Project actual game state as visuals; never create a second stock owner.</summary>
         private void UpdatePresentation(float alpha)
         {
+            RefreshWorldSky();
             UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {

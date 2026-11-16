@@ -38,7 +38,19 @@ namespace AreArpg.EditorTools
         [MenuItem("ARE ARPG/Art/Apply Private World Textures")]
         public static void Apply()
         {
-            Recipe recipe = JsonUtility.FromJson<Recipe>(File.ReadAllText(RecipePath));
+            ApplyRecipe(RecipePath);
+        }
+
+        /// <summary>Use only the selected licensed visual-pass surfaces; no demo scenes or prefab rewrites.</summary>
+        [MenuItem("ARE ARPG/Art/Apply Visual Pass One Materials")]
+        public static void ApplyVisualPassOne()
+        {
+            ApplyRecipe("Assets/PrivateArt/visual-pass1-materials.json");
+        }
+
+        private static void ApplyRecipe(string recipePath)
+        {
+            Recipe recipe = JsonUtility.FromJson<Recipe>(File.ReadAllText(recipePath));
             if (recipe == null || recipe.surfaces == null || recipe.surfaces.Length == 0)
                 throw new InvalidOperationException("World texture recipe has no surfaces");
             Directory.CreateDirectory(Root);
@@ -132,13 +144,17 @@ namespace AreArpg.EditorTools
             }
             AssetDatabase.SaveAssets();
             Debug.Log("ARE_WORLD_TEXTURE_PASS surfaces=" + surfaces.Count + " bindings=" + edits + " existingWorldTextures=" + textures.Count);
-            Audit();
+            Audit(recipe);
         }
 
         /// <summary>Read back the imported world dependencies and preserve a private, native-editor receipt.</summary>
         public static void Audit()
         {
-            Recipe recipe = JsonUtility.FromJson<Recipe>(File.ReadAllText(RecipePath));
+            Audit(JsonUtility.FromJson<Recipe>(File.ReadAllText(RecipePath)));
+        }
+
+        private static void Audit(Recipe recipe)
+        {
             var paths = BoundAssets(recipe);
             var lines = new List<string> { "path\tkind\tshader-or-format\twidth\theight\tandroid-max\tmipmaps\treadable" };
             int textures = 0, materials = 0, meshes = 0;

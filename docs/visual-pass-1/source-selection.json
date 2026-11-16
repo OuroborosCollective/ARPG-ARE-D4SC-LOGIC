@@ -1,0 +1,152 @@
+{
+  "schema": "ashen-crypt.visual-pass-1-source-selection.v1",
+  "repository": "github.com/ouroboroscollective/arpg-are-d4sc-logic",
+  "sourceHead": "193c1466e9256185b6980f9ee6a62c3853676813",
+  "unity": "6000.6.8f1",
+  "packageCount": 3,
+  "entries": [
+    {
+      "productId": 145808,
+      "archiveSha256": "757d035e38c801bdf04b116b520c073727380c97c547f398fdc8a5c0ed283f10",
+      "sourcePath": "Assets/TerrainSampleAssets/TerrainLayers/Grass_Dry_TerrainLayer.terrainlayer",
+      "role": "forest-road-edge",
+      "state": "candidate",
+      "validationRequired": "layer_requires_textures",
+      "imported": false,
+      "unityVerified": false
+    },
+    {
+      "productId": 145808,
+      "archiveSha256": "757d035e38c801bdf04b116b520c073727380c97c547f398fdc8a5c0ed283f10",
+      "sourcePath": "Assets/TerrainSampleAssets/TerrainLayers/Grass_Moss_TerrainLayer.terrainlayer",
+      "role": "forest-ground",
+      "state": "candidate",
+      "validationRequired": "layer_requires_textures",
+      "imported": false,
+      "unityVerified": false
+    },
+    {
+      "productId": 145808,
+      "archiveSha256": "757d035e38c801bdf04b116b520c073727380c97c547f398fdc8a5c0ed283f10",
+      "sourcePath": "Assets/TerrainSampleAssets/TerrainLayers/Muddy_TerrainLayer.terrainlayer",
+      "role": "mill-approach",
+      "state": "candidate",
+      "validationRequired": "layer_requires_textures",
+      "imported": false,
+      "unityVerified": false
+    },
+    {
+      "productId": 145808,
+      "archiveSha256": "757d035e38c801bdf04b116b520c073727380c97c547f398fdc8a5c0ed283f10",
+      "sourcePath": "Assets/TerrainSampleAssets/TerrainLayers/Soil_Rocks_TerrainLayer.terrainlayer",
+      "role": "village-tracks",
+      "state": "candidate",
+      "validationRequired": "layer_requires_textures",
+      "imported": false,
+      "unityVerified": false
+    },
+    {
+      "productId": 145808,
+      "archiveSha256": "757d035e38c801bdf04b116b520c073727380c97c547f398fdc8a5c0ed283f10",
+      "sourcePath": "Assets/TerrainSampleAssets/TerrainLayers/Pebbles_A_TerrainLayer.terrainlayer",
+      "role": "village-street",
+      "state": "candidate",
+      "validationRequired": "layer_requires_textures",
+      "imported": false,
+      "unityVerified": false
+    },
+    {
+      "productId": 73563,
+      "archiveSha256": "b70f650be7d584486868ab9db1774f1bc9e0f3091783afab2bb7b194219ca36f",
+      "sourcePath": "Assets/LightingOptimizationTutorial/Scenes/Article/LightingTutorialOptimal/LightingTutorialOptimalSettings.lighting",
+      "role": "probe-and-baking-reference",
+      "state": "reference_only",
+      "validationRequired": "never_copy_full_lighting_settings",
+      "imported": false,
+      "unityVerified": false
+    },
+    {
+      "productId": 73563,
+      "archiveSha256": "b70f650be7d584486868ab9db1774f1bc9e0f3091783afab2bb7b194219ca36f",
+      "sourcePath": "Assets/LightingOptimizationTutorial/Scenes/Article/LightingTutorialStart/LightingTutorialStartSettings.lighting",
+      "role": "baseline-reference",
+      "state": "reference_only",
+      "validationRequired": "never_copy_full_lighting_settings",
+      "imported": false,
+      "unityVerified": false
+    },
+    {
+      "productId": 29140,
+      "archiveSha256": "a0fd8d3462c04136e0f6352ead3694268727a3bb5e3894bde866ed9e8b3ce152",
+      "sourcePath": "Assets/Viking Village/Prefabs/Buildings/pf_build_small_house_straw_roof_01_low.prefab",
+      "role": "village-hero-silhouette",
+      "state": "native_prefab_import_verified",
+      "validationRequired": "prefab_dependency_closure",
+      "imported": true,
+      "unityVerified": true,
+      "gamePrefabPlacementVerified": false
+    },
+    {
+      "productId": 29140,
+      "archiveSha256": "a0fd8d3462c04136e0f6352ead3694268727a3bb5e3894bde866ed9e8b3ce152",
+      "sourcePath": "Assets/Viking Village/Prefabs/Buildings/pf_build_wall_panel_01_low.prefab",
+      "role": "village-boundary",
+      "state": "native_prefab_import_verified",
+      "validationRequired": "prefab_dependency_closure",
+      "imported": true,
+      "unityVerified": true,
+      "gamePrefabPlacementVerified": false
+    },
+    {
+      "productId": 29140,
+      "archiveSha256": "a0fd8d3462c04136e0f6352ead3694268727a3bb5e3894bde866ed9e8b3ce152",
+      "sourcePath": "Assets/Viking Village/Prefabs/Buildings/pf_build_gate_01.prefab",
+      "role": "village-landmark",
+      "state": "native_prefab_import_verified",
+      "validationRequired": "prefab_dependency_closure",
+      "imported": true,
+      "unityVerified": true,
+      "gamePrefabPlacementVerified": false
+    },
+    {
+      "productId": 29140,
+      "archiveSha256": "a0fd8d3462c04136e0f6352ead3694268727a3bb5e3894bde866ed9e8b3ce152",
+      "sourcePath": "Assets/Viking Village/Prefabs/Props/pf_barrels_02.prefab",
+      "role": "market-detail",
+      "state": "native_prefab_import_verified",
+      "validationRequired": "prefab_dependency_closure",
+      "imported": true,
+      "unityVerified": true,
+      "gamePrefabPlacementVerified": false
+    },
+    {
+      "productId": 29140,
+      "archiveSha256": "a0fd8d3462c04136e0f6352ead3694268727a3bb5e3894bde866ed9e8b3ce152",
+      "sourcePath": "Assets/Viking Village/Prefabs/Props/pf_fence_02_quad.prefab",
+      "role": "road-edge",
+      "state": "native_prefab_import_verified",
+      "validationRequired": "prefab_dependency_closure",
+      "imported": true,
+      "unityVerified": true,
+      "gamePrefabPlacementVerified": false
+    },
+    {
+      "productId": 29140,
+      "archiveSha256": "a0fd8d3462c04136e0f6352ead3694268727a3bb5e3894bde866ed9e8b3ce152",
+      "sourcePath": "Assets/Viking Village/Prefabs/Props/pf_logpile_01.prefab",
+      "role": "mill-detail",
+      "state": "native_prefab_import_verified",
+      "validationRequired": "prefab_dependency_closure",
+      "imported": true,
+      "unityVerified": true,
+      "gamePrefabPlacementVerified": false
+    }
+  ],
+  "rawAssetPublicUpload": false,
+  "sourceRights": "original-license-pending-account-review",
+  "coreRulesAffected": false,
+  "status": "SELECTED_NOT_IMPORTED",
+  "materialSurfacesApplied": 7,
+  "originalTexturesApplied": 14,
+  "nativeAcceptance": "docs/evidence/quality-sky-20261116/acceptance.json"
+}
