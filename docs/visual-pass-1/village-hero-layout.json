@@ -1,0 +1,98 @@
+{
+  "schema": "ashen-crypt.visual-pass-1-village-hero.v1",
+  "sourceHead": "c720508c4ae4f81de9236e06a0a70425bfe91bcb",
+  "visualOnly": true,
+  "coordinateSystem": "world X/Z integer millimetres, visual ground Y 0; one quarter turn = 90 degrees",
+  "title": "Aschengrenze entrance: one gate, two flanking walls, two road fences, two market prop groupings and one supply woodpile",
+  "placements": [
+    {
+      "id": "north-gate",
+      "sourceKey": "hero.gate",
+      "xMm": 0,
+      "zMm": 24000,
+      "maxWidthMm": 6400,
+      "maxHeightMm": 5400,
+      "maxDepthMm": 2000,
+      "yawQuarterTurns": 1,
+      "passageArch": true
+    },
+    {
+      "id": "west-wall",
+      "sourceKey": "hero.wall",
+      "xMm": -8000,
+      "zMm": 24000,
+      "maxWidthMm": 6000,
+      "maxHeightMm": 4200,
+      "maxDepthMm": 1400,
+      "yawQuarterTurns": 1,
+      "passageArch": false
+    },
+    {
+      "id": "east-wall",
+      "sourceKey": "hero.wall",
+      "xMm": 8000,
+      "zMm": 24000,
+      "maxWidthMm": 6000,
+      "maxHeightMm": 4200,
+      "maxDepthMm": 1400,
+      "yawQuarterTurns": 1,
+      "passageArch": false
+    },
+    {
+      "id": "west-road-fence",
+      "sourceKey": "hero.fence",
+      "xMm": -6400,
+      "zMm": -21000,
+      "maxWidthMm": 1200,
+      "maxHeightMm": 1450,
+      "maxDepthMm": 5200,
+      "yawQuarterTurns": 1,
+      "passageArch": false
+    },
+    {
+      "id": "east-road-fence",
+      "sourceKey": "hero.fence",
+      "xMm": 6400,
+      "zMm": -21000,
+      "maxWidthMm": 1200,
+      "maxHeightMm": 1450,
+      "maxDepthMm": 5200,
+      "yawQuarterTurns": 1,
+      "passageArch": false
+    },
+    {
+      "id": "west-market-barrels",
+      "sourceKey": "hero.barrels",
+      "xMm": -6700,
+      "zMm": -16600,
+      "maxWidthMm": 1800,
+      "maxHeightMm": 1700,
+      "maxDepthMm": 1700,
+      "yawQuarterTurns": 1,
+      "passageArch": false
+    },
+    {
+      "id": "east-market-barrels",
+      "sourceKey": "hero.barrels",
+      "xMm": 5700,
+      "zMm": -13900,
+      "maxWidthMm": 1700,
+      "maxHeightMm": 1700,
+      "maxDepthMm": 1700,
+      "yawQuarterTurns": 3,
+      "passageArch": false
+    },
+    {
+      "id": "supply-logpile",
+      "sourceKey": "hero.logpile",
+      "xMm": -18400,
+      "zMm": -12700,
+      "maxWidthMm": 2800,
+      "maxHeightMm": 1800,
+      "maxDepthMm": 2000,
+      "yawQuarterTurns": 0,
+      "passageArch": false
+    }
+  ],
+  "status": "PROPOSED_NOT_RENDERED"
+}

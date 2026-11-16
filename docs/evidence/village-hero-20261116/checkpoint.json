@@ -1,0 +1,73 @@
+{
+  "schema": "ashen-crypt.village-hero-evidence.v1",
+  "utc": "2026-11-16T08:25:39.949235+00:00",
+  "repo": "github.com/ouroboroscollective/arpg-are-d4sc-logic",
+  "codeCommit": "0e7db89fc8f2f14bbdb311193dbfb1a4a6014b8c",
+  "codeTree": "b614948de863d7c671aa2693f0594cdd62e7eb37",
+  "nativeTestCodeHead": "c720508c4ae4f81de9236e06a0a70425bfe91bcb",
+  "nativeCodeByteMatchVerified": true,
+  "unity": "6000.6.8f1",
+  "urp": "17.6.0",
+  "privateVillagePrefabSha256": "b96348497beec31ea8cea3c95e10fdca5de7279e376367456526e5b7606d2f77",
+  "rawLicensedAssetsExcludedFromGit": true,
+  "hero": {
+    "passivePlacementCount": 8,
+    "vertices": 36116,
+    "triangles": 45824,
+    "gateWidthM": 4.893,
+    "gateHeightM": 5.4,
+    "gateDepthM": 0.545
+  },
+  "runEvidence": {
+    "build": {
+      "runId": "hero-build-sparse-02",
+      "exitCode": 0,
+      "receiptSha256": "479d2897865c6aac3835b5881b91a41180d780a5b7028e189d5b58de03713df7",
+      "logSha256": "a3614eb2684d0f7c2682cdec3b7ca518e06a80818ff703a1b94e0b4da8ad4e6f"
+    },
+    "edit": {
+      "runId": "hero-edit-sparse-03",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "xmlSha256": "75878e714b9dca175a6308b565c154abfd8bb2ebcadbdb765d09447bf812f3ad",
+      "receiptSha256": "453852540ac1a176839f2d326008f630f7fd7ac2bc3fc6173e3756b472c127ec"
+    },
+    "play": {
+      "runId": "hero-play-sparse-08",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "xmlSha256": "27e747ba620aba49fe137683c22be9f25c959565c4ee87725ce6ce2c6495cead",
+      "receiptSha256": "b0f29af8bd59136ddf0698a8e0c7c5f7146c1e251990649ae4251c1e3e519107"
+    },
+    "core": {
+      "assertions": 19857,
+      "logSha256": "c09284f243205a217e9ab34fb42dc8aaea18f28ce902870cd49e2c434dcb4c10"
+    },
+    "preflight": {
+      "passed": 40,
+      "logSha256": "775a1729a643dcde3cd6d0d47449a358c9793131e762c7910ba0608fde855116"
+    }
+  },
+  "cameraImage": {
+    "name": "village-hero-pass1-gate.png",
+    "width": 1280,
+    "height": 720,
+    "sha256": "a7b2c6168865ba9390310ab013d862b001480bfe36f5aad933c5ccc0e88ca251"
+  },
+  "verified": [
+    "native Unity source prefab",
+    "EditMode",
+    "PlayMode",
+    "Core world hash/save unaffected by camera",
+    "static preflight"
+  ],
+  "unverified": [
+    "Android APK and physical Tab A9",
+    "complete polished village",
+    "forest/mill/caves",
+    "GitHub CI on new branch"
+  ],
+  "status": "LOCAL_VERIFIED_NOT_MERGED"
+}
