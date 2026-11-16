@@ -19,13 +19,9 @@ namespace AreArpg.EditorTools
         private const string WallsName = "VillagePalisadeRimPass1";
         private const string ForestName = "VillageForestBehindPalisadePass1";
         private const string RidgeName = "VillageRollingHorizonPass1";
-        private const float WallBoundary = 26.5f;
+        private const float WallBoundary = 28f;
         private const float WallScale = 0.87f;
         private const string WallKey = "hero.wall";
-        private static readonly string[] Trees =
-        {
-            "tree.02", "tree.03", "tree.06", "tree.01", "tree.04", "tree.05"
-        };
 
         private readonly struct PlantedTree
         {
@@ -113,16 +109,38 @@ namespace AreArpg.EditorTools
                         WallScale, "NorthEastPanel_" + i);
                 }
 
+                // Reuse the eight real, already imported passive tree meshes from the
+                // source private village. No fresh 90-MB foliage dependency import.
+                var existingTreeMeshes = new List<Transform>();
+                foreach (Transform t in root.transform)
+                    if (t.name == "tree") existingTreeMeshes.Add(t);
+                if (existingTreeMeshes.Count != 8)
+                    throw new InvalidOperationException("Expected eight actual source village trees");
                 Transform forest = NewChild(root.transform, ForestName);
                 for (int i = 0; i < Plantings.Length; i++)
                 {
                     PlantedTree tree = Plantings[i];
-                    string source = Trees[i % Trees.Length];
-                    // Private source, quarter-turn rotation, positive bounded scale.
-                    PlaceMesh(forest, source,
-                        new Vector3(tree.Xmm / 1000f, 0f, tree.Zmm / 1000f),
-                        90f * tree.QuarterTurn, tree.ScalePermille / 1000f,
-                        "PalisadeForestTree_" + i.ToString("D2"));
+                    Transform original = existingTreeMeshes[i % existingTreeMeshes.Count];
+                    GameObject clone = UnityEngine.Object.Instantiate(original.gameObject);
+                    clone.name = "PalisadeForestTree_" + i.ToString("D2");
+                    clone.transform.SetParent(forest, false);
+                    clone.transform.localPosition = new Vector3(tree.Xmm / 1000f, 0f, tree.Zmm / 1000f);
+                    clone.transform.localRotation = Quaternion.Euler(0f, 90f * tree.QuarterTurn, 0f);
+                    clone.transform.localScale = original.localScale * (tree.ScalePermille / 1000f);
+                    foreach (Component component in clone.GetComponentsInChildren<Component>(true))
+                    {
+                        if (!(component is Transform || component is MeshRenderer || component is MeshFilter))
+                            throw new InvalidOperationException("Non-passive existing tree source");
+                        if (component is MeshRenderer renderer)
+                        {
+                            if (renderer.sharedMaterial == null || renderer.sharedMaterial.mainTexture == null)
+                                throw new InvalidOperationException("Untextured original private tree");
+                            renderer.shadowCastingMode = ShadowCastingMode.Off;
+                            renderer.receiveShadows = false;
+                            renderer.lightProbeUsage = LightProbeUsage.Off;
+                            renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+                        }
+                    }
                 }
 
                 Transform backdrop = NewChild(root.transform, RidgeName);
