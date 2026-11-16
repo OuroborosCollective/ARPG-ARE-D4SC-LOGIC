@@ -133,8 +133,9 @@ namespace AreArpg.EditorTools
                             throw new InvalidOperationException("Non-passive existing tree source");
                         if (component is MeshRenderer renderer)
                         {
-                            if (renderer.sharedMaterial == null || renderer.sharedMaterial.mainTexture == null)
-                                throw new InvalidOperationException("Untextured original private tree");
+                            if (renderer.sharedMaterial == null || renderer.sharedMaterial.shader == null ||
+                                !renderer.sharedMaterial.shader.isSupported)
+                                throw new InvalidOperationException("Unsupported original private tree material");
                             renderer.shadowCastingMode = ShadowCastingMode.Off;
                             renderer.receiveShadows = false;
                             renderer.lightProbeUsage = LightProbeUsage.Off;
@@ -279,8 +280,9 @@ namespace AreArpg.EditorTools
                     {
                         MeshFilter filter = renderer.GetComponent<MeshFilter>();
                         if (filter == null || filter.sharedMesh == null || renderer.sharedMaterial == null ||
-                            renderer.sharedMaterial.mainTexture == null)
-                            throw new InvalidOperationException("Perimeter not bound to real textured geometry");
+                            renderer.sharedMaterial.shader == null || !renderer.sharedMaterial.shader.isSupported ||
+                            (parent != forest && renderer.sharedMaterial.mainTexture == null))
+                            throw new InvalidOperationException("Perimeter renderer lacks required real geometry/material");
                         tris += filter.sharedMesh.triangles.Length / 3;
                         if (parent == walls) wallRenders++;
                         if (parent == forest) treeRenders++;
