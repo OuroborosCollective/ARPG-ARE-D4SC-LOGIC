@@ -1,0 +1,135 @@
+{
+  "schema": "ashen-crypt.village-approach-evidence.v1",
+  "utc": "2026-11-16T10:56:08.365912+00:00",
+  "repo": "github.com/ouroboroscollective/arpg-are-d4sc-logic",
+  "codeCommit": "9a0a259179e048bcb651f9a5fbd2cd3ccb9f85f3",
+  "codeTree": "b2e2c8caea7edf696fb7ac1da1a37496e106a875",
+  "canonicalPrivateVillageBeforeSha256": "b96348497beec31ea8cea3c95e10fdca5de7279e376367456526e5b7606d2f77",
+  "privateVillageAfterNativeBuildSha256": "57c451d2cf2e53996755ceeb8f47978f92494c81622137cec3f179ed56074ab1",
+  "privateGeneratedMeshSha256": "bb3f567cb778c7751dd58e699e9edbad86c777a67b5dea8b9544744a9fe38010",
+  "privateGeneratedMaterialSha256": "de303b2b878bcb5b48d1c851b8bd85db2a7bba18a7a8e8300ad0a39151e2fcd3",
+  "privateLicensedArtPublished": false,
+  "unchangedSurfaces": [
+    "authoritative Core",
+    "100-ms game tick",
+    "save schema",
+    "runtime camera and Fable HUD",
+    "gameplay physics and navigation"
+  ],
+  "unity": "6000.6.8f1",
+  "urp": "17.6.0",
+  "nativeRuns": {
+    "approach-edit-red-02": {
+      "exit": 2,
+      "outcome": "EXITED",
+      "tests": {
+        "total": "1",
+        "passed": "0",
+        "failed": "1",
+        "skipped": "0",
+        "inconclusive": "0"
+      },
+      "xmlSha256": "9c04e4fbdd130c348656fb91d306d93af65100d2c615c169883b568740e1e31f",
+      "logSha256": "785ac524b8cca3634973e185d2c41020a095866b44659e48f561b66973087344",
+      "privateTouchedCount": 0,
+      "settingsRestored": true,
+      "prefsRestored": true
+    },
+    "approach-build-01": {
+      "exit": 0,
+      "outcome": "EXITED",
+      "tests": null,
+      "xmlSha256": null,
+      "logSha256": "87093e84dd0cd048d5ef2af97da99162475fcfd47ea77352c48bc1077ceb82bc",
+      "privateTouchedCount": 1,
+      "settingsRestored": true,
+      "prefsRestored": true
+    },
+    "approach-edit-green-01": {
+      "exit": 0,
+      "outcome": "EXITED",
+      "tests": {
+        "total": "1",
+        "passed": "1",
+        "failed": "0",
+        "skipped": "0",
+        "inconclusive": "0"
+      },
+      "xmlSha256": "57cd8934a19522a5c010c9d9567afc4749abe0cd6201ae229b14e6fb61fe8625",
+      "logSha256": "d3e1db80875f45e7daf05a54b40d26f97b0ba4945f0d9a9b219e1e60ca0851ad",
+      "privateTouchedCount": 0,
+      "settingsRestored": true,
+      "prefsRestored": true
+    },
+    "approach-play-green-01": {
+      "exit": 0,
+      "outcome": "EXITED",
+      "tests": {
+        "total": "1",
+        "passed": "1",
+        "failed": "0",
+        "skipped": "0",
+        "inconclusive": "0"
+      },
+      "xmlSha256": "e96dccf5ad7bd2e4572343725628def463ba7ee022a231999a1afc73cd46feb3",
+      "logSha256": "e95f767ff150a297e08a899a1e752739614774638e9dc748fcbaefc802705846",
+      "privateTouchedCount": 0,
+      "settingsRestored": true,
+      "prefsRestored": true
+    },
+    "approach-edit-hero-regress-01": {
+      "exit": 0,
+      "outcome": "EXITED",
+      "tests": {
+        "total": "1",
+        "passed": "1",
+        "failed": "0",
+        "skipped": "0",
+        "inconclusive": "0"
+      },
+      "xmlSha256": "9bd22b62f70f6e379d6e0401cfdec770de76eacc7b8c372d40d9c0a25250d9ab",
+      "logSha256": "a6ee11e4651e4d81435e2a170f1055613d3cbc0c60440e6cb68a849efa15b8ef",
+      "privateTouchedCount": 0,
+      "settingsRestored": true,
+      "prefsRestored": true
+    }
+  },
+  "core": {
+    "assertions": 19857,
+    "logSha256": "08d13715c0901a53d7e086ec7f131dbe7087f9abf0943b403219bfca73449891",
+    "exitCode": 0
+  },
+  "preflight": {
+    "passed": 40,
+    "logSha256": "844a690e2c54e536c087d559c89f0364295095f3c4e85330af2e6d62431a3a8a",
+    "exitCode": 0
+  },
+  "camera": {
+    "oldName": "village-hero-pass1-day.png",
+    "oldSha256": "7dcdd752614cb30a5b998cb41cd48f8f16bd2bd0d8c7cb59f1b8d35d4f5d9ef5",
+    "newName": "village-approach-day.png",
+    "newSha256": "25c1dbddcd961a03d982fd7a2bd8b43cd9ee507020fb6be114eab0fb0b17bb14",
+    "width": 1280,
+    "height": 720,
+    "roiFractionRgbChangeAbove16": 0.068849,
+    "roiNormalized": [
+      0.24,
+      0.45,
+      0.76,
+      0.98
+    ],
+    "note": "Difference is an image-change signal, not artistic, gameplay or device acceptance."
+  },
+  "redFinding": "Native EditMode 1/1 failed before editor apply: missing VillageApproachPass1",
+  "greenFinding": "Native EditMode, native PlayMode and former VillageHero EditMode all passed; deterministic world hash/save unchanged.",
+  "unverified": [
+    "overall Unity test suite",
+    "Android APK and physical Tab A9",
+    "performance FPS/GPU/RAM",
+    "village light pools",
+    "forest/mill/caves",
+    "GitHub CI at follow-up head",
+    "review and merge"
+  ],
+  "status": "LOCAL_NATIVE_VERIFIED_NOT_MERGED"
+}

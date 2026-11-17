@@ -1,5 +1,9 @@
 # ARE Ashen Crypt — Projektzustand
 
+## Dorfwege – nativer Erd-Pflaster-Übergang (16.11.2026)\n
+Der isolierte Visual-Pass auf Code `9a0a259179e048bcb651f9a5fbd2cd3ccb9f85f3` feilt die Randbereiche der vorhandenen Steinpflasterstraße und des Versorgungshofs mit einem batched, transparenten URP-Mesh ab; der Shader verwendet die bereits geprüfte private Bodentextur. Echte Unity6000.6.8f1 native RED/GREEN-Gegenprobe sowie Bildvergleich, 1/1 EditMode, 1/1 PlayMode, 1/1 Regression des alten Hero-EditMode, 19857 Core-Assertions, 40/40 Preflights. Core/Save/HUD/Kamera unverändert. [Source und native Receipts](docs/evidence/village-approach-20261116/checkpoint.json). **Noch offen:** neue Dorf-Lichtinseln, Wald/Mühle/Höhlen-Polish, vollständige Unity-Suite, GitHub-PR-Review, APK und Tab A9. Kein Merge/Release.\n
+
+
 ## Himmel und Grundlicht nativ geprüft (16.11.2026)
 
 Code `24c4fdd13f896afd18c54bc342aa3ab8ae483937`: gespeicherter 24-Minuten-Zyklus, bewegte Wolken, Sonne/Mond/Sterne, lesbare Dämmerung, restaurierbarer Ambient-Probe und korrekte Lichtbindung nach Gebiets-Neuaufbau. Unity6000.6.8f1 PlayMode6/6 und EditMode1/1 ohne Skips; vier native Phasenbilder geprüft. 40 Preflights und19739Core-Assertions; Corequellen unverändert gegenüber dem protokollierten Core-Lauf. [Revisionsgebundene Nachweise und Grenzen](docs/evidence/quality-sky-20261116/acceptance.json). Nächster Block: Dorf-Hero-Pass mit kuratierten privaten Viking-Assets, danach Wald/Mühle/Höhlen; Android und physisches TabA9 bleiben offen. Kein Merge/Release.
