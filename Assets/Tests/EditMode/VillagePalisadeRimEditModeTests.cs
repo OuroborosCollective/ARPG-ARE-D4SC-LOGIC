@@ -9,6 +9,35 @@ namespace AreArpg.EditMode.Tests
 {
     public sealed class VillagePalisadeRimEditModeTests
     {
+        // Regression for CodeRabbit #52: a newly created ridge must not survive a failed save.
+        // Uses a real Unity AssetDatabase mesh, never the licensed village prefab.
+        [Test]
+        public void FailedPalisadeSaveRollsBackOnlyNewlyOwnedRidgeAsset()
+        {
+            string path = "Assets/__ArePalisadeRollback_" + Guid.NewGuid().ToString("N") + ".asset";
+            Assert.IsNull(AssetDatabase.LoadMainAssetAtPath(path));
+            try
+            {
+                var method = typeof(AreArpg.EditorTools.AreVillagePalisadeBuilder).GetMethod(
+                    "RollbackNewRidgeAsset", System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Static);
+                Assert.IsNotNull(method, "Builder must own retry-safe ridge rollback");
+                AssetDatabase.CreateAsset(new Mesh(), path);
+                method.Invoke(null, new object[] { path, true, false });
+                Assert.IsNull(AssetDatabase.LoadMainAssetAtPath(path),
+                    "A failed prefab save must not strand an unowned ridge");
+
+                AssetDatabase.CreateAsset(new Mesh(), path);
+                method.Invoke(null, new object[] { path, false, false });
+                Assert.IsNotNull(AssetDatabase.LoadMainAssetAtPath(path),
+                    "Never delete an asset not created by this invocation");
+                method.Invoke(null, new object[] { path, true, true });
+                Assert.IsNotNull(AssetDatabase.LoadMainAssetAtPath(path),
+                    "A successful prefab save must retain its referenced asset");
+            }
+            finally { AssetDatabase.DeleteAsset(path); }
+        }
+
         [Test]
         public void OwnedWoodenVillageWallForestAndRollingHorizonUseRealPassiveArt()
         {
