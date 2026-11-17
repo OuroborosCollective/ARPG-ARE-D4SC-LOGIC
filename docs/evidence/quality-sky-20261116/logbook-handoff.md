@@ -63,3 +63,12 @@ Each new round records UTC date, incoming and resulting revisions, exact changed
 - Grenzen: Held geht lokal bis ~8 cm zwischen erhöhten Pflastersteinen ein (Bodentest meldet das weiter); Übungsschwert erscheint im Prüfprojekt als Brett; Android/Tab A9 ungeprüft. Owner-DOCX weiterhin nicht editierbar zugänglich, Zurückschreiben ausstehend.
 - Nächster Schritt: Waffenarten-Fähigkeiten im RuneScape-Stil (Owner-Auftrag 17.11.2026).
 
+## Waffenkünste im RuneScape-Stil – 17.11.2026
+
+- Branch `feat/weapon-mastery-20261117` von `main` `c839b68aaace5e14288f9969b956c3705ec3c033`, Feature-Commit `60a664b4a4a23e91aaaa507ee271a0d8c43b3b63`.
+- Geändert: Core-Regeln und -Zustand (`WeaponMastery.cs`), Training im kanonischen Spieler-Schadenspfad, Wertepunkte über `TrySpendMastery` (getrennt gespeichert), AC21-Spielstandhülle, exakte Schadensvorschau `CombatRules.PreviewDamage`; Menüreiter FÄHIGKEITEN (Taste P).
+- Evidence: Core 19899/19899 (RED vorher: Build-Fehler ohne Implementierung), Preflight 40/40, Unity 6000.6.8f1 Menütests 2/2, EditMode 107 (83 bestanden, 0 fehlgeschlagen, 24 übersprungen), PlayMode 165 (151 bestanden, 14 fehlgeschlagen; alle 14 auch auf unverändertem `main` im Prüfprojekt). Details und SHA-256: `docs/evidence/weapon-mastery-20261117/acceptance.md`.
+- Prüfumgebung: Die Testsuite des lokal eingebundenen UnitySkills-Pakets (2866 Tests) lief ungewollt mit und legte Dateien im Prüfprojekt an; Lauf beendet, Rückstände gesichert und entfernt, Paket-Tests in der privaten Paketkopie ausgeblendet (`Tests~`).
+- Grenzen: Schilde ohne Fähigkeit (offene Owner-Entscheidung), Android/Tab A9 ungeprüft, Owner-DOCX weiterhin nicht editierbar zugänglich, Zurückschreiben ausstehend.
+- Nächster Schritt: Owner-Entscheidung zur Schildfähigkeit, danach Umsetzung.
+
