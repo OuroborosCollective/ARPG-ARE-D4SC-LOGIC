@@ -915,6 +915,9 @@ namespace AreArpg.UnityClient
             RegisterActorMotion(_hero);
             _passageAnnounced = false;
             BuildChapterScenery();
+            // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
+            if (_game.IsVillage) BuildVillageLights();
+            else _villageTorches.Clear();
             ApplyEntryLighting();
             _pendingSkills.Clear();
             _pendingMastery.Clear();
