@@ -700,6 +700,10 @@ namespace AreArpg.UnityClient
         {
             foreach (Transform visual in _npcVisuals.Values) if (visual != null) Destroy(visual.gameObject);
             _npcVisuals.Clear();
+            // The original private NPC prefabs refer to a missing legacy controller GUID.
+            // Reuse the existing imported, humanoid MoveMagnitude-capable controller solely for presentation.
+            var sharedNpcLocomotion = _entryProfile
+                ? Resources.Load<RuntimeAnimatorController>("ARE/Visuals/EntryMelee") : null;
             foreach (NpcAgent npc in _game.Npcs)
             {
                 Color color = npc.Id == 0 ? new Color(0.24f, 0.55f, 0.53f) :
@@ -707,7 +711,13 @@ namespace AreArpg.UnityClient
                 Transform visual = Shape(PrimitiveType.Capsule, "ARE_NPC_" + npc.Id,
                     new Vector3(npc.Xmm / 1000f, 1f, npc.Zmm / 1000f), new Vector3(0.8f, 1f, 0.8f), color);
                 if (!_entryProfile || !PassiveArtVisuals.TryBindGrounded(visual, "EntryNpc" + npc.Id, 0f))
-                    PassiveArtVisuals.TryBind(visual, "Npc" + npc.Id);
+                    PassiveArtVisuals.TryBindGrounded(visual, "Npc" + npc.Id, GroundHeight(npc.Xmm / 1000f, npc.Zmm / 1000f));
+                foreach (Animator animator in visual.GetComponentsInChildren<Animator>(true))
+                {
+                    if (animator.runtimeAnimatorController == null && sharedNpcLocomotion != null)
+                        animator.runtimeAnimatorController = sharedNpcLocomotion;
+                    animator.applyRootMotion = false;
+                }
                 RegisterActorMotion(visual);
                 _npcVisuals.Add(npc.Id, visual);
             }
