@@ -9,13 +9,16 @@ namespace AreArpg.Core
         public int AdditiveDamageBp { get; }
         public int MaximumHealth { get; }
         public int HealingBonus { get; }
+        /// <summary>The unconditional additive damage share every character starts with (+20 %).</summary>
+        public const int BaseAdditiveBp = 2000;
 
         /// <summary>Derive finite values from the current progression, widening weapon addition before arithmetic.</summary>
         public CombatStats(CharacterProgression progression, int skillSlot)
         {
             if (progression == null) throw new ArgumentNullException(nameof(progression));
             WeaponPoints = (progression.Equipment.Weapon?.Definition.BasePower ?? 95L) + progression.WeaponBonus;
-            AdditiveDamageBp = 2000 + progression.Equipment.Bonus(WeaponAffix.Power) + progression.MightDamageBonusBp + progression.PracticeDamageBonusBp(skillSlot);
+            AdditiveDamageBp = BaseAdditiveBp + progression.Equipment.Bonus(WeaponAffix.Power) + progression.MightDamageBonusBp +
+                progression.PracticeDamageBonusBp(skillSlot) + progression.WeaponMasteryDamageBonusBp;
             MaximumHealth = CombatRules.MaximumHealth(progression);
             HealingBonus = progression.ResolveHealBonus + progression.PracticeHealingBonus;
         }
@@ -25,6 +28,12 @@ namespace AreArpg.Core
     public static class CombatRules
     {
         public const int Revision = 1;
+        public const int CriticalChanceBp = 1900;
+        public const int CriticalMultiplierBp = 15000;
+        public const int MainStat = 190;
+
+        /// <summary>Damage reduction of each enemy kind in basis points, as used by every hit.</summary>
+        public static int ArmorBp(int enemyKind) { return enemyKind >= 2 ? 4000 : (enemyKind == 1 ? 2200 : 1000); }
 
         /// <summary>Preserve the existing bounded Vitality scaling without storing a second health value.</summary>
         public static int MaximumHealth(CharacterProgression progression)
@@ -38,8 +47,24 @@ namespace AreArpg.Core
         {
             if (rng == null) throw new ArgumentNullException(nameof(rng));
             if (powerBp < 0 || enemyKind < 0 || enemyKind > 5) throw new ArgumentOutOfRangeException();
-            return FixedMath.Damage(stats.WeaponPoints, powerBp, 190, stats.AdditiveDamageBp,
-                enemyKind >= 2 ? 4000 : (enemyKind == 1 ? 2200 : 1000), 1900, rng, out critical);
+            return FixedMath.Damage(stats.WeaponPoints, powerBp, MainStat, stats.AdditiveDamageBp,
+                ArmorBp(enemyKind), CriticalChanceBp, rng, out critical);
+        }
+
+        /// <summary>
+        /// The exact result of Damage for a known critical outcome, without touching any PRNG. Presentation uses it
+        /// to show what a stat or skill changes; it never decides a hit.
+        /// </summary>
+        public static long PreviewDamage(CombatStats stats, int powerBp, int enemyKind, bool critical)
+        {
+            if (powerBp < 0 || enemyKind < 0 || enemyKind > 5) throw new ArgumentOutOfRangeException();
+            const long Bp = 10000;
+            long damage = checked(stats.WeaponPoints * powerBp) / Bp;
+            damage = checked(damage * (Bp + MainStat * 10)) / Bp;
+            damage = checked(damage * (Bp + stats.AdditiveDamageBp)) / Bp;
+            if (critical) damage = checked(damage * CriticalMultiplierBp) / Bp;
+            damage = checked(damage * Bp) / (Bp + Math.Max(0, ArmorBp(enemyKind)));
+            return Math.Max(1, damage);
         }
 
         /// <summary>Keep the existing int UI result contract while preventing per-hit and area-sum wraparound.</summary>

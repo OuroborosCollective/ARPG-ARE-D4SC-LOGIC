@@ -123,6 +123,9 @@ namespace AreArpg.Core
         public long TargetXmm, TargetZmm;
         /// <summary>Monsters that actually took damage, in application order; presentation hit reactions only.</summary>
         public readonly System.Collections.Generic.List<int> HitMonsterIds = new System.Collections.Generic.List<int>();
+        /// <summary>Weapon-skill levels gained by this activation and the trained type; presentation feedback only.</summary>
+        public int WeaponLevelUps;
+        public WeaponFamily? TrainedFamily;
     }
 
     /// <summary>Standalone single-player simulation. Not a network server or a clone of any proprietary engine.</summary>
@@ -645,6 +648,8 @@ namespace AreArpg.Core
             RememberCreatureAssault(enemy,"player");
             PlayerHealth = Math.Min(MaxPlayerHealth,PlayerHealth+(int)((long)appliedDamage*Progression.Equipment.Bonus(WeaponAffix.Siphon)/10000));
             Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
+            int weaponLevels = Progression.RecordWeaponPractice(appliedDamage);
+            if (weaponLevels > 0) { result.WeaponLevelUps += weaponLevels; result.TrainedFamily = Progression.TrainingFamily; }
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
             result.Hits++;
             result.HitMonsterIds.Add(enemy.Id);
@@ -719,6 +724,9 @@ namespace AreArpg.Core
             HearRattlerNoise(); SaveInvestigationPlayer(); SaveWoodlandPlayer();
             result.Message = skill.DisplayName +
                 ": " + result.TotalDamage + " damage / " + result.Kills + " kills";
+            if (result.WeaponLevelUps > 0 && result.TrainedFamily.HasValue)
+                result.Message += " · " + WeaponMasteryRules.SkillName(result.TrainedFamily.Value) + " Stufe " +
+                    Progression.WeaponMastery.Level(result.TrainedFamily.Value);
             return result;
         }
 

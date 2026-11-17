@@ -38,7 +38,7 @@ internal static class WeaponEquipmentTests
         foreach(var other in w.Monsters)if(other!=target){other.Health=0;other.LootGranted=true;}
         int hp=target.Health;require(w.ActivateSkill(0).Activated&&target.Health<hp,"equipped-bow-actually-hits-at-eight-metres");
         require(w.TryEquipWeapon(sword.KillOrdinal)&&w.TryEquipWeapon(shield.KillOrdinal),"one-handed-weapon-plus-shield");
-        string saved=p.SaveString();require(saved.StartsWith("AC16|")&&CharacterProgression.TryLoad(saved,out var loaded)&&loaded.SaveString()==saved&&loaded.Equipment.Weapon.Ordinal==sword.KillOrdinal&&loaded.Equipment.Shield.Ordinal==shield.KillOrdinal,"equipped-models-and-affixes-survive-save-load");
+        string saved=p.SaveString();require(saved.StartsWith("AC21|")&&WeaponMasteryTests.Unwrapped(saved).StartsWith("AC16|")&&p.WeaponMastery.Experience(WeaponFamily.Bow)>0&&CharacterProgression.TryLoad(saved,out var loaded)&&loaded.SaveString()==saved&&loaded.Equipment.Weapon.Ordinal==sword.KillOrdinal&&loaded.Equipment.Shield.Ordinal==shield.KillOrdinal,"equipped-models-and-affixes-survive-save-load");
         require(w.TryEquipWeapon(bow.KillOrdinal)&&p.Equipment.Shield==null,"equipping-two-hand-clears-offhand-without-losing-item");
         require(w.TryUnequipWeapon()&&p.Items.Count==4&&new CombatStats(p,0).WeaponPoints==95L+p.WeaponBonus,"unequip-restores-baseline-and-retains-owned-items");
         var quick=new CharacterProgression();quick.Equipment.Enable(quick);

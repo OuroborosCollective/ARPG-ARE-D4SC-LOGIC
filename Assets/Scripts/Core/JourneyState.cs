@@ -158,7 +158,8 @@ namespace AreArpg.Core
         private static string DecodeJourney(string s){var bytes=Convert.FromBase64String(s);if(Convert.ToBase64String(bytes)!=s)throw new FormatException();return new UTF8Encoding(false,true).GetString(bytes);}
         public static bool TryLoad(string saved,JourneyMapCatalog maps,out CharacterProgression progress)
         {
-            progress=null;if(saved==null||!saved.StartsWith("AC20|",StringComparison.Ordinal))return TryLoad(saved,out progress);
+            progress=null;if(saved!=null&&saved.StartsWith("AC21|",StringComparison.Ordinal))return TryLoadWeaponMastery(saved,maps,out progress);
+            if(saved==null||!saved.StartsWith("AC20|",StringComparison.Ordinal))return TryLoad(saved,out progress);
             if(saved.Length>64*1024*1024)return false;
             var f=saved.Split('|');if(f.Length!=5||f[4]!=HashText(string.Join("|",f,0,4)).ToString("X16",CultureInfo.InvariantCulture))return false;
             try
