@@ -11,6 +11,29 @@ namespace AreArpg.PlayMode.Tests
     {
         private const float GroundContactTolerance = .05f;
 
+        /// <summary>Regression: negative mesh-to-ground gap is never silently accepted as contact.</summary>
+        [Test]
+        public void BuriedVillageActorMustFailTheVisibleGroundContract()
+        {
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            floor.name = "Ground";
+            floor.transform.position = new Vector3(0, -.05f, 0);
+            floor.transform.localScale = new Vector3(10f, .1f, 10f);
+            var actor = new GameObject("ARE_NPC_1");
+            try
+            {
+                var failures = new List<string>();
+                Check(actor, -.25f, new List<Renderer> { floor.GetComponent<Renderer>() }, failures);
+                Assert.AreEqual(1, failures.Count, "A quarter-metre-deep body must not appear grounded");
+                StringAssert.Contains("sinks", failures[0]);
+            }
+            finally
+            {
+                Object.DestroyImmediate(actor);
+                Object.DestroyImmediate(floor);
+            }
+        }
+
         /// <summary>Every standing village piece and villager touches the visible ground directly beneath it.</summary>
         [UnityTest]
         public IEnumerator VillageArtAndVillagersStandOnTheVisibleGround()
