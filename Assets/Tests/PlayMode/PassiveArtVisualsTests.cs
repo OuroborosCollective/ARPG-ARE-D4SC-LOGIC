@@ -151,9 +151,11 @@ namespace AreArpg.PlayMode.Tests
                 Assert.IsTrue(PassiveArtVisuals.TryBindPrefab(host.transform, asset));
                 Material bound = host.transform.GetChild(0).GetComponent<MeshRenderer>().sharedMaterial;
                 Assert.AreNotSame(source, bound);
-                Assert.AreEqual("UniversalPipeline", bound.GetTag("RenderPipeline", false, ""),
-                    "Adapter shader=" + bound.shader.name + " supported=" + bound.shader.isSupported +
-                    " pipeline=" + UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline.GetType().Name);
+                Shader activePipelineShader = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline.defaultShader;
+                Assert.IsNotNull(activePipelineShader, "Active URP must expose its supported default shader");
+                Assert.AreSame(activePipelineShader, bound.shader,
+                    "Adapter must bind the exact active pipeline shader, not rely on a missing material tag");
+                Assert.IsTrue(bound.shader.isSupported, "URP adapter shader must render on this device");
                 Assert.AreSame(texture, bound.mainTexture);
                 Assert.IsTrue(source.color == bound.color, "tint differs: " + source.color + " vs " + bound.color); // Unity approximate colour equality
                 Assert.AreSame(builtIn, source.shader, "vendor material must stay untouched");
