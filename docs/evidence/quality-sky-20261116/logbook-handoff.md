@@ -58,7 +58,8 @@ Each new round records UTC date, incoming and resulting revisions, exact changed
 - Branch `fix/village-npc-ground-20261117` von `main` `507c0f4d884a8584d352528f4726d5eb097965ca`. Nur Darstellung: kein Core-, Save-, HUD- oder Kamera-Diff.
 - Ursache: privater Controller `AshenHumanoidMovement` ohne importierte Clips; humanoider Animator setzt die Hüfte auf den Ursprung, Mara/Ilyan stehen gemessen −0,91/−0,92 m tief. Ersatz-Controller griff nur bei `null`.
 - Fix: `PassiveArtVisuals.HasPlayableClip` und `EnsurePlayableHumanoidLocomotion` für alle geerdeten Bindungen.
-- Evidence: Unity 6000.6.8f1 Live-Editor des Prüfprojekts, EditMode 3/3, PassiveArtVisuals PlayMode 9/9, NPC-Bodenkontakt grün (+0,005/+0,002 m); Core 19866, Preflight 40. Details: `docs/evidence/village-npc-ground-20261117/acceptance.md`.
+- Review-Korrekturen (PR #58): Straßenzeuge wird in Projektionshöhe erzeugt (RED: 1,0 m schwebend), generische Rigs behalten ihren eigenen Controller.
+- Evidence an Commit `29120c45b9c5144e2a7f492dd39050f82170af82` gebunden: Unity 6000.6.8f1 Live-Editor des Prüfprojekts, EditMode 4/4, Straßenzeuge PlayMode 1/1, PassiveArtVisuals PlayMode 9/9, NPC-Bodenkontakt grün (+0,005/+0,002 m); Core 19866, Preflight 40. Details: `docs/evidence/village-npc-ground-20261117/acceptance.md`.
 - Grenzen: Held geht lokal bis ~8 cm zwischen erhöhten Pflastersteinen ein (Bodentest meldet das weiter); Übungsschwert erscheint im Prüfprojekt als Brett; Android/Tab A9 ungeprüft. Owner-DOCX weiterhin nicht editierbar zugänglich, Zurückschreiben ausstehend.
 - Nächster Schritt: Waffenarten-Fähigkeiten im RuneScape-Stil (Owner-Auftrag 17.11.2026).
 
