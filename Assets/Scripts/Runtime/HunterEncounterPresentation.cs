@@ -54,6 +54,17 @@ namespace AreArpg.UnityClient
             {if(h.FavorClaimed)OpenMenu(MenuCompanion);else _pendingHunterAction = h.HunterHealth == 0 ? 1 : 0;}
         }
 
+        /// <summary>
+        /// The host is created at the height it keeps while following the Core position (y = 1), and only then
+        /// bound, so the grounded witness art stays on the ground instead of rising with the host.
+        /// </summary>
+        private static Transform CreateRoadWitness(Vector3 at)
+        {
+            var host = Shape(PrimitiveType.Capsule, "ARE_Road_Witness", at, new Vector3(.8f, 1, .8f), new Color(.5f, .4f, .25f));
+            PassiveArtVisuals.TryBindGrounded(host, "EntryNpc0", 0);
+            return host;
+        }
+
         private void OnDestroy() { DisposeWorldSky(); ClearRoadVisuals(); ClearCompanionVisuals(); ClearRattlerVisuals(); ClearPortraitVisuals(); }
 
         private void ClearRoadVisuals()
@@ -111,8 +122,7 @@ namespace AreArpg.UnityClient
             bool showTraveler = act == h.TravelerRegion && (act == 3 || h.Started);
             if (showTraveler && _roadTraveler == null)
             {
-                _roadTraveler = Shape(PrimitiveType.Capsule, "ARE_Road_Witness", Vector3.zero, new Vector3(.8f, 1, .8f), new Color(.5f, .4f, .25f));
-                PassiveArtVisuals.TryBindGrounded(_roadTraveler, "EntryNpc0", 0);
+                _roadTraveler = CreateRoadWitness(new Vector3(h.TravelerX / 1000f, 1f, h.TravelerZ / 1000f));
             }
             if (_roadTraveler != null)
             { _roadTraveler.gameObject.SetActive(showTraveler); _roadTraveler.position = new Vector3(h.TravelerX / 1000f, 1, h.TravelerZ / 1000f); }

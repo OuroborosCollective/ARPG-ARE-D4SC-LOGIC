@@ -40,6 +40,25 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
+        public void GenericRigKeepsItsOwnControllerButStillGetsOneWhenMissing()
+        {
+            var actor = new GameObject("GenericVillager");
+            var controller = new AnimatorController();
+            try
+            {
+                controller.AddLayer("Base Layer");
+                controller.layers[0].stateMachine.AddState("Idle");
+                var animator = actor.AddComponent<Animator>();
+                Assert.IsTrue(PassiveArtVisuals.NeedsSharedLocomotion(animator), "A missing controller is replaced as before");
+                animator.runtimeAnimatorController = controller;
+                Assert.IsFalse(PassiveArtVisuals.NeedsSharedLocomotion(animator),
+                    "A generic rig's own clipless controller must not be swapped for the humanoid one");
+                Assert.IsFalse(PassiveArtVisuals.NeedsSharedLocomotion(null));
+            }
+            finally { Object.DestroyImmediate(controller); Object.DestroyImmediate(actor); }
+        }
+
+        [Test]
         public void ActorWithoutHumanoidAnimatorIsLeftUntouched()
         {
             var actor = new GameObject("GenericActor");

@@ -90,6 +90,17 @@ namespace AreArpg.UnityClient
         }
 
         /// <summary>
+        /// Villager rule: a missing controller is always replaced (legacy behaviour); a present but clipless one only
+        /// on humanoid rigs, because the shared controller is humanoid and would not drive a generic rig.
+        /// </summary>
+        public static bool NeedsSharedLocomotion(Animator animator)
+        {
+            if (animator == null) return false;
+            if (animator.runtimeAnimatorController == null) return true;
+            return animator.avatar != null && animator.avatar.isHuman && !HasPlayableClip(animator.runtimeAnimatorController);
+        }
+
+        /// <summary>
         /// A humanoid Animator without a playable clip keeps the muscle default pose with the hips at the
         /// object origin, so a grounded character sinks to its waist. Give such actors the shared reviewed
         /// locomotion controller instead. Working controllers and generic rigs are never touched.
