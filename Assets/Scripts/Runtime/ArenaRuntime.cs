@@ -88,6 +88,7 @@ namespace AreArpg.UnityClient
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
             BuildWorld();
             InitializeWorldSky();
+            InitializePostProcessing();
             BuildHud();
         }
 
@@ -210,6 +211,9 @@ namespace AreArpg.UnityClient
             RenderSettings.fogMode = FogMode.Exponential;
             RenderSettings.fogDensity = 0.014f;
             BuildChapterScenery();
+            // Torch islands belong to the village projection, not to the optional private art overlay.
+            if (_game.IsVillage) BuildVillageLights();
+            else _villageTorches.Clear();
 
             var lightGo = new GameObject("ARE Moonlight");
             Light sun = lightGo.AddComponent<Light>();
@@ -911,6 +915,9 @@ namespace AreArpg.UnityClient
             RegisterActorMotion(_hero);
             _passageAnnounced = false;
             BuildChapterScenery();
+            // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
+            if (_game.IsVillage) BuildVillageLights();
+            else _villageTorches.Clear();
             ApplyEntryLighting();
             _pendingSkills.Clear();
             _pendingMastery.Clear();
@@ -1054,6 +1061,8 @@ namespace AreArpg.UnityClient
         private void UpdatePresentation(float alpha)
         {
             RefreshWorldSky();
+            RefreshPostProcessing();
+            AnimateVillageLights();
             UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {

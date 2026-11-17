@@ -1,7 +1,7 @@
 {
   "name": "AreArpg.PlayMode.Tests",
   "rootNamespace": "AreArpg.PlayMode.Tests",
-  "references": ["AreArpg.Core","AshenCrypt.WorldForge.Core", "AreArpg.Runtime", "AshenCrypt.MemoryForge", "UnityEngine.UI"],
+  "references": ["AreArpg.Core","AshenCrypt.WorldForge.Core", "AreArpg.Runtime", "AshenCrypt.MemoryForge", "UnityEngine.UI", "Unity.RenderPipelines.Core.Runtime", "Unity.RenderPipelines.Universal.Runtime"],
   "optionalUnityReferences": ["TestAssemblies"],
   "includePlatforms": [],
   "excludePlatforms": [],

@@ -28,6 +28,8 @@ namespace AreArpg.UnityClient
         private ulong _worldSkyPhase = ulong.MaxValue;
         private bool _worldSkyReduced;
 
+        private static readonly int WorldTintId = Shader.PropertyToID("_AshenWorldTint");
+
         private static bool IsOutdoorSkyArea(int area)
         {
             // Village, Ash Road, woodland, Aschenzoll and the onward forest road.
@@ -90,6 +92,7 @@ namespace AreArpg.UnityClient
                     if (_sun != null) _sun.transform.rotation = _worldSkyOriginalSunRotation;
                     ApplyEntryLighting();
                     ApplyFlatWorldSkyProbe();
+                    Shader.SetGlobalColor(WorldTintId, Color.clear);
                     _worldSkyOutdoor = false;
                 }
                 return;
@@ -101,7 +104,7 @@ namespace AreArpg.UnityClient
                 if (_camera != null) _camera.clearFlags = CameraClearFlags.Skybox;
                 _worldSkyOutdoor = true;
             }
-            if (phase == _worldSkyPhase && reduced == _worldSkyReduced) return;
+            if (phase == _worldSkyPhase && reduced == _worldSkyReduced && _villageLightGlow >= 0f) return;
             _worldSkyPhase = phase;
             _worldSkyReduced = reduced;
 
@@ -140,6 +143,11 @@ namespace AreArpg.UnityClient
             ApplyFlatWorldSkyProbe();
             foreach (var backdrop in _worldSkyBackdrops)
                 if (backdrop != null) backdrop.SetDaylight(daylight);
+            RefreshVillageLights(daylight, reduced);
+            // Unlit ground dressing follows the same daylight as the lit world around it.
+            Color tint = Color.Lerp(new Color(.20f, .24f, .34f), Color.white, Mathf.SmoothStep(0f, 1f, daylight));
+            tint.a = 1f;
+            Shader.SetGlobalColor(WorldTintId, tint);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Exponential;
             RenderSettings.fogColor = Color.Lerp(new Color(0.10f, 0.13f, 0.20f),
@@ -185,6 +193,9 @@ namespace AreArpg.UnityClient
                     backdrop.SetDaylight(1f);
                 }
             }
+            DisposeVillageLights();
+            DisposePostProcessing();
+            Shader.SetGlobalColor(WorldTintId, Color.clear);
             if (_worldSkyMaterial != null) Destroy(_worldSkyMaterial);
             _worldSkyMaterial = null;
             _worldSkyOriginalCaptured = false;
