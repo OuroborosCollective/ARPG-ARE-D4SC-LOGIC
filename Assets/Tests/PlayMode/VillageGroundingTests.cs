@@ -49,6 +49,40 @@ namespace AreArpg.PlayMode.Tests
             finally { Object.DestroyImmediate(actor); }
         }
 
+        /// <summary>Existing imported NPC rigs need a real locomotion controller, not a bare animator.</summary>
+        [UnityTest]
+        public IEnumerator PrivateVillageNpcRigsHavePlayableLocomotionControllers()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires private actor and village overlay");
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3);
+            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            Assert.IsTrue(Game.IsVillage);
+            yield return null;
+            foreach (int id in new[] { 0, 1, 2 })
+            {
+                var actor = Find("ARE_NPC_" + id);
+                Assert.IsNotNull(actor, "Missing actual NPC projection " + id);
+                var animators = actor.GetComponentsInChildren<Animator>(true);
+                Assert.IsNotEmpty(animators, "NPC " + id + " has no skinned motion rig");
+                foreach (var animator in animators)
+                {
+                    Assert.IsNotNull(animator.runtimeAnimatorController,
+                        "NPC " + id + " is missing its idle/movement controller");
+                    bool canWalk = false;
+                    foreach (var parameter in animator.parameters)
+                        canWalk |= parameter.name == "MoveMagnitude" &&
+                            parameter.type == AnimatorControllerParameterType.Float;
+                    Assert.IsTrue(canWalk, "NPC " + id + " controller must accept canonical movement projection");
+                    Assert.IsFalse(animator.applyRootMotion,
+                        "NPC " + id + " animation must never override Core coordinates");
+                }
+            }
+        }
+
         /// <summary>Keep private visual acceptance strict while naming the exact character with missing art.</summary>
         [UnityTest]
         public IEnumerator PrivateVillageActorsAllContainSkinnedBodies()
