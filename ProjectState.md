@@ -1,5 +1,13 @@
 # ARE Ashen Crypt — Projektzustand
 
+## Himmel und Grundlicht nativ geprüft (16.11.2026)
+
+Code `24c4fdd13f896afd18c54bc342aa3ab8ae483937`: gespeicherter 24-Minuten-Zyklus, bewegte Wolken, Sonne/Mond/Sterne, lesbare Dämmerung, restaurierbarer Ambient-Probe und korrekte Lichtbindung nach Gebiets-Neuaufbau. Unity6000.6.8f1 PlayMode6/6 und EditMode1/1 ohne Skips; vier native Phasenbilder geprüft. 40 Preflights und19739Core-Assertions; Corequellen unverändert gegenüber dem protokollierten Core-Lauf. [Revisionsgebundene Nachweise und Grenzen](docs/evidence/quality-sky-20261116/acceptance.json). Nächster Block: Dorf-Hero-Pass mit kuratierten privaten Viking-Assets, danach Wald/Mühle/Höhlen; Android und physisches TabA9 bleiben offen. Kein Merge/Release.
+
+## Visual Pass: Materialblock (16.11.2026)
+
+Sieben Oberflächen verwenden im isolierten Qualitäts-Workspace ausgewählte Texturen aus Viking Village, Terrain Sample und Lighting Optimisation. Native URP-Materialprüfung und Materialbild bestätigt; 40 Preflights nach Übernahme bestanden. [Zuordnung, Revision und Grenzen](docs/visual-pass-1/materials-20261116.md). Tageszeit-/Lichtblock inzwischen separat nativ geprüft; Dorfinszenierung und Tab-A9-Abnahme bleiben offen. Kein vollständiger Visual-Pass-/Merge-/APK-Erfolg.
+
 ## Aktueller Entwicklungsstand: geprüfte Spielintegration (13.11.2026)
 
 Der Drei-Ebenen-Dungeon, der prozedurale Wald, feste Bärenhöhle und Aschenzoll

@@ -3,6 +3,7 @@ Shader "AshenCrypt/Backdrop"
     Properties
     {
         _ZWrite ("Depth write", Float) = 1
+        _Exposure ("Presentation daylight", Range(0,1)) = 1
         _FogStrength ("Fog", Range(0,1)) = 1
         _BaseMap ("Ground texture", 2D) = "white" {}
         _TextureStrength ("Ground texture strength", Range(0,1)) = 0
@@ -21,6 +22,7 @@ Shader "AshenCrypt/Backdrop"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             CBUFFER_START(UnityPerMaterial)
                 float _FogStrength;
+                float _Exposure;
                 float _TextureStrength;
             CBUFFER_END
             TEXTURE2D(_BaseMap);
@@ -38,7 +40,7 @@ Shader "AshenCrypt/Backdrop"
                 float distance = max(abs(i.ground.x), abs(i.ground.y));
                 half textureWeight = (1 - smoothstep(30, 95, distance)) * _TextureStrength;
                 half3 soil = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.ground * .4).rgb * .35;
-                half3 color = lerp(i.color.rgb, soil, textureWeight);
+                half3 color = lerp(i.color.rgb, soil, textureWeight) * _Exposure;
                 return half4(lerp(color, MixFog(color, i.fog), _FogStrength), 1);
             }
             ENDHLSL
