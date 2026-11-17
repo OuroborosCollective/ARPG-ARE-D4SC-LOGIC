@@ -1,0 +1,63 @@
+{
+  "schema": "ashen-crypt.regional-vfx-checkpoint.v1",
+  "timestampUtc": "2026-11-16T20:50:46.733498+00:00",
+  "repo": "github.com/ouroboroscollective/arpg-are-d4sc-logic",
+  "sourceWorkspace": "are-arpg-village-20261116",
+  "sourceBaseHead": "5ac8021a03a74e97f9cd6afd15737ba11f4fa282",
+  "coreTree": "2e2ed41b1362a996c436f86977d2439798d66cb6",
+  "sourceHashes": {
+    "Assets/Resources/AshenAtmosphere.shader": "29a67750a34168352f6884100d2335fafe5340eff2c5b617b1beb124d67fcf48",
+    "Assets/Scripts/Runtime/AshenAtmosphere.cs": "9a961588b00748717ac31e0c1eea838c94fb3d000e3177a9aeee2bfa087e6d55",
+    "Assets/Tests/EditMode/AshenRegionalVfxShaderTests.cs": "f3e33a6d76022170b53a7ef659deaafaa7e039246f87a59520a910af218bd69e",
+    "Assets/Tests/EditMode/AshenRegionalVfxShaderTests.cs.meta": "6f7508ef8df9a272911d6940f0a41c8fd8fc03771a47b0c85acaae44acfb4bce",
+    "Assets/Tests/PlayMode/AshenRegionalVfxPlayModeTests.cs": "a48fb9224374bc8305ac45ef82b4b4f253abec335b5c05d8448401380232d3ca",
+    "Assets/Tests/PlayMode/AshenRegionalVfxPlayModeTests.cs.meta": "013f6e966779e81daeeb0fa832d166b7d65364ea83ba64f7aef992091d8c7734"
+  },
+  "scope": "Visual only, reuses 3 existing particle emitters and 1 URP material; forest, mill, crypt, ember rift; no Core/Save/UI/Camera edits",
+  "tests": {
+    "shaderStaticRed": {
+      "result": "FAILED_EXPECTED",
+      "logSha256": "b8e3e627663c61becc941f61a67340b22cbc221d98602ede652e0f76f3f0b168",
+      "reason": "Original shader lacked _Glow"
+    },
+    "shaderStaticGreen": {
+      "result": "PASS",
+      "reference": "source-contract.py executed after patch"
+    },
+    "core": {
+      "result": "PASS",
+      "assertions": 19857,
+      "exit": 0,
+      "logSha256": "08d13715c0901a53d7e086ec7f131dbe7087f9abf0943b403219bfca73449891"
+    },
+    "preflight": {
+      "result": "PASS",
+      "tests": 40,
+      "exit": 0,
+      "logSha256": "65b1b0f32246e0d0a38339d44c60a4938400cb6549f9be0a5891005598684c30"
+    },
+    "unityEditRed": {
+      "result": "UNVERIFIED",
+      "exitCode": 137,
+      "reason": "Own batch process stopped during long private asset import; no tests XML",
+      "logSha256": "fb7ecba9deeec9bf3118b14ad9f54e39819efa0e91fe24e8c96d34c9722540ef",
+      "settingsRestored": true,
+      "prefsRestored": true
+    },
+    "unityEditGreen": {
+      "result": "UNVERIFIED",
+      "exitCode": 137,
+      "reason": "Own batch process stopped during long private asset import; no tests XML",
+      "logSha256": "c22885df34625a93f06fa641e5be27e89e6f99c1d86d7436a1d99670abe26d56",
+      "settingsRestored": true,
+      "prefsRestored": true
+    },
+    "unityPlayMode": "UNVERIFIED",
+    "gameView": "UNVERIFIED",
+    "android": "UNVERIFIED",
+    "physicalGalaxyTabA9": "UNVERIFIED"
+  },
+  "guiWorkspace": "are-arpg-village-palisade-clean-native-20261116",
+  "guiStatus": "Original editor process retained; no live code sync or visual acceptance claimed",
+  "pullRequest": "Not published or merged from this checkpoint"
+}

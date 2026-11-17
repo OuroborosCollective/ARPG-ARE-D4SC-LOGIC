@@ -48,6 +48,13 @@ Shader "AshenCrypt/WorldSky"
                 output.direction = input.positionOS;
                 return output;
             }
+            half skyHash(half2 p) { return frac(sin(dot(p, half2(127.1h, 311.7h))) * 43758.5453h); }
+            half skyNoise(half2 p)
+            {
+                half2 c = floor(p); half2 f = frac(p); f = f * f * (3.0h - 2.0h * f);
+                return lerp(lerp(skyHash(c), skyHash(c + half2(1,0)), f.x),
+                            lerp(skyHash(c + half2(0,1)), skyHash(c + half2(1,1)), f.x), f.y);
+            }
             half4 frag(Varyings input) : SV_Target
             {
                 float3 direction = normalize(input.direction);
@@ -60,18 +67,35 @@ Shader "AshenCrypt/WorldSky"
                 float sunCore = smoothstep(0.9975, 0.9997, sunAngle) * _Daylight;
                 float sunHalo = smoothstep(0.90, 0.995, sunAngle) * _Daylight * (1.0 - sunCore);
                 sky += _SunColor.rgb * (sunCore * 1.15 + sunHalo * 0.14);
+                // Dawn and dusk: a warm band along the horizon, strongest toward the sun.
+                half twilight = saturate(_Daylight * (1.0h - _Daylight) * 4.0h);
+                half band = pow(saturate(1.0h - abs(direction.y)), 5.0h);
+                sky += _SunColor.rgb * twilight * band * (0.18h + 0.42h * sunAngle * sunAngle);
 
                 float moonAngle = saturate(dot(direction, -normalize(_SunDirection.xyz)));
-                float moon = smoothstep(0.9991, 0.9998, moonAngle) * (1.0 - _Daylight);
-                sky += half3(0.28, 0.36, 0.54) * moon;
+                float moon = smoothstep(0.9989, 0.9996, moonAngle) * (1.0 - _Daylight);
+                float moonHalo = smoothstep(0.955, 0.9995, moonAngle) * (1.0 - _Daylight) * (1.0 - moon);
+                sky += half3(0.62, 0.70, 0.86) * moon + half3(0.10, 0.14, 0.24) * moonHalo * moonHalo;
 
                 if (_CloudAmount > 0.001)
                 {
-                    float cloudShape = sin(direction.x * 19.0 + direction.z * 7.0 + sin(direction.y * 11.0) + _CloudPhase);
-                    cloudShape += sin(direction.z * 27.0 - direction.x * 9.0 + sin(direction.y * 14.0) - _CloudPhase);
-                    float cloud = smoothstep(0.55, 1.55, cloudShape)
-                                  * smoothstep(-0.05, 0.28, direction.y) * _CloudAmount;
-                    sky = lerp(sky, _CloudColor.rgb * (0.16 + 0.77 * _Daylight), saturate(cloud * 0.63));
+                    // A flat cloud deck seen in perspective: clouds shrink and thin toward the horizon.
+                    // The persisted phase walks a closed circle, so the deck drifts without a seam at midnight.
+                    half2 deck = direction.xz / (max(direction.y, 0.0) + 0.16);
+                    half2 drift = half2(cos(_CloudPhase), sin(_CloudPhase)) * 6.0h;
+                    half2 p = deck * 0.85h + drift;
+                    half shape = skyNoise(p) * 0.56h + skyNoise(p * 2.13h + 7.3h) * 0.29h + skyNoise(p * 4.37h - 3.1h) * 0.15h;
+                    half cover = lerp(0.72h, 0.40h, _CloudAmount);
+                    half cloud = smoothstep(cover, cover + 0.26h, shape) * smoothstep(0.015, 0.20, direction.y);
+                    // Dense cores are shaded, rims catch the sun or the moon; dusk tints the deck.
+                    half core = smoothstep(cover + 0.10h, cover + 0.42h, shape);
+                    half3 lit = _CloudColor.rgb * (0.055h + 0.905h * _Daylight);
+                    half3 shade = lit * lerp(half3(0.50h, 0.54h, 0.64h), half3(0.70h, 0.72h, 0.78h), _Daylight);
+                    half3 cloudColor = lerp(lit, shade, core);
+                    half twilightCloud = saturate(_Daylight * (1.0h - _Daylight) * 4.0h);
+                    cloudColor += _SunColor.rgb * twilightCloud * (0.10h + 0.45h * sunAngle * sunAngle) * (1.0h - core * 0.6h);
+                    cloudColor += half3(0.07h, 0.09h, 0.14h) * (1.0h - _Daylight) * moonAngle * moonAngle * (1.0h - core);
+                    sky = lerp(sky, cloudColor, cloud * 0.86h);
                 }
 
                 if (_StarAmount > 0.001 && _Daylight < 0.80)

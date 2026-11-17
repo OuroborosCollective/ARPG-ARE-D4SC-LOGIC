@@ -19,6 +19,7 @@ namespace AreArpg.UnityClient
         private ParticleSystem _ash, _dust, _sparks;
         private Material _particleMaterial;
         private Texture2D _particleTexture;
+        private MaterialPropertyBlock _regionGlow;
         private Transform _hero;
         private int _act = -1, _effectIndex, _stepVariant, _speaker = -1;
         private float _walked, _subtitleLeft, _fade = 1f;
@@ -86,7 +87,7 @@ namespace AreArpg.UnityClient
             Loop(_water, act == 4 ? Clip("water_mill") : null);
             _ash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             _dust.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            if (!_suspended) { if ((act >= 2 && act <= 4) || act == 8 || act == 10 || act == 11) _ash.Play(); else _dust.Play(); }
+            ApplyRegionVisuals();
             ApplyParticleBudget();
         }
 
@@ -182,7 +183,7 @@ namespace AreArpg.UnityClient
             for (int i = 0; i < _effects.Length; i++) _effects[i].volume = EffectsVolume * _effectGains[i];
             foreach (var source in _sources) source.mute = Muted;
             if (_subtitleLeft > 0) { _subtitleLeft -= Time.unscaledDeltaTime; if (_subtitleLeft <= 0) NextSpeech(); }
-            if (_hero != null) { _ash.transform.position = _hero.position + Vector3.up * 5; _dust.transform.position = _hero.position; }
+            if (_hero != null) { _ash.transform.position = _hero.position + Vector3.up * AshEmitterHeight; _dust.transform.position = _hero.position; }
         }
 
         public void Suspend(bool suspended)
@@ -192,7 +193,7 @@ namespace AreArpg.UnityClient
             if (suspended) { _ash.Pause(); _dust.Pause(); _sparks.Pause(); }
             else
             {
-                if ((_act >= 2 && _act <= 4) || _act == 8 || _act == 10 || _act == 11) _ash.Play(); else _dust.Play();
+                ApplyRegionVisuals();
                 _sparks.Play();
                 // Region changes may have selected new loops while suspended.
                 ResumeLoop(_musicA); ResumeLoop(_ambience); ResumeLoop(_water);
@@ -210,14 +211,23 @@ namespace AreArpg.UnityClient
             for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++)
             { float a = Mathf.Clamp01(1 - Vector2.Distance(new Vector2(x, y), new Vector2(7.5f, 7.5f)) / 7.5f); _particleTexture.SetPixel(x, y, new Color(1, 1, 1, a * a)); }
             _particleTexture.Apply();
+            _regionGlow = new MaterialPropertyBlock();
             _particleMaterial = new Material(Shader.Find("AshenCrypt/Atmosphere"));
             _particleMaterial.mainTexture = _particleTexture;
             _ash = Particles("Falling ash", 160, 18, .075f, new Color(.74f, .70f, .60f, .5f), new Vector3(20, 1, 20), 8);
             var velocity = _ash.velocityOverLifetime; velocity.enabled = true; velocity.space = ParticleSystemSimulationSpace.World;
             velocity.x = .3f; velocity.y = -.75f; velocity.z = .08f;
+            Breathe(_ash, .12f, .75f); Drift(_ash, .22f, .35f);
             _dust = Particles("Low crypt mist", 24, 2, 2.3f, new Color(.42f, .55f, .6f, .055f), new Vector3(18, .3f, 18), 10);
+            Breathe(_dust, .3f, .6f); Drift(_dust, .1f, .12f);
+            var mistMain = _dust.main; mistMain.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            var mistGrow = _dust.sizeOverLifetime; mistGrow.enabled = true;
+            mistGrow.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, .7f, 1f, 1.25f));
             _sparks = Particles("Confirmed hit motes", 30, 0, .09f, new Color(.9f, .63f, .3f, .6f), Vector3.one * .3f, .35f);
-            var main = _sparks.main; main.startSpeed = 2.5f; _sparks.Play();
+            var main = _sparks.main; main.startSpeed = 2.5f;
+            Breathe(_sparks, 0f, .35f);
+            ApplyParticleGlow(_sparks, .32f);
+            _sparks.Play();
         }
 
         /// <summary>A burst-only world-space particle system with the shared atmosphere material; emitted by presentation code.</summary>
@@ -241,13 +251,87 @@ namespace AreArpg.UnityClient
             return p;
         }
 
+        /// <summary>Particles fade in and out instead of popping; the gradient is built once, never per frame.</summary>
+        private static void Breathe(ParticleSystem particles, float fadeIn, float fadeOutFrom)
+        {
+            var fade = particles.colorOverLifetime; fade.enabled = true;
+            var gradient = new Gradient();
+            gradient.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                fadeIn <= 0f
+                    ? new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, fadeOutFrom), new GradientAlphaKey(0f, 1f) }
+                    : new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, fadeIn), new GradientAlphaKey(1f, fadeOutFrom), new GradientAlphaKey(0f, 1f) });
+            fade.color = new ParticleSystem.MinMaxGradient(gradient);
+        }
+
+        /// <summary>Cheap single-octave turbulence so ash flutters and mist curls instead of sliding on rails.</summary>
+        private static void Drift(ParticleSystem particles, float strength, float frequency)
+        {
+            var noise = particles.noise; noise.enabled = true; noise.quality = ParticleSystemNoiseQuality.Low;
+            noise.octaveCount = 1; noise.strength = strength; noise.frequency = frequency; noise.scrollSpeed = .15f; noise.damping = true;
+        }
+
+        // Three existing emitters are reused across all chapters. No new world clock,
+        // scene authority, material instance, renderer pass, or per-frame allocation.
+        private void ApplyParticleGlow(ParticleSystem particles, float glow)
+        {
+            var renderer = particles.GetComponent<ParticleSystemRenderer>();
+            renderer.GetPropertyBlock(_regionGlow);
+            _regionGlow.SetFloat("_Glow", Mathf.Clamp01(glow));
+            renderer.SetPropertyBlock(_regionGlow);
+        }
+
+        private void ApplyRegionVisuals()
+        {
+            if (_ash == null || _dust == null) return;
+            bool forest = _act == 8 || _act == 11;
+            bool mill = _act == 4;
+            bool rift = _act == 12;
+            bool crypt = _act <= 1 || (_act >= 5 && _act <= 7) || _act == 9;
+            bool showAsh = (_act >= 2 && _act <= 4) || forest || _act == 10 || rift;
+            bool showMist = forest || mill || crypt;
+
+            var ash = _ash.main;
+            ash.startColor = rift ? new Color(.98f, .34f, .10f, .66f)
+                : forest ? new Color(.68f, .67f, .55f, .33f)
+                : mill ? new Color(.78f, .74f, .66f, .30f)
+                : new Color(.74f, .70f, .60f, .50f);
+            float ashSize = rift ? .11f : forest ? .065f : .075f;
+            ash.startSize = new ParticleSystem.MinMaxCurve(ashSize * .55f, ashSize * 1.3f);
+            var flutter = _ash.noise; flutter.strength = rift ? .55f : .22f;
+            var cool = _ash.sizeOverLifetime; cool.enabled = rift;
+            if (rift) cool.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, .25f));
+            var velocity = _ash.velocityOverLifetime;
+            velocity.y = rift ? .65f : -.75f;
+
+            var mist = _dust.main;
+            mist.startColor = forest ? new Color(.30f, .54f, .46f, .075f)
+                : mill ? new Color(.43f, .61f, .67f, .060f)
+                : new Color(.42f, .55f, .60f, .055f);
+            float mistSize = forest ? 2.8f : mill ? 1.8f : 2.3f;
+            mist.startSize = new ParticleSystem.MinMaxCurve(mistSize * .8f, mistSize * 1.25f);
+            ApplyParticleGlow(_ash, rift ? .86f : 0f);
+            ApplyParticleGlow(_dust, forest ? .07f : 0f);
+
+            if (_suspended) return;
+            if (showAsh) _ash.Play(); else _ash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            if (showMist) _dust.Play(); else _dust.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+
+        /// <summary>Falling ash starts above the hero; rising rift embers start at the ground so they cross the view.</summary>
+        public float AshEmitterHeight { get { return _act == 12 ? .35f : 5f; } }
+
         private void ApplyParticleBudget()
         {
             if (_ash == null) return;
+            bool forest = _act == 8 || _act == 11;
+            bool mill = _act == 4;
+            bool rift = _act == 12;
             var ash = _ash.main; ash.maxParticles = ReducedEffects ? 40 : 160;
-            var rate = _ash.emission; rate.rateOverTime = ReducedEffects ? 4 : 18;
+            float ashRate = rift ? 13f : forest ? 5f : mill ? 4f : _act == 2 ? 10f : 18f;
+            var rate = _ash.emission; rate.rateOverTime = ReducedEffects ? ashRate * (2f / 9f) : ashRate;
             var dust = _dust.main; dust.maxParticles = ReducedEffects ? 6 : 24;
-            var drift = _dust.emission; drift.rateOverTime = ReducedEffects ? .5f : 2;
+            float mistRate = forest ? 1.6f : mill ? 1.1f : 2f;
+            var drift = _dust.emission; drift.rateOverTime = ReducedEffects ? mistRate * .25f : mistRate;
         }
 
         private void OnDisable() { if (_musicA != null) Suspend(true); }

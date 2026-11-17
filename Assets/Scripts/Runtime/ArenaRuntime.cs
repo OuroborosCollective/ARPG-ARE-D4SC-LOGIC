@@ -88,6 +88,7 @@ namespace AreArpg.UnityClient
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
             BuildWorld();
             InitializeWorldSky();
+            InitializePostProcessing();
             BuildHud();
         }
 
@@ -609,6 +610,7 @@ namespace AreArpg.UnityClient
                 for (int i = 0; i < SocialLedger.CampCapacity; i++)
                     CreateEntryRation(i, "EntryRation");
             }
+            if (_game.IsVillage) BuildVillageLights(); else _villageTorches.Clear();
             return true;
         }
 
@@ -1054,6 +1056,8 @@ namespace AreArpg.UnityClient
         private void UpdatePresentation(float alpha)
         {
             RefreshWorldSky();
+            RefreshPostProcessing();
+            AnimateVillageLights();
             UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
