@@ -153,7 +153,16 @@ namespace AreArpg.UnityClient
                 if (component == null) return false; // Broken script/asset reference.
                 if (component is MeshRenderer || component is SkinnedMeshRenderer)
                 {
-                    hasMeshRenderer = true;
+                    Renderer renderer = (Renderer)component;
+                    Mesh mesh = renderer is SkinnedMeshRenderer skin ? skin.sharedMesh :
+                        renderer.GetComponent<MeshFilter>()?.sharedMesh;
+                    bool active = true;
+                    for (Transform node = renderer.transform; node != null; node = node.parent)
+                    {
+                        active &= node.gameObject.activeSelf;
+                        if (node == prefab.transform) break;
+                    }
+                    hasMeshRenderer |= renderer.enabled && active && mesh != null && mesh.vertexCount > 0;
                     continue;
                 }
                 if (component is Transform || component is MeshFilter ||
