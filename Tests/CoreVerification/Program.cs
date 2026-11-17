@@ -29,6 +29,7 @@ internal static class Program
             CheckpointTests.Run(Require);
             PracticeWorldTests.Run(Require);
             NpcSocialTests.Run(Require);
+            CoinDenominationTests.Run(Require);
             NpcSpeechTests.Run(Require);
             NpcCalmTests.Run(Require);
             ArrivalSceneTests.Run(Require);

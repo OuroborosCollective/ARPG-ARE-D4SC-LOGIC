@@ -433,7 +433,7 @@ namespace AreArpg.UnityClient
                 _hudNpcName.text = who + "   " + moodText;
                 _hudNpcLine1.text = "Gute Taten +" + npc.Memory.PositivePoints + "   ·   Übergriffe −" + npc.Memory.NegativePoints;
                 _hudNpcLine2.text = "Hunger " + npc.Memory.Hunger + "   ·   Erschöpfung " + npc.Memory.Fatigue +
-                    "   ·   Proviant " + p.Social.Provisions + "   ·   Münzen " + p.Social.Coins;
+                    "   ·   Proviant " + p.Social.Provisions + "   ·   Münzen " + CoinDenominations.Format(p.Social.Coins);
             }
 
             for (int i = 0; i < 4; i++)
