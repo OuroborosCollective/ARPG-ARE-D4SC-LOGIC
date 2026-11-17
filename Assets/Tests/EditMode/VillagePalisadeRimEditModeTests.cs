@@ -18,9 +18,10 @@ namespace AreArpg.EditMode.Tests
             Assert.IsNull(AssetDatabase.LoadMainAssetAtPath(path));
             try
             {
-                var method = typeof(AreArpg.EditorTools.AreVillagePalisadeBuilder).GetMethod(
-                    "RollbackNewRidgeAsset", System.Reflection.BindingFlags.NonPublic |
-                    System.Reflection.BindingFlags.Static);
+                var editorBuilder = Type.GetType("AreArpg.EditorTools.AreVillagePalisadeBuilder, Assembly-CSharp-Editor");
+                Assert.IsNotNull(editorBuilder, "Project editor assembly must load the village builder");
+                var method = editorBuilder.GetMethod("RollbackNewRidgeAsset",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
                 Assert.IsNotNull(method, "Builder must own retry-safe ridge rollback");
                 AssetDatabase.CreateAsset(new Mesh(), path);
                 method.Invoke(null, new object[] { path, true, false });
