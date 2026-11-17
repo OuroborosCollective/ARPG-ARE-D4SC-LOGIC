@@ -49,6 +49,31 @@ namespace AreArpg.PlayMode.Tests
             finally { Object.DestroyImmediate(actor); }
         }
 
+        /// <summary>Keep private visual acceptance strict while naming the exact character with missing art.</summary>
+        [UnityTest]
+        public IEnumerator PrivateVillageActorsAllContainSkinnedBodies()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Requires real private village and character overlay");
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3);
+            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            Assert.IsTrue(Game.IsVillage);
+            yield return null;
+            foreach (string name in new[] { "Wanderer", "ARE_NPC_0", "ARE_NPC_1", "ARE_NPC_2" })
+            {
+                var actor = Find(name);
+                Assert.IsNotNull(actor, "Core projection for " + name + " is absent");
+                var skins = actor.GetComponentsInChildren<SkinnedMeshRenderer>();
+                Debug.Log("NPC_PRIVATE_SKINS actor=" + name + " count=" + skins.Length);
+                Assert.IsNotEmpty(skins, name + " still uses a primitive, violating private actor art acceptance");
+                foreach (var skin in skins)
+                    Assert.IsNotNull(skin.sharedMesh, name + " contains an unresolved skinned mesh");
+            }
+        }
+
         /// <summary>Real private village characters must have visible feet on the surface, even with rejected vendor meshes.</summary>
         [UnityTest]
         public IEnumerator PrivateVillageNpcFallbackFeetTouchTheGround()
