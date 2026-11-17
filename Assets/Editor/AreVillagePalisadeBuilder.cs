@@ -55,6 +55,8 @@ namespace AreArpg.EditorTools
             AreVillageArtBuilder.LoadCatalog();
             GameObject root = PrefabUtility.LoadPrefabContents(Prefab);
             bool modified = false;
+            bool ridgeCreated = false;
+            bool prefabSaved = false;
             try
             {
                 Transform hero = root.transform.Find("VillageHeroPass1");
@@ -148,6 +150,7 @@ namespace AreArpg.EditorTools
                 Mesh ridge = CreateRollingRidge();
                 Directory.CreateDirectory(Path.GetDirectoryName(RidgeAsset));
                 AssetDatabase.CreateAsset(ridge, RidgeAsset);
+                ridgeCreated = true;
                 var mound = new GameObject("OneBatchedEarthRidge");
                 mound.transform.SetParent(backdrop, false);
                 mound.AddComponent<MeshFilter>().sharedMesh = ridge;
@@ -161,9 +164,14 @@ namespace AreArpg.EditorTools
                 ValidateExisting(walls, forest, backdrop);
                 if (PrefabUtility.SaveAsPrefabAsset(root, Prefab) == null)
                     throw new IOException("Could not save private reviewed village perimeter.");
+                prefabSaved = true;
                 modified = true;
             }
-            finally { PrefabUtility.UnloadPrefabContents(root); }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+                RollbackNewRidgeAsset(RidgeAsset, ridgeCreated, prefabSaved);
+            }
             if (!modified) return;
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(Prefab, ImportAssetOptions.ForceUpdate);
@@ -173,6 +181,15 @@ namespace AreArpg.EditorTools
             ValidateExisting(saved.transform.Find(WallsName), saved.transform.Find(ForestName),
                 saved.transform.Find(RidgeName));
             Debug.Log("ARE_VILLAGE_PALISADE_BUILT: 43 real wooden wall panels, 22 private trees, one earth ridge; no gameplay collision");
+        }
+
+        /// <summary>On an unsuccessful prefab save, roll back only this invocation's new asset.</summary>
+        private static void RollbackNewRidgeAsset(string assetPath, bool createdHere, bool prefabSaved)
+        {
+            if (!createdHere || prefabSaved)
+                return;
+            if (!AssetDatabase.DeleteAsset(assetPath))
+                throw new IOException("Failed to remove unsaved, newly authored ridge asset: " + assetPath);
         }
 
         private static Transform NewChild(Transform parent, string name)
