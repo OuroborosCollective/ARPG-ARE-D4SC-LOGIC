@@ -138,6 +138,8 @@ internal static class WeaponMasteryTests
         require(WeaponMasteryRules.DamageBonusBp(WeaponFamily.Shield, 99) == 0 && WeaponMasteryRules.DamageBonusBp(WeaponFamily.Sword, 99) == 4750,
                 "wm-shield-skill-gives-no-damage-bonus");
 
+        RunBoundaries(require);
+
         // Learn by doing through the real combat path.
         var p = new CharacterProgression(); p.Equipment.Enable(p);
         var sword = Give(p, WeaponFamily.Sword, false); var bow = Give(p, WeaponFamily.Bow);
@@ -216,4 +218,149 @@ internal static class WeaponMasteryTests
         require(previewMatches && critSeen && plainSeen, "wm-menu-preview-equals-real-damage-for-crit-and-normal-hits");
         require(CombatRules.CriticalChanceBp == 1900 && CombatRules.CriticalMultiplierBp == 15000, "wm-critical-constants-match-combat");
     }
+
+    private static void OutOfRange(Action action, Action<bool, string> require, string name)
+    {
+        bool rejected = false;
+        try { action(); }
+        catch (ArgumentOutOfRangeException) { rejected = true; }
+        require(rejected, name);
+    }
+
+    private static void RunBoundaries(Action<bool, string> require)
+    {
+        // Each threshold must be reached exactly; checking both sides catches lookup off-by-one errors.
+        for (int level = 2; level <= WeaponMasteryRules.MaxLevel; level++)
+        {
+            long threshold = WeaponMasteryRules.ExperienceForLevel(level);
+            require(WeaponMasteryRules.LevelForExperience(threshold - 1) == level - 1 &&
+                    WeaponMasteryRules.LevelForExperience(threshold) == level,
+                    "wm-exact-threshold-" + level);
+        }
+        foreach (int level in new[] { int.MinValue, 0, 100, int.MaxValue })
+        {
+            OutOfRange(() => WeaponMasteryRules.ExperienceForLevel(level), require, "wm-invalid-xp-level-" + level);
+            OutOfRange(() => WeaponMasteryRules.StatPoints(level), require, "wm-invalid-point-level-" + level);
+            OutOfRange(() => WeaponMasteryRules.DamageBonusBp(level), require, "wm-invalid-bonus-level-" + level);
+        }
+        OutOfRange(() => WeaponMasteryRules.LevelForExperience(-1), require, "wm-negative-level-lookup");
+        require(WeaponMasteryRules.LevelForExperience(long.MaxValue) == 99, "wm-level-lookup-saturates");
+
+        var state = new WeaponMasteryState();
+        foreach (var family in WeaponMasteryRules.TrainedFamilies)
+        {
+            require(state.Experience(family) == 0 && state.Level(family) == 1 && state.ExperienceToNextLevel(family) == 83,
+                    "wm-fresh-family-" + family);
+            require(state.Record(family, 82) == 0 && state.ExperienceToNextLevel(family) == 1,
+                    "wm-one-xp-before-first-level-" + family);
+            require(state.Record(family, 1) == 1 && state.Level(family) == 2 && state.ExperienceToNextLevel(family) == 91,
+                    "wm-first-level-exact-" + family);
+            // A huge award must saturate before addition can overflow, and award each crossed level once.
+            require(state.Record(family, long.MaxValue) == 97 && state.Experience(family) == 200000000 &&
+                    state.Level(family) == 99 && state.ExperienceToNextLevel(family) == 0,
+                    "wm-overflow-safe-xp-cap-" + family);
+            require(state.Record(family, long.MaxValue) == 0 && state.Record(family, 0) == 0 &&
+                    state.Experience(family) == 200000000, "wm-cap-idempotent-" + family);
+        }
+        // Owner decision 2026-11-17: the shield is a sixth trained skill with its own stat-point budget (6 x 19).
+        require(state.StatPointsEarned == 114 && state.StatPointsUnspent == 114, "wm-six-independent-point-budgets");
+        string before = state.Token();
+        OutOfRange(() => state.Record(WeaponFamily.Sword, -1), require, "wm-negative-award-rejected");
+        foreach (var family in new[] { WeaponFamily.Mace, WeaponFamily.Spear, (WeaponFamily)(-1), (WeaponFamily)8 })
+        {
+            require(state.Record(family, 1000) == 0, "wm-unsupported-award-ignored-" + family);
+            OutOfRange(() => WeaponMasteryRules.SkillName(family), require, "wm-unsupported-name-" + family);
+        }
+        require(!state.TrySpend((MasteryPath)(-1)) && !state.TrySpend((MasteryPath)3) && state.Token() == before,
+                "wm-invalid-actions-preserve-state");
+        for (int i = 0; i < 114; i++)
+            require(state.TrySpend((MasteryPath)(i % 3)), "wm-spend-earned-point-" + i);
+        require(state.StatPointsUnspent == 0 && state.StatPointsSpent == 114 &&
+                state.BonusRank(MasteryPath.Might) == 38 && state.BonusRank(MasteryPath.Vitality) == 38 &&
+                state.BonusRank(MasteryPath.Resolve) == 38 && !state.TrySpend(MasteryPath.Might), "wm-budget-exhausted");
+        require(WeaponMasteryState.TryRead(state.Token(), out var restored) && restored.Token() == state.Token() &&
+                restored.StatPointsSpent == 114, "wm-all-families-and-ranks-token-roundtrip");
+
+        // Mutate one field at a time so parser rejection cannot be explained by another invalid field.
+        string[] honest = "1,388,0,0,0,0,0,0,0,1,0,0".Split(',');
+        require(WeaponMasteryState.TryRead(string.Join(",", honest), out _), "wm-parser-control-valid");
+        foreach (int field in new[] { 1, 9 })
+        foreach (string invalid in new[] { "", "-1", "+1", " 1", "1 ", "01", "1.0", "1e2", "١", "9999999999999", "9223372036854775808" })
+        {
+            var fields = (string[])honest.Clone(); fields[field] = invalid;
+            require(!WeaponMasteryState.TryRead(string.Join(",", fields), out var rejected) && rejected == null,
+                    "wm-parser-rejects-noncanonical-field-" + field + "-" + invalid);
+        }
+        foreach (string invalid in new[] { null, "", "2,388,0,0,0,0,0,0,0,1,0,0", string.Join(",", honest) + ",0",
+                    "1,388,0,0,0,0,0,0,0,2147483648,0,0", "1,388,0,0,0,0,0,0,0,2147483647,2147483647,2147483647" })
+            require(!WeaponMasteryState.TryRead(invalid, out var rejected) && rejected == null, "wm-invalid-token-" + invalid);
+
+        // Level-funded ranks must remain separate from weapon-funded ranks for legacy saves.
+        var p = new CharacterProgression();
+        p.EarnExperience(150);
+        p.WeaponMastery.Record(WeaponFamily.Dagger, 1154); // Two weapon points, plus one character point.
+        require(p.UnspentLevelPoints == 1 && p.UnspentMasteryPoints == 3, "wm-combined-budget");
+        require(p.TrySpendMastery(MasteryPath.Vitality) && p.VitalityRank == 1 &&
+                p.WeaponMastery.StatPointsSpent == 0 && p.UnspentLevelPoints == 0, "wm-level-budget-spent-first");
+        require(p.TrySpendMastery(MasteryPath.Vitality) && p.TrySpendMastery(MasteryPath.Resolve) &&
+                p.TotalVitalityRank == 2 && p.TotalResolveRank == 1 && p.VitalityRank == 1 && p.ResolveRank == 0 &&
+                p.VitalityHealthBonus == 40 && p.ResolveHealBonus == 10 && p.SpentMasteryPoints == 1,
+                "wm-weapon-vitality-and-resolve-affect-stats-without-legacy-ranks");
+        var stats = new CombatStats(p, 2);
+        require(stats.MaximumHealth == CombatRules.MaximumHealth(p) && stats.HealingBonus == 10 &&
+                !p.TrySpendMastery(MasteryPath.Resolve), "wm-combat-stats-consume-weapon-ranks");
+        string saved = p.SaveString();
+        require(CharacterProgression.TryLoad(saved, out var loaded) && loaded.SaveString() == saved &&
+                loaded.StableHash == p.StableHash && loaded.VitalityRank == 1 && loaded.TotalVitalityRank == 2 &&
+                loaded.ResolveHealBonus == 10 && loaded.UnspentMasteryPoints == 0, "wm-mixed-point-sources-save-roundtrip");
+
+        // A killing blow trains only the health removed, even when the reported hit is larger.
+        var fighter = new CharacterProgression(); fighter.Equipment.Enable(fighter);
+        var weapon = Give(fighter, WeaponFamily.Sword, false);
+        var duel = Duel(fighter, out var victim);
+        require(duel.TryEquipWeapon(weapon.KillOrdinal), "wm-overkill-fixture-equipped");
+        fighter.WeaponMastery.Record(WeaponFamily.Sword, 82);
+        victim.Health = 1;
+        var result = duel.ActivateSkill(0);
+        require(result.Activated && result.TotalDamage > 1 && victim.Health == 0 &&
+                fighter.WeaponMastery.Experience(WeaponFamily.Sword) == 83,
+                "wm-overkill-trains-effective-health-only");
+        require(result.WeaponLevelUps == 1 && result.TrainedFamily == WeaponFamily.Sword &&
+                result.Message.Contains("Schwertkunst Stufe 2"), "wm-levelup-feedback-identifies-trained-family");
+
+        // Recompute the outer checksum so malformed payloads reach decoding and inner validation.
+        string[] wrapper = saved.Split('|');
+        foreach (string encoded in new[] { "!", wrapper[1] + "\n", Convert.ToBase64String(new byte[] { 0xff }),
+                    Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("not-a-checkpoint")) })
+        {
+            string body = "AC21|" + encoded + "|" + wrapper[2];
+            string malformed = body + "|" + LootCatalog.HashText(body).ToString("X16", System.Globalization.CultureInfo.InvariantCulture);
+            require(!CharacterProgression.TryLoad(malformed, out var rejected) && rejected == null,
+                    "wm-rejects-malformed-inner-checkpoint-" + encoded);
+        }
+
+        // Independent known answers protect against matching errors in preview and actual-hit code.
+        var freshStats = new CombatStats(new CharacterProgression(), 0);
+        int[] normal = { 122, 110, 96, 96, 96, 96 };
+        int[] critical = { 183, 165, 144, 144, 144, 144 };
+        for (int kind = 0; kind <= 5; kind++)
+        {
+            require(CombatRules.PreviewDamage(freshStats, 10000, kind, false) == normal[kind] &&
+                    CombatRules.PreviewDamage(freshStats, 10000, kind, true) == critical[kind], "wm-preview-known-damage-" + kind);
+            foreach (int power in new[] { 0, 1, 3333, 10000, 17777 })
+            {
+                for (ulong seed = 1; seed <= 20; seed++)
+                {
+                    long actual = CombatRules.Damage(freshStats, power, kind, new DeterministicRng(seed), out bool crit);
+                    require(actual == CombatRules.PreviewDamage(freshStats, power, kind, crit),
+                            "wm-preview-hit-equality-" + kind + "-" + power + "-" + seed);
+                }
+            }
+            require(CombatRules.PreviewDamage(freshStats, 0, kind, true) == 1, "wm-zero-power-minimum-" + kind);
+        }
+        OutOfRange(() => CombatRules.PreviewDamage(freshStats, -1, 0, false), require, "wm-preview-negative-power");
+        foreach (int kind in new[] { -1, 6 })
+            OutOfRange(() => CombatRules.PreviewDamage(freshStats, 10000, kind, false), require, "wm-preview-invalid-enemy-" + kind);
+    }
+
 }
