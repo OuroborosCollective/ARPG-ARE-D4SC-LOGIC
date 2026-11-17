@@ -56,6 +56,60 @@ internal static class WeaponMasteryTests
         return body + "|" + LootCatalog.HashText(body).ToString("X16", System.Globalization.CultureInfo.InvariantCulture);
     }
 
+    private static void SetHealth(ArenaSimulation w, int value) =>
+        typeof(ArenaSimulation).GetProperty("PlayerHealth").GetSetMethod(true).Invoke(w, new object[] { value });
+
+    /// <summary>Earn one weapon point, put it into Vitality (level points go elsewhere) and heal to the raised maximum.
+    /// Equipping the sword runs the real checkpoint capture of road, woodland and journey.</summary>
+    private static void FundVitalityByWeapon(ArenaSimulation w, Action<bool, string> require, string key)
+    {
+        var p = w.Progression; p.Equipment.Enable(p);
+        var sword = Give(p, WeaponFamily.Sword, false);
+        p.WeaponMastery.Record(WeaponFamily.Sword, WeaponMasteryRules.ExperienceForLevel(5));
+        while (p.UnspentLevelPoints > BigInteger.Zero) p.TrySpendMastery(MasteryPath.Might);
+        int before = w.MaxPlayerHealth;
+        require(p.TrySpendMastery(MasteryPath.Vitality) && p.WeaponMastery.BonusRank(MasteryPath.Vitality) == 1 &&
+                w.MaxPlayerHealth == before + 20, "wm-weapon-vitality-raises-maximum-" + key);
+        SetHealth(w, w.MaxPlayerHealth);
+        require(w.TryEquipWeapon(sword.KillOrdinal) && w.PlayerHealth == w.MaxPlayerHealth, "wm-healed-to-weapon-maximum-" + key);
+    }
+
+    private static void HealedWeaponVitalityRoundTrips(Action<bool, string> require)
+    {
+        var woods = WoodlandTests.Enter();
+        FundVitalityByWeapon(woods, require, "woodland");
+        string saved = woods.Progression.SaveString();
+        require(woods.Progression.Woodland.SavedHealth == woods.MaxPlayerHealth && saved.StartsWith("AC21|", StringComparison.Ordinal) &&
+                CharacterProgression.TryLoad(saved, out var back) && back.SaveString() == saved &&
+                CombatRules.MaximumHealth(back) == woods.MaxPlayerHealth, "wm-healed-weapon-vitality-woodland-roundtrip");
+        string woodsSaved = saved;
+
+        var road = HunterEncounterTests.Road(); HunterEncounterTests.Move(road, 0, 0);
+        require(road.Progression.Road.Started, "wm-road-fixture-started");
+        FundVitalityByWeapon(road, require, "road");
+        saved = road.Progression.SaveString();
+        require(road.Progression.Road.SavedHealth == road.MaxPlayerHealth && saved.StartsWith("AC21|", StringComparison.Ordinal),
+                "wm-road-checkpoint-holds-weapon-raised-health");
+        require(CharacterProgression.TryLoad(saved, out back) && back.SaveString() == saved, "wm-healed-weapon-vitality-road-roundtrip");
+
+        var maps = JourneyPilotTests.Maps();
+        var journey = JourneyPilotTests.Enter(maps);
+        FundVitalityByWeapon(journey, require, "journey");
+        saved = journey.Progression.SaveString();
+        require(saved.StartsWith("AC21|", StringComparison.Ordinal) && CharacterProgression.TryLoad(saved, maps, out back) &&
+                back.SaveString() == saved && CombatRules.MaximumHealth(back) == journey.MaxPlayerHealth,
+                "wm-healed-weapon-vitality-journey-roundtrip");
+
+        // Review PR #59: the AC21 wrapper keeps the journey classification that decides which backup may replace a primary.
+        require(CharacterProgression.MayHoldJourneyProgress(saved) && CharacterProgression.MayHoldJourneyProgress(Unwrapped(saved)) &&
+                CharacterProgression.MayHoldJourneyProgress(saved.Substring(0, saved.Length - 24)) &&
+                !CharacterProgression.MayHoldJourneyProgress(woodsSaved) && !CharacterProgression.MayHoldJourneyProgress(Unwrapped(woodsSaved)) &&
+                !CharacterProgression.MayHoldJourneyProgress(null) && !CharacterProgression.MayHoldJourneyProgress(""),
+                "wm-journey-classification-survives-the-weapon-wrapper");
+        require(CharacterProgression.MayHoldJourneyProgress("AC21|@@@@@@@@|x|y") && CharacterProgression.MayHoldJourneyProgress("AC21|QU"),
+                "wm-unreadable-weapon-wrapper-counts-as-journey-progress");
+    }
+
     public static void Run(Action<bool, string> require)
     {
         require(WeaponMasteryRules.ExperienceForLevel(1) == 0 && WeaponMasteryRules.ExperienceForLevel(2) == 83 &&
@@ -75,11 +129,14 @@ internal static class WeaponMasteryTests
         require(WeaponMasteryRules.DamageBonusBp(4) == 0 && WeaponMasteryRules.DamageBonusBp(5) == 250 &&
                 WeaponMasteryRules.DamageBonusBp(10) == 500 && WeaponMasteryRules.DamageBonusBp(99) == 4750, "wm-two-and-a-half-percent-per-five-levels");
         var trained = WeaponMasteryRules.TrainedFamilies.ToArray();
-        require(trained.SequenceEqual(new[] { WeaponFamily.Sword, WeaponFamily.Dagger, WeaponFamily.Axe, WeaponFamily.Staff, WeaponFamily.Bow }) &&
-                !WeaponMasteryRules.Trains(WeaponFamily.Shield) && !WeaponMasteryRules.Trains(WeaponFamily.Mace) &&
-                !WeaponMasteryRules.Trains(WeaponFamily.Spear), "wm-every-droppable-attacking-family-has-its-own-skill");
-        require(Enumerable.Range(0, WeaponCatalog.Count).Select(i => WeaponCatalog.Get(i).Family)
-                .Where(f => f != WeaponFamily.Shield).Distinct().All(WeaponMasteryRules.Trains), "wm-catalog-families-covered");
+        // Owner decision 2026-11-17: the shield also has a skill (block chance instead of damage).
+        require(trained.SequenceEqual(new[] { WeaponFamily.Sword, WeaponFamily.Dagger, WeaponFamily.Axe, WeaponFamily.Staff, WeaponFamily.Bow, WeaponFamily.Shield }) &&
+                WeaponMasteryRules.Trains(WeaponFamily.Shield) && !WeaponMasteryRules.Trains(WeaponFamily.Mace) &&
+                !WeaponMasteryRules.Trains(WeaponFamily.Spear), "wm-every-droppable-weapon-type-has-its-own-skill");
+        require(Enumerable.Range(0, WeaponCatalog.Count).Select(i => WeaponCatalog.Get(i).Family).Distinct().All(WeaponMasteryRules.Trains),
+                "wm-catalog-families-covered");
+        require(WeaponMasteryRules.DamageBonusBp(WeaponFamily.Shield, 99) == 0 && WeaponMasteryRules.DamageBonusBp(WeaponFamily.Sword, 99) == 4750,
+                "wm-shield-skill-gives-no-damage-bonus");
 
         // Learn by doing through the real combat path.
         var p = new CharacterProgression(); p.Equipment.Enable(p);
@@ -135,6 +192,12 @@ internal static class WeaponMasteryTests
         require(!CharacterProgression.TryLoad(Forge(honest.Substring(0, honest.LastIndexOf('|')), "1,388,0,0,0,0,0,0,0,0,0,0"), out _),
                 "wm-rejects-nested-weapon-wrapper");
         require(!CharacterProgression.TryLoad(honest.Replace("|1,388,", "|1,389,"), out _), "wm-rejects-token-changed-without-checksum");
+        // Review PR #59: two huge ranks plus three must not wrap around to "one point spent".
+        require(!CharacterProgression.TryLoad(Forge(innerPayload, "1,388,0,0,0,0,0,0,0,2147483647,2147483647,3"), out _),
+                "wm-rejects-rank-sum-that-wraps-around");
+
+        // Review PR #59: a weapon point in Vitality raises the maximum before any saved health is validated.
+        HealedWeaponVitalityRoundTrips(require);
 
         // Determinism and damage preview used by the menu.
         var a = new CharacterProgression(); a.Equipment.Enable(a); var sa = Give(a, WeaponFamily.Sword, false);

@@ -88,14 +88,14 @@ namespace AreArpg.Core
             string prior=body+"|"+HashText(body).ToString("X16",CultureInfo.InvariantCulture);
             return "AC18|"+Convert.ToBase64String(Encoding.UTF8.GetBytes(prior))+"|"+Companion.Token();
         }
-        private static bool TryLoadCompanion(string saved,out CharacterProgression progress)
+        private static bool TryLoadCompanion(string saved,WeaponMasteryState restoring,out CharacterProgression progress)
         {
             progress=null;var f=saved.Split('|');if(f.Length!=4||f[3]!=HashText(string.Join("|",f,0,3)).ToString("X16",CultureInfo.InvariantCulture))return false;
             try
             {
                 byte[] bytes=Convert.FromBase64String(f[1]);if(Convert.ToBase64String(bytes)!=f[1])return false;
                 string inner=new UTF8Encoding(false,true).GetString(bytes);
-                if(!inner.StartsWith("AC17|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!CompanionState.TryRead(f[2],p,out var c))return false;
+                if(!inner.StartsWith("AC17|",StringComparison.Ordinal)||!TryLoadRestoring(inner,restoring,out var p)||!CompanionState.TryRead(f[2],p,out var c))return false;
                 p.Companion=c;progress=p;return true;
             }
             catch(Exception e) when(e is FormatException||e is ArgumentException||e is OverflowException){return false;}

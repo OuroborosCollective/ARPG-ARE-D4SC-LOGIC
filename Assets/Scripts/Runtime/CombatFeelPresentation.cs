@@ -175,8 +175,15 @@ namespace AreArpg.UnityClient
         }
 
         /// <summary>Per-frame cosmetic state: hit-stop, level-up detection, light fade and banner.</summary>
+        private int _shownBlocks;
+
         private void UpdateCombatFeel()
         {
+            if (_game != null && _game.BlockedAttacks != _shownBlocks)
+            {
+                if (_game.BlockedAttacks > _shownBlocks) _message = "Geblockt! Der Schild fängt den Angriff ab.";
+                _shownBlocks = _game.BlockedAttacks;
+            }
             bool stop = Time.unscaledTime < _hitStopUntil;
             if (stop && _hitStopped.Count == 0)
             {

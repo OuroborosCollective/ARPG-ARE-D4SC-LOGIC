@@ -79,6 +79,7 @@ namespace AreArpg.UnityClient
             _game = new ArenaSimulation(DemoSeed, saved,
                 saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1, _journeyMaps);
             if (!_storageFault) _game.Progression.Equipment.Enable(_game.Progression);
+            _savedWeaponLevels = WeaponLevelSum(_game.Progression);
             if (_game.IsVillage)
                 _message = "Aschengrenze: Lager, Wache und Nordpass. Deine Taten bleiben in Erinnerung.";
             if (_game.Progression.EntryAct == 1)
@@ -104,13 +105,31 @@ namespace AreArpg.UnityClient
                 return true;
             }
             if (CharacterProgression.TryLoad(primary, _journeyMaps, out saved)) return true;
-            // A failed AC20 checkpoint may only fall back to another AC20 checkpoint that validates against the bound
-            // map catalog. An older backup would silently drop journey progress and later overwrite it.
-            bool journeyCheckpoint = primary.StartsWith("AC20|", StringComparison.Ordinal);
-            if ((!journeyCheckpoint || backup.StartsWith("AC20|", StringComparison.Ordinal)) &&
+            // A failed journey checkpoint (AC20, also inside an AC21 weapon-skill wrapper) may only fall back to another
+            // journey checkpoint that validates against the bound map catalog. An older backup would silently drop
+            // journey progress and later overwrite it.
+            bool journeyCheckpoint = CharacterProgression.MayHoldJourneyProgress(primary);
+            if ((!journeyCheckpoint || CharacterProgression.MayHoldJourneyProgress(backup)) &&
                 CharacterProgression.TryLoad(backup, _journeyMaps, out saved)) return true;
             saved = null;
             return false;
+        }
+
+        /// <summary>Sum of all weapon skill levels at the last save or load. A different sum is a level-up (an
+        /// attack or a shield block) that must reach the save slot even when nothing died.</summary>
+        private int _savedWeaponLevels;
+
+        private static int WeaponLevelSum(CharacterProgression progress)
+        {
+            var families = WeaponMasteryRules.TrainedFamilies;
+            int sum = 0;
+            for (int i = 0; i < families.Count; i++) sum += progress.WeaponMastery.Level(families[i]);
+            return sum;
+        }
+
+        private void SaveWeaponLevelUps()
+        {
+            if (_game != null && !_storageFault && WeaponLevelSum(_game.Progression) != _savedWeaponLevels) SaveCharacter();
         }
 
         /// <summary>Persist the active Core progression; gameplay data never comes from visual state.</summary>
@@ -123,6 +142,7 @@ namespace AreArpg.UnityClient
         private void SaveCharacter(CharacterProgression progress)
         {
             if (_storageFault || progress == null) return;
+            _savedWeaponLevels = WeaponLevelSum(progress);
             string primary = PlayerPrefs.GetString(CharacterSaveKey, "");
             CharacterProgression previous;
             if (CharacterProgression.TryLoad(primary, _journeyMaps, out previous))
@@ -1039,7 +1059,7 @@ namespace AreArpg.UnityClient
                     _message = outcome.Message;
                     bool learned = _game.Progression.PracticeLevel(slot) > previousRank;
                     if (learned) _message += " / Durch Uebung gewachsen: Rang " + _game.Progression.PracticeLevel(slot);
-                    if (outcome.Kills > 0 || learned) SaveCharacter();
+                    if (outcome.Kills > 0 || learned || outcome.WeaponLevelUps > 0) SaveCharacter();
                 }
                 if (_pendingPickup)
                 {
@@ -1051,6 +1071,7 @@ namespace AreArpg.UnityClient
                 long oldX = _game.PlayerXmm, oldZ = _game.PlayerZmm; int oldHealth = _game.PlayerHealth;
                 _game.Step();
                 _atmosphere.ObserveTick(_game, oldX, oldZ, oldHealth);
+                SaveWeaponLevelUps(); // a shield trains on incoming attacks inside the step
                 if ((_game.Progression.Road.Started || _game.Progression.Investigation.Active) && _game.CurrentTick % 10 == 0) SaveCharacter();
                 if ((_game.Progression.EntryAct >= 2 || _game.CryptCleared) && _game.AtAnyPassage)
                 {

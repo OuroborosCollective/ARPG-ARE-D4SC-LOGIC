@@ -83,7 +83,9 @@ namespace AreArpg.UnityClient
         {
             bool equipped=(_game.Progression.Equipment.Weapon?.Ordinal==item.Ordinal)||(_game.Progression.Equipment.Shield?.Ordinal==item.Ordinal);
             bool changed=equipped?_game.TryUnequipWeapon(item.Definition.Family==WeaponFamily.Shield):_game.TryEquipWeapon(item.Ordinal);
-            _message=changed?(equipped?"Abgelegt: ":"Ausgerüstet: ")+item.DisplayName:"Ein Schild benötigt eine freie Nebenhand. Lege zuerst die Zweihandwaffe ab.";
+            _message=changed?(equipped?"Abgelegt: ":"Ausgerüstet: ")+item.DisplayName:
+                item.Definition.TwoHanded&&_game.Progression.Equipment.Shield!=null?"Mit Schild nur Einhandwaffen. Lege zuerst den Schild ab.":
+                "Ein Schild benötigt eine freie Nebenhand. Lege zuerst die Zweihandwaffe ab.";
             if(changed){SaveCharacter();UpdateEquipmentPresentation();}BuildMenu();
         }
     }

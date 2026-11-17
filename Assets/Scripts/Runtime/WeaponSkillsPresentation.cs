@@ -49,8 +49,8 @@ namespace AreArpg.UnityClient
             float y = 34f;
             var intro = AshenUiTheme.Label("Intro", skills.transform, 12, AshenUiTheme.Muted, TextAnchor.UpperLeft);
             AshenUiTheme.Place(intro.rectTransform, new Rect(16f, y, leftW - 32f, 34f));
-            intro.text = "Lernen durch Tun: jeder wirksame Treffer trainiert die angelegte Waffenart. " +
-                         "Alle 5 Stufen: +1 freier Wertepunkt und +2,5 % Schaden mit dieser Waffe.";
+            intro.text = "Lernen durch Tun: wirksame Treffer trainieren die angelegte Waffe, erlittene Angriffe den Schild. " +
+                         "Alle 5 Stufen +1 freier Wertepunkt; Waffen +2,5 % Schaden, Schild +0,25 % Block je Stufe.";
             Fit(intro);
             y += 38f;
             WeaponFamily? equipped = p.TrainingFamily;
@@ -59,7 +59,7 @@ namespace AreArpg.UnityClient
             {
                 int level = p.WeaponMastery.Level(family);
                 long xp = p.WeaponMastery.Experience(family);
-                bool active = equipped.HasValue && equipped.Value == family;
+                bool active = family == WeaponFamily.Shield ? p.Equipment.Shield != null : equipped.HasValue && equipped.Value == family;
                 var name = AshenUiTheme.Label("Skill_" + family, skills.transform, 14, active ? AshenUiTheme.Ember : AshenUiTheme.Parchment,
                     TextAnchor.MiddleLeft, FontStyle.Bold);
                 AshenUiTheme.Place(name.rectTransform, new Rect(16f, y, leftW * 0.6f, 20f));
@@ -80,15 +80,17 @@ namespace AreArpg.UnityClient
                 AshenUiTheme.Place(detail.rectTransform, new Rect(16f, y + 32f, leftW - 32f, 18f));
                 detail.text = (level >= WeaponMasteryRules.MaxLevel ? Thousands(xp) + " EP · Höchststufe"
                                    : Thousands(xp) + " / " + Thousands(next) + " EP") +
-                              "   ·   +" + WeaponMasteryRules.StatPoints(level) + " Wertepunkte   ·   +" +
-                              Percent(WeaponMasteryRules.DamageBonusBp(level)) + " Schaden";
+                              "   ·   +" + WeaponMasteryRules.StatPoints(level) + " Wertepunkte   ·   " +
+                              (family == WeaponFamily.Shield ? "Block " + Percent(WeaponProfiles.BlockChanceBp(level))
+                                  : "+" + Percent(WeaponMasteryRules.DamageBonusBp(level)) + " Schaden") +
+                              (family == WeaponFamily.Bow ? "   ·   Treffsicherheit " + Percent(BowAccuracy(level)) : "");
                 Fit(detail);
                 y += rowH;
             }
             var foot = AshenUiTheme.Label("ShieldNote", skills.transform, 11, AshenUiTheme.Muted, TextAnchor.LowerLeft);
             AshenUiTheme.Place(foot.rectTransform, new Rect(16f, size.y - 40f, leftW - 32f, 30f));
             foot.text = equipped.HasValue ? "Trainiert gerade: " + WeaponMasteryRules.SkillName(equipped.Value) + "."
-                                          : "Ohne Waffe trainiert keine Waffenkunst. Schilde (Nebenhand) trainieren noch nicht.";
+                                          : "Ohne Waffe trainiert keine Waffenkunst.";
             Fit(foot);
 
             // Right: stats with their effect and every damage type with its numbers.
@@ -135,11 +137,18 @@ namespace AreArpg.UnityClient
             var dh = AshenUiTheme.Label("DamageHead", right.transform, 13, AshenUiTheme.Bronze, TextAnchor.MiddleLeft, FontStyle.Bold);
             AshenUiTheme.Place(dh.rectTransform, new Rect(16f, y, rightW - 32f, 20f));
             string weapon = p.Equipment.Weapon != null ? p.Equipment.Weapon.Definition.Name : "ohne Waffe";
-            dh.text = "SCHADENSARTEN  ·  " + weapon + "  ·  Krit " + Percent(CombatRules.CriticalChanceBp) +
+            dh.text = "SCHADENSARTEN  ·  " + weapon + "  ·  Krit " + Percent(new CombatStats(p, 0).CritChanceBp) +
                       " für ×" + Percent(CombatRules.CriticalMultiplierBp / 100).Replace(" %", "");
             Fit(dh);
             y += 24f;
-            float lineH = Mathf.Min(44f, (size.y - y - 48f) / (DamageSkillSlots.Length + 1));
+            // Shared shares once; only the discipline differs per skill and is shown in its row.
+            var parts = AshenUiTheme.Label("DamageParts", right.transform, 11, AshenUiTheme.Muted, TextAnchor.UpperLeft);
+            AshenUiTheme.Place(parts.rectTransform, new Rect(16f, y, rightW - 32f, 16f));
+            parts.text = "Anteile: Basis " + Percent(CombatStats.BaseAdditiveBp) + " · Macht " + Percent(p.MightDamageBonusBp) +
+                         " · Waffenaffix " + Percent(p.Equipment.Bonus(WeaponAffix.Power)) +
+                         " · Waffenkunst " + Percent(p.WeaponMasteryDamageBonusBp);
+            Fit(parts);
+            y += 20f;
             foreach (int slot in DamageSkillSlots)
             {
                 var skill = SkillCatalog.Get(slot);
@@ -148,34 +157,96 @@ namespace AreArpg.UnityClient
                 long ghoulCrit = CombatRules.PreviewDamage(stats, skill.PowerBp, 0, true);
                 long knight = CombatRules.PreviewDamage(stats, skill.PowerBp, 1, false);
                 long knightCrit = CombatRules.PreviewDamage(stats, skill.PowerBp, 1, true);
-                var t = AshenUiTheme.Label("Damage" + slot, right.transform, 13, AshenUiTheme.Parchment, TextAnchor.UpperLeft, FontStyle.Bold);
-                AshenUiTheme.Place(t.rectTransform, new Rect(16f, y, rightW * 0.36f - 16f, 20f));
-                t.text = SkillName(slot) + "  +" + Percent(stats.AdditiveDamageBp);
+                var t = AshenUiTheme.Label("Damage" + slot, right.transform, 13, AshenUiTheme.Parchment, TextAnchor.MiddleLeft, FontStyle.Bold);
+                AshenUiTheme.Place(t.rectTransform, new Rect(16f, y, rightW * 0.40f - 16f, 20f));
+                t.text = SkillName(slot) + "  +" + Percent(stats.AdditiveDamageBp) + "  (Disziplin " + Percent(p.PracticeDamageBonusBp(slot)) + ")";
                 Fit(t);
-                var hits = AshenUiTheme.Label("DamageHits" + slot, right.transform, 13, AshenUiTheme.Parchment, TextAnchor.UpperRight, FontStyle.Bold);
-                AshenUiTheme.Place(hits.rectTransform, new Rect(rightW * 0.36f, y, rightW * 0.64f - 16f, 20f));
-                hits.text = "Ghul " + ghoul + " / Krit " + ghoulCrit + "   ·   Ritter " + knight + " / Krit " + knightCrit;
+                var hits = AshenUiTheme.Label("DamageHits" + slot, right.transform, 13, AshenUiTheme.Parchment, TextAnchor.MiddleRight, FontStyle.Bold);
+                AshenUiTheme.Place(hits.rectTransform, new Rect(rightW * 0.40f, y, rightW * 0.60f - 16f, 20f));
+                hits.text = "Ghul " + ghoul + " / Krit " + ghoulCrit + "  ·  Ritter " + knight + " / Krit " + knightCrit;
                 Fit(hits);
-                var parts = AshenUiTheme.Label("DamageParts" + slot, right.transform, 11, AshenUiTheme.Muted, TextAnchor.UpperLeft);
-                AshenUiTheme.Place(parts.rectTransform, new Rect(16f, y + 19f, rightW - 32f, 18f));
-                parts.text = "Basis " + Percent(CombatStats.BaseAdditiveBp) + " · Macht " + Percent(p.MightDamageBonusBp) +
-                             " · Waffenaffix " + Percent(p.Equipment.Bonus(WeaponAffix.Power)) +
-                             " · Disziplin " + Percent(p.PracticeDamageBonusBp(slot)) +
-                             " · Waffenkunst " + Percent(p.WeaponMasteryDamageBonusBp);
-                Fit(parts);
-                y += lineH;
+                y += 23f;
             }
-            var heal = AshenUiTheme.Label("Healing", right.transform, 13, AshenUiTheme.Parchment, TextAnchor.UpperLeft, FontStyle.Bold);
+            var heal = AshenUiTheme.Label("Healing", right.transform, 13, AshenUiTheme.Parchment, TextAnchor.MiddleLeft, FontStyle.Bold);
             AshenUiTheme.Place(heal.rectTransform, new Rect(16f, y, rightW - 32f, 20f));
             var guard = SkillCatalog.Get(2);
             heal.text = SkillName(2) + "  heilt " + (guard.BaseHealing + p.ResolveHealBonus + p.PracticeHealingBonus) +
                         " Leben  (Basis " + guard.BaseHealing + " · Entschlossenheit " + p.ResolveHealBonus +
                         " · Disziplin " + p.PracticeHealingBonus + ")";
             Fit(heal);
+            y += 28f;
+            BuildWeaponProfileBlock(right.transform, p, rightW, y);
             var note = AshenUiTheme.Label("PreviewNote", right.transform, 11, AshenUiTheme.Muted, TextAnchor.LowerLeft);
             AshenUiTheme.Place(note.rectTransform, new Rect(16f, size.y - 40f, rightW - 32f, 30f));
-            note.text = "Werte je Treffer nach Rüstung (Ghul 10 %, Ritter 22 %), exakt nach den Kampfregeln berechnet.";
+            note.text = "Werte je Treffer nach Rüstung (Ghul −" + ArmorReduction(0) + ", Ritter −" + ArmorReduction(1) +
+                        "), exakt nach den Kampfregeln berechnet.";
             Fit(note);
+        }
+
+        private static int BowAccuracy(int level)
+        {
+            foreach (var definition in AllWeaponDefinitions())
+                if (definition.Family == WeaponFamily.Bow) return WeaponProfiles.For(definition).Accuracy(level);
+            return 10000;
+        }
+
+        private static System.Collections.Generic.IEnumerable<WeaponDefinition> AllWeaponDefinitions()
+        {
+            for (int i = 0; i < WeaponCatalog.Count; i++) yield return WeaponCatalog.Get(i);
+        }
+
+        /// <summary>How the carried weapon fights and carries: speed, reach, weight, crit, accuracy, movement, block.</summary>
+        private void BuildWeaponProfileBlock(Transform parent, CharacterProgression p, float width, float y)
+        {
+            var weapon = p.Equipment.Weapon;
+            var profile = p.CarriedProfile;
+            var head = AshenUiTheme.Label("ProfileHead", parent, 13, AshenUiTheme.Bronze, TextAnchor.MiddleLeft, FontStyle.Bold);
+            AshenUiTheme.Place(head.rectTransform, new Rect(16f, y, width - 32f, 20f));
+            head.text = "WAFFENPROFIL  ·  " + profile.Name;
+            Fit(head);
+            int cooldown = _game.AttackCooldown(0);
+            var stats = new CombatStats(p, 0);
+            int power = SkillCatalog.Get(0).PowerBp;
+            long normal = CombatRules.PreviewDamage(stats, power, 0, false), crit = CombatRules.PreviewDamage(stats, power, 0, true);
+            long perSecond = (normal * (10000 - stats.CritChanceBp) + crit * stats.CritChanceBp) / 10000L * p.WeaponAccuracyBp / 10000L * 10L / cooldown;
+            var line = AshenUiTheme.Label("Profile", parent, 11, AshenUiTheme.Muted, TextAnchor.UpperLeft);
+            AshenUiTheme.Place(line.rectTransform, new Rect(16f, y + 20f, width - 32f, 18f));
+            line.text = "Tempo " + Decimal(100L * 10 / cooldown) + " Schläge/s · Reichweite " + Decimal(_game.AttackRange(0) / 10) + " m · " +
+                        "Gewicht ×" + Decimal(profile.DamageBp / 100) + " · Krit " + Percent(stats.CritChanceBp) +
+                        " · Bewegung " + Percent(p.MoveSpeedBp);
+            Fit(line);
+            var dps = AshenUiTheme.Label("ProfileDps", parent, 11, AshenUiTheme.Parchment, TextAnchor.UpperLeft);
+            AshenUiTheme.Place(dps.rectTransform, new Rect(16f, y + 38f, width - 32f, 18f));
+            dps.text = "Klinge im Mittel ≈ " + perSecond + " Schaden pro Sekunde gegen einen Ghul (mit Krit" +
+                       (profile.CanMiss ? " und Fehlschüssen)" : ")");
+            Fit(dps);
+            string extra = "";
+            if (weapon != null && profile.CanMiss)
+                extra = "Treffsicherheit " + Percent(p.WeaponAccuracyBp) + " (+1,25 % je Bogenstufe, 100 % ab Stufe 32)";
+            if (p.Equipment.Shield != null)
+                extra += (extra.Length > 0 ? "  ·  " : "") + "Schild: Block " + Percent(p.BlockChanceBp) + " · Schadensminderung " +
+                         Percent(p.Equipment.Shield.Definition.BasePower) + " · Bewegung −" + Percent(WeaponProfiles.ShieldMovePenaltyBp) +
+                         " · nur Einhandwaffen";
+            var more = AshenUiTheme.Label("ProfileExtra", parent, 11, AshenUiTheme.Muted, TextAnchor.UpperLeft);
+            AshenUiTheme.Place(more.rectTransform, new Rect(16f, y + 56f, width - 32f, 18f));
+            more.text = extra;
+            Fit(more);
+        }
+
+        /// <summary>Hundredths as a German decimal with at most two places, e.g. 330 -> "3,3".</summary>
+        /// <summary>Share of damage that armour removes in the Core rule, armour / (1 + armour), rounded to a tenth.</summary>
+        private static string ArmorReduction(int enemyKind)
+        {
+            long armor = CombatRules.ArmorBp(enemyKind);
+            long tenths = (armor * 2000 / (10000 + armor) + 1) / 2;
+            return Decimal(tenths * 10) + " %";
+        }
+
+        private static string Decimal(long hundredths)
+        {
+            long whole = hundredths / 100, rest = System.Math.Abs(hundredths % 100);
+            string fraction = rest == 0 ? "" : "," + (rest % 10 == 0 ? (rest / 10).ToString(CultureInfo.InvariantCulture) : rest.ToString("00", CultureInfo.InvariantCulture));
+            return whole.ToString(CultureInfo.InvariantCulture) + fraction;
         }
 
         /// <summary>Dense rows shrink to the space a phone or a scaled desktop canvas actually gives them.</summary>

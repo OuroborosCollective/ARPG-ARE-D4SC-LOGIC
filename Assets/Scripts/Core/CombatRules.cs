@@ -9,6 +9,8 @@ namespace AreArpg.Core
         public int AdditiveDamageBp { get; }
         public int MaximumHealth { get; }
         public int HealingBonus { get; }
+        /// <summary>Critical chance of the carried weapon type (default 19 % unarmed).</summary>
+        public int CritChanceBp { get; }
         /// <summary>The unconditional additive damage share every character starts with (+20 %).</summary>
         public const int BaseAdditiveBp = 2000;
 
@@ -16,11 +18,22 @@ namespace AreArpg.Core
         public CombatStats(CharacterProgression progression, int skillSlot)
         {
             if (progression == null) throw new ArgumentNullException(nameof(progression));
-            WeaponPoints = (progression.Equipment.Weapon?.Definition.BasePower ?? 95L) + progression.WeaponBonus;
+            var weapon = progression.Equipment.Weapon;
+            var profile = WeaponProfiles.For(weapon?.Definition);
+            // The weapon type weights the weapon's own power; upgrade points from loot stay unweighted.
+            WeaponPoints = (weapon != null ? weapon.Definition.BasePower * (long)profile.DamageBp / 10000L : 95L) + progression.WeaponBonus;
+            CritChanceBp = weapon != null ? profile.CritChanceBp : CombatRules.CriticalChanceBp;
             AdditiveDamageBp = BaseAdditiveBp + progression.Equipment.Bonus(WeaponAffix.Power) + progression.MightDamageBonusBp +
                 progression.PracticeDamageBonusBp(skillSlot) + progression.WeaponMasteryDamageBonusBp;
             MaximumHealth = CombatRules.MaximumHealth(progression);
             HealingBonus = progression.ResolveHealBonus + progression.PracticeHealingBonus;
+        }
+
+        /// <summary>Explicit values, for previews and rule tests only.</summary>
+        internal CombatStats(long weaponPoints, int additiveDamageBp, int critChanceBp)
+        {
+            WeaponPoints = weaponPoints; AdditiveDamageBp = additiveDamageBp; CritChanceBp = critChanceBp;
+            MaximumHealth = 0; HealingBonus = 0;
         }
     }
 
@@ -48,7 +61,7 @@ namespace AreArpg.Core
             if (rng == null) throw new ArgumentNullException(nameof(rng));
             if (powerBp < 0 || enemyKind < 0 || enemyKind > 5) throw new ArgumentOutOfRangeException();
             return FixedMath.Damage(stats.WeaponPoints, powerBp, MainStat, stats.AdditiveDamageBp,
-                ArmorBp(enemyKind), CriticalChanceBp, rng, out critical);
+                ArmorBp(enemyKind), stats.CritChanceBp, rng, out critical);
         }
 
         /// <summary>

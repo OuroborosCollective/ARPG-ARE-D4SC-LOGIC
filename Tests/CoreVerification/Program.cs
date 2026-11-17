@@ -31,6 +31,7 @@ internal static class Program
             NpcSocialTests.Run(Require);
             CoinDenominationTests.Run(Require);
             WeaponMasteryTests.Run(Require);
+            WeaponProfileTests.Run(Require);
             NpcSpeechTests.Run(Require);
             NpcCalmTests.Run(Require);
             ArrivalSceneTests.Run(Require);

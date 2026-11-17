@@ -53,7 +53,7 @@ namespace AreArpg.Core
             string previous = body + "|" + HashText(body).ToString("X16", CultureInfo.InvariantCulture);
             return "AC19|" + Convert.ToBase64String(Encoding.UTF8.GetBytes(previous)) + "|" + Freight.Token();
         }
-        private static bool TryLoadFreight(string saved, out CharacterProgression progress)
+        private static bool TryLoadFreight(string saved, WeaponMasteryState restoring, out CharacterProgression progress)
         {
             progress=null;
             if(saved.Length > 64*1024*1024) return false;
@@ -66,7 +66,7 @@ namespace AreArpg.Core
                 string inner=new UTF8Encoding(false,true).GetString(bytes);
                 if (!(inner.StartsWith("AC15|",StringComparison.Ordinal)||inner.StartsWith("AC16|",StringComparison.Ordinal)||
                       inner.StartsWith("AC17|",StringComparison.Ordinal)||inner.StartsWith("AC18|",StringComparison.Ordinal)) ||
-                    !TryLoad(inner,out var p) || !p.Woodland.Active || !p.Woodland.ReachedAschenzoll ||
+                    !TryLoadRestoring(inner,restoring,out var p) || !p.Woodland.Active || !p.Woodland.ReachedAschenzoll ||
                     !FreightState.TryRead(f[2],out var freight)) return false;
                 p.Freight=freight;
                 if(p.SaveString()!=saved) return false;

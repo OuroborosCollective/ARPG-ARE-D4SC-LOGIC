@@ -25,9 +25,9 @@ namespace AreArpg.Core
         // Classic table: floor(sum(floor(l + 300 * 2^(l/7))) / 4); index = level. Frozen for revision 1.
         private static readonly long[] Table = { 0,0,83,174,276,388,512,650,801,969,1154,1358,1584,1833,2107,2411,2746,3115,3523,3973,4470,5018,5624,6291,7028,7842,8740,9730,10824,12031,13363,14833,16456,18247,20224,22406,24815,27473,30408,33648,37224,41171,45529,50339,55649,61512,67983,75127,83014,91721,101333,111945,123660,136594,150872,166636,184040,203254,224466,247886,273742,302288,333804,368599,407015,449428,496254,547953,605032,668051,737627,814445,899257,992895,1096278,1210421,1336443,1475581,1629200,1798808,1986068,2192818,2421087,2673114,2951373,3258594,3597792,3972294,4385776,4842295,5346332,5902831,6517253,7195629,7944614,8771558,9684577,10692629,11805606,13034431 };
         private static readonly WeaponFamily[] Trained =
-            { WeaponFamily.Sword, WeaponFamily.Dagger, WeaponFamily.Axe, WeaponFamily.Staff, WeaponFamily.Bow };
+            { WeaponFamily.Sword, WeaponFamily.Dagger, WeaponFamily.Axe, WeaponFamily.Staff, WeaponFamily.Bow, WeaponFamily.Shield };
 
-        /// <summary>Droppable weapon types that attack. Shields sit in the off-hand and never strike.</summary>
+        /// <summary>Every droppable weapon type. The shield never strikes; its skill raises the block chance instead.</summary>
         public static IReadOnlyList<WeaponFamily> TrainedFamilies => Trained;
         public static bool Trains(WeaponFamily family) => Array.IndexOf(Trained, family) >= 0;
 
@@ -52,6 +52,7 @@ namespace AreArpg.Core
         }
 
         public static int DamageBonusBp(int level) => StatPoints(level) * DamageBonusBpPerStep;
+        public static int DamageBonusBp(WeaponFamily family, int level) => family == WeaponFamily.Shield ? 0 : DamageBonusBp(level);
 
         public static string SkillName(WeaponFamily family)
         {
@@ -62,6 +63,7 @@ namespace AreArpg.Core
                 case WeaponFamily.Axe: return "Axtkunst";
                 case WeaponFamily.Staff: return "Stabkunst";
                 case WeaponFamily.Bow: return "Bogenkunst";
+                case WeaponFamily.Shield: return "Schildkunst";
                 default: throw new ArgumentOutOfRangeException(nameof(family));
             }
         }
@@ -138,12 +140,14 @@ namespace AreArpg.Core
                 if (xp > 0 && !WeaponMasteryRules.Trains((WeaponFamily)i)) return false;
                 s._experience[i] = xp;
             }
+            long spent = 0; // summed as long: three int ranks must never wrap around to a small total
             for (int i = 0; i < 3; i++)
             {
                 if (!Canonical(f[1 + WeaponMasteryRules.FamilyCount + i], int.MaxValue, out long rank)) return false;
                 s._bonusRanks[i] = (int)rank;
+                spent += rank;
             }
-            if (!s.HasProgress || s.StatPointsSpent < 0 || s.StatPointsSpent > s.StatPointsEarned) return false;
+            if (!s.HasProgress || spent > s.StatPointsEarned) return false;
             state = s;
             return true;
         }
@@ -165,7 +169,7 @@ namespace AreArpg.Core
 
         public int WeaponMasteryDamageBonusBp
         {
-            get { var family = TrainingFamily; return family.HasValue ? WeaponMasteryRules.DamageBonusBp(WeaponMastery.Level(family.Value)) : 0; }
+            get { var family = TrainingFamily; return family.HasValue ? WeaponMasteryRules.DamageBonusBp(family.Value, WeaponMastery.Level(family.Value)) : 0; }
         }
 
         public BigInteger TotalMightRank => MightRank + WeaponMastery.BonusRank(MasteryPath.Might);
@@ -182,13 +186,33 @@ namespace AreArpg.Core
             return WeaponMastery.Record(family.Value, (long)PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
         }
 
+        /// <summary>True only while an AC21 checkpoint restores its inner checkpoint: the weapon ranks already count for
+        /// every saved-health check there, while the inner round-trip checks still compare the inner payload.</summary>
+        private bool _restoringWeaponMastery;
+
         /// <summary>AC21 wraps the complete previous checkpoint only once weapon skills have progress.</summary>
         private string WeaponMasteryPayload()
         {
             string previous = Payload();
-            if (!WeaponMastery.HasProgress) return previous;
+            if (!WeaponMastery.HasProgress || _restoringWeaponMastery) return previous;
             string inner = previous + "|" + HashText(previous).ToString("X16", CultureInfo.InvariantCulture);
             return "AC21|" + Convert.ToBase64String(Encoding.UTF8.GetBytes(inner)) + "|" + WeaponMastery.Token();
+        }
+
+        /// <summary>True when a checkpoint holds journey progress, also inside an AC21 weapon-skill wrapper. Decides which
+        /// backup may replace a primary that fails to load. An AC21 checkpoint whose inner part cannot be read counts as
+        /// journey progress, so recovery never picks an older backup over it.</summary>
+        public static bool MayHoldJourneyProgress(string saved)
+        {
+            if (string.IsNullOrEmpty(saved)) return false;
+            if (saved.StartsWith("AC20|", StringComparison.Ordinal)) return true;
+            if (!saved.StartsWith("AC21|", StringComparison.Ordinal)) return false;
+            int end = saved.IndexOf('|', 5);
+            string inner = end < 0 ? saved.Substring(5) : saved.Substring(5, end - 5);
+            // Eight base64 characters hold the first six bytes: enough for the "AC20|" prefix, even after truncation.
+            if (inner.Length < 8) return true;
+            try { return Encoding.UTF8.GetString(Convert.FromBase64String(inner.Substring(0, 8))).StartsWith("AC20|", StringComparison.Ordinal); }
+            catch (FormatException) { return true; }
         }
 
         private static bool TryLoadWeaponMastery(string saved, JourneyMapCatalog maps, out CharacterProgression progress)
@@ -202,9 +226,11 @@ namespace AreArpg.Core
                 byte[] bytes = Convert.FromBase64String(f[1]);
                 if (Convert.ToBase64String(bytes) != f[1]) return false;
                 string inner = new UTF8Encoding(false, true).GetString(bytes);
-                if (inner.StartsWith("AC21|", StringComparison.Ordinal) || !TryLoad(inner, maps, out var p) ||
-                    !WeaponMasteryState.TryRead(f[2], out var mastery)) return false;
-                p.WeaponMastery = mastery;
+                // Read the weapon ranks first: a Vitality rank bought with weapon points raises the maximum health
+                // that the inner checkpoint's saved-health checks compare against.
+                if (inner.StartsWith("AC21|", StringComparison.Ordinal) || !WeaponMasteryState.TryRead(f[2], out var mastery) ||
+                    !TryLoadJourney(inner, maps, mastery, out var p)) return false;
+                p._restoringWeaponMastery = false;
                 if (p.SaveString() != saved) return false;
                 progress = p;
                 return true;

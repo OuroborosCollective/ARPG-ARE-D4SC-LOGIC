@@ -197,15 +197,19 @@ namespace AreArpg.Core
         }
 
         /// <summary>Validate checkpoint version, checksum, entry revision and item invariants; AC6 remains reserved.</summary>
-        public static bool TryLoad(string saved, out CharacterProgression progress)
+        public static bool TryLoad(string saved, out CharacterProgression progress) => TryLoadRestoring(saved, null, out progress);
+
+        /// <summary>restoring carries the weapon skills of an enclosing AC21 checkpoint into the progression this chain
+        /// creates, so every saved-health check below already uses the final maximum health.</summary>
+        private static bool TryLoadRestoring(string saved, WeaponMasteryState restoring, out CharacterProgression progress)
         {
             progress = null;
             if (string.IsNullOrEmpty(saved)) return false;
-            if (saved.StartsWith("AC21|", StringComparison.Ordinal)) return TryLoadWeaponMastery(saved, null, out progress);
-            if(saved.StartsWith("AC19|",StringComparison.Ordinal))return TryLoadFreight(saved,out progress);
-            if(saved.StartsWith("AC18|",StringComparison.Ordinal))return TryLoadCompanion(saved,out progress);
-            if(saved.StartsWith("AC17|",StringComparison.Ordinal))return TryLoadForge(saved,out progress);
-            if(saved.StartsWith("AC16|",StringComparison.Ordinal))return TryLoadEquipment(saved,out progress);
+            if (saved.StartsWith("AC21|", StringComparison.Ordinal)) return restoring == null && TryLoadWeaponMastery(saved, null, out progress);
+            if(saved.StartsWith("AC19|",StringComparison.Ordinal))return TryLoadFreight(saved,restoring,out progress);
+            if(saved.StartsWith("AC18|",StringComparison.Ordinal))return TryLoadCompanion(saved,restoring,out progress);
+            if(saved.StartsWith("AC17|",StringComparison.Ordinal))return TryLoadForge(saved,restoring,out progress);
+            if(saved.StartsWith("AC16|",StringComparison.Ordinal))return TryLoadEquipment(saved,restoring,out progress);
             string[] parts = saved.Split('|');
             bool legacy = parts[0] == "AC1" && parts.Length == 6;
             bool ac2 = parts[0] == "AC2" && parts.Length == 9;
@@ -297,7 +301,8 @@ namespace AreArpg.Core
                 LootCollected = loot, LootOrdinal = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
                 UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct,
-                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland
+                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland,
+                WeaponMastery = restoring ?? new WeaponMasteryState(), _restoringWeaponMastery = restoring != null
             };
             if (ac15 && woodland.SavedHealth > CombatRules.MaximumHealth(progress)) { progress=null; return false; }
             if (ac11 && investigation.SavedHealth > CombatRules.MaximumHealth(progress)) { progress = null; return false; }

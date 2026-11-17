@@ -64,6 +64,15 @@ namespace AreArpg.PlayMode.Tests
                 "An out-of-range rejected bow attack must not animate");
             var target=Game.Monsters[0];target.Xmm=Game.PlayerXmm+1400;target.Zmm=Game.PlayerZmm;target.Health=1000;target.MaxHealth=1000;
             queue.Enqueue(0);TickOnce();
+            // Owner decision 2026-11-17: a low-level bow can miss. Shoot again after the cooldown until the Core reports a hit.
+            for(int retry=0;retry<12&&target.Health==1000;retry++)
+            {
+                for(int wait=0;wait<12&&Game.Cooldowns[0]>0;wait++)TickOnce();
+                yield return new WaitForSeconds(.6f); // real time between two shots, as in play; hero actions are spaced in real time
+                target.Xmm=Game.PlayerXmm+1400;target.Zmm=Game.PlayerZmm;
+                animator.ResetTrigger("Melee");animator.Play(idleState,0,0);animator.Update(0);
+                queue.Enqueue(0);TickOnce();
+            }
             Assert.Less(target.Health,1000,"The actual equipped bow must land a Core hit before presentation is inspected");
             animator.Update(0);
             Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).shortNameHash==attackState||

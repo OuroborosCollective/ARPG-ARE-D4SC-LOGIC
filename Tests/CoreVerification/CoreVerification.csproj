@@ -38,5 +38,6 @@
     <Compile Include="../../Assets/Scripts/Core/WeaponCatalog.cs" Link="WeaponCatalog.cs" />
     <Compile Include="../../Assets/Scripts/Core/WeaponEquipment.cs" Link="WeaponEquipment.cs" />
     <Compile Include="../../Assets/Scripts/Core/WeaponMastery.cs" Link="WeaponMastery.cs" />
+    <Compile Include="../../Assets/Scripts/Core/WeaponProfiles.cs" Link="WeaponProfiles.cs" />
   </ItemGroup>
 </Project>
