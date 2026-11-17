@@ -338,7 +338,7 @@ namespace AreArpg.UnityClient
 
             var purse = AshenUiTheme.Label("Purse", body, 14, AshenUiTheme.Parchment, TextAnchor.MiddleLeft, FontStyle.Bold);
             AshenUiTheme.Place(purse.rectTransform, new Rect(0f, 0f, gridW, 28f));
-            purse.text = "<color=#F2C14E>●</color> Münzen " + p.Social.Coins + "      <color=#C9A26B>■</color> Proviant " + p.Social.Provisions +
+            purse.text = "<color=#F2C14E>●</color> Münzen " + CoinDenominations.Format(p.Social.Coins) + "      <color=#C9A26B>■</color> Proviant " + p.Social.Provisions +
                 "      Gegenstände " + items.Count;
 
             const int pageSize = cols * rows;
