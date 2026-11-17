@@ -49,6 +49,33 @@ namespace AreArpg.PlayMode.Tests
             finally { Object.DestroyImmediate(actor); }
         }
 
+        /// <summary>Real private village characters must have visible feet on the surface, even with rejected vendor meshes.</summary>
+        [UnityTest]
+        public IEnumerator PrivateVillageNpcFallbackFeetTouchTheGround()
+        {
+            if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("Needs the real private village and NPC prefabs");
+            _runtime.enabled = false;
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            Game.ActivateSkill(3);
+            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000);
+            TravelStory();
+            Assert.IsTrue(Game.IsVillage, "Test must traverse the canonical crypt checkpoint");
+            yield return null;
+            Assert.IsNotNull(Resources.Load<GameObject>("ARE/Visuals/Npc2"), "Private fallback model must be present");
+            foreach (int id in new[] { 0, 1, 2 })
+            {
+                var actor = Find("ARE_NPC_" + id);
+                Assert.IsNotNull(actor, "Core NPC " + id + " must have a Unity projection");
+                float footY = SkinBottom(actor);
+                Debug.Log("NPC_PRIVATE_FEET id=" + id + " bottom=" + footY.ToString("F4",
+                    System.Globalization.CultureInfo.InvariantCulture));
+                Assert.That(footY, Is.InRange(-GroundContactTolerance, GroundContactTolerance),
+                    "Private actor " + id + " must touch the actual village ground at y=0");
+            }
+        }
+
         /// <summary>Every standing village piece and villager touches the visible ground directly beneath it.</summary>
         [UnityTest]
         public IEnumerator VillageArtAndVillagersStandOnTheVisibleGround()
