@@ -1,6 +1,6 @@
 {
   "name": "AreArpg.Runtime",
   "rootNamespace": "AreArpg.UnityClient",
-  "references": ["AreArpg.Core", "AshenCrypt.WorldForge.Core", "AshenCrypt.MemoryForge", "UnityEngine.UI"],
+  "references": ["AreArpg.Core", "AshenCrypt.WorldForge.Core", "AshenCrypt.MemoryForge", "UnityEngine.UI", "Unity.RenderPipelines.Core.Runtime", "Unity.RenderPipelines.Universal.Runtime"],
   "autoReferenced": true
 }

@@ -26,6 +26,8 @@ Shader "ARE/VisualOnly/VillageEarthFeather"
                 float4 _BaseMap_ST;
                 half4 _BaseColor;
             CBUFFER_END
+            // Set by the sky projection; alpha 0 (never set) keeps the authored daytime colour.
+            half4 _AshenWorldTint;
 
             struct Attributes
             {
@@ -49,8 +51,10 @@ Shader "ARE/VisualOnly/VillageEarthFeather"
             }
             half4 Frag(Varyings input) : SV_Target
             {
-                return SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv)
-                    * _BaseColor * input.color;
+                half4 colour = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv) * _BaseColor * input.color;
+                // Unlit earth must darken with the lit ground beside it instead of glowing at night.
+                colour.rgb *= lerp(half3(1,1,1), _AshenWorldTint.rgb, _AshenWorldTint.a);
+                return colour;
             }
             ENDHLSL
         }

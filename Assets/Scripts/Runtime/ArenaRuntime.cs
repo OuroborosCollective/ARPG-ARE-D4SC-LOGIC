@@ -88,6 +88,7 @@ namespace AreArpg.UnityClient
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
             BuildWorld();
             InitializeWorldSky();
+            InitializePostProcessing();
             BuildHud();
         }
 
@@ -210,6 +211,9 @@ namespace AreArpg.UnityClient
             RenderSettings.fogMode = FogMode.Exponential;
             RenderSettings.fogDensity = 0.014f;
             BuildChapterScenery();
+            // Torch islands belong to the village projection, not to the optional private art overlay.
+            if (_game.IsVillage) BuildVillageLights();
+            else _villageTorches.Clear();
 
             var lightGo = new GameObject("ARE Moonlight");
             Light sun = lightGo.AddComponent<Light>();
@@ -696,6 +700,10 @@ namespace AreArpg.UnityClient
         {
             foreach (Transform visual in _npcVisuals.Values) if (visual != null) Destroy(visual.gameObject);
             _npcVisuals.Clear();
+            // The original private NPC prefabs refer to a missing legacy controller GUID.
+            // Reuse the existing imported, humanoid MoveMagnitude-capable controller solely for presentation.
+            var sharedNpcLocomotion = _entryProfile
+                ? Resources.Load<RuntimeAnimatorController>("ARE/Visuals/EntryMelee") : null;
             foreach (NpcAgent npc in _game.Npcs)
             {
                 Color color = npc.Id == 0 ? new Color(0.24f, 0.55f, 0.53f) :
@@ -703,7 +711,13 @@ namespace AreArpg.UnityClient
                 Transform visual = Shape(PrimitiveType.Capsule, "ARE_NPC_" + npc.Id,
                     new Vector3(npc.Xmm / 1000f, 1f, npc.Zmm / 1000f), new Vector3(0.8f, 1f, 0.8f), color);
                 if (!_entryProfile || !PassiveArtVisuals.TryBindGrounded(visual, "EntryNpc" + npc.Id, 0f))
-                    PassiveArtVisuals.TryBind(visual, "Npc" + npc.Id);
+                    PassiveArtVisuals.TryBindGrounded(visual, "Npc" + npc.Id, GroundHeight(npc.Xmm / 1000f, npc.Zmm / 1000f));
+                foreach (Animator animator in visual.GetComponentsInChildren<Animator>(true))
+                {
+                    if (animator.runtimeAnimatorController == null && sharedNpcLocomotion != null)
+                        animator.runtimeAnimatorController = sharedNpcLocomotion;
+                    animator.applyRootMotion = false;
+                }
                 RegisterActorMotion(visual);
                 _npcVisuals.Add(npc.Id, visual);
             }
@@ -911,6 +925,9 @@ namespace AreArpg.UnityClient
             RegisterActorMotion(_hero);
             _passageAnnounced = false;
             BuildChapterScenery();
+            // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
+            if (_game.IsVillage) BuildVillageLights();
+            else _villageTorches.Clear();
             ApplyEntryLighting();
             _pendingSkills.Clear();
             _pendingMastery.Clear();
@@ -1054,6 +1071,8 @@ namespace AreArpg.UnityClient
         private void UpdatePresentation(float alpha)
         {
             RefreshWorldSky();
+            RefreshPostProcessing();
+            AnimateVillageLights();
             UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
