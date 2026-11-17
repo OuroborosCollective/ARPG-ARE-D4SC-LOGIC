@@ -847,7 +847,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>Optional real camera render for private visual inspection; never a gameplay input.</summary>
-        private IEnumerator Capture(string name, bool heroDetail = false, bool patientDetail = false, bool refugeDetail = false, Transform actorDetail = null)
+        private IEnumerator Capture(string name, bool heroDetail = false, bool patientDetail = false, bool refugeDetail = false, Transform actorDetail = null, Vector3? overridePosition = null, Vector3? overrideFocus = null)
         {
             string directory = System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
             if (string.IsNullOrEmpty(directory)) yield break;
@@ -890,6 +890,15 @@ namespace AreArpg.PlayMode.Tests
                 {
                     camera.transform.position = new Vector3(1, 5.5f, -8);
                     camera.transform.LookAt(new Vector3(-5.5f, 1.3f, 3.8f));
+                }
+                // Apply the test-only pose after the coroutine's yield. The live
+                // Fable camera rig otherwise resets it during LateUpdate.
+                if (overridePosition.HasValue)
+                {
+                    if (!overrideFocus.HasValue)
+                        throw new System.ArgumentException("Forced camera pose needs a focus");
+                    camera.transform.position = overridePosition.Value;
+                    camera.transform.LookAt(overrideFocus.Value);
                 }
                 camera.targetTexture = target;
                 camera.Render();

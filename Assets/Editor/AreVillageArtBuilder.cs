@@ -20,7 +20,7 @@ namespace AreArpg.EditorTools
         private static readonly Dictionary<string, string> Inputs = new Dictionary<string, string>();
 
         /// <summary>Resolve private source locations locally; source filenames never enter public code.</summary>
-        private static void LoadCatalog()
+        internal static void LoadCatalog()
         {
             Inputs.Clear();
             var catalog = JsonUtility.FromJson<ArtCatalog>(File.ReadAllText(CatalogPath));
@@ -67,6 +67,193 @@ namespace AreArpg.EditorTools
             Save("VillageBackdrop", BuildBackdrop);
             AssetDatabase.SaveAssets();
             Debug.Log("ARE ARPG: Aschengrenze village visuals rebuilt in the private overlay.");
+        }
+
+
+        [System.Serializable]
+        private sealed class HeroPlan
+        {
+            public string schema;
+            public bool visualOnly;
+            public HeroPlacement[] placements;
+        }
+
+        [System.Serializable]
+        private sealed class HeroPlacement
+        {
+            public string id;
+            public string sourceKey;
+            public int xMm, zMm;
+            public int maxWidthMm, maxHeightMm, maxDepthMm, yawQuarterTurns;
+            public bool passageArch;
+        }
+
+        private const string HeroLayoutPath = "docs/visual-pass-1/village-hero-layout.json";
+        private const string HeroDecorationRoot = "VillageHeroPass1";
+
+        /// <summary>
+        /// Add only eight approved passive source compositions to the existing privately
+        /// built village prefab. No gameplay, physics, UI, save or original vendor asset is edited.
+        /// Existing hero compositions are verified but never overwritten.
+        /// </summary>
+        [MenuItem("ARE ARPG/Art/Apply Village Hero View")]
+        public static void ApplyVillageHeroView()
+        {
+            LoadCatalog();
+            var plan = JsonUtility.FromJson<HeroPlan>(File.ReadAllText(HeroLayoutPath));
+            if (plan == null || plan.schema != "ashen-crypt.visual-pass-1-village-hero.v1" ||
+                !plan.visualOnly || plan.placements == null || plan.placements.Length != 8)
+                throw new System.InvalidOperationException("Village hero plan schema/ownership invalid");
+
+            var ids = new HashSet<string>(System.StringComparer.Ordinal);
+            int arches = 0;
+            foreach (HeroPlacement item in plan.placements)
+            {
+                ValidateHeroPlacement(item, ids);
+                if (item.passageArch) arches++;
+                // Fail before loading or saving a prefab if a source is absent.
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(InputPath(item.sourceKey)) == null)
+                    throw new System.InvalidOperationException("Missing private hero art: " + item.sourceKey);
+            }
+            if (arches != 1) throw new System.InvalidOperationException("Hero view requires exactly one passage arch");
+
+            string path = Output + "EntryVillageWorld.prefab";
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null)
+                throw new System.InvalidOperationException("Missing privately authored EntryVillageWorld");
+            GameObject loaded = PrefabUtility.LoadPrefabContents(path);
+            bool modified = false;
+            try
+            {
+                Transform existing = loaded.transform.Find(HeroDecorationRoot);
+                if (existing != null)
+                {
+                    ValidateHeroChildren(existing, ids);
+                    Debug.Log("ARE_VILLAGE_HERO_REUSE validated previous eight passive placements");
+                    return;
+                }
+                GameObject holder = new GameObject(HeroDecorationRoot);
+                holder.transform.SetParent(loaded.transform, false);
+                foreach (HeroPlacement item in plan.placements)
+                {
+                    int before = holder.transform.childCount;
+                    Vector3 target = new Vector3(item.xMm / 1000f, 0f, item.zMm / 1000f);
+                    Piece(holder.transform, item.sourceKey, target, 90f * item.yawQuarterTurns, 1f);
+                    if (holder.transform.childCount != before + 1)
+                        throw new System.InvalidOperationException("Hero source has no LOD0 geometry: " + item.id);
+                    Transform composed = holder.transform.GetChild(before);
+                    composed.name = item.id;
+                    Bounds bounds = HeroBounds(composed, out int renderers);
+                    if (renderers == 0 || bounds.size.x <= 0 || bounds.size.y <= 0 || bounds.size.z <= 0)
+                        throw new System.InvalidOperationException("Hero source is empty: " + item.id);
+                    float uniform = Mathf.Min(4f, Mathf.Min(item.maxWidthMm / (1000f * bounds.size.x),
+                        Mathf.Min(item.maxHeightMm / (1000f * bounds.size.y),
+                            item.maxDepthMm / (1000f * bounds.size.z))));
+                    if (uniform <= 0f || float.IsNaN(uniform) || float.IsInfinity(uniform))
+                        throw new System.InvalidOperationException("Invalid hero scaling: " + item.id);
+                    composed.localScale *= uniform;
+                    bounds = HeroBounds(composed, out renderers);
+                    composed.position += new Vector3(target.x - bounds.center.x,
+                        target.y - bounds.min.y, target.z - bounds.center.z);
+                    bounds = HeroBounds(composed, out renderers);
+                    if (Mathf.Abs(bounds.min.y - target.y) > .015f ||
+                        Mathf.Abs(bounds.center.x - target.x) > .015f ||
+                        Mathf.Abs(bounds.center.z - target.z) > .015f ||
+                        bounds.size.x * 1000f > item.maxWidthMm + 15 ||
+                        bounds.size.y * 1000f > item.maxHeightMm + 15 ||
+                        bounds.size.z * 1000f > item.maxDepthMm + 15)
+                        throw new System.InvalidOperationException("Hero renderer outside approved envelope: " + item.id);
+                }
+                ValidateHeroChildren(holder.transform, ids);
+                if (PrefabUtility.SaveAsPrefabAsset(loaded, path) == null)
+                    throw new System.IO.IOException("Saving the private village hero prefab failed");
+                modified = true;
+            }
+            finally { PrefabUtility.UnloadPrefabContents(loaded); }
+            if (modified)
+            {
+                AssetDatabase.SaveAssets();
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab == null || prefab.transform.Find(HeroDecorationRoot) == null ||
+                    prefab.transform.Find(HeroDecorationRoot).childCount != 8)
+                    throw new System.IO.IOException("Independent native prefab readback failed");
+                Debug.Log("ARE_VILLAGE_HERO_BUILT 8 passive placements, original Core/collision/scene unchanged");
+            }
+        }
+
+        private static void ValidateHeroPlacement(HeroPlacement item, HashSet<string> ids)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.id) || !ids.Add(item.id) ||
+                string.IsNullOrWhiteSpace(item.sourceKey) ||
+                !item.sourceKey.StartsWith("hero.", System.StringComparison.Ordinal) ||
+                item.sourceKey.Contains("/") || item.sourceKey.Contains(".."))
+                throw new System.InvalidOperationException("Duplicate or invalid hero placement identifier");
+            if (item.maxWidthMm < 1 || item.maxWidthMm > 7000 ||
+                item.maxHeightMm < 1 || item.maxHeightMm > 6500 ||
+                item.maxDepthMm < 1 || item.maxDepthMm > 5500 ||
+                (item.maxWidthMm & 1) != 0 || (item.maxDepthMm & 1) != 0 ||
+                item.yawQuarterTurns < 0 || item.yawQuarterTurns > 3 ||
+                Mathf.Abs(item.xMm) > 35000 || Mathf.Abs(item.zMm) > 35000)
+                throw new System.InvalidOperationException("Invalid hero millimetre bounds: " + item.id);
+            long hw = item.maxWidthMm / 2;
+            long hd = item.maxDepthMm / 2;
+            if (item.passageArch)
+            {
+                if (item.id != "north-gate" || item.xMm != 0 || item.zMm != 24000 ||
+                    item.maxWidthMm != 6400 || item.maxDepthMm != 2000)
+                    throw new System.InvalidOperationException("Only canonical north gate may cover the passage");
+            }
+            else if ((long)System.Math.Abs(item.xMm) - hw < 3500 &&
+                     (long)item.zMm - hd < 24000 && (long)item.zMm + hd > -24000)
+                throw new System.InvalidOperationException("Hero props obstruct the arrival corridor: " + item.id);
+            for (int i = 0; i < AreArpg.Core.EntryWorldLayout.BuildingCount; i++)
+            {
+                var building = AreArpg.Core.EntryWorldLayout.Building(i);
+                if (System.Math.Abs((long)item.xMm - building.X) < hw + building.HalfWidth + 500 &&
+                    System.Math.Abs((long)item.zMm - building.Z) < hd + building.HalfDepth + 500)
+                    throw new System.InvalidOperationException("Hero art overlaps Core building " + building.Id);
+            }
+        }
+
+        private static Bounds HeroBounds(Transform root, out int renderers)
+        {
+            Bounds bounds = new Bounds();
+            renderers = 0;
+            foreach (MeshRenderer renderer in root.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                MeshFilter mesh = renderer.GetComponent<MeshFilter>();
+                if (mesh == null || mesh.sharedMesh == null)
+                    throw new System.InvalidOperationException("Hero source has a missing mesh");
+                if (renderer.sharedMaterials.Length == 0)
+                    throw new System.InvalidOperationException("Hero source has no materials");
+                foreach (Material material in renderer.sharedMaterials)
+                    if (material == null || material.shader == null ||
+                        material.shader.name == "Hidden/InternalErrorShader")
+                        throw new System.InvalidOperationException("Hero source has a broken shader/material");
+                if (renderers == 0) bounds = renderer.bounds;
+                else bounds.Encapsulate(renderer.bounds);
+                renderers++;
+            }
+            return bounds;
+        }
+
+        private static void ValidateHeroChildren(Transform holder, HashSet<string> ids)
+        {
+            if (holder.childCount != ids.Count)
+                throw new System.InvalidOperationException("Wrong village hero composition count");
+            int totalRenderers = 0;
+            foreach (Transform entry in holder)
+            {
+                if (!ids.Contains(entry.name))
+                    throw new System.InvalidOperationException("Unexpected village hero art: " + entry.name);
+                HeroBounds(entry, out int renderers);
+                totalRenderers += renderers;
+                foreach (Component component in entry.GetComponentsInChildren<Component>(true))
+                    if (!(component is Transform || component is MeshFilter || component is MeshRenderer))
+                        throw new System.InvalidOperationException("Non-passive village hero component: " + component.GetType().Name);
+            }
+            if (totalRenderers == 0)
+                throw new System.InvalidOperationException("No visible village hero geometry");
         }
 
         /// <summary>Houses frame the playable square; nothing here is collision or navigation.</summary>
