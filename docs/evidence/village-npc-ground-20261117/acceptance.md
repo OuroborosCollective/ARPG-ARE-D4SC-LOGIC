@@ -26,12 +26,29 @@ This also covers the road witness on the ash road, which uses Mara's prefab.
 
 ## Evidence
 
-- EditMode `HumanoidLocomotionFallbackTests` 3/3 (clipless controller, real clip, generic rig untouched).
-- PlayMode `PassiveArtVisualsTests` 9/9 (existing fallback/material/host-transform contracts).
-- PlayMode `VillageArtAndVillagersStandOnTheVisibleGround`: before, Mara and Ilyan failed ("no visible ground
-  underneath", bottoms −0.91/−0.92 m); after, both pass the ±0.05 m contact check. A temporary diagnostic
-  (not committed) recorded root, hips, foot, clip and lowest vertex before and after.
-- Core 19866/19866, preflight 40/40.
+Code under test: commit `29120c45b9c5144e2a7f492dd39050f82170af82` (tree `6f865defc9c6aada4047208fcd00d1d2e6f4a9a5`) on top of
+main `507c0f4d884a8584d352528f4726d5eb097965ca`. The seven changed runtime and test files in the validation project were
+compared byte for byte (SHA-256) with this commit before the runs below; its other tracked files were main. Runs went
+through the live Unity 6000.6.8f1 editor of the validation project (`unity command test run`, PlayMode asynchronous);
+the saved command outputs are private on the VPS under
+`.local/share/are-arpg/weapon-mastery-20261117/runs/`.
+
+| Run | Result | Output SHA-256 |
+| --- | --- | --- |
+| RED: road witness bound at y = 0, then moved to y = 1 (old order) | 0/1, witness bottom 1.0 m | `bb8c33aac68bb35e2a0ce54451e98e9dd8eeef13ea32945d71d1b45ab9d8b253` |
+| EditMode `HumanoidLocomotionFallbackTests` | 4/4 | `b65e4e66f14d6d328d77b1fc8f5f0cdcc1d078410d2660506f4885b8c3b414ad` |
+| PlayMode `RoadWitnessStaysOnTheGroundWhileFollowingTheCorePosition` | 1/1 | `2b47a4afc16e8f5eb2bbd0e50a3d0b5dbc6e18f2dd01363ef0de4437bccf8fb3` |
+| PlayMode `PassiveArtVisualsTests` | 9/9 | `44140a53d4ff0a3df90fceb00bf92016182a07285db4c3a41e9e054019c77202` |
+| PlayMode `VillageArtAndVillagersStandOnTheVisibleGround` | Mara and Ilyan pass; fails only on the hero/paving line below | `4c35affd5ed0942313c555628f75af726f3957632edbcc29de86f467d58921c3` |
+| Core verification | 19866/19866 | `eeb695e9db1d29ae9a10948775ed902557d8dbaf42030c7a80d6c0a2fd83a3e6` |
+| Python preflight | 40/40 | `8b0b4a74610c7af2079b244709ea03277c9057e0911b30a349f324a7753e3a74` |
+
+Before the fix the same grounding test failed for Mara and Ilyan ("no visible ground underneath", lowest visible vertex
+−0.911 m and −0.921 m); after it their bottoms are +0.005 m and +0.002 m. A temporary diagnostic test (not committed)
+recorded root, hips, foot, controller, clip and lowest vertex for each actor before and after.
+
+Review fixes (PR #58): the road witness host is created at its projected height before binding, so it does not float
+1.0 m; `NeedsSharedLocomotion` keeps a generic rig's own controller and only replaces clipless controllers on humanoid rigs.
 
 ## Still open (not caused or fixed here)
 
