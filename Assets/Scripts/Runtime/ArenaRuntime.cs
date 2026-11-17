@@ -703,7 +703,7 @@ namespace AreArpg.UnityClient
                 Transform visual = Shape(PrimitiveType.Capsule, "ARE_NPC_" + npc.Id,
                     new Vector3(npc.Xmm / 1000f, 1f, npc.Zmm / 1000f), new Vector3(0.8f, 1f, 0.8f), color);
                 if (!_entryProfile || !PassiveArtVisuals.TryBindGrounded(visual, "EntryNpc" + npc.Id, 0f))
-                    PassiveArtVisuals.TryBind(visual, "Npc" + npc.Id);
+                    PassiveArtVisuals.TryBindGrounded(visual, "Npc" + npc.Id, GroundHeight(npc.Xmm / 1000f, npc.Zmm / 1000f));
                 RegisterActorMotion(visual);
                 _npcVisuals.Add(npc.Id, visual);
             }
