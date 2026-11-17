@@ -23,7 +23,7 @@ namespace AreArpg.PlayMode.Tests
             try
             {
                 var failures = new List<string>();
-                Check(actor, -.25f, new List<Renderer> { floor.GetComponent<Renderer>() }, failures);
+                Check(actor, -.25f, new List<Renderer> { floor.GetComponent<Renderer>() }, failures, true);
                 Assert.AreEqual(1, failures.Count, "A quarter-metre-deep body must not appear grounded");
                 StringAssert.Contains("sinks", failures[0]);
             }
@@ -32,6 +32,21 @@ namespace AreArpg.PlayMode.Tests
                 Object.DestroyImmediate(actor);
                 Object.DestroyImmediate(floor);
             }
+        }
+
+        /// <summary>Missing licensed skinned art must still expose the actual visible fallback geometry.</summary>
+        [Test]
+        public void VisibleFallbackMeshHasMeasurableGroundContact()
+        {
+            var actor = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            actor.name = "ARE_NPC_2";
+            actor.transform.position = Vector3.up;
+            try
+            {
+                float bottom = SkinBottom(actor);
+                Assert.AreEqual(0f, bottom, .02f, "Visible capsule fallback feet must meet y=0");
+            }
+            finally { Object.DestroyImmediate(actor); }
         }
 
         /// <summary>Every standing village piece and villager touches the visible ground directly beneath it.</summary>
@@ -69,7 +84,8 @@ namespace AreArpg.PlayMode.Tests
             foreach (string actor in new[] { "Wanderer", "ARE_NPC_0", "ARE_NPC_1", "ARE_NPC_2" })
             {
                 var figure = Find(actor);
-                Check(figure, SkinBottom(figure), grounds, floating);
+                try { Check(figure, SkinBottom(figure), grounds, floating, true); }
+                catch (AssertionException failure) { floating.Add(actor + ": " + failure.Message); }
             }
             yield return Capture("village-grounding.png");
             Assert.IsEmpty(floating, "Floating village pieces:\n" + string.Join("\n", floating));
@@ -103,7 +119,7 @@ namespace AreArpg.PlayMode.Tests
             }
         }
 
-        private void Check(GameObject piece, float bottom, List<Renderer> grounds, List<string> floating)
+        private void Check(GameObject piece, float bottom, List<Renderer> grounds, List<string> floating, bool requireActorContact = false)
         {
             Vector3 p = piece.transform.position;
             float ground = float.MinValue;
@@ -114,8 +130,12 @@ namespace AreArpg.PlayMode.Tests
                 if (p.x < b.min.x || p.x > b.max.x || p.z < b.min.z || p.z > b.max.z) continue;
                 if (b.max.y <= bottom + .6f && b.max.y > ground) { ground = b.max.y; surface = g.name; }
             }
+            if (requireActorContact && ground == float.MinValue)
+                floating.Add(Path(piece.transform) + " has no visible ground underneath");
             float gap = bottom - ground;
             Debug.Log("VILLAGE_CONTACT " + Path(piece.transform) + " bottom=" + bottom.ToString("0.000") + " ground=" + ground.ToString("0.000") + " surface=" + surface + " gap=" + gap.ToString("0.000"));
+            if (requireActorContact && ground > float.MinValue && gap < -GroundContactTolerance)
+                floating.Add(Path(piece.transform) + " sinks " + (-gap).ToString("0.00") + " m below " + surface);
             if (ground > float.MinValue && gap > GroundContactTolerance) floating.Add(Path(piece.transform) + " floats " + gap.ToString("0.00") + " m above " + surface);
         }
 
@@ -136,14 +156,25 @@ namespace AreArpg.PlayMode.Tests
             {
                 foreach (var skin in actor.GetComponentsInChildren<SkinnedMeshRenderer>())
                 {
-                    if (!skin.enabled) continue;
+                    if (!skin.enabled || skin.sharedMesh == null) continue;
                     skin.BakeMesh(mesh, true);
                     var toWorld = Matrix4x4.TRS(skin.transform.position, skin.transform.rotation, Vector3.one);
                     foreach (var vertex in mesh.vertices) bottom = Mathf.Min(bottom, toWorld.MultiplyPoint3x4(vertex).y);
                 }
             }
             finally { Object.Destroy(mesh); }
-            Assert.Less(bottom, float.MaxValue, actor.name + " has no visible skinned body");
+            if (bottom == float.MaxValue)
+            {
+                // A broken licensed skinned import may leave the existing visible primitive fallback.
+                foreach (var filter in actor.GetComponentsInChildren<MeshFilter>())
+                {
+                    var renderer = filter.GetComponent<MeshRenderer>();
+                    if (renderer == null || !renderer.enabled || filter.sharedMesh == null) continue;
+                    foreach (var vertex in filter.sharedMesh.vertices)
+                        bottom = Mathf.Min(bottom, filter.transform.localToWorldMatrix.MultiplyPoint3x4(vertex).y);
+                }
+            }
+            Assert.Less(bottom, float.MaxValue, actor.name + " has no visible skinned or mesh fallback body");
             return bottom;
         }
 
