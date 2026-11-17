@@ -21,13 +21,48 @@ namespace AreArpg.PlayMode.Tests
             finally { Object.DestroyImmediate(host); }
         }
 
+        /// <summary>Missing mesh data must keep the existing visible fallback rather than hide the actor.</summary>
+        [TestCase(false)]
+        [TestCase(true)]
+        public void MissingMeshKeepsFallbackVisible(bool skinned)
+        {
+            var host = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var asset = new GameObject("MissingOwnedMesh");
+            if (skinned) asset.AddComponent<SkinnedMeshRenderer>();
+            else { asset.AddComponent<MeshFilter>(); asset.AddComponent<MeshRenderer>(); }
+            try
+            {
+                Assert.IsFalse(PassiveArtVisuals.TryBindPrefab(host.transform, asset));
+                Assert.IsTrue(host.GetComponent<Renderer>().enabled);
+                Assert.AreEqual(0, host.transform.childCount);
+            }
+            finally { Object.DestroyImmediate(host); Object.DestroyImmediate(asset); }
+        }
+
+        /// <summary>A disabled mesh cannot substitute for the visible projection host.</summary>
+        [Test]
+        public void DisabledMeshKeepsFallbackVisible()
+        {
+            var host = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var asset = new GameObject("DisabledOwnedMesh");
+            asset.AddComponent<MeshFilter>().sharedMesh = host.GetComponent<MeshFilter>().sharedMesh;
+            asset.AddComponent<MeshRenderer>().enabled = false;
+            try
+            {
+                Assert.IsFalse(PassiveArtVisuals.TryBindPrefab(host.transform, asset));
+                Assert.IsTrue(host.GetComponent<Renderer>().enabled);
+                Assert.AreEqual(0, host.transform.childCount);
+            }
+            finally { Object.DestroyImmediate(host); Object.DestroyImmediate(asset); }
+        }
+
         /// <summary>Bind passive meshes without moving the Core-owned projection host.</summary>
         [Test]
         public void PassiveMeshReplacesPrimitiveRendererWithoutChangingHostTransform()
         {
             GameObject host = GameObject.CreatePrimitive(PrimitiveType.Cube);
             GameObject asset = new GameObject("ApprovedHeroVisual");
-            asset.AddComponent<MeshFilter>();
+            asset.AddComponent<MeshFilter>().sharedMesh = host.GetComponent<MeshFilter>().sharedMesh;
             asset.AddComponent<MeshRenderer>();
             host.transform.position = new Vector3(2f, 3f, -4f);
             try
@@ -48,7 +83,7 @@ namespace AreArpg.PlayMode.Tests
             // Building placeholders are stretched cubes; real meshes must not inherit that stretch.
             GameObject host = GameObject.CreatePrimitive(PrimitiveType.Cube);
             GameObject asset = new GameObject("ApprovedHallVisual");
-            asset.AddComponent<MeshFilter>();
+            asset.AddComponent<MeshFilter>().sharedMesh = host.GetComponent<MeshFilter>().sharedMesh;
             asset.AddComponent<MeshRenderer>();
             Vector3 position = new Vector3(-12.5f, 1.4f, -8.7f);
             Vector3 scale = new Vector3(5.4f, 2.8f, 5f);
@@ -109,7 +144,7 @@ namespace AreArpg.PlayMode.Tests
             var source = new Material(builtIn) { name = "VendorSkin", mainTexture = texture, color = new Color(0.5f, 0.25f, 0.125f, 1f) };
             GameObject host = GameObject.CreatePrimitive(PrimitiveType.Cube);
             GameObject asset = new GameObject("ApprovedEnemyVisual");
-            asset.AddComponent<MeshFilter>();
+            asset.AddComponent<MeshFilter>().sharedMesh = host.GetComponent<MeshFilter>().sharedMesh;
             asset.AddComponent<MeshRenderer>().sharedMaterial = source;
             try
             {
