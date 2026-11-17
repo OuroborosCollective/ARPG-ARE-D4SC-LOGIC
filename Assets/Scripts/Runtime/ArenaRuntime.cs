@@ -714,7 +714,7 @@ namespace AreArpg.UnityClient
                     PassiveArtVisuals.TryBindGrounded(visual, "Npc" + npc.Id, GroundHeight(npc.Xmm / 1000f, npc.Zmm / 1000f));
                 foreach (Animator animator in visual.GetComponentsInChildren<Animator>(true))
                 {
-                    if (animator.runtimeAnimatorController == null && sharedNpcLocomotion != null)
+                    if (!PassiveArtVisuals.HasPlayableClip(animator.runtimeAnimatorController) && sharedNpcLocomotion != null)
                         animator.runtimeAnimatorController = sharedNpcLocomotion;
                     animator.applyRootMotion = false;
                 }

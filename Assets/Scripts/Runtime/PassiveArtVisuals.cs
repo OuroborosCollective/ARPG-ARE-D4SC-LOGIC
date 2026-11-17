@@ -12,6 +12,8 @@ namespace AreArpg.UnityClient
     public static class PassiveArtVisuals
     {
         private const string ResourceRoot = "ARE/Visuals/";
+        /// <summary>Reviewed humanoid idle/move controller already used by the hero and Dorn.</summary>
+        public const string SharedHumanoidLocomotionKey = "EntryMelee";
         private static readonly Dictionary<Material, Material> PipelineAdapters = new Dictionary<Material, Material>();
         private static readonly string[] BaseMapHints = { "base", "albedo", "diffuse", "color" };
 
@@ -67,10 +69,45 @@ namespace AreArpg.UnityClient
         {
             if (!TryBindPrefab(placeholder, prefab)) return false;
             Transform art = placeholder.GetChild(placeholder.childCount - 1);
+            EnsurePlayableHumanoidLocomotion(art.gameObject);
             Vector3 stretch = placeholder.lossyScale;
             art.localScale = new Vector3(Inverse(stretch.x), Inverse(stretch.y), Inverse(stretch.z));
             art.position = new Vector3(placeholder.position.x, groundY, placeholder.position.z);
             return true;
+        }
+
+        /// <summary>
+        /// True only when the controller references at least one existing clip. A private controller
+        /// whose clips were not copied into this project is present but plays nothing.
+        /// </summary>
+        public static bool HasPlayableClip(RuntimeAnimatorController controller)
+        {
+            if (controller == null) return false;
+            AnimationClip[] clips = controller.animationClips;
+            if (clips == null) return false;
+            foreach (AnimationClip clip in clips) if (clip != null) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// A humanoid Animator without a playable clip keeps the muscle default pose with the hips at the
+        /// object origin, so a grounded character sinks to its waist. Give such actors the shared reviewed
+        /// locomotion controller instead. Working controllers and generic rigs are never touched.
+        /// </summary>
+        public static int EnsurePlayableHumanoidLocomotion(GameObject instance)
+        {
+            if (instance == null) return 0;
+            RuntimeAnimatorController shared = null;
+            int replaced = 0;
+            foreach (Animator animator in instance.GetComponentsInChildren<Animator>(true))
+            {
+                if (animator.avatar == null || !animator.avatar.isHuman || HasPlayableClip(animator.runtimeAnimatorController)) continue;
+                if (shared == null) shared = Resources.Load<RuntimeAnimatorController>(ResourceRoot + SharedHumanoidLocomotionKey);
+                if (!HasPlayableClip(shared)) return replaced;
+                animator.runtimeAnimatorController = shared;
+                replaced++;
+            }
+            return replaced;
         }
 
         private static float Inverse(float value)
