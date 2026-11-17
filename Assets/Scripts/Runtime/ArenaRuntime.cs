@@ -211,6 +211,9 @@ namespace AreArpg.UnityClient
             RenderSettings.fogMode = FogMode.Exponential;
             RenderSettings.fogDensity = 0.014f;
             BuildChapterScenery();
+            // Torch islands belong to the village projection, not to the optional private art overlay.
+            if (_game.IsVillage) BuildVillageLights();
+            else _villageTorches.Clear();
 
             var lightGo = new GameObject("ARE Moonlight");
             Light sun = lightGo.AddComponent<Light>();
@@ -610,7 +613,6 @@ namespace AreArpg.UnityClient
                 for (int i = 0; i < SocialLedger.CampCapacity; i++)
                     CreateEntryRation(i, "EntryRation");
             }
-            if (_game.IsVillage) BuildVillageLights(); else _villageTorches.Clear();
             return true;
         }
 
