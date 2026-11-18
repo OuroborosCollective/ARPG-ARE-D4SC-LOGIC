@@ -38,7 +38,10 @@ def plan(task,available=(),project=None):
   if spec is not None: result['spec_workflow'] = spec
   neural = Path(__file__).with_name('neural_catalog.json')
   if neural.is_file():
-   result['neural_cortex'] = neural_route(task, neural, project)
+   try:
+    result['neural_cortex'] = neural_route(task, neural, project)
+   except ValueError as exc:
+    result['neural_cortex'] = {'status':'REFUSED', 'reason':str(exc), 'selected':[], 'execution':'NONE', 'advisory_only':True}
  return result
 def main():
  p=argparse.ArgumentParser();p.add_argument('task');p.add_argument('--project');p.add_argument('--available',action='append',default=[]);a=p.parse_args();print(json.dumps(plan(a.task,a.available,a.project),ensure_ascii=False,indent=2))
