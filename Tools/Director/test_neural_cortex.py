@@ -100,7 +100,7 @@ class NeuralCortexTests(unittest.TestCase):
 
     def test_legacy_unity_project_retains_existing_director_plan(self):
         (self.project / "ProjectSettings/ProjectVersion.txt").write_text(
-            "m_EditorVersion: 2022.3.62f1\\n")
+            "m_EditorVersion: 2022.3.62f1\n")
         result = plan("Wald ansehen", project=self.project)
         self.assertEqual("ugd.route.v1", result["schema"])
         self.assertIn("phases", result)
