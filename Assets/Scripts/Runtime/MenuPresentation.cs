@@ -14,11 +14,11 @@ namespace AreArpg.UnityClient
     /// </summary>
     public sealed partial class ArenaRuntime
     {
-        public const int MenuCharacter = 0, MenuInventory = 1, MenuQuests = 2, MenuSettings = 3, MenuCompanion = 4;
-        public static readonly string[] MenuTitles = { "CHARAKTER", "TASCHE", "QUESTS", "OPTIONEN", "BEGLEITER" };
+        public const int MenuCharacter = 0, MenuInventory = 1, MenuQuests = 2, MenuSettings = 3, MenuCompanion = 4, MenuSkills = 5;
+        public static readonly string[] MenuTitles = { "CHARAKTER", "TASCHE", "QUESTS", "OPTIONEN", "BEGLEITER", "FÄHIGKEITEN" };
         public static readonly string[] ArmorSlots = { "KOPF", "BRUST", "HÄNDE", "BEINE" };
         public static readonly string[] TrinketSlots = { "WAFFE", "NEBENHAND", "AMULETT", "RING" };
-        private static readonly KeyCode[] MenuShortcuts = { KeyCode.K, KeyCode.I, KeyCode.L, KeyCode.F8, KeyCode.O };
+        private static readonly KeyCode[] MenuShortcuts = { KeyCode.K, KeyCode.I, KeyCode.L, KeyCode.F8, KeyCode.O, KeyCode.P };
 
         private int _menuTab = -1;
         private Canvas _menuCanvas;
@@ -131,6 +131,7 @@ namespace AreArpg.UnityClient
             else if (_menuTab == MenuInventory) BuildInventoryTab(body, content.size);
             else if (_menuTab == MenuQuests) BuildQuestTab(body, content.size);
             else if (_menuTab == MenuCompanion) BuildCompanionTab(body, content.size);
+            else if (_menuTab == MenuSkills) BuildSkillsTab(body, content.size);
             else BuildSettingsTab(body, content.size);
         }
 
@@ -187,7 +188,7 @@ namespace AreArpg.UnityClient
             row("Gesammelte Beute", p.LootCollected.ToString());
             y += 6f;
             string[] mastery = { "Macht", "Vitalität", "Entschlossenheit" };
-            BigInteger[] ranks = { p.MightRank, p.VitalityRank, p.ResolveRank };
+            BigInteger[] ranks = { p.TotalMightRank, p.TotalVitalityRank, p.TotalResolveRank };
             bool canSpend = p.UnspentMasteryPoints > BigInteger.Zero;
             var head = AshenUiTheme.Label("MasteryHead", panel.transform, 13, AshenUiTheme.Bronze, TextAnchor.MiddleLeft, FontStyle.Bold);
             AshenUiTheme.Place(head.rectTransform, new Rect(16f, y, statsW - 32f, 20f));

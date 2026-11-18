@@ -40,7 +40,8 @@ namespace AreArpg.UnityClient
         private bool _pendingTakeRation;
         /// <summary>Presentation-only confirmation window for the theft button; never saved or read by the Core.</summary>
         private float _takeRationArmedUntil = -1f;
-        private bool TakeRationArmed { get { return _takeRationArmedUntil >= Time.unscaledTime; } }
+        /// <summary>Theft confirmation window on the game clock (equal to real time in play; timeScale never changes).</summary>
+        private bool TakeRationArmed { get { return _takeRationArmedUntil >= Time.time; } }
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
         private readonly ArenaHudTouchCapture _movementTouch = new ArenaHudTouchCapture();
         private bool _storageFault;
@@ -79,6 +80,7 @@ namespace AreArpg.UnityClient
             _game = new ArenaSimulation(DemoSeed, saved,
                 saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1, _journeyMaps);
             if (!_storageFault) _game.Progression.Equipment.Enable(_game.Progression);
+            _savedWeaponLevels = WeaponLevelSum(_game.Progression);
             if (_game.IsVillage)
                 _message = "Aschengrenze: Lager, Wache und Nordpass. Deine Taten bleiben in Erinnerung.";
             if (_game.Progression.EntryAct == 1)
@@ -104,13 +106,31 @@ namespace AreArpg.UnityClient
                 return true;
             }
             if (CharacterProgression.TryLoad(primary, _journeyMaps, out saved)) return true;
-            // A failed AC20 checkpoint may only fall back to another AC20 checkpoint that validates against the bound
-            // map catalog. An older backup would silently drop journey progress and later overwrite it.
-            bool journeyCheckpoint = primary.StartsWith("AC20|", StringComparison.Ordinal);
-            if ((!journeyCheckpoint || backup.StartsWith("AC20|", StringComparison.Ordinal)) &&
+            // A failed journey checkpoint (AC20, also inside an AC21 weapon-skill wrapper) may only fall back to another
+            // journey checkpoint that validates against the bound map catalog. An older backup would silently drop
+            // journey progress and later overwrite it.
+            bool journeyCheckpoint = CharacterProgression.MayHoldJourneyProgress(primary);
+            if ((!journeyCheckpoint || CharacterProgression.MayHoldJourneyProgress(backup)) &&
                 CharacterProgression.TryLoad(backup, _journeyMaps, out saved)) return true;
             saved = null;
             return false;
+        }
+
+        /// <summary>Sum of all weapon skill levels at the last save or load. A different sum is a level-up (an
+        /// attack or a shield block) that must reach the save slot even when nothing died.</summary>
+        private int _savedWeaponLevels;
+
+        private static int WeaponLevelSum(CharacterProgression progress)
+        {
+            var families = WeaponMasteryRules.TrainedFamilies;
+            int sum = 0;
+            for (int i = 0; i < families.Count; i++) sum += progress.WeaponMastery.Level(families[i]);
+            return sum;
+        }
+
+        private void SaveWeaponLevelUps()
+        {
+            if (_game != null && !_storageFault && WeaponLevelSum(_game.Progression) != _savedWeaponLevels) SaveCharacter();
         }
 
         /// <summary>Persist the active Core progression; gameplay data never comes from visual state.</summary>
@@ -123,6 +143,7 @@ namespace AreArpg.UnityClient
         private void SaveCharacter(CharacterProgression progress)
         {
             if (_storageFault || progress == null) return;
+            _savedWeaponLevels = WeaponLevelSum(progress);
             string primary = PlayerPrefs.GetString(CharacterSaveKey, "");
             CharacterProgression previous;
             if (CharacterProgression.TryLoad(primary, _journeyMaps, out previous))
@@ -586,6 +607,7 @@ namespace AreArpg.UnityClient
             string key = _game.IsVillage ? "EntryVillageWorld" : "EntryCryptWorld";
             if (!PassiveArtVisuals.TryBind(root.transform, key)) { Destroy(root); return false; }
             _chapterScenery.Add(root.transform);
+            if (_game.IsVillage) CollectWalkSurfaces(root.transform); else _walkSurfaces.Clear();
             var passage = new GameObject("ARE_World_Passage");
             passage.transform.position = new Vector3(0f, 1.5f, 24f);
             var light = passage.AddComponent<Light>();
@@ -718,6 +740,8 @@ namespace AreArpg.UnityClient
                         animator.runtimeAnimatorController = sharedNpcLocomotion;
                     animator.applyRootMotion = false;
                 }
+                // Bound art stands on the flat Core plane; lift the whole visual onto visible village paving.
+                visual.position += Vector3.up * WalkSurfaceHeight(visual.position.x, visual.position.z);
                 RegisterActorMotion(visual);
                 _npcVisuals.Add(npc.Id, visual);
             }
@@ -861,7 +885,7 @@ namespace AreArpg.UnityClient
             {
                 // A first tap only arms the theft; a second tap within three seconds confirms it.
                 if (TakeRationArmed) { _pendingTakeRation = true; _takeRationArmedUntil = -1f; }
-                else { _takeRationArmedUntil = Time.unscaledTime + 3f; _message = "Wirklich eine Ration von Mara stehlen? Zum Bestätigen erneut tippen."; }
+                else { _takeRationArmedUntil = Time.time + 3f; _message = "Wirklich eine Ration von Mara stehlen? Zum Bestätigen erneut tippen."; }
             }
             else if (control == ArenaHudControl.Pickup)
                 _pendingPickup = true;
@@ -913,7 +937,8 @@ namespace AreArpg.UnityClient
                 "AKT II: Folge dem Dorfweg zu Ilyan, Mara und Dorn. Zwei Rationen fehlen." :
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;
-            _hero.position = new Vector3(next.PlayerXmm / 1000f, 1.05f + GroundHeight(next.PlayerXmm / 1000f,next.PlayerZmm / 1000f), next.PlayerZmm / 1000f);
+            float heroX = next.PlayerXmm / 1000f, heroZ = next.PlayerZmm / 1000f;
+            _hero.position = new Vector3(heroX, 1.05f + GroundHeight(heroX, heroZ) + WalkSurfaceHeight(heroX, heroZ), heroZ);
             if (_cameraRig != null) { RefreshCameraOccluders(); _cameraRig.SnapToTarget(); }
         }
 
@@ -1039,7 +1064,7 @@ namespace AreArpg.UnityClient
                     _message = outcome.Message;
                     bool learned = _game.Progression.PracticeLevel(slot) > previousRank;
                     if (learned) _message += " / Durch Uebung gewachsen: Rang " + _game.Progression.PracticeLevel(slot);
-                    if (outcome.Kills > 0 || learned) SaveCharacter();
+                    if (outcome.Kills > 0 || learned || outcome.WeaponLevelUps > 0) SaveCharacter();
                 }
                 if (_pendingPickup)
                 {
@@ -1051,6 +1076,7 @@ namespace AreArpg.UnityClient
                 long oldX = _game.PlayerXmm, oldZ = _game.PlayerZmm; int oldHealth = _game.PlayerHealth;
                 _game.Step();
                 _atmosphere.ObserveTick(_game, oldX, oldZ, oldHealth);
+                SaveWeaponLevelUps(); // a shield trains on incoming attacks inside the step
                 if ((_game.Progression.Road.Started || _game.Progression.Investigation.Active) && _game.CurrentTick % 10 == 0) SaveCharacter();
                 if ((_game.Progression.EntryAct >= 2 || _game.CryptCleared) && _game.AtAnyPassage)
                 {
@@ -1085,8 +1111,8 @@ namespace AreArpg.UnityClient
             {
                 Transform visual;
                 if (!_npcVisuals.TryGetValue(npc.Id, out visual) || visual == null) continue;
-                visual.position = new Vector3(Mathf.Lerp(npc.PreviousXmm, npc.Xmm, alpha) / 1000f,
-                    npc.Memory.Health > 0 ? 1f : 0.25f, Mathf.Lerp(npc.PreviousZmm, npc.Zmm, alpha) / 1000f);
+                float npcX = Mathf.Lerp(npc.PreviousXmm, npc.Xmm, alpha) / 1000f, npcZ = Mathf.Lerp(npc.PreviousZmm, npc.Zmm, alpha) / 1000f;
+                visual.position = new Vector3(npcX, (npc.Memory.Health > 0 ? 1f : 0.25f) + WalkSurfaceHeight(npcX, npcZ), npcZ);
                 visual.rotation = npc.Memory.Health > 0 ? Quaternion.identity : Quaternion.Euler(90f, 0f, 0f);
                 if(npc.Memory.Health>0&&npc.Behavior==NpcBehavior.Observe)
                 {
@@ -1118,7 +1144,7 @@ namespace AreArpg.UnityClient
             {
                 float x = Mathf.Lerp(_game.PrevPlayerXmm, _game.PlayerXmm, alpha) / 1000f;
                 float z = Mathf.Lerp(_game.PrevPlayerZmm, _game.PlayerZmm, alpha) / 1000f;
-                _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z), z);
+                _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z) + WalkSurfaceHeight(x, z), z);
                 AnimateActor(_hero, _sceneActive ? 0 : _game.PlayerXmm - _game.PrevPlayerXmm, _sceneActive ? 0 : _game.PlayerZmm - _game.PrevPlayerZmm);
                 HoldTargetFacing();
             }

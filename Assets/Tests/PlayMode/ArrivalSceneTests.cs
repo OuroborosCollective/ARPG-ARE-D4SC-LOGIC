@@ -14,7 +14,7 @@ namespace AreArpg.PlayMode.Tests
         [UnityTest]
         public IEnumerator ArrivalSceneExplainsTheMissingRationsBeforeAnyChoice()
         {
-            _runtime.enabled = false;
+            _runtime.enabled = false; UseDeviceFrameClock();
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
             Game.ActivateSkill(3);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
@@ -33,6 +33,7 @@ namespace AreArpg.PlayMode.Tests
             var advance = typeof(ArenaRuntime).GetMethod("AdvanceArrivalScene", Flags);
             advance.Invoke(_runtime, null); advance.Invoke(_runtime, null);
             Assert.AreEqual(0, _runtime.SceneLineIndex, "Hasty taps cannot skip a line before it was readable");
+            UseFrameClock(.25f); // the line-by-line walk below only waits for game time
             var speakers = new HashSet<string>();
             var rig = Camera.main.GetComponent<ArenaCameraRig>();
             for (int line = 0; line < ArrivalScene.Lines.Length; line++)
@@ -48,8 +49,8 @@ namespace AreArpg.PlayMode.Tests
                 Vector3 toCamera = rig.transform.position - speakerVisual.position; toCamera.y = 0f;
                 Assert.Greater(Vector3.Dot(speakerVisual.forward, toCamera.normalized), .3f, "The speaker faces the camera, not away from it");
                 speakers.Add(speakerLabel.text);
-                if (line == 0 || line == 3) { yield return new WaitForSecondsRealtime(.3f); yield return Capture("arrival-scene-line" + line + ".png"); }
-                yield return new WaitForSecondsRealtime(.65f);
+                if (line == 0 || line == 3) { yield return new WaitForSeconds(.3f); yield return Capture("arrival-scene-line" + line + ".png"); }
+                yield return new WaitForSeconds(.65f);
                 advance.Invoke(_runtime, null);
                 yield return null;
             }

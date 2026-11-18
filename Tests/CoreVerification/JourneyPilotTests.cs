@@ -201,14 +201,14 @@ internal static class JourneyPilotTests
     }
     private static void Corruption(Action<bool,string> check,ArenaSimulation w,JourneyMapCatalog maps)
     {
-        string original=w.Progression.SaveString();var parts=original.Split('|');string token=Encoding.UTF8.GetString(Convert.FromBase64String(parts[2]));
+        string outer=w.Progression.SaveString();string original=WeaponMasteryTests.Unwrapped(outer);var parts=original.Split('|');string token=Encoding.UTF8.GetString(Convert.FromBase64String(parts[2]));
         var f=token.Split(';');var head=f[0].Split(',');
         foreach(var mutation in new[]{(0,"2"),(2,"7"),(4,"2"),(4,"7"),(5,"0"),(8,"0")})
         {
             var copy=(string[])head.Clone();copy[mutation.Item1]=mutation.Item2;var fields=(string[])f.Clone();fields[0]=string.Join(",",copy);var envelope=(string[])parts.Clone();envelope[2]=Convert.ToBase64String(Encoding.UTF8.GetBytes(string.Join(";",fields)));
-            string body=string.Join("|",envelope.Take(4));check(!CharacterProgression.TryLoad(body+"|"+LootCatalog.HashText(body).ToString("X16"),maps,out _),"journey-rechecksummed-impossible-state-"+mutation.Item1+"-"+mutation.Item2);
+            string body=string.Join("|",envelope.Take(4));check(!CharacterProgression.TryLoad(WeaponMasteryTests.Rewrap(outer,body+"|"+LootCatalog.HashText(body).ToString("X16")),maps,out _),"journey-rechecksummed-impossible-state-"+mutation.Item1+"-"+mutation.Item2);
         }
-        check(w.Progression.SaveString()==original,"journey-rejected-load-does-not-replace-valid-progression");
+        check(w.Progression.SaveString()==outer,"journey-rejected-load-does-not-replace-valid-progression");
     }
     private static void CompanionMatrix(Action<bool,string> check,JourneyMapCatalog maps)
     {

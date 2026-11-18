@@ -16,6 +16,7 @@ namespace AreArpg.PlayMode.Tests
         [UnityTest]
         public IEnumerator StealingFromMaraIsTheDecisionAndRemovesTheRationPanel()
         {
+            UseDeviceFrameClock(); // the second tap must land inside the 3 s confirmation window at any render speed
             EnterVillageAfterScene();
             var mara = Game.Npcs.Find(n => n.Id == SocialLedger.MaraNpcId);
             for (int attempt = 0; attempt < 6 && Distance(mara) > 1800; attempt++) MoveNear(mara.Xmm, mara.Zmm);
@@ -79,7 +80,7 @@ namespace AreArpg.PlayMode.Tests
         [UnityTest]
         public IEnumerator ArrivalSceneOwnsAllInputUntilItEnds()
         {
-            _runtime.enabled = false;
+            _runtime.enabled = false; UseFrameClock(.25f); // the scene walk only waits for game time
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
             Game.ActivateSkill(3);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
@@ -103,7 +104,7 @@ namespace AreArpg.PlayMode.Tests
             var advance = typeof(ArenaRuntime).GetMethod("AdvanceArrivalScene", Flags);
             for (int line = 0; line < ArrivalScene.Lines.Length; line++)
             {
-                yield return new WaitForSecondsRealtime(.65f);
+                yield return new WaitForSeconds(.65f); // game time, the clock the readable-line guard uses
                 advance.Invoke(_runtime, null);
                 yield return null;
             }

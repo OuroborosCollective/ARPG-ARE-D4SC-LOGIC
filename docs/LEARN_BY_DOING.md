@@ -15,6 +15,63 @@ Pro Treffer zählt nur tatsächlich abgezogene Gesundheit, nicht die überschüs
 
 Charakter-XP aus Kills und bestehende Mastery bleiben erhalten. Übungsränge ersetzen keine vorhandenen Spielstände. AC4 erweitert AC3 um vier kanonische BigInteger-Zähler, liest AC1/AC2/AC3 und übernimmt deren XP, Ausrüstung, Ränge und Gebietscheckpoint. Alte Saves erhalten keine erfundene Übung, sondern starten die vier neuen Zähler bei0. Speicherschlüssel, Backup und geprüfter Readback bleiben bestehen.
 
+## Waffenkünste im RuneScape-Stil (Owner-Auftrag 17.11.2026)
+
+Jede derzeit droppbare Waffenart hat eine eigene Fähigkeit: **Schwertkunst, Dolchkunst, Axtkunst, Stabkunst, Bogenkunst** und **Schildkunst**.
+
+| Regel | Wert |
+| --- | --- |
+| Stufen | 1–99, klassische RuneScape-EP-Tabelle (Stufe 2: 83 EP, 10: 1.154, 50: 101.333, 99: 13.034.431), Obergrenze 200.000.000 EP |
+| Training | nur wirksame Treffer mit angelegter Waffe dieser Art; 1 EP je volle 10 tatsächlich abgezogene LP, abgerundet, mindestens 1 EP je wirksamem Treffer (wie die Disziplinen; 19 LP geben 1 EP) |
+| Alle 5 Stufen | +1 frei verteilbarer Wertepunkt (Macht, Vitalität oder Entschlossenheit) und +2,5 % Schaden mit dieser Waffenart |
+| Maximum je Waffenart | 19 Wertepunkte und +47,5 % Schaden auf Stufe 95–99 |
+| Ohne Waffe, ohne Ziel, Fehlschlag | keine EP |
+
+Wertepunkte aus Charakterstufen und aus Waffenkünsten werden zusammen angezeigt und verteilt; gespeichert werden die
+aus Waffenkünsten gekauften Ränge getrennt, damit ältere Spielstände ihre bestehende Prüfung behalten. Der Schadensbonus
+zählt additiv zu den übrigen Schadensanteilen (Basis 20 %, Macht, Waffenaffix, Disziplin) und gilt nur, solange eine
+Waffe dieser Art angelegt ist.
+
+Speicherung: AC21 umhüllt den vollständigen bisherigen Spielstand, sobald eine Waffenkunst Fortschritt hat; ohne
+Fortschritt bleibt der Spielstand byte-gleich. Abgelehnt werden u. a. mehr verteilte Punkte als verdient (auch wenn
+riesige Ränge beim Addieren überlaufen würden), EP über der Obergrenze, Fortschritt auf Waffenarten ohne Fähigkeit,
+nicht kanonische oder negative Zahlen, verschachtelte Hüllen und Änderungen ohne gültige Prüfsumme. Beim Laden gelten
+die Waffenränge schon vor jeder Gesundheitsprüfung des inneren Spielstands, damit ein mit Waffen-Vitalität geheilter
+Charakter gültig bleibt. Ein Waffen- oder Schild-Stufenaufstieg wird sofort gespeichert, auch ohne Kill. Ein AC21-Stand
+um einen Reise-Checkpoint gilt bei der Wiederherstellung weiter als Reise-Checkpoint: Er fällt nie auf ein älteres
+Backup ohne Reise zurück.
+
+Menü **FÄHIGKEITEN** (Taste P): Stufe, EP-Fortschritt und Boni je Waffenkunst; freie Punkte mit Herkunft und „+“-Knöpfen;
+Wirkung jedes Werts; je Schadensart (Klinge, Wucht, Ruin) Gesamtbonus mit Aufschlüsselung, Kritchance 19 % für ×1,5
+und der exakte Treffer gegen Ghul und Ritter mit und ohne Krit (dieselbe Formel wie im Kampf, ohne Zufall); Heilung von Schutz.
+Die Rüstung zieht Rüstung/(1 + Rüstung) vom Treffer ab: Ghul −9,1 %, Ritter −18 % (Rüstungswerte 1000 und 2200 bp).
+
+### Waffenarten und Schild (Owner-Entscheidungen 17.11.2026)
+
+Jede Waffenart hat ihren eigenen Charakter (`WeaponProfiles`, Revision 1). Tempo und Reichweite kommen aus dem
+Waffenkatalog, das Profil gewichtet den Grundschaden und legt Krit, Treffsicherheit und Bewegung fest:
+
+| Waffenart | Abklingzeit | Reichweite | Schadensgewicht | Krit | Treffsicherheit | Bewegung |
+| --- | --- | --- | --- | --- | --- | --- |
+| Dolch | 2 Ticks | 2,3 m | ×0,68 | 35 % | 100 % | 100 % |
+| Einhandschwert | 3 Ticks | 3,1 m | ×1,00 | 19 % | 100 % | 98 % |
+| Einhandaxt | 4 Ticks | 3,0 m | ×1,06 | 15 % | 100 % | 96 % |
+| Zweihandschwert | 4 Ticks | 4,1 m | ×1,06 | 16 % | 100 % | 94 % |
+| Zweihandaxt | 5 Ticks | 3,8 m | ×1,33 | 12 % | 100 % | 90 % |
+| Bogen (zweihändig) | 6 Ticks | 12 m | ×1,05 | 22 % | 60 % + 1,25 % je Bogenstufe (100 % ab Stufe 32) | 98 % |
+| Stab (zweihändig) | 7 Ticks | 8,5–9 m | ×1,10 | 15 % | 100 % | 97 % |
+| ohne Waffe | Fertigkeit | Fertigkeit | Grundwert 95 | 19 % | 100 % | 100 % |
+
+Schaden pro Sekunde im Mittel (mit Krit, gegen einen Ghul) ordnet sich so: Dolch < Bogen (treffsicher) < Einhandschwert
+< Einhandaxt < Zweihandschwert < Zweihandaxt. Ein Bogen niedriger Stufe verliert durch Fehlschüsse deutlich Schaden.
+Fehlschüsse treffen nur Klinge und Wucht mit dem Bogen, verursachen nichts und trainieren nichts.
+
+**Schildkunst:** Der Schild sitzt in der Nebenhand und greift nie an. Jeder erlittene Angriff mit angelegtem Schild
+trainiert ihn (1 EP je volle 10 Angriffsschaden, mindestens 1, auch bei Block). Je Stufe +0,25 % Chance, einen Angriff komplett
+zu blocken (0 Schaden; Stufe 99: 24,75 %); dazu die bisherige Schadensminderung des Schildes. Alle 5 Stufen +1 freier
+Wertepunkt wie bei den Waffen. Mit angelegtem Schild lassen sich nur Einhandwaffen anlegen (eine Zweihandwaffe wird
+abgelehnt, bis der Schild abgelegt ist), und der Charakter bewegt sich 12 Prozentpunkte langsamer.
+
 ## Begehbare Gebietswechsel
 Der Nordbogen steht bei (0,24000) Millimetern. Nach Sieg und Beutesicherung wird die Bodenmarkierung sichtbar. Der Charakter läuft in den Radius von1800mm; der Core prüft den Übertritt. Der Unity-Adapter speichert und liest den neuen Checkpoint zurück, bevor er die Welt wechselt. Gesundheit, Fokus, Cooldowns, Charakterfortschritt und gelernte Disziplinen reisen mit. Eintritt ins Folgegebiet am südlichen Rand bei z=-23000mm. Kurze Überblendung statt Abschlussfenster; keine Next-Level-Schaltfläche und keine N-Taste als Fernteleport.
 

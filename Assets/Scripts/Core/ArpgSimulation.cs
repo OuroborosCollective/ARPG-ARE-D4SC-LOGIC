@@ -123,6 +123,11 @@ namespace AreArpg.Core
         public long TargetXmm, TargetZmm;
         /// <summary>Monsters that actually took damage, in application order; presentation hit reactions only.</summary>
         public readonly System.Collections.Generic.List<int> HitMonsterIds = new System.Collections.Generic.List<int>();
+        /// <summary>Weapon-skill levels gained by this activation and the trained type; presentation feedback only.</summary>
+        public int WeaponLevelUps;
+        public WeaponFamily? TrainedFamily;
+        /// <summary>Shots that missed (only the bow can miss); they deal and train nothing.</summary>
+        public int Misses;
     }
 
     /// <summary>Standalone single-player simulation. Not a network server or a clone of any proprietary engine.</summary>
@@ -185,6 +190,9 @@ namespace AreArpg.Core
         public int Kills { get; private set; }
         public System.Numerics.BigInteger LootCollected { get { return Progression.LootCollected; } }
         public bool GameOver { get { return PlayerHealth == 0; } }
+        /// <summary>Enemy attacks that reached the player, and how many of them a shield blocked; feedback only.</summary>
+        public int IncomingAttacks { get; private set; }
+        public int BlockedAttacks { get; private set; }
         public readonly List<MonsterState> Monsters = new List<MonsterState>();
         public readonly List<LootState> GroundLoot = new List<LootState>();
         public readonly List<NpcAgent> Npcs = new List<NpcAgent>();
@@ -541,7 +549,9 @@ namespace AreArpg.Core
 
         private void MovePlayer()
         {
-            long speed = Progression.EntryAct == 7 && Progression.Rattler.Sneaking ? 240 : PlayerSpeedMmPerTick;
+            // Sneaking lowers the base speed; the weapon and shield movement profile applies to both.
+            long baseSpeed = Progression.EntryAct == 7 && Progression.Rattler.Sneaking ? 240 : PlayerSpeedMmPerTick;
+            long speed = baseSpeed * Progression.MoveSpeedBp / 10000L;
             long dx = _directionXbp * speed / 10000L;
             long dz = _directionZbp * speed / 10000L;
             if (CanStand(PlayerXmm + dx, PlayerZmm + dz)) { PlayerXmm += dx; PlayerZmm += dz; }
@@ -637,6 +647,9 @@ namespace AreArpg.Core
         /// <summary>Resolve existing combat rewards; only a transition to dead generates a catalog item.</summary>
         private void DealDamage(MonsterState enemy, int powerBp, int slot, SkillResult result)
         {
+            // Weapon strikes (Klinge, Wucht) can miss with a bow until its skill makes it accurate.
+            int accuracy = slot <= 1 ? Progression.WeaponAccuracyBp : 10000;
+            if (accuracy < 10000 && _rng.NextBasisPoints() >= accuracy) { result.Misses++; return; }
             bool crit;
             var stats = new CombatStats(Progression, slot);
             long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
@@ -645,6 +658,8 @@ namespace AreArpg.Core
             RememberCreatureAssault(enemy,"player");
             PlayerHealth = Math.Min(MaxPlayerHealth,PlayerHealth+(int)((long)appliedDamage*Progression.Equipment.Bonus(WeaponAffix.Siphon)/10000));
             Progression.RecordPractice(slot, PracticeRules.ExperienceFromEffectiveAmount(appliedDamage));
+            int weaponLevels = Progression.RecordWeaponPractice(appliedDamage);
+            if (weaponLevels > 0) { result.WeaponLevelUps += weaponLevels; result.TrainedFamily = Progression.TrainingFamily; }
             result.TotalDamage = CombatRules.AddReportedDamage(result.TotalDamage, damage);
             result.Hits++;
             result.HitMonsterIds.Add(enemy.Id);
@@ -719,6 +734,10 @@ namespace AreArpg.Core
             HearRattlerNoise(); SaveInvestigationPlayer(); SaveWoodlandPlayer();
             result.Message = skill.DisplayName +
                 ": " + result.TotalDamage + " damage / " + result.Kills + " kills";
+            if (result.Misses > 0 && result.Hits == 0) result.Message = skill.DisplayName + ": verfehlt";
+            if (result.WeaponLevelUps > 0 && result.TrainedFamily.HasValue)
+                result.Message += " · " + WeaponMasteryRules.SkillName(result.TrainedFamily.Value) + " Stufe " +
+                    Progression.WeaponMastery.Level(result.TrainedFamily.Value);
             return result;
         }
 

@@ -87,7 +87,8 @@ namespace AreArpg.Core
         public BigInteger UnlockedCryptDepth { get; private set; } = BigInteger.One;
         public BigInteger Level { get { return LevelForExperience(TotalExperience); } }
         public BigInteger SpentMasteryPoints { get { return MightRank + VitalityRank + ResolveRank; } }
-        public BigInteger UnspentMasteryPoints { get { return Level - BigInteger.One - SpentMasteryPoints; } }
+        /// <summary>Character-level points plus the free points earned every fifth weapon-skill level.</summary>
+        public BigInteger UnspentMasteryPoints { get { return Level - BigInteger.One - SpentMasteryPoints + WeaponMastery.StatPointsUnspent; } }
         public BigInteger ExperienceToNextLevel { get { return RequiredExperienceForLevel(Level + BigInteger.One) - TotalExperience; } }
 
         public static BigInteger RequiredExperienceForLevel(BigInteger level)
@@ -119,6 +120,8 @@ namespace AreArpg.Core
         public bool TrySpendMastery(MasteryPath path)
         {
             if (UnspentMasteryPoints <= BigInteger.Zero) return false;
+            // Level-funded ranks stay within the legacy checkpoint contract; weapon points are recorded separately.
+            if (UnspentLevelPoints <= BigInteger.Zero) return WeaponMastery.TrySpend(path);
             switch (path)
             {
                 case MasteryPath.Might: MightRank++; return true;
@@ -130,9 +133,9 @@ namespace AreArpg.Core
 
         // Effects use a bounded gameplay scaling even when character ranks/XP are arbitrarily large.
         // This avoids integer overflow and preserves finite deterministic combat arithmetic.
-        public int MightDamageBonusBp { get { return (int)BigInteger.Min(MightRank, 100) * 100; } }
-        public int VitalityHealthBonus { get { return (int)BigInteger.Min(VitalityRank, 1000) * 20; } }
-        public int ResolveHealBonus { get { return (int)BigInteger.Min(ResolveRank, 1000) * 10; } }
+        public int MightDamageBonusBp { get { return (int)BigInteger.Min(TotalMightRank, 100) * 100; } }
+        public int VitalityHealthBonus { get { return (int)BigInteger.Min(TotalVitalityRank, 1000) * 20; } }
+        public int ResolveHealBonus { get { return (int)BigInteger.Min(TotalResolveRank, 1000) * 10; } }
 
         /// <summary>Record only the consecutively cleared depth, never an arbitrary skip.</summary>
         internal bool TryUnlockNextCryptDepth(BigInteger clearedDepth)
@@ -181,8 +184,8 @@ namespace AreArpg.Core
             return hash;
         }
 
-        public ulong StableHash { get { return HashText(Payload()); } }
-        public string SaveString() { return Payload() + "|" + StableHash.ToString("X16", CultureInfo.InvariantCulture); }
+        public ulong StableHash { get { return HashText(WeaponMasteryPayload()); } }
+        public string SaveString() { return WeaponMasteryPayload() + "|" + StableHash.ToString("X16", CultureInfo.InvariantCulture); }
 
         private static bool CanonicalNonNegative(string text, out BigInteger value)
         {
@@ -194,14 +197,19 @@ namespace AreArpg.Core
         }
 
         /// <summary>Validate checkpoint version, checksum, entry revision and item invariants; AC6 remains reserved.</summary>
-        public static bool TryLoad(string saved, out CharacterProgression progress)
+        public static bool TryLoad(string saved, out CharacterProgression progress) => TryLoadRestoring(saved, null, out progress);
+
+        /// <summary>restoring carries the weapon skills of an enclosing AC21 checkpoint into the progression this chain
+        /// creates, so every saved-health check below already uses the final maximum health.</summary>
+        private static bool TryLoadRestoring(string saved, WeaponMasteryState restoring, out CharacterProgression progress)
         {
             progress = null;
             if (string.IsNullOrEmpty(saved)) return false;
-            if(saved.StartsWith("AC19|",StringComparison.Ordinal))return TryLoadFreight(saved,out progress);
-            if(saved.StartsWith("AC18|",StringComparison.Ordinal))return TryLoadCompanion(saved,out progress);
-            if(saved.StartsWith("AC17|",StringComparison.Ordinal))return TryLoadForge(saved,out progress);
-            if(saved.StartsWith("AC16|",StringComparison.Ordinal))return TryLoadEquipment(saved,out progress);
+            if (saved.StartsWith("AC21|", StringComparison.Ordinal)) return restoring == null && TryLoadWeaponMastery(saved, null, out progress);
+            if(saved.StartsWith("AC19|",StringComparison.Ordinal))return TryLoadFreight(saved,restoring,out progress);
+            if(saved.StartsWith("AC18|",StringComparison.Ordinal))return TryLoadCompanion(saved,restoring,out progress);
+            if(saved.StartsWith("AC17|",StringComparison.Ordinal))return TryLoadForge(saved,restoring,out progress);
+            if(saved.StartsWith("AC16|",StringComparison.Ordinal))return TryLoadEquipment(saved,restoring,out progress);
             string[] parts = saved.Split('|');
             bool legacy = parts[0] == "AC1" && parts.Length == 6;
             bool ac2 = parts[0] == "AC2" && parts.Length == 9;
@@ -293,7 +301,8 @@ namespace AreArpg.Core
                 LootCollected = loot, LootOrdinal = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
                 UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct,
-                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland
+                HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland,
+                WeaponMastery = restoring ?? new WeaponMasteryState(), _restoringWeaponMastery = restoring != null
             };
             if (ac15 && woodland.SavedHealth > CombatRules.MaximumHealth(progress)) { progress=null; return false; }
             if (ac11 && investigation.SavedHealth > CombatRules.MaximumHealth(progress)) { progress = null; return false; }

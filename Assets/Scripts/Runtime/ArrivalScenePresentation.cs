@@ -50,10 +50,12 @@ namespace AreArpg.UnityClient
             ShowSceneLine();
         }
 
-        /// <summary>The same step a tap performs: ignored until the current line was readable for a moment.</summary>
+        /// <summary>The same step a tap performs: ignored until the current line was readable for a moment. Measured on the
+        /// game clock (Time.time), which equals real time in play because the game never changes timeScale, and which a fixed
+        /// test frame time drives like a device frame rate.</summary>
         private void AdvanceArrivalScene()
         {
-            if (!_sceneActive || Time.unscaledTime - _sceneLineShown < SceneMinimumLineSeconds) return;
+            if (!_sceneActive || Time.time - _sceneLineShown < SceneMinimumLineSeconds) return;
             _sceneIndex++;
             if (_sceneIndex < ArrivalScene.Lines.Length) { ShowSceneLine(); return; }
             _sceneActive = false;
@@ -90,7 +92,7 @@ namespace AreArpg.UnityClient
         private void ShowSceneLine()
         {
             var line = ArrivalScene.Lines[_sceneIndex];
-            _sceneLineShown = Time.unscaledTime;
+            _sceneLineShown = Time.time;
             if (_sceneRoot == null) BuildSceneUi();
             ShowSceneTexts();
             if (_npcVisuals.TryGetValue(line.SpeakerId, out var speaker) && speaker != null && _hero != null && _cameraRig != null)

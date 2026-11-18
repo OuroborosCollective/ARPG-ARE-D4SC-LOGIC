@@ -112,6 +112,29 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse((bool)typeof(ArenaRuntime).GetMethod("TryLoadCharacter",Flags).Invoke(_runtime,args),"An older backup must still be refused");
             Assert.IsNull(args[0]);Assert.AreEqual(corrupted,PlayerPrefs.GetString(_keys[0]));Assert.AreEqual(legacy,PlayerPrefs.GetString(_keys[1]));
         }
+        /// <summary>Review PR #59: weapon skills wrap a journey checkpoint in AC21; it still never falls back to an older backup.</summary>
+        [UnityTest]
+        public IEnumerator CorruptedWeaponSkillJourneyCheckpointNeverFallsBackToAnOlderBackup()
+        {
+            InstallJourneyStationFixture();string legacy=Game.Progression.SaveString();MoveStory(0,18000);TravelStory();yield return null;
+            var p=Game.Progression;Assert.That(legacy,Does.Not.StartWith("AC21|"));
+            typeof(WeaponMasteryState).GetMethod("Record",Flags).Invoke(p.WeaponMastery,new object[]{WeaponFamily.Sword,100L});
+            string saved=p.SaveString();Assert.That(saved,Does.StartWith("AC21|"));
+            Assert.IsTrue(CharacterProgression.TryLoad(saved,NativeJourneyMaps,out _),"The weapon-skill journey checkpoint itself is valid");
+            string corrupted=saved.Substring(0,saved.Length-24);
+            PlayerPrefs.SetString(_keys[0],corrupted);PlayerPrefs.SetString(_keys[1],legacy);
+            object[] args={null};
+            Assert.IsFalse((bool)typeof(ArenaRuntime).GetMethod("TryLoadCharacter",Flags).Invoke(_runtime,args),"An older backup must not replace a corrupted AC21 journey checkpoint");
+            Assert.IsNull(args[0]);Assert.AreEqual(corrupted,PlayerPrefs.GetString(_keys[0]));Assert.AreEqual(legacy,PlayerPrefs.GetString(_keys[1]));
+            PlayerPrefs.SetString(_keys[1],saved);args[0]=null;
+            Assert.IsTrue((bool)typeof(ArenaRuntime).GetMethod("TryLoadCharacter",Flags).Invoke(_runtime,args),"A valid AC21 journey backup recovers the corrupted primary");
+            Assert.AreEqual(saved,((CharacterProgression)args[0]).SaveString(),"The recovered checkpoint is the exact AC21 backup");
+            // Review PR #59 (CodeRabbit): a damaged first encoded character must not open the older backup either.
+            string damaged="AC21|"+(saved[5]=='Q'?"R":"Q")+saved.Substring(6);
+            PlayerPrefs.SetString(_keys[0],damaged);PlayerPrefs.SetString(_keys[1],legacy);args[0]=null;
+            Assert.IsFalse((bool)typeof(ArenaRuntime).GetMethod("TryLoadCharacter",Flags).Invoke(_runtime,args),"A damaged AC21 discriminator must not fall back to an older backup");
+            Assert.IsNull(args[0]);Assert.AreEqual(damaged,PlayerPrefs.GetString(_keys[0]));
+        }
         private void JourneyNativeWalk(long x,long z,bool fight=true)
         {
             var g=Game.JourneyGeometry;Func<long,long,(int,int)> cell=(a,b)=>((int)((a-g.OriginMm+g.CellMm/2)/g.CellMm),(int)((b-g.OriginMm+g.CellMm/2)/g.CellMm));

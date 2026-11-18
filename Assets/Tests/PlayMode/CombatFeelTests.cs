@@ -11,12 +11,22 @@ namespace AreArpg.PlayMode.Tests
     /// <summary>Owner report 2026-11-15: attacks at the start enemies made combat sounds but showed no attack animation.</summary>
     public sealed partial class EntryJourneyRuntimeTests
     {
+        /// <summary>Sample presentation timing at a device frame rate: every rendered frame advances game time by
+        /// exactly 1/60 s. The validation editor renders on a software display at about 5 frames per second, where a
+        /// 0.28 s knockback or a 0.6 s readable line falls between two frames. The fixture teardown resets it.</summary>
+        private static void UseDeviceFrameClock() { UseFrameClock(1f / 60f); }
+
+        /// <summary>Fixed game time per rendered frame. Scene flows that only wait for game time may use coarse steps:
+        /// the village renders at about 2 frames per second here (measured), so 1/60 s steps would take minutes.</summary>
+        private static void UseFrameClock(float secondsPerFrame) { Time.captureDeltaTime = secondsPerFrame; }
+
         /// <summary>Every executed ability shows a visible hero action in the real runtime flow (HUD route, fixed ticks, real frames).</summary>
         [UnityTest]
         public IEnumerator EveryExecutedAbilityShowsAVisibleHeroAction()
         {
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private character and animation overlay");
+            UseDeviceFrameClock();
             var hero = Find("Wanderer");
             Assert.IsNotNull(hero);
             var animator = hero.GetComponentInChildren<Animator>();
@@ -37,8 +47,8 @@ namespace AreArpg.PlayMode.Tests
                 var seen = new List<string>();
                 typeof(ArenaRuntime).GetMethod("RouteHudControl", Flags).Invoke(_runtime, new object[] { ArenaHudControl.Skill0 + slot });
                 bool action = false;
-                float until = Time.realtimeSinceStartup + 1.2f;
-                while (Time.realtimeSinceStartup < until)
+                float until = Time.time + 1.2f;
+                while (Time.time < until)
                 {
                     yield return null;
                     var state = animator.GetCurrentAnimatorStateInfo(0);
@@ -60,6 +70,7 @@ namespace AreArpg.PlayMode.Tests
         {
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private character and animation overlay");
+            UseDeviceFrameClock();
             var target = Game.Monsters.Find(m => !m.IsDead);
             foreach (var other in Game.Monsters) if (other != target) { other.Xmm = 20000; other.Zmm = 20000; }
             target.Xmm = target.PreviousXmm = Game.PlayerXmm + 900; target.Zmm = target.PreviousZmm = Game.PlayerZmm; target.Health = 100000;
@@ -125,6 +136,7 @@ namespace AreArpg.PlayMode.Tests
         {
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private character and animation overlay");
+            UseDeviceFrameClock();
             var target = Game.Monsters.Find(m => !m.IsDead);
             foreach (var other in Game.Monsters) if (other != target) { other.Xmm = 20000; other.Zmm = 20000; }
             target.Xmm = target.PreviousXmm = Game.PlayerXmm; target.Zmm = target.PreviousZmm = Game.PlayerZmm + 900; target.Health = 100000;
@@ -211,6 +223,7 @@ namespace AreArpg.PlayMode.Tests
         {
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private character and animation overlay");
+            UseDeviceFrameClock();
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
             Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());

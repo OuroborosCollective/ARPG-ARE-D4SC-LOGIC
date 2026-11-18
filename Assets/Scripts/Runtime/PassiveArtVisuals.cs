@@ -34,7 +34,7 @@ namespace AreArpg.UnityClient
             if (placeholder == null || prefab == null || !prefab.activeSelf) return false;
             if (!IsPassiveVisual(prefab))
             {
-                Debug.LogWarning("ARE ARPG: rejected non-visual art prefab " + prefab.name);
+                Debug.LogWarning("ARE ARPG: rejected non-visual or incomplete art prefab " + prefab.name);
                 return false;
             }
 
@@ -192,7 +192,8 @@ namespace AreArpg.UnityClient
             return first;
         }
 
-        /// <summary>Reject executable or physics components before any prefab instance can awaken.</summary>
+        /// <summary>Reject executable or physics components before any prefab instance can awaken, and characters with
+        /// an unresolved skinned mesh.</summary>
         private static bool IsPassiveVisual(GameObject prefab)
         {
             bool hasMeshRenderer = false;
@@ -210,6 +211,9 @@ namespace AreArpg.UnityClient
                         active &= node.gameObject.activeSelf;
                         if (node == prefab.transform) break;
                     }
+                    // A character whose skinned part lost its mesh (vendor model without that body part) would be
+                    // drawn with holes: reject it so the complete fallback model is shown instead.
+                    if (renderer is SkinnedMeshRenderer && renderer.enabled && active && mesh == null) return false;
                     hasMeshRenderer |= renderer.enabled && active && mesh != null && mesh.vertexCount > 0;
                     continue;
                 }

@@ -55,7 +55,12 @@ namespace AreArpg.Core
             var receipt=p.Items.FirstOrDefault(i=>i.KillOrdinal==ordinal);var item=ForItem(receipt);if(item==null)return false;
             if(item.Definition.Family==WeaponFamily.Shield)
             { if(Weapon!=null&&Weapon.Definition.TwoHanded)return false;Shield=item; }
-            else {Weapon=item;if(item.Definition.TwoHanded)Shield=null;}
+            else
+            {
+                // Owner decision 2026-11-17: while a shield is carried, only one-handed weapons can be equipped.
+                if(item.Definition.TwoHanded&&Shield!=null)return false;
+                Weapon=item;
+            }
             return true;
         }
         internal bool Unequip(bool shield) { if(shield) {if(Shield==null)return false;Shield=null;}else{if(Weapon==null)return false;Weapon=null;}return true; }
@@ -81,13 +86,13 @@ namespace AreArpg.Core
             string legacy=body+"|"+HashText(body).ToString("X16",CultureInfo.InvariantCulture);
             return "AC16|"+Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(legacy))+"|"+Equipment.Token();
         }
-        private static bool TryLoadEquipment(string saved,out CharacterProgression progress)
+        private static bool TryLoadEquipment(string saved,WeaponMasteryState restoring,out CharacterProgression progress)
         {
             progress=null;var f=saved.Split('|');if(f.Length!=4||f[0]!="AC16"||f[3]!=HashText(string.Join("|",f,0,3)).ToString("X16",CultureInfo.InvariantCulture))return false;
             string inner;
             try { var bytes=Convert.FromBase64String(f[1]);if(Convert.ToBase64String(bytes)!=f[1])return false;inner=new System.Text.UTF8Encoding(false,true).GetString(bytes); }
             catch(FormatException){return false;}catch(System.Text.DecoderFallbackException){return false;}
-            if(inner.StartsWith("AC16|",StringComparison.Ordinal)||inner.StartsWith("AC17|",StringComparison.Ordinal)||inner.StartsWith("AC18|",StringComparison.Ordinal)||inner.StartsWith("AC19|",StringComparison.Ordinal)||!TryLoad(inner,out var p)||!WeaponEquipment.TryRead(f[2],p,out var equipment))return false;
+            if(inner.StartsWith("AC16|",StringComparison.Ordinal)||inner.StartsWith("AC17|",StringComparison.Ordinal)||inner.StartsWith("AC18|",StringComparison.Ordinal)||inner.StartsWith("AC19|",StringComparison.Ordinal)||!TryLoadRestoring(inner,restoring,out var p)||!WeaponEquipment.TryRead(f[2],p,out var equipment))return false;
             p.Equipment=equipment;progress=p;return true;
         }
     }

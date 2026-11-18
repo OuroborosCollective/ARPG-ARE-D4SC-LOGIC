@@ -101,7 +101,7 @@ namespace AreArpg.Core
                     {
                         c.TrapTicks = -1;
                         if (DistanceSquared(PlayerXmm, PlayerZmm, 0, CryptTrapZmm) <= FixedMath.Square(CryptTrapRadiusMm))
-                            ReceiveDamage(320);
+                            ReceiveEnvironmentalDamage(320); // falling slab: not an enemy attack, no shield block
                     }
                 }
                 else if (c.TrapTicks == 0 && DistanceSquared(PlayerXmm, PlayerZmm, 0, CryptTrapZmm) <= FixedMath.Square(3000))
