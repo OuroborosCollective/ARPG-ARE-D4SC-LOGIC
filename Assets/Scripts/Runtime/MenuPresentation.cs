@@ -14,11 +14,11 @@ namespace AreArpg.UnityClient
     /// </summary>
     public sealed partial class ArenaRuntime
     {
-        public const int MenuCharacter = 0, MenuInventory = 1, MenuQuests = 2, MenuSettings = 3, MenuCompanion = 4, MenuSkills = 5;
-        public static readonly string[] MenuTitles = { "CHARAKTER", "TASCHE", "QUESTS", "OPTIONEN", "BEGLEITER", "FÄHIGKEITEN" };
+        public const int MenuCharacter = 0, MenuInventory = 1, MenuQuests = 2, MenuSettings = 3, MenuCompanion = 4, MenuSkills = 5, MenuStats = 6;
+        public static readonly string[] MenuTitles = { "CHARAKTER", "TASCHE", "QUESTS", "OPTIONEN", "BEGLEITER", "FÄHIGKEITEN", "WERTE" };
         public static readonly string[] ArmorSlots = { "KOPF", "BRUST", "HÄNDE", "BEINE" };
         public static readonly string[] TrinketSlots = { "WAFFE", "NEBENHAND", "AMULETT", "RING" };
-        private static readonly KeyCode[] MenuShortcuts = { KeyCode.K, KeyCode.I, KeyCode.L, KeyCode.F8, KeyCode.O, KeyCode.P };
+        private static readonly KeyCode[] MenuShortcuts = { KeyCode.K, KeyCode.I, KeyCode.L, KeyCode.F8, KeyCode.O, KeyCode.P, KeyCode.U };
 
         private int _menuTab = -1;
         private Canvas _menuCanvas;
@@ -107,12 +107,13 @@ namespace AreArpg.UnityClient
             Transform w = window.transform;
 
             float tabW = Mathf.Min(170f, (win.width - 120f) / MenuTitles.Length);
+            int tabFont = tabW >= 125f ? 15 : 13; // the longest title (FÄHIGKEITEN) stays on one line on a 960-wide canvas
             for (int i = 0; i < MenuTitles.Length; i++)
             {
                 int tab = i;
                 bool active = i == _menuTab;
                 var b = AshenUiTheme.MenuButton("Tab" + i, w, new Rect(16f + i * (tabW + 6f), 12f, tabW, 40f), MenuTitles[i],
-                    () => OpenMenu(tab), active ? new Color(0.62f, 0.38f, 0.16f, 1f) : new Color(0.24f, 0.19f, 0.14f, 1f), 15);
+                    () => OpenMenu(tab), active ? new Color(0.62f, 0.38f, 0.16f, 1f) : new Color(0.24f, 0.19f, 0.14f, 1f), tabFont);
                 if (active)
                 {
                     var line = AshenUiTheme.Image("Active", b.transform, AshenUiTheme.Bar, AshenUiTheme.Ember, false);
@@ -132,6 +133,7 @@ namespace AreArpg.UnityClient
             else if (_menuTab == MenuQuests) BuildQuestTab(body, content.size);
             else if (_menuTab == MenuCompanion) BuildCompanionTab(body, content.size);
             else if (_menuTab == MenuSkills) BuildSkillsTab(body, content.size);
+            else if (_menuTab == MenuStats) BuildStatsTab(body, content.size);
             else BuildSettingsTab(body, content.size);
         }
 
