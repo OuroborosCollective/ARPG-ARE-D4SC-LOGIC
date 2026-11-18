@@ -51,6 +51,20 @@ internal static class CompanionDefeatTests
             "companion-recovery-one-to-two-days");
         require(rescue.Progression.Social.Forge.Archive.Events.Count == events + 1, "companion-rescue-remembered");
 
+        // Review 2026-11-18 (gitar-bot): rescue is once per wound; a second call adds no memory or reward.
+        int afterFirst = rescue.Progression.Social.Forge.Archive.Events.Count;
+        require(!rescue.RescueCompanion().Accepted &&
+            rescue.Progression.Social.Forge.Archive.Events.Count == afterFirst, "companion-rescue-once-per-wound");
+
+        // Review 2026-11-18 (gitar-bot): a companion dismissed before the wound stays put after recovery.
+        var dismissed = Recruited();
+        var dc = dismissed.Progression.Companion;
+        dc.Status = CompanionStatus.Waiting;
+        dismissed.Progression.CompanionRecovery.Wound(dc, 1);
+        require(!dismissed.Progression.CompanionRecovery.ResumeFollowing, "companion-dismissed-does-not-resume-following");
+        for (int i = 0; i < (int)WorldSkyClock.TicksPerDay; i++) dismissed.Step();
+        require(dc.Status != CompanionStatus.Following, "companion-dismissed-stays-dismissed-after-recovery");
+
         // The recovery countdown runs on real ticks and the companion returns afterwards.
         for (int i = 0; i < ticks; i++) rescue.Step();
         require(!rescue.Progression.CompanionRecovery.Wounded && rescue.Progression.CompanionRecovery.RecoveryTicks == 0,
