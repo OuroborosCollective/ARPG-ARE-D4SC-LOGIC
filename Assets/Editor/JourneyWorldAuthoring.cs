@@ -262,6 +262,9 @@ namespace AreArpg.EditorTools
                 Poi("west.north",PoiType.SpawnZone,48,96,"encounter"),
                 Poi("east.south",PoiType.SpawnZone,84,32,"encounter"),
                 Poi("east.north",PoiType.SpawnZone,80,96,"encounter")};
+            // Persist the fresh profile before the next asset is created: an import in between reloads an unsaved
+            // asset from disk, which silently restored the 4 x 64 m defaults instead of the 128 m pilot.
+            EditorUtility.SetDirty(p);AssetDatabase.SaveAssetIfDirty(p);
             var biome=LoadOrCreate<BiomeProfile>(folder+"/Biome.asset");
             biome.spawnRules.Clear();biome.textureRules.Clear();
             foreach(string key in new[]{"WoodlandTreeA","WoodlandTreeB"})

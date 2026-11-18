@@ -51,6 +51,7 @@ namespace AreArpg.PlayMode.Tests
         [UnityTearDown]
         public IEnumerator Restore()
         {
+            Time.captureDeltaTime = 0f; // end any device frame clock a test started, also after a failure
             if (_previous.IsValid() && _previous.isLoaded) SceneManager.SetActiveScene(_previous);
             if (_scene.IsValid() && _scene.isLoaded) yield return SceneManager.UnloadSceneAsync(_scene);
             for (int i = 0; i < _previousRoots.Length; i++)

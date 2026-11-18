@@ -606,6 +606,7 @@ namespace AreArpg.UnityClient
             string key = _game.IsVillage ? "EntryVillageWorld" : "EntryCryptWorld";
             if (!PassiveArtVisuals.TryBind(root.transform, key)) { Destroy(root); return false; }
             _chapterScenery.Add(root.transform);
+            if (_game.IsVillage) CollectWalkSurfaces(root.transform); else _walkSurfaces.Clear();
             var passage = new GameObject("ARE_World_Passage");
             passage.transform.position = new Vector3(0f, 1.5f, 24f);
             var light = passage.AddComponent<Light>();
@@ -738,6 +739,8 @@ namespace AreArpg.UnityClient
                         animator.runtimeAnimatorController = sharedNpcLocomotion;
                     animator.applyRootMotion = false;
                 }
+                // Bound art stands on the flat Core plane; lift the whole visual onto visible village paving.
+                visual.position += Vector3.up * WalkSurfaceHeight(visual.position.x, visual.position.z);
                 RegisterActorMotion(visual);
                 _npcVisuals.Add(npc.Id, visual);
             }
@@ -933,7 +936,8 @@ namespace AreArpg.UnityClient
                 "AKT II: Folge dem Dorfweg zu Ilyan, Mara und Dorn. Zwei Rationen fehlen." :
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;
-            _hero.position = new Vector3(next.PlayerXmm / 1000f, 1.05f + GroundHeight(next.PlayerXmm / 1000f,next.PlayerZmm / 1000f), next.PlayerZmm / 1000f);
+            float heroX = next.PlayerXmm / 1000f, heroZ = next.PlayerZmm / 1000f;
+            _hero.position = new Vector3(heroX, 1.05f + GroundHeight(heroX, heroZ) + WalkSurfaceHeight(heroX, heroZ), heroZ);
             if (_cameraRig != null) { RefreshCameraOccluders(); _cameraRig.SnapToTarget(); }
         }
 
@@ -1106,8 +1110,8 @@ namespace AreArpg.UnityClient
             {
                 Transform visual;
                 if (!_npcVisuals.TryGetValue(npc.Id, out visual) || visual == null) continue;
-                visual.position = new Vector3(Mathf.Lerp(npc.PreviousXmm, npc.Xmm, alpha) / 1000f,
-                    npc.Memory.Health > 0 ? 1f : 0.25f, Mathf.Lerp(npc.PreviousZmm, npc.Zmm, alpha) / 1000f);
+                float npcX = Mathf.Lerp(npc.PreviousXmm, npc.Xmm, alpha) / 1000f, npcZ = Mathf.Lerp(npc.PreviousZmm, npc.Zmm, alpha) / 1000f;
+                visual.position = new Vector3(npcX, (npc.Memory.Health > 0 ? 1f : 0.25f) + WalkSurfaceHeight(npcX, npcZ), npcZ);
                 visual.rotation = npc.Memory.Health > 0 ? Quaternion.identity : Quaternion.Euler(90f, 0f, 0f);
                 if(npc.Memory.Health>0&&npc.Behavior==NpcBehavior.Observe)
                 {
@@ -1139,7 +1143,7 @@ namespace AreArpg.UnityClient
             {
                 float x = Mathf.Lerp(_game.PrevPlayerXmm, _game.PlayerXmm, alpha) / 1000f;
                 float z = Mathf.Lerp(_game.PrevPlayerZmm, _game.PlayerZmm, alpha) / 1000f;
-                _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z), z);
+                _hero.position = new Vector3(x, 1.05f + GroundHeight(x,z) + WalkSurfaceHeight(x, z), z);
                 AnimateActor(_hero, _sceneActive ? 0 : _game.PlayerXmm - _game.PrevPlayerXmm, _sceneActive ? 0 : _game.PlayerZmm - _game.PrevPlayerZmm);
                 HoldTargetFacing();
             }
