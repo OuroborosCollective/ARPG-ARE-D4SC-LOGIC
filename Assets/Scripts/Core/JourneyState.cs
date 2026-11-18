@@ -159,7 +159,8 @@ namespace AreArpg.Core
         public static bool TryLoad(string saved,JourneyMapCatalog maps,out CharacterProgression progress)=>TryLoadJourney(saved,maps,null,out progress);
         private static bool TryLoadJourney(string saved,JourneyMapCatalog maps,WeaponMasteryState restoring,out CharacterProgression progress)
         {
-            progress=null;if(saved!=null&&saved.StartsWith("AC21|",StringComparison.Ordinal))return restoring==null&&TryLoadWeaponMastery(saved,maps,out progress);
+            progress=null;if(saved!=null&&saved.StartsWith("AC22|",StringComparison.Ordinal))return restoring==null&&TryLoadSectionContainer(saved,maps,out progress);
+            if(saved!=null&&saved.StartsWith("AC21|",StringComparison.Ordinal))return restoring==null&&TryLoadWeaponMastery(saved,maps,out progress);
             if(saved==null||!saved.StartsWith("AC20|",StringComparison.Ordinal))return TryLoadRestoring(saved,restoring,out progress);
             if(saved.Length>64*1024*1024)return false;
             var f=saved.Split('|');if(f.Length!=5||f[4]!=HashText(string.Join("|",f,0,4)).ToString("X16",CultureInfo.InvariantCulture))return false;
