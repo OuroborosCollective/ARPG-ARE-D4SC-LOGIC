@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Packages/com.ouroboros.fadenwerk/Runtime/FadenwerkData.cs" LinkBase="Fadenwerk" />
+    <Compile Include="../../Packages/com.ouroboros.fadenwerk/Runtime/FadenwerkDatabase.cs" LinkBase="Fadenwerk" />
+    <Compile Include="../../Packages/com.ouroboros.fadenwerk/Runtime/FadenwerkRewards.cs" LinkBase="Fadenwerk" />
+    <Compile Include="../../Packages/com.ouroboros.fadenwerk/Runtime/FadenwerkDialogueRunner.cs" LinkBase="Fadenwerk" />
+    <Compile Include="../../Packages/com.ouroboros.fadenwerk/Runtime/FadenwerkManager.cs" LinkBase="Fadenwerk" />
+    <Compile Include="../../Packages/com.ouroboros.fadenwerk/Runtime/FadenwerkNpc.cs" LinkBase="Fadenwerk" />
+    <Compile Include="../../Packages/com.ouroboros.fadenwerk/Runtime/FadenwerkMarker.cs" LinkBase="Fadenwerk" />
+    <Compile Include="../../Packages/com.ouroboros.fadenwerk/Editor/FadenwerkValidator.cs" LinkBase="Fadenwerk" />
+  </ItemGroup>
+</Project>
