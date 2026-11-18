@@ -23,6 +23,7 @@
     <Compile Include="../../Assets/Scripts/Core/MonsterCatalog.cs" Link="MonsterCatalog.cs" />
     <Compile Include="../../Assets/Scripts/Core/CraftingRules.cs" Link="CraftingRules.cs" />
     <Compile Include="../../Assets/Scripts/Core/CraftingState.cs" Link="CraftingState.cs" />
+    <Compile Include="../../Assets/Scripts/Core/CompanionRecovery.cs" Link="CompanionRecovery.cs" />
     <Compile Include="../../Assets/Scripts/Core/NpcRelations.cs" Link="NpcRelations.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootCatalog.cs" Link="LootCatalog.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootItem.cs" Link="LootItem.cs" />
