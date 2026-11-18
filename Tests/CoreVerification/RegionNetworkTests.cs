@@ -78,6 +78,12 @@ internal static class RegionNetworkTests
         clone.Clear(RegionNetwork.Waldweg); clone.Enter(RegionNetwork.Waldweg, 8);
         require(clone.Token() == net.Token(), "region-state-reproducible");
         require(net.SetEvent(RegionNetwork.Waldweg, 2) && net.Events(RegionNetwork.Waldweg) == 2, "region-event-recorded");
+        require(!net.SetEvent("region.unknown.v1", 1), "region-event-rejects-unknown-id");
+
+        // Review 2026-11-18: a hand-edited section cannot introduce a phantom region or a clear without a visit.
+        require(!RegionNetwork.TryRead("1|0|region.unknown.v1,100,0,0", out _), "region-tryread-rejects-unknown-id");
+        require(!RegionNetwork.TryRead("1|0|" + RegionNetwork.Waldweg + ",010,0,0", out _), "region-tryread-rejects-cleared-without-visit");
+        require(!RegionNetwork.TryRead("1|0|" + RegionNetwork.Waldweg + ",011,0,0", out _), "region-tryread-rejects-return-without-visit");
 
         // A fresh character writes no region section, so old saves and their tests stay byte-stable.
         require(!new CharacterProgression().SaveString().StartsWith("AC22|"), "region-fresh-save-stays-legacy");

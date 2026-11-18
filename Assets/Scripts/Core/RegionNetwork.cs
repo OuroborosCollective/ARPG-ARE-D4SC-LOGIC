@@ -130,7 +130,13 @@ namespace AreArpg.Core
         public bool IsCleared(string region) { var n = Read(region); return n != null && n.Cleared; }
         public int ReturnRun(string region) { var n = Read(region); return n == null ? 0 : n.ReturnRun; }
         public int Events(string region) { var n = Read(region); return n == null ? 0 : n.Events; }
-        public bool SetEvent(string region, int value) { if (value < 0) return false; Get(region).Events = value; return true; }
+        /// <summary>Only known regions accept an event, so the API cannot create a phantom node.</summary>
+        public bool SetEvent(string region, int value)
+        {
+            if (value < 0 || Array.IndexOf(Ordered, region) < 0) return false;
+            Get(region).Events = value;
+            return true;
+        }
 
         public bool HasState
         {
@@ -172,10 +178,11 @@ namespace AreArpg.Core
                 foreach (string entry in top[2].Split(';'))
                 {
                     string[] f = entry.Split(',');
-                    if (f.Length != 4 || f[0].Length == 0 || net._nodes.ContainsKey(f[0])) return false;
+                    if (f.Length != 4 || Array.IndexOf(Ordered, f[0]) < 0 || net._nodes.ContainsKey(f[0])) return false;
                     if (f[1].Length != 3 || (f[1][0] != '0' && f[1][0] != '1') || (f[1][1] != '0' && f[1][1] != '1') || (f[1][2] != '0' && f[1][2] != '1')) return false;
                     int run, events;
                     if (!CanonicalInt(f[2], out run) || !CanonicalInt(f[3], out events)) return false;
+                    if (f[1][1] == '1' && f[1][0] != '1') return false; // a clear can only follow a visit
                     if (f[1][2] == '1' && f[1][1] != '1') return false; // a return can only follow a clear
                     net._nodes[f[0]] = new Node { Visited = f[1][0] == '1', Cleared = f[1][1] == '1', ReturnPending = f[1][2] == '1', ReturnRun = run, Events = events };
                 }
