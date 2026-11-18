@@ -88,6 +88,10 @@ namespace AreArpg.Core
         public AshenCrypt.MemoryForge.NpcMind Mind { get; internal set; }
         public int Id;
         public int Kind; // 0: ghoul, 1: knight, 2: boss
+        /// <summary>Content family; Legacy for every monster spawned before roles existed.</summary>
+        public MonsterFamily Family = MonsterFamily.Legacy;
+        /// <summary>Explicit combat role; None keeps the legacy behaviour and world hash.</summary>
+        public MonsterRole Role = MonsterRole.None;
         public long Xmm;
         public long Zmm;
         public long PreviousXmm;
@@ -589,6 +593,17 @@ namespace AreArpg.Core
                 EnsureCreatureMind(enemy);
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
+                if (enemy.Role != MonsterRole.None && enemy.BossWindupTicks > 0)
+                {
+                    // A running announcement always resolves, even if the player breaks line of sight, so a stale
+                    // windup can never resume later. The monster stands still; leaving the radius avoids the hit.
+                    enemy.BossWindupTicks--;
+                    if (enemy.BossWindupTicks == 0 &&
+                        CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm) &&
+                        DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(MonsterRoles.ImpactRadiusMm(enemy.Role)))
+                        ReceiveDamage(MonsterRoles.AttackDamage(enemy.Role));
+                    continue;
+                }
                 if(StepMonsterAgainstCompanion(enemy))continue;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
                 if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
@@ -611,20 +626,30 @@ namespace AreArpg.Core
                         continue;
                     }
                 }
-                if (distance2 > FixedMath.Square(1650))
+                if (distance2 > FixedMath.Square(MonsterRoles.AttackRangeMm(enemy.Role)))
                 {
                     long distance = Math.Max(1, FixedMath.IntegerSqrt(distance2));
-                    long speed = enemy.Kind >= 2 ? 190 : MonsterSpeedMmPerTick;
+                    long speed = enemy.Role != MonsterRole.None ? MonsterRoles.SpeedMmPerTick(enemy.Role) : (enemy.Kind >= 2 ? 190 : MonsterSpeedMmPerTick);
                     long nx = enemy.Xmm + (PlayerXmm - enemy.Xmm) * speed / distance;
                     long nz = enemy.Zmm + (PlayerZmm - enemy.Zmm) * speed / distance;
                     if (CanStand(nx, nz)) { enemy.Xmm = nx; enemy.Zmm = nz; }
                     else if (CanStand(nx, enemy.Zmm)) enemy.Xmm = nx;
                     else if (CanStand(enemy.Xmm, nz)) enemy.Zmm = nz;
                 }
+                else if (enemy.Role != MonsterRole.None && MonsterRoles.TelegraphTicks(enemy.Role) > 0)
+                {
+                    if (enemy.AttackCooldownTicks == 0)
+                    {
+                        enemy.BossWindupTicks = MonsterRoles.TelegraphTicks(enemy.Role);
+                        enemy.AttackCooldownTicks = MonsterRoles.AttackCooldownTicks(enemy.Role);
+                        continue;
+                    }
+                }
                 else if (enemy.AttackCooldownTicks == 0)
                 {
-                    enemy.AttackCooldownTicks = enemy.Kind >= 2 ? 12 : 17;
-                    ReceiveDamage((enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40)));
+                    int damage = enemy.Role != MonsterRole.None ? MonsterRoles.AttackDamage(enemy.Role) : (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40));
+                    enemy.AttackCooldownTicks = enemy.Role != MonsterRole.None ? MonsterRoles.AttackCooldownTicks(enemy.Role) : (enemy.Kind >= 2 ? 12 : 17);
+                    ReceiveDamage(damage);
                     if (GameOver) break;
                 }
             }
@@ -652,7 +677,9 @@ namespace AreArpg.Core
             if (accuracy < 10000 && _rng.NextBasisPoints() >= accuracy) { result.Misses++; return; }
             bool crit;
             var stats = new CombatStats(Progression, slot);
-            long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
+            long damage = enemy.Role != MonsterRole.None
+                ? CombatRules.DamageWithArmor(stats, powerBp, MonsterRoles.ArmorBp(enemy.Role), _rng, out crit)
+                : CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
             int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
             RememberCreatureAssault(enemy,"player");
@@ -789,6 +816,12 @@ namespace AreArpg.Core
             foreach (MonsterState enemy in Monsters)
             {
                 Mix(ref h, (ulong)enemy.Id); Mix(ref h, (ulong)enemy.Kind);
+                // Role and family decide behaviour for new monsters; only hash them when set, so legacy monsters
+                // keep the exact golden hash.
+                if (enemy.Role != MonsterRole.None || enemy.Family != MonsterFamily.Legacy)
+                {
+                    Mix(ref h, 0x524F4C45UL); Mix(ref h, (ulong)enemy.Role); Mix(ref h, (ulong)enemy.Family);
+                }
                 Mix(ref h, (ulong)enemy.Xmm); Mix(ref h, (ulong)enemy.Zmm);
                 Mix(ref h, (ulong)enemy.PreviousXmm); Mix(ref h, (ulong)enemy.PreviousZmm);
                 Mix(ref h, (ulong)enemy.Health); Mix(ref h, (ulong)enemy.MaxHealth);
