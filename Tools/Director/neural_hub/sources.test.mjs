@@ -72,6 +72,11 @@ test('sources cannot contain commands, credentials, hidden auto-installs or netw
   ];
   for(const makeBad of cases){const x=JSON.parse(raw);makeBad(x);assert.throws(()=>loadSourceRegistry(JSON.stringify(x),catalog));}
 });
+test('inspect source commits are immutable, not just arbitrary 40 character hashes',()=>{
+  const x=JSON.parse(raw);
+  x.sources[0].sourceSha='0'.repeat(40);
+  assert.throws(()=>loadSourceRegistry(JSON.stringify(x),catalog),/SOURCE_COMMIT_DRIFT/);
+});
 test('source selection is deterministic and never reports Unity runtime success',()=>{
   const r=loadSourceRegistry(raw,catalog);
   assert.deepEqual(discoverSources(r,'world_design',{limit:4}),discoverSources(r,'world_design',{limit:4}));
