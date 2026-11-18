@@ -72,6 +72,30 @@ internal static class MonsterRoleTests
         for (int i = 0; i < 60; i++) { a.Step(); b.Step(); }
         require(a.ComputeWorldHash() == b.ComputeWorldHash(), "role-replay-deterministic");
 
+        // Review 2026-11-18: the telegraph is dodgeable. Stepping out of the frozen radius avoids the hit,
+        // and the monster stands still while it announces.
+        var dodge = RoleWorld(MonsterFamily.Undead, MonsterRole.Elite, 2400, 0);
+        for (int i = 0; i < 120 && dodge.Monsters[0].BossWindupTicks == 0; i++) dodge.Step();
+        require(dodge.Monsters[0].BossWindupTicks > 0, "role-dodge-setup-has-telegraph");
+        long standX = dodge.Monsters[0].Xmm, standZ = dodge.Monsters[0].Zmm;
+        int dodgeHealth = dodge.PlayerHealth;
+        bool frozeDuringWindup = true;
+        // Run straight away from the monster while it announces.
+        dodge.SetMoveInput(-10000, 0);
+        while (dodge.Monsters[0].BossWindupTicks > 0)
+        {
+            dodge.Step();
+            if (dodge.Monsters[0].BossWindupTicks > 0 &&
+                (dodge.Monsters[0].Xmm != standX || dodge.Monsters[0].Zmm != standZ)) frozeDuringWindup = false;
+        }
+        require(frozeDuringWindup, "role-telegraph-freezes-the-monster");
+        require(dodge.PlayerHealth == dodgeHealth, "role-telegraph-can-be-dodged");
+
+        // Review 2026-11-18: role and family take part in the world hash (a role swap is visible).
+        var sameSeedRole = RoleWorld(MonsterFamily.Ork, MonsterRole.Ranged, 6000, 0);
+        var otherRole = RoleWorld(MonsterFamily.Ork, MonsterRole.Elite, 6000, 0);
+        require(sameSeedRole.ComputeWorldHash() != otherRole.ComputeWorldHash(), "role-is-hashed");
+
         // Legacy monsters keep Role None and their exact golden world hash (no behavioural drift).
         var legacy = new ArenaSimulation(123);
         require(legacy.Monsters[0].Role == MonsterRole.None && legacy.Monsters[0].Family == MonsterFamily.Legacy,

@@ -615,6 +615,15 @@ namespace AreArpg.Core
                         continue;
                     }
                 }
+                if (enemy.Role != MonsterRole.None && enemy.BossWindupTicks > 0)
+                {
+                    // The monster stands still while it announces; leaving the frozen radius avoids the hit.
+                    enemy.BossWindupTicks--;
+                    if (enemy.BossWindupTicks == 0 &&
+                        DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(MonsterRoles.ImpactRadiusMm(enemy.Role)))
+                        ReceiveDamage(MonsterRoles.AttackDamage(enemy.Role));
+                    continue;
+                }
                 if (distance2 > FixedMath.Square(MonsterRoles.AttackRangeMm(enemy.Role)))
                 {
                     long distance = Math.Max(1, FixedMath.IntegerSqrt(distance2));
@@ -627,15 +636,6 @@ namespace AreArpg.Core
                 }
                 else if (enemy.Role != MonsterRole.None && MonsterRoles.TelegraphTicks(enemy.Role) > 0)
                 {
-                    // A ranged, shielded or elite enemy announces its hit; leaving the frozen radius avoids it.
-                    if (enemy.BossWindupTicks > 0)
-                    {
-                        enemy.BossWindupTicks--;
-                        if (enemy.BossWindupTicks == 0 &&
-                            DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(MonsterRoles.ImpactRadiusMm(enemy.Role)))
-                            ReceiveDamage(MonsterRoles.AttackDamage(enemy.Role));
-                        continue;
-                    }
                     if (enemy.AttackCooldownTicks == 0)
                     {
                         enemy.BossWindupTicks = MonsterRoles.TelegraphTicks(enemy.Role);
@@ -814,6 +814,12 @@ namespace AreArpg.Core
             foreach (MonsterState enemy in Monsters)
             {
                 Mix(ref h, (ulong)enemy.Id); Mix(ref h, (ulong)enemy.Kind);
+                // Role and family decide behaviour for new monsters; only hash them when set, so legacy monsters
+                // keep the exact golden hash.
+                if (enemy.Role != MonsterRole.None || enemy.Family != MonsterFamily.Legacy)
+                {
+                    Mix(ref h, 0x524F4C45UL); Mix(ref h, (ulong)enemy.Role); Mix(ref h, (ulong)enemy.Family);
+                }
                 Mix(ref h, (ulong)enemy.Xmm); Mix(ref h, (ulong)enemy.Zmm);
                 Mix(ref h, (ulong)enemy.PreviousXmm); Mix(ref h, (ulong)enemy.PreviousZmm);
                 Mix(ref h, (ulong)enemy.Health); Mix(ref h, (ulong)enemy.MaxHealth);
