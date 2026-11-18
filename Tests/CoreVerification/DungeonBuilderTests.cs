@@ -26,9 +26,6 @@ internal static class DungeonBuilderTests
         return seen;
     }
 
-    private static bool IsEdge(DungeonBlueprint b, int a, int c) =>
-        b.Edges.Any(e => (e.Item1 == a && e.Item2 == c) || (e.Item1 == c && e.Item2 == a));
-
     public static void Run(Action<bool, string> require)
     {
         var sample = DungeonBuilderV2.Build(12345UL, 1);
@@ -52,17 +49,19 @@ internal static class DungeonBuilderTests
         {
             int depth = 1 + (int)(seed % 3);
             var b = DungeonBuilderV2.Build(seed, depth);
-            if (b.RoomCount < 6 || b.RoomCount > 12) { require(false, "dungeon-v2-rooms-" + seed); return; }
+            if (b.RoomCount < 8 || b.RoomCount > 12) { require(false, "dungeon-v2-rooms-" + seed); return; }
             // All rooms reachable from the entrance with every door open.
             var all = Reachable(b, b.Entrance, (x, y) => true);
             if (all.Count != b.RoomCount) { require(false, "dungeon-v2-unreachable-room-" + seed); return; }
-            // The gate is a bridge: without the gate, the end room is unreachable.
+            // The gate is the end room's only edge, so removing it always disconnects the end room.
+            if (b.Edges.Count(e => e.A == b.EndRoom || e.B == b.EndRoom) != 1) { require(false, "dungeon-v2-end-single-gate-" + seed); return; }
             var withoutGate = Reachable(b, b.Entrance, (x, y) => !b.IsGate(x, y));
             if (withoutGate.Contains(b.EndRoom)) { require(false, "dungeon-v2-gate-bypassed-" + seed); return; }
             if (!withoutGate.Contains(b.KeyRoom)) { require(false, "dungeon-v2-key-before-gate-" + seed); return; }
-            if (IsEdge(b, b.KeyRoom, b.EndRoom) && b.IsGate(b.KeyRoom, b.EndRoom)) { require(false, "dungeon-v2-key-not-end-" + seed); return; }
-            // With the gate open, the end room is reachable.
-            if (!all.Contains(b.EndRoom)) { require(false, "dungeon-v2-end-unreachable-" + seed); return; }
+            // At least one loop: more edges than a pure spanning tree.
+            if (b.Edges.Count < b.RoomCount) { require(false, "dungeon-v2-no-loop-" + seed); return; }
+            // The key room is never the end room and never behind the gate.
+            if (b.KeyRoom == b.EndRoom || b.KeyRoom == b.GateB) { require(false, "dungeon-v2-key-not-end-" + seed); return; }
         }
         require(true, "dungeon-v2-10000-seeds-solvable");
 
@@ -76,7 +75,8 @@ internal static class DungeonBuilderTests
         int shrine = 0, trap = 0, treasure = 0;
         for (ulong seed = 0; seed < 10000UL; seed++)
         {
-            var b = DungeonBuilderV2.Build(seed, 1);
+            int depth = 1 + (int)(seed % 3);
+            var b = DungeonBuilderV2.Build(seed, depth);
             for (int r = 0; r < b.RoomCount; r++)
             {
                 var k = b.KindOf(r);

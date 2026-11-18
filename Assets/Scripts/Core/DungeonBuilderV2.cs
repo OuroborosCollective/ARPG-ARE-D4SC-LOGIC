@@ -88,14 +88,16 @@ namespace AreArpg.Core
             b.Connections.Add((b.EndRoom, gateParent));
             b.GateA = b.EndRoom; b.GateB = gateParent;
 
-            // Loops: extra edges among the non-end rooms, never touching the end room, so the gate stays a bridge.
-            int loops = (int)(rng.Next64() % 3UL);
-            for (int i = 0; i < loops; i++)
+            // Loops: 1..3 extra edges among the non-end rooms, never touching the end room, so the gate stays a
+            // bridge and at least one cycle exists. Bounded deterministic retries skip self-edges and duplicates.
+            int loops = 1 + (int)(rng.Next64() % 3UL);
+            for (int added = 0, attempts = 0; added < loops && attempts < 64; attempts++)
             {
                 int a = (int)(rng.Next64() % (ulong)(count - 1));
                 int c = (int)(rng.Next64() % (ulong)(count - 1));
                 if (a == c || HasEdge(b, a, c)) continue;
                 b.Connections.Add((a, c));
+                added++;
             }
 
             // Key room: reachable from the entrance without crossing the gate, never the gate parent itself.
