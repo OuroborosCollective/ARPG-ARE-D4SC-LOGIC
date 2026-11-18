@@ -1,4 +1,3 @@
-```markdown
 # ARE / Ashen Crypt
 
 **An original dark-fantasy action-RPG prototype built with Unity 6.** Explore the crypt, fight monsters, collect loot, and help shape the project.
