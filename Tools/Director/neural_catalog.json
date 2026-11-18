@@ -1,0 +1,506 @@
+{
+  "schema": "ashen.director.neural-catalog.v1",
+  "unity": "6000.6.8f1",
+  "departments": [
+    {
+      "id": "game_design",
+      "title": "Game Design",
+      "triggers": [
+        "game design",
+        "spieldesign",
+        "spielmechanik",
+        "balancing",
+        "spielgefuehl",
+        "gameplay design"
+      ],
+      "skills": [
+        "game-development",
+        "game-feel",
+        "rpg"
+      ]
+    },
+    {
+      "id": "core_logic",
+      "title": "Core & Determinism",
+      "triggers": [
+        "spiellogik",
+        "core",
+        "determinismus",
+        "simulation",
+        "replay",
+        "tick",
+        "regelkern"
+      ],
+      "skills": [
+        "unity-csharp-scripting",
+        "speckit-bug-test"
+      ]
+    },
+    {
+      "id": "combat",
+      "title": "Combat & Skills",
+      "triggers": [
+        "kampf",
+        "combat",
+        "schaden",
+        "treffer",
+        "waffen",
+        "boss",
+        "faehigkeit",
+        "waffenkunst"
+      ],
+      "skills": [
+        "rpg",
+        "game-feel",
+        "unity-animation"
+      ]
+    },
+    {
+      "id": "npc_ai",
+      "title": "NPC & Companions",
+      "triggers": [
+        "npc",
+        "begleiter",
+        "companion",
+        "goap",
+        "behavior tree",
+        "verhaltensbaum",
+        "gegner-ki"
+      ],
+      "skills": [
+        "game-ai",
+        "ai-behavior-trees-utility-ai",
+        "unity-navmesh"
+      ]
+    },
+    {
+      "id": "quest_design",
+      "title": "Quests & Dependencies",
+      "triggers": [
+        "quest",
+        "quest-verknuepfung",
+        "questgraph",
+        "auftragskette",
+        "fadenwerk",
+        "belohnungslogik"
+      ],
+      "skills": [
+        "dialogue-systems",
+        "rpg",
+        "speckit-analyze"
+      ]
+    },
+    {
+      "id": "lore_dialogue",
+      "title": "Lore & Dialogue",
+      "triggers": [
+        "lore",
+        "story",
+        "dialog",
+        "erzaehlung",
+        "geschichte",
+        "weltgeschichte",
+        "narrative"
+      ],
+      "skills": [
+        "dialogue-systems",
+        "game-docs"
+      ]
+    },
+    {
+      "id": "world_design",
+      "title": "World & Terrain",
+      "triggers": [
+        "weltgestaltung",
+        "weltdesign",
+        "world design",
+        "terrain",
+        "landschaft",
+        "biom",
+        "wald",
+        "gelaende"
+      ],
+      "skills": [
+        "level-design",
+        "procedural-gen",
+        "unity-pipeline"
+      ]
+    },
+    {
+      "id": "object_placement",
+      "title": "Prefabs & Placement",
+      "triggers": [
+        "modellplatzierung",
+        "objektplatzierung",
+        "placement",
+        "prefab",
+        "positionierung",
+        "spawnpunkt",
+        "szenenaufbau"
+      ],
+      "skills": [
+        "level-design",
+        "unity-pipeline",
+        "create-game-assets"
+      ]
+    },
+    {
+      "id": "dungeons",
+      "title": "Dungeons & Graphs",
+      "triggers": [
+        "dungeon",
+        "krypta",
+        "katakombe",
+        "raumgraph",
+        "labyrinth",
+        "dungeongenerator"
+      ],
+      "skills": [
+        "level-design",
+        "procedural-gen",
+        "speckit-analyze"
+      ]
+    },
+    {
+      "id": "region_transitions",
+      "title": "Regions & Transitions",
+      "triggers": [
+        "gebietsuebergang",
+        "gebietswechsel",
+        "regionen",
+        "regionswechsel",
+        "portal",
+        "szenenwechsel",
+        "uebergang"
+      ],
+      "skills": [
+        "level-design",
+        "unity-navmesh",
+        "save-systems"
+      ]
+    },
+    {
+      "id": "shaders",
+      "title": "Shaders & URP",
+      "triggers": [
+        "shader",
+        "shader graph",
+        "shadergraph",
+        "hlsl",
+        "urp",
+        "render graph"
+      ],
+      "skills": [
+        "shader-graph-create-custom-node",
+        "shader-programming",
+        "validate-urp-render-graph-renderer-feature"
+      ]
+    },
+    {
+      "id": "vfx",
+      "title": "VFX & Particles",
+      "triggers": [
+        "partikel",
+        "partikeleffekt",
+        "vfx",
+        "particle",
+        "funken",
+        "rauch",
+        "ascheeffekt"
+      ],
+      "skills": [
+        "shader-programming",
+        "game-feel",
+        "unity-pipeline"
+      ]
+    },
+    {
+      "id": "lighting",
+      "title": "Lighting & Atmosphere",
+      "triggers": [
+        "beleuchtung",
+        "licht",
+        "lighting",
+        "schatten",
+        "daemmerung",
+        "light probe",
+        "himmel"
+      ],
+      "skills": [
+        "urp-postprocessing",
+        "validate-urp-render-graph-renderer-feature"
+      ]
+    },
+    {
+      "id": "materials",
+      "title": "Materials & Textures",
+      "triggers": [
+        "textur",
+        "texture",
+        "material",
+        "pbr",
+        "atlas",
+        "normalmap",
+        "oberflaeche"
+      ],
+      "skills": [
+        "asset-transformer-toolkit",
+        "unity-pipeline",
+        "shader-programming"
+      ]
+    },
+    {
+      "id": "animation",
+      "title": "Animation & Rigging",
+      "triggers": [
+        "animation",
+        "animator",
+        "rigging",
+        "retarget",
+        "ik",
+        "bewegungsclip",
+        "blend tree"
+      ],
+      "skills": [
+        "unity-animation",
+        "game-feel",
+        "unity-pipeline"
+      ]
+    },
+    {
+      "id": "audio",
+      "title": "Audio & Voice",
+      "triggers": [
+        "audio",
+        "sound",
+        "musik",
+        "sprecher",
+        "voice acting",
+        "geraesch",
+        "fussstep"
+      ],
+      "skills": [
+        "audio-setup-mixers",
+        "optimize-audio",
+        "audio-design"
+      ]
+    },
+    {
+      "id": "user_interface",
+      "title": "UI & Menus",
+      "triggers": [
+        "menue",
+        "menu",
+        "ui",
+        "hud",
+        "touch",
+        "inventaransicht",
+        "interface",
+        "ux"
+      ],
+      "skills": [
+        "ui",
+        "ui-ugui",
+        "ui-uitk",
+        "game-ui-ux"
+      ]
+    },
+    {
+      "id": "asset_pipeline",
+      "title": "Assets & Import",
+      "triggers": [
+        "asset",
+        "glb",
+        "fbx",
+        "modellimport",
+        "import pipeline",
+        "lod",
+        "modelle"
+      ],
+      "skills": [
+        "asset-transformer-toolkit",
+        "unity-pipeline",
+        "create-game-assets"
+      ]
+    },
+    {
+      "id": "persistence",
+      "title": "Save & Persistence",
+      "triggers": [
+        "spielstand",
+        "speichern",
+        "save",
+        "load",
+        "persistenz",
+        "migration",
+        "serialize"
+      ],
+      "skills": [
+        "save-systems",
+        "unity-csharp-scripting"
+      ]
+    },
+    {
+      "id": "performance_cache",
+      "title": "Accelerator & Cache",
+      "triggers": [
+        "accelerator",
+        "shader cache",
+        "shader-cache",
+        "cache",
+        "performance",
+        "profiling",
+        "importzeit",
+        "warmup",
+        "kompilierzeit"
+      ],
+      "skills": [
+        "performance-optimization",
+        "project-auditor-fixes",
+        "unity-build-pipeline"
+      ]
+    },
+    {
+      "id": "testing",
+      "title": "Tests & Debugging",
+      "triggers": [
+        "regression",
+        "test",
+        "playmode",
+        "editmode",
+        "debug",
+        "fehler",
+        "unit test",
+        "profilanalyse"
+      ],
+      "skills": [
+        "project-auditor-fixes",
+        "speckit-bug-test",
+        "unity-csharp-scripting"
+      ]
+    },
+    {
+      "id": "android_release",
+      "title": "Android & Release",
+      "triggers": [
+        "android",
+        "apk",
+        "aab",
+        "tablet",
+        "tab a9",
+        "release",
+        "buildpipeline",
+        "il2cpp"
+      ],
+      "skills": [
+        "unity-cli",
+        "unity-build-pipeline",
+        "unity-build-size"
+      ]
+    },
+    {
+      "id": "tooling",
+      "title": "Tools & MCP",
+      "triggers": [
+        "mcp",
+        "plugin",
+        "plugins",
+        "skills",
+        "werkzeug",
+        "tool",
+        "integration"
+      ],
+      "skills": [
+        "unity-package-management",
+        "spec-driven-develop",
+        "review-spd"
+      ]
+    },
+    {
+      "id": "security",
+      "title": "Security & Licensing",
+      "triggers": [
+        "berechtigung",
+        "security",
+        "lizenz",
+        "signatur",
+        "provenienz",
+        "supply chain",
+        "sandbox"
+      ],
+      "skills": [
+        "speckit-analyze",
+        "review-spd"
+      ]
+    },
+    {
+      "id": "multiplayer",
+      "title": "Networking & Coop",
+      "triggers": [
+        "multiplayer",
+        "coop",
+        "koop",
+        "netcode",
+        "netzwerk",
+        "synchronisierung"
+      ],
+      "skills": [
+        "setup-multiplayer-services",
+        "unity-navmesh",
+        "unity-csharp-scripting"
+      ]
+    },
+    {
+      "id": "economy",
+      "title": "Economy & Loot",
+      "triggers": [
+        "oekonomie",
+        "economy",
+        "handel",
+        "loot",
+        "waehrung",
+        "haendler",
+        "item drop"
+      ],
+      "skills": [
+        "rpg",
+        "save-systems",
+        "game-development"
+      ]
+    },
+    {
+      "id": "camera",
+      "title": "Camera & Input",
+      "triggers": [
+        "kamera",
+        "camera",
+        "cinemachine",
+        "zoomen",
+        "framing",
+        "kamerabewegung"
+      ],
+      "skills": [
+        "camera-systems",
+        "unity-input-system",
+        "game-ui-ux"
+      ]
+    },
+    {
+      "id": "physics",
+      "title": "Physics & Collisions",
+      "triggers": [
+        "physik",
+        "physics",
+        "collision",
+        "kollision",
+        "ragdoll",
+        "character controller"
+      ],
+      "skills": [
+        "unity-physics",
+        "physics-tuning",
+        "fix-3d-physics-collisions"
+      ]
+    }
+  ]
+}
