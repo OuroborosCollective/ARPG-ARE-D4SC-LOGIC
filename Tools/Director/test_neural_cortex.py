@@ -98,6 +98,10 @@ class NeuralCortexTests(unittest.TestCase):
         result = route("Geräusch für Fackeln", self.catalog, self.project)
         self.assertIn("audio", [x["id"] for x in result["selected"]])
 
+    def test_project_less_routing_is_refused_by_contract(self):
+        with self.assertRaisesRegex(ValueError, "PROJECT_REQUIRED"):
+            route("Shader Graph", self.catalog, None)
+
     def test_legacy_unity_project_retains_existing_director_plan(self):
         (self.project / "ProjectSettings/ProjectVersion.txt").write_text(
             "m_EditorVersion: 2022.3.62f1\n")

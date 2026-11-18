@@ -38,9 +38,13 @@ const RULES=Object.freeze({
   physics:{track:'quality',issues:[48]}
 });
 const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+// Reject invalid UTF-8 instead of silently replacing bytes with U+FFFD (which would drop the hashed bytes).
+function strictUtf8(bytes,code) {
+  try {return new TextDecoder('utf-8',{fatal:true}).decode(bytes);} catch {throw Error(code);}
+}
 function parseJson(bytes) {
   let parsed;
-  try {parsed=JSON.parse(bytes.toString('utf8'));} catch {throw Error('INVALID_CATALOG_JSON');}
+  try {parsed=JSON.parse(strictUtf8(bytes,'INVALID_CATALOG_UTF8'));} catch(e){if(e instanceof SyntaxError)throw Error('INVALID_CATALOG_JSON');throw e;}
   return parsed;
 }
 const keys=(obj,allowed)=>Object.keys(obj).sort().join('|')===allowed.slice().sort().join('|');
@@ -56,7 +60,7 @@ export function readSnapshot({architectureBytes,catalogBytes,gitRevision,expecte
   const docHash=digest(architectureBytes),catalogHash=digest(catalogBytes);
   if(docHash!==expectedArchitectureSha256)throw Error('ARCHITECTURE_DIGEST_MISMATCH');
   if(catalogHash!==expectedCatalogSha256)throw Error('CATALOG_DIGEST_MISMATCH');
-  const md=architectureBytes.toString('utf8');
+  const md=strictUtf8(architectureBytes,'INVALID_ARCHITECTURE_UTF8');
   if(!md.startsWith('# ARE / Ashen Crypt')||md.split(MARKER).length!==2)throw Error('INVALID_ARCHITECTURE');
   const catalog=parseJson(catalogBytes);
   if(!plain(catalog)||!keys(catalog,['schema','unity','departments'])

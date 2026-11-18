@@ -22,6 +22,8 @@ und Physik ab. Diese Einträge sind Skill-Verweise und keine neuen Installatione
 - Höchstens drei Abteilungen werden vorgeschlagen, der Rest nur als deferred.
 - Keine passenden Schlüsselwörter: NO_DOMAIN_MATCH; kein Broadcast.
 - Nur der aus ProjectSettings gelesene Unity-6000.6.8f1-Pin wird akzeptiert.
+- Routing ohne Projekt ist ausdrücklich abgelehnt (PROJECT_REQUIRED); es gibt
+  keine projektlosen NOT_VERIFIED-Kandidaten.
 - Manifest akzeptiert ausschließlich id/title/triggers/skills, verbietet
   fremde Kommandos und duplizierte IDs; sein SHA-256 wird angegeben.
 - INSTALLED_FILE_HASH_ONLY beweist lediglich den Zustand einer Skill-Datei,

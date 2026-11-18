@@ -83,8 +83,6 @@ def load_catalog(path):
 
 
 def _verified_project_version(project, expected_version):
-    if project is None:
-        return 'NOT_VERIFIED'
     path = Path(project)
     version_file = path / 'ProjectSettings' / 'ProjectVersion.txt'
     if not (path / 'Assets').is_dir() or not version_file.is_file():
@@ -102,9 +100,16 @@ def _matched_triggers(task, triggers):
 
 
 def route(task, catalog, project=None, observed_skill_states=None, max_departments=3):
-    """Choose only explicit departments; return suggestions, never call tools."""
+    """Choose only explicit departments; return suggestions, never call tools.
+
+    A project is required: only the pin read from ProjectSettings is accepted, so a
+    project-less call is refused before any department is selected (contract, no
+    NOT_VERIFIED candidates).
+    """
     if not isinstance(task, str) or not 1 <= len(task.strip()) <= 4096:
         raise ValueError('INVALID_TASK')
+    if project is None:
+        raise ValueError('PROJECT_REQUIRED')
     if not isinstance(max_departments, int) or not 1 <= max_departments <= 3:
         raise ValueError('INVALID_SELECTION_BUDGET')
     data, digest = load_catalog(catalog)

@@ -145,6 +145,8 @@ def compile_council(council, responses):
             and council['runtime_evidence'] == 'NOT_EXECUTED'
             and council['dispatch'] == 'NOT_SENT'
             and council['source_revision_verified'] is False
+            and council['unity'] == '6000.6.8f1'
+            and data.get('unity') == council['unity']
             and _digest(original) == council['catalog_sha256']
             and _digest(doc.encode('utf-8')) == council['architecture_sha256']
             and council['snapshot_id'] == identity
@@ -152,6 +154,7 @@ def compile_council(council, responses):
             and all(p['snapshot_id'] == identity
                     and p['architecture_markdown'] == doc
                     and p['catalog_sha256'] == council['catalog_sha256']
+                    and p['source_revision_claim'] == council['source_revision_claim']
                     and p['skills'] == allowed_skills[p['department']]
                     for p in packets))
     except (KeyError, TypeError, ValueError, AttributeError):

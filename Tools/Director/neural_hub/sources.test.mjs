@@ -62,15 +62,36 @@ test('unknown department, unknown catalog entry, duplicate source fail closed',(
   const dupe=JSON.parse(raw);dupe.sources.push({...dupe.sources[0]});
   assert.throws(()=>loadSourceRegistry(JSON.stringify(dupe),catalog),/INVALID_SOURCE_COUNT/);
 });
+test('a real catalog department with no covering source returns an empty candidate list',()=>{
+  const r=loadSourceRegistry(raw,catalog);
+  const uncovered=catalog.departments.map(d=>d.id).filter(id=>!r.sources.some(s=>s.departments.includes(id)));
+  assert.ok(uncovered.length>0,'fixture expects at least one uncovered department');
+  for(const id of uncovered){
+    const result=discoverSources(r,id,{limit:8});
+    assert.deepEqual(result.candidates,[]);
+    assert.equal(result.department,id);
+  }
+  assert.throws(()=>discoverSources(r,'not_a_catalog_department'),/UNKNOWN_DEPARTMENT/);
+});
+test('upstreamSkillFiles always equals discoveredSkillFiles for every source',()=>{
+  const r=loadSourceRegistry(raw,catalog);
+  for(const s of r.sources){
+    assert.equal(s.upstreamSkillFiles.length,s.discoveredSkillFiles.length,`${s.id} upstream/discovered count`);
+    assert.deepEqual([...s.upstreamSkillFiles],[...s.discoveredSkillFiles],`${s.id} upstream/discovered set`);
+  }
+  const uloop=r.sources.find(x=>x.id==='uloop');
+  assert.equal(uloop.discoveredSkillFiles.length,72);
+  assert.equal(uloop.upstreamSkillFiles.length,72);
+});
 test('sources cannot contain commands, credentials, hidden auto-installs or network endpoints',()=>{
   const cases=[
-    x=>{x.sources[0].command='npm install --yes';},
-    x=>{x.sources[0].allowExecution=true;},
-    x=>{x.sources[0].sourceUrl='http://localhost:8080/admin';},
-    x=>{x.sources[0].sourceSha='main';},
-    x=>{x.sources[0].upstreamSkillFiles=['../../etc/passwd'];}
+    [x=>{x.sources[0].command='npm install --yes';},/INVALID_SOURCE_FIELDS/],
+    [x=>{x.sources[0].allowExecution=true;},/UNAUTHORIZED_SOURCE_PROMOTION/],
+    [x=>{x.sources[0].sourceUrl='http://localhost:8080/admin';},/SOURCE_IDENTITY_MISMATCH/],
+    [x=>{x.sources[0].sourceSha='main';},/SOURCE_IDENTITY_MISMATCH/],
+    [x=>{x.sources[0].upstreamSkillFiles=['../../etc/passwd'];},/INVALID_SOURCE_PATH/]
   ];
-  for(const makeBad of cases){const x=JSON.parse(raw);makeBad(x);assert.throws(()=>loadSourceRegistry(JSON.stringify(x),catalog));}
+  for(const [makeBad,code] of cases){const x=JSON.parse(raw);makeBad(x);assert.throws(()=>loadSourceRegistry(JSON.stringify(x),catalog),code);}
 });
 test('inspect source commits are immutable, not just arbitrary 40 character hashes',()=>{
   const x=JSON.parse(raw);

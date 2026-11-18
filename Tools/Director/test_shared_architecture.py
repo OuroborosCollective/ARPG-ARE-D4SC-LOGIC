@@ -166,6 +166,20 @@ class SharedArchitectureTests(unittest.TestCase):
         with self.assertRaisesRegex(ArchitectureError, 'INVALID_DEPARTMENT'):
             self.freeze()
 
+    def test_council_unity_pin_is_revalidated_before_hash(self):
+        frozen = self.freeze()
+        answers = self.responses(frozen)
+        frozen['unity'] = '2022.3.62f1'
+        with self.assertRaisesRegex(ArchitectureError, 'TAMPERED_COUNCIL_PACKET'):
+            compile_council(frozen, answers)
+
+    def test_packet_source_revision_must_match_the_council(self):
+        frozen = self.freeze()
+        answers = self.responses(frozen)
+        frozen['packets'][0]['source_revision_claim'] = 'b' * 40
+        with self.assertRaisesRegex(ArchitectureError, 'TAMPERED_COUNCIL_PACKET'):
+            compile_council(frozen, answers)
+
 
 if __name__ == '__main__':
     unittest.main()

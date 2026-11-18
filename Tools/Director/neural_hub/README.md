@@ -20,10 +20,11 @@ docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-
 
 Die Konfiguration bindet **ausschließlich 127.0.0.1 innerhalb des Containers**. Kein `-p`, keine weitere Docker-Bridge und kein Sovott-Token. Über `docker exec` kann ein autorisierter lokaler Testclient in demselben Container laufen; ein Docker-Netzwerk-Tunnel wäre eine separate Sicherheits-/Auth-Aufgabe. Paketinstallation ist nur im Docker-Build gestattet. `package-lock.json` pinnt den vollständigen npm-Auflösungsbaum; der Dockerfile verwendet `npm ci --omit=optional --ignore-scripts`. Der getrennte Audit vom 18.11.2026 ergab **0 bekannte npm-Advisories** für den geprüften Stand, was keine allgemeine Sicherheitsgarantie ist. Das erste unveränderliche Pilot-Image wurde als `sha256:d95ebc34e8d2ce1e30b9aeebfba757f13e23db06826731fbb4f48af52f308f33` zu Git-SHA `3d6fd8882301a948d0855e1d928d96423b6a658e` geprüft. Produktivfreigabe, Authentifizierung und spätere Artefakt-/Versionsgleichheit sind noch offen.
 
+Paketinstallation ist nur im Docker-Build gestattet; auf dem Host werden **keine** Abhängigkeiten installiert. `advisory.test.mjs` läuft im bereits gebauten Image mit denselben Container-Schutzoptionen (kein Host-`npm install`).
+
 ```sh
-cd Tools/Director/neural_hub
-npm install --ignore-scripts
-npm test
+docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges \
+  ashen-neural-hub:pilot node --test advisory.test.mjs
 ```
 
 `director_consult` liefert bestenfalls Vorschlagskandidaten, keine autorisierten Umsetzungen. Die nächsten notwendigen Schichten: echte repo-revisionsgebundene GitHub-Issue-Abfrage über autorisierte Sovott-Tools; zusätzliche technische Source/Skill-Provenienz und unabhängige Director-Review; aktualisierter Owner-Architekturvorschlag mit strengem CAS und Evidence.

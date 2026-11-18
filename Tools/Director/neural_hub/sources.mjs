@@ -104,13 +104,15 @@ export function loadSourceRegistry(raw,catalog){
        s.reportedCount.independentlyVerified!==false)
       throw Error('INVALID_ADVERTISED_COUNT');
     if(!Number.isSafeInteger(s.sourceTreeFileCount)||s.sourceTreeFileCount<0||
-       !validPaths(s.discoveredSkillFiles,150)||!validPaths(s.upstreamSkillFiles,50)||
+       !validPaths(s.discoveredSkillFiles,150)||!validPaths(s.upstreamSkillFiles,150)||
+       s.upstreamSkillFiles.length!==s.discoveredSkillFiles.length||
        s.upstreamSkillFiles.some(x=>!s.discoveredSkillFiles.includes(x)))
       throw Error('INVALID_SOURCE_PATH');
   }
   if(seenIds.size!==Object.keys(LICENSES).length)throw Error('MISSING_SOURCES');
   return Object.freeze({
     schema:obj.schema,unityVersion:obj.unityVersion,registrySha256:hash(raw),
+    catalogDepartments:Object.freeze([...allowedDepartments].sort()),
     sources:Object.freeze(obj.sources.map(s=>Object.freeze({
       ...s,departments:Object.freeze([...s.departments]),
       capabilityAreas:Object.freeze([...s.capabilityAreas]),
@@ -121,8 +123,10 @@ export function loadSourceRegistry(raw,catalog){
 }
 export function discoverSources(registry,department,{limit=8}={}){
   if(!isObject(registry)||registry.schema!=='ashen.director.upstream-source-registry.v1'||
-     !Array.isArray(registry.sources)||registry.sources.length!==13)throw Error('INVALID_REGISTRY');
-  const areas=new Set(registry.sources.flatMap(x=>x.departments));
+     !Array.isArray(registry.sources)||registry.sources.length!==13||
+     !Array.isArray(registry.catalogDepartments))throw Error('INVALID_REGISTRY');
+  // A real catalog department with no covering source returns an empty candidate list, not UNKNOWN_DEPARTMENT.
+  const areas=new Set(registry.catalogDepartments);
   if(typeof department!=='string'||!areas.has(department))throw Error('UNKNOWN_DEPARTMENT');
   if(!Number.isInteger(limit)||limit<1||limit>20)throw Error('INVALID_LIMIT');
   const rank={S:0,A:1,B:2};
