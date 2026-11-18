@@ -24,6 +24,8 @@ jobs:
         run: dotnet run --project Tests/FadenwerkJsonVerification/FadenwerkJsonVerification.csproj --configuration Release
       - name: Verify World Forge map immutability
         run: dotnet run --project Tests/WorldForgeCoreVerification/WorldForgeCoreVerification.csproj --configuration Release
+      - name: Verify Fadenwerk content rules without the Unity engine
+        run: dotnet run --project Tests/FadenwerkValidatorVerification/FadenwerkValidatorVerification.csproj --configuration Release
       - name: Check repository has playable Unity entrypoint
         run: |
           test -f Assets/Scripts/Runtime/ArenaRuntime.cs
