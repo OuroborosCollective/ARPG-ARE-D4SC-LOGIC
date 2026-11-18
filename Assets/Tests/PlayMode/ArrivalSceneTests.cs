@@ -33,6 +33,7 @@ namespace AreArpg.PlayMode.Tests
             var advance = typeof(ArenaRuntime).GetMethod("AdvanceArrivalScene", Flags);
             advance.Invoke(_runtime, null); advance.Invoke(_runtime, null);
             Assert.AreEqual(0, _runtime.SceneLineIndex, "Hasty taps cannot skip a line before it was readable");
+            UseFrameClock(.25f); // the line-by-line walk below only waits for game time
             var speakers = new HashSet<string>();
             var rig = Camera.main.GetComponent<ArenaCameraRig>();
             for (int line = 0; line < ArrivalScene.Lines.Length; line++)

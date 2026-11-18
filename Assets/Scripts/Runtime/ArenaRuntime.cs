@@ -40,7 +40,8 @@ namespace AreArpg.UnityClient
         private bool _pendingTakeRation;
         /// <summary>Presentation-only confirmation window for the theft button; never saved or read by the Core.</summary>
         private float _takeRationArmedUntil = -1f;
-        private bool TakeRationArmed { get { return _takeRationArmedUntil >= Time.unscaledTime; } }
+        /// <summary>Theft confirmation window on the game clock (equal to real time in play; timeScale never changes).</summary>
+        private bool TakeRationArmed { get { return _takeRationArmedUntil >= Time.time; } }
         private readonly Queue<MasteryPath> _pendingMastery = new Queue<MasteryPath>();
         private readonly ArenaHudTouchCapture _movementTouch = new ArenaHudTouchCapture();
         private bool _storageFault;
@@ -884,7 +885,7 @@ namespace AreArpg.UnityClient
             {
                 // A first tap only arms the theft; a second tap within three seconds confirms it.
                 if (TakeRationArmed) { _pendingTakeRation = true; _takeRationArmedUntil = -1f; }
-                else { _takeRationArmedUntil = Time.unscaledTime + 3f; _message = "Wirklich eine Ration von Mara stehlen? Zum Bestätigen erneut tippen."; }
+                else { _takeRationArmedUntil = Time.time + 3f; _message = "Wirklich eine Ration von Mara stehlen? Zum Bestätigen erneut tippen."; }
             }
             else if (control == ArenaHudControl.Pickup)
                 _pendingPickup = true;

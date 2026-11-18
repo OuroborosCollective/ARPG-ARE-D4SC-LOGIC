@@ -14,7 +14,11 @@ namespace AreArpg.PlayMode.Tests
         /// <summary>Sample presentation timing at a device frame rate: every rendered frame advances game time by
         /// exactly 1/60 s. The validation editor renders on a software display at about 5 frames per second, where a
         /// 0.28 s knockback or a 0.6 s readable line falls between two frames. The fixture teardown resets it.</summary>
-        private static void UseDeviceFrameClock() { Time.captureDeltaTime = 1f / 60f; }
+        private static void UseDeviceFrameClock() { UseFrameClock(1f / 60f); }
+
+        /// <summary>Fixed game time per rendered frame. Scene flows that only wait for game time may use coarse steps:
+        /// the village renders at about 2 frames per second here (measured), so 1/60 s steps would take minutes.</summary>
+        private static void UseFrameClock(float secondsPerFrame) { Time.captureDeltaTime = secondsPerFrame; }
 
         /// <summary>Every executed ability shows a visible hero action in the real runtime flow (HUD route, fixed ticks, real frames).</summary>
         [UnityTest]
