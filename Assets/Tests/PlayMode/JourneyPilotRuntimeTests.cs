@@ -129,6 +129,11 @@ namespace AreArpg.PlayMode.Tests
             PlayerPrefs.SetString(_keys[1],saved);args[0]=null;
             Assert.IsTrue((bool)typeof(ArenaRuntime).GetMethod("TryLoadCharacter",Flags).Invoke(_runtime,args),"A valid AC21 journey backup recovers the corrupted primary");
             Assert.AreEqual(saved,((CharacterProgression)args[0]).SaveString(),"The recovered checkpoint is the exact AC21 backup");
+            // Review PR #59 (CodeRabbit): a damaged first encoded character must not open the older backup either.
+            string damaged="AC21|"+(saved[5]=='Q'?"R":"Q")+saved.Substring(6);
+            PlayerPrefs.SetString(_keys[0],damaged);PlayerPrefs.SetString(_keys[1],legacy);args[0]=null;
+            Assert.IsFalse((bool)typeof(ArenaRuntime).GetMethod("TryLoadCharacter",Flags).Invoke(_runtime,args),"A damaged AC21 discriminator must not fall back to an older backup");
+            Assert.IsNull(args[0]);Assert.AreEqual(damaged,PlayerPrefs.GetString(_keys[0]));
         }
         private void JourneyNativeWalk(long x,long z,bool fight=true)
         {

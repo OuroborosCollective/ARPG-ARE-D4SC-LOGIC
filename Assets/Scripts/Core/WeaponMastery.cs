@@ -199,9 +199,10 @@ namespace AreArpg.Core
             return "AC21|" + Convert.ToBase64String(Encoding.UTF8.GetBytes(inner)) + "|" + WeaponMastery.Token();
         }
 
-        /// <summary>True when a checkpoint holds journey progress, also inside an AC21 weapon-skill wrapper. Decides which
-        /// backup may replace a primary that fails to load. An AC21 checkpoint whose inner part cannot be read counts as
-        /// journey progress, so recovery never picks an older backup over it.</summary>
+        /// <summary>True when a checkpoint may hold journey progress, also inside an AC21 weapon-skill wrapper. Decides which
+        /// backup may replace a primary that fails to load. Only an AC21 whose inner part positively starts with a pre-journey
+        /// version (AC1 to AC19) counts as journey-free; an unreadable or damaged inner prefix counts as journey progress, so
+        /// recovery never picks an older backup over it. A truncated tail keeps the prefix and stays recoverable.</summary>
         public static bool MayHoldJourneyProgress(string saved)
         {
             if (string.IsNullOrEmpty(saved)) return false;
@@ -209,10 +210,16 @@ namespace AreArpg.Core
             if (!saved.StartsWith("AC21|", StringComparison.Ordinal)) return false;
             int end = saved.IndexOf('|', 5);
             string inner = end < 0 ? saved.Substring(5) : saved.Substring(5, end - 5);
-            // Eight base64 characters hold the first six bytes: enough for the "AC20|" prefix, even after truncation.
+            // Eight base64 characters hold the first six bytes: enough for an "AC19|" prefix, even after truncation.
             if (inner.Length < 8) return true;
-            try { return Encoding.UTF8.GetString(Convert.FromBase64String(inner.Substring(0, 8))).StartsWith("AC20|", StringComparison.Ordinal); }
+            string head;
+            try { head = Encoding.ASCII.GetString(Convert.FromBase64String(inner.Substring(0, 8))); }
             catch (FormatException) { return true; }
+            int bar = head.IndexOf('|');
+            if (!head.StartsWith("AC", StringComparison.Ordinal) || bar < 3 || bar > 4 || head[2] == '0') return true;
+            for (int i = 2; i < bar; i++) if (head[i] < '0' || head[i] > '9') return true;
+            int version = int.Parse(head.Substring(2, bar - 2), NumberStyles.None, CultureInfo.InvariantCulture);
+            return version < 1 || version > 19;
         }
 
         private static bool TryLoadWeaponMastery(string saved, JourneyMapCatalog maps, out CharacterProgression progress)

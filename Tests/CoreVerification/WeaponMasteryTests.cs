@@ -108,6 +108,13 @@ internal static class WeaponMasteryTests
                 "wm-journey-classification-survives-the-weapon-wrapper");
         require(CharacterProgression.MayHoldJourneyProgress("AC21|@@@@@@@@|x|y") && CharacterProgression.MayHoldJourneyProgress("AC21|QU"),
                 "wm-unreadable-weapon-wrapper-counts-as-journey-progress");
+        // Review PR #59 (CodeRabbit): a damaged first character must not turn a journey checkpoint into "no journey".
+        string damagedJourney = "AC21|" + (saved[5] == 'Q' ? "R" : "Q") + saved.Substring(6);
+        string damagedWoods = "AC21|" + (woodsSaved[5] == 'Q' ? "R" : "Q") + woodsSaved.Substring(6);
+        require(CharacterProgression.MayHoldJourneyProgress(damagedJourney) && CharacterProgression.MayHoldJourneyProgress(damagedWoods),
+                "wm-damaged-discriminator-counts-as-journey-progress");
+        require(!CharacterProgression.MayHoldJourneyProgress(woodsSaved.Substring(0, woodsSaved.Length - 24)),
+                "wm-truncated-pre-journey-wrapper-stays-recoverable");
     }
 
     public static void Run(Action<bool, string> require)

@@ -549,7 +549,9 @@ namespace AreArpg.Core
 
         private void MovePlayer()
         {
-            long speed = Progression.EntryAct == 7 && Progression.Rattler.Sneaking ? 240 : PlayerSpeedMmPerTick * Progression.MoveSpeedBp / 10000L;
+            // Sneaking lowers the base speed; the weapon and shield movement profile applies to both.
+            long baseSpeed = Progression.EntryAct == 7 && Progression.Rattler.Sneaking ? 240 : PlayerSpeedMmPerTick;
+            long speed = baseSpeed * Progression.MoveSpeedBp / 10000L;
             long dx = _directionXbp * speed / 10000L;
             long dz = _directionZbp * speed / 10000L;
             if (CanStand(PlayerXmm + dx, PlayerZmm + dz)) { PlayerXmm += dx; PlayerZmm += dz; }

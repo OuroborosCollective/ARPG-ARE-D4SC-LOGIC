@@ -151,5 +151,46 @@ internal static class WeaponProfileTests
         string saved = p.SaveString();
         require(saved.StartsWith("AC21|", StringComparison.Ordinal) && CharacterProgression.TryLoad(saved, out var loaded) &&
                 loaded.WeaponMastery.Level(WeaponFamily.Shield) == 99 && loaded.SaveString() == saved, "wp-shield-skill-survives-save-and-load");
+
+        // Review PR #59 (Codex): the crypt's falling slab is not an enemy attack; a shield neither blocks it nor trains on it.
+        TrapIsNotAnEnemyAttack(require);
+
+        // Review PR #59 (Codex): sneaking keeps the weapon and shield movement profile.
+        var den = RattlerEncounterTests.Den(); var dp = den.Progression; dp.Equipment.Enable(dp);
+        var denShield = GiveId(dp, "shield_newbie.1");
+        require(den.TryEquipWeapon(denShield.KillOrdinal) && dp.MoveSpeedBp == 8800, "wp-sneak-fixture-shield");
+        den.ActOnHunger(HungerAction.ToggleSneak);
+        long x0 = den.PlayerXmm; den.SetMoveInput(10000, 0); den.Step(); den.SetMoveInput(0, 0);
+        require(dp.Rattler.Sneaking && den.PlayerXmm - x0 == 240L * dp.MoveSpeedBp / 10000L,
+                "wp-sneaking-keeps-the-shield-movement-penalty (moved " + (den.PlayerXmm - x0) + ")");
+    }
+
+    private static void TrapIsNotAnEnemyAttack(Action<bool, string> require)
+    {
+        var start = CharacterProgression.CreateEntryProfile();
+        for (int i = 0; i < 4; i++) start.DiscoverHungerClue();
+        start.ChooseHungerSupply(HungerChoice.Protect); start.TravelHunger(4, false);
+        var w = new ArenaSimulation(123, start, System.Numerics.BigInteger.One, LootCatalog.Version1);
+        HunterEncounterTests.Move(w, 0, 24000); w = w.TryTraversePassage(); HunterEncounterTests.Move(w, 0, 18000);
+        w.ActOnHunger(HungerAction.InspectSeal); w.ActOnHunger(HungerAction.BreakSeal);
+        HunterEncounterTests.Move(w, 0, 24000); w = w.TryTraversePassage();
+        foreach (var m in w.Monsters) { m.Health = 0; m.LootGranted = true; }
+        var p = w.Progression; p.Equipment.Enable(p);
+        var shield = GiveId(p, "shield_newbie.1");
+        require(w.TryEquipWeapon(shield.KillOrdinal) && p.Equipment.Shield != null, "wp-trap-fixture-shield");
+        p.WeaponMastery.Record(WeaponFamily.Shield, WeaponMasteryRules.ExperienceForLevel(99)); // highest block chance
+        long xp = p.WeaponMastery.Experience(WeaponFamily.Shield);
+        // Walk onto the slab (it arms on approach) and stay inside its radius until it falls.
+        HunterEncounterTests.Move(w, 0, ArenaSimulation.CryptTrapZmm);
+        require(p.Investigation.TrapTicks > 0 && Math.Abs(w.PlayerZmm - ArenaSimulation.CryptTrapZmm) < ArenaSimulation.CryptTrapRadiusMm,
+                "wp-trap-fixture-armed-under-the-slab");
+        int attacks = w.IncomingAttacks, blocked = w.BlockedAttacks, hp = w.PlayerHealth;
+        for (int i = 0; i < 12 && p.Investigation.TrapTicks > 0; i++) w.Step();
+        int protection = Math.Min(3500, (p.Woodland.ArmorCrafted ? 1000 : 0) + p.Equipment.Bonus(WeaponAffix.Ward) + p.Equipment.Shield.Definition.BasePower);
+        int expected = Math.Max(1, 320 * (10000 - protection) / 10000);
+        require(p.Investigation.TrapTicks == -1 && hp - w.PlayerHealth == expected,
+                "wp-trap-damage-is-never-blocked (lost " + (hp - w.PlayerHealth) + ", expected " + expected + ", trap " + p.Investigation.TrapTicks + ")");
+        require(p.WeaponMastery.Experience(WeaponFamily.Shield) == xp && w.IncomingAttacks == attacks && w.BlockedAttacks == blocked,
+                "wp-trap-is-not-an-enemy-attack-for-the-shield");
     }
 }

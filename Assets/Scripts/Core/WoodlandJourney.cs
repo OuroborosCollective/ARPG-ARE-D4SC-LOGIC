@@ -74,6 +74,7 @@ namespace AreArpg.Core
             next.SaveWoodlandPlayer();next.SaveRoadPlayer();next.SaveInvestigationPlayer();
             return next;
         }
+        /// <summary>An enemy attack: the shield trains on it and may block it completely; armour reduces what gets through.</summary>
         private void ReceiveDamage(int amount)
         {
             IncomingAttacks++;
@@ -82,7 +83,16 @@ namespace AreArpg.Core
                 Progression.RecordShieldPractice(amount);
                 if (_rng.NextBasisPoints() < Progression.BlockChanceBp) { BlockedAttacks++; return; }
             }
-            int protection=Math.Min(3500,(Progression.Woodland.ArmorCrafted?1000:0)+Progression.Equipment.Bonus(WeaponAffix.Ward)+(Progression.Equipment.Shield?.Definition.BasePower??0)); PlayerHealth=Math.Max(0,PlayerHealth-Math.Max(1,amount*(10000-protection)/10000)); }
+            ApplyProtectedDamage(amount);
+        }
+
+        /// <summary>Environmental damage such as the crypt's falling slab: never blocked by a shield, armour still applies.</summary>
+        private void ReceiveEnvironmentalDamage(int amount) { ApplyProtectedDamage(amount); }
+
+        private void ApplyProtectedDamage(int amount)
+        {
+            int protection=Math.Min(3500,(Progression.Woodland.ArmorCrafted?1000:0)+Progression.Equipment.Bonus(WeaponAffix.Ward)+(Progression.Equipment.Shield?.Definition.BasePower??0)); PlayerHealth=Math.Max(0,PlayerHealth-Math.Max(1,amount*(10000-protection)/10000));
+        }
         public string BearFamilyContext => !Progression.Road.Started ? "Die Spuren führen zur Bärin an der Aschestraße. Über ihr Schicksal weißt du noch nichts." :
             Progression.Road.Bear.IsDead ? "Es sind die Jungen der Bärin von der Aschestraße. Ihre Mutter ist tot." : "Es sind die Jungen der Bärin von der Aschestraße. Ihre Mutter lebt.";
         private SocialResult ActOnWoodland(HungerAction action)
