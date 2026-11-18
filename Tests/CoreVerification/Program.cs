@@ -64,6 +64,7 @@ internal static class Program
             DungeonBuilderTests.Run(Require);
             QuestContentTests.Run(Require);
             MonsterRoleTests.Run(Require);
+            EnemyFamilyTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }
