@@ -48,6 +48,7 @@ The immutable run identity is the explicit positive `BigInteger CryptDepth`, inc
 ## AC3 chapter checkpoint boundary
 
 `CharacterProgression` now owns a positive arbitrary-precision unlocked chapter depth, included as field 9 (before the checksum) in AC3 records; AC1/AC2 load with depth 1. The chapter transition deep-copies canonical character state, checks consecutive depth and writes the next checkpoint through Unity's existing validated PlayerPrefs path *before* swapping the active world. Prior world receipts are left unchanged. This is a local checkpoint, not an online account, atomic filesystem transaction or entire simulation snapshot. Android cold-start persistence remains unverified.
+
 ---
 
 ## Neural Game Director: gemeinsame Architektur für 28 Fachberater
