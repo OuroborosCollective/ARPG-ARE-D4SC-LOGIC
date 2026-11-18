@@ -22,6 +22,8 @@ namespace AreArpg.Core
         public int AffixRuneCount { get; private set; }
         public int ActiveWardTicks { get; private set; }
         public int ActiveMightTicks { get; private set; }
+        public int ActiveRegenTicks { get; private set; }
+        public int RegenPerTick { get; private set; }
         public int LastHealAmount { get; private set; }
         private readonly WeaponAffix[] _runes = new WeaponAffix[8];
         public int RuneSlots { get { return _runes.Length; } }
@@ -79,6 +81,7 @@ namespace AreArpg.Core
             {
                 case PotionType.Heal: a = MaterialKind.Ashenflieder; ca = 2; b = MaterialKind.Glutklee; cb = 1; break;
                 case PotionType.Ward: a = MaterialKind.Grauwurz; ca = 1; b = MaterialKind.Dornbeere; cb = 1; break;
+                case PotionType.Regen: a = MaterialKind.Honig; ca = 1; b = MaterialKind.Nachtbluete; cb = 1; break;
                 default: a = MaterialKind.Glutklee; ca = 1; b = MaterialKind.Nachtbluete; cb = 1; break;
             }
             if (!Has(a, ca) || !Has(b, cb)) return false;
@@ -99,6 +102,7 @@ namespace AreArpg.Core
                 int ticks = CraftingRules.DurationTicks(tier);
                 if (type == PotionType.Heal) LastHealAmount = CraftingRules.HealAmount(tier);
                 else if (type == PotionType.Ward) ActiveWardTicks = Math.Max(ActiveWardTicks, ticks);
+                else if (type == PotionType.Regen) { ActiveRegenTicks = Math.Max(ActiveRegenTicks, ticks); RegenPerTick = CraftingRules.RegenPerTick(tier); }
                 else ActiveMightTicks = Math.Max(ActiveMightTicks, ticks);
                 return true;
             }
@@ -217,6 +221,7 @@ namespace AreArpg.Core
         {
             if (ActiveWardTicks > 0) ActiveWardTicks--;
             if (ActiveMightTicks > 0) ActiveMightTicks--;
+            if (ActiveRegenTicks > 0) { ActiveRegenTicks--; if (ActiveRegenTicks == 0) RegenPerTick = 0; }
         }
         public bool HasProgress
         {
@@ -227,13 +232,13 @@ namespace AreArpg.Core
                 foreach (int p in _potions) if (p > 0) return true;
                 foreach (int b in _bandages) if (b > 0) return true;
                 return ReviveClothCount > 0 || WoodenFrameCount > 0 || BowCount > 0 || AffixRuneCount > 0 ||
-                    ActiveWardTicks > 0 || ActiveMightTicks > 0;
+                    ActiveWardTicks > 0 || ActiveMightTicks > 0 || ActiveRegenTicks > 0;
             }
         }
 
         internal string Token()
         {
-            var b = new StringBuilder("1");
+            var b = new StringBuilder("2");
             foreach (long xp in _experience) b.Append(',').Append(xp.ToString(CultureInfo.InvariantCulture));
             foreach (int m in _materials) b.Append(',').Append(m.ToString(CultureInfo.InvariantCulture));
             foreach (int p in _potions) b.Append(',').Append(p.ToString(CultureInfo.InvariantCulture));
@@ -261,14 +266,18 @@ namespace AreArpg.Core
             state = null;
             if (string.IsNullOrEmpty(token)) return false;
             string[] f = token.Split(',');
-            int expected = 1 + CraftingRules.SkillCount + CraftingRules.MaterialCount + CraftingRules.PotionTypeCount * CraftingRules.TierCount +
+            // Version 1 is the shipped #75 form (11 materials, 3 potion types); version 2 adds honey and the regen potion.
+            int materials = f[0] == "1" ? 11 : CraftingRules.MaterialCount;
+            int potions = f[0] == "1" ? 3 : CraftingRules.PotionTypeCount;
+            if (f[0] != "1" && f[0] != "2") return false;
+            int expected = 1 + CraftingRules.SkillCount + materials + potions * CraftingRules.TierCount +
                 CraftingRules.TierCount + 6 + 8;
-            if (f.Length != expected || f[0] != "1") return false;
+            if (f.Length != expected) return false;
             var s = new CraftingState();
             int i = 1;
             for (int k = 0; k < CraftingRules.SkillCount; k++, i++) if (!Canonical(f[i], WeaponMasteryRules.MaxExperience, out s._experience[k])) return false;
-            for (int k = 0; k < CraftingRules.MaterialCount; k++, i++) if (!Canonical(f[i], int.MaxValue, out long m)) return false; else s._materials[k] = (int)m;
-            for (int k = 0; k < s._potions.Length; k++, i++) if (!Canonical(f[i], int.MaxValue, out long p)) return false; else s._potions[k] = (int)p;
+            for (int k = 0; k < materials; k++, i++) if (!Canonical(f[i], int.MaxValue, out long m)) return false; else s._materials[k] = (int)m;
+            for (int k = 0; k < potions * CraftingRules.TierCount; k++, i++) if (!Canonical(f[i], int.MaxValue, out long p)) return false; else s._potions[k] = (int)p;
             for (int k = 0; k < CraftingRules.TierCount; k++, i++) if (!Canonical(f[i], int.MaxValue, out long bn)) return false; else s._bandages[k] = (int)bn;
             if (!Canonical(f[i++], int.MaxValue, out long rv)) return false; s.ReviveClothCount = (int)rv;
             if (!Canonical(f[i++], int.MaxValue, out long wf)) return false; s.WoodenFrameCount = (int)wf;

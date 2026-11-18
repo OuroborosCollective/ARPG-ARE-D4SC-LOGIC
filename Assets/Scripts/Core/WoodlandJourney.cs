@@ -94,7 +94,7 @@ namespace AreArpg.Core
 
         private void ApplyProtectedDamage(int amount)
         {
-            int protection=Math.Min(6000,(Progression.Woodland.ArmorCrafted?1000:0)+Progression.Crafting.DefenseBonusBp+Progression.Equipment.Bonus(WeaponAffix.Ward)+(Progression.Equipment.Shield?.Definition.BasePower??0)); PlayerHealth=Math.Max(0,PlayerHealth-Math.Max(1,amount*(10000-protection)/10000));
+            int protection=Math.Min(6000,(Progression.Woodland.ArmorCrafted?1000:0)+Progression.Crafting.DefenseBonusBp+Progression.Village.BuffetDefenseBp+Progression.Equipment.Bonus(WeaponAffix.Ward)+(Progression.Equipment.Shield?.Definition.BasePower??0)); PlayerHealth=Math.Max(0,PlayerHealth-Math.Max(1,amount*(10000-protection)/10000));
         }
 
         /// <summary>Drink the highest available potion of a type; a heal potion raises the actual player health.</summary>

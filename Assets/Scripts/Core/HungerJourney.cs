@@ -182,7 +182,9 @@ namespace AreArpg.Core
                 DistanceSquared(PlayerXmm, PlayerZmm, -4000, 5000) <= FixedMath.Square(NpcInteractionRadiusMm))
             {
                 Progression.DiscoverHungerClue();
-                result.Text = "Eine Lagerstatt ist leer. Die anderen berichten von weiteren Vermissten. Verband und Schleifspuren weisen zum alten Speicher.";
+                // The mill quest is now complete; Orsel trusts the player and teaches her craft.
+                Progression.Village.UnlockOrselTeaches(Progression);
+                result.Text = "Eine Lagerstatt ist leer. Die anderen berichten von weiteren Vermissten. Verband und Schleifspuren weisen zum alten Speicher. Orsel nickt dir zu: Sie bringt dir Erste Hilfe, einen Heilspruch und ein Mahl bei.";
             }
             else return result;
             if (contact != null)

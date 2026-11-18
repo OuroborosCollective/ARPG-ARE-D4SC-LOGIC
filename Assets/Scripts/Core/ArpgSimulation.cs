@@ -568,6 +568,7 @@ namespace AreArpg.Core
             CurrentTick++;
             Progression.Crafting.AdvanceTick();
             Progression.CompanionRecovery.AdvanceTick(Progression.Companion);
+            Progression.Village.AdvanceTick();
             if(Progression.Social.Forge!=null)Progression.Social.Forge.ProcessedTicks=checked(Progression.Social.Forge.ProcessedTicks+1);
             PrevPlayerXmm = PlayerXmm;
             PrevPlayerZmm = PlayerZmm;
