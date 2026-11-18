@@ -1,81 +1,77 @@
+```markdown
 # ARE / Ashen Crypt
 
-**An original dark-fantasy action-RPG vertical slice for Unity.** Not a copy of Blizzard source code, proprietary assets, or the Diablo IV/Fenris engine.
+**An original dark-fantasy action-RPG prototype built with Unity 6.** Explore the crypt, fight monsters, collect loot, and help shape the project.
 
-This repository starts from the design ideas in the user-provided `bbbgai_studio_code (1).txt` experiment. Rather than presenting a giant untested engine reconstruction as complete, it implements the smallest accountable gameplay loop: explore, fight, survive, pick up loot, upgrade, clear the crypt.
+> This is an independent prototype—not a Diablo IV replica, not an MMO, and not affiliated with Blizzard. It does not use Diablo IV/Fenris source code or proprietary game assets.
 
-## What's actually implemented
+<p align="center">
+  <a href="https://arelogic.space"><strong>🌐 Project website</strong></a> ·
+  <a href="https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC"><strong>📦 Browse the source</strong></a> ·
+  <a href="https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/stargazers"><strong>⭐ Star / vote for the project</strong></a> ·
+  <a href="https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/fork"><strong>🍴 Fork and experiment</strong></a>
+</p>
 
-- Standalone C# integer simulation shared between Unity and the .NET verification runner.
-- 100 ms fixed simulation steps with independently interpolated Unity presentation. This is a local prototype choice, **not** a connection to the Aurion server.
-- Movement and obstacle sliding; pursuit and attacks from two monsters plus a boss.
-- Four actions: Strike, Heavy Strike, Guard/Heal, Ruin Storm. Real cooldown and resource checks.
-- Monster death, one-time ground loot, explicit pickup (E / PICK UP), weapon bonus, player death and restart.
-- Procedural Unity primitive arena, basic colored materials, lighting, isometric follow camera and mobile-friendly control zones.
-- A separate C# regression runner, plus workflows for core tests and an opt-in licensed Unity Android build.
+<p align="center">
+  <img alt="Unity 6" src="https://img.shields.io/badge/Unity-6-black?logo=unity">
+  <img alt="C sharp" src="https://img.shields.io/badge/language-C%23-512BD4">
+  <img alt="Prototype" src="https://img.shields.io/badge/status-prototype-orange">
+  <a href="https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/OuroborosCollective/ARPG-ARE-D4SC-LOGIC?style=social"></a>
+  <a href="https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/network/members"><img alt="GitHub forks" src="https://img.shields.io/github/forks/OuroborosCollective/ARPG-ARE-D4SC-LOGIC?style=social"></a>
+</p>
 
-## How to run in Unity
+## Help the project get noticed
 
-1. Open this repository's root folder as a project in **Unity 6000.6.8f1** (Android Build Support + IL2CPP + SDK/NDK only needed for APK builds).
-2. Wait for source import. Use **ARE ARPG > 1. Prepare Demo Scene** to generate `Assets/Scenes/Arena.unity` and add it to Build Settings.
-3. Press **Play**. `ArenaRuntime` creates the demo world on loading an empty scene; nothing is imported from proprietary games.
-4. Move with **WASD/arrows**, attack with **1–4**, collect dropped loot using **E**, restart with **R**. On Android use bottom-left movement area and four bottom-right skills.
-5. Select **ARE ARPG > 2. Build Android APK** (with Android modules installed) to produce `Builds/ARE-Ashen-Crypt.apk`. This command fails if Unity reports a failed build.
+- **Star the repository** to show your support and help others discover it.
+- **Fork it** to explore the code and make your own non-commercial experiments.
+- **Open an issue** to suggest a feature, report a reproducible problem, or share feedback:
+  [Create an issue](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues/new/choose).
+- **Share the project website:** [arelogic.space](https://arelogic.space).
+- Contributions and constructive feedback are welcome. Please open an issue before starting substantial changes so ideas can be discussed.
 
-> No one has yet executed the Unity Editor, Play Mode, or Android build for this repository. **The presence of build instructions or CI workflow is not evidence of a successful APK.**
+## What is implemented
 
-## Core tests (no Unity license required)
+- A standalone C# integer simulation shared by Unity and a .NET verification runner.
+- A small single-player gameplay loop: movement, obstacle sliding, monster pursuit and attacks, combat actions, loot pickup, upgrades, death, and restart.
+- A procedural demo arena, isometric follow camera, and mobile-friendly control zones.
+- Persistent local character progression and mastery, repeatable crypt runs, and a second chapter prototype.
+- Core regression tests and workflows for testing and opt-in Unity builds.
+
+This is an evolving vertical slice. It is **not** a finished game or an online multiplayer/MORPG service. Unity Editor, Play Mode, and Android APK/device execution remain unverified; see [docs/EVIDENCE.md](docs/EVIDENCE.md).
+
+## Try the core tests
+
+You need the .NET SDK:
 
 ```bash
 dotnet run --project Tests/CoreVerification/CoreVerification.csproj --configuration Release
 ```
 
-The test runner links the **actual `Assets/Scripts/Core/ArpgSimulation.cs`** used by Unity (not a parallel mock engine). It checks integer math against a Wolfram-derived reference, per-tick replay hashes, movement, collisions, combat, loot, cooldowns, monster pursuit and defeat. The CI workflow reports execution evidence on the commit.
+## Open in Unity
 
-## Scope / roadmap
+1. Open the repository root in **Unity 6000.6.8f1**.
+2. Use **ARE ARPG > 1. Prepare Demo Scene** to create the demo scene.
+3. Press **Play**. Move with **WASD / arrow keys**, use skills **1–4**, pick up loot with **E**, and restart with **R**.
 
-This is **not** a Diablo IV replica and **not** an MMO. Missing: animations, art, music, quests, inventory UI, persistent saves, class-specific trees, dungeons, production netcode, multiplayer, professional PBR assets, true Unity Editor runtime verification and a signed/install-tested APK. Start with correctness and feel, then expand system-by-system; never declare mocked/synthetic tests to be live runtime proof.
+Android builds require Unity Android modules and a valid Unity license.
 
-For the authority boundary and verification status, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/EVIDENCE.md](docs/EVIDENCE.md).
+## Contributing
 
-## Development controlled from an Android tablet
+Ideas, bug reports, documentation improvements, and code contributions are welcome. Start with [open issues](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues) or [create an issue](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues/new/choose).
 
-The owner does not need a Unity Editor installed on Android. Development is done through GitHub changes and chat instructions; the owner reviews gameplay changes and eventually installs build artifacts on their tablet. To keep this honest, three checks are separate:
+## Usage and permissions
 
-1. **Core** – automatic .NET tests on pull requests, including real state and replay checks.
-2. **Unity Play Mode** – run the `Unity PlayMode smoke (licensed runner)` workflow after provisioning a Unity-compatible license; it creates actual Unity objects and checks hero/boss/camera.
-3. **Android APK/device** – trigger `Unity Android build (manual, Unity license required)`, inspect the APK artifact and checksum, and install/test on Android. Neither step is currently verified.
+The project owner permits **private, non-commercial experimentation and tinkering** and welcomes people who want to help improve the project. **Commercial use requires the owner's prior permission.** Contact the owner through [GitHub](https://github.com/OuroborosCollective) to discuss permission.
 
-The next creative decisions can come through chat: describe location, combat feeling, enemy behavior, mobile HUD or reference media, and we implement them as reviewable source changes.
+This repository currently has **no standard open-source license**. Public visibility alone does not grant permission to reuse, redistribute, or commercially exploit the code or other project materials. Permission for private tinkering is the owner's stated intent, but it is not a substitute for a reviewed license covering contributions and redistribution.
 
-## Permanent progression (no character resets by season)
+Check the terms of every asset and third-party dependency separately.
 
-The current single-player prototype now keeps **character level, lifetime XP, lifetime kills and weapon upgrades** across arena restarts. Killing a ghoul, knight, or guardian awards 160, 410, or 1200 XP once; weapon upgrades are awarded only through a real loot pickup. Every level grants a currently unspent mastery point (mastery spending and talent trees will come later). There is **no max level**, no season counter and no season rollover. A quadratic XP threshold scales to arbitrary-size integers (`System.Numerics.BigInteger`); finite in-arena combat stats are explicitly not infinite.
+## Links
 
-On Android and desktop the Unity client stores a versioned/checksummed `AC1` character string in PlayerPrefs, including a prior valid backup. It saves on kills, loot pickup, restart, pause and quit. An invalid primary falls back to the backup; if neither validates, gameplay is locked instead of silently overwriting the user's character. **PlayerPrefs is a local prototype store, not a cloud save or tamper-resistant security boundary.** Uninstalling or clearing application data may destroy progress; external backup/restore and device migration are future tasks.
-
-This progression is independent of `Echoes_of_Aurion` and remains a **singleplayer local prototype**. Core regression tests include XP and level values beyond 64-bit range, canonical save roundtrip, negative and corrupt save refusal, no duplicate XP, permanent equipment, and world-hash changes.
-
-## Permanent mastery (no seasonal resets)
-
-Earn one mastery point per character level above level 1. Allocate points permanently via **F5/F6/F7** (desktop) or the three visible **+ MIGHT / + VITALITY / + RESOLVE** buttons (touch). Might improves damage by 1% per rank up to 100 ranks, Vitality grants 20 HP per rank up to 1,000, and Resolve adds 10 to healing per rank up to 1,000. Ranks continue growing beyond these gameplay effect caps; character levels and XP are arbitrarily large while combat arithmetic remains finite.
-
-The AC2 save schema persists mastery ranks and validates that allocated points never exceed earned points. Existing checksummed AC1 saves migrate on load, retaining XP, loot, equipment and lifetime kills; subsequent writes use AC2. This is **local single-player storage** with checksum and backup only (no authentication, encryption, cloud sync or season-reset code).
-
-**Unity/Android editor build remains UNVERIFIED:** the connected VPS has Docker but no Unity binary or verified Unity license file. No APK or device run is asserted by the pure C# test workflow.
-
-## Repeatable crypt loop (prototype)
-
-After clearing all monsters, collect all ground loot and select **NEXT CRYPT** on Android/desktop or press **N** on keyboard. The next run creates fresh enemies with bounded deterministic HP scaling, while the same permanent character retains all XP, levels, mastery allocations, lifetime kills and upgrades. **R/RESTART** retries the current depth, preserving progress. The on-screen depth is **run-local**, not yet stored between app restarts. It is not a persistent dungeon checkpoint or a cloud save. The Unity UI and Android behavior remain unverified until an actual licensed Unity runner and device test execute.
-
-## Chapter II — Ember Rift / Glutklamm
-
-After defeating the Ashen Crypt guardian and collecting the last drop, the **NEXT CRYPT** gate opens into a new location, **Ember Rift** (German working name **Glutklamm**). This is not a duplicate room: chapter 2 switches to ember-lit stone, basalt columns, fissures, a ruined gateway, a central causeway and a ritual dais. Geometry is built entirely from original Unity primitives in the projection and stays within the mobile-friendly prototype budget.
-
-The encounter is different: ash hunter and ember knight protect the **Ember Warden**, a unique chapter boss (kind 3). It channels a **0.8-second warning** before a 4-meter radius fire pulse; walking beyond that radius avoids pulse damage. This timing and damage are 100-ms **integer core state** and included in the deterministic world hash. Unity only displays the telegraph. Chapter-2 depth progression remains unbounded; finite combat stats are saturated intentionally. No new engine authority, proprietary assets, procedural client-owned combat or seasonal wipe.
-
-**Acceptance:** repeatable core replay and damage/telegraph regressions, real Unity chapter scene and Android touch walkthrough later. **Current state:** source and C# CI can verify core semantics, but Unity rendering/PlayMode and Android APK remain UNVERIFIED. The new scenery is visual only; invisible pits/hazards are deliberately not introduced without canonical collision logic.
-
-## Permanent chapter checkpoint (AC3)
-
-The character's `UnlockedCryptDepth` survives an app restart. Old AC1/AC2 records migrate to AC3 while retaining XP, gear and mastery. A cleared and fully looted world can unlock the *next* depth exactly once; the engine deep-copies progression before doing so, leaving the previous world hash unchanged. Unity persists the new checkpoint and reads it back **before** activating the next scene. A restart resumes at the latest unlocked region's entrance, not in the middle of a battle. Physical Android storage, crash atomicity and APK execution are **UNVERIFIED** until tested with a licensed Unity runtime.
+- Website: https://arelogic.space
+- Repository: https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC
+- Issues: https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues
+- Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Verification: [docs/EVIDENCE.md](docs/EVIDENCE.md)
+```
