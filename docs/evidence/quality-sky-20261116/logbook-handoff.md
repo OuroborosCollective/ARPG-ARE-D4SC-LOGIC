@@ -72,3 +72,12 @@ Each new round records UTC date, incoming and resulting revisions, exact changed
 - Grenzen: Schilde ohne Fähigkeit (offene Owner-Entscheidung), Android/Tab A9 ungeprüft, Owner-DOCX weiterhin nicht editierbar zugänglich, Zurückschreiben ausstehend.
 - Nächster Schritt: Owner-Entscheidung zur Schildfähigkeit, danach Umsetzung.
 
+
+## Waffenarten, Schild und Bogen; Review-Fixes; auf main rote Tests repariert – 18.11.2026
+
+- Branch `feat/weapon-mastery-20261117` auf `main` `c839b68`: `0262d1c` (Profile, Schild, Bogen, Review-Fixes), `788c064` (Merge der CodeRabbit-Tests `c29f0e7`), `27e8c9b` (auf main rote Tests), `c2364e4` (unvollständige Figuren verworfen), `7f834a8` (Lager- und Ankunftstests mit fester Frame-Zeit).
+- Geändert: Core (`WeaponProfiles`, AC21-Ladekette mit vorab gelesenen Waffenrängen, `MayHoldJourneyProgress`), Runtime (Speichern bei Stufenaufstieg, Lauffläche im Dorf, Lesezeit-Sperre und Diebstahl-Bestätigung auf der Spieluhr, Binder lehnt Figuren mit ungelösten Skinned Meshes ab), Editor (Pilotprofil vor dem Biome-Asset speichern), Tests (Review-RED/GREEN, feste Frame-Zeit für die Zeit-Tests, `IncompleteCharacterArtTests`).
+- Prüfprojekt B: 338 fehlende private Dateien aus C ergänzt (nichts überschrieben, nicht im Repository). Ein modaler „Scene(s) Have Been Modified“-Dialog nach einem abgebrochenen Lauf wurde mit „Don't Save“ geschlossen.
+- Evidence: Core 20903, Preflight 40, EditMode 109/109, PlayMode 169/169 auf `7f834a8`; Vergleich aller main-roten Tests auf `c839b68`; Details und SHA-256 in `docs/evidence/weapon-families-20261117/acceptance.md`.
+- Grenzen: Dorns privates Modell bleibt unvollständig (das vollständige Ersatzmodell ist sichtbar); Android/Tab A9 ungeprüft; ein vierter Workspace `are-arpg-pr52-review-20261117` existiert (nicht von dieser Runde angelegt); Owner-DOCX nicht beschreibbar, Zurückschreiben ausstehend.
+- Nächster Schritt: Owner-Entscheidung zum Charakter des Stabs, danach Loot v2.

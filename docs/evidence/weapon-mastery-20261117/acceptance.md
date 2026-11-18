@@ -10,11 +10,14 @@ main `c839b68aaace5e14288f9969b956c3705ec3c033`. Rules and saving are described 
 ## Decisions taken from the order (no new owner decision)
 
 - "RuneScape style": classic experience table, levels 1-99, experience cap 200,000,000.
-- Training rate: the existing learn-by-doing rate of the disciplines (1 XP per started 10 HP actually removed), so
-  weapon skills and disciplines advance at the same pace.
+- Training rate: the existing learn-by-doing rate of the disciplines (1 XP per full 10 HP actually removed, rounded
+  down, at least 1 XP per effective hit; a hit that removes 19 HP gives 1 XP), so weapon skills and disciplines advance
+  at the same pace.
 - Weapon types: the five droppable types that attack (sword, dagger, axe, staff, bow). Mace and spear are not
   droppable. Shields are droppable but sit in the off-hand and never strike, so "+2.5 % damage" has no meaning for
-  them; their rule is an open owner decision.
+  them; their rule was an open owner decision at this commit. The owner decided it the same day (shield skill with
+  block chance, see `docs/specs/weapon-families-20261117/owner-decisions.md` and
+  `docs/evidence/weapon-families-20261117/acceptance.md`).
 - The +2.5 % per 5 levels is additive to the existing damage shares and applies only while that weapon type is equipped.
 
 ## Evidence
@@ -39,6 +42,13 @@ The 14 PlayMode failures are not caused by this change: 12 are the failures alre
 on 2026-11-16 (missing bear, rattler and audio assets, timing-sensitive presentation checks, the hero dipping into the
 raised road paving); the two weapon-model failures above fail identically on unchanged main. Two cases from the earlier
 list (`MillRefugeKeepsCluesAndTravelAccessible`, `OutdoorBackdropFollowsTravelWithoutChangingTheCore`) now pass.
+
+Baseline binding (CodeRabbit review): the 12 failures from the 2026-11-16 record are the 12 PlayMode tests that were
+later run alone on the stated base `c839b68` in the same validation project. Each failed there with the same message
+(log `8444113d2d3c55c8a187eeed60207ae8a93bd6dfbb87731c8f3ef793ffebc581`, details in
+`docs/evidence/weapon-families-20261117/acceptance.md`). The two weapon-model tests were checked on `507c0f4`, which
+differs from `c839b68` only by the village NPC fix (#58). They pass since the missing sword mesh was restored in the
+validation project. The follow-up round repaired all of these failures.
 
 The skills tab was inspected in real captures at 1920x1080 and 2400x1080; a first desktop version cut off text, which
 was fixed (split columns, best-fit text) before the runs above.
