@@ -27,7 +27,7 @@ namespace AreArpg.Core
             CritChanceBp = weapon != null ? profile.CritChanceBp : CombatRules.CriticalChanceBp;
             AdditiveDamageBp = BaseAdditiveBp + progression.Equipment.Bonus(WeaponAffix.Power) + progression.MightDamageBonusBp +
                 progression.PracticeDamageBonusBp(skillSlot) + progression.WeaponMasteryDamageBonusBp +
-                progression.Crafting.AttackBonusBp +
+                progression.Crafting.AttackBonusBp + progression.Village.BuffetAttackBp +
                 (skillSlot == RuinSkillSlot ? profile.RuinFocusBp : 0);
             MaximumHealth = CombatRules.MaximumHealth(progression);
             HealingBonus = progression.ResolveHealBonus + progression.PracticeHealingBonus;

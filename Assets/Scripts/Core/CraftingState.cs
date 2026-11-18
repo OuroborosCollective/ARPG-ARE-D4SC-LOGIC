@@ -22,6 +22,8 @@ namespace AreArpg.Core
         public int AffixRuneCount { get; private set; }
         public int ActiveWardTicks { get; private set; }
         public int ActiveMightTicks { get; private set; }
+        public int ActiveRegenTicks { get; private set; }
+        public int RegenPerTick { get; private set; }
         public int LastHealAmount { get; private set; }
         private readonly WeaponAffix[] _runes = new WeaponAffix[8];
         public int RuneSlots { get { return _runes.Length; } }
@@ -79,6 +81,7 @@ namespace AreArpg.Core
             {
                 case PotionType.Heal: a = MaterialKind.Ashenflieder; ca = 2; b = MaterialKind.Glutklee; cb = 1; break;
                 case PotionType.Ward: a = MaterialKind.Grauwurz; ca = 1; b = MaterialKind.Dornbeere; cb = 1; break;
+                case PotionType.Regen: a = MaterialKind.Honig; ca = 1; b = MaterialKind.Nachtbluete; cb = 1; break;
                 default: a = MaterialKind.Glutklee; ca = 1; b = MaterialKind.Nachtbluete; cb = 1; break;
             }
             if (!Has(a, ca) || !Has(b, cb)) return false;
@@ -99,6 +102,7 @@ namespace AreArpg.Core
                 int ticks = CraftingRules.DurationTicks(tier);
                 if (type == PotionType.Heal) LastHealAmount = CraftingRules.HealAmount(tier);
                 else if (type == PotionType.Ward) ActiveWardTicks = Math.Max(ActiveWardTicks, ticks);
+                else if (type == PotionType.Regen) { ActiveRegenTicks = Math.Max(ActiveRegenTicks, ticks); RegenPerTick = CraftingRules.RegenPerTick(tier); }
                 else ActiveMightTicks = Math.Max(ActiveMightTicks, ticks);
                 return true;
             }
@@ -132,6 +136,29 @@ namespace AreArpg.Core
             Take(MaterialKind.Nachtbluete, 1); Take(MaterialKind.Glutstein, 1);
             ReviveClothCount++;
             RecordExperience(CraftSkill.FirstAid, CraftingRules.ExperienceFromEffectiveAmount(20));
+            return true;
+        }
+
+        /// <summary>First-Aid level required to even attempt the holy revive cloth.</summary>
+        public const int HolyReviveClothLevel = 85;
+        /// <summary>Attempt cost: extreme, rare resources; consumed whether or not the attempt succeeds.</summary>
+        public const int HolyRunenerz = 8;
+        public const int HolyGlutstein = 6;
+        public const int HolyNachtbluete = 6;
+        public const int HolyDornbeere = 4;
+
+        /// <summary>Attempt the holy revive cloth: needs First-Aid 85+, huge rare resources and a level-based roll.
+        /// The materials are spent either way; only a successful attempt yields the cloth.</summary>
+        public bool CraftHolyReviveCloth(ulong seed)
+        {
+            if (Level(CraftSkill.FirstAid) < HolyReviveClothLevel) return false;
+            if (!Has(MaterialKind.Runenerz, HolyRunenerz) || !Has(MaterialKind.Glutstein, HolyGlutstein) ||
+                !Has(MaterialKind.Nachtbluete, HolyNachtbluete) || !Has(MaterialKind.Dornbeere, HolyDornbeere)) return false;
+            Take(MaterialKind.Runenerz, HolyRunenerz); Take(MaterialKind.Glutstein, HolyGlutstein);
+            Take(MaterialKind.Nachtbluete, HolyNachtbluete); Take(MaterialKind.Dornbeere, HolyDornbeere);
+            RecordExperience(CraftSkill.FirstAid, CraftingRules.ExperienceFromEffectiveAmount(30));
+            if (!CraftingRules.HolyReviveSucceeds(Level(CraftSkill.FirstAid), seed)) return false;
+            ReviveClothCount++;
             return true;
         }
 
@@ -194,6 +221,7 @@ namespace AreArpg.Core
         {
             if (ActiveWardTicks > 0) ActiveWardTicks--;
             if (ActiveMightTicks > 0) ActiveMightTicks--;
+            if (ActiveRegenTicks > 0) { ActiveRegenTicks--; if (ActiveRegenTicks == 0) RegenPerTick = 0; }
         }
         public bool HasProgress
         {
@@ -204,16 +232,25 @@ namespace AreArpg.Core
                 foreach (int p in _potions) if (p > 0) return true;
                 foreach (int b in _bandages) if (b > 0) return true;
                 return ReviveClothCount > 0 || WoodenFrameCount > 0 || BowCount > 0 || AffixRuneCount > 0 ||
-                    ActiveWardTicks > 0 || ActiveMightTicks > 0;
+                    ActiveWardTicks > 0 || ActiveMightTicks > 0 || ActiveRegenTicks > 0;
             }
         }
 
         internal string Token()
         {
-            var b = new StringBuilder("1");
+            // Keep the version-1 layout until a v2-only value exists, so shipped #75 saves round-trip byte-for-byte.
+            bool v2 = _materials[(int)MaterialKind.Honig] != 0 || ActiveRegenTicks != 0 || RegenPerTick != 0;
+            if (!v2)
+            {
+                for (int t = 0; t < CraftingRules.TierCount; t++)
+                    if (_potions[(int)PotionType.Regen * CraftingRules.TierCount + t] != 0) v2 = true;
+            }
+            var b = new StringBuilder(v2 ? "2" : "1");
             foreach (long xp in _experience) b.Append(',').Append(xp.ToString(CultureInfo.InvariantCulture));
-            foreach (int m in _materials) b.Append(',').Append(m.ToString(CultureInfo.InvariantCulture));
-            foreach (int p in _potions) b.Append(',').Append(p.ToString(CultureInfo.InvariantCulture));
+            int materialCount = v2 ? CraftingRules.MaterialCount : 11;
+            for (int i = 0; i < materialCount; i++) b.Append(',').Append(_materials[i].ToString(CultureInfo.InvariantCulture));
+            int potionCount = v2 ? CraftingRules.PotionTypeCount : 3;
+            for (int i = 0; i < potionCount * CraftingRules.TierCount; i++) b.Append(',').Append(_potions[i].ToString(CultureInfo.InvariantCulture));
             foreach (int x in _bandages) b.Append(',').Append(x.ToString(CultureInfo.InvariantCulture));
             b.Append(',').Append(ReviveClothCount.ToString(CultureInfo.InvariantCulture));
             b.Append(',').Append(WoodenFrameCount.ToString(CultureInfo.InvariantCulture));
@@ -222,6 +259,7 @@ namespace AreArpg.Core
             b.Append(',').Append(ActiveWardTicks.ToString(CultureInfo.InvariantCulture));
             b.Append(',').Append(ActiveMightTicks.ToString(CultureInfo.InvariantCulture));
             for (int i = 0; i < _runes.Length; i++) b.Append(',').Append(((int)_runes[i]).ToString(CultureInfo.InvariantCulture));
+            if (v2) { b.Append(',').Append(ActiveRegenTicks.ToString(CultureInfo.InvariantCulture)); b.Append(',').Append(RegenPerTick.ToString(CultureInfo.InvariantCulture)); }
             return b.ToString();
         }
 
@@ -238,14 +276,18 @@ namespace AreArpg.Core
             state = null;
             if (string.IsNullOrEmpty(token)) return false;
             string[] f = token.Split(',');
-            int expected = 1 + CraftingRules.SkillCount + CraftingRules.MaterialCount + CraftingRules.PotionTypeCount * CraftingRules.TierCount +
-                CraftingRules.TierCount + 6 + 8;
-            if (f.Length != expected || f[0] != "1") return false;
+            // Version 1 is the shipped #75 form (11 materials, 3 potion types); version 2 adds honey and the regen potion.
+            int materials = f[0] == "1" ? 11 : CraftingRules.MaterialCount;
+            int potions = f[0] == "1" ? 3 : CraftingRules.PotionTypeCount;
+            if (f[0] != "1" && f[0] != "2") return false;
+            int expected = 1 + CraftingRules.SkillCount + materials + potions * CraftingRules.TierCount +
+                CraftingRules.TierCount + 6 + 8 + (f[0] == "2" ? 2 : 0);
+            if (f.Length != expected) return false;
             var s = new CraftingState();
             int i = 1;
             for (int k = 0; k < CraftingRules.SkillCount; k++, i++) if (!Canonical(f[i], WeaponMasteryRules.MaxExperience, out s._experience[k])) return false;
-            for (int k = 0; k < CraftingRules.MaterialCount; k++, i++) if (!Canonical(f[i], int.MaxValue, out long m)) return false; else s._materials[k] = (int)m;
-            for (int k = 0; k < s._potions.Length; k++, i++) if (!Canonical(f[i], int.MaxValue, out long p)) return false; else s._potions[k] = (int)p;
+            for (int k = 0; k < materials; k++, i++) if (!Canonical(f[i], int.MaxValue, out long m)) return false; else s._materials[k] = (int)m;
+            for (int k = 0; k < potions * CraftingRules.TierCount; k++, i++) if (!Canonical(f[i], int.MaxValue, out long p)) return false; else s._potions[k] = (int)p;
             for (int k = 0; k < CraftingRules.TierCount; k++, i++) if (!Canonical(f[i], int.MaxValue, out long bn)) return false; else s._bandages[k] = (int)bn;
             if (!Canonical(f[i++], int.MaxValue, out long rv)) return false; s.ReviveClothCount = (int)rv;
             if (!Canonical(f[i++], int.MaxValue, out long wf)) return false; s.WoodenFrameCount = (int)wf;
@@ -254,6 +296,11 @@ namespace AreArpg.Core
             if (!Canonical(f[i++], int.MaxValue, out long wd)) return false; s.ActiveWardTicks = (int)wd;
             if (!Canonical(f[i++], int.MaxValue, out long mt)) return false; s.ActiveMightTicks = (int)mt;
             for (int k = 0; k < 8; k++, i++) if (!Canonical(f[i], 3, out long a)) return false; else s._runes[k] = (WeaponAffix)(int)a;
+            if (f[0] == "2")
+            {
+                if (!Canonical(f[i++], int.MaxValue, out long rg)) return false; s.ActiveRegenTicks = (int)rg;
+                if (!Canonical(f[i++], int.MaxValue, out long rp)) return false; s.RegenPerTick = (int)rp;
+            }
             state = s;
             return true;
         }

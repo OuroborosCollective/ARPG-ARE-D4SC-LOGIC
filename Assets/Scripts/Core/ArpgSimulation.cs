@@ -435,6 +435,7 @@ namespace AreArpg.Core
                     int damage = (int)Math.Min(npc.Memory.Health,
                         FixedMath.Damage(95L + WeaponBonus, 10000, 190, 2000, 1000, 1900, _rng, out crit));
                     npc.Memory.Health -= damage;
+                    // A story-NPC is only ever knocked down, never permanently removed, while its quest is open.
                     if (npc.Memory.Health == 0) npc.Memory.RecoveryTicks = 300;
                     npc.Memory.Record(action, npc.Memory.Health == 0 ? 3 : 1);
                     Cooldowns[0] = 2;
@@ -566,8 +567,11 @@ namespace AreArpg.Core
         public void Step()
         {
             CurrentTick++;
+            if (Progression.Crafting.ActiveRegenTicks > 0 && PlayerHealth > 0)
+                PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + Progression.Crafting.RegenPerTick);
             Progression.Crafting.AdvanceTick();
             Progression.CompanionRecovery.AdvanceTick(Progression.Companion);
+            Progression.Village.AdvanceTick();
             if(Progression.Social.Forge!=null)Progression.Social.Forge.ProcessedTicks=checked(Progression.Social.Forge.ProcessedTicks+1);
             PrevPlayerXmm = PlayerXmm;
             PrevPlayerZmm = PlayerZmm;

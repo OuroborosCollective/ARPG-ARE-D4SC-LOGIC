@@ -10,11 +10,12 @@ namespace AreArpg.Core
     public enum MaterialKind
     {
         Ashenflieder = 0, Glutklee = 1, Grauwurz = 2, Dornbeere = 3, Nachtbluete = 4,
-        Ascheisen = 5, Schlackenkupfer = 6, Grausilber = 7, Glutstein = 8, Runenerz = 9, Holz = 10
+        Ascheisen = 5, Schlackenkupfer = 6, Grausilber = 7, Glutstein = 8, Runenerz = 9, Holz = 10,
+        Honig = 11
     }
 
     /// <summary>One potion item per type; the tier is the level-based affix, not a separate item.</summary>
-    public enum PotionType { Heal = 0, Ward = 1, Might = 2 }
+    public enum PotionType { Heal = 0, Ward = 1, Might = 2, Regen = 3 }
     public enum PotionTier { Small = 0, Medium = 1, Large = 2 }
     public enum BandageTier { Small = 0, Medium = 1, Mighty = 2 }
 
@@ -26,8 +27,8 @@ namespace AreArpg.Core
     {
         public const int Revision = 1;
         public const int SkillCount = 7;
-        public const int MaterialCount = 11;
-        public const int PotionTypeCount = 3;
+        public const int MaterialCount = 12;
+        public const int PotionTypeCount = 4;
         public const int TierCount = 3;
 
         /// <summary>Classic level table (shared with the weapon skills): level 1 at 0, 99 at 13,034,431.</summary>
@@ -92,6 +93,22 @@ namespace AreArpg.Core
             switch (tier) { case PotionTier.Medium: return 400; case PotionTier.Large: return 700; default: return 200; }
         }
 
+        /// <summary>Health restored each tick by a regeneration potion of the given tier.</summary>
+        public static int RegenPerTick(PotionTier tier)
+        {
+            switch (tier) { case PotionTier.Medium: return 2; case PotionTier.Large: return 4; default: return 1; }
+        }
+
         public const int BuffBonusBp = 2500; // +25 %
+
+        /// <summary>Success chance of the holy revive cloth in basis points: only from First-Aid 85 upward, and even
+        /// at 99 it stays "annähernd" (close to but never certain). Deterministic per seed.</summary>
+        public static bool HolyReviveSucceeds(int firstAidLevel, ulong seed)
+        {
+            if (firstAidLevel < 85) return false;
+            int chance = 5000 + Math.Min(14, firstAidLevel - 85) * 300; // 50 % at 85, up to 92 % at 99
+            int roll = (int)(new DeterministicRng(seed ^ 0x484F4C59524556UL).Next64() % 10000UL);
+            return roll < chance;
+        }
     }
 }

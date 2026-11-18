@@ -90,5 +90,62 @@ internal static class CompanionDefeatTests
             loaded.CompanionRecovery.RecoveryTicks == carrier.Progression.CompanionRecovery.RecoveryTicks,
             "companion-recovery-roundtrips");
         require(loaded.SaveString() == saved, "companion-recovery-canonical");
+
+        // Owner rule 2026-11-18: Orsel revives a fallen companion three times at the mill sickbed; the third death
+        // is permanent, and only the holy revive cloth (First-Aid 85+, huge rare resources, level-based roll) revives.
+        var revived = Recruited();
+        var rv = revived.Progression.Companion;
+        require(CompanionRecoveryState.MaxRevivals == 3, "companion-three-revivals");
+        for (int i = 0; i < 3; i++)
+        {
+            rv.Status = CompanionStatus.Dead; rv.Health = 0;
+            revived.Progression.CompanionRecovery.MarkDeath();
+            require(!revived.Progression.CompanionRecovery.PermanentlyDead, "companion-revival-not-permanent-" + i);
+            require(revived.Progression.CompanionRecovery.ReviveAtMill(rv), "companion-orsel-revives-" + i);
+            require(rv.Status == CompanionStatus.Waiting && rv.Health > 0, "companion-revived-awaiting-pickup-" + i);
+        }
+        require(revived.Progression.CompanionRecovery.RevivalsUsed == 3, "companion-three-revivals-used");
+
+        // The fourth death is permanent.
+        rv.Status = CompanionStatus.Dead; rv.Health = 0;
+        revived.Progression.CompanionRecovery.MarkDeath();
+        require(revived.Progression.CompanionRecovery.PermanentlyDead, "companion-fourth-death-permanent");
+        require(!revived.Progression.CompanionRecovery.ReviveAtMill(rv), "companion-orsel-cannot-revive-permanent");
+
+        // The holy revive cloth needs First-Aid 85+ and lots of rare resources; the attempt spends them either way.
+        var cloth = new CharacterProgression();
+        cloth.Crafting.AddMaterial(MaterialKind.Runenerz, 8); cloth.Crafting.AddMaterial(MaterialKind.Glutstein, 6);
+        cloth.Crafting.AddMaterial(MaterialKind.Nachtbluete, 6); cloth.Crafting.AddMaterial(MaterialKind.Dornbeere, 4);
+        require(!cloth.Crafting.CraftHolyReviveCloth(1UL), "companion-holy-cloth-needs-first-aid-85");
+        require(cloth.Crafting.MaterialCount(MaterialKind.Runenerz) == 8, "companion-holy-cloth-unavailable-keeps-materials");
+        cloth.Crafting.RecordExperience(CraftSkill.FirstAid, WeaponMasteryRules.ExperienceForLevel(85));
+        require(cloth.Crafting.Level(CraftSkill.FirstAid) == 85, "companion-holy-cloth-first-aid-85-reached");
+        // Deterministic: find a seed that succeeds and one that fails at 85.
+        ulong goodSeed = 0; bool found = false;
+        for (ulong s = 0; s < 400 && !found; s++) if (CraftingRules.HolyReviveSucceeds(85, s)) { goodSeed = s; found = true; }
+        require(found, "companion-holy-cloth-has-a-success-seed");
+        require(cloth.Crafting.CraftHolyReviveCloth(goodSeed), "companion-holy-cloth-succeeds-on-good-seed");
+        require(cloth.Crafting.ReviveClothCount == 1, "companion-holy-cloth-crafted");
+        require(cloth.Crafting.MaterialCount(MaterialKind.Runenerz) == 0, "companion-holy-cloth-spends-materials");
+        // A failed attempt at 85 still spends the resources.
+        var failCloth = new CharacterProgression();
+        failCloth.Crafting.AddMaterial(MaterialKind.Runenerz, 8); failCloth.Crafting.AddMaterial(MaterialKind.Glutstein, 6);
+        failCloth.Crafting.AddMaterial(MaterialKind.Nachtbluete, 6); failCloth.Crafting.AddMaterial(MaterialKind.Dornbeere, 4);
+        failCloth.Crafting.RecordExperience(CraftSkill.FirstAid, WeaponMasteryRules.ExperienceForLevel(85));
+        ulong badSeed = 0; bool foundBad = false;
+        for (ulong s = 0; s < 400 && !foundBad; s++) if (!CraftingRules.HolyReviveSucceeds(85, s)) { badSeed = s; foundBad = true; }
+        require(foundBad && !failCloth.Crafting.CraftHolyReviveCloth(badSeed) && failCloth.Crafting.ReviveClothCount == 0 &&
+            failCloth.Crafting.MaterialCount(MaterialKind.Runenerz) == 0, "companion-holy-cloth-failed-attempt-spends-resources");
+
+        // A revived companion still loads: the death stays a MemoryForge fact but the companion is alive.
+        var reload = Recruited();
+        var lc = reload.Progression.Companion;
+        lc.Status = CompanionStatus.Dead; lc.Health = 0;
+        reload.Progression.CompanionRecovery.MarkDeath();
+        reload.Progression.CompanionRecovery.ReviveAtMill(lc);
+        string revivedSave = reload.Progression.SaveString();
+        require(CharacterProgression.TryLoad(revivedSave, out var revivedLoaded) &&
+            revivedLoaded.Companion.Status == CompanionStatus.Waiting &&
+            revivedLoaded.CompanionRecovery.RevivalsUsed == 1, "companion-revived-state-roundtrips");
     }
 }
