@@ -143,6 +143,14 @@ internal static class CraftingTests
         full.Crafting.AddMaterial(MaterialKind.Runenerz, 2); full.Crafting.AddMaterial(MaterialKind.Grausilber, 1);
         require(!full.Crafting.CraftAffixRune(WeaponAffix.Ward), "craft-rune-refused-when-full");
         require(full.Crafting.MaterialCount(MaterialKind.Runenerz) == 2, "craft-rune-refusal-keeps-materials");
+
+        // Review 2026-11-18 (CodeRabbit): gathering saturates and never overflows the material stock.
+        var sat = new CharacterProgression();
+        sat.Crafting.AddMaterial(MaterialKind.Holz, int.MaxValue);
+        sat.Crafting.GatherAt(CraftSkill.Woodcutting, 5UL, out _);
+        require(sat.Crafting.MaterialCount(MaterialKind.Holz) == int.MaxValue, "craft-gather-saturates");
+        require(CharacterProgression.TryLoad(sat.SaveString(), out var satLoaded) &&
+            satLoaded.Crafting.MaterialCount(MaterialKind.Holz) == int.MaxValue, "craft-saturated-stock-roundtrips");
         // A buff countdown advances on the real step and expires.
         var tick = new CharacterProgression();
         tick.Crafting.AddPotion(PotionType.Might, PotionTier.Small);

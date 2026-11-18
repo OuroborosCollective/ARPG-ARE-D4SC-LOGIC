@@ -49,14 +49,22 @@ namespace AreArpg.Core
         private bool Has(MaterialKind kind, int count) { return _materials[(int)kind] >= count; }
         private void Take(MaterialKind kind, int count) { _materials[(int)kind] -= count; }
 
-        /// <summary>Gather at a real spot: add reproducible yields and train only on a non-empty result.</summary>
+        /// <summary>Gather at a real spot: add reproducible yields with the same saturation as AddMaterial, and train
+        /// only on the amount actually stored (a full stock earns nothing).</summary>
         public bool GatherAt(CraftSkill skill, ulong seed, out int[] yields)
         {
             yields = CraftingRules.Gather(skill, Level(skill), seed);
-            int total = 0;
-            for (int i = 0; i < yields.Length; i++) { _materials[i] += yields[i]; total += yields[i]; }
-            if (total > 0) RecordExperience(skill, CraftingRules.ExperienceFromEffectiveAmount(total));
-            return total > 0;
+            int stored = 0;
+            for (int i = 0; i < yields.Length; i++)
+            {
+                if (yields[i] <= 0) continue;
+                int free = int.MaxValue - _materials[i];
+                int take = Math.Min(yields[i], free);
+                _materials[i] += take;
+                stored += take;
+            }
+            if (stored > 0) RecordExperience(skill, CraftingRules.ExperienceFromEffectiveAmount(stored));
+            return stored > 0;
         }
 
         public int PotionCount(PotionType type, PotionTier tier) { return _potions[(int)type * CraftingRules.TierCount + (int)tier]; }
