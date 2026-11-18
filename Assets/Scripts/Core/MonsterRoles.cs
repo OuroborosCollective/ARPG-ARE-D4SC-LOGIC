@@ -36,6 +36,25 @@ namespace AreArpg.Core
             }
         }
 
+        /// <summary>Family modifier in basis points: a centaur's horse body is fast, the undead shamble.</summary>
+        public static int FamilySpeedBp(MonsterFamily family)
+        {
+            switch (family)
+            {
+                case MonsterFamily.Centaur: return 12500;
+                case MonsterFamily.Animal: return 11000;
+                case MonsterFamily.BullRider: return 11500;
+                case MonsterFamily.Undead: return 9000;
+                default: return 10000;
+            }
+        }
+
+        /// <summary>Role speed weighted by the family modifier.</summary>
+        public static long SpeedMmPerTick(MonsterRole role, MonsterFamily family)
+        {
+            return SpeedMmPerTick(role) * FamilySpeedBp(family) / 10000L;
+        }
+
         public static int AttackDamage(MonsterRole role)
         {
             switch (role)

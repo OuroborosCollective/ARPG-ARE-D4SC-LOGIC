@@ -629,7 +629,7 @@ namespace AreArpg.Core
                 if (distance2 > FixedMath.Square(MonsterRoles.AttackRangeMm(enemy.Role)))
                 {
                     long distance = Math.Max(1, FixedMath.IntegerSqrt(distance2));
-                    long speed = enemy.Role != MonsterRole.None ? MonsterRoles.SpeedMmPerTick(enemy.Role) : (enemy.Kind >= 2 ? 190 : MonsterSpeedMmPerTick);
+                    long speed = enemy.Role != MonsterRole.None ? MonsterRoles.SpeedMmPerTick(enemy.Role, enemy.Family) : (enemy.Kind >= 2 ? 190 : MonsterSpeedMmPerTick);
                     long nx = enemy.Xmm + (PlayerXmm - enemy.Xmm) * speed / distance;
                     long nz = enemy.Zmm + (PlayerZmm - enemy.Zmm) * speed / distance;
                     if (CanStand(nx, nz)) { enemy.Xmm = nx; enemy.Zmm = nz; }
