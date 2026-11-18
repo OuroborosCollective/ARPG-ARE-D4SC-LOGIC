@@ -199,13 +199,29 @@ namespace AreArpg.Core
             return "AC21|" + Convert.ToBase64String(Encoding.UTF8.GetBytes(inner)) + "|" + WeaponMastery.Token();
         }
 
-        /// <summary>True when a checkpoint may hold journey progress, also inside an AC21 weapon-skill wrapper. Decides which
-        /// backup may replace a primary that fails to load. Only an AC21 whose inner part positively starts with a pre-journey
-        /// version (AC1 to AC19) counts as journey-free; an unreadable or damaged inner prefix counts as journey progress, so
-        /// recovery never picks an older backup over it. A truncated tail keeps the prefix and stays recoverable.</summary>
+        /// <summary>True when a checkpoint may hold journey progress, also inside an AC21 weapon-skill wrapper or an AC22
+        /// section container. Decides which backup may replace a primary that fails to load. Only a wrapper whose inner part
+        /// positively starts with a pre-journey version (AC1 to AC19) counts as journey-free; an unreadable or damaged inner
+        /// prefix counts as journey progress, so recovery never picks an older backup over it. A truncated tail keeps the
+        /// prefix and stays recoverable.</summary>
         public static bool MayHoldJourneyProgress(string saved)
         {
             if (string.IsNullOrEmpty(saved)) return false;
+            if (saved.StartsWith("AC22|", StringComparison.Ordinal))
+            {
+                // The container wraps the legacy chain in its base field; look inside it before deciding.
+                string[] f = saved.Split('|');
+                if (f.Length < 3) return true;
+                try
+                {
+                    byte[] bytes = Convert.FromBase64String(f[2]);
+                    if (Convert.ToBase64String(bytes) != f[2]) return true;
+                    string baseChain = new UTF8Encoding(false, true).GetString(bytes);
+                    if (!baseChain.StartsWith("AC", StringComparison.Ordinal)) return true;
+                    return MayHoldJourneyProgress(baseChain);
+                }
+                catch (Exception e) when (e is FormatException || e is DecoderFallbackException) { return true; }
+            }
             if (saved.StartsWith("AC20|", StringComparison.Ordinal)) return true;
             if (!saved.StartsWith("AC21|", StringComparison.Ordinal)) return false;
             int end = saved.IndexOf('|', 5);

@@ -9,21 +9,32 @@ namespace AreArpg.Core
     /// AC22 container: one header, one versioned section per system and a checksum over everything.
     /// The existing AC1..AC21 chain stays the checked "base" section, so every old format keeps loading
     /// unchanged and is rewritten into this container on the next save. A save without sections stays
-    /// byte-identical to the legacy chain, so nothing changes until a system actually contributes a section.
+    /// byte-identical to the legacy chain: SaveString only writes AC22 once a system has called SetSection,
+    /// so a legacy AC5/AC8 checkpoint that is loaded and re-saved without a section keeps its old format.
     /// </summary>
     public sealed partial class CharacterProgression
     {
         private const string SectionContainerVersion = "1";
+        /// <summary>One upper bound for the whole serialized container, used by both the writer and the loader.</summary>
+        internal const int MaxSaveLength = 64 * 1024 * 1024;
+        private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(false, true);
         private readonly SortedDictionary<string, string> _sections = new SortedDictionary<string, string>(StringComparer.Ordinal);
 
         /// <summary>True once at least one system contributes a section; only then is the AC22 header written.</summary>
         public bool HasSections { get { return _sections.Count != 0; } }
 
-        /// <summary>Add or replace one system's section without touching the base or any other section.</summary>
+        /// <summary>Add or replace one system's section without touching the base or any other section. The value must be
+        /// valid UTF-16 (no lone surrogate) and must keep the serialized container within the shared size bound.</summary>
         public void SetSection(string name, string value)
         {
             if (!IsValidSectionName(name)) throw new ArgumentException("Invalid save section name.", nameof(name));
-            _sections[name] = value ?? string.Empty;
+            value = value ?? string.Empty;
+            byte[] encoded;
+            try { encoded = StrictUtf8.GetBytes(value); }
+            catch (EncoderFallbackException) { throw new ArgumentException("Save section value is not valid UTF-16.", nameof(value)); }
+            if (Convert.ToBase64String(encoded).Length > MaxSaveLength)
+                throw new ArgumentException("Save section value exceeds the checkpoint size bound.", nameof(value));
+            _sections[name] = value;
         }
 
         public bool TryGetSection(string name, out string value) { return _sections.TryGetValue(name, out value); }
@@ -40,7 +51,9 @@ namespace AreArpg.Core
             return true;
         }
 
-        /// <summary>Wrap the complete legacy checkpoint only when a section exists; otherwise return it unchanged.</summary>
+        /// <summary>Wrap the complete legacy checkpoint only when a section exists; otherwise return it unchanged.
+        /// The writer refuses to emit a container the loader would reject for its size, so the previous save stays
+        /// intact instead of being replaced by an unreadable one.</summary>
         private string SectionContainer(string legacy)
         {
             if (_sections.Count == 0) return legacy;
@@ -51,14 +64,17 @@ namespace AreArpg.Core
             foreach (var pair in _sections)
                 b.Append('|').Append(pair.Key).Append('=').Append(Convert.ToBase64String(Encoding.UTF8.GetBytes(pair.Value)));
             string body = b.ToString();
-            return body + "|" + HashText(body).ToString("X16", CultureInfo.InvariantCulture);
+            string container = body + "|" + HashText(body).ToString("X16", CultureInfo.InvariantCulture);
+            if (container.Length > MaxSaveLength)
+                throw new InvalidOperationException("Checkpoint exceeds the size bound; the previous save is kept.");
+            return container;
         }
 
         /// <summary>Read the checked base through the existing chain, then attach the validated sections.</summary>
         private static bool TryLoadSectionContainer(string saved, JourneyMapCatalog maps, out CharacterProgression progress)
         {
             progress = null;
-            if (saved.Length > 64 * 1024 * 1024) return false;
+            if (saved.Length > MaxSaveLength) return false;
             string[] f = saved.Split('|');
             if (f.Length < 5 || f[0] != "AC22" || f[1] != SectionContainerVersion) return false;
             int count;
