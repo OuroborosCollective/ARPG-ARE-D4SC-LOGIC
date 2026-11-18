@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 
 const ID=/^[a-z][a-z0-9-]{2,48}$/;
 const SHA40=/^[a-f0-9]{40}$/;
-const PATH=/^(?:[A-Za-z0-9_.-]+\/)*[A-Za-z0-9_.-]+\/SKILL\.md$/;
+const PATH=/^(?:[A-Za-z0-9_.~-]+\/)*[A-Za-z0-9_.~-]+\/SKILL\.md$/;
 const DEPT=/^[a-z][a-z0-9_]{2,48}$/;
 const LICENSES=Object.freeze({
   besty:['MIT','f8497e55581c5b7154d87e7b664bb9b95745d21b','Besty0728/Unity-Skills'],
