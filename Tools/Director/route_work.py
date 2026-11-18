@@ -5,6 +5,7 @@ from pathlib import Path
 from official_unity import route as official_route
 from game_dev import route as gamedev_route
 from spec_workflow import route as spec_route
+from neural_cortex import route as neural_route
 PHASES=(
  ('discovery',('project','status','continue','repo','revision','memory'),('GitHub','Sovott v2','Unity Game Director')),
  ('research',('research','study','docs','api','paper','skill'),('official Unity docs','Exa or web','omgskills')),
@@ -35,6 +36,9 @@ def plan(task,available=(),project=None):
  if project:
   spec = spec_route(task, Path(__file__).resolve().parents[1] / 'spec-workflow-catalog.json', project)
   if spec is not None: result['spec_workflow'] = spec
+  neural = Path(__file__).with_name('neural_catalog.json')
+  if neural.is_file():
+   result['neural_cortex'] = neural_route(task, neural, project)
  return result
 def main():
  p=argparse.ArgumentParser();p.add_argument('task');p.add_argument('--project');p.add_argument('--available',action='append',default=[]);a=p.parse_args();print(json.dumps(plan(a.task,a.available,a.project),ensure_ascii=False,indent=2))
