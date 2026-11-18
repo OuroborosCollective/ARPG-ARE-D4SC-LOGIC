@@ -94,6 +94,20 @@ class NeuralCortexTests(unittest.TestCase):
         self.assertEqual("ugd.route.v1", result["schema"])
         self.assertTrue(result["advisory_only"])
 
+    def test_german_audio_keyword_routes_to_audio(self):
+        result = route("Geräusch für Fackeln", self.catalog, self.project)
+        self.assertIn("audio", [x["id"] for x in result["selected"]])
+
+    def test_legacy_unity_project_retains_existing_director_plan(self):
+        (self.project / "ProjectSettings/ProjectVersion.txt").write_text(
+            "m_EditorVersion: 2022.3.62f1\\n")
+        result = plan("Wald ansehen", project=self.project)
+        self.assertEqual("ugd.route.v1", result["schema"])
+        self.assertIn("phases", result)
+        self.assertEqual("REFUSED", result["neural_cortex"]["status"])
+        self.assertEqual([], result["neural_cortex"]["selected"])
+        self.assertEqual("NONE", result["neural_cortex"]["execution"])
+
     def test_deterministic_routing_and_catalog_fingerprint(self):
         a = route("Fackel Partikel und Rauch", self.catalog, self.project)
         b = route("Fackel Partikel und Rauch", self.catalog, self.project)
