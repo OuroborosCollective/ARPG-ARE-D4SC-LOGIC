@@ -67,6 +67,15 @@ namespace AreArpg.Core
                 ArmorBp(enemyKind), stats.CritChanceBp, rng, out critical);
         }
 
+        /// <summary>Same order with an explicit armour value, so a monster role can supply its own reduction.</summary>
+        public static long DamageWithArmor(CombatStats stats, int powerBp, int armorBp, DeterministicRng rng, out bool critical)
+        {
+            if (rng == null) throw new ArgumentNullException(nameof(rng));
+            if (powerBp < 0 || armorBp < 0) throw new ArgumentOutOfRangeException();
+            return FixedMath.Damage(stats.WeaponPoints, powerBp, MainStat, stats.AdditiveDamageBp,
+                armorBp, stats.CritChanceBp, rng, out critical);
+        }
+
         /// <summary>
         /// The exact result of Damage for a known critical outcome, without touching any PRNG. Presentation uses it
         /// to show what a stat or skill changes; it never decides a hit.

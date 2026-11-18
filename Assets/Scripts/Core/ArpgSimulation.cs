@@ -88,6 +88,10 @@ namespace AreArpg.Core
         public AshenCrypt.MemoryForge.NpcMind Mind { get; internal set; }
         public int Id;
         public int Kind; // 0: ghoul, 1: knight, 2: boss
+        /// <summary>Content family; Legacy for every monster spawned before roles existed.</summary>
+        public MonsterFamily Family = MonsterFamily.Legacy;
+        /// <summary>Explicit combat role; None keeps the legacy behaviour and world hash.</summary>
+        public MonsterRole Role = MonsterRole.None;
         public long Xmm;
         public long Zmm;
         public long PreviousXmm;
@@ -611,20 +615,39 @@ namespace AreArpg.Core
                         continue;
                     }
                 }
-                if (distance2 > FixedMath.Square(1650))
+                if (distance2 > FixedMath.Square(MonsterRoles.AttackRangeMm(enemy.Role)))
                 {
                     long distance = Math.Max(1, FixedMath.IntegerSqrt(distance2));
-                    long speed = enemy.Kind >= 2 ? 190 : MonsterSpeedMmPerTick;
+                    long speed = enemy.Role != MonsterRole.None ? MonsterRoles.SpeedMmPerTick(enemy.Role) : (enemy.Kind >= 2 ? 190 : MonsterSpeedMmPerTick);
                     long nx = enemy.Xmm + (PlayerXmm - enemy.Xmm) * speed / distance;
                     long nz = enemy.Zmm + (PlayerZmm - enemy.Zmm) * speed / distance;
                     if (CanStand(nx, nz)) { enemy.Xmm = nx; enemy.Zmm = nz; }
                     else if (CanStand(nx, enemy.Zmm)) enemy.Xmm = nx;
                     else if (CanStand(enemy.Xmm, nz)) enemy.Zmm = nz;
                 }
+                else if (enemy.Role != MonsterRole.None && MonsterRoles.TelegraphTicks(enemy.Role) > 0)
+                {
+                    // A ranged, shielded or elite enemy announces its hit; leaving the frozen radius avoids it.
+                    if (enemy.BossWindupTicks > 0)
+                    {
+                        enemy.BossWindupTicks--;
+                        if (enemy.BossWindupTicks == 0 &&
+                            DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(MonsterRoles.ImpactRadiusMm(enemy.Role)))
+                            ReceiveDamage(MonsterRoles.AttackDamage(enemy.Role));
+                        continue;
+                    }
+                    if (enemy.AttackCooldownTicks == 0)
+                    {
+                        enemy.BossWindupTicks = MonsterRoles.TelegraphTicks(enemy.Role);
+                        enemy.AttackCooldownTicks = MonsterRoles.AttackCooldownTicks(enemy.Role);
+                        continue;
+                    }
+                }
                 else if (enemy.AttackCooldownTicks == 0)
                 {
-                    enemy.AttackCooldownTicks = enemy.Kind >= 2 ? 12 : 17;
-                    ReceiveDamage((enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40)));
+                    int damage = enemy.Role != MonsterRole.None ? MonsterRoles.AttackDamage(enemy.Role) : (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40));
+                    enemy.AttackCooldownTicks = enemy.Role != MonsterRole.None ? MonsterRoles.AttackCooldownTicks(enemy.Role) : (enemy.Kind >= 2 ? 12 : 17);
+                    ReceiveDamage(damage);
                     if (GameOver) break;
                 }
             }
@@ -652,7 +675,9 @@ namespace AreArpg.Core
             if (accuracy < 10000 && _rng.NextBasisPoints() >= accuracy) { result.Misses++; return; }
             bool crit;
             var stats = new CombatStats(Progression, slot);
-            long damage = CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
+            long damage = enemy.Role != MonsterRole.None
+                ? CombatRules.DamageWithArmor(stats, powerBp, MonsterRoles.ArmorBp(enemy.Role), _rng, out crit)
+                : CombatRules.Damage(stats, powerBp, enemy.Kind, _rng, out crit);
             int appliedDamage = (int)Math.Min(enemy.Health, damage);
             enemy.Health = (int)Math.Max(0, enemy.Health - damage);
             RememberCreatureAssault(enemy,"player");
