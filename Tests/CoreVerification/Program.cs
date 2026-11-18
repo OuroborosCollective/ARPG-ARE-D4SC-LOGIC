@@ -62,6 +62,7 @@ internal static class Program
             SaveSectionTests.Run(Require);
             RegionNetworkTests.Run(Require);
             DungeonBuilderTests.Run(Require);
+            QuestContentTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

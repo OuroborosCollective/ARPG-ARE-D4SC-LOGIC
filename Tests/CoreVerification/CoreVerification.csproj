@@ -18,6 +18,7 @@
     <Compile Include="../../Assets/Scripts/Core/SaveSections.cs" Link="SaveSections.cs" />
     <Compile Include="../../Assets/Scripts/Core/RegionNetwork.cs" Link="RegionNetwork.cs" />
     <Compile Include="../../Assets/Scripts/Core/DungeonBuilderV2.cs" Link="DungeonBuilderV2.cs" />
+    <Compile Include="../../Assets/Scripts/Core/QuestContent.cs" Link="QuestContent.cs" />
     <Compile Include="../../Assets/Scripts/Core/NpcRelations.cs" Link="NpcRelations.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootCatalog.cs" Link="LootCatalog.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootItem.cs" Link="LootItem.cs" />
