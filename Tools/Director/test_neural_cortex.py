@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from neural_cortex import load_catalog, route
+from route_work import plan
 
 
 class NeuralCortexTests(unittest.TestCase):
@@ -84,6 +85,14 @@ class NeuralCortexTests(unittest.TestCase):
                  if s["name"] == "shader-graph-create-custom-node"]
         self.assertEqual("INSTALLED_FILE_HASH_ONLY", hints[0]["status"])
         self.assertFalse(result["selected"][0]["authorized"])
+
+    def test_cortex_is_reached_through_existing_director_router(self):
+        result = plan("Shader Graph", project=self.project)
+        self.assertIn("neural_cortex", result)
+        self.assertEqual(["shaders"],
+                         [item["id"] for item in result["neural_cortex"]["selected"]])
+        self.assertEqual("ugd.route.v1", result["schema"])
+        self.assertTrue(result["advisory_only"])
 
     def test_deterministic_routing_and_catalog_fingerprint(self):
         a = route("Fackel Partikel und Rauch", self.catalog, self.project)
