@@ -89,9 +89,23 @@ namespace AreArpg.Core
         /// <summary>Environmental damage such as the crypt's falling slab: never blocked by a shield, armour still applies.</summary>
         private void ReceiveEnvironmentalDamage(int amount) { ApplyProtectedDamage(amount); }
 
+        /// <summary>Test/event hook for environmental damage that bypasses the shield block.</summary>
+        internal void ApplyEnvironmentalDamage(int amount) { ReceiveEnvironmentalDamage(amount); }
+
         private void ApplyProtectedDamage(int amount)
         {
             int protection=Math.Min(6000,(Progression.Woodland.ArmorCrafted?1000:0)+Progression.Crafting.DefenseBonusBp+Progression.Equipment.Bonus(WeaponAffix.Ward)+(Progression.Equipment.Shield?.Definition.BasePower??0)); PlayerHealth=Math.Max(0,PlayerHealth-Math.Max(1,amount*(10000-protection)/10000));
+        }
+
+        /// <summary>Drink the highest available potion of a type; a heal potion raises the actual player health.</summary>
+        public bool DrinkPotion(PotionType type)
+        {
+            if (GameOver) return false;
+            var crafting = Progression.Crafting;
+            if (!crafting.DrinkPotion(type)) return false;
+            if (type == PotionType.Heal) PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + crafting.LastHealAmount);
+            SaveInvestigationPlayer(); SaveWoodlandPlayer(); SaveDungeonPlayer();
+            return true;
         }
         public string BearFamilyContext => !Progression.Road.Started ? "Die Spuren führen zur Bärin an der Aschestraße. Über ihr Schicksal weißt du noch nichts." :
             Progression.Road.Bear.IsDead ? "Es sind die Jungen der Bärin von der Aschestraße. Ihre Mutter ist tot." : "Es sind die Jungen der Bärin von der Aschestraße. Ihre Mutter lebt.";

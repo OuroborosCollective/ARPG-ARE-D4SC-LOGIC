@@ -68,6 +68,15 @@ internal static class CraftingTests
         heal.Crafting.AddPotion(PotionType.Heal, PotionTier.Large);
         require(heal.Crafting.DrinkPotion(PotionType.Heal) && heal.Crafting.LastHealAmount == CraftingRules.HealAmount(PotionTier.Large),
             "craft-heal-potion-heals-by-tier");
+        // Review 2026-11-18 (gitar-bot): the heal potion must actually raise player health in the simulation.
+        var healOwner = new CharacterProgression();
+        healOwner.Crafting.AddPotion(PotionType.Heal, PotionTier.Small);
+        var healSim = new ArenaSimulation(12UL, healOwner, System.Numerics.BigInteger.One);
+        healSim.ApplyEnvironmentalDamage(1000);
+        int beforeHeal = healSim.PlayerHealth;
+        require(beforeHeal < 1200 && healSim.DrinkPotion(PotionType.Heal) &&
+            healSim.PlayerHealth == beforeHeal + CraftingRules.HealAmount(PotionTier.Small),
+            "craft-heal-potion-raises-player-health");
 
         // First aid: bandages and the once-only revive cloth.
         var aid = new CharacterProgression();
@@ -115,6 +124,25 @@ internal static class CraftingTests
             loaded.Crafting.Level(CraftSkill.Smithing) == carrier.Crafting.Level(CraftSkill.Smithing),
             "craft-section-roundtrips");
         require(loaded.SaveString() == saved, "craft-section-canonical");
+
+        // Review 2026-11-18 (gitar-bot): a running buff alone is progress and survives save/reload.
+        var buffCarrier = new CharacterProgression();
+        buffCarrier.Crafting.AddPotion(PotionType.Ward, PotionTier.Large);
+        buffCarrier.Crafting.DrinkPotion(PotionType.Ward);
+        string buffSaved = buffCarrier.SaveString();
+        require(buffSaved.StartsWith("AC22|") && CharacterProgression.TryLoad(buffSaved, out var buffLoaded) &&
+            buffLoaded.Crafting.ActiveWardTicks == buffCarrier.Crafting.ActiveWardTicks, "craft-running-buff-persists");
+
+        // Review 2026-11-18 (gitar-bot): a full rune stock refuses further crafting instead of losing the affix.
+        var full = new CharacterProgression();
+        for (int i = 0; i < 8; i++)
+        {
+            full.Crafting.AddMaterial(MaterialKind.Runenerz, 2); full.Crafting.AddMaterial(MaterialKind.Grausilber, 1);
+            require(full.Crafting.CraftAffixRune((WeaponAffix)(i % 4)), "craft-rune-" + i);
+        }
+        full.Crafting.AddMaterial(MaterialKind.Runenerz, 2); full.Crafting.AddMaterial(MaterialKind.Grausilber, 1);
+        require(!full.Crafting.CraftAffixRune(WeaponAffix.Ward), "craft-rune-refused-when-full");
+        require(full.Crafting.MaterialCount(MaterialKind.Runenerz) == 2, "craft-rune-refusal-keeps-materials");
         // A buff countdown advances on the real step and expires.
         var tick = new CharacterProgression();
         tick.Crafting.AddPotion(PotionType.Might, PotionTier.Small);

@@ -171,10 +171,10 @@ namespace AreArpg.Core
 
         public bool CraftAffixRune(WeaponAffix affix)
         {
-            if (!Has(MaterialKind.Runenerz, 2) || !Has(MaterialKind.Grausilber, 1)) return false;
+            if (AffixRuneCount >= _runes.Length || !Has(MaterialKind.Runenerz, 2) || !Has(MaterialKind.Grausilber, 1)) return false;
             Take(MaterialKind.Runenerz, 2); Take(MaterialKind.Grausilber, 1);
+            _runes[AffixRuneCount] = affix;
             AffixRuneCount++;
-            if (AffixRuneCount - 1 < _runes.Length) _runes[AffixRuneCount - 1] = affix;
             RecordExperience(CraftSkill.Smithing, CraftingRules.ExperienceFromEffectiveAmount(15));
             return true;
         }
@@ -187,7 +187,6 @@ namespace AreArpg.Core
             if (ActiveWardTicks > 0) ActiveWardTicks--;
             if (ActiveMightTicks > 0) ActiveMightTicks--;
         }
-
         public bool HasProgress
         {
             get
@@ -196,7 +195,8 @@ namespace AreArpg.Core
                 foreach (int m in _materials) if (m > 0) return true;
                 foreach (int p in _potions) if (p > 0) return true;
                 foreach (int b in _bandages) if (b > 0) return true;
-                return ReviveClothCount > 0 || WoodenFrameCount > 0 || BowCount > 0 || AffixRuneCount > 0;
+                return ReviveClothCount > 0 || WoodenFrameCount > 0 || BowCount > 0 || AffixRuneCount > 0 ||
+                    ActiveWardTicks > 0 || ActiveMightTicks > 0;
             }
         }
 
