@@ -1,0 +1,54 @@
+name: Epic checklist
+
+# Keeps the checklists of open issues in step with the issues they list: a line "- [ ] #N ..." is ticked when issue
+# #N is closed as completed and unticked when it is reopened (closed as "not planned" stays unticked). Every run
+# reconciles all open issues, so a skipped or cancelled run is repaired by the next one. Edits made with the workflow
+# token start no new run.
+on:
+  issues:
+    types: [closed, reopened, edited]
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+concurrency:
+  group: epic-checklist
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const line = /^(\s*[-*+] \[)([ xX])(\] #(\d+))/gm;
+            const done = new Map();
+            async function stateOf(n) {
+              if (!done.has(n)) {
+                try {
+                  const { data } = await github.rest.issues.get({ owner, repo, issue_number: n });
+                  done.set(n, data.state === 'closed' && data.state_reason !== 'not_planned');
+                } catch (error) {
+                  core.warning(`#${n} could not be read (${error.status}); its checklist lines stay as they are.`);
+                  done.set(n, null);
+                }
+              }
+              return done.get(n);
+            }
+            const open = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
+            for (const item of open) {
+              if (item.pull_request || !item.body) continue;
+              for (const match of item.body.matchAll(line)) await stateOf(Number(match[4]));
+              const body = item.body.replace(line, (all, head, mark, tail, num) => {
+                const d = done.get(Number(num));
+                return d === null || d === undefined ? all : head + (d ? 'x' : ' ') + tail;
+              });
+              if (body !== item.body) {
+                await github.rest.issues.update({ owner, repo, issue_number: item.number, body });
+                core.info(`#${item.number}: checklist updated.`);
+              }
+            }
