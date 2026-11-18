@@ -183,9 +183,18 @@ internal static class Program
         Check(visible.Count == 1 && ReferenceEquals(visible[0], allowed), "dialogue-shows-choice-when-condition-holds");
         runner.Choose(new DialogueChoice { action = FwAction.SetFlag, actionParam = "foreign" });
         Check(!mgr.HasFlag("foreign"), "dialogue-rejects-foreign-choice");
+        // The hidden choice is a real choice of the current node but is not visible: the stillVisible gate must
+        // reject it while the dialogue is still running.
+        runner.Choose(hidden);
+        Check(runner.IsRunning && !mgr.HasFlag("stole"), "dialogue-never-executes-hidden-choice");
         runner.Choose(allowed);
         Check(mgr.HasFlag("gave"), "dialogue-executes-visible-choice");
-        Check(!mgr.HasFlag("stole"), "dialogue-never-executes-hidden-choice");
+        Check(!mgr.HasFlag("stole"), "dialogue-never-executes-hidden-choice-after");
+        Check(!runner.IsRunning, "dialogue-ends-when-visible-choice-has-no-next-node");
+        // A stale choice (taken from a node the dialogue already left) is rejected too.
+        var stale = new DialogueChoice { action = FwAction.SetFlag, actionParam = "stale" };
+        runner.Choose(stale);
+        Check(!mgr.HasFlag("stale"), "dialogue-rejects-stale-choice-after-end");
     }
 
     static void ManagerRunsTheFullQuestCycle()
