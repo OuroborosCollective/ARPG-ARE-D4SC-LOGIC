@@ -56,6 +56,17 @@ class SharedArchitectureTests(unittest.TestCase):
             answers.append(answer)
         return answers
 
+    def test_repository_architecture_and_catalog_share_a_real_snapshot(self):
+        repo_root = Path(__file__).resolve().parents[2]
+        architecture = repo_root / 'docs/ARCHITECTURE.md'
+        catalog = Path(__file__).with_name('neural_catalog.json')
+        actual = prepare_council(architecture, catalog, 'a' * 40, '6000.6.8f1')
+        self.assertEqual(28, len(actual['packets']))
+        self.assertEqual(1, actual['packets'][0]['architecture_markdown'].count(
+            '<!-- ashen.shared-architecture.v1 -->'))
+        self.assertFalse(actual['source_revision_verified'])
+        self.assertEqual('NOT_SENT', actual['dispatch'])
+
     def test_all_28_receive_identical_snapshot_bytes(self):
         frozen = self.freeze()
         self.assertEqual(28, len(frozen['packets']))
