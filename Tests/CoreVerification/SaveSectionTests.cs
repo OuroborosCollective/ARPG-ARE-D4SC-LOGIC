@@ -115,6 +115,11 @@ internal static class SaveSectionTests
         require(CharacterProgression.MayHoldJourneyProgress(journeyContainer.Substring(0, journeyContainer.Length - 4)),
             "section-damaged-ac22-journey-holds-journey");
         require(CharacterProgression.MayHoldJourneyProgress("AC22|1|!!!|0|0000000000000000"), "section-undecodable-ac22-holds-journey");
+        // A base field truncated to a bare "AC2" (no version bar) is damaged and must hold journey progress.
+        require(CharacterProgression.MayHoldJourneyProgress("AC22|1|" + Encode("AC2") + "|0|"), "section-truncated-version-base-holds-journey");
+        // A complete pre-journey version prefix still counts as journey-free.
+        require(!CharacterProgression.MayHoldJourneyProgress("AC22|1|" + Encode("AC2|160|8|1|1|1|0|0|FA028359B173B723") + "|0|"),
+            "section-complete-legacy-base-blocks-no-backup");
 
         // Review 2026-11-18: the writer refuses to emit a container the loader would reject for its size.
         var tooBig = new CharacterProgression();
