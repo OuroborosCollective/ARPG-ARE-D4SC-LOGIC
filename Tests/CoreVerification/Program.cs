@@ -60,6 +60,7 @@ internal static class Program
             WorldSkyClockTests.Run(Require);
             VillageHeroLayoutTests.Run(Require);
             SaveSectionTests.Run(Require);
+            RegionNetworkTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

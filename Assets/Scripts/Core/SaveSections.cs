@@ -113,6 +113,7 @@ namespace AreArpg.Core
             bool ok = maps == null ? TryLoadRestoring(inner, null, out p) : TryLoadJourney(inner, maps, null, out p);
             if (!ok || p == null) return false;
             foreach (var pair in sections) p._sections[pair.Key] = pair.Value;
+            p.RestoreRegionSection();
             if (p.SaveString() != saved) return false;
             progress = p;
             return true;
