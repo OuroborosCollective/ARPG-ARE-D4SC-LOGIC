@@ -5,7 +5,7 @@ namespace AreArpg.Core
     /// <summary>
     /// How a weapon type fights and how it carries (owner decisions 2026-11-17). Attack speed and reach come from the
     /// weapon definitions; this profile adds the damage weight, critical chance, accuracy and movement speed.
-    /// Integer basis points only; frozen for revision 1.
+    /// Integer basis points only; revision 2 adds the staff's magic focus.
     /// </summary>
     public readonly struct WeaponProfile
     {
@@ -15,12 +15,15 @@ namespace AreArpg.Core
         public int CritChanceBp { get; }
         /// <summary>Player movement speed while carried (10000 = full speed).</summary>
         public int MoveSpeedBp { get; }
+        /// <summary>Extra additive damage share for Ruin (the spell) while carried; only the staff, the magic focus, has one.</summary>
+        public int RuinFocusBp { get; }
         private readonly int _baseAccuracyBp, _accuracyPerLevelBp;
 
-        internal WeaponProfile(string name, int damageBp, int critChanceBp, int moveSpeedBp, int baseAccuracyBp = 10000, int accuracyPerLevelBp = 0)
+        internal WeaponProfile(string name, int damageBp, int critChanceBp, int moveSpeedBp, int baseAccuracyBp = 10000,
+            int accuracyPerLevelBp = 0, int ruinFocusBp = 0)
         {
             Name = name; DamageBp = damageBp; CritChanceBp = critChanceBp; MoveSpeedBp = moveSpeedBp;
-            _baseAccuracyBp = baseAccuracyBp; _accuracyPerLevelBp = accuracyPerLevelBp;
+            _baseAccuracyBp = baseAccuracyBp; _accuracyPerLevelBp = accuracyPerLevelBp; RuinFocusBp = ruinFocusBp;
         }
 
         /// <summary>Chance to hit at the given skill level; melee weapons never miss.</summary>
@@ -35,7 +38,10 @@ namespace AreArpg.Core
 
     public static class WeaponProfiles
     {
-        public const int Revision = 1;
+        /// <summary>Revision 2 (owner decision 2026-11-18): the staff is the magic focus.</summary>
+        public const int Revision = 2;
+        /// <summary>The staff strengthens Ruin, the spell: +25 % additive damage share while it is carried.</summary>
+        public const int StaffRuinFocusBp = 2500;
         /// <summary>A shield makes the bearer noticeably slower: minus 12 percentage points of movement speed.</summary>
         public const int ShieldMovePenaltyBp = 1200;
         /// <summary>Each shield-skill level adds 0.25 % chance to block an attack completely.</summary>
@@ -48,7 +54,7 @@ namespace AreArpg.Core
         private static readonly WeaponProfile Axe = new WeaponProfile("Einhandaxt", 10600, 1500, 9600);
         private static readonly WeaponProfile GreatAxe = new WeaponProfile("Zweihandaxt", 13300, 1200, 9000);
         private static readonly WeaponProfile Bow = new WeaponProfile("Bogen", 10500, 2200, 9800, 6000, 125);
-        private static readonly WeaponProfile Staff = new WeaponProfile("Stab", 11000, 1500, 9700);
+        private static readonly WeaponProfile Staff = new WeaponProfile("Stab", 11000, 1500, 9700, ruinFocusBp: StaffRuinFocusBp);
         private static readonly WeaponProfile Shield = new WeaponProfile("Schild", 0, 0, 10000);
 
         public static WeaponProfile For(WeaponDefinition definition)

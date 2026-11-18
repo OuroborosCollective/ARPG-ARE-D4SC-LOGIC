@@ -41,10 +41,16 @@ Charakter gültig bleibt. Ein Waffen- oder Schild-Stufenaufstieg wird sofort ges
 um einen Reise-Checkpoint gilt bei der Wiederherstellung weiter als Reise-Checkpoint: Er fällt nie auf ein älteres
 Backup ohne Reise zurück.
 
-Menü **FÄHIGKEITEN** (Taste P): Stufe, EP-Fortschritt und Boni je Waffenkunst; freie Punkte mit Herkunft und „+“-Knöpfen;
-Wirkung jedes Werts; je Schadensart (Klinge, Wucht, Ruin) Gesamtbonus mit Aufschlüsselung, Kritchance 19 % für ×1,5
-und der exakte Treffer gegen Ghul und Ritter mit und ohne Krit (dieselbe Formel wie im Kampf, ohne Zufall); Heilung von Schutz.
-Die Rüstung zieht Rüstung/(1 + Rüstung) vom Treffer ab: Ghul −9,1 %, Ritter −18 % (Rüstungswerte 1000 und 2200 bp).
+Menü **FÄHIGKEITEN** (Taste P): nur die sechs Waffenkünste mit Stufe, EP-Fortschritt und Boni.
+
+Menü **WERTE** (Taste U, Owner-Entscheidung 18.11.2026): kompaktes Werteblatt mit kurzen Zeilen, Erklärung erst beim
+Antippen eines Werts in einer Detailzeile. Links freie Punkte, Macht, Vitalität und Entschlossenheit mit „+“-Knöpfen,
+Leben, Heilung (Schutz) und Bewegung. Rechts „KAMPF“ mit der angelegten Waffenart: DPS (Klinge im Mittel gegen einen
+Ghul, mit Krit und beim Bogen mit Fehlschüssen), Klinge, Wucht und Ruin als „normal / kritisch“ gegen einen Ghul, Krit
+(z. B. 19 % ×1,5), Treffer, Tempo (Schläge/s), Reichweite, Block und beim Stab der Magiefokus. Das Antippen zeigt z. B.
+die Anteile einer Schadensart, den Ritter-Treffer und die Rüstungsregel: Rüstung/(1 + Rüstung) wird vom Treffer
+abgezogen, Ghul −9,1 %, Ritter −18 % (Rüstungswerte 1000 und 2200 bp). Alle Zahlen kommen aus denselben Core-Regeln wie
+im Kampf (ohne Zufall); das Antippen ändert die Simulation nie.
 
 ### Waffenarten und Schild (Owner-Entscheidungen 17.11.2026)
 
@@ -59,12 +65,16 @@ Waffenkatalog, das Profil gewichtet den Grundschaden und legt Krit, Treffsicherh
 | Zweihandschwert | 4 Ticks | 4,1 m | ×1,06 | 16 % | 100 % | 94 % |
 | Zweihandaxt | 5 Ticks | 3,8 m | ×1,33 | 12 % | 100 % | 90 % |
 | Bogen (zweihändig) | 6 Ticks | 12 m | ×1,05 | 22 % | 60 % + 1,25 % je Bogenstufe (100 % ab Stufe 32) | 98 % |
-| Stab (zweihändig) | 7 Ticks | 8,5–9 m | ×1,10 | 15 % | 100 % | 97 % |
+| Stab (zweihändig, Magiefokus) | 7 Ticks | 8,5–9 m | ×1,10 | 15 % | 100 % | 97 % |
 | ohne Waffe | Fertigkeit | Fertigkeit | Grundwert 95 | 19 % | 100 % | 100 % |
 
 Schaden pro Sekunde im Mittel (mit Krit, gegen einen Ghul) ordnet sich so: Dolch < Bogen (treffsicher) < Einhandschwert
 < Einhandaxt < Zweihandschwert < Zweihandaxt. Ein Bogen niedriger Stufe verliert durch Fehlschüsse deutlich Schaden.
 Fehlschüsse treffen nur Klinge und Wucht mit dem Bogen, verursachen nichts und trainieren nichts.
+
+**Stab als Magiefokus (Owner-Entscheidung 18.11.2026):** Mit angelegtem Stab bekommt Ruin, der Zauber, +25 %
+zusätzlichen Schadensanteil (additiv wie Macht, Disziplin und Waffenkunst). Klinge und Wucht bleiben unverändert; der
+Stab verfehlt nie. Das Menü WERTE zeigt ihn als „Fokus: Ruin +25 %“ und in den Anteilen von Ruin.
 
 **Schildkunst:** Der Schild sitzt in der Nebenhand und greift nie an. Jeder erlittene Angriff mit angelegtem Schild
 trainiert ihn (1 EP je volle 10 Angriffsschaden, mindestens 1, auch bei Block). Je Stufe +0,25 % Chance, einen Angriff komplett

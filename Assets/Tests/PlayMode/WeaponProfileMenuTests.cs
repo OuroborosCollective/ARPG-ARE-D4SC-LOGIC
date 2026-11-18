@@ -63,7 +63,7 @@ namespace AreArpg.PlayMode.Tests
 
         /// <summary>Owner decisions 2026-11-17: shield block, two-handed rule, bow accuracy and weapon profiles in the menu.</summary>
         [UnityTest]
-        public IEnumerator SkillsTabShowsShieldBlockBowAccuracyAndWeaponProfile()
+        public IEnumerator ValuesTabShowsShieldBlockBowAccuracyAndWeaponProfile()
         {
             _runtime.enabled = false;
             var p = Game.Progression;
@@ -83,22 +83,46 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual("Stufe 20 / 99", MenuText("Level_Shield").text);
             StringAssert.Contains("Block 5 %", MenuText("Detail_Shield").text, "20 levels x 0.25 %");
             StringAssert.Contains("Treffsicherheit 70 %", MenuText("Detail_Bow").text, "60 % + 8 x 1.25 %");
-            StringAssert.Contains("Einhandschwert", MenuText("ProfileHead").text);
-            StringAssert.Contains("Bewegung 86 %", MenuText("Profile").text, "98 % sword minus 12 points for the shield");
-            StringAssert.Contains("Schild: Block 5 %", MenuText("ProfileExtra").text);
-            StringAssert.Contains("nur Einhandwaffen", MenuText("ProfileExtra").text);
             StringAssert.Contains("+2 Wertepunkte", MenuText("Detail_Sword").text, "Sword level 12 grants two points");
-            StringAssert.Contains("7 aus Waffenkünsten", MenuText("PointsSource").text, "sword 2 + shield 4 + bow 1, none spent");
-            yield return CaptureMenu("ui-menu-faehigkeiten-ausgeruestet.png", 1920, 1080);
-            yield return CaptureMenu("ui-menu-faehigkeiten-ausgeruestet-phone.png", 2400, 1080);
+
+            _runtime.OpenMenu(ValuesTab());
+            yield return null;
+            StringAssert.Contains("Einhandschwert", MenuText("CombatHead").text);
+            Assert.AreEqual("86 %", MenuText("StatValue_Move").text, "98 % sword minus 12 points for the shield");
+            Assert.AreEqual("5 %", MenuText("StatValue_Block").text);
+            StringAssert.Contains("nur Einhandwaffen", TapValue("Block"));
+            StringAssert.Contains("7 aus Waffenkünsten", TapValue("Points"), "sword 2 + shield 4 + bow 1, none spent");
+            yield return CaptureMenu("ui-menu-werte-ausgeruestet.png", 1920, 1080);
+            yield return CaptureMenu("ui-menu-werte-ausgeruestet-phone.png", 2400, 1080);
 
             Assert.IsTrue(Game.TryUnequipWeapon(true) && Game.TryEquipWeapon(bow.KillOrdinal));
-            _runtime.OpenMenu(ArenaRuntime.MenuSkills);
+            _runtime.OpenMenu(ValuesTab());
             yield return null;
-            StringAssert.Contains("Bogen", MenuText("ProfileHead").text);
-            StringAssert.Contains("Treffsicherheit 70 %", MenuText("ProfileExtra").text);
-            StringAssert.Contains("Krit 22 %", MenuText("DamageHead").text);
-            yield return CaptureMenu("ui-menu-faehigkeiten-bogen.png", 1920, 1080);
+            StringAssert.Contains("Bogen", MenuText("CombatHead").text);
+            Assert.AreEqual("70 %", MenuText("StatValue_Hit").text);
+            Assert.AreEqual("22 % ×1,5", MenuText("StatValue_Crit").text);
+            yield return CaptureMenu("ui-menu-werte-bogen.png", 1920, 1080);
+            _runtime.CloseMenu();
+        }
+
+        /// <summary>Owner decision 2026-11-18: the staff is the magic focus; the menu shows Ruin's extra share.</summary>
+        [UnityTest]
+        public IEnumerator ValuesTabShowsTheStaffsMagicFocus()
+        {
+            _runtime.enabled = false;
+            var p = Game.Progression;
+            p.Equipment.Enable(p);
+            var staff = OwnWeapon(p, d => d.Family == WeaponFamily.Staff);
+            Assert.IsTrue(Game.TryEquipWeapon(staff.KillOrdinal));
+            _runtime.OpenMenu(ValuesTab());
+            yield return null;
+            StringAssert.Contains("Stab", MenuText("CombatHead").text);
+            Assert.AreEqual("Ruin +25 %", MenuText("StatValue_Focus").text);
+            Assert.AreEqual("100 %", MenuText("StatValue_Hit").text, "The staff never misses");
+            StringAssert.Contains("Magiefokus 25 %", TapValue("Ruin"), "Ruin's detail names the staff's share");
+            Assert.AreEqual(4500, new CombatStats(p, CombatStats.RuinSkillSlot).AdditiveDamageBp, "base 20 % + focus 25 %");
+            Assert.AreEqual(2000, new CombatStats(p, 0).AdditiveDamageBp, "Strikes get no focus");
+            yield return CaptureMenu("ui-menu-werte-stab.png", 1920, 1080);
             _runtime.CloseMenu();
         }
     }

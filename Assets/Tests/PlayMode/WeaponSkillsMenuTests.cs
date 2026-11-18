@@ -20,9 +20,25 @@ namespace AreArpg.PlayMode.Tests
             return null;
         }
 
-        /// <summary>Owner order 2026-11-17: weapon skills, stats and their effects are visible in the HUD menu.</summary>
+        /// <summary>Owner decision 2026-11-18: the values have their own tab WERTE, compact and with details on tap.</summary>
+        private int ValuesTab()
+        {
+            int tab = System.Array.IndexOf(ArenaRuntime.MenuTitles, "WERTE");
+            Assert.GreaterOrEqual(tab, 0, "The menu has a WERTE tab");
+            return tab;
+        }
+
+        /// <summary>Tap a value row and return the detail line it shows.</summary>
+        private string TapValue(string id)
+        {
+            FindButton("StatRow_" + id).onClick.Invoke();
+            return MenuText("StatDetail").text;
+        }
+
+        /// <summary>Owner order 2026-11-17 and decision 2026-11-18: weapon skills in FÄHIGKEITEN, stats and their
+        /// effect on every damage type (with crit) compact in WERTE.</summary>
         [UnityTest]
-        public IEnumerator SkillsTabShowsWeaponLevelsStatPointsAndExactDamage()
+        public IEnumerator SkillsAndValuesTabsShowLevelsPointsAndExactDamage()
         {
             _runtime.enabled = false;
             var p = Game.Progression;
@@ -43,23 +59,33 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual("Stufe 5 / 99", MenuText("Level_Sword").text);
             StringAssert.Contains("+1 Wertepunkte", MenuText("Detail_Sword").text);
             StringAssert.Contains("+2,5 % Schaden", MenuText("Detail_Sword").text);
-            StringAssert.Contains("1 aus Waffenkünsten", MenuText("PointsSource").text);
-            Assert.AreEqual(hash, Game.ComputeWorldHash(), "Opening the menu never changes the simulation");
+            yield return Capture("ui-menu-faehigkeiten.png");
 
-            // The preview text uses the exact Core damage rule.
+            // WERTE: compact values, every number from the Core rules; details only on tap.
+            _runtime.OpenMenu(ValuesTab());
+            yield return null;
+            StringAssert.Contains("1 aus Waffenkünsten", TapValue("Points"));
             var stats = new CombatStats(p, 0);
             long ghoul = CombatRules.PreviewDamage(stats, SkillCatalog.Get(0).PowerBp, 0, false);
             long ghoulCrit = CombatRules.PreviewDamage(stats, SkillCatalog.Get(0).PowerBp, 0, true);
-            StringAssert.Contains("Ghul " + ghoul + " / Krit " + ghoulCrit, MenuText("DamageHits0").text);
-            StringAssert.Contains("Krit 19 % für ×1,5", MenuText("DamageHead").text);
+            long knight = CombatRules.PreviewDamage(stats, SkillCatalog.Get(0).PowerBp, 1, false);
+            long knightCrit = CombatRules.PreviewDamage(stats, SkillCatalog.Get(0).PowerBp, 1, true);
+            Assert.AreEqual(ghoul + " / " + ghoulCrit, MenuText("StatValue_Blade").text, "Klinge: hit / crit against a ghoul");
+            string blade = TapValue("Blade");
+            StringAssert.Contains("Ritter " + knight + " / " + knightCrit, blade);
             // Review PR #59: armour 1000/2200 removes armour/(1+armour) of the damage, not the raw armour value.
-            StringAssert.Contains("Ghul −9,1 %, Ritter −18 %", MenuText("PreviewNote").text);
-            yield return Capture("ui-menu-faehigkeiten.png");
+            StringAssert.Contains("Ghul −9,1 %, Ritter −18 %", blade);
+            Assert.AreEqual("19 % ×1,5", MenuText("StatValue_Crit").text);
+            StringAssert.StartsWith("DPS", MenuText("StatKey_Dps").text);
+            Assert.AreEqual(hash, Game.ComputeWorldHash(), "Opening the menu and tapping values never changes the simulation");
+            yield return Capture("ui-menu-werte-punkt-frei.png"); // ui-menu-werte.png belongs to the all-tabs capture
 
             // Spending the weapon point through the + button raises Might and persists.
             var before = p.TotalMightRank;
             BigIntegerSpend(p);
-            var button = FindButton("SkillSpend0");
+            _runtime.OpenMenu(ValuesTab());
+            yield return null;
+            var button = FindButton("StatSpend0");
             Assert.IsTrue(button.interactable, "A free point can be spent");
             button.onClick.Invoke();
             yield return null;
