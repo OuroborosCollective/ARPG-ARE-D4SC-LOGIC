@@ -93,5 +93,15 @@ namespace AreArpg.Core
         }
 
         public const int BuffBonusBp = 2500; // +25 %
+
+        /// <summary>Success chance of the holy revive cloth in basis points: only from First-Aid 85 upward, and even
+        /// at 99 it stays "annähernd" (close to but never certain). Deterministic per seed.</summary>
+        public static bool HolyReviveSucceeds(int firstAidLevel, ulong seed)
+        {
+            if (firstAidLevel < 85) return false;
+            int chance = 5000 + Math.Min(14, firstAidLevel - 85) * 300; // 50 % at 85, up to 92 % at 99
+            int roll = (int)(new DeterministicRng(seed ^ 0x484F4C59524556UL).Next64() % 10000UL);
+            return roll < chance;
+        }
     }
 }

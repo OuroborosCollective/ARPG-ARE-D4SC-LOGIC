@@ -47,6 +47,8 @@ namespace AreArpg.Core
                 return;
             }
             c.Status=CompanionStatus.Dead;c.TargetId=-1;c.AttackFlash=0;
+            // After the last allowed revival a companion death becomes permanent (only the holy cloth revives then).
+            Progression.CompanionRecovery.MarkDeath();
             var forge=Progression.Social.Forge;
             string actor=ForgeCreatureId(source);
             var e=forge.Archive.Append(MemoryKind.Death,actor,"hunter",forge.ProcessedTicks,10000,true,"companion.death",new RelationshipChange(fear:5000));
@@ -73,6 +75,34 @@ namespace AreArpg.Core
             }
             int perDay=(int)WorldSkyClock.TicksPerDay;int days=(remaining+perDay-1)/perDay;
             r.Accepted=true;r.Text="Jäger: Du bist zurückgekommen. Kaum jemand tut das. Ich bin in "+days+" Tagen wieder bereit.";
+            return r;
+        }
+
+        /// <summary>Collect a companion revived by Orsel at the mill sickbed; only in the mill region (act 4).</summary>
+        public SocialResult CollectRevivedCompanion()
+        {
+            var r=new SocialResult{SpeakerId=3};
+            var c=Progression.Companion;
+            if(GameOver||Progression.EntryAct!=4||!c.HasJoined||c.Status!=CompanionStatus.Waiting||c.Health<=0)return r;
+            if(Progression.CompanionRecovery.PermanentlyDead)return r;
+            c.Status=CompanionStatus.Following;
+            c.Area=CurrentAreaId;c.AreaSeed=CompanionAreaSeed;c.AreaDepth=CompanionAreaDepth;
+            BindCompanion(true);
+            r.Accepted=true;r.Text="Orsel: Er hat es überstanden. Nimm ihn mit, aber bring ihn mir nicht zu oft.";
+            return r;
+        }
+
+        /// <summary>Revive a permanently dead companion with the holy revive cloth at the mill (act 4).</summary>
+        public SocialResult ReviveWithHolyCloth()
+        {
+            var r=new SocialResult{SpeakerId=3};
+            var c=Progression.Companion;
+            if(GameOver||Progression.EntryAct!=4||!c.HasJoined)return r;
+            if(!Progression.CompanionRecovery.PermanentlyDead)return r;
+            if(!Progression.Crafting.ConsumeReviveCloth())return r;
+            if(!Progression.CompanionRecovery.ReviveFromPermanentDeath(c))return r;
+            BindCompanion(true);
+            r.Accepted=true;r.Text="Das heilige Tuch wirkt. Der Jäger atmet wieder.";
             return r;
         }
     }

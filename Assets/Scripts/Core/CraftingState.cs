@@ -135,6 +135,29 @@ namespace AreArpg.Core
             return true;
         }
 
+        /// <summary>First-Aid level required to even attempt the holy revive cloth.</summary>
+        public const int HolyReviveClothLevel = 85;
+        /// <summary>Attempt cost: extreme, rare resources; consumed whether or not the attempt succeeds.</summary>
+        public const int HolyRunenerz = 8;
+        public const int HolyGlutstein = 6;
+        public const int HolyNachtbluete = 6;
+        public const int HolyDornbeere = 4;
+
+        /// <summary>Attempt the holy revive cloth: needs First-Aid 85+, huge rare resources and a level-based roll.
+        /// The materials are spent either way; only a successful attempt yields the cloth.</summary>
+        public bool CraftHolyReviveCloth(ulong seed)
+        {
+            if (Level(CraftSkill.FirstAid) < HolyReviveClothLevel) return false;
+            if (!Has(MaterialKind.Runenerz, HolyRunenerz) || !Has(MaterialKind.Glutstein, HolyGlutstein) ||
+                !Has(MaterialKind.Nachtbluete, HolyNachtbluete) || !Has(MaterialKind.Dornbeere, HolyDornbeere)) return false;
+            Take(MaterialKind.Runenerz, HolyRunenerz); Take(MaterialKind.Glutstein, HolyGlutstein);
+            Take(MaterialKind.Nachtbluete, HolyNachtbluete); Take(MaterialKind.Dornbeere, HolyDornbeere);
+            RecordExperience(CraftSkill.FirstAid, CraftingRules.ExperienceFromEffectiveAmount(30));
+            if (!CraftingRules.HolyReviveSucceeds(Level(CraftSkill.FirstAid), seed)) return false;
+            ReviveClothCount++;
+            return true;
+        }
+
         /// <summary>Use the revive cloth once; afterwards it is gone and cannot revive again.</summary>
         public bool ConsumeReviveCloth()
         {

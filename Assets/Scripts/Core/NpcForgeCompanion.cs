@@ -74,7 +74,10 @@ namespace AreArpg.Core
             var weapon=c.WeaponOrdinal>0?p.Equipment.ForItem(p.Items.FirstOrDefault(x=>x.KillOrdinal==c.WeaponOrdinal)):null;
             var shield=c.ShieldOrdinal>0?p.Equipment.ForItem(p.Items.FirstOrDefault(x=>x.KillOrdinal==c.ShieldOrdinal)):null;
             if(c.WeaponOrdinal>0&&(weapon==null||weapon.Definition.Family==WeaponFamily.Shield)||c.ShieldOrdinal>0&&(shield==null||shield.Definition.Family!=WeaponFamily.Shield||weapon==null||weapon.Definition.TwoHanded))return false;
-            if((c.Status==CompanionStatus.Dead)!=p.Social.Forge.Archive.Events.Any(e=>e.Kind==MemoryKind.Death&&e.Target=="hunter"&&e.Context=="companion.death"&&e.Essential))return false;
+            // A dead companion must have a recorded death. A non-dead one may still carry it: the companion was
+            // revived by Orsel at the mill (up to three times) and the death stays a MemoryForge fact.
+            if (c.Status == CompanionStatus.Dead &&
+                !p.Social.Forge.Archive.Events.Any(e => e.Kind == MemoryKind.Death && e.Target == "hunter" && e.Context == "companion.death" && e.Essential)) return false;
             if(p.Social.Forge.Archive.Get("hunter")?.Controller.ArchetypeId!="companion")return false;
             state=c;return true;
         }
