@@ -51,7 +51,7 @@ jobs:
         with:
           node-version: '22.23.4'
       - name: Run 28-advisor unit and negative tests
-        run: node --test Tools/Director/neural_hub/advisory.test.mjs
+        run: node --test Tools/Director/neural_hub/*.test.mjs
       - name: Install pinned mcp-use package without scripts
         working-directory: Tools/Director/neural_hub
         run: npm ci --omit=optional --ignore-scripts --no-audit --no-fund
@@ -63,6 +63,7 @@ jobs:
           export ASHEN_REPOSITORY_SHA="$(git rev-parse HEAD)"
           export ASHEN_ARCHITECTURE_SHA256="$(sha256sum ../../../docs/ARCHITECTURE.md | cut -d' ' -f1)"
           export ASHEN_CATALOG_SHA256="$(sha256sum ../neural_catalog.json | cut -d' ' -f1)"
+          export ASHEN_SOURCES_SHA256="$(sha256sum upstream_sources.json | cut -d' ' -f1)"
           node mcp_canary.mjs
       - name: Audit pinned package security advisories
         working-directory: Tools/Director/neural_hub
