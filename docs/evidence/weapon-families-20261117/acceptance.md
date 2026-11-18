@@ -12,10 +12,11 @@ Code under test, on main `c839b68aaace5e14288f9969b956c3705ec3c033` after `89063
 | `788c064` | merge of CodeRabbit's boundary tests `c29f0e7`, adapted to the sixth skill (shield) |
 | `27e8c9b6bfa7b5ff5bde38e6b5996dfcfa178f02` | repairs of the Unity tests red on main |
 | `c2364e43092a99c9f71e1a8ee066f1042638ebb1` | incomplete character art is never shown |
-| `7f834a80ed8b716f2e79f2dcef181e54af1cec5c` (tree `a449fcd935906ad654b2e72d30a3cef7ed7f534c`) | camp and arrival flows at a fixed frame time |
+| `7f834a80ed8b716f2e79f2dcef181e54af1cec5c` | camp and arrival flows at a fixed frame time |
+| `a0162e5c5409dcb36abe9aebb60ab91b72728867` (tree `89630c45461fefbff377de806d076f9e941ab646`) | second review round: trap, sneaking, damaged AC21 prefix |
 
 Before every Unity run the validation project's files that differ from `c839b68` were compared with the commit
-(SHA-256 per blob; 36 files at `7f834a8`, no mismatch). Runs went through the live Unity 6000.6.8f1 editor of the
+(SHA-256 per blob; 37 files at `a0162e5`, no mismatch). Runs went through the live Unity 6000.6.8f1 editor of the
 validation project. Outputs are private on the VPS under `.local/share/are-arpg/weapon-families-20261117/runs/`.
 
 ## Review findings, each red before the fix
@@ -78,7 +79,7 @@ The hero-action test was flaky on the head (1 of 8 single runs red) and passed 5
    steps would exceed the test timeout. A modal "Scene(s) Have Been Modified" dialog for the test runner's scene,
    left by an interrupted run, was answered with "Don't Save".
 
-## Final runs on `7f834a8`
+## Full runs on `7f834a8` (before the second review round)
 
 | Run | Result | Output SHA-256 |
 | --- | --- | --- |
@@ -86,6 +87,29 @@ The hero-action test was flaky on the head (1 of 8 single runs red) and passed 5
 | Python preflight | 40/40 | `e753e77a61fa2e714d9a5cb14371ad482a1a39757c5e6dc00479d297f8debf4e` |
 | EditMode, full project suite | 109/109, 0 failed, 0 skipped | `2ca56ed9917838ee16313ea4e1f56f1967a539b42e0243514f3f1b8f4470bd58` |
 | PlayMode, full suite | 169/169, 0 failed, 0 skipped | `d157f2e26cfd0beec4a8db8fb0c62ea4ef304a2062f7f55a23c32c2126726418` |
+
+## Second review round on `bbcd166`, each red before the fix
+
+Fixed in `a0162e5c5409dcb36abe9aebb60ab91b72728867`:
+
+| Finding (reviewer) | RED before → GREEN after | Output SHA-256 RED / GREEN |
+| --- | --- | --- |
+| The crypt's falling slab went through the enemy-attack path: a shield blocked it and trained on it (Codex) | Core `wp-trap-is-not-an-enemy-attack-for-the-shield` → Core 20907 | `a95072a9adc378f76ba864ec2c23c2a2e70a73ce67ed811fae80b1c0d4d7a7b5` / `c60ae6821f6f595fdbd962f09d57ecff9041935aafba4472aedd5191617d4eac` |
+| Sneaking ignored the weapon and shield movement profile (Codex) | Core `wp-sneaking-keeps-the-shield-movement-penalty` (moved 240, expected 211) | `2a14a87edf871267e6474604c28274a990239e6c74d71fa9c9fbff46c3d902d5` / `33dd9cd477efb43a9076db33c0d7a26b40a5c4682243eeee58034f82cbf1321b` |
+| A damaged first encoded character of an AC21 journey checkpoint allowed an older backup (CodeRabbit) | Core `wm-damaged-discriminator-counts-as-journey-progress` | `66c3feaae1ac056f19cd96ac942b766db86932682b4af5da149e754ef1741242` / same GREEN |
+
+The PlayMode test `CorruptedWeaponSkillJourneyCheckpointNeverFallsBackToAnOlderBackup` now also corrupts the first
+encoded character. Neighbours after the trap fix: `CryptInvestigationOpensSafelyAndReportsLocally`,
+`ShieldLevelUpFromAnIncomingAttackIsSaved` and `SkillsTabShowsShieldBlockBowAccuracyAndWeaponProfile` 1/1 each.
+
+## Final runs on `a0162e5`
+
+| Run | Result | Output SHA-256 |
+| --- | --- | --- |
+| Core verification | 20911/20911 | `33dd9cd477efb43a9076db33c0d7a26b40a5c4682243eeee58034f82cbf1321b` |
+| Python preflight | 40/40 | `25c56fb3a9ccb532aad602c2fbc2e1f9473aa18d7566e91451794bebee52c793` |
+| EditMode, full project suite | 109/109, 0 failed, 0 skipped | `2fff160700659e29ec242d4616caf9fcc2b275404d66959daf0eefa70fde5a67` |
+| PlayMode, full suite | 169/169, 0 failed, 0 skipped | `571c896786bd2e431402f1f78a23936cf169e245ee16aa4d1840b9bc0c8e5bc2` |
 
 ## Not verified
 
