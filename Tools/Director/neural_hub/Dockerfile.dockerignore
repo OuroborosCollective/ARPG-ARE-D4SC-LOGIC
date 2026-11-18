@@ -1,0 +1,18 @@
+# Dockerfile-specific allowlist. No Unity project, licensed art or credentials
+# ever enter the context of this isolated metadata-only hub.
+**
+!docs/
+!docs/ARCHITECTURE.md
+!Tools/
+!Tools/Director/
+!Tools/Director/neural_catalog.json
+!Tools/Director/neural_hub/
+!Tools/Director/neural_hub/advisory.mjs
+!Tools/Director/neural_hub/server.mjs
+!Tools/Director/neural_hub/start.mjs
+!Tools/Director/neural_hub/advisory.test.mjs
+!Tools/Director/neural_hub/mcp_canary.mjs
+!Tools/Director/neural_hub/package.json
+!Tools/Director/neural_hub/package-lock.json
+!Tools/Director/neural_hub/README.md
+!Tools/Director/neural_hub/Dockerfile
