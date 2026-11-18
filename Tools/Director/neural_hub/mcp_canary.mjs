@@ -25,8 +25,8 @@ try{
   assert.equal(response.result.serverInfo.name,'ashen-neural-hub');
   const t=await request(endpoint.url,2,'tools/list');
   const tools=t.result.tools;
-  assert.equal(tools.length,30,'28 specialists + 2 director tools');
-  assert.equal(new Set(tools.map(tool=>tool.name)).size,30);
+  assert.equal(tools.length,32,'28 specialists + 4 director tools');
+  assert.equal(new Set(tools.map(tool=>tool.name)).size,32);
   const names=new Set(tools.map(tool=>tool.name));
   for(const advisor of snapshot.advisors)assert.ok(names.has('advice_'+advisor.id));
   for(const tool of tools){
@@ -54,9 +54,24 @@ try{
   assert.equal(all.result.structuredContent.consulted,28);
   assert.equal(all.result.structuredContent.status,'INSUFFICIENT_DISTINCT_PATHS');
   assert.equal(all.result.structuredContent.runtimeVerified,false);
+  const sourceCatalog=await request(endpoint.url,7,'tools/call',{
+    name:'director_sources',arguments:{snapshotId:snapshot.snapshotId}
+  });
+  assert.equal(sourceCatalog.result.structuredContent.sourceCount,13);
+  assert.equal(sourceCatalog.result.structuredContent.execution,'NONE');
+  assert.equal(sourceCatalog.result.structuredContent.installedVerified,false);
+  const sources=await request(endpoint.url,8,'tools/call',{
+    name:'director_source_discover',
+    arguments:{snapshotId:snapshot.snapshotId,department:'testing',limit:6}
+  });
+  assert.ok(sources.result.structuredContent.candidates.length>0);
+  assert.ok(sources.result.structuredContent.candidates.length<=6);
+  assert.equal(sources.result.structuredContent.authorization,'NONE');
+  assert.equal(sources.result.structuredContent.runtimeVerified,false);
   console.log(JSON.stringify({
     schema:'ashen.mcp-protocol-canary.v1',status:'PASS',
     toolCount:tools.length,promptCount:prompts.length,advisorCount:snapshot.advisors.length,
+    registeredExternalSources:sourceCatalog.result.structuredContent.sourceCount,
     sourceRevision:snapshot.gitRevisionClaim,snapshotId:snapshot.snapshotId,
     outputProvenance:'SUPPLIED_ISSUE_NOT_INDEPENDENTLY_VERIFIED',
     runtimeVerified:false,productUnityVerified:false
