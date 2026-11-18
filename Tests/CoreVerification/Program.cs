@@ -59,6 +59,7 @@ internal static class Program
             JourneyPilotTests.Run(Require);
             WorldSkyClockTests.Run(Require);
             VillageHeroLayoutTests.Run(Require);
+            SaveSectionTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

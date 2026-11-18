@@ -185,7 +185,8 @@ namespace AreArpg.Core
         }
 
         public ulong StableHash { get { return HashText(WeaponMasteryPayload()); } }
-        public string SaveString() { return WeaponMasteryPayload() + "|" + StableHash.ToString("X16", CultureInfo.InvariantCulture); }
+        /// <summary>Write the legacy chain, wrapped in the AC22 section container only when a section exists.</summary>
+        public string SaveString() { return SectionContainer(WeaponMasteryPayload() + "|" + StableHash.ToString("X16", CultureInfo.InvariantCulture)); }
 
         private static bool CanonicalNonNegative(string text, out BigInteger value)
         {
@@ -205,6 +206,7 @@ namespace AreArpg.Core
         {
             progress = null;
             if (string.IsNullOrEmpty(saved)) return false;
+            if (saved.StartsWith("AC22|", StringComparison.Ordinal)) return restoring == null && TryLoadSectionContainer(saved, null, out progress);
             if (saved.StartsWith("AC21|", StringComparison.Ordinal)) return restoring == null && TryLoadWeaponMastery(saved, null, out progress);
             if(saved.StartsWith("AC19|",StringComparison.Ordinal))return TryLoadFreight(saved,restoring,out progress);
             if(saved.StartsWith("AC18|",StringComparison.Ordinal))return TryLoadCompanion(saved,restoring,out progress);
