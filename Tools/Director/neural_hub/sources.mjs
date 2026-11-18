@@ -19,6 +19,21 @@ const LICENSES=Object.freeze({
   'unity-ai-cli-bridge':['MIT','3c46e2a2d8e954f0d00a7871b63d3ded0363c4da','hatayama/unity-ai-cli-bridge'],
   accelbyte:['APACHE-2.0','261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64','AccelByte/accelbyte-unity-mcp']
 });
+const INSPECTED_SOURCE_SHA=Object.freeze({
+  besty:'c07ee7f74660def88533278f09ec611bb36e0cbe',
+  anklebreaker:'a669788cd367de7f0b7bfd657a66807a9156628a',
+  'unity-open-mcp':'7695c5e0af44423c2a7800b105a6b3fa7a05075e',
+  'unity-biome-mcp':'c88b0bbc45891d4147f8f24f64c02be73ef4279e',
+  ivanmurzak:'393c9e374b4485d1db37117440e41af2262d4b0c',
+  'unified-unity-mcp':'a934d2cba994c581089a6131b5dc1439d30e5d2f',
+  coplay:'19b66ecef4ac3a9be22a7a62ea21accb975c39e7',
+  'unity-official':'5841a34846f3e2b908c37aca1fca2eb15118a440',
+  coder:'d572dc88f1b982a0fdfc09cd14cfdfd760b658e8',
+  ucp:'7cfc26324c13f0d1c8d91cae80e915a6a00adc1c',
+  uloop:'fa4d15227f5f1146c7ca142a3a72c5fb332601fe',
+  'unity-ai-cli-bridge':'a8e272d32b3df5d579d1cb16eef8961702570e53',
+  accelbyte:'80b99d260cd5b6cdb414f7a32fec3cecbff8290e'
+});
 const EXPECTED_DEPARTMENTS=28;
 const EXACT_FIELDS=['id','repository','sourceUrl','sourceSha','license','licenseFile',
   'licenseBlobSha','status','allowExecution','installedVerified','unityBuildVerified',
@@ -68,6 +83,7 @@ export function loadSourceRegistry(raw,catalog){
        typeof s.licenseBlobSha!=='string'||!SHA40.test(s.licenseBlobSha))
       throw Error('SOURCE_IDENTITY_MISMATCH');
     seenRepos.add(repo);
+    if(s.sourceSha!==INSPECTED_SOURCE_SHA[s.id])throw Error('SOURCE_COMMIT_DRIFT');
     if(s.status!=='SOURCE_INSPECTED_ONLY'||s.allowExecution!==false||
        s.installedVerified!==false||s.unityBuildVerified!==false)
       throw Error('UNAUTHORIZED_SOURCE_PROMOTION');
