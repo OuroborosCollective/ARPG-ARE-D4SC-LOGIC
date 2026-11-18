@@ -276,8 +276,9 @@
         "musik",
         "sprecher",
         "voice acting",
-        "geraesch",
-        "fussstep"
+        "geraeusch",
+        "footstep",
+        "fussschritt"
       ],
       "skills": [
         "audio-setup-mixers",
