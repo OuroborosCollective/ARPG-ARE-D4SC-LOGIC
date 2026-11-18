@@ -16,3 +16,6 @@
 !Tools/Director/neural_hub/package-lock.json
 !Tools/Director/neural_hub/README.md
 !Tools/Director/neural_hub/Dockerfile
+!Tools/Director/neural_hub/sources.mjs
+!Tools/Director/neural_hub/sources.test.mjs
+!Tools/Director/neural_hub/upstream_sources.json
