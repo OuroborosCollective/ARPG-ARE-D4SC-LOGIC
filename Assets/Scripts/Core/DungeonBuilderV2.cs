@@ -49,6 +49,7 @@ namespace AreArpg.Core
             var edges = Connections.OrderBy(e => e.A).ThenBy(e => e.B)
                 .Select(e => e.A.ToString(CultureInfo.InvariantCulture) + "-" + e.B.ToString(CultureInfo.InvariantCulture));
             var rooms = Rooms.Select(r => r.X.ToString(CultureInfo.InvariantCulture) + "," + r.Z.ToString(CultureInfo.InvariantCulture));
+            var kinds = _kinds.OrderBy(k => k.Key).Select(k => k.Key.ToString(CultureInfo.InvariantCulture) + "=" + ((int)k.Value).ToString(CultureInfo.InvariantCulture));
             return string.Join(";", new[]
             {
                 Revision.ToString(CultureInfo.InvariantCulture), Depth.ToString(CultureInfo.InvariantCulture),
@@ -57,7 +58,7 @@ namespace AreArpg.Core
                 EndRoom.ToString(CultureInfo.InvariantCulture), GateA.ToString(CultureInfo.InvariantCulture),
                 GateB.ToString(CultureInfo.InvariantCulture), RiskBp.ToString(CultureInfo.InvariantCulture),
                 RewardBp.ToString(CultureInfo.InvariantCulture)
-            }) + "|" + string.Join(";", rooms) + "|" + string.Join(";", edges);
+            }) + "|" + string.Join(";", rooms) + "|" + string.Join(";", edges) + "|" + string.Join(";", kinds);
         }
     }
 
