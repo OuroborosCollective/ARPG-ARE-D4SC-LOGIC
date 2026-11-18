@@ -13,6 +13,8 @@ namespace AreArpg.Core
         public int CritChanceBp { get; }
         /// <summary>The unconditional additive damage share every character starts with (+20 %).</summary>
         public const int BaseAdditiveBp = 2000;
+        /// <summary>Skill slot of Ruin, the spell that a staff (magic focus) strengthens.</summary>
+        public const int RuinSkillSlot = 3;
 
         /// <summary>Derive finite values from the current progression, widening weapon addition before arithmetic.</summary>
         public CombatStats(CharacterProgression progression, int skillSlot)
@@ -24,7 +26,8 @@ namespace AreArpg.Core
             WeaponPoints = (weapon != null ? weapon.Definition.BasePower * (long)profile.DamageBp / 10000L : 95L) + progression.WeaponBonus;
             CritChanceBp = weapon != null ? profile.CritChanceBp : CombatRules.CriticalChanceBp;
             AdditiveDamageBp = BaseAdditiveBp + progression.Equipment.Bonus(WeaponAffix.Power) + progression.MightDamageBonusBp +
-                progression.PracticeDamageBonusBp(skillSlot) + progression.WeaponMasteryDamageBonusBp;
+                progression.PracticeDamageBonusBp(skillSlot) + progression.WeaponMasteryDamageBonusBp +
+                (skillSlot == RuinSkillSlot ? profile.RuinFocusBp : 0);
             MaximumHealth = CombatRules.MaximumHealth(progression);
             HealingBonus = progression.ResolveHealBonus + progression.PracticeHealingBonus;
         }

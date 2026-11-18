@@ -101,5 +101,28 @@ namespace AreArpg.PlayMode.Tests
             yield return CaptureMenu("ui-menu-faehigkeiten-bogen.png", 1920, 1080);
             _runtime.CloseMenu();
         }
+
+        /// <summary>Owner decision 2026-11-18: the staff is the magic focus; the menu shows Ruin's extra share.</summary>
+        [UnityTest]
+        public IEnumerator SkillsTabShowsTheStaffsMagicFocus()
+        {
+            _runtime.enabled = false;
+            var p = Game.Progression;
+            p.Equipment.Enable(p);
+            var staff = OwnWeapon(p, d => d.Family == WeaponFamily.Staff);
+            Assert.IsTrue(Game.TryEquipWeapon(staff.KillOrdinal));
+            _runtime.OpenMenu(ArenaRuntime.MenuSkills);
+            yield return null;
+            StringAssert.Contains("Stab", MenuText("ProfileHead").text);
+            var ruin = new CombatStats(p, CombatStats.RuinSkillSlot);
+            StringAssert.Contains("+45 %", MenuText("Damage3").text, "Ruin's share includes the staff's +25 % (base 20 %)");
+            StringAssert.Contains("Magiefokus 25 % (Ruin)", MenuText("DamageParts").text, "The shares name the staff's focus");
+            Assert.AreEqual(4500, ruin.AdditiveDamageBp);
+            StringAssert.Contains("+20 %", MenuText("Damage0").text, "Strikes get no focus");
+            StringAssert.Contains("Magiefokus: Ruin +25 %", MenuText("ProfileExtra").text);
+            StringAssert.Contains("verfehlt nie", MenuText("ProfileExtra").text);
+            yield return CaptureMenu("ui-menu-faehigkeiten-stab.png", 1920, 1080);
+            _runtime.CloseMenu();
+        }
     }
 }

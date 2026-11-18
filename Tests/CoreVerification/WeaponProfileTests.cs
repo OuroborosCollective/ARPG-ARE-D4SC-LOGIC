@@ -155,6 +155,18 @@ internal static class WeaponProfileTests
         // Review PR #59 (Codex): the crypt's falling slab is not an enemy attack; a shield neither blocks it nor trains on it.
         TrapIsNotAnEnemyAttack(require);
 
+        // Owner decision 2026-11-18: the staff is the magic focus. With a staff, Ruin gains +25 % damage share; strikes do not,
+        // and the staff never misses.
+        var mage = new CharacterProgression(); mage.Equipment.Enable(mage);
+        var staffDef = Enumerable.Range(0, WeaponCatalog.Count).Select(WeaponCatalog.Get).First(d => d.Family == WeaponFamily.Staff);
+        var staffItem = GiveId(mage, staffDef.Id); var fighterSword = GiveId(mage, sword.Id);
+        var focusWorld = Arena(mage, out _);
+        require(focusWorld.TryEquipWeapon(fighterSword.KillOrdinal) &&
+                new CombatStats(mage, 3).AdditiveDamageBp == new CombatStats(mage, 0).AdditiveDamageBp, "wp-sword-gives-ruin-no-focus");
+        require(focusWorld.TryEquipWeapon(staffItem.KillOrdinal) && !WeaponProfiles.For(staffDef).CanMiss &&
+                new CombatStats(mage, 3).AdditiveDamageBp - new CombatStats(mage, 0).AdditiveDamageBp == 2500,
+                "wp-staff-focus-adds-a-quarter-to-ruin-only");
+
         // Review PR #59 (Codex): sneaking keeps the weapon and shield movement profile.
         var den = RattlerEncounterTests.Den(); var dp = den.Progression; dp.Equipment.Enable(dp);
         var denShield = GiveId(dp, "shield_newbie.1");

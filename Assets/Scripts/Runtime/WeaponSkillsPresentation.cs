@@ -143,12 +143,14 @@ namespace AreArpg.UnityClient
             y += 24f;
             // Shared shares once; only the discipline differs per skill and is shown in its row.
             var parts = AshenUiTheme.Label("DamageParts", right.transform, 11, AshenUiTheme.Muted, TextAnchor.UpperLeft);
-            AshenUiTheme.Place(parts.rectTransform, new Rect(16f, y, rightW - 32f, 16f));
+            bool focusShown = p.CarriedProfile.RuinFocusBp > 0; // the staff's focus needs a second line
+            AshenUiTheme.Place(parts.rectTransform, new Rect(16f, y, rightW - 32f, focusShown ? 30f : 16f));
             parts.text = "Anteile: Basis " + Percent(CombatStats.BaseAdditiveBp) + " · Macht " + Percent(p.MightDamageBonusBp) +
                          " · Waffenaffix " + Percent(p.Equipment.Bonus(WeaponAffix.Power)) +
-                         " · Waffenkunst " + Percent(p.WeaponMasteryDamageBonusBp);
+                         " · Waffenkunst " + Percent(p.WeaponMasteryDamageBonusBp) +
+                         (p.CarriedProfile.RuinFocusBp > 0 ? " · Magiefokus " + Percent(p.CarriedProfile.RuinFocusBp) + " (Ruin)" : "");
             Fit(parts);
-            y += 20f;
+            y += focusShown ? 34f : 20f;
             foreach (int slot in DamageSkillSlots)
             {
                 var skill = SkillCatalog.Get(slot);
@@ -223,6 +225,8 @@ namespace AreArpg.UnityClient
             string extra = "";
             if (weapon != null && profile.CanMiss)
                 extra = "Treffsicherheit " + Percent(p.WeaponAccuracyBp) + " (+1,25 % je Bogenstufe, 100 % ab Stufe 32)";
+            if (weapon != null && profile.RuinFocusBp > 0)
+                extra = "Magiefokus: Ruin +" + Percent(profile.RuinFocusBp) + " · verfehlt nie";
             if (p.Equipment.Shield != null)
                 extra += (extra.Length > 0 ? "  ·  " : "") + "Schild: Block " + Percent(p.BlockChanceBp) + " · Schadensminderung " +
                          Percent(p.Equipment.Shield.Definition.BasePower) + " · Bewegung −" + Percent(WeaponProfiles.ShieldMovePenaltyBp) +
@@ -233,7 +237,6 @@ namespace AreArpg.UnityClient
             Fit(more);
         }
 
-        /// <summary>Hundredths as a German decimal with at most two places, e.g. 330 -> "3,3".</summary>
         /// <summary>Share of damage that armour removes in the Core rule, armour / (1 + armour), rounded to a tenth.</summary>
         private static string ArmorReduction(int enemyKind)
         {
@@ -242,6 +245,7 @@ namespace AreArpg.UnityClient
             return Decimal(tenths * 10) + " %";
         }
 
+        /// <summary>Hundredths as a German decimal with at most two places, e.g. 330 -> "3,3".</summary>
         private static string Decimal(long hundredths)
         {
             long whole = hundredths / 100, rest = System.Math.Abs(hundredths % 100);

@@ -59,12 +59,16 @@ Waffenkatalog, das Profil gewichtet den Grundschaden und legt Krit, Treffsicherh
 | Zweihandschwert | 4 Ticks | 4,1 m | ×1,06 | 16 % | 100 % | 94 % |
 | Zweihandaxt | 5 Ticks | 3,8 m | ×1,33 | 12 % | 100 % | 90 % |
 | Bogen (zweihändig) | 6 Ticks | 12 m | ×1,05 | 22 % | 60 % + 1,25 % je Bogenstufe (100 % ab Stufe 32) | 98 % |
-| Stab (zweihändig) | 7 Ticks | 8,5–9 m | ×1,10 | 15 % | 100 % | 97 % |
+| Stab (zweihändig, Magiefokus) | 7 Ticks | 8,5–9 m | ×1,10 | 15 % | 100 % | 97 % |
 | ohne Waffe | Fertigkeit | Fertigkeit | Grundwert 95 | 19 % | 100 % | 100 % |
 
 Schaden pro Sekunde im Mittel (mit Krit, gegen einen Ghul) ordnet sich so: Dolch < Bogen (treffsicher) < Einhandschwert
 < Einhandaxt < Zweihandschwert < Zweihandaxt. Ein Bogen niedriger Stufe verliert durch Fehlschüsse deutlich Schaden.
 Fehlschüsse treffen nur Klinge und Wucht mit dem Bogen, verursachen nichts und trainieren nichts.
+
+**Stab als Magiefokus (Owner-Entscheidung 18.11.2026):** Mit angelegtem Stab bekommt Ruin, der Zauber, +25 %
+zusätzlichen Schadensanteil (additiv wie Macht, Disziplin und Waffenkunst). Klinge und Wucht bleiben unverändert; der
+Stab verfehlt nie. Das Menü FÄHIGKEITEN zeigt den Anteil unter „Anteile“ und im Waffenprofil.
 
 **Schildkunst:** Der Schild sitzt in der Nebenhand und greift nie an. Jeder erlittene Angriff mit angelegtem Schild
 trainiert ihn (1 EP je volle 10 Angriffsschaden, mindestens 1, auch bei Block). Je Stufe +0,25 % Chance, einen Angriff komplett
