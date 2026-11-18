@@ -1,7 +1,7 @@
 FROM node:22.23.4-bookworm-slim
 WORKDIR /app/Tools/Director/neural_hub
-COPY Tools/Director/neural_hub/package.json ./
-RUN npm install --ignore-scripts --omit=dev --no-audit --no-fund && npm cache clean --force
+COPY Tools/Director/neural_hub/package.json Tools/Director/neural_hub/package-lock.json ./
+RUN npm ci --omit=optional --ignore-scripts --no-audit --no-fund && npm cache clean --force
 COPY Tools/Director/neural_hub/ ./
 WORKDIR /app
 COPY docs/ARCHITECTURE.md ./docs/ARCHITECTURE.md
