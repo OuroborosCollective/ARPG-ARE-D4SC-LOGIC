@@ -159,6 +159,8 @@ namespace AreArpg.Core
             var c=Progression.Companion;if(!CompanionPresent)return;
             c.PreviousXmm=c.Xmm;c.PreviousZmm=c.Zmm;
             if(c.Status!=CompanionStatus.Following||c.Health<=0||GameOver)return;
+            // A withdrawn companion stays off the field and does not fight until recovered.
+            if(Progression.CompanionRecovery.Wounded)return;
             if(c.AttackCooldown>0)c.AttackCooldown--;if(c.AttackFlash>0)c.AttackFlash--;
             var forge=Progression.Social.Forge;var mind=forge.Archive.Get("hunter");
             if(forge.ProcessedTicks%20==0)c.Hunger=Math.Min(1000,c.Hunger+1);

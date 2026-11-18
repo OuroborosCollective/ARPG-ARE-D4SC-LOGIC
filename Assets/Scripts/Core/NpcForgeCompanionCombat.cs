@@ -36,9 +36,16 @@ namespace AreArpg.Core
         private void DamageCompanion(MonsterState source,int amount)
         {
             var c=Progression.Companion;if(!CompanionPresent||c.Health<=0||amount<=0)return;
+            // A withdrawn companion is off the field and takes no further damage.
+            if(Progression.CompanionRecovery.Wounded)return;
             int applied=Math.Max(1,(int)((long)amount*(10000-Math.Min(3500,CompanionBonus(WeaponAffix.Ward)+(CompanionShield?.Definition.BasePower??0)))/10000));
             c.Health=Math.Max(0,c.Health-applied);
-            if(c.Health>0)return;
+            if(c.Health>0)
+            {
+                // A non-lethal defeat withdraws the companion for one to two game days instead of killing them.
+                if(c.Health<=CompanionRecoveryState.WoundThresholdHealth)Progression.CompanionRecovery.Wound(c,source.Kind>=2?2:1);
+                return;
+            }
             c.Status=CompanionStatus.Dead;c.TargetId=-1;c.AttackFlash=0;
             var forge=Progression.Social.Forge;
             string actor=ForgeCreatureId(source);
@@ -46,6 +53,24 @@ namespace AreArpg.Core
             foreach(var npc in Npcs)
                 if(npc.Memory.Health>0&&DistanceSquared(npc.Xmm,npc.Zmm,c.Xmm,c.Zmm)<=FixedMath.Square(8000)&&CombatSight(npc.Xmm,npc.Zmm,c.Xmm,c.Zmm))
                     forge.Archive.Learn(NpcForgeState.Identity(npc.Id),e.Id,KnowledgeOrigin.Witnessed,NpcForgeState.Identity(npc.Id),forge.ProcessedTicks);
+        }
+
+        /// <summary>Rescue a withdrawn companion in person; remembered by the existing MemoryForge archive.</summary>
+        public SocialResult RescueCompanion()
+        {
+            var r=new SocialResult{SpeakerId=3};
+            var c=Progression.Companion;
+            if(GameOver||!Progression.CompanionRecovery.Wounded||!c.HasJoined||c.Status==CompanionStatus.Dead)return r;
+            if(!CompanionPresent||DistanceSquared(PlayerXmm,PlayerZmm,c.Xmm,c.Zmm)>FixedMath.Square(2400)||!CombatSight(PlayerXmm,PlayerZmm,c.Xmm,c.Zmm))return r;
+            int remaining=Progression.CompanionRecovery.RecoveryTicks;
+            var forge=Progression.Social.Forge;
+            if(forge!=null)
+            {
+                var e=forge.Archive.Append(MemoryKind.Help,"player","hunter",forge.ProcessedTicks,6000,false,"companion.rescue",new RelationshipChange(trust:1500,gratitude:2500));
+                forge.Archive.Learn("hunter",e.Id,KnowledgeOrigin.Self,"hunter",forge.ProcessedTicks);
+            }
+            r.Accepted=true;r.Text="Jäger: Du bist zurückgekommen. Kaum jemand tut das. Ich bin in "+(remaining/ (int)WorldSkyClock.TicksPerDay + 1)+" Tagen wieder bereit.";
+            return r;
         }
     }
 }
