@@ -168,6 +168,12 @@ namespace AreArpg.Core
 
     public sealed partial class ArenaSimulation
     {
+        /// <summary>Map a village NPC id (0..2) to its story role.</summary>
+        public static StoryNpc StoryNpcFor(int npcId)
+        {
+            switch (npcId) { case 0: return StoryNpc.Ilyan; case 1: return StoryNpc.Mara; case 2: return StoryNpc.Dorn; default: return StoryNpc.Orsel; }
+        }
+
         /// <summary>A story-NPC may only die once its own quest is finished; otherwise the quest stays completable.</summary>
         public static bool StoryNpcCanDie(StoryNpc npc, CharacterProgression p)
         {
@@ -211,5 +217,49 @@ namespace AreArpg.Core
             Progression.Village.StartBuffet();
             return true;
         }
+
+        /// <summary>Orsel revives a fallen companion at the mill sickbed (up to three times).</summary>
+        public SocialResult OrselReviveCompanion()
+        {
+            var r = new SocialResult { SpeakerId = 3 };
+            var c = Progression.Companion;
+            if (GameOver || Progression.EntryAct != 4 || !c.HasJoined || c.Status != CompanionStatus.Dead) return r;
+            if (!Progression.CompanionRecovery.ReviveAtMill(c)) { r.Text = "Orsel: Ihn kann ich nicht mehr zurückholen. Nur das heilige Tuch vermag es."; return r; }
+            r.Accepted = true; r.Text = "Orsel: Ich habe ihn zurückgeholt. Er wartet im Krankenbett auf dich.";
+            return r;
+        }
+
+        /// <summary>Start Orkel's side quest from Orsel once she trusts the player.</summary>
+        public SocialResult OfferOrkelQuest()
+        {
+            var r = new SocialResult { SpeakerId = 3 };
+            if (GameOver || !Progression.Village.OfferOrkelQuest()) { r.Text = "Orsel: Darüber reden wir später."; return r; }
+            r.Accepted = true; r.Text = "Orsel: Bitte hilf meinem stumpfsinnigen Halbbruder Orkel. Er ist in eine Höhle gegangen, um Honig zu holen.";
+            return r;
+        }
+
+        public bool EnterOrkelCave() { return Progression.Village.EnterOrkelCave(); }
+        public bool ResolveOrkelFind(bool honey) { return Progression.Village.ResolveOrkelFind(honey); }
+
+        /// <summary>Lead Orkel back to Orsel; afterwards he can be hired.</summary>
+        public SocialResult ReturnOrkelToOrsel()
+        {
+            var r = new SocialResult { SpeakerId = 3 };
+            if (GameOver || !Progression.Village.ReturnOrkelToOrsel()) { r.Text = "Orsel: Bring mir erst meinen Bruder."; return r; }
+            r.Accepted = true; r.Text = "Orsel: Du hast ihn heimgebracht. Danke. Wenn du willst, kommt Orkel mit dir.";
+            return r;
+        }
+
+        /// <summary>Hire the tollpatschige but good-natured healer Orkel.</summary>
+        public SocialResult RecruitOrkel()
+        {
+            var r = new SocialResult { SpeakerId = 3 };
+            if (GameOver || !Progression.Village.RecruitOrkel()) { r.Text = "Orkel ist noch nicht bereit."; return r; }
+            r.Accepted = true; r.Text = "Orkel: Ich komme mit! Ich passe auf ... meistens.";
+            return r;
+        }
+
+        /// <summary>Record a completed main quest: the village grows by one resident.</summary>
+        public void CompleteMainQuest() { Progression.Village.RecordMainQuestCompleted(); }
     }
 }

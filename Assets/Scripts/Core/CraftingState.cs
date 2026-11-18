@@ -238,10 +238,19 @@ namespace AreArpg.Core
 
         internal string Token()
         {
-            var b = new StringBuilder("2");
+            // Keep the version-1 layout until a v2-only value exists, so shipped #75 saves round-trip byte-for-byte.
+            bool v2 = _materials[(int)MaterialKind.Honig] != 0 || ActiveRegenTicks != 0 || RegenPerTick != 0;
+            if (!v2)
+            {
+                for (int t = 0; t < CraftingRules.TierCount; t++)
+                    if (_potions[(int)PotionType.Regen * CraftingRules.TierCount + t] != 0) v2 = true;
+            }
+            var b = new StringBuilder(v2 ? "2" : "1");
             foreach (long xp in _experience) b.Append(',').Append(xp.ToString(CultureInfo.InvariantCulture));
-            foreach (int m in _materials) b.Append(',').Append(m.ToString(CultureInfo.InvariantCulture));
-            foreach (int p in _potions) b.Append(',').Append(p.ToString(CultureInfo.InvariantCulture));
+            int materialCount = v2 ? CraftingRules.MaterialCount : 11;
+            for (int i = 0; i < materialCount; i++) b.Append(',').Append(_materials[i].ToString(CultureInfo.InvariantCulture));
+            int potionCount = v2 ? CraftingRules.PotionTypeCount : 3;
+            for (int i = 0; i < potionCount * CraftingRules.TierCount; i++) b.Append(',').Append(_potions[i].ToString(CultureInfo.InvariantCulture));
             foreach (int x in _bandages) b.Append(',').Append(x.ToString(CultureInfo.InvariantCulture));
             b.Append(',').Append(ReviveClothCount.ToString(CultureInfo.InvariantCulture));
             b.Append(',').Append(WoodenFrameCount.ToString(CultureInfo.InvariantCulture));
@@ -250,6 +259,7 @@ namespace AreArpg.Core
             b.Append(',').Append(ActiveWardTicks.ToString(CultureInfo.InvariantCulture));
             b.Append(',').Append(ActiveMightTicks.ToString(CultureInfo.InvariantCulture));
             for (int i = 0; i < _runes.Length; i++) b.Append(',').Append(((int)_runes[i]).ToString(CultureInfo.InvariantCulture));
+            if (v2) { b.Append(',').Append(ActiveRegenTicks.ToString(CultureInfo.InvariantCulture)); b.Append(',').Append(RegenPerTick.ToString(CultureInfo.InvariantCulture)); }
             return b.ToString();
         }
 
@@ -271,7 +281,7 @@ namespace AreArpg.Core
             int potions = f[0] == "1" ? 3 : CraftingRules.PotionTypeCount;
             if (f[0] != "1" && f[0] != "2") return false;
             int expected = 1 + CraftingRules.SkillCount + materials + potions * CraftingRules.TierCount +
-                CraftingRules.TierCount + 6 + 8;
+                CraftingRules.TierCount + 6 + 8 + (f[0] == "2" ? 2 : 0);
             if (f.Length != expected) return false;
             var s = new CraftingState();
             int i = 1;
@@ -286,6 +296,11 @@ namespace AreArpg.Core
             if (!Canonical(f[i++], int.MaxValue, out long wd)) return false; s.ActiveWardTicks = (int)wd;
             if (!Canonical(f[i++], int.MaxValue, out long mt)) return false; s.ActiveMightTicks = (int)mt;
             for (int k = 0; k < 8; k++, i++) if (!Canonical(f[i], 3, out long a)) return false; else s._runes[k] = (WeaponAffix)(int)a;
+            if (f[0] == "2")
+            {
+                if (!Canonical(f[i++], int.MaxValue, out long rg)) return false; s.ActiveRegenTicks = (int)rg;
+                if (!Canonical(f[i++], int.MaxValue, out long rp)) return false; s.RegenPerTick = (int)rp;
+            }
             state = s;
             return true;
         }

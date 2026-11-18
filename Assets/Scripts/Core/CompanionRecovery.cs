@@ -100,6 +100,11 @@ namespace AreArpg.Core
 
         internal string Token()
         {
+            // Keep the version-1 layout until a v2-only value exists, so shipped #76 saves round-trip byte-for-byte.
+            bool v2 = RevivalsUsed != 0 || PermanentlyDead;
+            if (!v2)
+                return "1," + (Wounded ? "1" : "0") + "," + RecoveryTicks.ToString(CultureInfo.InvariantCulture) +
+                    "," + (Rescued ? "1" : "0") + "," + (ResumeFollowing ? "1" : "0");
             return "2," + (Wounded ? "1" : "0") + "," + RecoveryTicks.ToString(CultureInfo.InvariantCulture) +
                 "," + (Rescued ? "1" : "0") + "," + (ResumeFollowing ? "1" : "0") +
                 "," + RevivalsUsed.ToString(CultureInfo.InvariantCulture) + "," + (PermanentlyDead ? "1" : "0");

@@ -30,6 +30,8 @@ internal static class VillageServicesTests
         HunterEncounterTests.Move(millWorld, -4000, 5000);
         require(millWorld.ActOnHunger(HungerAction.InspectBeds).Accepted && mill.Village.OrselTeachesUnlocked,
             "orsel-unlocked-by-real-mill-beds-action");
+        require(mill.Village.Population == VillageServicesState.BasePopulation + 1,
+            "population-grows-by-real-mill-beds-action");
 
         // The three lessons unlock once and only once.
         var p = AtMill();
@@ -94,5 +96,46 @@ internal static class VillageServicesTests
             loaded.Village.LearnedFirstAid && loaded.Village.Population == VillageServicesState.BasePopulation + 1,
             "village-section-roundtrips");
         require(loaded.SaveString() == saved, "village-section-canonical");
+
+        // Review 2026-11-18 (gitar-bot): the regen potion must really heal on the real simulation tick.
+        var regen = new CharacterProgression();
+        regen.Crafting.AddMaterial(MaterialKind.Honig, 1); regen.Crafting.AddMaterial(MaterialKind.Nachtbluete, 1);
+        regen.Crafting.BrewPotion(PotionType.Regen, 5UL);
+        var regenWorld = new ArenaSimulation(41UL, regen, System.Numerics.BigInteger.One);
+        regenWorld.ApplyEnvironmentalDamage(500);
+        int regenBefore = regenWorld.PlayerHealth;
+        regenWorld.DrinkPotion(PotionType.Regen);
+        regenWorld.Step();
+        require(regenWorld.PlayerHealth == regenBefore + regen.Crafting.RegenPerTick, "regen-potion-heals-on-real-tick");
+        // A save during the buff keeps the regen timer.
+        string regenSave = regen.SaveString();
+        require(CharacterProgression.TryLoad(regenSave, out var regenLoaded) &&
+            regenLoaded.Crafting.ActiveRegenTicks == regen.Crafting.ActiveRegenTicks &&
+            regenLoaded.Crafting.RegenPerTick == regen.Crafting.RegenPerTick, "regen-buff-persists");
+
+        // Review 2026-11-18 (gitar-bot): a version-1 crafting token still round-trips byte-for-byte.
+        var v1 = new CharacterProgression();
+        v1.Crafting.AddMaterial(MaterialKind.Ascheisen, 3);
+        string v1Save = v1.SaveString();
+        require(CharacterProgression.TryLoad(v1Save, out var v1Loaded) &&
+            v1Loaded.TryGetSection("crafting", out var v1Token) && v1Token.StartsWith("1,", StringComparison.Ordinal),
+            "crafting-v1-token-written-without-v2-data");
+        require(v1Loaded.SaveString() == v1Save, "crafting-v1-token-roundtrips");
+
+        // Review 2026-11-18 (gitar-bot): the mill-healer, Orkel quest and population are reachable through the
+        // simulation, not only through direct state calls.
+        var wiring = AtMill();
+        wiring.Social.EnableForge();
+        var wiringWorld = new ArenaSimulation(88UL, wiring, System.Numerics.BigInteger.One, LootCatalog.Version1);
+        wiring.DiscoverHungerClue();
+        wiring.Village.UnlockOrselTeaches(wiring);
+        require(wiring.Village.OrselTeachesUnlocked, "orsel-teaches-unlocked-for-wiring");
+        require(wiringWorld.OfferOrkelQuest().Accepted, "orkel-offer-via-simulation");
+        require(wiringWorld.EnterOrkelCave() && wiringWorld.ResolveOrkelFind(true) && wiringWorld.ReturnOrkelToOrsel().Accepted,
+            "orkel-quest-via-simulation");
+        require(wiringWorld.RecruitOrkel().Accepted, "orkel-recruit-via-simulation");
+        int popBefore = wiring.Village.Population;
+        wiringWorld.CompleteMainQuest();
+        require(wiring.Village.Population == popBefore + 1, "population-grows-via-simulation");
     }
 }
