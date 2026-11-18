@@ -566,6 +566,7 @@ namespace AreArpg.Core
         public void Step()
         {
             CurrentTick++;
+            Progression.Crafting.AdvanceTick();
             if(Progression.Social.Forge!=null)Progression.Social.Forge.ProcessedTicks=checked(Progression.Social.Forge.ProcessedTicks+1);
             PrevPlayerXmm = PlayerXmm;
             PrevPlayerZmm = PlayerZmm;
