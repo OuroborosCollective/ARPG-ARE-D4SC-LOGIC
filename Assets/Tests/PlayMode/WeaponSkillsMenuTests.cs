@@ -96,6 +96,82 @@ namespace AreArpg.PlayMode.Tests
             _runtime.CloseMenu();
         }
 
+        /// <summary>Own a one-handed catalog weapon of the family through the real receipt path.</summary>
+        private LootItem OwnTestWeapon(CharacterProgression p, WeaponFamily family)
+        {
+            for (ulong seed = 0; seed < 20000; seed++)
+            {
+                var receipt = (LootItem)typeof(LootCatalog).GetMethod("Generate", Flags).Invoke(LootCatalog.Version1,
+                    new object[] { seed, System.Numerics.BigInteger.One, 1UL, 1, 0, p.LifetimeKills + 1 });
+                var gear = p.Equipment.ForItem(receipt);
+                if (gear == null || gear.Definition.Family != family || gear.Definition.TwoHanded) continue;
+                p.RecordKill();
+                Assert.IsTrue((bool)typeof(CharacterProgression).GetMethod("CollectItem", Flags).Invoke(p, new object[] { receipt }));
+                return receipt;
+            }
+            Assert.Fail("The catalog has no one-handed " + family);
+            return null;
+        }
+
+        private static void RecordWeaponExperience(CharacterProgression p, WeaponFamily family, long amount)
+        {
+            typeof(WeaponMasteryState).GetMethod("Record", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(p.WeaponMastery, new object[] { family, amount });
+        }
+
+        /// <summary>Review PR #59: a weapon level-up from a hit that does not kill reaches the save slot at once.</summary>
+        [UnityTest]
+        public IEnumerator WeaponLevelUpFromANonKillingHitIsSaved()
+        {
+            _runtime.enabled = false;
+            var p = Game.Progression; p.Equipment.Enable(p);
+            var sword = OwnTestWeapon(p, WeaponFamily.Sword);
+            Assert.IsTrue(Game.TryEquipWeapon(sword.KillOrdinal));
+            RecordWeaponExperience(p, WeaponFamily.Sword, WeaponMasteryRules.ExperienceForLevel(2) - 1);
+            // Put the Klinge discipline at the start of a rank, so this one hit cannot rank it up (that would save anyway).
+            var rankStart = CharacterProgression.RequiredExperienceForLevel(p.PracticeLevel(0) + 1) - p.PracticeExperience(0);
+            typeof(CharacterProgression).GetMethod("RecordPractice", Flags).Invoke(p, new object[] { 0, rankStart });
+            var target = Game.Monsters[0];
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 20000; enemy.Zmm = 20000; }
+            target.Xmm = Game.PlayerXmm + 1000; target.Zmm = Game.PlayerZmm; target.Health = target.MaxHealth = 100000;
+            var rank = p.PracticeLevel(0);
+            var queue = (Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills", Flags).GetValue(_runtime);
+            queue.Enqueue(0); TickOnce();
+            yield return null;
+            Assert.Less(target.Health, 100000, "The sword hit lands");
+            Assert.IsFalse(target.IsDead, "The hit does not kill");
+            Assert.AreEqual(rank, p.PracticeLevel(0), "The discipline did not rank up, so only the weapon level-up can save");
+            Assert.AreEqual(2, p.WeaponMastery.Level(WeaponFamily.Sword), "The hit levels the sword skill");
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0], ""), out var saved) &&
+                          saved.WeaponMastery.Level(WeaponFamily.Sword) == 2, "The sword level-up is in the save slot without a kill");
+        }
+
+        /// <summary>Review PR #59: a shield level-up from an incoming attack reaches the save slot at once.</summary>
+        [UnityTest]
+        public IEnumerator ShieldLevelUpFromAnIncomingAttackIsSaved()
+        {
+            _runtime.enabled = false;
+            var p = Game.Progression; p.Equipment.Enable(p);
+            var shield = OwnTestWeapon(p, WeaponFamily.Shield);
+            Assert.IsTrue(Game.TryEquipWeapon(shield.KillOrdinal));
+            Assert.IsNotNull(p.Equipment.Shield);
+            RecordWeaponExperience(p, WeaponFamily.Shield, WeaponMasteryRules.ExperienceForLevel(2) - 1);
+            var attacker = Game.Monsters[0];
+            foreach (var enemy in Game.Monsters) { enemy.Xmm = 20000; enemy.Zmm = 20000; }
+            attacker.AttackCooldownTicks = 0;
+            int attacks = Game.IncomingAttacks;
+            for (int i = 0; i < 40 && Game.IncomingAttacks == attacks; i++)
+            {
+                attacker.Xmm = Game.PlayerXmm + 1000; attacker.Zmm = Game.PlayerZmm;
+                TickOnce();
+            }
+            yield return null;
+            Assert.Greater(Game.IncomingAttacks, attacks, "The monster attack reaches the shield bearer");
+            Assert.AreEqual(2, p.WeaponMastery.Level(WeaponFamily.Shield), "The attack trains the shield to level 2");
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0], ""), out var saved) &&
+                          saved.WeaponMastery.Level(WeaponFamily.Shield) == 2, "The shield level-up is in the save slot at once");
+        }
+
         private static void BigIntegerSpend(CharacterProgression p)
         {
             // Spend any character-level points first so the button below must use the weapon point.
