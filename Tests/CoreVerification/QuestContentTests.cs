@@ -77,5 +77,35 @@ internal static class QuestContentTests
         // An old save without a content section still loads and reports no table.
         var legacy = new CharacterProgression();
         require(CharacterProgression.TryLoad(legacy.SaveString(), out var old) && old.ContentTableVersion == 0, "quest-old-save-readable");
+
+        // Review 2026-11-18: a stale checksum after mutation is rejected, and a malformed content section fails.
+        var mutated = QuestContentTable.Pilot();
+        mutated.Quests[0].RewardMax = 999;
+        require(!new CharacterProgression().SetContentTable(mutated), "quest-stale-checksum-rejected");
+        var unsealed = new QuestContentTable(); unsealed.Add(Quest("a"));
+        require(!new CharacterProgression().SetContentTable(unsealed), "quest-unsealed-table-rejected");
+
+        // Review 2026-11-18: different content cannot collide through delimiters, and Title is part of the checksum.
+        var collideA = new QuestContentTable();
+        collideA.Add(new QuestContent { Id = "a", Title = "t", GiverNpcId = "g", Prerequisites = new List<string> { "x+", "y" }, ObjectiveCount = 1 });
+        collideA.Seal();
+        var collideB = new QuestContentTable();
+        collideB.Add(new QuestContent { Id = "a", Title = "t", GiverNpcId = "g", Prerequisites = new List<string> { "x++y" }, ObjectiveCount = 1 });
+        collideB.Seal();
+        require(collideA.Checksum != collideB.Checksum, "quest-signature-no-delimiter-collision");
+        var titled = new QuestContentTable();
+        titled.Add(new QuestContent { Id = "a", Title = "other", GiverNpcId = "g", ObjectiveCount = 1 });
+        titled.Seal();
+        var titled2 = new QuestContentTable();
+        titled2.Add(new QuestContent { Id = "a", Title = "different", GiverNpcId = "g", ObjectiveCount = 1 });
+        titled2.Seal();
+        require(titled.Checksum != titled2.Checksum, "quest-signature-includes-title");
+
+        // Review 2026-11-18: a corrupt content section is dropped, so TryLoad rejects a non-canonical token.
+        var corrupt = new CharacterProgression();
+        corrupt.SetContentTable(QuestContentTable.Pilot());
+        string withTable = corrupt.SaveString();
+        string corruptSave = withTable.Replace("|content=", "|content=BAD");
+        require(!CharacterProgression.TryLoad(corruptSave, out _), "quest-corrupt-section-rejected");
     }
 }

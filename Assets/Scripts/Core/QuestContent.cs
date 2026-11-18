@@ -29,21 +29,30 @@ namespace AreArpg.Core
         public void Add(QuestContent quest) { if (quest != null) Quests.Add(quest); }
         public QuestContent Find(string id) { return Quests.FirstOrDefault(q => q != null && q.Id == id); }
 
-        /// <summary>Canonical, deterministic signature over version and every quest; doubles as the checksum source.</summary>
+        /// <summary>Canonical, deterministic signature over version and every quest; doubles as the checksum source.
+        /// Every string field is length-prefixed and Title is included, so different content cannot collide.</summary>
         public string Signature()
         {
             var b = new StringBuilder();
             b.Append("1|").Append(Version.ToString(CultureInfo.InvariantCulture)).Append('|');
             foreach (var q in Quests.OrderBy(q => q.Id, StringComparer.Ordinal))
             {
-                b.Append(q.Id).Append(',').Append(q.GiverNpcId).Append(',')
-                    .Append(q.ObjectiveCount.ToString(CultureInfo.InvariantCulture)).Append(',')
+                Field(b, q.Id); Field(b, q.Title); Field(b, q.GiverNpcId);
+                b.Append(q.ObjectiveCount.ToString(CultureInfo.InvariantCulture)).Append(',')
                     .Append(q.RewardMin.ToString(CultureInfo.InvariantCulture)).Append(',')
                     .Append(q.RewardMax.ToString(CultureInfo.InvariantCulture)).Append(',');
-                foreach (var p in q.Prerequisites.OrderBy(x => x, StringComparer.Ordinal)) b.Append(p).Append('+');
+                var prerequisites = q.Prerequisites.OrderBy(x => x, StringComparer.Ordinal).ToList();
+                b.Append(prerequisites.Count.ToString(CultureInfo.InvariantCulture)).Append(',');
+                foreach (var p in prerequisites) Field(b, p);
                 b.Append(';');
             }
             return b.ToString();
+        }
+
+        private static void Field(StringBuilder b, string value)
+        {
+            value = value ?? "";
+            b.Append(value.Length.ToString(CultureInfo.InvariantCulture)).Append(':').Append(value);
         }
 
         public void Seal() { Checksum = Hash(Signature()); }
@@ -137,10 +146,12 @@ namespace AreArpg.Core
 
         private const string ContentSectionName = "content";
 
-        /// <summary>Bind a validated content table's version and checksum to this character.</summary>
+        /// <summary>Bind a validated content table's version and checksum to this character. The table must be sealed
+        /// and unchanged since sealing, so the stored checksum always identifies the content the Core read.</summary>
         public bool SetContentTable(QuestContentTable table)
         {
             if (table == null || table.Checksum == null) return false;
+            if (table.Checksum != QuestContentTable.Hash(table.Signature())) return false;
             if (QuestContentValidator.Validate(table).Count != 0) return false;
             ContentTableVersion = table.Version;
             ContentTableChecksum = table.Checksum;
@@ -150,7 +161,9 @@ namespace AreArpg.Core
 
         private void SyncContentSection()
         {
-            if (ContentTableVersion == 0) return;
+            // Mirror the regions section: a character without a table removes any stale/corrupt section so the
+            // canonical re-save check in TryLoad rejects a non-canonical token.
+            if (ContentTableVersion == 0) { _sections.Remove(ContentSectionName); return; }
             SetSection(ContentSectionName, ContentTableVersion.ToString(CultureInfo.InvariantCulture) + "|" + ContentTableChecksum);
         }
 
@@ -161,9 +174,25 @@ namespace AreArpg.Core
             string[] f = token.Split('|');
             int version;
             if (f.Length != 2 || !int.TryParse(f[0], NumberStyles.None, CultureInfo.InvariantCulture, out version) ||
-                version.ToString(CultureInfo.InvariantCulture) != f[0] || version < 1 || f[1].Length != 16) return;
+                version.ToString(CultureInfo.InvariantCulture) != f[0] || version < 1 || !IsHex16(f[1]))
+            {
+                _sections.Remove(ContentSectionName);
+                return;
+            }
             ContentTableVersion = version;
             ContentTableChecksum = f[1];
+        }
+
+        private static bool IsHex16(string text)
+        {
+            if (text == null || text.Length != 16) return false;
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                bool hex = (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F');
+                if (!hex) return false;
+            }
+            return true;
         }
     }
 }
