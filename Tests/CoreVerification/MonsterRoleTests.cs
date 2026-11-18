@@ -91,6 +91,17 @@ internal static class MonsterRoleTests
         require(frozeDuringWindup, "role-telegraph-freezes-the-monster");
         require(dodge.PlayerHealth == dodgeHealth, "role-telegraph-can-be-dodged");
 
+        // Review 2026-11-18 (CodeRabbit): a running announcement always resolves; it never resumes stale after the
+        // player breaks line of sight. Moving far away during the windup ends it with no hit.
+        var stale = RoleWorld(MonsterFamily.Undead, MonsterRole.Elite, 2400, 0);
+        for (int i = 0; i < 120 && stale.Monsters[0].BossWindupTicks == 0; i++) stale.Step();
+        require(stale.Monsters[0].BossWindupTicks > 0, "role-stale-setup-has-telegraph");
+        int staleHealth = stale.PlayerHealth;
+        stale.Monsters[0].Xmm = 25000; stale.Monsters[0].Zmm = 25000; // far outside the 14 m perception range
+        for (int i = 0; i < 20; i++) stale.Step();
+        require(stale.Monsters[0].BossWindupTicks == 0, "role-windup-resolves-without-sight");
+        require(stale.PlayerHealth == staleHealth, "role-windup-without-sight-deals-no-stale-hit");
+
         // Review 2026-11-18: role and family take part in the world hash (a role swap is visible).
         var sameSeedRole = RoleWorld(MonsterFamily.Ork, MonsterRole.Ranged, 6000, 0);
         var otherRole = RoleWorld(MonsterFamily.Ork, MonsterRole.Elite, 6000, 0);

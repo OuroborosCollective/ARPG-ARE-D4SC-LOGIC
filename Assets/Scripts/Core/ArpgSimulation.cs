@@ -593,6 +593,17 @@ namespace AreArpg.Core
                 EnsureCreatureMind(enemy);
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
+                if (enemy.Role != MonsterRole.None && enemy.BossWindupTicks > 0)
+                {
+                    // A running announcement always resolves, even if the player breaks line of sight, so a stale
+                    // windup can never resume later. The monster stands still; leaving the radius avoids the hit.
+                    enemy.BossWindupTicks--;
+                    if (enemy.BossWindupTicks == 0 &&
+                        CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm) &&
+                        DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(MonsterRoles.ImpactRadiusMm(enemy.Role)))
+                        ReceiveDamage(MonsterRoles.AttackDamage(enemy.Role));
+                    continue;
+                }
                 if(StepMonsterAgainstCompanion(enemy))continue;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
                 if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
@@ -614,15 +625,6 @@ namespace AreArpg.Core
                         enemy.BossPulseCooldownTicks = 55;
                         continue;
                     }
-                }
-                if (enemy.Role != MonsterRole.None && enemy.BossWindupTicks > 0)
-                {
-                    // The monster stands still while it announces; leaving the frozen radius avoids the hit.
-                    enemy.BossWindupTicks--;
-                    if (enemy.BossWindupTicks == 0 &&
-                        DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(MonsterRoles.ImpactRadiusMm(enemy.Role)))
-                        ReceiveDamage(MonsterRoles.AttackDamage(enemy.Role));
-                    continue;
                 }
                 if (distance2 > FixedMath.Square(MonsterRoles.AttackRangeMm(enemy.Role)))
                 {
