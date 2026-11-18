@@ -1,9 +1,9 @@
 name: Epic checklist
 
 # Keeps the checklists of open issues in step with the issues they list: a line "- [ ] #N ..." is ticked when issue
-# #N is closed as completed and unticked when it is reopened (closed as "not planned" stays unticked). Every run
-# reconciles all open issues, so a skipped or cancelled run is repaired by the next one. Edits made with the workflow
-# token start no new run.
+# #N is closed as completed and unticked when it is reopened (closed as "not planned" or "duplicate" stays unticked).
+# Lines inside fenced code blocks are examples and are never changed. Every run reconciles all open issues, so a
+# skipped or cancelled run is repaired by the next one. Edits made with the workflow token start no new run.
 on:
   issues:
     types: [closed, reopened, edited]
@@ -25,30 +25,87 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            const line = /^(\s*[-*+] \[)([ xX])(\] #(\d+))/gm;
+            const task = /^(\s*[-*+] \[)([ xX])(\] #(\d+))/;
+            const fence = /^ {0,3}(`{3,}|~{3,})/;
+            const failures = [];
             const done = new Map();
-            async function stateOf(n) {
-              if (!done.has(n)) {
-                try {
-                  const { data } = await github.rest.issues.get({ owner, repo, issue_number: n });
-                  done.set(n, data.state === 'closed' && data.state_reason !== 'not_planned');
-                } catch (error) {
-                  core.warning(`#${n} could not be read (${error.status}); its checklist lines stay as they are.`);
-                  done.set(n, null);
+
+            // Lines of a body with their task reference, skipping fenced code blocks.
+            function tasks(body) {
+              const lines = body.split('\n');
+              const found = [];
+              let open = null;
+              lines.forEach((text, index) => {
+                const f = text.match(fence);
+                if (open) {
+                  if (f && f[1][0] === open[0] && f[1].length >= open.length && text.trim() === f[1]) open = null;
+                  return;
+                }
+                if (f) { open = f[1]; return; }
+                const m = text.match(task);
+                if (m) found.push({ index, number: Number(m[4]) });
+              });
+              return { lines, found };
+            }
+
+            function reconcile(body) {
+              const { lines, found } = tasks(body);
+              for (const { index, number } of found) {
+                const d = done.get(number);
+                if (d === true || d === false)
+                  lines[index] = lines[index].replace(task, (all, head, mark, tail) => head + (d ? 'x' : ' ') + tail);
+              }
+              return lines.join('\n');
+            }
+
+            async function withRetry(what, call) {
+              for (let attempt = 1; ; attempt++) {
+                try { return await call(); }
+                catch (error) {
+                  const transient = !error.status || error.status >= 500 || error.status === 403 || error.status === 429;
+                  if (!transient || attempt === 3) throw error;
+                  core.info(`${what}: attempt ${attempt} failed (${error.status}), retrying.`);
+                  await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
                 }
               }
-              return done.get(n);
             }
-            const open = await github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 });
-            for (const item of open) {
-              if (item.pull_request || !item.body) continue;
-              for (const match of item.body.matchAll(line)) await stateOf(Number(match[4]));
-              const body = item.body.replace(line, (all, head, mark, tail, num) => {
-                const d = done.get(Number(num));
-                return d === null || d === undefined ? all : head + (d ? 'x' : ' ') + tail;
-              });
-              if (body !== item.body) {
-                await github.rest.issues.update({ owner, repo, issue_number: item.number, body });
-                core.info(`#${item.number}: checklist updated.`);
+
+            async function stateOf(n) {
+              if (done.has(n)) return;
+              try {
+                const { data } = await withRetry(`read #${n}`, () => github.rest.issues.get({ owner, repo, issue_number: n }));
+                const reason = data.state_reason;
+                done.set(n, data.state === 'closed' && reason !== 'not_planned' && reason !== 'duplicate');
+              } catch (error) {
+                if (error.status === 404 || error.status === 410) {
+                  core.warning(`#${n} does not exist or was deleted; its checklist lines stay as they are.`);
+                  done.set(n, null);
+                } else {
+                  failures.push(`read #${n} (${error.status})`);
+                  done.set(n, undefined);
+                }
               }
             }
+
+            const open = await withRetry('list issues', () =>
+              github.paginate(github.rest.issues.listForRepo, { owner, repo, state: 'open', per_page: 100 }));
+            for (const item of open) {
+              if (item.pull_request || !item.body) continue;
+              for (const { number } of tasks(item.body).found) await stateOf(number);
+              if (reconcile(item.body) === item.body) continue;
+              try {
+                // Re-read right before writing so edits made during this run are kept.
+                const { data: fresh } = await withRetry(`re-read #${item.number}`,
+                  () => github.rest.issues.get({ owner, repo, issue_number: item.number }));
+                const latest = fresh.body || '';
+                for (const { number } of tasks(latest).found) await stateOf(number);
+                const body = reconcile(latest);
+                if (body === latest) continue;
+                await withRetry(`update #${item.number}`,
+                  () => github.rest.issues.update({ owner, repo, issue_number: item.number, body }));
+                core.info(`#${item.number}: checklist updated.`);
+              } catch (error) {
+                failures.push(`update #${item.number} (${error.status})`);
+              }
+            }
+            if (failures.length) core.setFailed(`Some checklists could not be reconciled, rerun the workflow: ${failures.join(', ')}`);
