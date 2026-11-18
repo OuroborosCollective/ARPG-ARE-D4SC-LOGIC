@@ -198,7 +198,7 @@ internal static class WeaponProfileTests
                 "wp-trap-fixture-armed-under-the-slab");
         int attacks = w.IncomingAttacks, blocked = w.BlockedAttacks, hp = w.PlayerHealth;
         for (int i = 0; i < 12 && p.Investigation.TrapTicks > 0; i++) w.Step();
-        int protection = Math.Min(3500, (p.Woodland.ArmorCrafted ? 1000 : 0) + p.Equipment.Bonus(WeaponAffix.Ward) + p.Equipment.Shield.Definition.BasePower);
+        int protection = Math.Min(6000, (p.Woodland.ArmorCrafted ? 1000 : 0) + p.Crafting.DefenseBonusBp + p.Equipment.Bonus(WeaponAffix.Ward) + p.Equipment.Shield.Definition.BasePower);
         int expected = Math.Max(1, 320 * (10000 - protection) / 10000);
         require(p.Investigation.TrapTicks == -1 && hp - w.PlayerHealth == expected,
                 "wp-trap-damage-is-never-blocked (lost " + (hp - w.PlayerHealth) + ", expected " + expected + ", trap " + p.Investigation.TrapTicks + ")");

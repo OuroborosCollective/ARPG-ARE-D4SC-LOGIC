@@ -115,6 +115,7 @@ namespace AreArpg.Core
             foreach (var pair in sections) p._sections[pair.Key] = pair.Value;
             p.RestoreRegionSection();
             p.RestoreContentSection();
+            p.RestoreCraftSection();
             if (p.SaveString() != saved) return false;
             progress = p;
             return true;
