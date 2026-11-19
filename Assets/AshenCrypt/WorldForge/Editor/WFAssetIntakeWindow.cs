@@ -111,9 +111,10 @@ namespace AshenCrypt.WorldForge.EditorTools
                 if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
                 try
                 {
-                    var file = new FileInfo(path);
-                    if (file.Length > 262144) continue;
-                    string source = File.ReadAllText(path);
+                    string absolute = Path.Combine(Application.dataPath, path.Substring("Assets/".Length));
+                    var file = new FileInfo(absolute);
+                    if (!file.Exists || file.Length > 262144) continue;
+                    string source = File.ReadAllText(absolute);
                     foreach (Match match in pattern.Matches(source))
                         result.Add(match.Groups[1].Value);
                 }
