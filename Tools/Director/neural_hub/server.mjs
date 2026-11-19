@@ -50,6 +50,7 @@ const HARNESS_GUIDANCE = [
 const server=new MCPServer({
   name:'ashen-neural-hub',version:'0.1.0',
   description:'Unity 6000.6.8f1: read-only, provenance-bound 28-advisor council; no runtime authority',
+  allowedOrigins:[], // turn on SDK Origin validation; only localhost-class origins permitted
   instructions:HARNESS_GUIDANCE
 });
 const result=value=>({

@@ -2,6 +2,7 @@ import {server,snapshot} from './server.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
+import {collectMcpList} from './mcp_pagination.mjs';
 
 const headers={'content-type':'application/json','accept':'application/json, text/event-stream'};
 const request = async (url,id,method,params={}) => {
@@ -32,8 +33,9 @@ try{
     assert.ok(response.result.instructions.includes(required),
       'initialize guidance must mention '+required);
   }
-  const t=await request(endpoint.url,2,'tools/list');
-  const tools=t.result.tools;
+  const t=await collectMcpList({method:'tools/list',
+    request:(method,params)=>request(endpoint.url,2,method,params)});
+  const tools=t.items;
   assert.equal(tools.length,32,'28 specialists + 4 director tools');
   assert.equal(new Set(tools.map(tool=>tool.name)).size,32);
   const names=new Set(tools.map(tool=>tool.name));
@@ -42,7 +44,8 @@ try{
     assert.equal(tool.annotations?.readOnlyHint,true,tool.name+' read only');
     assert.equal(tool.annotations?.destructiveHint,false,tool.name+' no destructive effects');
   }
-  const prompts=(await request(endpoint.url,3,'prompts/list')).result.prompts;
+  const prompts=(await collectMcpList({method:'prompts/list',
+    request:(method,params)=>request(endpoint.url,3,method,params)})).items;
   assert.equal(prompts.length,28,'one prompt for each specialist');
   const snap=await request(endpoint.url,4,'tools/call',{name:'director_snapshot',arguments:{}});
   const identity=snap.result.structuredContent;

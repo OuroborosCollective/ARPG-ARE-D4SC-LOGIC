@@ -55,7 +55,7 @@ jobs:
       - name: Install pinned mcp-use package without scripts
         working-directory: Tools/Director/neural_hub
         run: npm ci --omit=optional --ignore-scripts --no-audit --no-fund
-      - name: Run genuine local MCP initialize, tool, and prompt canary
+      - name: Run genuine legacy and modern MCP discovery, tool, prompt and Origin canaries
         working-directory: Tools/Director/neural_hub
         env:
           NEURAL_HUB_LOCAL_ONLY: '1'
@@ -65,6 +65,7 @@ jobs:
           export ASHEN_CATALOG_SHA256="$(sha256sum ../neural_catalog.json | cut -d' ' -f1)"
           export ASHEN_SOURCES_SHA256="$(sha256sum upstream_sources.json | cut -d' ' -f1)"
           node mcp_canary.mjs
+          node mcp_modern_canary.mjs
       - name: Audit pinned package security advisories
         working-directory: Tools/Director/neural_hub
         run: npm audit --omit=optional --omit=dev --audit-level=high
