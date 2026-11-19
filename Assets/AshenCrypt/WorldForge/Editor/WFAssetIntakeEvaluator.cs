@@ -152,8 +152,9 @@ namespace AshenCrypt.WorldForge.EditorTools
                     "Figur, Waffe, Partikel, Gameplay-Komponente oder gebundener Objektname", Vector3.zero);
 
             Vector3 size = MeasureLocalSize(prefab);
-            if (size.x <= 0f || size.z <= 0f || !float.IsFinite(size.x) ||
-                !float.IsFinite(size.y) || !float.IsFinite(size.z))
+            if (size.x <= 0f || size.z <= 0f || float.IsNaN(size.x) || float.IsInfinity(size.x) ||
+                float.IsNaN(size.y) || float.IsInfinity(size.y) ||
+                float.IsNaN(size.z) || float.IsInfinity(size.z))
                 return new WFAssetIntakeVerdict(WFAssetIntakeKind.ReviewRequired,
                     "Keine belastbaren Mesh-Renderer-Grenzen", size);
 
