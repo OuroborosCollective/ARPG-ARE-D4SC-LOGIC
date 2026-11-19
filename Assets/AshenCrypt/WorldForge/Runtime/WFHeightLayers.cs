@@ -372,7 +372,7 @@ namespace AshenCrypt.WorldForge
             if (pois == null) return;
             foreach (WFPoiDefinition poi in pois)
             {
-                if (poi == null || poi.flattenRadius <= 0f) continue;
+                if (poi == null || poi.intakePlacementPending || poi.flattenRadius <= 0f) continue;
                 float inner = poi.flattenRadius, outer = poi.flattenRadius + Mathf.Max(0.01f, poi.flattenFalloff);
                 int x0 = Math.Max(0, WFMath.FloorToInt((poi.position.x - outer) / ctx.Spacing));
                 int x1 = Math.Min(ctx.Width - 1, WFMath.FloorToInt((poi.position.x + outer) / ctx.Spacing) + 1);
