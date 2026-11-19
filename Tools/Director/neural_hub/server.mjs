@@ -34,9 +34,23 @@ const inputSchema=z.object({
   snapshotId:z.string().regex(/^[0-9a-f]{64}$/),
   issues:z.array(issue).max(100).default([])
 }).strict();
+const HARNESS_GUIDANCE = [
+  'This MCP server is a read-only advisory surface for the existing Ashen Crypt Unity Game Director (Unity 6000.6.8f1).',
+  'First call director_snapshot to obtain the current snapshotId; reuse that exact snapshotId for later calls.',
+  'Prefer one relevant advice_<department> tool for a narrowly scoped user request. Do not broadcast across all 28 advisors by default.',
+  'Use director_consult only when explicitly comparing independent architecture tracks; it consults all 28 advisors and never executes work.',
+  'Use director_sources and director_source_discover only for metadata discovery; entries do not grant installation or execution permissions.',
+  'Issue records are caller-supplied, NOT independently verified GitHub data. Verify current issues and repository SHA using a separately authorized GitHub or Sovott read before consequential decisions.',
+  'Never invent issue state, test results, model output, permission, asset rights, source revision, or Unity runtime evidence.',
+  'A gitRevisionClaim is a claim, not Git-HEAD verification. Readback from the existing Unity Game Director is required to bind source and effects.',
+  'Every proposal is advisory, has execution NONE and NOT_EXECUTED runtime evidence; do not present it as tested, installed, deployed or authorized.',
+  'The MCP server cannot edit, build, deploy or run Unity. Never substitute shell commands, extra MCP servers, parallel game authorities or paid model calls.',
+  'If selection, authorization, source coverage or evidence is missing, abstain and identify the smallest safe read or verification step.',
+].join('\n');
 const server=new MCPServer({
   name:'ashen-neural-hub',version:'0.1.0',
-  description:'Unity 6000.6.8f1: read-only, provenance-bound 28-advisor council; no runtime authority'
+  description:'Unity 6000.6.8f1: read-only, provenance-bound 28-advisor council; no runtime authority',
+  instructions:HARNESS_GUIDANCE
 });
 const result=value=>({
   content:[{type:'text',text:JSON.stringify(value)}],
