@@ -80,7 +80,8 @@ namespace AshenCrypt.WorldForge.EditorTools
             WFAshenKryptSampleData.FillPaths(p);
             WFAshenKryptSampleData.FillPois(p);
             // Optional: start from the old Blender v004 heightfield instead of the stamps (disabled by default).
-            p.heightLayers.Insert(0, new WFImportRawLayer { enabled = false, label = "Legacy Blender heightmap v004 (optional)" });
+            p.heightLayers.Insert(0, new WFImportRawLayer { enabled = false, label = "Legacy Blender heightmap v004 (optional)",
+                rawPath = AK + "/World/Heightmaps/AK_World_256m_Global_513.raw" });
             EditorUtility.SetDirty(p);
             AssetDatabase.SaveAssets();
             Selection.activeObject = p;

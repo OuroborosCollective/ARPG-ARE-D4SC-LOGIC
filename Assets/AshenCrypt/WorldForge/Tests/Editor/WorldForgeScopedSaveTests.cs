@@ -35,7 +35,7 @@ namespace AshenCrypt.WorldForge.Tests
             var p=ScriptableObject.CreateInstance<WorldProfile>();
             try
             {
-                Assert.IsTrue(AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity",folder+"/isolated.unity"));
+                CreateEmptyScene(folder+"/isolated.unity");
                 scene=EditorSceneManager.OpenScene(folder+"/isolated.unity",OpenSceneMode.Additive);
                 SceneManager.SetActiveScene(scene);
                 p.tilesX=p.tilesZ=1;p.tileSize=32;p.heightmapResolution=33;
@@ -63,6 +63,21 @@ namespace AshenCrypt.WorldForge.Tests
             }
         }
 
+        /// <summary>
+        /// The test's own empty scene asset. The package must not depend on a scene of the host project
+        /// (Asset Store installs have no Assets/Scenes/Arena.unity).
+        /// </summary>
+        private static void CreateEmptyScene(string path)
+        {
+            // Written directly: the Test Runner's own untitled scene forbids creating an additive scene.
+            File.WriteAllText(path,"%YAML 1.1\n%TAG !u! tag:unity3d.com,2011:\n"+
+                "--- !u!29 &1\nOcclusionCullingSettings:\n  m_ObjectHideFlags: 0\n"+
+                "--- !u!104 &2\nRenderSettings:\n  m_ObjectHideFlags: 0\n"+
+                "--- !u!157 &3\nLightmapSettings:\n  m_ObjectHideFlags: 0\n"+
+                "--- !u!196 &4\nNavMeshSettings:\n  m_ObjectHideFlags: 0\n");
+            AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
+        }
+
         private static void VerifyScope(string operation)
         {
             const string folder="Assets/WF_ScopedSave_Test";
@@ -73,9 +88,9 @@ namespace AshenCrypt.WorldForge.Tests
             var p=ScriptableObject.CreateInstance<WorldProfile>();
             try
             {
-                Assert.IsTrue(AssetDatabase.CopyAsset("Assets/Scenes/Arena.unity",folder+"/isolated.unity"));
+                CreateEmptyScene(folder+"/isolated.unity");
                 scene=EditorSceneManager.OpenScene(folder+"/isolated.unity",OpenSceneMode.Additive);
-                Assert.AreEqual(0,scene.rootCount,"Generation fixture requires the existing empty arena template");
+                Assert.AreEqual(0,scene.rootCount,"Generation fixture must start as an empty scene");
                 SceneManager.SetActiveScene(scene);
                 var sentinel=ScriptableObject.CreateInstance<WorldProfile>();
                 AssetDatabase.CreateAsset(sentinel,folder+"/Unrelated.asset");

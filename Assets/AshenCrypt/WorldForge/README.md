@@ -1,4 +1,4 @@
-# World Forge 1.0.0
+# World Forge 1.0.1
 
 Deterministic multi-tile terrain, texturing, spawning and POI tool for Unity 6 (URP), with an integer core-map export for engine-free simulations.
 

@@ -22,6 +22,10 @@ namespace AshenCrypt.WorldForge.Tests
                 setup = assembly.GetType("AshenCrypt.WorldForge.Nature.EditorTools.AshenKryptAssetSetup");
                 if (setup != null) break;
             }
+            // The Ashen Krypt nature pack is an optional, separately installed content pack (not part of the World Forge
+            // package). Without it there is nothing to check; with it, its setup helper must be present and correct.
+            if (setup == null && !AssetDatabase.IsValidFolder("Assets/Studio/Nature/AshenKrypt"))
+                Assert.Ignore("Optional Ashen Krypt nature pack is not installed.");
             Assert.IsNotNull(setup, "World Forge nature setup is unavailable");
             var findRoot = setup.GetMethod("FindPackageRoot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             Assert.IsNotNull(findRoot);

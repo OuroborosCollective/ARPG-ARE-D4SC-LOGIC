@@ -50,3 +50,6 @@ der Freigabe eine neue Version anlegen und 1.1.0 als Update hochladen.
 
 Hinweis World Forge 1.0.0 (in Prüfung, nicht geändert): Tests und das Beispielmenü greifen auf
 `Assets/Scenes/Arena.unity` und das private `Assets/Studio/Nature/AshenKrypt` zu, die nicht im Paket sind.
+
+Owner-Entscheidung 19.11.2026 (C): Die laufende Prüfung von 1.0.0 bleibt bestehen. Nach der Freigabe legt der Owner im
+Publisher-Portal eine neue Version an; dann wird 1.1.0 hochgeladen.

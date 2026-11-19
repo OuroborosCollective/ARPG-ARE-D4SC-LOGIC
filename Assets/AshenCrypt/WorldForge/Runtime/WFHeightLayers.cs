@@ -210,7 +210,7 @@ namespace AshenCrypt.WorldForge
     public class WFImportRawLayer : WFHeightLayer
     {
         [Tooltip("Project-relative (Assets/...) or absolute path to a 16-bit RAW heightmap covering the whole world.")]
-        public string rawPath = "Assets/Studio/Nature/AshenKrypt/World/Heightmaps/AK_World_256m_Global_513.raw";
+        public string rawPath = "";
         [Tooltip("Samples per side; 0 = derive from file size (square maps).")]
         public int resolution = 0;
         public bool littleEndian = true;
@@ -223,6 +223,11 @@ namespace AshenCrypt.WorldForge
 
         public override void Apply(WFHeightContext ctx)
         {
+            if (string.IsNullOrEmpty(rawPath))
+            {
+                Debug.LogWarning("[WorldForge] RAW import skipped: no heightmap file set.");
+                return;
+            }
             string path = rawPath;
             if (!Path.IsPathRooted(path))
                 path = Path.Combine(Directory.GetParent(Application.dataPath).FullName, rawPath);
