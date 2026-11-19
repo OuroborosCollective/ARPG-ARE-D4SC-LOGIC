@@ -364,7 +364,8 @@ namespace AshenCrypt.WorldForge.EditorTools
             var poiOccupancy = new WFOccupancy(8f);
             if (p.pois != null)
                 foreach (WFPoiDefinition poi in p.pois)
-                    if (poi != null) poiOccupancy.Add(poi.position.x, poi.position.y, poi.clearSpawnRadius);
+                    if (poi != null && !poi.intakePlacementPending && poi.clearSpawnRadius > 0f)
+                        poiOccupancy.Add(poi.position.x, poi.position.y, poi.clearSpawnRadius);
 
             // Tree prototypes shared by all tiles.
             var treePrefabs = new List<GameObject>();
