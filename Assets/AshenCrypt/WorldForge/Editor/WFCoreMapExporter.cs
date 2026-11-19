@@ -59,19 +59,32 @@ namespace AshenCrypt.WorldForge.EditorTools
             CollectTreeObstacles(p, world, origin, obstacles);
             CollectObjectObstacles(p, world, obstacles);
 
-            var pois = new List<ForgedPoiRecord>();
-            if (p.pois != null)
-                foreach (WFPoiDefinition d in p.pois)
-                {
-                    if (d == null) continue;
-                    pois.Add(new ForgedPoiRecord(d.id, (ForgedPoiKind)(byte)d.type, ox + Mm(d.position.x), oz + Mm(d.position.y), (int)Mm(d.radius), d.tags));
-                }
+            var pois = BuildActivePoiRecords(p, ox, oz);
 
             var map = new ForgedWorldMap(ox, oz, spacingMm, nx, nz, heights, walk, obstacles, pois);
             report.perRule["Core map walkable cells %"] = Mathf.RoundToInt(100f * walkable / Mathf.Max(1, walk.Length));
             report.perRule["Core map obstacles"] = obstacles.Count;
             report.perRule["Core map POIs"] = pois.Count;
             return map;
+        }
+
+        /// <summary>
+        /// Export only explicitly placed points. Pending asset approvals remain
+        /// profile metadata and never acquire authoritative Core coordinates.
+        /// </summary>
+        public static List<ForgedPoiRecord> BuildActivePoiRecords(WorldProfile p, long ox, long oz)
+        {
+            if (p == null) throw new System.ArgumentNullException("p");
+            var pois = new List<ForgedPoiRecord>();
+            if (p.pois == null) return pois;
+            foreach (WFPoiDefinition d in p.pois)
+            {
+                if (d == null || d.intakePlacementPending) continue;
+                pois.Add(new ForgedPoiRecord(d.id, (ForgedPoiKind)(byte)d.type,
+                    ox + Mm(d.position.x), oz + Mm(d.position.y),
+                    (int)Mm(d.radius), d.tags));
+            }
+            return pois;
         }
 
         private static void WriteAsset(WorldProfile p, ForgedWorld world, ForgedWorldMap map, WFBuildReport report)
