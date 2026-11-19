@@ -9,6 +9,28 @@ namespace AshenCrypt.WorldForge.Tests
 {
     public class AssetIntakeEditModeTests
     {
+        private const string TestParent = "Assets/PrivateArt/VisualPass1/VikingVillage";
+        private const string TestRoot = TestParent + "/ZZ_WF_AssetIntake_EditMode_Test";
+
+        private static GameObject CreateSourcePrefab(string name, out string guid)
+        {
+            Assert.IsTrue(AssetDatabase.IsValidFolder(TestParent),
+                "Real VikingVillage private asset package required for isolated native test");
+            Assert.IsFalse(AssetDatabase.IsValidFolder(TestRoot),
+                "Pre-existing temporary directory must not be overwritten");
+            AssetDatabase.CreateFolder(TestParent, "ZZ_WF_AssetIntake_EditMode_Test");
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                go.name = name;
+                string path = TestRoot + "/" + name + ".prefab";
+                Assert.IsNotNull(PrefabUtility.SaveAsPrefabAsset(go, path));
+                guid = AssetDatabase.AssetPathToGUID(path);
+                Assert.AreEqual(32, guid.Length);
+                return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(go); }
+        }
         [Test]
         public void SceneOwnedActorsAndEffectsNeverBecomeDecoration()
         {
@@ -70,25 +92,30 @@ namespace AshenCrypt.WorldForge.Tests
         [Test]
         public void ConfirmedSpawnWritesOnlyExistingBiomeAndKeepsGuid()
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            string guid;
+            var prefab = CreateSourcePrefab("ApprovedApple", out guid);
             var biome = ScriptableObject.CreateInstance<BiomeProfile>();
             try
             {
-                var v = WFAssetIntakeEvaluator.Assess(go,
-                    "Assets/PrivateArt/DesignAssets/StylizedFruitProps/Apple.prefab");
+                var v = WFAssetIntakeEvaluator.Assess(prefab, AssetDatabase.GetAssetPath(prefab));
                 Assert.AreEqual(WFAssetIntakeKind.Spawn, v.kind);
-                WFAssetIntakeApprovals.ConfirmSpawn(biome, go, "aabbccddeeff00112233445566778899", v);
+                WFAssetIntakeApprovals.ConfirmSpawn(biome, prefab, guid, v);
                 Assert.AreEqual(1, biome.spawnRules.Count);
-                Assert.AreEqual("aabbccddeeff00112233445566778899",
-                    biome.spawnRules[0].approvedAssetGuid);
-                Assert.AreSame(go, biome.spawnRules[0].prefabs[0]);
-                WFAssetIntakeApprovals.ConfirmSpawn(biome, go, "aabbccddeeff00112233445566778899", v);
+                Assert.AreEqual(guid, biome.spawnRules[0].approvedAssetGuid);
+                Assert.AreSame(prefab, biome.spawnRules[0].prefabs[0]);
+                WFAssetIntakeApprovals.ConfirmSpawn(biome, prefab, guid, v);
                 Assert.AreEqual(1, biome.spawnRules.Count);
-                biome.spawnRules[0].prefabs.Clear(); // emulate missing private asset, GUID must remain
-                Assert.AreEqual("aabbccddeeff00112233445566778899",
-                    biome.spawnRules[0].approvedAssetGuid);
+                Assert.Throws<InvalidOperationException>(() => WFAssetIntakeApprovals.ConfirmSpawn(
+                    biome, prefab, "aabbccddeeff00112233445566778899", v),
+                    "Spoofed caller-supplied GUID must never be accepted");
+                biome.spawnRules[0].prefabs.Clear(); // missing private art must retain approval
+                Assert.AreEqual(guid, biome.spawnRules[0].approvedAssetGuid);
             }
-            finally { UnityEngine.Object.DestroyImmediate(go); UnityEngine.Object.DestroyImmediate(biome); }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(biome);
+                AssetDatabase.DeleteAsset(TestRoot);
+            }
         }
 
         [Test]
@@ -110,19 +137,26 @@ namespace AshenCrypt.WorldForge.Tests
         [Test]
         public void PoiApprovalUpdatesExistingWorldProfileWithoutDuplicateOrAutoSave()
         {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            string guid;
+            var prefab = CreateSourcePrefab("ApprovedBuilding", out guid);
             var profile = ScriptableObject.CreateInstance<WorldProfile>();
             try
             {
-                var verdict = WFAssetIntakeEvaluator.Assess(go,
-                    "Assets/PrivateArt/VisualPass1/VikingVillage/Building.prefab");
-                WFAssetIntakeApprovals.ConfirmPoi(profile, go, "00112233445566778899aabbccddeeff", verdict);
+                var verdict = WFAssetIntakeEvaluator.Assess(prefab, AssetDatabase.GetAssetPath(prefab));
+                Assert.AreEqual(WFAssetIntakeKind.Spawn, verdict.kind);
+                WFAssetIntakeApprovals.ConfirmPoi(profile, prefab, guid, verdict);
                 Assert.AreEqual(1, profile.pois.Count);
-                Assert.AreEqual("00112233445566778899aabbccddeeff", profile.pois[0].approvedAssetGuid);
-                WFAssetIntakeApprovals.ConfirmPoi(profile, go, "00112233445566778899aabbccddeeff", verdict);
+                Assert.AreEqual(guid, profile.pois[0].approvedAssetGuid);
+                Assert.IsTrue(profile.pois[0].intakePlacementPending,
+                    "Approval is not placement: a new POI must stay pending");
+                WFAssetIntakeApprovals.ConfirmPoi(profile, prefab, guid, verdict);
                 Assert.AreEqual(1, profile.pois.Count);
             }
-            finally { UnityEngine.Object.DestroyImmediate(go); UnityEngine.Object.DestroyImmediate(profile); }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(profile);
+                AssetDatabase.DeleteAsset(TestRoot);
+            }
         }
 
         [Test]
