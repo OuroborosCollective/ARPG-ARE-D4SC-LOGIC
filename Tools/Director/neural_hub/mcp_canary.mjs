@@ -23,6 +23,13 @@ try{
     clientInfo:{name:'ashen-neural-canary',version:'0.1.0'}
   });
   assert.equal(response.result.serverInfo.name,'ashen-neural-hub');
+  assert.equal(typeof response.result.instructions,'string',
+    'initialize must supply harness-aware MCP guidance');
+  for(const required of ['director_snapshot','director_consult','caller-supplied',
+                         'Unity Game Director','NOT_EXECUTED']){
+    assert.ok(response.result.instructions.includes(required),
+      'initialize guidance must mention '+required);
+  }
   const t=await request(endpoint.url,2,'tools/list');
   const tools=t.result.tools;
   assert.equal(tools.length,32,'28 specialists + 4 director tools');
