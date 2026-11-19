@@ -139,7 +139,9 @@ namespace AshenCrypt.WorldForge.EditorTools
                 !path.StartsWith("Assets/", StringComparison.Ordinal) ||
                 !path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) &&
                 !path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase) &&
-                !path.EndsWith(".obj", StringComparison.OrdinalIgnoreCase))
+                !path.EndsWith(".obj", StringComparison.OrdinalIgnoreCase) &&
+                !path.EndsWith(".glb", StringComparison.OrdinalIgnoreCase) &&
+                !path.EndsWith(".gltf", StringComparison.OrdinalIgnoreCase))
                 return new WFAssetIntakeVerdict(WFAssetIntakeKind.ReviewRequired,
                     "Ungültiger oder nicht unterstützter GameObject-Assetpfad", Vector3.zero);
 
@@ -182,24 +184,35 @@ namespace AshenCrypt.WorldForge.EditorTools
                 if (!Uri.IsHexDigit(c)) throw new InvalidOperationException("INVALID_ASSET_GUID");
         }
 
-        private static void Validate(GameObject prefab, string guid, WFAssetIntakeVerdict v)
+        private static WFAssetIntakeVerdict Validate(GameObject prefab, string guid,
+                                                     WFAssetIntakeVerdict shown)
         {
             ValidateGuid(guid);
-            if (prefab == null || v == null || v.kind == WFAssetIntakeKind.Protected ||
-                v.kind == WFAssetIntakeKind.ReviewRequired ||
-                HasChangedSinceInspection(prefab))
+            if (prefab == null || shown == null ||
+                shown.kind == WFAssetIntakeKind.Protected ||
+                shown.kind == WFAssetIntakeKind.ReviewRequired)
                 throw new InvalidOperationException("ASSET_NOT_APPROVED_FOR_DECORATION");
-        }
 
-        private static bool HasChangedSinceInspection(GameObject prefab)
-        { return WFAssetIntakeEvaluator.HasGameplayOrEffectComponents(prefab); }
+            // Never trust a cached preview, caller-supplied verdict, or spoofed GUID.
+            string actualPath = AssetDatabase.GetAssetPath(prefab);
+            if (string.IsNullOrEmpty(actualPath) ||
+                AssetDatabase.AssetPathToGUID(actualPath) != guid ||
+                AssetDatabase.LoadAssetAtPath<GameObject>(actualPath) != prefab)
+                throw new InvalidOperationException("ASSET_SOURCE_GUID_NOT_VERIFIED");
+            WFAssetIntakeVerdict actual = WFAssetIntakeEvaluator.Assess(prefab, actualPath);
+            if (actual.kind != shown.kind ||
+                actual.kind == WFAssetIntakeKind.Protected ||
+                actual.kind == WFAssetIntakeKind.ReviewRequired)
+                throw new InvalidOperationException("ASSET_INSPECTION_DRIFT");
+            return actual;
+        }
 
         public static void ConfirmSpawn(BiomeProfile biome, GameObject prefab, string guid,
                                          WFAssetIntakeVerdict verdict)
         {
             if (biome == null) throw new ArgumentNullException("biome");
-            Validate(prefab, guid, verdict);
-            if (verdict.kind != WFAssetIntakeKind.Spawn)
+            WFAssetIntakeVerdict verified = Validate(prefab, guid, verdict);
+            if (verified.kind != WFAssetIntakeKind.Spawn)
                 throw new InvalidOperationException("SPAWN_CATEGORY_NOT_PROPOSED");
             foreach (WFSpawnRule r in biome.spawnRules)
                 if (r != null && r.approvedAssetGuid == guid) return; // idempotent
@@ -208,10 +221,10 @@ namespace AshenCrypt.WorldForge.EditorTools
             {
                 name = "Asset_" + guid.Substring(0, 8), kind = SpawnKind.GameObject,
                 enabled = true, approvedAssetGuid = guid, prefabs = new List<GameObject> { prefab },
-                densityPer100m2 = 0.05f, minSpacing = Mathf.Max(3f, 2f * verdict.clearanceRadius),
-                clearRadius = verdict.clearanceRadius,
+                densityPer100m2 = 0.05f, minSpacing = Mathf.Max(3f, 2f * verified.clearanceRadius),
+                clearRadius = verified.clearanceRadius,
                 respectPoiClearance = true,
-                coreObstacle = true, coreObstacleRadius = verdict.clearanceRadius
+                coreObstacle = true, coreObstacleRadius = verified.clearanceRadius
             };
             biome.spawnRules.Add(rule);
             EditorUtility.SetDirty(biome); // Save ownership remains with the editor/user.
@@ -221,7 +234,7 @@ namespace AshenCrypt.WorldForge.EditorTools
                                        WFAssetIntakeVerdict verdict)
         {
             if (world == null) throw new ArgumentNullException("world");
-            Validate(prefab, guid, verdict);
+            WFAssetIntakeVerdict verified = Validate(prefab, guid, verdict);
             foreach (WFPoiDefinition r in world.pois)
                 if (r != null && r.approvedAssetGuid == guid) return;
             Undo.RecordObject(world, "Confirm World Forge POI");
@@ -230,10 +243,10 @@ namespace AshenCrypt.WorldForge.EditorTools
                 id = "asset." + guid, type = PoiType.Landmark,
                 approvedAssetGuid = guid, decorativePrefab = prefab,
                 intakePlacementPending = true, // configure position before actual terrain generation
-                radius = verdict.clearanceRadius,
-                flattenRadius = verdict.clearanceRadius,
+                radius = verified.clearanceRadius,
+                flattenRadius = verified.clearanceRadius,
                 flattenFalloff = 2f,
-                clearSpawnRadius = verdict.clearanceRadius + 1f
+                clearSpawnRadius = verified.clearanceRadius + 1f
             };
             world.pois.Add(poi);
             EditorUtility.SetDirty(world);
