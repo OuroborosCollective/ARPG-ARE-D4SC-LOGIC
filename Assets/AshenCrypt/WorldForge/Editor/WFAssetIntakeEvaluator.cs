@@ -229,6 +229,7 @@ namespace AshenCrypt.WorldForge.EditorTools
             {
                 id = "asset." + guid, type = PoiType.Landmark,
                 approvedAssetGuid = guid, decorativePrefab = prefab,
+                intakePlacementPending = true, // configure position before actual terrain generation
                 radius = verdict.clearanceRadius,
                 flattenRadius = verdict.clearanceRadius,
                 flattenFalloff = 2f,
