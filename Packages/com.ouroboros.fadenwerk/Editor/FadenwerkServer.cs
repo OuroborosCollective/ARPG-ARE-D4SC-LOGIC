@@ -190,6 +190,14 @@ namespace Fadenwerk.EditorTools
             string path = req.Url.AbsolutePath;
             LastClient = req.RemoteEndPoint != null ? req.RemoteEndPoint.Address.ToString() : "";
 
+            if (req.HttpMethod == "GET" && (path == "/" || path == "/index.html") && IsExtensionPage(req.Url.Query))
+            {
+                byte[] page = null;
+                try { page = FadenwerkAuthoringBridge.ExtensionPage(); }
+                catch (Exception e) { LastError = "Erweiterungsseite: " + e.Message; }
+                Send(ctx, page != null ? FwResponse.Bytes(page, "text/html; charset=utf-8") : FwResponse.Error("Erweiterungsseite nicht gefunden", 404));
+                return;
+            }
             if (req.HttpMethod == "GET" && (path == "/" || path == "/index.html"))
             {
                 var r = FwResponse.Bytes(_html, "text/html; charset=utf-8");
@@ -228,6 +236,16 @@ namespace Fadenwerk.EditorTools
                 }
             }
             Queue.Enqueue(p);
+        }
+
+        /// <summary>True for "/?key" or "/?key=…" when the project registered an extension page under that key.</summary>
+        internal static bool IsExtensionPage(string query)
+        {
+            string key = FadenwerkAuthoringBridge.ExtensionPageKey;
+            if (string.IsNullOrEmpty(key) || FadenwerkAuthoringBridge.ExtensionPage == null || string.IsNullOrEmpty(query)) return false;
+            foreach (string part in query.TrimStart('?').Split('&'))
+                if (part == key || part.StartsWith(key + "=", StringComparison.Ordinal)) return true;
+            return false;
         }
 
         static bool SafeEquals(string a, string b)

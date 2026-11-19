@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#16181d">
+<title>Ashen Crypt · Bau-Modus</title>
+<style>
+:root{--bg:#121418;--panel:#1d2027;--panel2:#262a33;--line:#363b47;--text:#e9e4d8;--muted:#9a9586;--accent:#e0a64a;--ok:#5fd18a;--warn:#f0a840;--bad:#ef5a4c;--blue:#62a8e8}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;min-height:40px;touch-action:manipulation}
+button:hover{border-color:#5a6070}button:active{transform:translateY(1px)}
+button.primary{background:#3d6b45;border-color:#5fd18a;color:#fff;font-weight:600}
+button.danger{background:#6b2f2a;border-color:#ef5a4c;color:#fff}
+button.on{background:#4a3a1c;border-color:var(--accent);color:#ffd99a}
+button:disabled{opacity:.45;cursor:default}
+select{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:40px;max-width:46vw}
+#top{position:fixed;left:0;right:0;top:0;height:58px;display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(#20232b,#181a20);border-bottom:1px solid var(--line);z-index:5}
+#brand{font-weight:800;letter-spacing:.06em;color:var(--accent);white-space:nowrap;font-size:14px;line-height:1.1}
+#brand small{display:block;color:var(--muted);font-weight:500;letter-spacing:0}
+#pill{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;background:#15171c;border:1px solid var(--line);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34vw}
+#pill i{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+#pill.edit i{background:var(--blue)}#pill.play i{background:var(--ok);box-shadow:0 0 8px var(--ok)}#pill.off i{background:var(--bad)}
+.grow{flex:1}
+#topbtns{display:flex;gap:6px}
+#map{position:fixed;left:0;top:58px;right:0;bottom:0;width:100%;height:calc(100% - 58px);touch-action:none;cursor:crosshair;display:block}
+#tools{position:fixed;left:10px;bottom:10px;right:10px;display:flex;gap:6px;z-index:4;overflow-x:auto;padding-bottom:2px}
+#tools button{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:76px;height:64px;padding:4px 8px;font-size:12px;background:rgba(29,32,39,.94);flex:none}
+#tools button b{display:block;height:26px;line-height:0}
+button svg{vertical-align:-6px}#tabs svg,#drawer h3 svg,#action svg{width:18px;height:18px;vertical-align:-4px}
+.card .th svg{width:34px;height:34px;opacity:.6}
+#drawer{position:fixed;left:10px;right:10px;bottom:84px;max-height:42vh;overflow:auto;background:rgba(24,26,32,.97);border:1px solid var(--line);border-radius:14px;padding:10px;z-index:4;display:none}
+#drawer h3,#popup h3{margin:0 0 8px;font-size:14px;color:var(--accent);display:flex;align-items:center;gap:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.card{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;cursor:pointer;min-height:118px;text-align:center;font-size:12.5px}
+.card:hover{border-color:var(--accent)}
+.card .th{width:84px;height:72px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:radial-gradient(#2e333d,#1c1f25)}
+.card .th img{max-width:84px;max-height:72px;image-rendering:auto}
+.card .th span{font-size:30px;opacity:.75}
+.card em{font-style:normal;font-size:10.5px;color:var(--muted)}
+#popup{position:fixed;z-index:6;width:min(560px,94vw);max-height:60vh;overflow:auto;background:rgba(24,26,32,.98);border:1px solid var(--accent);border-radius:14px;padding:10px;display:none;box-shadow:0 10px 40px #000a}
+#tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+#tabs button{min-height:34px;padding:5px 9px;font-size:13px}
+#action{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:5;display:none;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;background:rgba(20,22,27,.97);border:1px solid var(--line);border-radius:14px;padding:8px;max-width:96vw;box-shadow:0 8px 30px #0009}
+#action .lbl{padding:0 6px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#action .sub{color:var(--muted);font-size:12px;font-weight:400;display:block}
+#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:9;display:none;padding:10px 16px;border-radius:12px;background:#1f2a22;border:1px solid var(--ok);max-width:92vw;box-shadow:0 6px 24px #000a}
+#toast.err{background:#2e1c1a;border-color:var(--bad)}
+#notice{position:fixed;right:10px;top:68px;z-index:3;width:min(330px,70vw);background:rgba(24,26,32,.94);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;color:#cfc8b8}
+#notice b{color:var(--accent)}#notice button{min-height:30px;padding:3px 9px;margin-top:6px;font-size:12px}
+#busy{position:fixed;inset:58px 0 0 0;z-index:8;display:none;align-items:center;justify-content:center;background:#0008;font-size:16px;text-align:center;padding:20px}
+#busy div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 22px;max-width:440px}
+.spin{display:inline-block;width:18px;height:18px;border:3px solid #fff3;border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-3px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+#login{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;background:var(--bg)}
+#login div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;width:min(420px,92vw)}
+#login input{width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:#111;color:var(--text);margin:10px 0}
+#help{position:fixed;inset:0;z-index:12;display:none;align-items:center;justify-content:center;background:#000a}
+#help div{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;width:min(560px,94vw);max-height:86vh;overflow:auto}
+#help h2{margin:0 0 8px;color:var(--accent);font-size:18px}#help li{margin:4px 0}
+#legend{position:fixed;left:10px;top:68px;z-index:3;font-size:12px;color:var(--muted);background:rgba(18,20,24,.82);border:1px solid var(--line);border-radius:10px;padding:6px 9px;pointer-events:none}
+@media (max-width:760px){#brand small{display:none}#pill{max-width:40vw}#topbtns .wide{display:none}#notice{display:none}#tools button{min-width:66px;height:58px}#drawer,#action{bottom:76px}}
+</style>
+</head>
+<body>
+<header id="top">
+  <div id="brand">ASHEN CRYPT<small>Bau-Modus</small></div>
+  <select id="area" title="Baugebiet"></select>
+  <div id="pill" class="off"><i></i><span id="pilltext">Verbinde mit Unity …</span></div>
+  <div class="grow"></div>
+  <div id="topbtns">
+    <button id="undo" title="Rückgängig (Strg+Z)">↶<span class="wide"> Rückgängig</span></button>
+    <button id="rotate" title="Ansicht um 90° drehen">⟳<span class="wide"> Ansicht</span></button>
+    <button id="redraw" class="wide" title="Hintergrund aus Unity neu zeichnen"></button>
+    <button id="real" class="wide" title="Echtbild: Unity zeichnet alles inklusive Gebautem"></button>
+    <button id="download" class="wide" title="Bauplan als Datei herunterladen">⬇</button>
+    <button id="helpbtn" title="Hilfe">?</button>
+  </div>
+</header>
+<canvas id="map"></canvas>
+<div id="legend">Ziehen = verschieben · Rad/Pinch = Zoom · Tippen auf freie Fläche = Baumenü</div>
+<div id="notice"><b>Gebautes ist Kulisse.</b> Es erscheint sofort in Unity und im Spiel, ändert aber keine Spielregeln: Kollision, Wege und Figuren bleiben beim Spiel-Kern. <span style="color:#e07a6e">Rot schraffiert</span> = feste Gebäude der Spielregeln.<br><button id="noticeok">Verstanden</button></div>
+<nav id="tools"></nav>
+<section id="drawer"></section>
+<div id="popup"><h3 id="poptitle">Was soll hier hin?</h3><div id="tabs"></div><div class="grid" id="popgrid"></div></div>
+<div id="action"></div>
+<div id="toast"></div>
+<div id="busy"><div><span class="spin"></span><span id="busytext">Unity arbeitet …</span></div></div>
+<div id="login"><div><h2 style="margin:0;color:var(--accent)">Bau-Modus</h2><p>Zugangsschlüssel aus dem Unity-Fenster <i>Fadenwerk → Einstellungen</i> eingeben (oder über den geschützten Link öffnen).</p><input id="tok" type="password" autocomplete="off" placeholder="Zugangsschlüssel"><button class="primary" id="tokbtn">Verbinden</button></div></div>
+<div id="help"><div>
+  <h2>So baust du</h2>
+  <ol>
+    <li><b>Gebiet wählen</b> (oben links). Unity zeigt das Gebiet sofort im Editor; die Karte hier ist ein echtes Bild aus Unity.</li>
+    <li><b>Auf eine freie Stelle tippen</b> → Baumenü. Oder unten eine Kategorie wählen (Häuser, Props, Bewohner, Natur, Untergründe …).</li>
+    <li>Das Teil erscheint als <b>Vorschau</b> (grüner Rahmen) – hier und gleichzeitig in Unity. <b>Ziehen</b> zum Verschieben, <b>⟲ ⟳</b> zum Drehen, <b>− +</b> für die Größe.</li>
+    <li><b>✓ Bauen</b> übernimmt es fest: Unity speichert den Bauplan und zeigt das Teil live – im Editor und, wenn das Spiel läuft, direkt im Spiel.</li>
+    <li>Gebautes antippen → verschieben, drehen, kopieren oder abreißen. <b>↶</b> macht den letzten Schritt rückgängig.</li>
+    <li><b>Untergründe</b>: Fläche mit dem Finger aufziehen. <b>Wald-Pinsel</b>: Kreis setzen, Radius/Anzahl wählen, pflanzen.</li>
+  </ol>
+  <p><b>Farben:</b> grün = passt, orange = überlappt (erlaubt), rot = außerhalb des Baugebiets.</p>
+  <p><b>Tasten:</b> Q/E drehen · Enter bauen · Esc abbrechen · Entf abreißen · Strg+Z rückgängig · Pfeile verschieben die Ansicht · +/− Zoom · R Ansicht drehen.</p>
+  <p style="color:var(--muted)">Gespeichert wird in <code>Assets/Resources/ARE/BuildLayouts/&lt;gebiet&gt;.json</code>. Das Spiel lädt diese Datei selbst – auch in der APK nach dem nächsten Build.</p>
+  <button class="primary" id="helpok">Los geht's</button>
+</div></div>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const R2 = Math.SQRT2, COS30 = 0.8660254;
+const S = {
+  token: "", areas: [], area: "", extent: 40, cats: [], entries: [], byKey: {}, forestKeys: [],
+  layout: null, rev: 0, pieces: [], reserved: [], canUndo: false,
+  map: null, mapImg: null, view: { rot: 0, s: 8, ox: 0, oy: 0 }, real: false,
+  sheets: {}, thumbs: {}, swatch: {}, queue: [], loading: false,
+  tool: "select", cat: "", ghost: null, selected: null, hover: null,
+  playing: false, connected: false, lastState: null, busy: false, ghostSent: 0, ghostTimer: 0, ghostFirst: true,
+  snap: true, dirtyReal: false
+};
+const SVG = (d, extra) => '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + (extra || "") + "</svg>";
+const ICONS = {
+  select: SVG('<path d="M5 3l13 7.5-5.6 1.6 3.4 6.2-2.4 1.3-3.4-6.2L6 17.5z"/>'),
+  haeuser: SVG('<path d="M3 11.5L12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5.5h4V20"/>'),
+  mauern: SVG('<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19"/>'),
+  props: SVG('<path d="M3.5 7.5L12 3.5l8.5 4v9L12 20.5l-8.5-4z"/><path d="M3.5 7.5L12 11.5l8.5-4M12 11.5v9"/>'),
+  bewohner: SVG('<circle cx="12" cy="6.5" r="3"/><path d="M6 21v-4.5a6 6 0 0 1 12 0V21"/>'),
+  natur: SVG('<path d="M12 2.5l5.5 8h-3l4 6h-13l4-6h-3z"/><path d="M12 16.5v5"/>'),
+  untergruende: SVG('<path d="M12 4l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/><path d="M7.5 6.5l9 5M16.5 6.5l-9 5"/>'),
+  forest: SVG('<path d="M8 3l4.5 7h-2.5l3.5 5.5H2.5L6 10H3.5z"/><path d="M8 15.5V21"/><path d="M17 6l3.5 5.5H19l2.5 4h-6"/><path d="M17.5 15.5V21"/>'),
+  demolish: SVG('<path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6"/>'),
+  map: SVG('<path d="M3 6l6-2.5 6 2.5 6-2.5v14.5l-6 2.5-6-2.5-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/>'),
+  camera: SVG('<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13.5" r="3.5"/>'),
+  dice: SVG('<rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="15" cy="15" r="1" fill="currentColor"/><circle cx="15" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="15" r="1" fill="currentColor"/>'),
+  copy: SVG('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>')
+};
+const icon = key => ICONS[key] || ICONS.props;
+const cv = $("#map"), ctx = cv.getContext("2d");
+let dpr = 1, W = 0, H = 0;
+
+// ------------------------------------------------------------------ API
+function readToken() {
+  if (document.querySelector('meta[name="fadenwerk-owner-proxy"]')) { S.token = "proxy"; return true; }
+  const m = location.hash.match(/[#&]t=([^&]+)/);
+  if (m) {
+    S.token = decodeURIComponent(m[1]);
+    try { localStorage.setItem("fw.token", S.token); } catch (e) {}
+    history.replaceState(null, "", location.pathname + location.search);
+    return true;
+  }
+  try { S.token = localStorage.getItem("fw.token") || ""; } catch (e) { S.token = ""; }
+  return !!S.token;
+}
+async function api(path, body) {
+  const o = { method: body === undefined ? "GET" : "POST", headers: { "X-Fadenwerk-Token": S.token } };
+  if (body !== undefined) { o.headers["Content-Type"] = "application/json"; o.body = JSON.stringify(body); }
+  let res;
+  try { res = await fetch("./api/x/" + path, o); }
+  catch (e) { throw Object.assign(new Error("Unity ist nicht erreichbar."), { status: 0 }); }
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (res.status === 401) { showLogin(); throw Object.assign(new Error("Zugangsschlüssel fehlt oder ist falsch."), { status: 401 }); }
+  if (!res.ok || (data && data.ok === false)) {
+    const err = new Error((data && data.error) || ("Fehler " + res.status));
+    err.status = res.status; err.data = data; throw err;
+  }
+  return data;
+}
+async function apiBlob(path, tries) {
+  for (let i = 0; i < (tries || 6); i++) {
+    let res;
+    try { res = await fetch("./api/x/" + path, { headers: { "X-Fadenwerk-Token": S.token } }); } catch (e) { return null; }
+    if (res.status === 202 || res.status === 503) { await sleep(1200); continue; }
+    if (!res.ok) return null;
+    return await res.blob();
+  }
+  return null;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function loadImage(blob) {
+  return new Promise(resolve => {
+    if (!blob) return resolve(null);
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+// ------------------------------------------------------------------ geometry (same camera as Unity: pitch 30°, yaw 45° + 90°·view)
+function yaw() { return (45 + 90 * S.view.rot) * Math.PI / 180; }
+function uv(x, z, y) { const Y = yaw(), c = Math.cos(Y), s = Math.sin(Y); return [x * c - z * s, (x * s + z * c) * 0.5 + (y || 0) * COS30]; }
+function w2s(x, z, y) { const p = uv(x, z, y), k = R2 * S.view.s; return [p[0] * k + S.view.ox, -p[1] * k + S.view.oy]; }
+function s2w(sx, sy) {
+  const k = R2 * S.view.s, u = (sx - S.view.ox) / k, g = -(sy - S.view.oy) / k * 2;
+  const Y = yaw(), c = Math.cos(Y), s = Math.sin(Y);
+  return [u * c + g * s, -u * s + g * c];
+}
+function rotLocal(lx, lz, deg) { const r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r); return [lx * c + lz * s, -lx * s + lz * c]; }
+function footprint(p) {
+  const e = S.byKey[p.key]; if (!e) return [];
+  let hw, hd, ox = 0, oz = 0;
+  if (e.kind === "surface") { hw = (p.w || e.w) / 2; hd = (p.d || e.d) / 2; }
+  else { const sc = p.scale || 1; hw = e.w * sc / 2; hd = e.d * sc / 2; ox = e.ox * sc; oz = e.oz * sc; }
+  const pts = [];
+  for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const r = rotLocal(ox + a * hw, oz + b * hd, p.rot || 0); pts.push([p.x + r[0], p.z + r[1]]); }
+  return pts;
+}
+function aabb(pts) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); } return [x0, z0, x1, z1]; }
+function inPoly(x, z, pts) {
+  let inside = false;
+  for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+    const [xi, zi] = pts[i], [xj, zj] = pts[j];
+    if (((zi > z) !== (zj > z)) && (x < (xj - xi) * (z - zi) / (zj - zi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function snap(v, step) { return S.snap ? Math.round(v / step) * step : Math.round(v * 100) / 100; }
+function clampArea(v) { return Math.max(-S.extent, Math.min(S.extent, v)); }
+
+// ------------------------------------------------------------------ boot
+async function boot() {
+  if (!readToken()) { showLogin(); return; }
+  $("#login").style.display = "none";
+  try {
+    const [state, cat] = await Promise.all([api("state"), api("catalog")]);
+    S.cats = cat.categories; S.entries = cat.entries; S.forestKeys = cat.forest;
+    S.byKey = {}; for (const e of S.entries) S.byKey[e.key] = e;
+    applyState(state);
+    buildToolbar();
+    const sel = $("#area");
+    sel.innerHTML = "";
+    for (const a of state.areas) { const o = document.createElement("option"); o.value = a.key; o.textContent = a.label + (a.pieces ? " (" + a.pieces + ")" : ""); sel.appendChild(o); }
+    let start = state.playing && state.liveArea ? state.liveArea : (state.previewArea || "aschengrenze");
+    try { const last = localStorage.getItem("bau.area"); if (!state.playing && last && state.areas.some(a => a.key === last)) start = last; } catch (e) {}
+    sel.value = start;
+    await selectArea(start);
+    for (const e of S.entries) enqueueSprite(e.key);
+    setInterval(poll, 3000);
+    try { if (!localStorage.getItem("bau.helpSeen")) { $("#help").style.display = "flex"; localStorage.setItem("bau.helpSeen", "1"); } } catch (e) {}
+    try { if (localStorage.getItem("bau.noticeSeen")) $("#notice").style.display = "none"; } catch (e) {}
+  } catch (e) { toast(e.message, true); setPill("off", "Unity nicht erreichbar – Fadenwerk-Server in Unity starten"); setTimeout(boot, 5000); }
+}
+function showLogin() { $("#login").style.display = "flex"; }
+$("#tokbtn").onclick = () => { const t = ($("#tok").value || "").trim(); if (!t) return; S.token = t; try { localStorage.setItem("fw.token", t); } catch (e) {} boot(); };
+
+function applyState(st) {
+  S.lastState = st; S.connected = true;
+  const was = S.playing; S.playing = st.playing;
+  const a = st.areas.find(x => x.key === S.area);
+  if (st.playing) setPill("play", "Spiel läuft · zeigt " + (labelOf(st.liveArea) || "kein Baugebiet") + (st.liveArea ? " · " + st.livePieces + " Teile live" : ""));
+  else setPill("edit", "Unity-Editor · Vorschau " + (st.previewVisible ? labelOf(st.previewArea) + " · " + st.previewPieces + " Teile" : "aus"));
+  if (was !== st.playing && S.area) toast(st.playing ? "Play-Modus gestartet – Änderungen gehen jetzt direkt ins laufende Spiel." : "Play-Modus beendet – Änderungen erscheinen in der Editor-Vorschau.");
+  return a;
+}
+function labelOf(key) { const a = S.lastState && S.lastState.areas.find(x => x.key === key); return a ? a.label : ""; }
+function setPill(cls, text) { const p = $("#pill"); p.className = cls; $("#pilltext").textContent = text; p.title = text; }
+
+async function poll() {
+  if (S.busy) return;
+  try {
+    const st = await api("state");
+    applyState(st);
+    if (!dragging && S.area) {
+      const lay = await api("layout?area=" + encodeURIComponent(S.area));
+      if (lay.revision !== S.rev) { applyLayout(lay); draw(); }
+    }
+  } catch (e) { if (e.status === 0 || e.status === 503) setPill("off", "Unity nicht erreichbar oder beschäftigt …"); }
+}
+
+async function selectArea(key) {
+  cancelGhost(true);
+  S.area = key; S.selected = null;
+  try { localStorage.setItem("bau.area", key); } catch (e) {}
+  const a = S.lastState.areas.find(x => x.key === key);
+  S.extent = a ? a.extent : 40;
+  setBusy(S.playing ? "Lade Bauplan …" : "Unity baut die Vorschau von „" + (a ? a.label : key) + "“ im Editor auf …");
+  try { applyLayout(await api("preview", { area: key, view: S.view.rot, focus: true })); }
+  catch (e) { toast(e.message, true); }
+  finally { setBusy(null); }
+  fitView();
+  await loadMap(false);
+  draw();
+}
+$("#area").onchange = e => selectArea(e.target.value);
+
+function applyLayout(lay) {
+  S.layout = lay; S.rev = lay.revision; S.pieces = lay.pieces || []; S.reserved = lay.reserved || []; S.canUndo = lay.canUndo;
+  $("#undo").disabled = !S.canUndo;
+  if (S.selected && !S.pieces.find(p => p.id === S.selected)) { S.selected = null; if (S.ghost && S.ghost.mode === "edit") cancelGhost(true); }
+  for (const p of S.pieces) enqueueSprite(p.key, true);
+}
+function liveText(live) {
+  if (!live) return "";
+  if (live.mode === "play") return live.shown ? "live im Spiel ✓ (" + live.inUnity + " Teile)" : "gespeichert – " + live.note;
+  return live.shown ? "in Unity sichtbar ✓ (" + live.inUnity + " Teile)" : "gespeichert";
+}
+
+// ------------------------------------------------------------------ map background (rendered by Unity)
+async function loadMap(forceRender) {
+  const q = "area=" + encodeURIComponent(S.area) + "&view=" + S.view.rot + (S.real ? "&real=1" : "");
+  let info = null;
+  if (!forceRender) { try { info = await api("map/info?" + q); } catch (e) { info = null; } }
+  if (!info) {
+    setBusy("Unity zeichnet die Karte (" + (S.playing ? "aus dem laufenden Spiel" : "aus der Editor-Vorschau") + ") … Das Live-System rendert in Software, das dauert einige Sekunden.");
+    try { info = await api("map/render", { area: S.area, view: S.view.rot, real: S.real }); }
+    catch (e) { toast(e.message, true); info = null; }
+    finally { setBusy(null); }
+  }
+  S.map = info; S.mapImg = null;
+  if (info) S.mapImg = await loadImage(await apiBlob("map/image?" + q + "&v=" + info.stamp));
+  if (S.real) S.dirtyReal = false;
+  draw();
+}
+$("#redraw").onclick = () => loadMap(true);
+$("#real").onclick = async () => { S.real = !S.real; $("#real").classList.toggle("on", S.real); await loadMap(S.real); };
+$("#rotate").onclick = () => rotateView();
+async function rotateView() {
+  const c = s2w(W / 2, H / 2);
+  S.view.rot = (S.view.rot + 1) % 4;
+  centerOn(c[0], c[1]);
+  draw();
+  await loadMap(false);
+}
+
+// ------------------------------------------------------------------ sprites (8 yaw steps per block, rendered by Unity)
+function enqueueSprite(key, front) {
+  if (!key || S.sheets[key] || S.queue.includes(key)) return;
+  if (front) S.queue.unshift(key); else S.queue.push(key);
+  pumpSprites();
+}
+async function pumpSprites() {
+  if (S.loading) return;
+  S.loading = true;
+  try {
+    while (S.queue.length) {
+      const key = S.queue.shift();
+      if (S.sheets[key]) continue;
+      let info;
+      try { info = await api("spriteinfo?key=" + encodeURIComponent(key)); } catch (e) { continue; }
+      const img = await loadImage(await apiBlob("sprite?key=" + encodeURIComponent(key) + "&v=" + info.version));
+      if (!img) continue;
+      S.sheets[key] = { info, img };
+      if (info.surface) S.swatch[key] = img;
+      makeThumb(key);
+      draw();
+    }
+  } finally { S.loading = false; }
+}
+function makeThumb(key) {
+  const sh = S.sheets[key]; if (!sh) return;
+  const i = sh.info, c = document.createElement("canvas"); c.width = 84; c.height = 72;
+  const g = c.getContext("2d");
+  if (i.surface) { g.fillStyle = g.createPattern(sh.img, "repeat"); g.save(); g.translate(42, 36); g.scale(1, 0.5); g.rotate(Math.PI / 4); g.fillRect(-36, -36, 72, 72); g.restore(); }
+  else { const k = Math.min(84 / i.frameW, 72 / i.frameH); g.drawImage(sh.img, 0, 0, i.frameW, i.frameH, (84 - i.frameW * k) / 2, (72 - i.frameH * k) / 2, i.frameW * k, i.frameH * k); }
+  S.thumbs[key] = c.toDataURL();
+  document.querySelectorAll('img[data-key="' + key + '"]').forEach(im => { im.src = S.thumbs[key]; im.style.display = ""; const sp = im.nextElementSibling; if (sp) sp.style.display = "none"; });
+}
+function frameOf(p) { const rel = (((p.rot || 0) - 90 * S.view.rot) % 360 + 360) % 360; return Math.round(rel / 45) % 8; }
+
+// ------------------------------------------------------------------ drawing
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  draw();
+}
+window.addEventListener("resize", () => { const c = W ? s2w(W / 2, H / 2) : [0, 0]; resize(); centerOn(c[0], c[1]); draw(); });
+function fitView() {
+  const e = S.extent; let u0 = 1e9, u1 = -1e9, v0 = 1e9, v1 = -1e9;
+  for (const x of [-e, e]) for (const z of [-e, e]) { const p = uv(x, z, 0); u0 = Math.min(u0, p[0]); u1 = Math.max(u1, p[0]); v0 = Math.min(v0, p[1]); v1 = Math.max(v1, p[1]); }
+  S.view.s = Math.max(2, Math.min((W * 0.94) / ((u1 - u0) * R2), (H * 0.86) / ((v1 - v0) * R2)));
+  centerOn(0, 0);
+}
+function centerOn(x, z) { S.view.ox = 0; S.view.oy = 0; const p = w2s(x, z, 0); S.view.ox = W / 2 - p[0]; S.view.oy = H / 2 - p[1] - 20; }
+let raf = 0;
+function draw() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+function poly(pts) { ctx.beginPath(); pts.forEach(([x, z], i) => { const p = w2s(x, z, 0); if (i) ctx.lineTo(p[0], p[1]); else ctx.moveTo(p[0], p[1]); }); ctx.closePath(); }
+function render() {
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.fillStyle = "#0f1114"; ctx.fillRect(0, 0, W, H);
+  const k = R2 * S.view.s, e = S.extent;
+  if (S.mapImg && S.map) {
+    const sc = k / S.map.ppm;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(S.mapImg, S.map.u0 * k + S.view.ox, -S.map.v0 * k + S.view.oy, S.map.width * sc, S.map.height * sc);
+  } else {
+    poly([[-e, -e], [e, -e], [e, e], [-e, e]]); ctx.fillStyle = "#23261f"; ctx.fill();
+  }
+  // grid every 4 m and building-site border
+  ctx.lineWidth = 1; ctx.strokeStyle = "rgba(255,255,255,0.07)"; ctx.beginPath();
+  for (let g = -Math.floor(e / 4) * 4; g <= e; g += 4) {
+    let a = w2s(g, -e), b = w2s(g, e); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]);
+    a = w2s(-e, g); b = w2s(e, g); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]);
+  }
+  ctx.stroke();
+  poly([[-e, -e], [e, -e], [e, e], [-e, e]]); ctx.strokeStyle = "rgba(224,166,74,0.55)"; ctx.setLineDash([8, 6]); ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+  // compass: north (+z)
+  { const a = w2s(0, e + 3), b = w2s(0, e + 7); ctx.strokeStyle = "#e0a64a"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.fillStyle = "#e0a64a"; ctx.font = "bold 13px system-ui"; ctx.fillText("N", b[0] - 4, b[1] - 6); }
+  // canonical Core buildings
+  for (const r of S.reserved) {
+    const pts = [[r.x - r.hw, r.z - r.hd], [r.x + r.hw, r.z - r.hd], [r.x + r.hw, r.z + r.hd], [r.x - r.hw, r.z + r.hd]];
+    poly(pts); ctx.fillStyle = "rgba(224,90,76,0.13)"; ctx.fill(); ctx.strokeStyle = "rgba(240,110,95,0.75)"; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]); ctx.stroke(); ctx.setLineDash([]);
+  }
+  const editId = S.ghost && S.ghost.mode === "edit" ? S.ghost.id : null;
+  const surfaces = [], solids = [];
+  for (const p of S.pieces) { if (p.id === editId) continue; (S.byKey[p.key] && S.byKey[p.key].kind === "surface" ? surfaces : solids).push(p); }
+  for (const p of surfaces) drawSurface(p, 0.96, p.id === S.selected || p.id === S.hover);
+  solids.sort((a, b) => w2s(a.x, a.z)[1] - w2s(b.x, b.z)[1]);
+  for (const p of solids) drawSolid(p, 1, p.id === S.selected || p.id === S.hover);
+  if (S.ghost) drawGhost();
+}
+function drawSurface(p, alpha, hi) {
+  const pts = footprint(p), img = S.swatch[p.key], e = S.byKey[p.key];
+  ctx.save(); ctx.globalAlpha = alpha; poly(pts);
+  if (img) {
+    const pat = ctx.createPattern(img, "repeat"), k = R2 * S.view.s, Y = yaw(), c = Math.cos(Y), s = Math.sin(Y), ppm = S.sheets[p.key].info.ppm;
+    pat.setTransform(new DOMMatrix([k * c / ppm, -0.5 * k * s / ppm, k * s / ppm, 0.5 * k * c / ppm, S.view.ox, S.view.oy]));
+    ctx.fillStyle = pat;
+  } else ctx.fillStyle = e ? e.color : "#555";
+  if (!S.real || hi) ctx.fill();
+  ctx.globalAlpha = 1; ctx.lineWidth = hi ? 2.5 : 1; ctx.strokeStyle = hi ? "#ffd99a" : "rgba(0,0,0,0.35)"; ctx.stroke();
+  ctx.restore();
+}
+function drawSolid(p, alpha, hi) {
+  const e = S.byKey[p.key]; if (!e) return;
+  const pts = footprint(p);
+  if (hi) { poly(pts); ctx.fillStyle = "rgba(255,217,154,0.18)"; ctx.fill(); ctx.strokeStyle = "#ffd99a"; ctx.lineWidth = 2; ctx.stroke(); }
+  if (S.real && !hi && alpha >= 1) { poly(pts); ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 1; ctx.stroke(); return; }
+  const sh = S.sheets[p.key], pos = w2s(p.x, p.z, 0);
+  ctx.save(); ctx.globalAlpha = alpha;
+  if (sh && !sh.info.surface) {
+    const i = sh.info, sc = R2 * S.view.s / i.ppm * (p.scale || 1), f = frameOf(p);
+    ctx.drawImage(sh.img, f * i.frameW, 0, i.frameW, i.frameH, pos[0] - i.ax * sc, pos[1] - i.ay * sc, i.frameW * sc, i.frameH * sc);
+  } else drawBox(pts, e.h * (p.scale || 1), e.color);
+  ctx.restore();
+}
+function drawBox(pts, h, color) {
+  const top = pts.map(([x, z]) => w2s(x, z, h)), bot = pts.map(([x, z]) => w2s(x, z, 0));
+  ctx.fillStyle = color; ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; ctx.beginPath(); ctx.moveTo(bot[i][0], bot[i][1]); ctx.lineTo(bot[j][0], bot[j][1]); ctx.lineTo(top[j][0], top[j][1]); ctx.lineTo(top[i][0], top[i][1]); ctx.closePath(); ctx.globalAlpha *= 1; ctx.fill(); ctx.stroke(); }
+  ctx.beginPath(); top.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fillStyle = shade(color, 1.25); ctx.fill(); ctx.stroke();
+}
+function shade(hex, f) { const n = parseInt(hex.slice(1), 16); const c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.min(255, Math.round(v * f))); return "rgb(" + c.join(",") + ")"; }
+function ghostState(g) {
+  if (g.kind === "forest") return Math.abs(g.x) + g.radius > S.extent + 0.01 || Math.abs(g.z) + g.radius > S.extent + 0.01 ? "warn" : "ok";
+  const pts = footprint(g);
+  if (Math.abs(g.x) > S.extent || Math.abs(g.z) > S.extent) return "bad";
+  const e = S.byKey[g.key]; if (e && e.kind === "surface") return "ok";
+  const [a0, b0, a1, b1] = aabb(pts), sh = 0.15;
+  for (const p of S.pieces) {
+    if (p.id === g.id) continue; const pe = S.byKey[p.key]; if (!pe || pe.kind === "surface") continue;
+    const [c0, d0, c1, d1] = aabb(footprint(p));
+    if (a0 + sh < c1 && a1 - sh > c0 && b0 + sh < d1 && b1 - sh > d0) return "warn";
+  }
+  for (const r of S.reserved) if (a0 < r.x + r.hw && a1 > r.x - r.hw && b0 < r.z + r.hd && b1 > r.z - r.hd) return "warn";
+  return "ok";
+}
+const STATE_COLOR = { ok: "#5fd18a", warn: "#f0a840", bad: "#ef5a4c" };
+function drawGhost() {
+  const g = S.ghost, st = ghostState(g), col = STATE_COLOR[st];
+  if (g.kind === "forest") {
+    const N = 48, pts = []; for (let i = 0; i < N; i++) { const a = i / N * Math.PI * 2; pts.push([g.x + Math.cos(a) * g.radius, g.z + Math.sin(a) * g.radius]); }
+    poly(pts); ctx.fillStyle = "rgba(95,209,138,0.12)"; ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.setLineDash([7, 5]); ctx.stroke(); ctx.setLineDash([]);
+    const trees = forest(g.x, g.z, g.radius, g.count, g.seed).filter(t => Math.abs(t.x) <= S.extent && Math.abs(t.z) <= S.extent);
+    trees.sort((a, b) => w2s(a.x, a.z)[1] - w2s(b.x, b.z)[1]);
+    for (const t of trees) drawSolid(t, 0.8, false);
+    return;
+  }
+  const e = S.byKey[g.key];
+  if (e && e.kind === "surface") drawSurface(g, 0.75, false);
+  const pts = footprint(g);
+  poly(pts); ctx.fillStyle = col + "33"; ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.stroke();
+  if (e && e.kind !== "surface") drawSolid(g, 0.78, false);
+  // facing arrow (local +z)
+  const f = rotLocal(0, (e && e.kind !== "surface" ? e.d * (g.scale || 1) : g.d) / 2 + 0.8, g.rot || 0);
+  const a = w2s(g.x, g.z), b = w2s(g.x + f[0], g.z + f[1]);
+  ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+  ctx.beginPath(); ctx.arc(b[0], b[1], 4, 0, Math.PI * 2); ctx.fillStyle = col; ctx.fill();
+}
+
+// ------------------------------------------------------------------ forest brush (same generator as Unity)
+function forest(cx, cz, radius, count, seed) {
+  count = Math.max(1, Math.min(60, count | 0)); radius = Math.max(1, Math.min(25, radius));
+  let st = (seed >>> 0) || 0x9E3779B9;
+  const next = () => { st ^= st << 13; st ^= st >>> 17; st ^= st << 5; st >>>= 0; return st; };
+  const unit = () => (next() & 0xFFFFFF) / 16777216;
+  const out = [], keys = S.forestKeys.length ? S.forestKeys : ["WoodlandTreeA"];
+  for (let i = 0; i < count; i++) {
+    const t = (i + 0.5) / count, r = radius * Math.sqrt(t);
+    const angle = i * 2.39996323 + unit() * 0.6, jitter = 1 + (unit() - 0.5) * 0.3;
+    const key = keys[next() % keys.length], rot = Math.floor(unit() * 24) * 15, scale = 0.85 + Math.floor(unit() * 7) * 0.05;
+    out.push({ key, x: cx + Math.cos(angle) * r * jitter, z: cz + Math.sin(angle) * r * jitter, rot, scale, id: "f" + i });
+  }
+  return out;
+}
+function newSeed() { const a = new Uint32Array(1); crypto.getRandomValues(a); return (a[0] & 0x7fffffff) || 1; }
+
+// ------------------------------------------------------------------ toolbar, drawer, popup
+function buildToolbar() {
+  const t = $("#tools"); t.innerHTML = "";
+  const add = (key, icon, label, fn) => { const b = document.createElement("button"); b.dataset.tool = key; b.innerHTML = "<b>" + icon + "</b>" + label; b.onclick = fn; t.appendChild(b); return b; };
+  add("select", icon("select"), "Auswählen", () => setTool("select"));
+  for (const c of S.cats) add("cat:" + c.key, icon(c.key), c.label, () => openDrawer(c.key));
+  add("forest", icon("forest"), "Wald-Pinsel", () => startForest());
+  add("demolish", icon("demolish"), "Abriss", () => setTool("demolish"));
+  markTools();
+}
+function markTools() {
+  document.querySelectorAll("#tools button").forEach(b => {
+    const k = b.dataset.tool;
+    b.classList.toggle("on", k === S.tool || (k === "cat:" + S.cat && $("#drawer").style.display === "block"));
+  });
+}
+function setTool(t) { cancelGhost(); S.tool = t; S.cat = ""; closeDrawer(); closePopup(); markTools(); cv.style.cursor = t === "demolish" ? "not-allowed" : "crosshair"; if (t === "demolish") toast("Abriss: Gebautes antippen."); }
+function itemCards(cat, onPick) {
+  const frag = document.createDocumentFragment();
+  for (const e of S.entries.filter(x => x.cat === cat)) {
+    const d = document.createElement("div"); d.className = "card"; d.title = e.label + (e.art ? "" : " (Platzhalter – Original-Modell fehlt in diesem Projekt)");
+    const sym = icon(cat);
+    d.innerHTML = '<div class="th"><img data-key="' + e.key + '" alt="" style="display:' + (S.thumbs[e.key] ? "" : "none") + '" src="' + (S.thumbs[e.key] || "") + '"><span style="display:' + (S.thumbs[e.key] ? "none" : "") + '">' + sym + '</span></div><div>' + esc(e.label) + '</div><em>' + (e.kind === "surface" ? "Fläche aufziehen" : (e.w.toFixed(1) + " × " + e.d.toFixed(1) + " m")) + (e.art ? "" : " · Platzhalter") + '</em>';
+    d.onclick = () => onPick(e);
+    frag.appendChild(d);
+    enqueueSprite(e.key, true);
+  }
+  return frag;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+function openDrawer(cat) {
+  const dr = $("#drawer");
+  if (S.cat === cat && dr.style.display === "block") { closeDrawer(); markTools(); return; }
+  closePopup(); S.cat = cat;
+  const c = S.cats.find(x => x.key === cat);
+  dr.innerHTML = "<h3>" + icon(c.key) + " " + esc(c.label) + '<span style="color:var(--muted);font-weight:400">– antippen, dann auf der Karte platzieren</span></h3>';
+  const g = document.createElement("div"); g.className = "grid"; g.appendChild(itemCards(cat, e => { closeDrawer(); const m = s2w(W / 2, H / 2); startPlace(e.key, clampArea(m[0]), clampArea(m[1])); }));
+  dr.appendChild(g); dr.style.display = "block"; markTools();
+}
+function closeDrawer() { $("#drawer").style.display = "none"; }
+let popupAt = null;
+function openPopup(sx, sy, wx, wz) {
+  closeDrawer(); popupAt = [wx, wz];
+  const tabs = $("#tabs"); tabs.innerHTML = "";
+  const show = cat => {
+    tabs.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.cat === cat));
+    const grid = $("#popgrid"); grid.innerHTML = "";
+    grid.appendChild(itemCards(cat, e => { closePopup(); startPlace(e.key, popupAt[0], popupAt[1]); }));
+    try { localStorage.setItem("bau.popcat", cat); } catch (x) {}
+  };
+  for (const c of S.cats) { const b = document.createElement("button"); b.dataset.cat = c.key; b.innerHTML = icon(c.key) + " " + esc(c.label); b.onclick = () => show(c.key); tabs.appendChild(b); }
+  const wood = document.createElement("button"); wood.innerHTML = icon("forest") + " Wald hier"; wood.onclick = () => { closePopup(); startForest(popupAt[0], popupAt[1]); }; tabs.appendChild(wood);
+  let cat = S.cats[0].key; try { cat = localStorage.getItem("bau.popcat") || cat; } catch (x) {}
+  if (!S.cats.find(c => c.key === cat)) cat = S.cats[0].key;
+  show(cat);
+  const p = $("#popup"); p.style.display = "block";
+  const pw = p.offsetWidth, ph = p.offsetHeight;
+  p.style.left = Math.max(6, Math.min(W - pw - 6, sx - pw / 2)) + "px";
+  p.style.top = Math.max(64, Math.min(window.innerHeight - ph - 90, sy + 70)) + "px";
+  $("#poptitle").textContent = "Was soll hier hin? (" + wx.toFixed(1) + " / " + wz.toFixed(1) + " m)";
+}
+function closePopup() { $("#popup").style.display = "none"; }
+
+// ------------------------------------------------------------------ ghost lifecycle
+function startPlace(key, x, z) {
+  cancelGhost(true);
+  const e = S.byKey[key]; if (!e) return;
+  S.tool = "place"; S.selected = null;
+  if (e.kind === "surface") S.ghost = { mode: "new", kind: "surface", key, x: snap(x, 1), z: snap(z, 1), rot: 0, scale: 1, w: e.w, d: e.d, drawing: false };
+  else S.ghost = { mode: "new", kind: "prefab", key, x: snap(x, 0.5), z: snap(z, 0.5), rot: 0, scale: 1, w: 0, d: 0 };
+  S.ghostFirst = true; markTools(); showAction(); syncGhost(true); draw();
+  if (e.kind === "surface") toast("Fläche mit dem Finger/der Maus aufziehen – oder Größe mit den Knöpfen ändern.");
+}
+function startForest(x, z) {
+  cancelGhost(true);
+  if (x === undefined) { const m = s2w(W / 2, H / 2); x = clampArea(m[0]); z = clampArea(m[1]); }
+  S.tool = "forest"; S.selected = null;
+  S.ghost = { mode: "new", kind: "forest", x: snap(x, 0.5), z: snap(z, 0.5), radius: 7, count: 14, seed: newSeed() };
+  markTools(); showAction(); draw();
+}
+function editPiece(p) {
+  cancelGhost(true);
+  const e = S.byKey[p.key];
+  S.selected = p.id; S.tool = "select";
+  S.ghost = { mode: "edit", id: p.id, kind: e && e.kind === "surface" ? "surface" : "prefab", key: p.key, x: p.x, z: p.z, rot: p.rot, scale: p.scale || 1, w: p.w, d: p.d, orig: { ...p } };
+  S.ghostFirst = true; markTools(); showAction(); draw();
+}
+function changed() { const g = S.ghost; return g && g.mode === "edit" && (g.x !== g.orig.x || g.z !== g.orig.z || g.rot !== g.orig.rot || (g.scale || 1) !== (g.orig.scale || 1) || g.w !== g.orig.w || g.d !== g.orig.d); }
+function cancelGhost(silent) {
+  const had = S.ghost && S.ghost.kind !== "forest";
+  S.ghost = null; hideAction();
+  if (S.tool === "place" || S.tool === "forest") S.tool = "select";
+  markTools();
+  if (had && S.area) api("ghost", { area: S.area, clear: true }).catch(() => {});
+  if (!silent) S.selected = null;
+  draw();
+}
+function syncGhost(now) {
+  const g = S.ghost; if (!g || g.kind === "forest") return;
+  if (g.mode === "edit" && !changed()) { api("ghost", { area: S.area, clear: true }).catch(() => {}); return; }
+  clearTimeout(S.ghostTimer);
+  const wait = now ? 0 : Math.max(0, 350 - (Date.now() - S.ghostSent));
+  S.ghostTimer = setTimeout(() => {
+    const cur = S.ghost; if (!cur || cur.kind === "forest") return;
+    S.ghostSent = Date.now();
+    const focus = S.ghostFirst; S.ghostFirst = false;
+    api("ghost", { area: S.area, key: cur.key, x: cur.x, z: cur.z, rot: cur.rot, scale: cur.scale, w: cur.kind === "surface" ? cur.w : 0, d: cur.kind === "surface" ? cur.d : 0, view: S.view.rot, focus })
+      .catch(e => { if (e.status === 422) toast(e.message, true); });
+  }, wait);
+}
+function rot(delta) { const g = S.ghost; if (!g || g.kind === "forest") return; g.rot = ((Math.round((g.rot + delta) * 10) / 10) % 360 + 360) % 360; showAction(); syncGhost(); draw(); }
+function scaleBy(f) { const g = S.ghost; if (!g || g.kind !== "prefab") return; g.scale = Math.max(0.3, Math.min(3, Math.round(g.scale * f * 20) / 20)); showAction(); syncGhost(); draw(); }
+function sizeBy(dw, dd) { const g = S.ghost; if (!g || g.kind !== "surface") return; g.w = Math.max(1, Math.min(80, g.w + dw)); g.d = Math.max(1, Math.min(80, g.d + dd)); showAction(); syncGhost(); draw(); }
+
+function btn(html, fn, cls, title) { const b = document.createElement("button"); b.innerHTML = html; if (cls) b.className = cls; if (title) b.title = title; b.onclick = fn; return b; }
+function showAction() {
+  const g = S.ghost, a = $("#action"); if (!g) return hideAction();
+  a.innerHTML = "";
+  const lbl = document.createElement("div"); lbl.className = "lbl";
+  if (g.kind === "forest") {
+    lbl.innerHTML = "Wald-Pinsel<span class='sub'>Radius " + g.radius + " m · " + g.count + " Pflanzen</span>";
+    a.append(lbl, btn("Radius −", () => { g.radius = Math.max(2, g.radius - 1); showAction(); draw(); }), btn("Radius +", () => { g.radius = Math.min(25, g.radius + 1); showAction(); draw(); }),
+      btn("Anzahl −", () => { g.count = Math.max(1, g.count - 2); showAction(); draw(); }), btn("Anzahl +", () => { g.count = Math.min(60, g.count + 2); showAction(); draw(); }),
+      btn(icon("dice"), () => { g.seed = newSeed(); draw(); }, "", "Neu würfeln"), btn("✓ Pflanzen", commit, "primary"), btn("✕", () => cancelGhost()));
+  } else {
+    const e = S.byKey[g.key];
+    lbl.innerHTML = esc(e ? e.label : g.key) + "<span class='sub'>" + (g.mode === "edit" ? "Gebautes ändern · " : "Vorschau · ") + Math.round(g.rot) + "°" + (g.kind === "surface" ? " · " + g.w + " × " + g.d + " m" : " · " + Math.round(g.scale * 100) + " %") + "</span>";
+    a.append(lbl, btn("⟲", () => rot(-15), "", "Drehen −15° (Q)"), btn("⟳", () => rot(15), "", "Drehen +15° (E)"), btn("90°", () => rot(90), "", "Vierteldrehung"));
+    if (g.kind === "surface") a.append(btn("B −", () => sizeBy(-1, 0)), btn("B +", () => sizeBy(1, 0)), btn("T −", () => sizeBy(0, -1)), btn("T +", () => sizeBy(0, 1)));
+    else a.append(btn("−", () => scaleBy(1 / 1.1), "", "Kleiner"), btn("+", () => scaleBy(1.1), "", "Größer"));
+    if (g.mode === "edit") {
+      a.append(btn(icon("copy") + " Kopie", () => { const o = S.ghost; startPlace(o.key, clampArea(o.x + 2), clampArea(o.z - 2)); const n = S.ghost; n.rot = o.rot; n.scale = o.scale; if (o.kind === "surface") { n.w = o.w; n.d = o.d; } showAction(); syncGhost(true); draw(); }, "", "Kopie daneben setzen"),
+        btn(icon("demolish") + " Abreißen", () => removePiece(g.id), "danger"), btn("✓ Übernehmen", commit, "primary"), btn("✕", () => cancelGhost()));
+    } else a.append(btn("✓ Bauen", commit, "primary"), btn("✕", () => cancelGhost()));
+  }
+  a.style.display = "flex";
+}
+function hideAction() { $("#action").style.display = "none"; }
+
+async function commit() {
+  const g = S.ghost; if (!g || S.busy) return;
+  if (g.kind !== "forest" && ghostState(g) === "bad") { toast("Außerhalb des Baugebiets – bitte weiter in die Mitte ziehen.", true); return; }
+  if (g.mode === "edit" && !changed()) { cancelGhost(); return; }
+  S.busy = true;
+  try {
+    let lay;
+    if (g.kind === "forest") lay = await api("forest", { area: S.area, revision: S.rev, x: g.x, z: g.z, radius: g.radius, count: g.count, seed: g.seed, view: S.view.rot, focus: true });
+    else if (g.mode === "edit") lay = await api("update", { area: S.area, revision: S.rev, id: g.id, x: g.x, z: g.z, rot: g.rot, scale: g.scale, w: g.kind === "surface" ? g.w : 0, d: g.kind === "surface" ? g.d : 0, view: S.view.rot, focus: true });
+    else lay = await api("place", { area: S.area, revision: S.rev, key: g.key, x: g.x, z: g.z, rot: g.rot, scale: g.scale, w: g.kind === "surface" ? g.w : 0, d: g.kind === "surface" ? g.d : 0, view: S.view.rot, focus: true });
+    applyLayout(lay);
+    toast("✓ " + lay.message + " · " + liveText(lay.live));
+    S.ghost = null; hideAction(); S.selected = null; S.tool = "select"; markTools();
+    if (S.real) { S.dirtyReal = true; $("#real").title = "Echtbild ist veraltet – antippen zum Neuzeichnen"; }
+    draw();
+  } catch (e) {
+    if (e.status === 409 && e.data) { applyLayout(e.data); draw(); }
+    toast(e.message, true);
+  } finally { S.busy = false; }
+}
+async function removePiece(id) {
+  if (S.busy) return;
+  const p = S.pieces.find(x => x.id === id); if (!p) return;
+  S.busy = true;
+  try {
+    const lay = await api("remove", { area: S.area, revision: S.rev, id, view: S.view.rot });
+    applyLayout(lay); S.ghost = null; S.selected = null; hideAction(); markTools();
+    toast("✓ " + lay.message + " · " + liveText(lay.live));
+    draw();
+  } catch (e) { if (e.status === 409 && e.data) applyLayout(e.data); toast(e.message, true); draw(); }
+  finally { S.busy = false; }
+}
+$("#undo").onclick = undo;
+async function undo() {
+  if (S.busy) return;
+  cancelGhost(true); S.busy = true;
+  try { const lay = await api("undo", { area: S.area }); applyLayout(lay); toast("↶ " + lay.message + " · " + liveText(lay.live)); draw(); }
+  catch (e) { toast(e.message, true); } finally { S.busy = false; }
+}
+$("#download").onclick = () => {
+  if (!S.layout) return;
+  const data = { schema: 1, area: S.area, revision: S.rev, pieces: S.pieces };
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  a.download = S.area + ".json"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+
+// ------------------------------------------------------------------ hit testing
+function pickPiece(sx, sy) {
+  const [wx, wz] = s2w(sx, sy);
+  const solids = S.pieces.filter(p => S.byKey[p.key] && S.byKey[p.key].kind !== "surface").sort((a, b) => w2s(b.x, b.z)[1] - w2s(a.x, a.z)[1]);
+  for (const p of solids) if (inPoly(wx, wz, footprint(p))) return p;
+  for (const p of solids) {
+    const sh = S.sheets[p.key]; if (!sh) continue;
+    const i = sh.info, sc = R2 * S.view.s / i.ppm * (p.scale || 1), pos = w2s(p.x, p.z);
+    const x0 = pos[0] - i.ax * sc, y0 = pos[1] - i.ay * sc, w = i.frameW * sc, h = i.frameH * sc;
+    if (sx > x0 + w * 0.2 && sx < x0 + w * 0.8 && sy > y0 + h * 0.15 && sy < pos[1]) return p;
+  }
+  const surfaces = S.pieces.filter(p => S.byKey[p.key] && S.byKey[p.key].kind === "surface").reverse();
+  for (const p of surfaces) if (inPoly(wx, wz, footprint(p))) return p;
+  return null;
+}
+function onGhost(sx, sy) {
+  const g = S.ghost; if (!g) return false;
+  const [wx, wz] = s2w(sx, sy);
+  if (g.kind === "forest") return Math.hypot(wx - g.x, wz - g.z) <= g.radius;
+  if (inPoly(wx, wz, footprint(g))) return true;
+  const sh = S.sheets[g.key], pos = w2s(g.x, g.z);
+  if (sh && !sh.info.surface) { const i = sh.info, sc = R2 * S.view.s / i.ppm * (g.scale || 1); return sx > pos[0] - i.ax * sc && sx < pos[0] - i.ax * sc + i.frameW * sc && sy > pos[1] - i.ay * sc && sy < pos[1] + 6; }
+  return Math.hypot(sx - pos[0], sy - pos[1]) < 30;
+}
+
+// ------------------------------------------------------------------ pointer input
+const pointers = new Map();
+let dragging = null, pinch = null;
+cv.addEventListener("pointerdown", ev => {
+  cv.setPointerCapture(ev.pointerId);
+  pointers.set(ev.pointerId, { x: ev.offsetX, y: ev.offsetY });
+  closePopup();
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: S.view.s, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, w: s2w((a.x + b.x) / 2, (a.y + b.y) / 2) };
+    dragging = null; return;
+  }
+  const g = S.ghost, sx = ev.offsetX, sy = ev.offsetY;
+  if (g && g.kind === "surface" && (ev.shiftKey || !g.drawn) && !onGhost(sx, sy)) {
+    const [wx, wz] = s2w(sx, sy);
+    dragging = { type: "rect", x0: snap(wx, 1), z0: snap(wz, 1), sx, sy, moved: false };
+  } else if (g && onGhost(sx, sy)) {
+    const [wx, wz] = s2w(sx, sy);
+    dragging = { type: "ghost", dx: g.x - wx, dz: g.z - wz, sx, sy, moved: false };
+  } else dragging = { type: "pan", sx, sy, ox: S.view.ox, oy: S.view.oy, moved: false };
+});
+cv.addEventListener("pointermove", ev => {
+  if (pointers.has(ev.pointerId)) pointers.set(ev.pointerId, { x: ev.offsetX, y: ev.offsetY });
+  if (pinch && pointers.size >= 2) {
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y), cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+    S.view.s = Math.max(2, Math.min(80, pinch.s * d / pinch.d));
+    const p = w2s(pinch.w[0], pinch.w[1]); S.view.ox += cx - p[0]; S.view.oy += cy - p[1];
+    draw(); return;
+  }
+  if (!dragging) {
+    if (ev.pointerType === "mouse" && S.tool !== "place") { const p = pickPiece(ev.offsetX, ev.offsetY); const id = p ? p.id : null; if (id !== S.hover) { S.hover = id; draw(); } }
+    return;
+  }
+  const dx = ev.offsetX - dragging.sx, dy = ev.offsetY - dragging.sy;
+  if (Math.hypot(dx, dy) > 6) dragging.moved = true;
+  if (!dragging.moved) return;
+  const g = S.ghost;
+  if (dragging.type === "pan") { S.view.ox = dragging.ox + dx; S.view.oy = dragging.oy + dy; draw(); }
+  else if (dragging.type === "ghost" && g) {
+    const [wx, wz] = s2w(ev.offsetX, ev.offsetY);
+    const step = g.kind === "surface" ? 1 : 0.5;
+    g.x = clampArea(snap(wx + dragging.dx, step)); g.z = clampArea(snap(wz + dragging.dz, step));
+    syncGhost(); draw();
+  } else if (dragging.type === "rect" && g) {
+    const [wx, wz] = s2w(ev.offsetX, ev.offsetY);
+    const x1 = snap(wx, 1), z1 = snap(wz, 1);
+    g.rot = 0; g.w = Math.max(1, Math.abs(x1 - dragging.x0)); g.d = Math.max(1, Math.abs(z1 - dragging.z0));
+    g.x = clampArea((x1 + dragging.x0) / 2); g.z = clampArea((z1 + dragging.z0) / 2);
+    showAction(); syncGhost(); draw();
+  }
+});
+function endPointer(ev) {
+  pointers.delete(ev.pointerId);
+  if (pinch) { if (pointers.size < 2) pinch = null; dragging = null; return; }
+  const d = dragging; dragging = null;
+  if (!d) return;
+  if (d.type === "rect" && d.moved && S.ghost) { S.ghost.drawn = true; return; }
+  if (d.moved) return;
+  tap(ev.offsetX, ev.offsetY);
+}
+cv.addEventListener("pointerup", endPointer);
+cv.addEventListener("pointercancel", ev => { pointers.delete(ev.pointerId); dragging = null; pinch = null; });
+function tap(sx, sy) {
+  const [wx, wz] = s2w(sx, sy), g = S.ghost;
+  if (g) {
+    if (onGhost(sx, sy)) return;
+    if (g.mode === "edit") { const p = pickPiece(sx, sy); if (p && p.id !== g.id) { editPiece(p); return; } }
+    const step = g.kind === "surface" ? 1 : 0.5;
+    g.x = clampArea(snap(wx, step)); g.z = clampArea(snap(wz, step));
+    if (g.kind === "surface") g.drawn = true;
+    syncGhost(); draw(); return;
+  }
+  const p = pickPiece(sx, sy);
+  if (S.tool === "demolish") {
+    if (!p) return;
+    S.selected = p.id; draw();
+    const a = $("#action"); a.innerHTML = "";
+    const lbl = document.createElement("div"); lbl.className = "lbl"; lbl.innerHTML = "„" + esc(S.byKey[p.key].label) + "“ abreißen?";
+    a.append(lbl, btn(icon("demolish") + " Ja, abreißen", () => removePiece(p.id), "danger"), btn("Nein", () => { S.selected = null; hideAction(); draw(); }));
+    a.style.display = "flex"; return;
+  }
+  if (p) { editPiece(p); return; }
+  if (Math.abs(wx) > S.extent || Math.abs(wz) > S.extent) { toast("Außerhalb des Baugebiets.", true); return; }
+  openPopup(sx, sy, snap(wx, 0.5), snap(wz, 0.5));
+}
+cv.addEventListener("wheel", ev => {
+  ev.preventDefault();
+  const w = s2w(ev.offsetX, ev.offsetY);
+  S.view.s = Math.max(2, Math.min(80, S.view.s * Math.exp(-ev.deltaY * 0.0015)));
+  const p = w2s(w[0], w[1]); S.view.ox += ev.offsetX - p[0]; S.view.oy += ev.offsetY - p[1];
+  draw();
+}, { passive: false });
+window.addEventListener("keydown", ev => {
+  if (ev.target && (ev.target.tagName === "INPUT" || ev.target.tagName === "SELECT")) return;
+  const k = ev.key.toLowerCase();
+  if ((ev.ctrlKey || ev.metaKey) && k === "z") { ev.preventDefault(); undo(); return; }
+  if (k === "q") rot(ev.shiftKey ? -90 : -15);
+  else if (k === "e") rot(ev.shiftKey ? 90 : 15);
+  else if (k === "enter") commit();
+  else if (k === "escape") { closePopup(); closeDrawer(); cancelGhost(); }
+  else if ((k === "delete" || k === "backspace") && S.ghost && S.ghost.mode === "edit") removePiece(S.ghost.id);
+  else if (k === "r" && !S.ghost) rotateView();
+  else if (k === "+" || k === "=") { S.view.s = Math.min(80, S.view.s * 1.2); const c = s2w(W / 2, H / 2); draw(); }
+  else if (k === "-") { S.view.s = Math.max(2, S.view.s / 1.2); draw(); }
+  else if (k.startsWith("arrow")) { const d = 60; if (k === "arrowleft") S.view.ox += d; if (k === "arrowright") S.view.ox -= d; if (k === "arrowup") S.view.oy += d; if (k === "arrowdown") S.view.oy -= d; draw(); }
+});
+
+// ------------------------------------------------------------------ chrome
+let toastTimer = 0;
+function toast(msg, err) { const t = $("#toast"); t.textContent = msg; t.className = err ? "err" : ""; t.style.display = "block"; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.style.display = "none", err ? 6000 : 3500); }
+function setBusy(text) { S.busy = !!text; $("#busy").style.display = text ? "flex" : "none"; if (text) $("#busytext").textContent = text; }
+$("#helpbtn").onclick = () => $("#help").style.display = "flex";
+$("#helpok").onclick = () => $("#help").style.display = "none";
+$("#help").onclick = ev => { if (ev.target.id === "help") $("#help").style.display = "none"; };
+$("#noticeok").onclick = () => { $("#notice").style.display = "none"; try { localStorage.setItem("bau.noticeSeen", "1"); } catch (e) {} };
+
+$("#redraw").innerHTML = icon("map") + " Karte";
+$("#real").innerHTML = icon("camera") + " Echtbild";
+resize();
+boot();
+</script>
+</body>
+</html>
