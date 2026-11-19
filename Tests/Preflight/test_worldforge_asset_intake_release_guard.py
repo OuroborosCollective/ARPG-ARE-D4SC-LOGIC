@@ -13,6 +13,7 @@ HEIGHT = (WF / "Runtime" / "WFHeightLayers.cs").read_text(encoding="utf-8")
 INTAKE = (WF / "Editor" / "WFAssetIntakeEvaluator.cs").read_text(encoding="utf-8")
 WINDOW = (WF / "Editor" / "WFAssetIntakeWindow.cs").read_text(encoding="utf-8")
 NATIVE = (WF / "Tests" / "Editor" / "AssetIntakeEditModeTests.cs").read_text(encoding="utf-8")
+EXPORTER = (WF / "Editor" / "WFCoreMapExporter.cs").read_text(encoding="utf-8")
 
 class WorldForgeIntakeSafetySourceContract(unittest.TestCase):
     def test_pending_approval_cannot_change_terrain_or_spawn_clearance(self):
@@ -46,6 +47,19 @@ class WorldForgeIntakeSafetySourceContract(unittest.TestCase):
         choice = choice.split('EditorGUILayout.LabelField("Quelle"', 1)[0]
         self.assertIn("entries.Clear()", choice)
         self.assertIn('selectedGuid = "";', choice)
+
+    def test_pending_poi_is_not_exported_to_authoritative_core_map(self):
+        self.assertIn("BuildActivePoiRecords(p, ox, oz)", EXPORTER)
+        pure = EXPORTER.split("public static List<ForgedPoiRecord> BuildActivePoiRecords(", 1)[1]
+        pure = pure.split("private static void WriteAsset(", 1)[0]
+        self.assertIn("d.intakePlacementPending", pure)
+        self.assertIn("PendingPoiDoesNotEnterAuthoritativeCoreMap", NATIVE)
+
+    def test_legacy_pending_poi_does_not_reserve_terrain_spawn_clearance(self):
+        spawn = TERRAIN.split("private static void Spawn(", 1)[1]
+        spawn = spawn.split("// Tree prototypes shared by all tiles.", 1)[0]
+        self.assertIn("!poi.intakePlacementPending", spawn)
+        self.assertIn("poi.clearSpawnRadius > 0f", spawn)
 
     def test_failed_editor_prefab_setup_removes_temporary_private_art_folder(self):
         helper = NATIVE.split("private static GameObject CreateSourcePrefab(", 1)[1]
