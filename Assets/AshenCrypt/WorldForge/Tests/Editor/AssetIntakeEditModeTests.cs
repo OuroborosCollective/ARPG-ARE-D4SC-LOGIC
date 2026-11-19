@@ -15,6 +15,7 @@ namespace AshenCrypt.WorldForge.Tests
             var actor = new GameObject("MillPatient_A");
             var effect = new GameObject("Dust");
             var sword = new GameObject("Sword");
+            var rattler = new GameObject("CryptRattler");
             try
             {
                 actor.AddComponent<Animator>();
@@ -26,13 +27,14 @@ namespace AshenCrypt.WorldForge.Tests
                 Assert.AreEqual(WFAssetIntakeKind.Protected,
                     WFAssetIntakeEvaluator.Assess(sword, "Assets/PrivateArt/WoodlandWeapons/Sword.prefab").kind);
                 Assert.AreEqual(WFAssetIntakeKind.Protected,
-                    WFAssetIntakeEvaluator.Assess(new GameObject("CryptRattler"), "Assets/PrivateArt/VisualPass1/VikingVillage/Thing.prefab").kind);
+                    WFAssetIntakeEvaluator.Assess(rattler, "Assets/PrivateArt/VisualPass1/VikingVillage/Thing.prefab").kind);
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(actor);
                 UnityEngine.Object.DestroyImmediate(effect);
                 UnityEngine.Object.DestroyImmediate(sword);
+                UnityEngine.Object.DestroyImmediate(rattler);
             }
         }
 
