@@ -19,17 +19,26 @@ namespace AshenCrypt.WorldForge.Tests
             Assert.IsFalse(AssetDatabase.IsValidFolder(TestRoot),
                 "Pre-existing temporary directory must not be overwritten");
             AssetDatabase.CreateFolder(TestParent, "ZZ_WF_AssetIntake_EditMode_Test");
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            GameObject go = null;
+            bool ok = false;
             try
             {
+                go = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 go.name = name;
                 string path = TestRoot + "/" + name + ".prefab";
                 Assert.IsNotNull(PrefabUtility.SaveAsPrefabAsset(go, path));
                 guid = AssetDatabase.AssetPathToGUID(path);
                 Assert.AreEqual(32, guid.Length);
-                return AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                GameObject loaded = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsNotNull(loaded);
+                ok = true;
+                return loaded;
             }
-            finally { UnityEngine.Object.DestroyImmediate(go); }
+            finally
+            {
+                if (go != null) UnityEngine.Object.DestroyImmediate(go);
+                if (!ok) AssetDatabase.DeleteAsset(TestRoot);
+            }
         }
         [Test]
         public void SceneOwnedActorsAndEffectsNeverBecomeDecoration()
@@ -149,6 +158,10 @@ namespace AshenCrypt.WorldForge.Tests
                 Assert.AreEqual(guid, profile.pois[0].approvedAssetGuid);
                 Assert.IsTrue(profile.pois[0].intakePlacementPending,
                     "Approval is not placement: a new POI must stay pending");
+                Assert.AreEqual(0f, profile.pois[0].flattenRadius,
+                    "Unplaced asset must not flatten terrain");
+                Assert.AreEqual(0f, profile.pois[0].clearSpawnRadius,
+                    "Unplaced asset must not clear any spawn area");
                 WFAssetIntakeApprovals.ConfirmPoi(profile, prefab, guid, verdict);
                 Assert.AreEqual(1, profile.pois.Count);
             }
@@ -157,6 +170,28 @@ namespace AshenCrypt.WorldForge.Tests
                 UnityEngine.Object.DestroyImmediate(profile);
                 AssetDatabase.DeleteAsset(TestRoot);
             }
+        }
+
+        [Test]
+        public void UnplacedPoiWithLegacyFlattenRadiusCannotChangeHeightGrid()
+        {
+            var profile = ScriptableObject.CreateInstance<WorldProfile>();
+            try
+            {
+                profile.pois.Add(new WFPoiDefinition
+                {
+                    intakePlacementPending = true, position = new Vector2(10f, 10f),
+                    flattenRadius = 20f, flattenFalloff = 2f, clearSpawnRadius = 20f
+                });
+                var ctx = new WFHeightContext(profile);
+                for (int i = 0; i < ctx.Heights.Length; i++)
+                    ctx.Heights[i] = i % 17;
+                float[] before = (float[])ctx.Heights.Clone();
+                new WFFlattenPoiLayer().Apply(ctx);
+                CollectionAssert.AreEqual(before, ctx.Heights,
+                    "Pending POIs, including old saved approvals with nonzero radius, must be inert");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(profile); }
         }
 
         [Test]
