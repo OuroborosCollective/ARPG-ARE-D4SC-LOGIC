@@ -8,6 +8,9 @@
   the Unity main thread, also in Play Mode. Throw `InvalidOperationException` for a user-facing refusal (HTTP 422).
 - New: `FadenwerkAuthoringBridge.ServerRunning` and `StartServer()`.
 - Tests: `FadenwerkExtensionTests` (dispatch, refusal, missing handler, exact page key).
+- Fix: the sample authoring scene (*Fadenwerk → Beispiel*) also works when Fadenwerk is installed from the Asset
+  Store under `Assets/Fadenwerk`; the template is resolved by GUID instead of a fixed `Packages/…` path
+  (`FadenwerkSample.AuthoringTemplatePath()`). The matching package test no longer assumes the UPM location.
 - Unchanged: data format, runtime components, existing browser interface and API.
 
 ## 1.0.0 – 2026-11-15
