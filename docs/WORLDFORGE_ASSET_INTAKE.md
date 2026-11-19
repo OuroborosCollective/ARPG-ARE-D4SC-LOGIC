@@ -34,6 +34,16 @@ An `AssetPostprocessor` pushes **only changed prefab/model paths** into an open 
 
 The isolated Neural Hub read bridge in PR #93 can suggest issue work, but it cannot approve assets, edit the `BiomeProfile`, or claim Unity authority. The canonical Director and an owner confirmation govern any Unity changes. There is no second MCP, game state or editor controller.
 
+## Pending POI authority boundary — 19 November 2026
+
+An approved intake asset is **not yet a placed world point**. The existing profile retains its GUID and the owner can choose coordinates later, but `intakePlacementPending=true` excludes the record at **all three consumers**:
+
+- `WFFlattenPoiLayer`: zero terrain-height influence, including legacy serialized positive flatten radii.
+- `WFTerrainBuilder.Spawn`: no Poisson/vegetation spawn reservation, including legacy positive clearance radii.
+- `WFCoreMapExporter.BuildActivePoiRecords`: no `ForgedPoiRecord` in the authoritative integer map. The original placed story/settlement POIs remain exported unchanged.
+
+TDD: static source RED on `5340b4ca1869ea8d2345c501b677cbd6be968bab` (GitHub core workflow `44580735675` failure); native C# behavior regression added in `AssetIntakeEditModeTests.PendingPoiDoesNotEnterAuthoritativeCoreMap`. The actual licensed Unity EditMode execution remains **UNVERIFIED** pending restored owner VPS access. These source changes do **not** establish a live scene or Android result.
+
 ## Safety regression checkpoint — 19 November 2026
 
 - Six source-contract tests in `Tests/Preflight/test_worldforge_asset_intake_release_guard.py` were introduced before production fixes. Real CI [RED run 44569143089](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44569143089) failed six preflight assertions; independently re-run [GREEN 44570147837](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44570147837) passed at code commit `a5647ca2a7acb12090c15e126c0391ac00b7c92e`.
