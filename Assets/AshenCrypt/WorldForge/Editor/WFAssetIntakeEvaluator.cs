@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -62,6 +64,39 @@ namespace AshenCrypt.WorldForge.EditorTools
             "EntryHero", "Enemy", "MillPatient", "CryptRattler", "Player",
             "Npc", "NPC", "Mara", "Ilyan", "Hunter", "Rattler"
         };
+
+        // Gather current editor-runtime name bindings at the authoritative approval boundary.
+        // An unreadable binding source must never turn a protected asset into decoration.
+        internal static ISet<string> CollectRuntimeBoundNames()
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+            const string sourceFolder = "Assets/Scripts/Runtime";
+            if (!AssetDatabase.IsValidFolder(sourceFolder))
+                throw new InvalidOperationException("RUNTIME_BINDINGS_SOURCE_UNAVAILABLE");
+            var pattern = new Regex(
+                @"(?:GameObject\.Find|transform\.Find|Transform\.Find)\s*\(\s*""([^""]{1,100})""",
+                RegexOptions.CultureInvariant);
+            foreach (string guid in AssetDatabase.FindAssets("t:MonoScript", new[] { sourceFolder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
+                try
+                {
+                    string absolute = Path.Combine(Application.dataPath, path.Substring("Assets/".Length));
+                    var file = new FileInfo(absolute);
+                    if (!file.Exists || file.Length > 262144)
+                        throw new InvalidOperationException("RUNTIME_BINDINGS_SOURCE_UNVERIFIED");
+                    string source = File.ReadAllText(absolute);
+                    foreach (Match match in pattern.Matches(source))
+                        result.Add(match.Groups[1].Value);
+                }
+                catch (IOException ex)
+                {
+                    throw new InvalidOperationException("RUNTIME_BINDINGS_SOURCE_UNREADABLE", ex);
+                }
+            }
+            return result;
+        }
 
         public static bool IsProtectedPackage(string assetPath)
         {
@@ -199,7 +234,8 @@ namespace AshenCrypt.WorldForge.EditorTools
                 AssetDatabase.AssetPathToGUID(actualPath) != guid ||
                 AssetDatabase.LoadAssetAtPath<GameObject>(actualPath) != prefab)
                 throw new InvalidOperationException("ASSET_SOURCE_GUID_NOT_VERIFIED");
-            WFAssetIntakeVerdict actual = WFAssetIntakeEvaluator.Assess(prefab, actualPath);
+            WFAssetIntakeVerdict actual = WFAssetIntakeEvaluator.Assess(
+                prefab, actualPath, WFAssetIntakeEvaluator.CollectRuntimeBoundNames());
             if (actual.kind != shown.kind ||
                 actual.kind == WFAssetIntakeKind.Protected ||
                 actual.kind == WFAssetIntakeKind.ReviewRequired)
@@ -244,9 +280,9 @@ namespace AshenCrypt.WorldForge.EditorTools
                 approvedAssetGuid = guid, decorativePrefab = prefab,
                 intakePlacementPending = true, // configure position before actual terrain generation
                 radius = verified.clearanceRadius,
-                flattenRadius = verified.clearanceRadius,
+                flattenRadius = 0f, // no terrain effect until explicit owner placement
                 flattenFalloff = 2f,
-                clearSpawnRadius = verified.clearanceRadius + 1f
+                clearSpawnRadius = 0f // no spawn clearance before placement
             };
             world.pois.Add(poi);
             EditorUtility.SetDirty(world);
