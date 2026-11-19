@@ -595,9 +595,23 @@ namespace AshenCrypt.WorldForge.EditorTools
 
         private static void CreatePois(WorldProfile p, ForgedWorld world, WFHeightContext ctx, WFBuildReport report)
         {
+            if (!p.createPoiObjects || p.pois == null || p.pois.Count == 0) return;
+            // Preflight every intended visual before touching the old scene graph.
+            // Unplaced approvals and missing private art are retained in profiles.
+            foreach (WFPoiDefinition candidate in p.pois)
+            {
+                if (candidate == null || candidate.intakePlacementPending ||
+                    string.IsNullOrEmpty(candidate.approvedAssetGuid) ||
+                    candidate.decorativePrefab == null) continue;
+                string source = AssetDatabase.GetAssetPath(candidate.decorativePrefab);
+                if (AssetDatabase.AssetPathToGUID(source) != candidate.approvedAssetGuid)
+                    throw new InvalidOperationException("POI_ASSET_GUID_DRIFT");
+                var verdict = WFAssetIntakeEvaluator.Assess(candidate.decorativePrefab, source);
+                if (verdict.kind != WFAssetIntakeKind.Poi && verdict.kind != WFAssetIntakeKind.Spawn)
+                    throw new InvalidOperationException("POI_ASSET_IS_NO_LONGER_SAFE");
+            }
             Transform old = world.transform.Find(PoiRootName);
             if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
-            if (!p.createPoiObjects || p.pois == null || p.pois.Count == 0) return;
             Transform root = GetOrCreateChild(world.transform, PoiRootName);
             foreach (WFPoiDefinition def in p.pois)
             {
@@ -606,15 +620,6 @@ namespace AshenCrypt.WorldForge.EditorTools
                 // select coordinates and clear pending in the existing WorldProfile.
                 if (def.intakePlacementPending && !string.IsNullOrEmpty(def.approvedAssetGuid))
                     continue;
-                if (!string.IsNullOrEmpty(def.approvedAssetGuid) && def.decorativePrefab != null)
-                {
-                    string source = AssetDatabase.GetAssetPath(def.decorativePrefab);
-                    if (AssetDatabase.AssetPathToGUID(source) != def.approvedAssetGuid)
-                        throw new InvalidOperationException("POI_ASSET_GUID_DRIFT");
-                    var review = WFAssetIntakeEvaluator.Assess(def.decorativePrefab, source);
-                    if (review.kind != WFAssetIntakeKind.Poi && review.kind != WFAssetIntakeKind.Spawn)
-                        throw new InvalidOperationException("POI_ASSET_IS_NO_LONGER_SAFE");
-                }
                 var go = new GameObject("POI_" + def.type + "_" + WFEditorUtil.SafeName(def.id));
                 go.transform.SetParent(root, false);
                 go.transform.position = world.transform.position + new Vector3(def.position.x, ctx.SampleHeight(def.position.x, def.position.y), def.position.y);
