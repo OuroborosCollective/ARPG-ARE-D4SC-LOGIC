@@ -173,6 +173,32 @@ namespace AshenCrypt.WorldForge.Tests
         }
 
         [Test]
+        public void PendingPoiDoesNotEnterAuthoritativeCoreMap()
+        {
+            var profile = ScriptableObject.CreateInstance<WorldProfile>();
+            try
+            {
+                profile.pois.Add(new WFPoiDefinition
+                {
+                    id = "pending.asset", intakePlacementPending = true,
+                    position = Vector2.zero, clearSpawnRadius = 17f
+                });
+                profile.pois.Add(new WFPoiDefinition
+                {
+                    id = "placed.story", intakePlacementPending = false,
+                    position = new Vector2(42f, 54f), radius = 6f
+                });
+                var records = WFCoreMapExporter.BuildActivePoiRecords(profile, 0L, 0L);
+                Assert.AreEqual(1, records.Count,
+                    "An approved-but-unplaced asset must not become a Core POI");
+                profile.pois[1].intakePlacementPending = true;
+                Assert.AreEqual(0, WFCoreMapExporter.BuildActivePoiRecords(profile, 0L, 0L).Count,
+                    "Only explicit placement may create Core POI coordinates");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(profile); }
+        }
+
+        [Test]
         public void InvalidApprovedPoiGuidFailsBeforeAnyTerrainOrSceneMutation()
         {
             string guid;
