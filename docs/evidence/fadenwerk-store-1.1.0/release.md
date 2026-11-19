@@ -5,18 +5,27 @@ Grundlage: eingereichter Entwurf 1.0.0 (`Fadenwerk-1.0.0-draft.unitypackage`, SH
 15.11.2026 „draft“). Der Entwurf ist datei- und GUID-gleich mit `Packages/com.ouroboros.fadenwerk` auf `main`
 `488567f`.
 
-Update-Paket: `Fadenwerk-1.1.0.unitypackage`, 87 161 Bytes, SHA-256
-`d53e8dc1dc925569f7bc7915d7e3f17bd64fb6fe216dc8836d84376322b38e08`, 40 Einträge unter `Assets/Fadenwerk`
-(gebaut aus dem Entwurf + Repo-Stand `648fe9c`, alle bisherigen GUIDs erhalten; privat auf dem VPS unter
+Update-Paket: `Fadenwerk-1.1.0.unitypackage`, 87 788 Bytes, SHA-256
+`2ebf11c232a78aa5bef2275ed86de8e33fa17ab9486faf69dc9b00083edd3ee2`, 40 Einträge unter `Assets/Fadenwerk`
+(gebaut aus dem Entwurf + Repo-Stand `7400c94`, alle bisherigen GUIDs erhalten; privat auf dem VPS unter
 `/var/lib/unityarpg/.local/share/are-arpg/store-drafts-20261119/`).
 
-Geändert: `Editor/FadenwerkApi.cs`, `Editor/FadenwerkAuthoringBridge.cs`, `Editor/FadenwerkServer.cs`, `README.md`,
-`package.json` (1.1.0), `Tests/Editor/Fadenwerk.Editor.SafetyTests.asmdef`. Neu: `CHANGELOG.md`,
+Geändert: `Editor/FadenwerkApi.cs`, `Editor/FadenwerkAuthoringBridge.cs`, `Editor/FadenwerkSample.cs`,
+`Editor/FadenwerkServer.cs`, `README.md`, `package.json` (1.1.0), `Tests/Editor/Fadenwerk.Editor.SafetyTests.asmdef`,
+`Tests/Editor/FadenwerkAuthoringSceneSafetyTests.cs`. Neu: `CHANGELOG.md`,
 `Tests/Editor/FadenwerkExtensionTests.cs`.
 
-Prüfung: `unity assets inspect` liest alle 40 Einträge; Fadenwerk-Paket-Tests im Unity-6000.6.8f1-Editor 7/7
-(davon 2 neu); im Spielprojekt EditMode 126/126 und PlayMode 171/171 mit identischen Quelltexten.
-Nicht geprüft: Import in ein leeres Projekt und Asset-Store-Validator (brauchen ein eigenes Upload-Projekt).
+Prüfung:
+- `unity assets inspect` liest alle 40 Einträge.
+- Sauberer Import in ein leeres Unity-6000.6.8f1-Projekt (temporär, danach gelöscht): 0 Kompilierfehler, alle 34
+  Dateien byte-gleich und alle 39 GUIDs gleich dem Repo.
+- Fadenwerk-Paket-Tests: 7/7 in der Store-Struktur (`Assets/Fadenwerk`) und 7/7 als eingebettetes Paket.
+- Asset Store Validator (Asset Store Tools 12.0.0): 34 Prüfungen, 0 Fehler, 1 Warnung „Check Demo Scenes“
+  (Fadenwerk legt seine Beispielszene erst über das Menü an).
+
+Gefunden und behoben: In der Store-Struktur schlug die Beispielszene fehl, weil die Vorlage über den festen Pfad
+`Packages/com.ouroboros.fadenwerk/…` kopiert wurde (Paket-Test im leeren Projekt rot, 6/7). Das betrifft auch die
+eingereichte Version 1.0.0. Die Vorlage wird jetzt über ihre GUID gefunden.
 
 ## Release Notes (für das Publisher-Portal)
 
@@ -31,5 +40,13 @@ interface are unchanged.
 Zugangsschlüssel, gleicher Proxy, Ausführung im Unity-Hauptthread, auch im Play-Modus. Außerdem neu:
 `ServerRunning`/`StartServer()`, Changelog und Paket-Tests. Datenformat, Laufzeit und bestehende Oberfläche bleiben
 unverändert.
+Fix: the sample authoring scene now also works for Asset Store installs under `Assets/Fadenwerk`.
 
-Status: hochgeladen/eingereicht ist 1.1.0 noch nicht.
+Status 19.11.2026 (Uploader-Liste, angemeldet mit dem Owner-Konto): Fadenwerk 430392 / Version 1558990 ist
+„pendingReview“, ebenso Memory Forge (429860) und World Forge (430394); nur „Ouroboros Dungeon Blueprints“ (428468)
+ist „draft“. Der Uploader nimmt nur Entwürfe an, daher ist 1.1.0 noch nicht hochgeladen. Weg: entweder die
+Prüfung von 1.0.0 im Publisher-Portal zurückziehen (dann 1.1.0 in den Entwurf laden und neu einreichen) oder nach
+der Freigabe eine neue Version anlegen und 1.1.0 als Update hochladen.
+
+Hinweis World Forge 1.0.0 (in Prüfung, nicht geändert): Tests und das Beispielmenü greifen auf
+`Assets/Scenes/Arena.unity` und das private `Assets/Studio/Nature/AshenKrypt` zu, die nicht im Paket sind.
