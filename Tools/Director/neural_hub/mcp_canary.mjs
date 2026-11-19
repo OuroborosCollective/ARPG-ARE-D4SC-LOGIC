@@ -1,5 +1,7 @@
 import {server,snapshot} from './server.mjs';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 
 const headers={'content-type':'application/json','accept':'application/json, text/event-stream'};
 const request = async (url,id,method,params={}) => {
@@ -47,19 +49,31 @@ try{
   assert.equal(identity.snapshotId,snapshot.snapshotId);
   assert.equal(identity.sourceRevisionVerified,false);
   assert.equal(identity.runtimeVerified,false);
-  const issue={number:66,state:'open',title:'WorldForge larger region maps',
+  const fixtureIssue={number:66,state:'open',title:'WorldForge larger region maps',
     url:'https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues/66'};
+  let issues=[fixtureIssue],suppliedIssuesSha256=null;
+  if(process.env.ASHEN_ISSUES_FILE){
+    const bytes=readFileSync(process.env.ASHEN_ISSUES_FILE);
+    assert.ok(bytes.length>1&&bytes.length<=65536,'bounded issue input');
+    const payload=JSON.parse(bytes.toString('utf8'));
+    assert.ok(payload&&Object.keys(payload).length===1&&Array.isArray(payload.issues),
+      'input only issues, no extra instructions');
+    issues=payload.issues;
+    suppliedIssuesSha256=createHash('sha256').update(bytes).digest('hex');
+  }
   const answer=await request(endpoint.url,5,'tools/call',{
-    name:'advice_world_design',arguments:{snapshotId:snapshot.snapshotId,issues:[issue]}
+    name:'advice_world_design',arguments:{snapshotId:snapshot.snapshotId,issues}
   });
-  assert.equal(answer.result.structuredContent.status,'PROPOSE');
+  assert.equal(answer.result.structuredContent.status,
+    issues.some(x=>x.number===66&&x.state==='open')?'PROPOSE':'ABSTAIN');
   assert.equal(answer.result.structuredContent.execution,'NONE');
   assert.equal(answer.result.structuredContent.sourceVerification,'SUPPLIED_ISSUE_NOT_INDEPENDENTLY_VERIFIED');
   const all=await request(endpoint.url,6,'tools/call',{
-    name:'director_consult',arguments:{snapshotId:snapshot.snapshotId,issues:[issue]}
+    name:'director_consult',arguments:{snapshotId:snapshot.snapshotId,issues}
   });
   assert.equal(all.result.structuredContent.consulted,28);
-  assert.equal(all.result.structuredContent.status,'INSUFFICIENT_DISTINCT_PATHS');
+  assert.ok(['THREE_PATHS_READY_FOR_DIRECTOR_REVIEW','INSUFFICIENT_DISTINCT_PATHS']
+    .includes(all.result.structuredContent.status));
   assert.equal(all.result.structuredContent.runtimeVerified,false);
   const sourceCatalog=await request(endpoint.url,7,'tools/call',{
     name:'director_sources',arguments:{snapshotId:snapshot.snapshotId}
@@ -75,12 +89,36 @@ try{
   assert.ok(sources.result.structuredContent.candidates.length<=6);
   assert.equal(sources.result.structuredContent.authorization,'NONE');
   assert.equal(sources.result.structuredContent.runtimeVerified,false);
+  const advisorFindings=[];
+  let nextId=30;
+  for(const advisor of snapshot.advisors){
+    const call=await request(endpoint.url,nextId++,'tools/call',{
+      name:'advice_'+advisor.id,
+      arguments:{snapshotId:snapshot.snapshotId,issues}
+    });
+    assert.equal(call.result.structuredContent.department,advisor.id);
+    assert.equal(call.result.structuredContent.execution,'NONE');
+    assert.equal(call.result.structuredContent.authorization,'NONE');
+    assert.equal(call.result.structuredContent.sourceVerification,
+      'SUPPLIED_ISSUE_NOT_INDEPENDENTLY_VERIFIED');
+    assert.ok(['PROPOSE','ABSTAIN'].includes(call.result.structuredContent.status));
+    advisorFindings.push({
+      department:advisor.id,status:call.result.structuredContent.status,
+      proposal:call.result.structuredContent.proposal??null
+    });
+  }
+  assert.equal(advisorFindings.length,28,'all advisory tools actually called over MCP');
   console.log(JSON.stringify({
-    schema:'ashen.mcp-protocol-canary.v1',status:'PASS',
+    schema:'ashen.mcp-protocol-canary.v2',status:'PASS',
     toolCount:tools.length,promptCount:prompts.length,advisorCount:snapshot.advisors.length,
     registeredExternalSources:sourceCatalog.result.structuredContent.sourceCount,
     sourceRevision:snapshot.gitRevisionClaim,snapshotId:snapshot.snapshotId,
     outputProvenance:'SUPPLIED_ISSUE_NOT_INDEPENDENTLY_VERIFIED',
+    suppliedIssuesSha256,issueCount:issues.length,individualAdvisorsCalled:advisorFindings.length,
+    advised:advisorFindings.filter(a=>a.status==='PROPOSE').length,
+    abstained:advisorFindings.filter(a=>a.status==='ABSTAIN').length,
+    advisorFindings,councilStatus:all.result.structuredContent.status,
+    councilPaths:all.result.structuredContent.paths,
     runtimeVerified:false,productUnityVerified:false
   }));
 }finally{
