@@ -9,16 +9,16 @@
 3. Click **Paket/PrivateArt jetzt einmalig scannen**. The first scan may be large; no scan is performed on imports or every GUI repaint.
 4. Search for the prefab. Review its preview thumbnail, actual local mesh size, reason for its class and proposed clearance. `Protected` never offers a decor button; `ReviewRequired` requires a deliberate policy/code review first.
 5. Click **Als Spawn bestätigen** or **Als POI bestätigen**. Only that selected existing profile is modified, with Undo and `AssetDatabase.SaveAssetIfDirty`. Approvals persist as source GUIDs in the existing `BiomeProfile.spawnRules` or `WorldProfile.pois`. Repeating approval is idempotent. Rejections are stored in the same `BiomeProfile.rejectedAssetGuids`, not a new external catalog.
-6. New POIs are saved **with `intakePlacementPending=true`**. Set their coordinates in the existing `WorldProfile` inspector, inspect the proposed horizontal-diagonal-based flatten/clear radii, then **explicitly uncheck** pending before generating a world. A merely accepted POI is not spawned at zero coordinates.
-7. The existing World Forge generation path independently revalidates every active approved POI GUID and classification **before** modifying the POI scene graph. Missing private asset references remain in the source profile with their GUID so importing them later does not silently erase approvals.
+6. New POIs are saved **with `intakePlacementPending=true`**, **flattenRadius=0** and **clearSpawnRadius=0**. Only after setting verified coordinates may the owner configure a deliberate flatten/clear radius and explicitly uncheck pending. Even legacy pending entries with positive radii are ignored by the height layer; approval alone never flattens the origin.
+7. Every generation/respawn/height-only entry point revalidates active approved POI GUIDs and classification **inside Validate(p), before changing terrain, scene roots, or profile settings**. Disabling or removing all POIs clears the previous `WF_POIs` root. Missing private references retain their GUID for future re-import.
 
 ## Safety and policy
 
 The source path is never a policy. Only known **per-package** roots produce candidates: `VisualPass1/VikingVillage`, `DesignAssets/StylizedFruitProps`, `DesignAssets/AlchemyLabProps`, `DesignAssets/SimpleMedievalProps`, `OwnerForestReview/Prefabs`, and `FantasyKingdom3D/Prefabs`. These allow only *proposals*, not automatic imports.
 
-`WoodlandWeapons`, `CombatIntake`, `HunterBear`, and `Resources` are protected roots. Animator, Animation, skinned meshes, particles, VisualEffect, gameplay MonoBehaviours, missing components, and runtime-linked object identities block decoration. Unity C# source `GameObject.Find`/`transform.Find` names are additional negative protections, gathered **only on explicit scan**.
+`WoodlandWeapons`, `CombatIntake`, `HunterBear`, and `Resources` are protected roots. Animator, Animation, skinned meshes, particles, VisualEffect, gameplay MonoBehaviours, missing components, and runtime-linked object identities block decoration. Unity C# source `GameObject.Find`/`transform.Find` names are negative protections. The exact same scanner runs on explicit scan, **again at ConfirmSpawn/ConfirmPoi** (never trust caller-provided verdicts), and before using active approved POI visuals. Missing or unreadable runtime source fails closed.
 
-Geometry is derived from `MeshFilter.sharedMesh.bounds` transformed into root-local coordinates; a prefab asset's arbitrary scene/world origin is never used as spatial truth. POI flatten/clearance derives from half the measured horizontal diagonal plus a safety margin. No undeclared image classifier, no Wolfram inference as automatic authority, no auto-install, no AI runtime invocation.
+Geometry is derived from `MeshFilter.sharedMesh.bounds` transformed into root-local coordinates; a prefab asset's arbitrary scene/world origin is never used as spatial truth. Proposed POI geometry/clearance is measured from half the horizontal diagonal plus a safety margin; a pending POI has **zero** effective terrain and spawn-clearance authority until the owner explicitly configures placement. No undeclared image classifier, no Wolfram inference as automatic authority, no auto-install, no AI runtime invocation.
 
 An `AssetPostprocessor` pushes **only changed prefab/model paths** into an open review window. It never scans the whole private package on each import or writes a game asset. Unknown packages/geometry abstain. No entry is inserted in `Resources`, no second item/quest/Save registry, and no automatic terrain build occurs on approval.
 
@@ -33,3 +33,9 @@ An `AssetPostprocessor` pushes **only changed prefab/model paths** into an open 
 ## Cross-project dependency
 
 The isolated Neural Hub read bridge in PR #93 can suggest issue work, but it cannot approve assets, edit the `BiomeProfile`, or claim Unity authority. The canonical Director and an owner confirmation govern any Unity changes. There is no second MCP, game state or editor controller.
+
+## Safety regression checkpoint — 19 November 2026
+
+- Six source-contract tests in `Tests/Preflight/test_worldforge_asset_intake_release_guard.py` were introduced before production fixes. Real CI [RED run 44569143089](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44569143089) failed six preflight assertions; independently re-run [GREEN 44570147837](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44570147837) passed at code commit `a5647ca2a7acb12090c15e126c0391ac00b7c92e`.
+- Editor-side native regression coverage additionally checks pending POI height-grid immutability, zero radii on approval, and wrong GUID rejection before a new world root can be created. The test prefab helper now cleans the private test directory even when prefab creation fails.
+- **Evidence boundary:** GitHub Core/Preflight is real for that commit, but Unity 6000.6.8f1 EditMode, 791 private assets, real scene output, Android device and owner DOCX append remain **UNVERIFIED**. No production scene, Core, Save, permissions or live broker changed; PR #95 stays Draft until native readback.
