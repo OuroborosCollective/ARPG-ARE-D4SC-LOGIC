@@ -1,7 +1,7 @@
 {
   "name": "Fadenwerk.Editor.SafetyTests",
   "rootNamespace": "Fadenwerk.Tests",
-  "references": ["Fadenwerk.Runtime"],
+  "references": ["Fadenwerk.Runtime", "Fadenwerk.Editor"],
   "includePlatforms": ["Editor"],
   "optionalUnityReferences": ["TestAssemblies"],
   "overrideReferences": true,

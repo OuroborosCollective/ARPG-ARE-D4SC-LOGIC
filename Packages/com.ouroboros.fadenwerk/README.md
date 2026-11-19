@@ -1,4 +1,4 @@
-# Fadenwerk 1.0.0 – Quests, Dialoge und Belohnungen für Unity 6
+# Fadenwerk 1.1.0 – Quests, Dialoge und Belohnungen für Unity 6
 
 Editor-Plugin mit Browser-Oberfläche (auch für Unity auf einem VPS) und Offline-Laufzeit für dein Spiel.
 
