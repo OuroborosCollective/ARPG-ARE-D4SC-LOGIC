@@ -593,11 +593,12 @@ namespace AshenCrypt.WorldForge.EditorTools
 
         // ------------------------------------------------------------------ POIs, NavMesh, stats
 
-        private static void CreatePois(WorldProfile p, ForgedWorld world, WFHeightContext ctx, WFBuildReport report)
+        // Run before GenerateAll / Respawn / heights-only can change terrains or objects.
+        // Missing private art retains its approved GUID without automatic placement.
+        private static void ValidateApprovedPoiVisuals(WorldProfile p)
         {
-            if (!p.createPoiObjects || p.pois == null || p.pois.Count == 0) return;
-            // Preflight every intended visual before touching the old scene graph.
-            // Unplaced approvals and missing private art are retained in profiles.
+            if (p.pois == null) return;
+            ISet<string> runtimeBindings = null;
             foreach (WFPoiDefinition candidate in p.pois)
             {
                 if (candidate == null || candidate.intakePlacementPending ||
@@ -606,19 +607,27 @@ namespace AshenCrypt.WorldForge.EditorTools
                 string source = AssetDatabase.GetAssetPath(candidate.decorativePrefab);
                 if (AssetDatabase.AssetPathToGUID(source) != candidate.approvedAssetGuid)
                     throw new InvalidOperationException("POI_ASSET_GUID_DRIFT");
-                var verdict = WFAssetIntakeEvaluator.Assess(candidate.decorativePrefab, source);
+                if (runtimeBindings == null)
+                    runtimeBindings = WFAssetIntakeEvaluator.CollectRuntimeBoundNames();
+                var verdict = WFAssetIntakeEvaluator.Assess(
+                    candidate.decorativePrefab, source, runtimeBindings);
                 if (verdict.kind != WFAssetIntakeKind.Poi && verdict.kind != WFAssetIntakeKind.Spawn)
                     throw new InvalidOperationException("POI_ASSET_IS_NO_LONGER_SAFE");
             }
+        }
+
+        private static void CreatePois(WorldProfile p, ForgedWorld world, WFHeightContext ctx, WFBuildReport report)
+        {
             Transform old = world.transform.Find(PoiRootName);
             if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
+            if (!p.createPoiObjects || p.pois == null || p.pois.Count == 0) return;
             Transform root = GetOrCreateChild(world.transform, PoiRootName);
             foreach (WFPoiDefinition def in p.pois)
             {
                 if (def == null) continue;
                 // A newly admitted visual is NOT a world placement. The owner must
                 // select coordinates and clear pending in the existing WorldProfile.
-                if (def.intakePlacementPending && !string.IsNullOrEmpty(def.approvedAssetGuid))
+                if (def.intakePlacementPending)
                     continue;
                 var go = new GameObject("POI_" + def.type + "_" + WFEditorUtil.SafeName(def.id));
                 go.transform.SetParent(root, false);
@@ -684,6 +693,7 @@ namespace AshenCrypt.WorldForge.EditorTools
         private static void Validate(WorldProfile p)
         {
             if (p == null) throw new ArgumentNullException("profile");
+            ValidateApprovedPoiVisuals(p); // must be fail-closed before the first scene/terrain mutation
             int fixedRes = WorldProfile.ValidHeightmapResolution(p.heightmapResolution);
             if (fixedRes != p.heightmapResolution) { p.heightmapResolution = fixedRes; EditorUtility.SetDirty(p); }
             if (p.heightLayers == null || p.heightLayers.Count == 0)
