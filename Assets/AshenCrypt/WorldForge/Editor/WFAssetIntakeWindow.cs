@@ -96,38 +96,11 @@ namespace AshenCrypt.WorldForge.EditorTools
             entries[guid] = new Entry { guid = guid, path = path, source = source, verdict = verdict };
         }
 
-        private static ISet<string> CollectBoundNames()
-        {
-            // Negative protection hints from the existing, visible Unity code; never executes it.
-            var result = new HashSet<string>(StringComparer.Ordinal);
-            const string sourceFolder = "Assets/Scripts/Runtime";
-            if (!AssetDatabase.IsValidFolder(sourceFolder)) return result;
-            var pattern = new Regex(
-                @"(?:GameObject\.Find|transform\.Find|Transform\.Find)\s*\(\s*""([^""]{1,100})""",
-                RegexOptions.CultureInvariant);
-            foreach (string guid in AssetDatabase.FindAssets("t:MonoScript", new[] { sourceFolder }))
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase)) continue;
-                try
-                {
-                    string absolute = Path.Combine(Application.dataPath, path.Substring("Assets/".Length));
-                    var file = new FileInfo(absolute);
-                    if (!file.Exists || file.Length > 262144) continue;
-                    string source = File.ReadAllText(absolute);
-                    foreach (Match match in pattern.Matches(source))
-                        result.Add(match.Groups[1].Value);
-                }
-                catch (IOException) { /* unreadable code => no positive classification benefit */ }
-            }
-            return result;
-        }
-
         private void ScanExplicitly()
         {
             if (!AssetDatabase.IsValidFolder(rootFolder))
                 throw new InvalidOperationException("PRIVATE_ASSET_FOLDER_MISSING");
-            runtimeBoundNames = CollectBoundNames();
+            runtimeBoundNames = WFAssetIntakeEvaluator.CollectRuntimeBoundNames();
             entries.Clear();
             foreach (string guid in AssetDatabase.FindAssets("t:GameObject", new[] { rootFolder }))
             {
@@ -217,8 +190,16 @@ namespace AshenCrypt.WorldForge.EditorTools
             {
                 string folder = AssetDatabase.GetAssetPath(selectedFolder);
                 if (AssetDatabase.IsValidFolder(folder) &&
-                    folder.StartsWith("Assets/PrivateArt/", StringComparison.Ordinal))
+                    folder.StartsWith("Assets/PrivateArt/", StringComparison.Ordinal) &&
+                    !string.Equals(rootFolder, folder, StringComparison.Ordinal))
+                {
                     rootFolder = folder;
+                    entries.Clear();
+                    changedPaths.Clear();
+                    runtimeBoundNames = null;
+                    selectedGuid = "";
+                    feedback = "Paketordner geändert: Vorschau verworfen; bitte erneut scannen.";
+                }
             }
             EditorGUILayout.LabelField("Quelle", rootFolder, EditorStyles.miniLabel);
             if (GUILayout.Button("Paket/PrivateArt jetzt einmalig scannen", GUILayout.Height(28)))
@@ -240,7 +221,7 @@ namespace AshenCrypt.WorldForge.EditorTools
                     entry.path.IndexOf(search, StringComparison.OrdinalIgnoreCase) < 0) continue;
                 if (displayed++ >= 160) break;
                 string label = (entry.guid == selectedGuid ? "▶ " : "") +
-                    entry.verdict.kind + " | " + entry.path.Substring(rootFolder.Length).TrimStart('/');
+                    entry.verdict.kind + " | " + (InScope(entry.path) ? entry.path.Substring(rootFolder.Length).TrimStart('/') : entry.path);
                 if (GUILayout.Button(label, EditorStyles.miniButtonLeft))
                     selectedGuid = entry.guid;
             }
