@@ -173,6 +173,39 @@ namespace AshenCrypt.WorldForge.Tests
         }
 
         [Test]
+        public void InvalidApprovedPoiGuidFailsBeforeAnyTerrainOrSceneMutation()
+        {
+            string guid;
+            var prefab = CreateSourcePrefab("PreflightBuilding", out guid);
+            var profile = ScriptableObject.CreateInstance<WorldProfile>();
+            try
+            {
+                profile.rootObjectName = "ZZ_WF_Intake_Preflight_MustNotSpawn";
+                Assert.IsNull(GameObject.Find(profile.rootObjectName));
+                string wrongGuid = guid == new string('0', 32)
+                    ? new string('1', 32) : new string('0', 32);
+                profile.pois.Add(new WFPoiDefinition
+                {
+                    id = "preflight.invalid-guid",
+                    decorativePrefab = prefab,
+                    approvedAssetGuid = wrongGuid,
+                    intakePlacementPending = false,
+                    flattenRadius = 4f
+                });
+                var failure = Assert.Throws<InvalidOperationException>(() =>
+                    WFTerrainBuilder.GenerateAll(profile));
+                StringAssert.Contains("POI_ASSET_GUID_DRIFT", failure.Message);
+                Assert.IsNull(GameObject.Find(profile.rootObjectName),
+                    "Invalid GUID preflight must reject before generating a world root");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(profile);
+                AssetDatabase.DeleteAsset(TestRoot);
+            }
+        }
+
+        [Test]
         public void UnplacedPoiWithLegacyFlattenRadiusCannotChangeHeightGrid()
         {
             var profile = ScriptableObject.CreateInstance<WorldProfile>();
