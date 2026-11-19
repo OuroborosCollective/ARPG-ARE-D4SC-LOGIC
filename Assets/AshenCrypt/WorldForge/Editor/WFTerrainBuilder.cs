@@ -602,11 +602,32 @@ namespace AshenCrypt.WorldForge.EditorTools
             foreach (WFPoiDefinition def in p.pois)
             {
                 if (def == null) continue;
+                // A newly admitted visual is NOT a world placement. The owner must
+                // select coordinates and clear pending in the existing WorldProfile.
+                if (def.intakePlacementPending && !string.IsNullOrEmpty(def.approvedAssetGuid))
+                    continue;
+                if (!string.IsNullOrEmpty(def.approvedAssetGuid) && def.decorativePrefab != null)
+                {
+                    string source = AssetDatabase.GetAssetPath(def.decorativePrefab);
+                    if (AssetDatabase.AssetPathToGUID(source) != def.approvedAssetGuid)
+                        throw new InvalidOperationException("POI_ASSET_GUID_DRIFT");
+                    var review = WFAssetIntakeEvaluator.Assess(def.decorativePrefab, source);
+                    if (review.kind != WFAssetIntakeKind.Poi && review.kind != WFAssetIntakeKind.Spawn)
+                        throw new InvalidOperationException("POI_ASSET_IS_NO_LONGER_SAFE");
+                }
                 var go = new GameObject("POI_" + def.type + "_" + WFEditorUtil.SafeName(def.id));
                 go.transform.SetParent(root, false);
                 go.transform.position = world.transform.position + new Vector3(def.position.x, ctx.SampleHeight(def.position.x, def.position.y), def.position.y);
                 var poi = go.AddComponent<ForgedPoi>();
                 poi.poiId = def.id; poi.type = def.type; poi.radius = def.radius; poi.tags = def.tags;
+                if (def.decorativePrefab != null && !string.IsNullOrEmpty(def.approvedAssetGuid))
+                {
+                    // Only a confirmed, still-safe decorative prefab; marker owns the world position.
+                    var visual = PrefabUtility.InstantiatePrefab(def.decorativePrefab, go.transform) as GameObject;
+                    if (visual == null) throw new InvalidOperationException("POI_VISUAL_INSTANTIATION_FAILED");
+                    visual.transform.localPosition = Vector3.zero;
+                    visual.transform.localRotation = Quaternion.identity;
+                }
                 report.pois++;
             }
             Undo.RegisterCreatedObjectUndo(root.gameObject, "World Forge POIs");
