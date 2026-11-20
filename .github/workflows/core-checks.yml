@@ -50,6 +50,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.23.4'
+      - name: Verify bounded read-only Director bridge with real subprocess tests
+        run: python3 -m unittest discover -s Tools/Director/neural_hub -p 'test_*.py' -v
       - name: Run 28-advisor unit and negative tests
         run: node --test Tools/Director/neural_hub/*.test.mjs
       - name: Install pinned mcp-use package without scripts

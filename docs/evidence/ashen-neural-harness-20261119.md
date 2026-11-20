@@ -49,3 +49,7 @@ Other notable advisors: asset pipeline [#62](https://github.com/OuroborosCollect
 - Test/evidence: `mcp_canary.mjs`, `harness_eval*.mjs`, `harness_eval_cases.json`, this note.
 - Documents: `docs/DIRECTOR_NEURAL_CORTEX.md`, `Memory.md`, handoff (no source execution).
 - Core/persistence/Unity projection/game effects: untouched by the harness feature.
+
+## Review-Reparaturnachtrag – 2026-11-20
+
+Die Review-Fehler im bestehenden PR #93 wurden gezielt in GitHub bearbeitet. RED-Revision `d042ed1791ec5e82cfe9b315f3be987706e3b39e` / [CI 44653946585](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44653946585) zeigt vier negative Node-Regressionsfaelle. GREEN-Revision `d0d514deb3fa80f1f1a8aa717e25ec6f9bcf1ea9` / [CI 44654065733](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44654065733) bestaetigt 40/40 Node, Legacy/Modern-MCP und Core; Python Bridge-Tests sind in den naechsten CI-Head aufgenommen. Korrekturen: `result.isError`, `snapshotId`, mindestens drei Wiederholungen, resources URI-Pagination, striktere Guidance, World-Issues 66/69/70, exakter Council-Status, streaming-`checked` und Docker-Container-Cleanup nach Fehler/Timeout. Weder das echte Unity-Projekt noch Assets, Save, C#-Core, Android oder Deployment wurden veraendert. Live-Broker-Verbindung und reale Docker-Cleanup-Laufzeit weiterhin UNVERIFIED; Issue #94 blockiert Merge bis zum unabhaengigen Readback.
