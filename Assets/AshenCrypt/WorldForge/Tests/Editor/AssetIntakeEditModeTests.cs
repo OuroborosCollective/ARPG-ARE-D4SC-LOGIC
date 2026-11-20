@@ -182,6 +182,44 @@ namespace AshenCrypt.WorldForge.Tests
         }
 
         [Test]
+        public void ImportedAndMovedPrefabUpdatesOnlyTheScannedFolder()
+        {
+            string guid;
+            var source = CreateSourcePrefab("VillageBowl", out guid);
+            var window = ScriptableObject.CreateInstance<WFAssetIntakeWindow>();
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var type = typeof(WFAssetIntakeWindow);
+            try
+            {
+                type.GetField("rootFolder", flags).SetValue(window, TestRoot);
+                type.GetMethod("ScanExplicitly", flags).Invoke(window, null);
+                var entries = (System.Collections.IDictionary)type.GetField("entries", flags).GetValue(window);
+                Assert.IsTrue(entries.Contains(guid));
+                string original = AssetDatabase.GetAssetPath(source);
+                AssetDatabase.ImportAsset(original, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                var changed = (System.Collections.Generic.HashSet<string>)type.GetField("changedPaths", flags).GetValue(window);
+                CollectionAssert.Contains(changed, original);
+                string moved = TestRoot + "/RenamedBowl.prefab";
+                Assert.AreEqual("", AssetDatabase.MoveAsset(original, moved));
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                var update = type.GetMethod("Update", flags);
+                update.Invoke(window, null);
+                Assert.AreEqual(1, entries.Count);
+                var entry = entries[guid];
+                Assert.AreEqual(moved, entry.GetType().GetField("path").GetValue(entry));
+                Assert.IsTrue(AssetDatabase.DeleteAsset(moved));
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                update.Invoke(window, null);
+                Assert.IsEmpty(entries);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(window);
+                AssetDatabase.DeleteAsset(TestRoot);
+            }
+        }
+
+        [Test]
         public void DisabledPoiVisualsAllowCleanupDespiteGuidDrift()
         {
             var profile = ScriptableObject.CreateInstance<WorldProfile>();
