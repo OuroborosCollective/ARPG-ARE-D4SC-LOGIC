@@ -100,6 +100,9 @@ namespace AshenCrypt.WorldForge.Tests
 
         [TestCase("Weapons/Sword.prefab")]
         [TestCase("Props/SM_Wep_Axe_01.prefab")]
+        [TestCase("Weapons/Crate.prefab")]
+        [TestCase("Props/IronSword01.prefab")]
+        [TestCase("Props/Longbow.prefab")]
         public void WeaponsInsideAllowedPackageRequireReview(string relativePath)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -109,6 +112,22 @@ namespace AshenCrypt.WorldForge.Tests
                     WFAssetIntakeEvaluator.Assess(go, TestParent + "/" + relativePath).kind);
             }
             finally { UnityEngine.Object.DestroyImmediate(go); }
+        }
+
+        [TestCase("Bowl_01", "Props/Bowl_01.prefab")]
+        [TestCase("Pipe_Elbow", "Props/Pipe_Elbow.prefab")]
+        [TestCase("Balance_Scale", "Rainbow/Balance_Scale.prefab")]
+        [TestCase("Clubhouse", "Village/Clubhouse.prefab")]
+        public void OrdinaryDecorationWithWeaponSubstringRemainsEligible(string name, string relativePath)
+        {
+            var prop = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                prop.name = name;
+                Assert.AreEqual(WFAssetIntakeKind.Spawn,
+                    WFAssetIntakeEvaluator.Assess(prop, TestParent + "/" + relativePath).kind);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(prop); }
         }
 
         [Test]
