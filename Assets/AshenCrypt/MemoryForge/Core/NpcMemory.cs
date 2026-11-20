@@ -17,6 +17,7 @@ namespace AshenCrypt.MemoryForge
             if(_values.Any(v=>Math.Abs((long)v)>10000))throw new ArgumentOutOfRangeException(nameof(trust));
         }
         public int this[RelationshipAxis axis] => _values[(int)axis];
+        internal bool IsNeutral => Array.TrueForAll(_values, value => value == 0);
         internal string Canonical => string.Join(",",_values.Select(v=>ContractText.Number(v)));
     }
     public sealed class Relationship
@@ -162,7 +163,7 @@ namespace AshenCrypt.MemoryForge
 
             bool donation = ev.Context == "camp.decision.replaced";
             if ((!donation && ev.Context != "camp.decision.stolen") || ev.Kind != MemoryKind.Quest ||
-                ev.Actor != "player" || ev.Target != "mara" || !ev.CauseEventId.HasValue ||
+                ev.Actor != "player" || ev.Target != "mara" || !ev.Impact.IsNeutral || !ev.CauseEventId.HasValue ||
                 ev.CauseEventId.Value == 0 || ev.CauseEventId.Value >= ev.Id)
                 throw new ArgumentException("Invalid camp decision or cause");
 

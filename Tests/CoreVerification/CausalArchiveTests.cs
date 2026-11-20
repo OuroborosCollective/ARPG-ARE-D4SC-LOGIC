@@ -33,6 +33,8 @@ internal static class CausalArchiveTests
         Reject("forward-parent", consequence with { Id = 1, Cause = 2 }, theft with { Id = 2 });
         Reject("cycle", theft with { Cause = 2 }, consequence);
         Reject("later-tick", theft with { Tick = 10 }, consequence);
+        Reject("derived-decision-with-duplicate-relationship-impact",
+            theft with { Trust = -2000 }, consequence with { Trust = -2000 });
         Reject("wrong-action-kind", theft with { Kind = MemoryKind.Greeting }, consequence);
         Reject("wrong-action-context", theft with { Context = "road.theft" }, consequence);
         Reject("wrong-source-actor", theft with { Actor = "ilyan" }, consequence);
@@ -113,7 +115,7 @@ internal static class CausalArchiveTests
 
     // Explicit binary contract. No production reader, event factory or Save() is used to construct forged tokens.
     private sealed record WireEvent(ulong Id, ulong Tick, MemoryKind Kind, string Actor, string Target,
-        string Context, int Importance, bool Essential, ulong Cause);
+        string Context, int Importance, bool Essential, ulong Cause, int Trust = 0);
 
     private static string Token(params WireEvent[] events)
     {
@@ -132,9 +134,10 @@ internal static class CausalArchiveTests
                 writer.Write(e.Importance);
                 writer.Write(e.Essential);
                 WriteText(writer, e.Context);
-                for (int i = 0; i < 8; ++i) writer.Write(0);
+                writer.Write(e.Trust);
+                for (int i = 1; i < 8; ++i) writer.Write(0);
                 writer.Write(e.Cause);
-                string header = FormattableString.Invariant($"{e.Id},{e.Tick},{(int)e.Kind},{e.Actor},{e.Target},{e.Context},{e.Importance},{(e.Essential ? 1 : 0)},0,0,0,0,0,0,0,0");
+                string header = FormattableString.Invariant($"{e.Id},{e.Tick},{(int)e.Kind},{e.Actor},{e.Target},{e.Context},{e.Importance},{(e.Essential ? 1 : 0)},{e.Trust},0,0,0,0,0,0,0");
                 string cause = e.Cause == 0 ? "" : "|cause:" + e.Cause.ToString(CultureInfo.InvariantCulture);
                 WriteText(writer, ContractText.Hash(header + cause));
             }
