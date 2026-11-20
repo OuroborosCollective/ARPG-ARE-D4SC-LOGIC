@@ -21,8 +21,8 @@ from urllib.parse import unquote, urlsplit
 VERSION = "4.5.16"
 SCHEMA = "worldforge.blender-export.v1"
 ROOT = Path("/var/lib/unityarpg/.local/share/are-arpg/worldforge-blender")
-BLENDER = Path(f"/opt/worldforge-blender/blender-{VERSION}-linux-x64")
 EXPORTER = Path(__file__).resolve().with_name("blender_export.py")
+RECIPES = EXPORTER.parent / "recipes"
 FORMATS = {".blend", ".fbx", ".glb"}
 MAX_SOURCE = 1024 ** 3
 ATTEMPTS = (".attempt-1", ".attempt-2")
@@ -54,9 +54,24 @@ def fingerprint(path, copy_to=None):
     return digest.hexdigest(), size
 
 
-def job_key(extension, source_hash):
-    recipe = fingerprint(EXPORTER)[0]
-    return hashlib.sha256(f"{SCHEMA}/{VERSION}/{recipe}/{extension}/{source_hash}".encode()).hexdigest()
+def job_key(extension, source_hash, version, recipe_hash):
+    return hashlib.sha256(f"{SCHEMA}/{version}/{recipe_hash}/{extension}/{source_hash}".encode()).hexdigest()
+
+
+def select_recipe(extension, source_hash, key, archive=RECIPES):
+    # The installer retains root-owned recipe files and matching Blender bundles. A queued
+    # input carries no executable code path: its content key identifies the trusted recipe.
+    for path in sorted(archive.glob("*/*.py")):
+        version = path.parent.name
+        if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) or not re.fullmatch("[0-9a-f]{64}", path.stem):
+            continue
+        if job_key(extension, source_hash, version, path.stem) == key:
+            if path.is_symlink() or fingerprint(path)[0] != path.stem:
+                raise ValueError("Installed export recipe checksum mismatch")
+            return version, path
+    if job_key(extension, source_hash, VERSION, fingerprint(EXPORTER)[0]) == key:
+        return VERSION, EXPORTER
+    raise ValueError("No installed export recipe matches this input and job ID")
 
 
 def valid_id(key):
@@ -76,7 +91,7 @@ def submit(root, source):
             digest, size = fingerprint(source, out)
         if not size:
             raise ValueError("Empty source")
-        key = job_key(ext, digest)
+        key = job_key(ext, digest, VERSION, fingerprint(EXPORTER)[0])
         with lock(root, "publish.lock"):
             result = root / "results" / key
             if result.exists() and not result_intact(result):
@@ -159,7 +174,7 @@ def result_intact(output):
         return False
 
 
-def receipt(output, key, source_hash):
+def receipt(output, key, source_hash, version, recipe):
     files = []
     for path in sorted(output.rglob("*")):
         mode = path.lstat().st_mode
@@ -180,13 +195,13 @@ def receipt(output, key, source_hash):
             raise ValueError("Invalid GLB 2.0 header or length")
     check_gltf(output)
     with (output / "receipt.json").open("x", encoding="utf-8") as handle:
-        json.dump({"schema": SCHEMA, "jobId": key, "blenderVersion": VERSION,
-                   "exporterSha256": fingerprint(EXPORTER)[0], "sourceSha256": source_hash,
+        json.dump({"schema": SCHEMA, "jobId": key, "blenderVersion": version,
+                   "exporterSha256": fingerprint(recipe)[0], "sourceSha256": source_hash,
                    "files": files}, handle, indent=2)
         handle.write("\n")
 
 
-def sandbox(source, output):
+def sandbox(source, output, version, recipe):
     args = ["/usr/bin/bwrap", "--unshare-all", "--die-with-parent", "--new-session", "--cap-drop", "ALL",
             "--clearenv", "--setenv", "HOME", "/tmp", "--setenv", "TMPDIR", "/tmp",
             "--setenv", "PATH", "/blender", "--setenv", "LANG", "C.UTF-8",
@@ -198,7 +213,8 @@ def sandbox(source, output):
                    "/usr/share/locale", "/usr/share/color"):
         if Path(common).exists():
             args.extend(["--ro-bind", common, common])
-    return [*args, "--ro-bind", str(BLENDER), "/blender", "--ro-bind", str(EXPORTER), "/tool/export.py",
+    bundle = f"/opt/worldforge-blender/blender-{version}-linux-x64"
+    return [*args, "--ro-bind", bundle, "/blender", "--ro-bind", str(recipe), "/tool/export.py",
             "--ro-bind", str(source), "/input/" + source.name, "--bind", str(output), "/output",
             "--chdir", "/output", "/blender/blender", "--background", "--factory-startup", "--disable-autoexec",
             "--threads", "2", "--python-exit-code", "1", "--python", "/tool/export.py", "--",
@@ -224,8 +240,7 @@ def process(root, job):
             raise ValueError("Expected exactly one regular model source")
         source = sources[0]
         source_hash = fingerprint(source)[0]
-        if job_key(source.suffix, source_hash) != key:
-            raise ValueError("Input or installed export recipe changed; submit the source again")
+        version, recipe = select_recipe(source.suffix, source_hash, key)
         # A hard-killed worker cannot quarantine its input. Limit restarts across service invocations.
         for marker in ATTEMPTS:
             try:
@@ -236,9 +251,9 @@ def process(root, job):
         else:
             raise ValueError("Worker interrupted twice; inspect the source and retry this job explicitly")
         with log_path.open("wb") as log:
-            subprocess.run(sandbox(source, output), stdin=subprocess.DEVNULL, stdout=log,
+            subprocess.run(sandbox(source, output, version, recipe), stdin=subprocess.DEVNULL, stdout=log,
                            stderr=subprocess.STDOUT, check=True, timeout=900)
-        receipt(output, key, source_hash)
+        receipt(output, key, source_hash, version, recipe)
         with lock(root, "publish.lock"):
             output.rename(root / "results" / key)
     except (OSError, ValueError, KeyError, subprocess.SubprocessError) as error:

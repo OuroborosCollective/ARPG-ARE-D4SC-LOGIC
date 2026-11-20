@@ -78,6 +78,23 @@ class BlenderQueueTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             intake.status(self.root, "../results")
 
+    def test_queued_job_selects_its_original_trusted_exporter_after_upgrade(self):
+        import hashlib
+        archive = self.work / "installed-recipes"
+        version = "4.5.15"
+        folder = archive / version
+        folder.mkdir(parents=True)
+        previous = b"# previous export configuration\n"
+        recipe_hash = hashlib.sha256(previous).hexdigest()
+        trusted = folder / (recipe_hash + ".py")
+        trusted.write_bytes(previous)
+        source_hash = hashlib.sha256(b"queued source").hexdigest()
+        key = hashlib.sha256(f"{intake.SCHEMA}/{version}/{recipe_hash}/.blend/{source_hash}".encode()).hexdigest()
+        self.assertEqual(intake.select_recipe(".blend", source_hash, key, archive), (version, trusted))
+        trusted.write_bytes(previous + b"# changed")
+        with self.assertRaisesRegex(ValueError, "checksum"):
+            intake.select_recipe(".blend", source_hash, key, archive)
+
     def test_repeated_worker_interruptions_quarantine_one_job_and_allow_explicit_retry(self):
         source = self.work / "interrupted.blend"
         source.write_bytes(b"queue transport fixture")

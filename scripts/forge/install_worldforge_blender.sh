@@ -14,6 +14,8 @@ code=/usr/local/lib/worldforge-blender
 store=/var/lib/unityarpg/.local/share/are-arpg/worldforge-blender
 base=https://download.blender.org/release/Blender4.5
 install -d -m 0755 "$prefix" "$code" /usr/local/bin
+exec 9>"$prefix/.install.lock"
+flock -x 9
 marker="$prefix/.$archive.sha256"
 if [[ ! -x "$prefix/$archive/blender" || ! -f "$marker" || $(cat "$marker") != "$digest" ]]; then
     tmp=$(mktemp -d "$prefix/.install.XXXXXX")
@@ -55,8 +57,28 @@ systemctl stop worldforge-blender.timer 2>/dev/null || true
 while systemctl is-active --quiet worldforge-blender.service || systemctl is-active worldforge-blender.service 2>/dev/null | grep -qx activating; do
     sleep 2
 done
-install -m 0644 "$src/blender_export.py" "$code/blender_export.py"
-install -m 0755 "$src/worldforge_blender.py" "$code/worldforge_blender.py"
+keep_recipe() {
+    local recipe_version=$1 file=$2 hash destination
+    [[ "$recipe_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || return 1
+    hash=$(sha256sum "$file" | cut -d' ' -f1)
+    install -d -m 0755 "$code/recipes/$recipe_version"
+    destination="$code/recipes/$recipe_version/$hash.py"
+    if [[ -e "$destination" ]]; then
+        cmp "$file" "$destination"
+    else
+        install -m 0644 "$file" "$destination.new"
+        mv -T "$destination.new" "$destination"
+    fi
+}
+if [[ -f "$code/worldforge_blender.py" && -f "$code/blender_export.py" ]]; then
+    previous=$(sed -n 's/^VERSION = "\([0-9.]*\)"$/\1/p' "$code/worldforge_blender.py")
+    keep_recipe "$previous" "$code/blender_export.py"
+fi
+keep_recipe "$version" "$src/blender_export.py"
+install -m 0644 "$src/blender_export.py" "$code/.blender_export.py.new"
+mv -T "$code/.blender_export.py.new" "$code/blender_export.py"
+install -m 0755 "$src/worldforge_blender.py" "$code/.worldforge_blender.py.new"
+mv -T "$code/.worldforge_blender.py.new" "$code/worldforge_blender.py"
 ln -sfnT "$code/worldforge_blender.py" /usr/local/bin/worldforge-blender
 install -m 0644 "$src/worldforge-blender.service" "$src/worldforge-blender.timer" /etc/systemd/system/
 systemctl daemon-reload
