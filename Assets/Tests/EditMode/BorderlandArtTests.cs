@@ -30,6 +30,8 @@ namespace AreArpg.EditMode.Tests
         [TestCase("EliteCrest")]
         [TestCase("ShaleLedge")]
         [TestCase("DenLitter")]
+        [TestCase("EmberSnag")]
+        [TestCase("EmberSedge")]
         public void OriginalRegionalPrefabHasThreeTexturedMobileLods(string key)
         {
             var p = Resources.Load<GameObject>("ARE/Borderland/" + key);
@@ -55,9 +57,18 @@ namespace AreArpg.EditMode.Tests
                 Assert.AreEqual(1, r.sharedMaterials.Length);
                 if (palette == null) palette = r.sharedMaterial;
                 Assert.AreSame(palette, r.sharedMaterial);
-                StringAssert.StartsWith("Universal Render Pipeline/", palette.shader.name);
                 Assert.IsFalse(ShaderUtil.ShaderHasError(palette.shader));
-                Assert.IsNotNull(palette.GetTexture("_BaseMap"));
+                if (key == "StoneOutcrop" || key == "ShaleLedge" || key == "CryptArch" || key == "Waystone")
+                {
+                    Assert.AreEqual("UniversalPipeline", palette.GetTag("RenderPipeline", false));
+                    Assert.IsTrue(palette.IsKeywordEnabled("ARE_CLEFT_STONE"), "Exposed stone needs vertical grain and ash on upper faces.");
+                    Assert.AreEqual(1024, palette.GetTexture("_Mask").width);
+                }
+                else
+                {
+                    StringAssert.StartsWith("Universal Render Pipeline/", palette.shader.name);
+                    Assert.IsNotNull(palette.GetTexture("_BaseMap"));
+                }
             }
             Assert.IsEmpty(p.GetComponentsInChildren<Light>(true));
             var shape = p.GetComponent<BoxCollider>();

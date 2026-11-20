@@ -52,16 +52,18 @@ namespace AreArpg.EditorTools
             luminous.globalIlluminationFlags = MaterialGlobalIlluminationFlags.BakedEmissive;
             EditorUtility.SetDirty(luminous);
             AssetDatabase.SaveAssetIfDirty(luminous);
-            BakeGround();
+            var slate = BakeGround();
             foreach (string path in paths)
             {
                 string key = System.IO.Path.GetFileNameWithoutExtension(path);
-                BakeModel(path, key == "BloodcapBank" || key == "Brazier" ? luminous : material);
+                bool hotSurface = key == "BloodcapBank" || key == "Brazier" || key == "EmberSedge" || key == "EmberSnag";
+                bool stone = key == "StoneOutcrop" || key == "ShaleLedge" || key == "CryptArch" || key == "Waystone";
+                BakeModel(path, stone ? slate : hotSurface ? luminous : material);
             }
             Debug.Log("BORDERLAND_BAKED " + paths.Length);
         }
 
-        private static void BakeGround()
+        private static Material BakeGround()
         {
             string maskPath = Source + "/AshSnowMask.png";
             var importer = (TextureImporter)AssetImporter.GetAtPath(maskPath);
@@ -84,8 +86,23 @@ namespace AreArpg.EditorTools
             }
             ground.shader = shader;
             ground.SetTexture("_Mask", AssetDatabase.LoadAssetAtPath<Texture2D>(maskPath));
+            ground.SetFloat("_Metres", 5.2f);
             EditorUtility.SetDirty(ground);
             AssetDatabase.SaveAssetIfDirty(ground);
+            string slatePath = Destination + "/RoughSlate.mat";
+            var slate = AssetDatabase.LoadAssetAtPath<Material>(slatePath);
+            if (slate == null)
+            {
+                slate = new Material(shader);
+                AssetDatabase.CreateAsset(slate, slatePath);
+            }
+            slate.shader = shader;
+            slate.SetTexture("_Mask", ground.GetTexture("_Mask"));
+            slate.SetFloat("_Metres", 2.8f);
+            slate.EnableKeyword("ARE_CLEFT_STONE");
+            EditorUtility.SetDirty(slate);
+            AssetDatabase.SaveAssetIfDirty(slate);
+            return slate;
         }
 
         static void BakeModel(string path, Material material)

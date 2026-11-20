@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "aschengrenze",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -74,6 +74,22 @@
       "z": 6,
       "rot": 77,
       "scale": 0.94
+    },
+    {
+      "id": "b0010",
+      "key": "EmberSedge",
+      "x": -10.85,
+      "z": -12.3,
+      "rot": 128,
+      "scale": 0.8
+    },
+    {
+      "id": "b0011",
+      "key": "EmberSedge",
+      "x": -10.04,
+      "z": -12.85,
+      "rot": 340,
+      "scale": 0.54
     }
   ]
 }

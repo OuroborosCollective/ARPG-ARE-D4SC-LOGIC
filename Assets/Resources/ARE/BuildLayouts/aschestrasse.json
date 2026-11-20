@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "aschestrasse",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -90,6 +90,38 @@
       "z": -19.2,
       "rot": 59,
       "scale": 0.92
+    },
+    {
+      "id": "b0012",
+      "key": "EmberSnag",
+      "x": -5.25,
+      "z": -14.25,
+      "rot": 9,
+      "scale": 1.02
+    },
+    {
+      "id": "b0013",
+      "key": "EmberSedge",
+      "x": -4.46,
+      "z": -15.74,
+      "rot": 21,
+      "scale": 0.93
+    },
+    {
+      "id": "b0014",
+      "key": "EmberSedge",
+      "x": -5.08,
+      "z": -15.88,
+      "rot": 151,
+      "scale": 0.71
+    },
+    {
+      "id": "b0015",
+      "key": "EmberSedge",
+      "x": 7.29,
+      "z": 3.45,
+      "rot": 78,
+      "scale": 0.88
     }
   ]
 }

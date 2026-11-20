@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "aschenzoll",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -58,6 +58,30 @@
       "z": 14.4,
       "rot": 13,
       "scale": 1.04
+    },
+    {
+      "id": "b0008",
+      "key": "CryptArch",
+      "x": 0,
+      "z": -11.5,
+      "rot": 1,
+      "scale": 1.74
+    },
+    {
+      "id": "b0009",
+      "key": "RibPillar",
+      "x": -4.15,
+      "z": -11.1,
+      "rot": 6,
+      "scale": 1.21
+    },
+    {
+      "id": "b0010",
+      "key": "ShaleLedge",
+      "x": -7.7,
+      "z": -10.7,
+      "rot": 8,
+      "scale": 0.94
     }
   ]
 }

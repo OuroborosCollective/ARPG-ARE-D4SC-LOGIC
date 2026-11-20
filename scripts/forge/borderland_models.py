@@ -23,7 +23,8 @@ KEYS = ("BloodcapBank", "AshPine", "StoneOutcrop", "TimberHouse", "MillWheel",
         "MillHouse", "GrainBay", "CryptArch", "CaveMouth", "StoneBridge",
         "WatchPost", "RibPillar", "Brazier", "SupplySack", "CoinStack",
         "BrokenCart", "Palisade", "Waystone",
-        "RangedQuiver", "ShieldPlate", "SwarmSpines", "EliteCrest", "ShaleLedge", "DenLitter")
+        "RangedQuiver", "ShieldPlate", "SwarmSpines", "EliteCrest", "ShaleLedge", "DenLitter",
+        "EmberSnag", "EmberSedge")
 
 def paint_atlas():
     size, tile = 256, 64
@@ -198,6 +199,98 @@ class Mesh:
             if self.lod==0 and i%6==0:
                 self.post((x,y,z+.018),(x+.63*dx-.24*dy,y+.63*dy+.24*dx,z+.13),.019,.006,4,3)
 
+    def ash_pine(self):
+        levels = (8,7,6)[self.lod]
+        branches = (10,8,6)[self.lod]
+        self.post((0,0,0),(.14,-.04,7.18),.29,.031,4)
+        # Overlapping whorls of drooping boughs. Gaps between the individual branch tips
+        # reveal the trunk, while neighbouring tiers overlap even at the coarsest LOD.
+        for tier in range(levels):
+            height = tier/(levels-1)
+            z = 1.28+5.34*height
+            reach = 1.92*(1-height)**.69 + .18
+            for k in range(branches):
+                a = TAU*(k+.34*math.sin(2.3*tier+k*.74))/branches + tier*2.40
+                extent = reach*(.80+.20*math.cos(k*1.43+tier))
+                bend = .12*math.sin(tier*2.33+k)
+                ca,sa = math.cos(a),math.sin(a)
+                points=[]
+                for t,width,lift in ((.05,.16,.46),(.47,.50,.32),(.79,.30,.16),(1,.012,.06)):
+                    cx=.10*height+extent*t*ca-bend*t*t*sa
+                    cy=-.04*height+extent*t*sa+bend*t*t*ca
+                    cz=z+lift-.40*t*(1-height)+.08*math.sin(a*2+tier)
+                    w=extent*width
+                    points.append([(cx-w*sa,cy+w*ca,cz-.10),(cx,cy,cz-.22),
+                                   (cx+w*sa,cy-w*ca,cz-.11),(cx,cy,cz+.19*(1-t))])
+                band = 8 if (tier+k)%5 else 9
+                if self.lod == 2:
+                    start=len(self.verts)
+                    self.verts.extend((points[0][3],points[1][2],points[3][3],points[1][0],points[2][3]))
+                    for face in ((0,1,4),(1,2,4),(2,3,4),(3,0,4),(2,1,0),(3,2,0)):
+                        self.faces.append(tuple(start+i for i in face))
+                        self.bands.append(band)
+                else:
+                    self.rings(points,band)
+                if self.lod==0 and (k+2*tier)%4==0:
+                    tip=points[2][3]; base=points[1][3]
+                    self.post(base,tip,.040,.016,10,n=3)
+        self.bulb(.12,-.04,6.49,.20,.19,.80,8,((0,.76),(.37,1),(1,.03)),
+                  n=(8,6,4)[self.lod],rough=.09)
+
+    def ember_snag(self):
+        steps = (13,9,6)[self.lod]
+        levels = [(0,.51,0,0),(.28,.42,.02,.01),(1.04,.34,.07,.01),(1.87,.27,.02,-.02),
+                  (2.57,.24,-.13,.04),(3.25,.18,-.24,.14),(3.75,.12,-.34,.21),(4.16,.10,-.39,.28)]
+        rows = []
+        for j,(z,r,cx,cy) in enumerate(levels):
+            row = []
+            for k in range(steps):
+                a = TAU*k/steps
+                bark = r*(1+.12*math.cos(5*a+.16*j))
+                broken = (.24*math.sin(3*a)+.16*math.sin(5*a)) if j==len(levels)-1 else 0
+                row.append((cx+bark*math.cos(a),cy+bark*math.sin(a),z+broken))
+            rows.append(row)
+        self.rings(rows,4,top=1)
+        for j,(height,r,cx,cy) in enumerate(levels[1:6]):
+            a = j*2.28+.4
+            length = (1.32,.81,1.04,.91,.64)[j]
+            x,y = cx+length*math.cos(a), cy+length*math.sin(a)
+            fork=(x,y,height+.31+.12*j)
+            self.post((cx,cy,height),fork,r*.39,.075,4,n=(7,5,4)[self.lod])
+            self.post(fork,(x+.32*math.cos(a+.32),y+.32*math.sin(a+.32),height+.94+.09*j),.080,.026,1)
+        # Crevices follow this same crooked trunk. Most of the silhouette stays dark.
+        for fissure in range((4,3,2)[self.lod]):
+            a = -1.56+fissure*1.57
+            centres = []
+            for j,(z,r,cx,cy) in enumerate(levels[:6-fissure%2]):
+                off = a+.11*math.sin(j*1.83+fissure)
+                radius = (r*(1+.12*math.cos(5*off+.16*j)))+.012
+                centres.append((cx+radius*math.cos(off),cy+radius*math.sin(off),max(.06,z)))
+            for j in range(len(centres)-1):
+                if j==3 and fissure%2: continue
+                self.post(centres[j],centres[j+1],.028 if j in (1,2) else .016,.012,14,n=3)
+        for i in range((8,5,3)[self.lod]):
+            a=TAU*i/((8,5,3)[self.lod])+.13
+            self.post((.15*math.cos(a),.15*math.sin(a),.32),
+                      ((.78+.16*math.sin(i))*math.cos(a),(.78+.16*math.sin(i))*math.sin(a),.04),.16,.028,4,n=5)
+
+    def ember_sedge(self):
+        count = (38,22,9)[self.lod]
+        for i in range(count):
+            a = i*2.39996323
+            radius = .46*math.sqrt((i+.5)/count)
+            x,y = radius*math.cos(a),radius*.85*math.sin(a)
+            h = .22 + .41*((i*17)%29)/28
+            lean = .14 + .18*(i%5)/4
+            dx,dy = math.cos(a)*lean,math.sin(a)*lean
+            nx,ny = -.023*math.sin(a),.023*math.cos(a)
+            def section(t,w):
+                cx,cy = x+dx*t*t,y+dy*t*t
+                return [(cx+nx*w,cy+ny*w,h*t),(cx-.42*nx*w-.15*ny*w,cy-.42*ny*w+.15*nx*w,h*t),
+                        (cx-nx*w,cy-ny*w,h*t)]
+            self.rings([section(0,.85),section(.46,1),section(.82,.66)],(4,9,3)[i%3])
+            self.rings([section(.82,.66),section(.98,.12),section(1,.01)],14 if i%5==0 else 5)
+
     def make(self,key):
         l=self.lod
         rock=((0,.63),(.17,1),(.64,.91),(1,.28))
@@ -210,16 +303,14 @@ class Mesh:
                     for j in range(3):
                         a=TAU*j/3+i
                         self.bulb(x+r*.48*math.cos(a),y+r*.47*math.sin(a),h*.933,r*.10,r*.065,h*.029,10,((0,1),(1,.58)),n=5)
-        elif key=="AshPine":
-            self.post((0,0,0),(.16,-.03,6.9),.36,.045,4)
-            for j in range((7,5,3)[l]):
-                t=j/((7,5,3)[l]-1);z=1.25+4.65*t;r=1.68-1.1*t
-                self.bulb(.14*t,-.10*t,z,r,r*.9,2.05-t*.66,8 if j%2==0 else 9,((0,.19),(.13,1),(.43,.81),(1,.05)),n=(11,8,5)[l],phase=j*.74,rough=.13)
+        elif key=="AshPine": self.ash_pine()
         elif key=="StoneOutcrop":
             for i,(x,y,w,h) in enumerate([(0,0,1.15,1.46),(.84,.33,.66,.76),(-.72,.19,.67,.71),(.32,-.66,.42,.36)][:4-l]):
                 self.bulb(x,y,0,w,w*.75,h,(0,2,1,0)[i],rock,phase=i+.28,rough=.16)
         elif key=="ShaleLedge": self.shale_ledge()
         elif key=="DenLitter": self.den_litter()
+        elif key=="EmberSnag": self.ember_snag()
+        elif key=="EmberSedge": self.ember_sedge()
         elif key in ("TimberHouse","MillHouse"):
             self.house(6.45 if key=="MillHouse" else 4.8,10.5 if key=="MillHouse" else 5.9,4.0 if key=="MillHouse" else 3.75,key=="MillHouse")
         elif key=="MillWheel":

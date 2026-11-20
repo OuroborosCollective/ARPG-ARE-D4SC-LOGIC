@@ -71,6 +71,26 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNotNull(ground.GetTexture("_Mask"));
             var bank = Find("Bau_b0002_BloodcapBank");
             var gill = bank.GetComponentInChildren<LODGroup>().GetLODs()[0].renderers[0];
+            var wood = Find("Bau_b0012_EmberSnag");
+            var grass = Find("Bau_b0013_EmberSedge");
+            Assert.IsNotNull(wood, "Charred bark must be visible at the actual ash-road verge.");
+            Assert.IsNotNull(grass);
+            foreach (var piece in new[] { wood, grass })
+            {
+                var trim = piece.GetComponentInChildren<LODGroup>().GetLODs()[0].renderers[0];
+                Assert.IsTrue(trim.sharedMaterial.IsKeywordEnabled("_EMISSION"));
+                Assert.IsEmpty(piece.GetComponentsInChildren<Light>());
+            }
+            Assert.That(ground.GetTexture("_Mask").width, Is.EqualTo(1024));
+            var slate = Resources.Load<Material>("ARE/Borderland/RoughSlate");
+            foreach (string label in new[] { "AshRoad_Paving", "AshRoad_Boundary" })
+            {
+                var piece = Find(label);
+                bool usesSlate = false;
+                foreach (var renderer in piece.GetComponentsInChildren<MeshRenderer>())
+                    if (renderer.enabled && renderer.sharedMaterial == slate) usesSlate = true;
+                Assert.IsTrue(usesSlate, label + " needs exposed stone under the ash.");
+            }
             Assert.IsTrue(gill.sharedMaterial.IsKeywordEnabled("_EMISSION"));
             Assert.IsNotNull(gill.sharedMaterial.GetTexture("_EmissionMap"));
             Assert.IsEmpty(bank.GetComponentsInChildren<Light>());
@@ -100,6 +120,8 @@ namespace AreArpg.PlayMode.Tests
                     Assert.That(block.GetColor("_EmissionColor").r, Is.EqualTo(shot == 2 ? .22f : .92f).Within(.01f));
                     string label = shot == 0 ? "tag" : shot == 1 ? "nacht" : "reduziert";
                     yield return Capture("schneeasche-" + label + ".png", overridePosition:eye, overrideFocus:focus);
+                    var groveFocus = (wood.transform.position + bank.transform.position) * .5f + Vector3.up * 1.1f;
+                    yield return Capture("glutlicht-" + label + ".png", overridePosition:groveFocus + new Vector3(3.6f,1.15f,-4.6f), overrideFocus:groveFocus);
                     if (shot == 0 && !string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                         yield return MeasureRoadView(eye, focus);
                     Assert.AreEqual(saved, Game.Progression.SaveString());

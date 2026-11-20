@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "wald",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -58,6 +58,46 @@
       "z": 46.5,
       "rot": 14,
       "scale": 0.94
+    },
+    {
+      "id": "b0008",
+      "key": "EmberSnag",
+      "x": -4.95,
+      "z": -42.7,
+      "rot": 317,
+      "scale": 1.32
+    },
+    {
+      "id": "b0009",
+      "key": "EmberSedge",
+      "x": -4.42,
+      "z": -43.87,
+      "rot": 30,
+      "scale": 1.12
+    },
+    {
+      "id": "b0010",
+      "key": "EmberSedge",
+      "x": 6.8,
+      "z": -33.2,
+      "rot": 290,
+      "scale": 0.87
+    },
+    {
+      "id": "b0011",
+      "key": "CryptArch",
+      "x": 10.9,
+      "z": -28.7,
+      "rot": 332,
+      "scale": 1.58
+    },
+    {
+      "id": "b0012",
+      "key": "ShaleLedge",
+      "x": 15.05,
+      "z": -27.3,
+      "rot": 328,
+      "scale": 0.88
     }
   ]
 }

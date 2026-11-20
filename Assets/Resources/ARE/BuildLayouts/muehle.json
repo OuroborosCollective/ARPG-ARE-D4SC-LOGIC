@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "muehle",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -90,6 +90,22 @@
       "z": -3.6,
       "rot": 63,
       "scale": 0.84
+    },
+    {
+      "id": "b0012",
+      "key": "EmberSnag",
+      "x": 13.05,
+      "z": -12.3,
+      "rot": 140,
+      "scale": 1.05
+    },
+    {
+      "id": "b0013",
+      "key": "EmberSedge",
+      "x": 12.39,
+      "z": -12.49,
+      "rot": 308,
+      "scale": 0.88
     }
   ]
 }

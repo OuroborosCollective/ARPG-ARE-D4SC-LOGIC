@@ -29,7 +29,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Metres: 8.3
+    - _Cull: 2
+    - _Metres: 5.2
     m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
