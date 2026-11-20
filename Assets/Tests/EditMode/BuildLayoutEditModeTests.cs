@@ -1,6 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using AreArpg.Core;
+using Fadenwerk.EditorTools;
+using UnityEditor;
 using AreArpg.UnityClient;
 using NUnit.Framework;
 using UnityEngine;
@@ -150,6 +155,60 @@ namespace AreArpg.EditMode.Tests
                 Assert.IsNull(BuildLayer.Load("nirgendwo"));
             }
             finally { Object.DestroyImmediate(ghost.gameObject); }
+        }
+
+        [Test]
+        public void UndoRejectsStaleBuildersAndUnrelatedDiskHistory()
+        {
+            const string folder = "Assets/Resources/ARE/BuildLayouts/";
+            const string history = "Library/BauModus/history-";
+            // Only use a vacant area. Never replace the owner's saved plan or private undo history.
+            BuildArea area = BuildAreas.All.FirstOrDefault(a => !File.Exists(folder + a.Key + ".json")
+                && !File.Exists(folder + a.Key + ".json.meta") && !File.Exists(history + a.Key + ".json"));
+            if (area == null) Assert.Ignore("Requires a project with a vacant building area.");
+            string path = folder + area.Key + ".json";
+            string historyPath = history + area.Key + ".json";
+            var query = new Dictionary<string, string> { { "area", area.Key } };
+            FadenwerkExtensionReply Post(string action, int revision)
+            {
+                string json = "{\"area\":\"" + area.Key + "\",\"revision\":" + revision
+                    + ",\"key\":\"VillageHome2\",\"scale\":1}";
+                return FadenwerkAuthoringBridge.Extension("POST", action, json, query);
+            }
+
+            try
+            {
+                Assert.AreEqual(200, Post("place", 0).status);
+                string saved = File.ReadAllText(path);
+                string undoHistory = File.ReadAllText(historyPath);
+                var stale = Post("undo", 0);
+                Assert.AreEqual(409, stale.status, "Builder A must not undo builder B's newer placement");
+                var conflict = JsonUtility.FromJson<BuildLayoutData>(Encoding.UTF8.GetString(stale.body));
+                Assert.AreEqual(1, conflict.revision);
+                Assert.AreEqual(1, conflict.pieces.Count);
+                Assert.AreEqual(saved, File.ReadAllText(path));
+                Assert.AreEqual(undoHistory, File.ReadAllText(historyPath));
+
+                Assert.AreEqual(200, Post("undo", 1).status);
+                var restored = BuildLayoutRules.Parse(File.ReadAllText(path), area.Key);
+                Assert.AreEqual(2, restored.revision);
+                Assert.IsEmpty(restored.pieces);
+
+                Assert.AreEqual(200, Post("place", 2).status);
+                var external = BuildLayoutRules.Parse(File.ReadAllText(path), area.Key);
+                external.pieces[0].x = 2f; // Same revision, different plan after external file replacement.
+                string replaced = BuildLayoutRules.ToJson(external);
+                File.WriteAllText(path, replaced);
+                var reply = FadenwerkAuthoringBridge.Extension("GET", "layout", "", query);
+                StringAssert.Contains("\"canUndo\":false", Encoding.UTF8.GetString(reply.body));
+                Assert.AreEqual(409, Post("undo", external.revision).status);
+                Assert.AreEqual(replaced, File.ReadAllText(path));
+            }
+            finally
+            {
+                AssetDatabase.DeleteAsset(path);
+                if (File.Exists(historyPath)) File.Delete(historyPath);
+            }
         }
 
         [Test]
