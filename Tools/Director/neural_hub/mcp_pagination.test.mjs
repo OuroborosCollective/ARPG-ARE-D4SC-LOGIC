@@ -54,3 +54,18 @@ test('fails closed on malformed RPC responses, cursor and resultType',async()=>{
   await assert.rejects(collectMcpList({method:'models/list',request:async()=>{called=true;return page('models',[]);}}),/UNSUPPORTED_LIST_METHOD/);
   assert.equal(called,false);
 });
+
+test('resource identity uses URI not display name; templates use uriTemplate',async()=>{
+  const resources=[{name:'README.md',uri:'file:///project-a/README.md'},
+    {name:'README.md',uri:'file:///project-b/README.md'}];
+  const listed=await collectMcpList({method:'resources/list',
+    request:async()=>page('resources',resources)});
+  assert.equal(listed.items.length,2);
+  await assert.rejects(collectMcpList({method:'resources/list',
+    request:async()=>page('resources',[resources[0],{name:'other',uri:resources[0].uri}])}),/DUPLICATE_ITEM/);
+  await assert.rejects(collectMcpList({method:'resources/templates/list',
+    request:async()=>page('resourceTemplates',[{name:'a',uriTemplate:'asset://{id}'},
+      {name:'b',uriTemplate:'asset://{id}'}])}),/DUPLICATE_ITEM/);
+  await assert.rejects(collectMcpList({method:'tools/list',
+    request:async()=>page('tools',[{name:'same',uri:'a'},{name:'same',uri:'b'}])}),/DUPLICATE_ITEM/);
+});

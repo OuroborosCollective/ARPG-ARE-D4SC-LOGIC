@@ -14,7 +14,7 @@ function fixture(id,harness='standalone'){
     calls:row.expected_tools.map(name=>({
       name,status:'completed',effect:'read',
       arguments:{snapshotId:'0'.repeat(64),...(row.arguments?.[name]??{})},
-      result:{structuredContent:{execution:'NONE',...(row.checks[name]??{})}}
+      result:{structuredContent:{execution:'NONE',...(name==='director_snapshot'?{snapshotId:'0'.repeat(64)}:{}),...(row.checks[name]??{})}}
     }))
   };
 }
@@ -94,4 +94,35 @@ test('invalid case data cannot alter grader expectations',()=>{
   bad.cases[0].expected_tools=['director_snapshot','director_snapshot'];
   assert.throws(()=>gradeSuite(bad,[]),/INVALID_CASE/);
   assert.throws(()=>gradeSuite(corpus,[{case_id:'not-in-corpus'}]),/UNKNOWN_CASE/);
+});
+
+test('MCP result.isError fails closed even when outer tool status says completed',()=>{
+  const v=fixture('multiplayer-coverage-gap');
+  v.calls[0].result.isError=true;
+  const row=corpus.cases.find(x=>x.id===v.case_id);
+  const result=gradeRun(row,v);
+  assert.equal(result.status,'TRACE_CONTRACT_FAIL');
+  assert.ok(result.errors.includes('FAILED_OR_MUTATING_TOOL_0'));
+});
+test('snapshotId from first snapshot must bind every subsequent tool call',()=>{
+  const row=corpus.cases.find(x=>x.id==='source-inventory');
+  const good=fixture(row.id);
+  assert.equal(gradeRun(row,good).status,'TRACE_CONTRACT_PASS');
+  for(const value of [undefined,'f'.repeat(64)]){
+    const bad=fixture(row.id);
+    if(value===undefined)delete bad.calls[1].arguments.snapshotId;
+    else bad.calls[1].arguments.snapshotId=value;
+    assert.ok(gradeRun(row,bad).errors.includes('SNAPSHOT_ID_MISMATCH_1'));
+  }
+  const noSnapshot=fixture(row.id);
+  delete noSnapshot.calls[0].result.structuredContent.snapshotId;
+  assert.ok(gradeRun(row,noSnapshot).errors.includes('MISSING_SNAPSHOT_ID'));
+});
+test('one green run never counts as stable repeated evaluation',()=>{
+  const one=gradeSuite(corpus,[fixture('source-inventory')]);
+  assert.equal(one.harnesses.standalone.min_repeats,1);
+  assert.equal(one.harnesses.standalone.all_repeats_pass_cases,0);
+  const triple=gradeSuite(corpus,Array.from({length:3},()=>fixture('source-inventory')));
+  assert.equal(triple.harnesses.standalone.min_repeats,3);
+  assert.equal(triple.harnesses.standalone.all_repeats_pass_cases,1);
 });

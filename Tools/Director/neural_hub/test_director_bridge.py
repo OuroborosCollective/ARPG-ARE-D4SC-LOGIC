@@ -3,11 +3,13 @@ import json
 import os
 import tempfile
 import unittest
+import sys
+import time
 from pathlib import Path
 
 from director_bridge import (
     validate_issues, normalize_remote, verify_workspace_readback, parse_probe_output,
-    assert_regular_issue_file,
+    assert_regular_issue_file, checked,
 )
 
 SHA = "a" * 40
@@ -15,6 +17,15 @@ REPO = "https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC"
 
 
 class BridgeContractTests(unittest.TestCase):
+    def test_output_limit_terminates_streaming_child_without_waiting_for_exit(self):
+        for stream in ("stdout", "stderr"):
+            script = ("import sys,time;sys." + stream +
+                      ".write('X'*8192);sys." + stream + ".flush();time.sleep(1.5)")
+            started = time.monotonic()
+            with self.subTest(stream=stream), self.assertRaisesRegex(RuntimeError, "OUTPUT_LIMIT"):
+                checked([sys.executable, "-c", script], timeout=3, max_bytes=64)
+            self.assertLess(time.monotonic() - started, 1.4)
+
     def test_only_exact_canonical_remote_is_allowed(self):
         self.assertEqual(REPO.lower(), normalize_remote(REPO + ".git"))
         self.assertEqual(REPO.lower(), normalize_remote(

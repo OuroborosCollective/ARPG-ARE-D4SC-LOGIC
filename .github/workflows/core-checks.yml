@@ -65,6 +65,8 @@ jobs:
           export ASHEN_CATALOG_SHA256="$(sha256sum ../neural_catalog.json | cut -d' ' -f1)"
           export ASHEN_SOURCES_SHA256="$(sha256sum upstream_sources.json | cut -d' ' -f1)"
           node mcp_canary.mjs
+          printf '%s' '{"issues":[{"number":69,"state":"open","title":"WorldForge region connections","url":"https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues/69"}]}' > "$RUNNER_TEMP/ashen-issue69.json"
+          ASHEN_ISSUES_FILE="$RUNNER_TEMP/ashen-issue69.json" node mcp_canary.mjs
           node mcp_modern_canary.mjs
       - name: Audit pinned package security advisories
         working-directory: Tools/Director/neural_hub
