@@ -199,3 +199,15 @@ Ausgangsrevision `b75c02e36f8f4bcb5fc2ff716de14de5ef06d5bc`, lokaler Patch: vers
 ## PR #96 – unabhängiger nativer Readback
 
 Commit `a169f3af7c0b2c5990c207f43a9192ae1af1a204` integriert #93 und #95. Eine fehlerhafte Materialkonvertierung vor dem ersten Kamerabild und die sichtbarkeitsabhängige Hand-IK der Spielfigur wurden anhand von zwei nativen Regressionen behoben. EditMode 11/11, PlayMode 2/2, jeweils ohne Skips, Core 21 239, Preflight 48/48, GitHub Core 44703565340 erfolgreich. Der unabhängige negative Rebake-Test bestätigte zwei wiederhergestellte Szenen und 25 unveränderte SHA-256-Einträge. Einzelbelege, privater Metadatenbefund und verbleibende APK-/Gerätegrenzen stehen in `docs/evidence/bozo-characters-20261119/acceptance.md`.
+
+## Bau-Modus: Welt bauen wie in einer Aufbausimulation – 19.11.2026 [bau-modus-20261119]
+
+- Branch `feat/bau-modus-20261119` auf `main` `488567f`: `6bbf539` (Bau-Modus) plus Doku-/Evidence-Commit. Neu: `BuildLayout.cs` (Katalog, Baugebiete, Regeln, Wald-Generator), `BuildLayer.cs` (passive Darstellung, Live-Kanal), `BuildLayerPresentation.cs` (ArenaRuntime lädt den Bauplan nach jedem Szenenaufbau), `Assets/Editor/BauModus/` (API, Vorschau, isometrische Sprites/Karten, Speicher mit Revision und Rückgängig, Browser-Seite), Fadenwerk-Erweiterungspunkt (`/?<key>`, `/api/x/`), Anleitung `docs/BAU_MODUS.md`.
+- Live-Workspace B auf `main` + Bau-Modus abgeglichen (Sicherung der überschriebenen Dateien privat), Fadenwerk-Server gestartet, Zugangsschlüssel an die vorhandene Gateway-Schlüsseldatei angeglichen; `https://arelogic.space/fadenwerk/?bau` funktioniert hinter der Owner-Anmeldung. In B ist jetzt `AshenEntry.unity` geöffnet.
+- Evidence: EditMode 126/126, PlayMode 171/171, Core 21239, Preflight 40, Gateway 5/5, Playwright-E2E und Live-Check im Play-Modus; Details und SHA-256 in `docs/evidence/bau-modus-20261119/acceptance.md`.
+- Grenzen: Gebautes ist Kulisse (keine Kollision/Wege/KI); Editor-Vorschau mit echter Umgebung nur für Aschengrenze und Krypta; APK erst mit dem nächsten Build; nicht gepusht (keine Zugangsdaten); Owner-DOCX nicht bearbeitet.
+- Nächster Schritt: Owner-Entscheidung, ob gebaute Häuser im Spiel blockieren sollen (Core-Regel), danach Push/PR.
+
+## 20.11.2026 · PR #97 nach dem Merge des Figurensystems
+
+Getesteter gemeinsamer Code `40eb8c7ecac79db1cbfa457734cfa3bfa2cbbe76`, Tree `f42a3d75f0d51fb1d2f966e7bdb5820d42a246c5`. Die Prüfung am Bauplan schützt gegen veraltete Browser und den Verlauf extern ersetzter Dateien. Bestehende Bewohner-Schlüssel und der neue Händler wurden sowohl ohne Kunstpaket als auch mit den gebackenen privaten Figuren in Unity geprüft. Chromium, zweite Schreibanforderung und anschließender Dateireadback bestätigten HTTP 409 und danach eine erfolgreiche bewusste Wiederholung. Unity-Kulisse ohne Kollision. Der native Bericht, XML-Hashes, Core-Lauf und GitHub-Checks stehen in `docs/evidence/bau-modus-20261119/acceptance.md`. Android-Geräteprüfung und Asset-Store-Upload sind offen.

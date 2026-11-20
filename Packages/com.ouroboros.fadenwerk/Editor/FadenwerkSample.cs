@@ -21,6 +21,25 @@ namespace Fadenwerk.EditorTools
                     "Quests und Belohnungen sind dadurch noch nicht im Spiel aktiv.", "OK");
         }
 
+        /// <summary>GUID of Editor/FadenwerkAuthoring.unity (from its .meta), stable in every install location.</summary>
+        public const string AuthoringTemplateGuid = "7a446f1abfeaeb975b5b154f0bceb784";
+
+        /// <summary>
+        /// Path of the authoring scene template, wherever Fadenwerk is installed: as an embedded/UPM package
+        /// (Packages/com.ouroboros.fadenwerk) or from the Asset Store package (Assets/Fadenwerk or a moved folder).
+        /// </summary>
+        public static string AuthoringTemplatePath()
+        {
+            string path = AssetDatabase.GUIDToAssetPath(AuthoringTemplateGuid);
+            if (!string.IsNullOrEmpty(path) && path.EndsWith("FadenwerkAuthoring.unity", System.StringComparison.Ordinal)) return path;
+            foreach (string guid in AssetDatabase.FindAssets("FadenwerkAuthoring t:Scene"))
+            {
+                string candidate = AssetDatabase.GUIDToAssetPath(guid);
+                if (candidate.EndsWith("/Editor/FadenwerkAuthoring.unity", System.StringComparison.Ordinal)) return candidate;
+            }
+            return null;
+        }
+
         /// <summary>Create authoring data in a separate scene without any quest or reward runtime.</summary>
         public static GameObject CreateAuthoringScene(FadenwerkDatabase db)
         {
@@ -31,7 +50,8 @@ namespace Fadenwerk.EditorTools
             const string folder = "Assets/FadenwerkSamples";
             if (!AssetDatabase.IsValidFolder(folder)) AssetDatabase.CreateFolder("Assets", "FadenwerkSamples");
             string scenePath = AssetDatabase.GenerateUniqueAssetPath(folder + "/FadenwerkAuthoring.unity");
-            if (!AssetDatabase.CopyAsset("Packages/com.ouroboros.fadenwerk/Editor/FadenwerkAuthoring.unity", scenePath))
+            string template = AuthoringTemplatePath();
+            if (string.IsNullOrEmpty(template) || !AssetDatabase.CopyAsset(template, scenePath))
                 throw new System.InvalidOperationException("Authoring scene template is unavailable");
             var authored = default(UnityEngine.SceneManagement.Scene);
             try

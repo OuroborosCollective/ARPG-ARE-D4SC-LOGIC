@@ -29,6 +29,17 @@ class RequestPolicyTests(unittest.TestCase):
         self.assertEqual(413, self.check(length=str(4*1024*1024+1))[0])
         self.assertEqual(400, self.check(transfer='chunked')[0])
 
+    def test_bau_modus_page_and_extension_api_pass(self):
+        # Bau-Modus: page at "/?bau" and project extension calls below /api/x/ behind the same owner proxy.
+        self.assertIsNone(self.check(method='GET', path='/?bau', origin=None, length=None))
+        for path in ['/api/x/state', '/api/x/catalog', '/api/x/layout?area=aschengrenze', '/api/x/sprite?key=VillageHome2&v=3',
+                     '/api/x/map/info?area=krypta&view=1', '/api/x/map/image?area=krypta&view=1&real=1&v=7']:
+            self.assertIsNone(self.check(method='GET', path=path, origin=None, length=None), path)
+        for path in ['/api/x/place', '/api/x/update', '/api/x/remove', '/api/x/forest', '/api/x/undo', '/api/x/ghost', '/api/x/preview', '/api/x/map/render']:
+            self.assertIsNone(self.check(path=path), path)
+            self.assertEqual(403, self.check(path=path, origin='https://evil.example')[0], path)
+        self.assertEqual(404, self.check(method='GET', path='/bau', origin=None, length=None)[0])
+
     def test_only_known_path_shape_and_methods(self):
         for path in ['http://evil.example/', '//evil.example/', '/api/../secret', '/api/%2e%2e/secret', '/secret', '/api/%2fsecret']:
             self.assertEqual(404, self.check(path=path)[0])

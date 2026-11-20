@@ -74,6 +74,8 @@ namespace Fadenwerk.EditorTools
         public static FwResponse Handle(FwRequest r)
         {
             string p = r.path;
+            // Project extension (e.g. Bau-Modus): owns its own conflict checks and may run in Play Mode.
+            if (p.StartsWith("/api/x/", StringComparison.Ordinal)) return Extension(r);
             if (r.method == "GET")
             {
                 switch (p)
@@ -138,6 +140,17 @@ namespace Fadenwerk.EditorTools
                 case "/api/db/create": FadenwerkEditorData.EnsureDatabase(); return Ok(null);
             }
             return FwResponse.Error("Unbekannter Befehl: " + p, 404);
+        }
+
+        static FwResponse Extension(FwRequest r)
+        {
+            var handler = FadenwerkAuthoringBridge.Extension;
+            if (handler == null) return FwResponse.Error("Keine Projekt-Erweiterung installiert.", 404);
+            FadenwerkExtensionReply reply;
+            try { reply = handler(r.method, r.path.Substring("/api/x/".Length), r.body ?? "", r.query); }
+            catch (InvalidOperationException e) { return FwResponse.Error(e.Message, 422); }
+            if (reply == null) return FwResponse.Error("Leere Antwort der Erweiterung.", 500);
+            return new FwResponse { status = reply.status, contentType = reply.contentType ?? "application/octet-stream", body = reply.body ?? new byte[0] };
         }
 
         static FwResponse Ok(string warning, string id = null)

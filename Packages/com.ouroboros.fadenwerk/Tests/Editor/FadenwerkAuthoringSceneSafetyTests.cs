@@ -36,7 +36,11 @@ namespace Fadenwerk.Tests
             try
             {
                 TestContext.WriteLine("Original dirty before fixture: " + original.isDirty);
-                Assert.IsTrue(AssetDatabase.CopyAsset("Packages/com.ouroboros.fadenwerk/Editor/FadenwerkAuthoring.unity", fixturePath));
+                // Resolve the template by GUID: the package may live in Packages/ (UPM) or Assets/Fadenwerk (Asset Store).
+                string template = AssetDatabase.GUIDToAssetPath("7a446f1abfeaeb975b5b154f0bceb784");
+                Assert.IsTrue(template.EndsWith("/Editor/FadenwerkAuthoring.unity"), "template found at " + template);
+                Assert.AreEqual(template, (string)sample.GetMethod("AuthoringTemplatePath").Invoke(null, null));
+                Assert.IsTrue(AssetDatabase.CopyAsset(template, fixturePath));
                 TestContext.WriteLine("Original dirty after fixture copy: " + original.isDirty);
                 fixture = EditorSceneManager.OpenScene(fixturePath, OpenSceneMode.Additive);
                 TestContext.WriteLine("Original dirty after fixture open: " + original.isDirty);

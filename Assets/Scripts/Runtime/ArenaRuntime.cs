@@ -232,6 +232,7 @@ namespace AreArpg.UnityClient
             RenderSettings.fogMode = FogMode.Exponential;
             RenderSettings.fogDensity = 0.014f;
             BuildChapterScenery();
+            BuildPlacedLayer();
             // Torch islands belong to the village projection, not to the optional private art overlay.
             if (_game.IsVillage) BuildVillageLights();
             else _villageTorches.Clear();
@@ -950,6 +951,7 @@ namespace AreArpg.UnityClient
             RegisterActorMotion(_hero);
             _passageAnnounced = false;
             BuildChapterScenery();
+            BuildPlacedLayer();
             // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
             if (_game.IsVillage) BuildVillageLights();
             else _villageTorches.Clear();
