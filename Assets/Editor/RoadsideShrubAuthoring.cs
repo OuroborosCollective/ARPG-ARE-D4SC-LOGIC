@@ -18,6 +18,13 @@ namespace AreArpg.EditorTools
             foreach (Transform child in source.transform)
             {
                 if (child.name != "bush") continue;
+                if (AshenWorldArt.Owns("RoadsideShrub" + index))
+                {
+                    // The ashen world set already grows its own plants here; the village shrub must not replace them.
+                    Debug.Log("ARE_ROADSIDE_SHRUB " + index + " kept: ashen world plant");
+                    if (++index == 2) break;
+                    continue;
+                }
                 foreach (var component in child.GetComponentsInChildren<Component>(true))
                     if (!(component is Transform || component is MeshFilter || component is MeshRenderer))
                         throw new InvalidOperationException("Village shrub is not passive static art.");

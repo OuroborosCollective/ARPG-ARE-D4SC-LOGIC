@@ -182,7 +182,7 @@ namespace AreArpg.UnityClient
             RenderSettings.fogColor = new Color(.24f, .26f, .27f);
             RenderSettings.fogDensity = .009f;
             ChapterShape(PrimitiveType.Cube, mill ? "OldMill_Ground" : "AshRoad_Ground", new Vector3(0, -.4f, 0),
-                new Vector3(57, .6f, 57), new Color(.26f, .27f, .24f));
+                new Vector3(57, .6f, 57), new Color(.42f, .42f, .43f)); // ash snow, also without the private ground art
             for (int z = -24; z <= 24; z += 4)
                 ChapterShape(PrimitiveType.Cube, "AshRoad_Paving", new Vector3(0, -.08f, z),
                     new Vector3(5, .12f, 4), new Color(.4f, .38f, .34f), "AshStoneFloor");
