@@ -11,6 +11,7 @@ namespace AreArpg.UnityClient
         {
             switch (label)
             {
+                case "Aschengrenze_FallbackSoil": return "VillageAsh";
                 case "AshRoad_Ground": case "OldMill_Ground": return "OutdoorGround";
                 case "OldStore_Ground": case "HiddenCrypt_Ground": return "CryptSubfloor";
                 case "OldMill_Wheel": return "MillWood";
@@ -35,6 +36,25 @@ namespace AreArpg.UnityClient
         }
 
         public static Material AshSnow => Resources.Load<Material>("ARE/Borderland/AshSnow");
+
+        // Only the installed village's ground receives its original tiling on the shared ash material.
+        internal static void DressVillageSoil(MeshRenderer floor)
+        {
+            var ash = Resources.Load<Material>("ARE/Borderland/VillageAsh");
+            if (floor == null || ash == null) return;
+            var original = floor.sharedMaterial;
+            if (original != null && original.HasProperty("_BaseMap") && original.GetTexture("_BaseMap") is Texture soil)
+            {
+                Vector2 scale = original.GetTextureScale("_BaseMap");
+                Vector2 offset = original.GetTextureOffset("_BaseMap");
+                var bindings = new MaterialPropertyBlock();
+                floor.GetPropertyBlock(bindings);
+                bindings.SetTexture("_VillageEarth", soil);
+                bindings.SetVector("_VillageEarth_ST", new Vector4(scale.x, scale.y, offset.x, offset.y));
+                floor.SetPropertyBlock(bindings);
+            }
+            floor.sharedMaterial = ash;
+        }
 
         // Reuse the art director's private ash islands and vein painting if installed. The public
         // mobile material has its own seamless mask for checkouts without this optional overlay.
@@ -65,8 +85,12 @@ namespace AreArpg.UnityClient
         {
             string key = KeyFor(label);
             if (renderer == null || !renderer.enabled || key == null) return false;
-            Material material = (key == "OutdoorGround" || key == "GrassVerge" ? AshSnow : null)
-                ?? Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key);
+            Material material = key switch
+            {
+                "VillageAsh" => Resources.Load<Material>("ARE/Borderland/VillageAsh"),
+                "OutdoorGround" or "GrassVerge" => AshSnow ?? Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key),
+                _ => Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key)
+            };
             if (material == null) return false;
             renderer.sharedMaterial = material;
             return true;

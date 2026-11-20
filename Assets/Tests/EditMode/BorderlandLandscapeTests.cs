@@ -30,6 +30,21 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
+        public void PublicVillageSoilHasItsOwnAshMaterialAndGroundMask()
+        {
+            var surface = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            try
+            {
+                var renderer = surface.GetComponent<MeshRenderer>();
+                Assert.IsTrue(AreArpg.UnityClient.WorldSurfacePresentation.TryApply(renderer, "Aschengrenze_FallbackSoil"));
+                Assert.IsTrue(renderer.sharedMaterial.IsKeywordEnabled("ARE_VILLAGE_EARTH"));
+                Assert.AreSame(AreArpg.UnityClient.WorldSurfacePresentation.AshSnow.GetTexture("_Mask"),
+                    renderer.sharedMaterial.GetTexture("_Mask"));
+            }
+            finally { Object.DestroyImmediate(surface); }
+        }
+
+        [Test]
         public void LandscapeShaderCompilesInTheActivePipeline()
         {
             var shader = Resources.Load<Shader>("BorderlandGround");

@@ -609,7 +609,13 @@ namespace AreArpg.UnityClient
             string key = _game.IsVillage ? "EntryVillageWorld" : "EntryCryptWorld";
             if (!PassiveArtVisuals.TryBind(root.transform, key)) { Destroy(root); return false; }
             _chapterScenery.Add(root.transform);
-            if (_game.IsVillage) CollectWalkSurfaces(root.transform); else _walkSurfaces.Clear();
+            if (_game.IsVillage)
+            {
+                var floor = root.transform.Find("Art_EntryVillageWorld/Ground");
+                if (floor != null) WorldSurfacePresentation.DressVillageSoil(floor.GetComponent<MeshRenderer>());
+                CollectWalkSurfaces(root.transform);
+            }
+            else _walkSurfaces.Clear();
             var passage = new GameObject("ARE_World_Passage");
             passage.transform.position = new Vector3(0f, 1.5f, 24f);
             var light = passage.AddComponent<Light>();
@@ -643,6 +649,8 @@ namespace AreArpg.UnityClient
         /// <summary>Visible development-only geometry follows every Core footprint; it is not finished world art.</summary>
         private void BuildEntryVillageFallback()
         {
+            ChapterShape(PrimitiveType.Cube, "Aschengrenze_FallbackSoil", new Vector3(0f, -.05f, 0f),
+                new Vector3(60f, .1f, 60f), new Color(.36f, .31f, .26f));
             _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage", new Vector3(0, .03f, 24),
                 new Vector3(3.6f, .02f, 3.6f), new Color(.25f, .68f, .72f));
             for (int i = 0; i < EntryWorldLayout.BuildingCount; i++)

@@ -3,6 +3,7 @@ Shader "ARE/World/Schneeasche"
     Properties
     {
         [NoScaleOffset] _Mask ("Asche, Ablagerung, Glutriss", 2D) = "gray" {}
+        _VillageEarth ("Getretene Dorferde", 2D) = "gray" {}
         _Metres ("Kachelbreite in Metern", Float) = 5.2
         [HideInInspector] _Cull ("Cull", Float) = 2
     }
@@ -18,7 +19,7 @@ Shader "ARE/World/Schneeasche"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_fragment _ ARE_BORDERLAND_PAINT
-            #pragma shader_feature_local_fragment _ ARE_CLEFT_STONE
+            #pragma shader_feature_local _ ARE_CLEFT_STONE ARE_VILLAGE_EARTH
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fog
             #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
@@ -26,16 +27,26 @@ Shader "ARE/World/Schneeasche"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             TEXTURE2D(_Mask);
             SAMPLER(sampler_Mask);
+            TEXTURE2D(_VillageEarth);
+            SAMPLER(sampler_VillageEarth);
             TEXTURE2D(_AREAshPainting);
             TEXTURE2D(_AREAshVeins);
             SAMPLER(sampler_AREAshPainting);
             CBUFFER_START(UnityPerMaterial)
                 float _Metres;
+                float4 _VillageEarth_ST;
             CBUFFER_END
             // The existing Core solar phase and the accessibility preference own these two inputs.
             float _AREEmberGain;
-            struct Attributes { float4 positionOS : POSITION; half3 normalOS : NORMAL; };
-            struct Varyings { float4 clip : SV_POSITION; float3 world : TEXCOORD0; half3 normal : TEXCOORD1; half fog : TEXCOORD2; float4 shadow : TEXCOORD3; half3 vertexLights : TEXCOORD4; };
+            struct Attributes { float4 positionOS : POSITION; half3 normalOS : NORMAL; float2 uv : TEXCOORD0; };
+            struct Varyings
+            {
+                float4 clip : SV_POSITION; float3 world : TEXCOORD0; half3 normal : TEXCOORD1;
+                half fog : TEXCOORD2; float4 shadow : TEXCOORD3; half3 vertexLights : TEXCOORD4;
+                #if defined(ARE_VILLAGE_EARTH)
+                    float2 sourceUV : TEXCOORD5;
+                #endif
+            };
             Varyings vert(Attributes i)
             {
                 Varyings o;
@@ -46,6 +57,9 @@ Shader "ARE/World/Schneeasche"
                 o.fog = ComputeFogFactor(p.positionCS.z);
                 o.shadow = GetShadowCoord(p);
                 o.vertexLights = VertexLighting(p.positionWS, o.normal);
+                #if defined(ARE_VILLAGE_EARTH)
+                    o.sourceUV = TRANSFORM_TEX(i.uv, _VillageEarth);
+                #endif
                 return o;
             }
             half4 frag(Varyings i) : SV_Target
@@ -55,7 +69,19 @@ Shader "ARE/World/Schneeasche"
                 half3 ground = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, uv).rgb;
                 half3 slate = lerp(half3(.100,.116,.140), half3(.46,.50,.53), ground.r);
                 half3 powder = lerp(half3(.38,.415,.45), half3(.75,.775,.79), ground.r);
-                #if defined(ARE_CLEFT_STONE)
+                #if defined(ARE_VILLAGE_EARTH)
+                    half3 earth = SAMPLE_TEXTURE2D(_VillageEarth, sampler_VillageEarth, i.sourceUV).rgb;
+                    half grain = dot(earth, half3(.24,.64,.12));
+                    earth = lerp(grain * half3(.69,.62,.55), earth, .52h) * (.68h + .32h * ground.r);
+                    half drift = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, uv * .19 + float2(.33,.71)).g;
+                    // The road to the north gate and Mara's supply court wear through to the original soil.
+                    half roadside = smoothstep(1.1h, 7.0h, abs(i.world.x));
+                    half court = smoothstep(.42h, 1.55h, length((i.world.xz - float2(-6.8,-10.5)) * float2(.23,.29)));
+                    half cover = .20h + .53h * roadside + .30h * (ground.g-.5h) + .63h * (drift-.5h);
+                    cover = smoothstep(.06h,.84h, cover * (.72h + .28h * court));
+                    half3 albedo = lerp(earth, lerp(slate, powder, .59h + .34h * ground.g), cover);
+                    half core = 0;
+                #elif defined(ARE_CLEFT_STONE)
                     float2 edgeUV = float2(abs(n.x) > abs(n.z) ? i.world.z : i.world.x, i.world.y) / _Metres;
                     half face = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, edgeUV).r;
                     half cap = smoothstep(.32h,.86h,n.y);

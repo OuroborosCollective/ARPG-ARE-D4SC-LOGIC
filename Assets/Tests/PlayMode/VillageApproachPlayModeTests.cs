@@ -43,6 +43,21 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNotNull(mesh.sharedMesh);
             Assert.AreEqual("ARE/VisualOnly/VillageEarthFeather", renderer.sharedMaterial.shader.name);
 
+            var earth = Find(AreArpg.UnityClient.AschengrenzeArt.BackdropLabel).transform
+                .Find("Art_EntryVillageWorld/Ground").GetComponent<MeshRenderer>();
+            Assert.AreEqual("ARE/World/Schneeasche", earth.sharedMaterial.shader.name,
+                "The occupied village square must share the outdoor ash treatment.");
+            Assert.IsTrue(earth.sharedMaterial.IsKeywordEnabled("ARE_VILLAGE_EARTH"));
+            var original = Resources.Load<GameObject>("ARE/Visuals/EntryVillageWorld")
+                .transform.Find("Ground").GetComponent<MeshRenderer>().sharedMaterial;
+            var bindings = new MaterialPropertyBlock();
+            earth.GetPropertyBlock(bindings);
+            Assert.AreSame(original.GetTexture("_BaseMap"), bindings.GetTexture("_VillageEarth"));
+            Vector2 scale = original.GetTextureScale("_BaseMap");
+            Vector2 offset = original.GetTextureOffset("_BaseMap");
+            Assert.AreEqual(new Vector4(scale.x, scale.y, offset.x, offset.y),
+                bindings.GetVector("_VillageEarth_ST"));
+
             ulong hashBefore = Game.ComputeWorldHash();
             string saveBefore = Game.Progression.SaveString();
             yield return Capture("village-approach-day.png");
