@@ -7,13 +7,14 @@ namespace AreArpg.Core
 {
     public sealed partial class ArenaSimulation
     {
-        private void RememberNpcAction(NpcAgent target,NpcAction action,bool wasAware,string context,int[] explicitWitnesses=null)
+        private MemoryEvent RememberNpcAction(NpcAgent target,NpcAction action,bool wasAware,string context,int[] explicitWitnesses=null)
         {
-            var forge=Progression.Social.Forge;if(forge==null)return;
+            var forge=Progression.Social.Forge;if(forge==null)return null;
             var witnesses=explicitWitnesses??(action==NpcAction.Attack||action==NpcAction.Rob?
                 Npcs.Where(n=>n.Id!=target.Id&&n.Memory.Health>0&&DistanceSquared(n.Xmm,n.Zmm,PlayerXmm,PlayerZmm)<=FixedMath.Square(8000)&&CombatSight(n.Xmm,n.Zmm,PlayerXmm,PlayerZmm)).Select(n=>n.Id).ToArray():Array.Empty<int>());
-            forge.Record(target.Id,action,wasAware||action==NpcAction.Help,witnesses,context);
+            var recorded = forge.Record(target.Id,action,wasAware||action==NpcAction.Help,witnesses,context);
             Reconcile(target,action);
+            return recorded;
         }
         private bool StepForgeNpc(NpcAgent npc,long distance,bool oldHostile)
         {

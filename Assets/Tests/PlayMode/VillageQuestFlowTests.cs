@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using AreArpg.Core;
 using AreArpg.UnityClient;
 using NUnit.Framework;
@@ -56,6 +57,12 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(missingAtStart, accepted, "Exactly the missing rations are accepted; afterwards nothing is consumed");
             Assert.IsTrue(Game.Progression.Social.CampRefilled, "Refilling Mara's camp completes the recorded side task");
             Assert.IsTrue(Game.Progression.CampDecisionMade && !Game.CampPanelVisible, "The refill is the ration decision");
+            var archive = Game.Progression.Social.Forge.Archive;
+            var donation = archive.Events.Last(e => e.Context == "camp.donation");
+            var decision = archive.Events.Single(e => e.Context == "camp.decision.replaced");
+            Assert.AreEqual(donation.Id, decision.CauseEventId, "The HUD refill must reference the final accepted ration");
+            Assert.IsTrue(CharacterProgression.TryLoad(Game.Progression.SaveString(), out var restored));
+            Assert.AreEqual(donation.Id, restored.Social.Forge.Archive.Events.Single(e => e.Id == decision.Id).CauseEventId);
             Assert.IsFalse(CampPanel().activeSelf, "The ration panel disappears once the decision is made");
             AssertRationButtonsGone();
             Assert.IsTrue(ArenaRuntime.QuestMilestones(Game.Progression).Exists(m => m.Key.Contains("fehlende Rationen") && m.Value), "The quest log shows the decision");

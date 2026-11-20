@@ -23,7 +23,7 @@ namespace AreArpg.Core
             Archive.Spawn("ilyan","traveler",Registry);Archive.Spawn("mara","merchant",Registry);Archive.Spawn("dorn","guard",Registry);
         }
         internal NpcMind Ensure(string id,string archetype) => Archive.Get(id)??Archive.Spawn(id,archetype,Registry);
-        internal void Record(int id,NpcAction action,bool victimAware,int[] witnesses,string context)
+        internal MemoryEvent Record(int id,NpcAction action,bool victimAware,int[] witnesses,string context)
         {
             var kind=action==NpcAction.Help?MemoryKind.Help:action==NpcAction.Greet?MemoryKind.Greeting:action==NpcAction.Attack?MemoryKind.Assault:MemoryKind.Theft;
             var impact=action==NpcAction.Help?new RelationshipChange(trust:1200,gratitude:2000,familiarity:500):
@@ -31,6 +31,7 @@ namespace AreArpg.Core
             var ev=Archive.Append(kind,"player",Identity(id),ProcessedTicks,action==NpcAction.Greet?100:action==NpcAction.Help?5000:8000,false,context,impact);
             if(victimAware)Archive.Learn(Identity(id),ev.Id,KnowledgeOrigin.Self,Identity(id),ProcessedTicks);
             foreach(int witness in witnesses)if(witness!=id)Archive.Learn(Identity(witness),ev.Id,KnowledgeOrigin.Witnessed,Identity(witness),ProcessedTicks,6000);
+            return ev;
         }
         internal string Token() => "1:"+ProcessedTicks.ToString(CultureInfo.InvariantCulture)+":"+Archive.Save()+":"+(Capture?.Invoke()??Checkpoint);
         internal static bool TryRead(string token,out NpcForgeState state)

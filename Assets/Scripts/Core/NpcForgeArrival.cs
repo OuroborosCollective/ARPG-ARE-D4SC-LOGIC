@@ -60,11 +60,11 @@ namespace AreArpg.Core
         public bool CampPanelVisible => Progression.EntryAct == 2 ? CampDecisionOpen : IsVillage && !GameOver;
 
         /// <summary>Persist which way the player chose for Mara's rations (once, story village only).</summary>
-        private void RecordCampDecision(string way)
+        private void RecordCampDecision(string way, MemoryEvent cause)
         {
             var forge = Progression.Social.Forge;
             if (forge == null || Progression.EntryAct != 2 || Progression.CampDecisionRecorded) return;
-            forge.Archive.Append(MemoryKind.Quest, "player", "mara", forge.ProcessedTicks, 4000, true, CharacterProgression.CampDecisionPrefix + way, new RelationshipChange());
+            forge.Archive.Append(MemoryKind.Quest, "player", "mara", forge.ProcessedTicks, 4000, true, CharacterProgression.CampDecisionPrefix + way, new RelationshipChange(), cause.Id);
         }
 
         /// <summary>

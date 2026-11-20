@@ -370,10 +370,10 @@ namespace AreArpg.Core
                 return result;
             }
             mara.InteractionCooldownTicks = 10;
-            RememberNpcAction(mara,NpcAction.Help,true,"camp.donation");
+            var donation = RememberNpcAction(mara,NpcAction.Help,true,"camp.donation");
             bool refilled = RecordCampRefill();
             // Filling the camp is the decision for the first way, with or without Mara's thanks.
-            if (Progression.Social.CampProvisions >= SocialLedger.CampCapacity) RecordCampDecision("replaced");
+            if (Progression.Social.CampProvisions >= SocialLedger.CampCapacity) RecordCampDecision("replaced", donation);
             result.Accepted = true;
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.ThankHelp;
             int missing = SocialLedger.CampCapacity - Progression.Social.CampProvisions;
@@ -398,13 +398,13 @@ namespace AreArpg.Core
             { result.Text = "Das Lager ist leer. Du nimmst nichts."; return result; }
             mara.InteractionCooldownTicks = 10;
             result.Accepted = true;
-            RecordCampDecision("stolen");
             NpcAgent guard = Npcs.Find(n => n.Id == 2);
             bool witnessed = guard != null && guard.Memory.Health > 0 &&
                 DistanceSquared(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm) <= FixedMath.Square(8000) &&
                 EntryWorldLayout.HasSight(PlayerXmm, PlayerZmm, guard.Xmm, guard.Zmm);
             if (witnessed) Progression.Social.WitnessRationTheft(guard.Id);
-            RememberNpcAction(mara,NpcAction.Rob,true,"camp.theft",witnessed?new[]{guard.Id}:Array.Empty<int>());
+            var theft = RememberNpcAction(mara,NpcAction.Rob,true,"camp.theft",witnessed?new[]{guard.Id}:Array.Empty<int>());
+            RecordCampDecision("stolen", theft);
             result.SpeakerId = SocialLedger.MaraNpcId; result.Speech = SpeechLine.Robbed;
             result.Text = witnessed ? "Du nimmst eine Ration. Mara protestiert; Dorn hat den Diebstahl gesehen und greift ein." :
                 "Du nimmst eine Ration. Mara merkt sich den Übergriff; Dorn hat ihn nicht gesehen.";

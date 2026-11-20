@@ -10,15 +10,18 @@ namespace AshenCrypt.MemoryForge
         /// <summary>Canonical, checksummed archive. The host embeds this token into its existing save owner.</summary>
         public string Save()
         {
+            int schema = _events.Any(e => e.CauseEventId.HasValue) ? 3 : _migrations.Count > 0 ? 2 : 1;
             using(var stream=new MemoryStream())
             {
                 using(var w=new BinaryWriter(stream,Encoding.UTF8,true))
                 {
-                    w.Write(_migrations.Count>0?2:1);w.Write(_events.Count);
+                    w.Write(schema);w.Write(_events.Count);
                     foreach(var e in _events)
                     {
                         w.Write(e.Id);w.Write((byte)e.Kind);Write(w,e.Actor);Write(w,e.Target);w.Write(e.Tick);w.Write(e.Importance);w.Write(e.Essential);Write(w,e.Context);
-                        for(int i=0;i<8;i++)w.Write(e.Impact[(RelationshipAxis)i]);Write(w,e.Checksum);
+                        for(int i=0;i<8;i++)w.Write(e.Impact[(RelationshipAxis)i]);
+                        if(schema==3)w.Write(e.CauseEventId.GetValueOrDefault());
+                        Write(w,e.Checksum);
                     }
                     w.Write(_minds.Count);
                     foreach(var entry in _minds)
@@ -31,9 +34,9 @@ namespace AshenCrypt.MemoryForge
                     {
                         w.Write(k.Sequence);w.Write(k.Event.Id);Write(w,k.Knower);w.Write((byte)k.Origin);Write(w,k.Source);w.Write(k.SourceSequence);w.Write(k.LearnedTick);w.Write(k.PersonalImpact);w.Write(k.SocialCloseness);Write(w,k.Checksum);
                     }
-                    if(_migrations.Count>0)WriteMigrations(w);
+                    if(schema>=2)WriteMigrations(w);
                 }
-                string payload=Convert.ToBase64String(stream.ToArray());return (_migrations.Count>0?"NMF2.":"NMF1.")+payload+"."+ContractText.Hash(payload);
+                string payload=Convert.ToBase64String(stream.ToArray());return "NMF"+ContractText.Number(schema)+"."+payload+"."+ContractText.Hash(payload);
             }
         }
         private static void Write(BinaryWriter writer,string value)
@@ -76,19 +79,23 @@ namespace AshenCrypt.MemoryForge
         public static bool TryLoad(string token,NpcArchetypeControllerRegistry registry,out MemoryArchive archive,int maximumBytes=16*1024*1024)
         {
             archive=null;if(string.IsNullOrEmpty(token)||maximumBytes<1||token.Length>(long)maximumBytes*2)return false;
-            var fields=token.Split('.');if(fields.Length!=3||fields[0]!="NMF1"&&fields[0]!="NMF2"||fields[2]!=ContractText.Hash(fields[1]))return false;
+            var fields=token.Split('.');if(fields.Length!=3||fields[2]!=ContractText.Hash(fields[1]))return false;
             try
             {
                 var bytes=Convert.FromBase64String(fields[1]);if(bytes.Length>maximumBytes||Convert.ToBase64String(bytes)!=fields[1])return false;
                 using(var stream=new MemoryStream(bytes,false))using(var reader=new BinaryReader(stream,new UTF8Encoding(false,true)))
                 {
-                    int schema=reader.ReadInt32();if(schema!=(fields[0]=="NMF1"?1:2))return false;var a=new MemoryArchive();int events=Count(reader);
+                    int schema=reader.ReadInt32();if(schema<1||schema>3||fields[0]!="NMF"+ContractText.Number(schema))return false;
+                    var a=new MemoryArchive();int events=Count(reader);
                     for(int i=0;i<events;i++)
                     {
                         ulong id=reader.ReadUInt64();var kind=(MemoryKind)reader.ReadByte();string actor=Read(reader),target=Read(reader);ulong tick=reader.ReadUInt64();int importance=reader.ReadInt32();byte essential=reader.ReadByte();if(essential>1)return false;string context=Read(reader);
-                        var impact=new int[8];for(int j=0;j<8;j++)impact[j]=reader.ReadInt32();string hash=Read(reader);
-                        var e=a.Append(kind,actor,target,tick,importance,essential==1,context,new RelationshipChange(impact[0],impact[1],impact[2],impact[3],impact[4],impact[5],impact[6],impact[7]));
-                        if(e.Id!=id||e.Checksum!=hash)return false;
+                        var impact=new int[8];for(int j=0;j<8;j++)impact[j]=reader.ReadInt32();
+                        ulong cause=schema==3?reader.ReadUInt64():0;
+                        var e=new MemoryEvent(id,kind,actor,target,tick,importance,essential==1,context,
+                            new RelationshipChange(impact[0],impact[1],impact[2],impact[3],impact[4],impact[5],impact[6],impact[7]),cause==0?(ulong?)null:cause);
+                        if(e.Checksum!=Read(reader))return false;
+                        a.AddEvent(e, legacy: schema<3);
                     }
                     int minds=Count(reader);string previous=null;
                     for(int i=0;i<minds;i++)
@@ -104,7 +111,7 @@ namespace AshenCrypt.MemoryForge
                         bool accepted=origin==KnowledgeOrigin.Reported?a.Report(source,knower,eventId,tick,personal,social):a.Learn(knower,eventId,origin,source,tick,personal,social);
                         if(!accepted)return false;var known=a._acquisitions.Last();if(known.Sequence!=sequence||known.SourceSequence!=sourceSequence||known.Checksum!=hash)return false;
                     }
-                    if(schema==2&&!a.ReadMigrations(reader,registry))return false;
+                    if(schema>=2&&!a.ReadMigrations(reader,registry,allowEmpty:schema==3))return false;
                     if(stream.Position!=stream.Length||a.Save()!=token)return false;archive=a;return true;
                 }
             }
