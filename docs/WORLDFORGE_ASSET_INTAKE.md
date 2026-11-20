@@ -1,6 +1,6 @@
 # Ashen Crypt – World Forge Asset-Eingang (#62)
 
-**Status:** Code in isolated Draft PR #95. Not merged or production activated until real Unity 6000.6.8f1 EditMode acceptance and asset readback. No game authority outside AreArpg.Core.
+**Status:** Unity 6000.6.8f1 native acceptance on `79c6e6f0ae17659d9dd8689c9af418ef98d2e8c5` covered 44 WorldForge EditMode tests and 1,365 real private assets. See the [20 November evidence](evidence/quality-sky-20261116/logbook-handoff.md). No game authority outside AreArpg.Core.
 
 ## Owner workflow
 
@@ -18,7 +18,7 @@ The source path is never a policy. Only known **per-package** roots produce cand
 
 `WoodlandWeapons`, `CombatIntake`, `HunterBear`, and `Resources` are protected roots. Animator, Animation, skinned meshes, particles, VisualEffect, gameplay MonoBehaviours, missing components, and runtime-linked object identities block decoration. Unity C# source `GameObject.Find`/`transform.Find` names are negative protections. The exact same scanner runs on explicit scan, **again at ConfirmSpawn/ConfirmPoi** (never trust caller-provided verdicts), and before using active approved POI visuals. Missing or unreadable runtime source fails closed.
 
-Geometry is derived from `MeshFilter.sharedMesh.bounds` transformed into root-local coordinates; a prefab asset's arbitrary scene/world origin is never used as spatial truth. Proposed POI geometry/clearance is measured from half the horizontal diagonal plus a safety margin; a pending POI has **zero** effective terrain and spawn-clearance authority until the owner explicitly configures placement. No undeclared image classifier, no Wolfram inference as automatic authority, no auto-install, no AI runtime invocation.
+Geometry is derived from `MeshFilter.sharedMesh.bounds` transformed into root-local coordinates; a prefab asset's arbitrary scene/world origin is never used as spatial truth. Proposed POI geometry/clearance is the largest root-centered horizontal distance to a transformed mesh-bounds corner plus a one-metre safety margin; a pending POI has **zero** effective terrain and spawn-clearance authority until the owner explicitly configures placement. No undeclared image classifier, no Wolfram inference as automatic authority, no auto-install, no AI runtime invocation.
 
 An `AssetPostprocessor` pushes **only changed prefab/model paths** into an open review window. It never scans the whole private package on each import or writes a game asset. Unknown packages/geometry abstain. No entry is inserted in `Resources`, no second item/quest/Save registry, and no automatic terrain build occurs on approval.
 

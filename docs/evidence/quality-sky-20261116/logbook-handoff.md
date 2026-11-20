@@ -104,6 +104,38 @@ Each new round records UTC date, incoming and resulting revisions, exact changed
 - **Next:** PR #87 konfliktfrei mit aktuellem `main` abgleichen, exakte CI und unabhängigen Readback pruefen, danach nur einen freigegebenen Editor-Adapter in einem isolierten Unity-6-Testprojekt testen. Keine Runtime-/Core-Mutation vor gesonderter Abnahme.
 
 
+## Director harness integration verification – 2026-11-19
+
+- Dedicated Draft PR #93 extends the **existing** 28-specialist Ashen Neural Hub with MCP `initialize.instructions`, a shared 6-case language corpus, offline trace grader and true JSON-RPC canary calling all 28 `advice_*` endpoints. The Canary source commit `13faae919bd570dcec33d64a8f0e092664884c30` passed GitHub Core CI run 44427342825; licensed Unity workflow 44427342761 was SKIPPED.
+- Independently fetched the exact source SHA into a clean, isolated VPS checkout and executed 31 Node tests plus 59 Python Director tests. Built isolated Docker image `sha256:095d6a88fd3995d160478d31c20ebd091b6fd5b69de4b5b377b9473c0178c747`, ran one ephemeral, no-network, read-only localhost MCP canary. 17 GitHub-open issues input SHA-256 `5e365d7b9e0e79ba3dd47dbad780503fa36b5ce75d2c1b420c0de7f1a3a92a34`; output log SHA-256 `722e747a4f97a8b6b2e5bc1c0ef107f80aeef352f3b1d883515dfebc399ef69e`. 28 endpoints completed, 22 proposed and 6 abstained; three paths #60, #77, #71 were selected.
+- Existing VPS Unity Game Director `project_status` succeeded when executed as the actual workspace owner `unityarpg` on **different** workspace SHA `860128f7cae256aefed8b874e2ab01bc01b6b3b6` (Unity 6000.6.8f1, no dirty tracked assets, no current editor instance). The first SSH-root probe gave Git dubious-ownership `git:128`; no permission bypass or Git reconstruction, only correct process identity.
+- Product integration status **PARTIAL**: Hub is a proven isolated advisory MCP protocol but is not permanently running or attached to the canonical Director broker, GitHub source and active Unity revision differ, caller-supplied issue records remain distinguished from independent sources, and no new PlayMode/device or L2/L3 model-harness run was executed. No game Core, Save, assets, shaders, active Unity scene or runtime modified.
+- Full sanitized evidence and source boundaries: [docs/evidence/ashen-neural-harness-20261119.md](../ashen-neural-harness-20261119.md). Next: separate authenticated read-only Director/Sovott bridge acceptance and independent Unity/editor verification, **never** a second authority.
+
+## PR #93 Review-Reparatur — 20.11.2026
+
+- TDD RED `d042ed1791ec5e82cfe9b315f3be987706e3b39e`, GitHub Actions [44653946585](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44653946585): vier absichtlich fehlschlagende Node-Regressionen.
+- Code GREEN `d0d514deb3fa80f1f1a8aa717e25ec6f9bcf1ea9`, Actions [44654065733](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44654065733): Core und Neural-Hub erfolgreich, Node 40/40, reale localhost-MCP-Canaries Legacy/Modern, Ausgabegrenzen im Python-Code; anschliessend Python-Bridge-Test explizit in CI aufgenommen.
+- Review-Fixes: `result.isError`, exakte `snapshotId`, Drei-Wiederholungs-Gate, Ressourcenidentitaet, Issues 69/70 und Council-Tracks, Action-Routing-Anweisungen, begrenzte Subprozessstreams und hostseitige Docker-Container-Cleanup-Pruefung.
+- Freigabegrenze: [Issue #94](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/issues/94) fordert echten vorhandenen authentifizierten Broker/Unity-Director-Readback vor Merge. Sovott-SSH zuletzt `disconnected`; kein Produkt-/Container-/Unity-/APK-/Device-Proof. Owner-DOCX bleibt aus dieser Sitzung nicht sicher verfuegbar und unveraendert.
+
+## PR #93 Live-Broker-Readback – 20.11.2026
+
+- Isolierter Code-HEAD `86f6b41bb21076fef6daab7c872ac28cacd4e55e` -> echtes VPS Docker-Image `sha256:059b93a96be4e65c6753ea0fa3900d3e30a5274f339017020730f2b9d948a8dd` (Source-Tree `38e0ae76052cee6dd55d92c081947d1c9c85382a`); Node **40/40** und MCP Legacy/Modern **PASS**, 32 Tools/28 Prompts/28 echte Advisor-Calls, 8 über GitHub geprüfte Issue-Records, Input SHA-256 `79fb32e432bdda2fee30bbd894f61e3788ec29238ffdbccfff15d67cdf5fa3c4`.
+- Vorhandener Neuro-Director-STDIO-Client über Sovott-SSH gegen denselben source-pinned Hub: `initialize`, `tools/list`, `prompts/list`, `director_snapshot`, `advice_world_design`, `director_consult` erfolgreich. Kein neuer Port/Broker; aktive Claude-Pin-Datei blieb unverändert.
+- Reale Docker-Timeout-Cleanup-Probe: dedizierter, isolierter Probecontainer entfernt, separater Docker-Readback sauber. Kanonischer Unity Director als `unityarpg` erreichbar, aber Workspace-HEAD `73337a89301f4b32924c1ffcb235138c88059089` weist 6 tracked / 5 untracked Spieleingaben auf; `director_bridge.py` blockiert korrekt mit `DIRTY_UNITY_PROJECT`.
+- **Freigabegrenze:** Issue #94 bleibt offen, vollständiger source-matched Live-Director-Broker-Readback und Unity-/Device-Nachweise fehlen. Kein Merge/Deployment, kein Abbau existierender Unity-Änderungen, keine zweite Autorität. Umfang und Operation-IDs: [Neural PR93 Live-Gates](../ashen-neural-pr93-20261120-live-gates.md). Owner-DOCX nicht editiert.
+
+## PR #93 · Abnahme über den bestehenden Sovott-Broker am 20.11.2026
+
+Der kanonische `project_status` lief als `unityarpg` vor und nach dem echten Advisor-Aufruf. Beide Abfragen bestätigten den sauberen Unity-Stand `eb4a009f90ed0c11d7013246784239870234d897` und Unity 6000.6.8f1. Der Hub lief aus dem separat gepinnten PR-Commit `c5835ab766e2c114b2d899d6849169e7f6a5a4a0`, Image `sha256:ccebb3d238625a3f8c0226c20406906f444c1023a8417f3bb27a13f1ab7bb999`. Das aktive Unity-Checkout und der Produktions-Pin wurden nicht umgestellt.
+
+- GitHub lieferte 18 einzeln als offen bestätigte Issues. Eingabe-SHA256 `44ee434f19c8afa03bf3ed34a8be7221d7a4ae415213aec9ca5ace8447b0c581`. Der Hub kennzeichnet die Daten selbst als übergeben.
+- Zwei authentifizierte Durchläufe der Bridge lieferten bytegleiches JSON (SHA256 `3da673a29c14c60cfa1cba3f5645c8579178057c1cfe7afdf1287decf54021fa`), 32 Werkzeuge und eine World-Design-Empfehlung zu #66. Snapshot `87b7e9c88e3ad100ec11951a23b877cdd4042acf4b3980f99727ff9ec2e02bce`. Eine abweichende erwartete Unity-Revision löste `STALE_WORKTREE` mit Exit 2 aus. Der gesondert aufgerufene bestehende STDIO-Client lieferte 28 Advisor-Antworten mit demselben Snapshot und drei Vorschlagspfaden. Keine Unity-Aktion; nach dem Lauf keine Probecontainer.
+- 40 Node-Tests, 59 Director-Tests und 6 Bridge-Tests bestanden. [Core- und MCP-CI](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44690809203) erfolgreich. Der optionale lizenzierte Unity-CI-Job wurde übersprungen. Diese Abnahme betrifft den lesenden Brokerpfad; Editor-Spielbetrieb, Android und eine Produktionsumstellung waren nicht Gegenstand dieses Laufs.
+- Belege der SSH-Ausführungen: `7acc08de54b349ff9bc938ce1d7595f4`, `5cd6dbfe32904bce8bc9ca713ac09d59`, `15cceb0a3dba4cc783bc342f5087d5dc`. Das separat referenzierte Owner-DOCX war unter seiner kanonischen Datei-ID nicht zugänglich.
+
+
 ## WorldForge Asset Intake hardening — 2026-11-19 (Issue #62; PR #95)
 
 - Ausgang: Draft-PR #95 HEAD `8ad088ebeb333c08139639d31c9dfc60f7536390`, Ashen main `488567fddcc48b04bb8c39871da4acc05d7316bf`. Review meldete sechs echte Regressions-/Sicherheitsrisiken: unplatzierte POI-Terrainwirkung, stale Root, zu spaeter Preflight, alte GUI-Scans, fehlende Runtime-Name-Validierung und privates Testordner-Leak.
@@ -136,3 +168,11 @@ Each new round records UTC date, incoming and resulting revisions, exact changed
 
 
 <!-- /coderabbit-ai-generated:v1 -->
+
+## 20 November 2026 — World Forge #95 native acceptance
+
+The original substring rule treated Bowl_01, Pipe_Elbow, Balance_Scale in Rainbow/, and Clubhouse as weapons. Unity 6000.6.8f1 reproduced all four false exclusions on `86b5a21d481c168cdd493c1c3dc1ead54efd22cc`. RED XML SHA-256 `0e3a2070ef66d3d62eca4a7915f9de0ff860725892e2505901308e0d9b10e461`. Matching complete tokens and recognized compounds still excludes weapon folders and actual weapon names. Code `9838a3319d5a816e8118ac574426b6326c56c3db` passed 43/43 native WorldForge tests, XML SHA-256 `612c6e4b4a3b98035e99c5e734f198d113eb17fc7a86394525b0827e30c7f052`.
+
+An additional fixture on `79c6e6f0ae17659d9dd8689c9af418ef98d2e8c5` imported, moved and deleted a temporary prefab using Unity's AssetDatabase. The review window retained the GUID at its new path and removed the deleted entry. The full WorldForge EditMode namespace passed 44/44 with zero skips. XML SHA-256 `322c306a7f44cc7acee31a1cf0fe9ea0d965681d6bb28411c11226fbb964c54e`. The editor classified 1,365 real private GameObjects (237 protected, 745 requiring manual review, 383 candidates). The tests also covered root-offset clearance, pending POI export, GLB/GLTF queueing and disabled-visual cleanup. The isolated VPS receipt files are `review95-{red-86b5a21,green-9838a33,realimport-79c6e6f}.xml` in the existing asset-intake-20261119 evidence directory.
+
+[Core workflow 44702047124](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44702047124) passed 21,239 Core assertions, 10 world-map scenarios and 48 static preflight tests. Licensed CI PlayMode was skipped. Device and Android build evidence are outside this editor acceptance. The owner DOCX reference could not be opened for writeback. Recheck CI and native tests after integrating #93.
