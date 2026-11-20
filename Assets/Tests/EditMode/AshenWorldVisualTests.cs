@@ -16,7 +16,7 @@ namespace AreArpg.EditMode.Tests
     public sealed class AshenWorldVisualTests
     {
         const string Work = "Assets/PrivateArt/AshenWorld/";
-        const string GroundTextures = "Assets/PrivateArt/Cinderbloom/Generated/";
+        const string GroundTextures = "Assets/PrivateArt/AshenWorld/Generated/";
         const string NotInstalled = "Requires the private ashen world art with built visuals (never in the repository)";
 
         static Type Tool()
@@ -116,7 +116,7 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
-        public void EveryAshPlantIsPassiveCheapAndCastsNoShadow()
+        public void EveryAshPlantIsOnePassiveMeshThatCostsAtMostThreeDraws()
         {
             foreach (string key in Built())
             {
@@ -129,27 +129,27 @@ namespace AreArpg.EditMode.Tests
                     Assert.IsEmpty(host.GetComponentsInChildren<Collider>(true), key + ": no collision, the Core owns movement");
                     Assert.IsEmpty(host.GetComponentsInChildren<Light>(true), key + ": glow comes from the material, lights are budgeted");
                     Assert.IsEmpty(host.GetComponentsInChildren<ParticleSystem>(true), key);
-                    long triangles = 0; int materials = 0;
-                    foreach (MeshRenderer renderer in host.GetComponentsInChildren<MeshRenderer>(true))
+                    MeshRenderer[] renderers = host.GetComponentsInChildren<MeshRenderer>(true);
+                    Assert.AreEqual(1, renderers.Length, key + ": one mesh per clump");
+                    MeshRenderer renderer = renderers[0];
+                    Assert.AreEqual(ShadowCastingMode.Off, renderer.shadowCastingMode, key + ": thin leaves cast no shadow");
+                    Mesh mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+                    Assert.IsNotNull(mesh, key);
+                    StringAssert.StartsWith(Work, AssetDatabase.GetAssetPath(mesh), key + ": mesh built by the tool");
+                    Assert.That(renderer.sharedMaterials.Length, Is.InRange(1, 3), key + ": ember caps, palette plants and the light on the ash");
+                    Assert.AreEqual(renderer.sharedMaterials.Length, mesh.subMeshCount, key + ": one material per part");
+                    long triangles = 0;
+                    for (int part = 0; part < mesh.subMeshCount; part++) triangles += mesh.GetIndexCount(part) / 3;
+                    Assert.That(triangles, Is.InRange(1, 5200), key + ": triangle budget of one clump");
+                    foreach (Material material in renderer.sharedMaterials)
                     {
-                        Assert.AreEqual(ShadowCastingMode.Off, renderer.shadowCastingMode, key + ": thin leaves cast no shadow");
-                        Mesh mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
-                        Assert.IsNotNull(mesh, key);
-                        Assert.AreEqual(renderer.sharedMaterials.Length, mesh.subMeshCount, key + ": one material per part");
-                        for (int part = 0; part < mesh.subMeshCount; part++) triangles += mesh.GetIndexCount(part) / 3;
-                        foreach (Material material in renderer.sharedMaterials)
-                        {
-                            Assert.IsNotNull(material, key);
-                            StringAssert.StartsWith(Work, AssetDatabase.GetAssetPath(material), key + ": material built by the tool");
-                            Assert.AreEqual("Universal Render Pipeline/Lit", material.shader.name, key);
-                            Assert.IsTrue(material.shader.isSupported, key);
-                            materials++;
-                        }
+                        Assert.IsNotNull(material, key);
+                        StringAssert.StartsWith(Work, AssetDatabase.GetAssetPath(material), key + ": material built by the tool");
+                        StringAssert.StartsWith("Universal Render Pipeline/", material.shader.name, key);
+                        Assert.IsTrue(material.shader.isSupported, key);
                     }
-                    Assert.That(triangles, Is.InRange(1, 9000), key + ": triangle budget of one clump");
-                    Assert.LessOrEqual(materials, 14, key + ": material budget of one clump");
-                    Bounds bounds = new Bounds(host.transform.position, Vector3.zero);
-                    foreach (Renderer renderer in host.GetComponentsInChildren<Renderer>(true)) bounds.Encapsulate(renderer.bounds);
+                    Assert.AreEqual(1, host.GetComponentsInChildren<LODGroup>(true).Length, key + ": far away the plant is no longer drawn");
+                    Bounds bounds = renderer.bounds;
                     Assert.That(bounds.min.y, Is.InRange(-.15f, .15f), key + " stands on the ground");
                     Assert.Less(bounds.size.y, 2.5f, key + ": ground plants, not trees");
                 }
@@ -158,24 +158,55 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
-        public void EmberPlantsGlowAndAshGrassDoesNot()
+        public void EmberPlantsGlowAndThrowLightOnTheAshCalmPlantsDoNot()
         {
             List<string> built = Built();
-            foreach (string key in new[] { "AshFloraMushrooms", "AshFloraRoses", "RoadsideShrub1" })
+            foreach (string key in new[] { "AshFloraMushrooms", "AshFloraMushroomsSmall", "RoadsideShrub1" })
             {
                 if (!built.Contains(key)) Assert.Ignore(NotInstalled);
-                Assert.Greater(Glowing(key), 0, key + ": ember plants light up the ash");
+                Material[] materials = Materials(key);
+                Material caps = Array.Find(materials, m => m.name == "EmberCap");
+                Assert.IsNotNull(caps, key + ": ember caps");
+                Assert.IsTrue(caps.IsKeywordEnabled("_EMISSION"), key + ": the cracks of the caps glow");
+                Assert.IsNotNull(caps.GetTexture("_EmissionMap"), key);
+                Assert.Greater(caps.GetColor("_EmissionColor").maxColorComponent, 1f, key + ": bright enough for daylight");
+                Material light = Array.Find(materials, m => m.name == "EmberGlow");
+                Assert.IsNotNull(light, key + ": light on the ash around the cluster");
+                Assert.AreEqual((int)RenderQueue.Transparent, light.renderQueue, key + ": the light is added over the ground");
+                Assert.AreEqual((float)BlendMode.One, light.GetFloat("_DstBlend"), key + ": added, never darkening");
+                Assert.AreEqual(0f, light.GetFloat("_ZWrite"), key);
             }
-            if (built.Contains("AshFloraGrass")) Assert.AreEqual(0, Glowing("AshFloraGrass"), "Ash grass stays grey; it is the calm between the embers");
+            foreach (string key in new[] { "AshFloraGrass", "AshFloraMoss" })
+            {
+                if (!built.Contains(key)) continue;
+                Material[] materials = Materials(key);
+                Assert.AreEqual(1, materials.Length, key + ": calm plants are one draw");
+                Assert.AreEqual("AshFlora", materials[0].name, key);
+                Assert.IsNull(Array.Find(materials, m => m.name == "EmberGlow"), key + " throws no light; it is the calm between the embers");
+            }
+            if (built.Contains("AshFloraRoses"))
+                Assert.IsNotNull(Array.Find(Materials("AshFloraRoses"), m => m.name == "EmberGlow"), "Fire roses glow");
         }
 
-        static int Glowing(string key)
+        [Test]
+        public void ThePlantPaletteStaysFlatAndTiny()
         {
-            int glowing = 0;
-            foreach (MeshRenderer renderer in Resources.Load<GameObject>("ARE/Visuals/" + key).GetComponentsInChildren<MeshRenderer>(true))
-                foreach (Material material in renderer.sharedMaterials)
-                    if (material != null && material.IsKeywordEnabled("_EMISSION") && material.GetColor("_EmissionColor").maxColorComponent > .3f) glowing++;
-            return glowing;
+            Built();
+            Material plants = Materials("AshFloraGrass")[0];
+            foreach (string slot in new[] { "_BaseMap", "_EmissionMap" })
+            {
+                Texture map = plants.GetTexture(slot);
+                Assert.IsNotNull(map, slot);
+                Assert.LessOrEqual(Mathf.Max(map.width, map.height), 64, slot + ": a palette, not a picture");
+                Assert.AreEqual(FilterMode.Point, map.filterMode, slot + ": neighbouring colours must not bleed");
+                Assert.AreEqual(1, map.mipmapCount, slot + ": smaller copies would mix the cells");
+            }
+            Assert.AreEqual((float)CullMode.Off, plants.GetFloat("_Cull"), "Blades and petals are seen from both sides");
+        }
+
+        static Material[] Materials(string key)
+        {
+            return Resources.Load<GameObject>("ARE/Visuals/" + key).GetComponentInChildren<MeshRenderer>(true).sharedMaterials;
         }
     }
 }

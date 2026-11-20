@@ -46,7 +46,7 @@ Shader "AshenCrypt/Backdrop"
             half4 frag(Out i) : SV_Target
             {
                 float distance = max(abs(i.ground.x), abs(i.ground.y));
-                half textureWeight = (1 - smoothstep(30, 95, distance)) * _TextureStrength;
+                half textureWeight = (1 - smoothstep(30, 80, distance)) * _TextureStrength;
                 // The land beyond the walked ground continues that ground: same repeat, same place, same brightness.
                 float2 uv = i.ground * _GroundMapping.xy + _GroundMapping.zw;
                 half3 soil = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv).rgb * _GroundColor.rgb;

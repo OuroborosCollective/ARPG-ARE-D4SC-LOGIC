@@ -130,7 +130,7 @@ def build(size, seed, metres, vein_width_cm, vein_amount):
     # Albedo, as linear reflectance. Ash snow is a pale cool grey; scorched earth a warm charcoal.
     light = 0.43 + 0.05 * drifts + 0.008 * ripples + 0.014 * grain
     warm = smoothstep(-1.0, 1.0, tone)[..., None]
-    snow = light[..., None] * (np.array([0.975, 1.0, 1.05]) * (1 - warm) + np.array([1.025, 1.0, 0.97]) * warm)
+    snow = light[..., None] * (np.array([0.95, 0.99, 1.075]) * (1 - warm) + np.array([0.995, 0.995, 1.01]) * warm)   # cold ash, never sand
     snow *= (1.0 - 0.2 * smoothstep(2.0, 2.7, flecks))[..., None]                 # soot flecks
     snow += (0.06 * smoothstep(2.2, 3.0, -flecks))[..., None]                     # pale flakes
     earth = (0.06 + 0.012 * grain + 0.01 * ripples)[..., None] * np.array([1.1, 0.97, 0.9])
