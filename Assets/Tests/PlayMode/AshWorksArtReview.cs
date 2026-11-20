@@ -280,7 +280,7 @@ namespace AreArpg.PlayMode.Tests
         {
             if (!PassiveArtVisuals.Has("EntryHero") && string.IsNullOrEmpty(AshWorksOutput) &&
                 string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")) &&
-                !Directory.Exists(Path.Combine(Application.dataPath, "BoZo_StylizedModularCharacters")))
+                !Directory.Exists(System.IO.Path.Combine(Application.dataPath, "BoZo_StylizedModularCharacters")))
                 Assert.Ignore("This rig and animation test requires the installed character pack.");
             _runtime.enabled=false;
             AshWorksJourney.ClearEntry(Game);ArtisanTravel(2,true);
