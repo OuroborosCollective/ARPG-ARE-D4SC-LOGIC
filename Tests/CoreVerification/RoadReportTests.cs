@@ -15,15 +15,19 @@ internal static class RoadReportTests
         CheckEncounterBounds(check, checkpoint);
         CheckNoRelay(check, checkpoint);
         CheckUnwitnessedDeath(check);
+        CheckLegacyWitness(check);
         CheckReplay(check, Restore(checkpoint), "NMF1");
 
         // Exercise an actual NMF2 save with an admitted non-default guard controller.
         var registry = NpcForgeState.Registry;
         var guard = registry.BindNew("guard");
-        var next = new ControllerArtifact(guard.Archetype, guard.ControllerId, 2, guard.Rules);
-        var wait = new ObservationFrame(ActionSet.Of(ForgeAction.Wait), Array.Empty<Observation>());
-        var receipt = ControllerAdmission.Run(next, "tests.road-report", new[] { new RegressionCase(wait, ForgeAction.Wait) });
-        registry.Register(next, next.Hash, receipt, false);
+        var next = new ControllerArtifact(guard.Archetype, "tests.road-report.guard", 1, guard.Rules);
+        if (!registry.TryRestore("guard", next.ControllerId, next.Version, next.Hash, out _))
+        {
+            var wait = new ObservationFrame(ActionSet.Of(ForgeAction.Wait), Array.Empty<Observation>());
+            var receipt = ControllerAdmission.Run(next, "tests.road-report", new[] { new RegressionCase(wait, ForgeAction.Wait) });
+            registry.Register(next, next.Hash, receipt, false);
+        }
         check(village.TryMigrateNpcController("dorn", next.ControllerId, next.Version, next.Hash),
             "report-nmf2-admitted-migration-before-meeting");
         CheckReplay(check, village, "NMF2");
@@ -154,6 +158,41 @@ internal static class RoadReportTests
         check(met && ledger.Forge.Archive.Get("road.traveler").Knowledge(death.Id) == null &&
             mara.Mind.Knowledge(death.Id) == null && ledger.RoadKnowledge(mara.Id, RoadFact.Death) == 0,
             "report-a-real-meeting-cannot-convey-an-unwitnessed-death");
+    }
+
+    private static void CheckLegacyWitness(Action<bool, string> check)
+    {
+        var road = HunterEncounterTests.Road(Seed);
+        HunterEncounterTests.Move(road, 0, 0);
+        for (int tick = 0; tick < 400 && road.Progression.Road.HunterHealth > 0; tick++) road.Step();
+        HunterEncounterTests.Move(road, 0, ArenaSimulation.ReturnPassageZmm);
+        var oldVillage = road.TryTraversePassage() ?? throw new Exception("Legacy road return rejected");
+        var oldLedger = oldVillage.Progression.Social;
+        var oldDorn = oldVillage.Npcs.Single(n => n.Id == 2);
+        oldDorn.Xmm = 0; oldDorn.Zmm = 14000;
+        for (int tick = 0; tick < 1000 && oldLedger.RoadKnowledge(1, RoadFact.Death) == 0; tick++)
+            oldVillage.Step();
+        string heard = oldLedger.RoadRumor(1);
+        string oldSave = oldVillage.Progression.SaveString();
+        check(heard.Length > 0 && oldLedger.RoadKnowledge(4, RoadFact.Death) == 1 &&
+            oldLedger.RoadRumor(2) == "" && oldLedger.Forge == null,
+            "report-legacy-witness-and-already-informed-merchant-before-migration");
+        if (!CharacterProgression.TryLoad(oldSave, out var progress)) throw new Exception("Legacy road save rejected");
+        check(progress.SaveString() == oldSave, "report-legacy-save-roundtrips-before-opt-in");
+        progress.Social.EnableForge();
+        var village = new ArenaSimulation(Seed, progress, BigInteger.One, LootCatalog.Version1);
+        var traveler = progress.Road;
+        var dorn = village.Npcs.Single(n => n.Id == 2);
+        dorn.Xmm = traveler.TravelerX; dorn.Zmm = traveler.TravelerZ;
+        do { village.Step(); } while (traveler.Age % 100 != 0);
+        check(progress.Social.RoadRumor(1) == heard &&
+            !progress.Social.Forge.Archive.Events.Any(e => e.Context.StartsWith("road.fact.", StringComparison.Ordinal)),
+            "report-migration-preserves-existing-rumor-without-inventing-history");
+        dorn.Xmm = village.PlayerXmm + 1000; dorn.Zmm = village.PlayerZmm;
+        var greeting = village.InteractNpc(dorn.Id, NpcAction.Greet);
+        check(greeting.Accepted && greeting.FollowupSpeech == SpeechLine.None && progress.Social.RoadRumor(dorn.Id) == "" &&
+            !dorn.Mind.Known.Any(k => k.Origin == KnowledgeOrigin.Reported),
+            "report-migrated-witness-cannot-start-an-untraceable-rumor");
     }
 
     private static void CheckReplay(Action<bool, string> check, ArenaSimulation world, string format)
