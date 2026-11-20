@@ -98,3 +98,22 @@ des Editors steht auf 6,5 Kerne (Owner-Wunsch).
   `ARE_BOZO_CHARACTERS`, Tests greifen per Reflection zu), nicht in einem Editor ohne Paket ausgeführt.
 - GitHub-CI für diesen Stand (nicht gepusht).
 - Das frühere Menschenpaket (Polytope) liegt weiter unter `Resources/ARE/Visuals/Vendor` und würde mitgebaut.
+
+
+## Integrationsprüfung vom 20. November für PR #96
+
+Der unabhängige Lauf verwendete Unity 6000.6.8f1 mit Software-OpenGL, dem privaten BoZo-Paket und den erzeugten Spiel-Prefabs auf dem VPS. Für die beiden regulären Testsuiten wurde Commit `a169f3af7c0b2c5990c207f43a9192ae1af1a204` nach dem Zusammenführen von #93 und #95 ausgecheckt. Git bestätigte Tree `8d1ffd9dd4ad82df7874dbfdd1ac70c1cb3c90f2`.
+
+| Prüfung | Ergebnis | SHA-256 des Belegs |
+| --- | --- | --- |
+| EditMode `BozoFigure` | 11/11, keine Skips | `0b67ab50da52095fb1bb21d3068f54ea9958d9e9a9d1f03fdb4ac5c4ed99a7eb` |
+| PlayMode Schwertgriff im Lauf, Freigabe beim Schlag | 2/2, keine Skips | `e4e04e1dc08ed4458261c67ef1cb4ceae91c5371dfe5a433434298515874bff5` |
+| CoreVerification Release | 21 239 Assertions | `bafba6f747bd3486a576eef3fc8dac473b21978497177819f63d499b5c3fa99e` |
+| Preflight im sauberen Git-Checkout | 48/48 | `7b8c91dd98fed078e0f00c5b3e41687e8986abe01ac1abcf7bad5182e68c24da` |
+
+- **Material.** Vorher scheiterte bei `598314bb17d492ee04d2d0a533aa55c3a3f52eca` der echte Bindevorgang für Ilyan. Der aktive Material-Tag war leer, obwohl Subshader 0 den Tag `UniversalPipeline` trägt. Der Adapter prüft nun auch die Subshader und erhält das bereits kompatible Figurenmaterial. RED-XML `9aec7962f10922b81b39e7e580ca93a1142ebbf15e8694b9a6e9eb87b9335e17`.
+- **Griff.** Der ursprüngliche PlayMode-Lauf maß maximal 0,56965816 m Abstand am Schwertgriff, erlaubt sind weniger als 0,04 m. Die opt-in Hand-IK der Spielfigur wird nun bereits vor dem ersten Sichtbarkeitsupdate ausgewertet. Die vorhandenen Winkel- und Distanz-Assertions blieben erhalten. RED-XML `314455c504fa994be8feb120044cf520549cb9b657a8236bbfea0332a5d9ef22`.
+- **Fehlgeschlagener Rebake.** Eine separate native Gegenprobe auf derselben Codebasis setzte in der isolierten Arbeitskopie absichtlich eine fehlende Vorlage für Ilyan. Der normale Baker meldete den erwarteten Fehler. Beide zuvor geladenen Szenen kehrten in der ursprünglichen Reihenfolge zurück, Szene B blieb aktiv, Ilyans Mesh und Material waren ladbar. Die 25 SHA-256-Einträge der gebackenen Figur einschließlich ihrer Metadaten und des Spiel-Prefabs waren vor und nach dem Versuch bytegleich. Manifest `4d81ecba64935ccdc1311a4724b276aeed9ac80d5acfbbd6c382ff4744c463f8`, Editorlog `13703b84f5eaa62b2c058cb4f997ff60de4200a3063b05490a1409e168320cbd`. Das temporäre Prüfrezept und die Sonde gehören nur zu dieser Gegenprobe.
+- **Grenzen.** Die native Prüfung deckt das Verstecken und Wiederherstellen verschachtelter Resources-Ordner ab. APK-Build, echter Build-Callback und Gerätetest sind offen. In einem zusätzlichen Preflight im privaten Importbaum verlangt der bestehende Metadaten-Test den Text `MonoImporter:` auch in fremden Dateien. Die ausgelieferte `BodyShapeModifier.cs.meta` enthält nur Dateiversion und GUID. Der Test meldete dies, Unity importierte und kompilierte das Skript, und der normale Git-Preflight bestand. Die historischen Zahlen im ersten Abschnitt bleiben dem früheren gemischten Workspace zugeordnet.
+
+Die privaten Rohbelege liegen unter `/var/lib/unityarpg/.local/share/are-arpg/pr96-review-598314bb/`. GitHub Core auf dem getesteten Commit war erfolgreich, die separate lizenzierte CI-PlayMode lief dort nicht. [GitHub Core 44703565340](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44703565340)

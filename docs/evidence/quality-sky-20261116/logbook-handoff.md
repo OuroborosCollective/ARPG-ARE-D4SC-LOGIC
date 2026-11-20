@@ -194,3 +194,8 @@ An additional fixture on `79c6e6f0ae17659d9dd8689c9af418ef98d2e8c5` imported, mo
 Ausgangsrevision `b75c02e36f8f4bcb5fc2ff716de14de5ef06d5bc`, lokaler Patch: verschachtelte Resources-Umbenennung, temporärer Bake mit GUID-Erhaltung/Rücksicherung, vollständiges Szenen-Setup und SaveScene-Abbruch, Ressourcenfreigabe, Report-Verzeichnis, MayWrite-Vorprüfung, Farbfolgen und flächengewichtete Farbstichproben, Hero-Clip-Vorbedingung sowie NPC-Fallback und gezieltes Test-Ignore korrigiert. Core 21239 Assertions, 40 Preflights und statischer Unity-Kontrakt bestanden; Unity-Editor und privates Paket hier nicht vorhanden, Editor-Regressionen und echter BuildGuard-/APK-Lauf offen. Patch-Hashes im workspace-context/validation-record.md (Arbeitskontext). Historischer getesteter SHA samt unabhängigem Readback fehlt; Implementations-SHA allein ersetzt ihn nicht. Owner-DOCX mangels verifizierter bearbeitbarer Dokumentidentität weiterhin offen. Nächster Schritt: Editor-Tests mit Paket einschließlich Fehlerfällen und SHA-gebundene unabhängige Readbacks.
 
 <!-- /coderabbit-ai-generated:v1 -->
+
+
+## PR #96 – unabhängiger nativer Readback
+
+Commit `a169f3af7c0b2c5990c207f43a9192ae1af1a204` integriert #93 und #95. Eine fehlerhafte Materialkonvertierung vor dem ersten Kamerabild und die sichtbarkeitsabhängige Hand-IK der Spielfigur wurden anhand von zwei nativen Regressionen behoben. EditMode 11/11, PlayMode 2/2, jeweils ohne Skips, Core 21 239, Preflight 48/48, GitHub Core 44703565340 erfolgreich. Der unabhängige negative Rebake-Test bestätigte zwei wiederhergestellte Szenen und 25 unveränderte SHA-256-Einträge. Einzelbelege, privater Metadatenbefund und verbleibende APK-/Gerätegrenzen stehen in `docs/evidence/bozo-characters-20261119/acceptance.md`.
