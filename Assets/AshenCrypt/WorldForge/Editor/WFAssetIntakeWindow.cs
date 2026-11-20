@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -27,6 +27,12 @@ namespace AshenCrypt.WorldForge.EditorTools
         [SerializeField] private WorldProfile world;
         [SerializeField] private DefaultAsset selectedFolder;
         [SerializeField] private string search = "";
+        [SerializeField] private bool blenderOpen;
+        [SerializeField] private string blenderJob = "";
+        private Task<string> blenderSubmit;
+        private WFBlenderJobState blenderState;
+        private double nextBlenderPoll;
+        private Vector2 windowScroll;
         private string rootFolder = "Assets/PrivateArt";
         private readonly Dictionary<string, Entry> entries = new Dictionary<string, Entry>(StringComparer.Ordinal);
         private readonly HashSet<string> changedPaths = new HashSet<string>(StringComparer.Ordinal);
@@ -73,6 +79,13 @@ namespace AshenCrypt.WorldForge.EditorTools
 
         private void Update()
         {
+            if (blenderSubmit != null && blenderSubmit.IsCompleted)
+            {
+                var completed = blenderSubmit;
+                blenderSubmit = null;
+                Safely(() => SelectBlenderJob(completed.GetAwaiter().GetResult()));
+                Repaint();
+            }
             if (changedPaths.Count == 0) return;
             var updates = changedPaths.ToArray();
             changedPaths.Clear();
@@ -179,9 +192,109 @@ namespace AshenCrypt.WorldForge.EditorTools
             }
         }
 
+        private void SelectBlenderJob(string id)
+        {
+            blenderJob = id;
+            if (WFBlenderIntake.IsJobId(id)) blenderState = WFBlenderIntake.State(id);
+        }
+
+        private void OnInspectorUpdate()
+        {
+            if (!blenderOpen || !WFBlenderIntake.IsJobId(blenderJob) ||
+                EditorApplication.timeSinceStartup < nextBlenderPoll) return;
+            nextBlenderPoll = EditorApplication.timeSinceStartup + 3;
+            var state = WFBlenderIntake.State(blenderJob);
+            if (state != blenderState) { blenderState = state; Repaint(); }
+        }
+
+        private void ReviewBlenderFbx()
+        {
+            var model = WFBlenderIntake.ImportFbx(blenderJob);
+            string path = AssetDatabase.GetAssetPath(model);
+            string guid = AssetDatabase.AssetPathToGUID(path);
+            if (!InScope(path))
+            {
+                selectedFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(WFBlenderIntake.AssetRoot);
+                rootFolder = WFBlenderIntake.AssetRoot;
+                entries.Clear();
+            }
+            runtimeBoundNames = WFAssetIntakeEvaluator.CollectRuntimeBoundNames();
+            Upsert(guid, path, model);
+            selectedGuid = guid;
+            search = "";
+            EditorGUIUtility.PingObject(model);
+            feedback = "FBX zur Einzelprüfung geladen: " + path;
+        }
+
+        private void DrawBlender()
+        {
+            blenderOpen = EditorGUILayout.Foldout(blenderOpen, "Blender-Export", true);
+            if (!blenderOpen) return;
+            using (new EditorGUI.DisabledScope(blenderSubmit != null))
+            {
+                if (GUILayout.Button(blenderSubmit == null ? "Datei für FBX-, GLB- und glTF-Export auswählen" :
+                    "Quelldatei wird an den Dienst übergeben …"))
+                {
+                    string path = EditorUtility.OpenFilePanelWithFilters("Gepackte .blend oder eigenständige .fbx/.glb auswählen",
+                        "", new[] {"Blender, FBX, GLB", "blend,fbx,glb"});
+                    if (!string.IsNullOrEmpty(path)) blenderSubmit = Task.Run(() => WFBlenderIntake.Submit(path));
+                }
+                string id = EditorGUILayout.TextField("Auftrags-ID", blenderJob).Trim();
+                if (id != blenderJob) SelectBlenderJob(id);
+            }
+            if (string.IsNullOrEmpty(blenderJob)) return;
+            if (!WFBlenderIntake.IsJobId(blenderJob))
+            {
+                EditorGUILayout.HelpBox("Eine Auftrags-ID aus Editor oder CLI hat 64 kleine Hexadezimalzeichen.", MessageType.Info);
+                return;
+            }
+            switch (blenderState)
+            {
+                case WFBlenderJobState.Ready:
+                    string directory = Path.Combine(WFBlenderIntake.Root, "results", blenderJob);
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (GUILayout.Button("FBX-, GLB- und glTF-Ordner öffnen"))
+                            Safely(() => EditorUtility.RevealInFinder(Path.Combine(directory, "model.glb")));
+                        if (GUILayout.Button("Ordnerpfad kopieren"))
+                            EditorGUIUtility.systemCopyBuffer = directory;
+                    }
+                    if (GUILayout.Button("Exportiertes FBX in den Asset-Eingang importieren"))
+                        Safely(ReviewBlenderFbx);
+                    break;
+                case WFBlenderJobState.Failed:
+                    EditorGUILayout.HelpBox("Export fehlgeschlagen. Fehlerprotokoll: " + WFBlenderIntake.Root +
+                        "/failed/" + blenderJob + "/error.txt", MessageType.Error);
+                    using (new EditorGUI.DisabledScope(blenderSubmit != null))
+                        if (GUILayout.Button("Erneut versuchen"))
+                        {
+                            string id = blenderJob;
+                            blenderSubmit = Task.Run(() => WFBlenderIntake.Retry(id));
+                        }
+                    break;
+                case WFBlenderJobState.Incomplete:
+                    EditorGUILayout.HelpBox("Exportdateien oder Beleg sind unvollständig oder beschädigt. Bitte die Originaldatei erneut einreichen.", MessageType.Error);
+                    break;
+                case WFBlenderJobState.Queued:
+                    EditorGUILayout.HelpBox("Auftrag im Blender-Dienst. Der Export wird verarbeitet.", MessageType.Info);
+                    break;
+                default:
+                    EditorGUILayout.HelpBox("Zu dieser ID ist kein Auftrag im lokalen Blender-Dienst sichtbar.", MessageType.Info);
+                    break;
+            }
+        }
+
         private void OnGUI()
         {
+            windowScroll = EditorGUILayout.BeginScrollView(windowScroll);
+            try { DrawIntake(); }
+            finally { EditorGUILayout.EndScrollView(); }
+        }
+
+        private void DrawIntake()
+        {
             EditorGUILayout.LabelField("World Forge – Asset-Eingang", EditorStyles.boldLabel);
+            DrawBlender();
             EditorGUILayout.HelpBox("Nur Freigabe nach Vorschau. Figuren, Effekte und geschützte Pakete bleiben gesperrt. " +
                                     "Keine automatischen Platzierungen, keine zweite Spielautorität.", MessageType.Info);
             biome = (BiomeProfile)EditorGUILayout.ObjectField("BiomeProfile", biome, typeof(BiomeProfile), false);

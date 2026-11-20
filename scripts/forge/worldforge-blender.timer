@@ -1,0 +1,10 @@
+[Unit]
+Description=Check the World Forge private Blender queue
+
+[Timer]
+OnBootSec=10s
+OnUnitInactiveSec=8s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
