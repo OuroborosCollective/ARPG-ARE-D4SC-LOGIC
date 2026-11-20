@@ -16,6 +16,7 @@ namespace AreArpg.UnityClient
             var root = new GameObject(mill ? "OldMill_Refuge" : "AshRoad_Verges");
             var scenery = root.AddComponent<RefugeScenery>();
             scenery.AddRoadside(mill);
+            scenery.AddAshFlora(mill);
             if (mill) scenery.AddShelter();
             return root.transform;
         }
@@ -109,11 +110,22 @@ namespace AreArpg.UnityClient
                     float x = side * (5.4f + i % 3 * .75f);
                     if (mill && side < 0) x = -15f - i % 2;
                     BindClump("Route_Grass_" + side + "_" + i, "RoadsideShrub" + i % 2,
-                        new Vector3(x, -.08f, -20 + i * 8), .8f, 2f, i * 47 + side * 15);
+                        new Vector3(x, -.08f, -20 + i * 8), 1f, 2.9f, i * 47 + side * 15);
                 }
                 for (int i = 0; i < 3; i++)
                     BindClump("Route_OuterRocks_" + side + "_" + i, "AshRocks", new Vector3(side * 31, -.1f, -18 + i * 17), 3.2f, 4f);
             }
+        }
+
+        /// <summary>
+        /// Ember plants in the open ash field (owner direction 2026-11-20). Passive art only: without the private
+        /// plant visuals nothing is placed, and nothing here blocks movement.
+        /// </summary>
+        private void AddAshFlora(bool mill)
+        {
+            int number = 0;
+            foreach (AshFloraScatter.Spot spot in AshFloraScatter.Spots(mill))
+                BindClump("Ash_Flora_" + number++, spot.Key, spot.Position, spot.Height, spot.Width, spot.Yaw);
         }
 
         private void BindClump(string name, string key, Vector3 position, float height, float width, float yaw = 0)

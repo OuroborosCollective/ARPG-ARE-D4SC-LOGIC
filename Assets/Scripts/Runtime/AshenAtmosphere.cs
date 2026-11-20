@@ -287,21 +287,28 @@ namespace AreArpg.UnityClient
             bool mill = _act == 4;
             bool rift = _act == 12;
             bool crypt = _act <= 1 || (_act >= 5 && _act <= 7) || _act == 9;
-            bool showAsh = (_act >= 2 && _act <= 4) || forest || _act == 10 || rift;
+            // Village, ash road and mill lie under open sky: there the ash falls like snow (owner direction 2026-11-20:
+            // an ash world with ash snow and glowing embers, not a world hidden in haze).
+            bool snow = _act >= 2 && _act <= 4;
+            bool showAsh = snow || forest || _act == 10 || rift;
             bool showMist = forest || mill || crypt;
 
             var ash = _ash.main;
             ash.startColor = rift ? new Color(.98f, .34f, .10f, .66f)
                 : forest ? new Color(.68f, .67f, .55f, .33f)
-                : mill ? new Color(.78f, .74f, .66f, .30f)
+                : snow ? new Color(.93f, .93f, .95f, mill ? .60f : .80f)
                 : new Color(.74f, .70f, .60f, .50f);
-            float ashSize = rift ? .11f : forest ? .065f : .075f;
+            float ashSize = rift ? .11f : forest ? .065f : snow ? .12f : .075f;
+            // Flakes gather around the hero instead of thinning out over a wide field: same particle budget, more snow in view.
+            var cloud = _ash.shape; cloud.scale = snow ? new Vector3(15f, 1f, 15f) : new Vector3(20f, 1f, 20f);
+            // Snow is already falling when the hero arrives; without this the air stays empty for the first seconds.
+            if (!_ash.isPlaying) ash.prewarm = snow;
             ash.startSize = new ParticleSystem.MinMaxCurve(ashSize * .55f, ashSize * 1.3f);
-            var flutter = _ash.noise; flutter.strength = rift ? .55f : .22f;
+            var flutter = _ash.noise; flutter.strength = rift ? .55f : snow ? .32f : .22f;
             var cool = _ash.sizeOverLifetime; cool.enabled = rift;
             if (rift) cool.size = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, .25f));
             var velocity = _ash.velocityOverLifetime;
-            velocity.y = rift ? .65f : -.75f;
+            velocity.y = rift ? .65f : snow ? -.6f : -.75f;
 
             var mist = _dust.main;
             mist.startColor = forest ? new Color(.30f, .54f, .46f, .075f)
@@ -327,7 +334,8 @@ namespace AreArpg.UnityClient
             bool mill = _act == 4;
             bool rift = _act == 12;
             var ash = _ash.main; ash.maxParticles = ReducedEffects ? 40 : 160;
-            float ashRate = rift ? 13f : forest ? 5f : mill ? 4f : _act == 2 ? 10f : 18f;
+            // Eight seconds of life: 19 flakes a second stay inside the budget of 160.
+            float ashRate = rift ? 13f : forest ? 5f : mill ? 14f : _act == 2 ? 17f : 19f;
             var rate = _ash.emission; rate.rateOverTime = ReducedEffects ? ashRate * (2f / 9f) : ashRate;
             var dust = _dust.main; dust.maxParticles = ReducedEffects ? 6 : 24;
             float mistRate = forest ? 1.6f : mill ? 1.1f : 2f;

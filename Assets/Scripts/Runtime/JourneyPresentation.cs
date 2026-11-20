@@ -126,22 +126,26 @@ namespace AreArpg.UnityClient
         }
         private void BuildJourneyCave()
         {
-            var map=_game.JourneyGeometry;RenderSettings.ambientLight=new Color(.30f,.32f,.36f);RenderSettings.fogColor=new Color(.07f,.09f,.12f);RenderSettings.fogDensity=.009f;
-            for(int z=0;z<map.Size;z++)for(int x=0;x<map.Size;x++)if(map.IsFloor(x,z))
-            {
-                float wx=map.Centre(x)/1000f,wz=map.Centre(z)/1000f;
-                DungeonModule("Journey_Cave_Floor_"+x+"_"+z,"DungeonFloor",new Vector3(wx,0,wz),false,true);
-                if(!map.IsFloor(x-1,z))DungeonModule("Journey_Cave_Wall_W_"+x+"_"+z,"DungeonWall",new Vector3(wx-2,0,wz),true,false);
-                if(!map.IsFloor(x+1,z))DungeonModule("Journey_Cave_Wall_E_"+x+"_"+z,"DungeonWall",new Vector3(wx+2,0,wz),true,false);
-                if(!map.IsFloor(x,z-1))DungeonModule("Journey_Cave_Wall_S_"+x+"_"+z,"DungeonWall",new Vector3(wx,0,wz-2),false,false);
-                if(!map.IsFloor(x,z+1))DungeonModule("Journey_Cave_Wall_N_"+x+"_"+z,"DungeonWall",new Vector3(wx,0,wz+2),false,false);
-            }
+            var map=_game.JourneyGeometry;
+            // Same reworked set as the crypt when its private art is present; otherwise the previous look.
+            bool dressed=PassiveArtVisuals.Has("DungeonCorner");
+            _dungeonDressed=dressed;_dungeonFlames=0;_dungeonLights.Clear();
+            DungeonAir(dressed);
+            // Tiles of the passages and chests stay free of props.
+            var reserved=new HashSet<long>{JourneyTile(map,map.ReturnX,map.ReturnZ),JourneyTile(map,map.ForwardX,map.ForwardZ)};
+            for(int i=0;i<map.ChestCount;i++){map.Chest(i,out var cx,out var cz);reserved.Add(JourneyTile(map,cx,cz));}
+            DungeonTiles("Journey_Cave_",0,map.Size-1,map.IsFloor,index=>map.Centre(index)/1000f,map.LayoutHash,reserved,null,dressed);
             _returnPassage=ChapterShape(PrimitiveType.Cylinder,"Journey_Return_Passage",new Vector3(map.ReturnX/1000f,.035f,map.ReturnZ/1000f),new Vector3(3.6f,.02f,3.6f),new Color(.35f,.68f,.85f));
             if(_game.Progression.Journey.Depth<_game.Progression.Journey.FloorCount)
             {
                 _worldPassage=ChapterShape(PrimitiveType.Cylinder,"Journey_Descent_Passage",new Vector3(map.ForwardX/1000f,.035f,map.ForwardZ/1000f),new Vector3(3.6f,.02f,3.6f),new Color(.9f,.65f,.23f));
-                _journeyGate=ChapterShape(PrimitiveType.Cube,"Journey_Descent_Gate",new Vector3(0,1.4f,22),new Vector3(3.9f,2.8f,.35f),new Color(.31f,.32f,.35f),"CryptDoor");
+                _journeyGate=ChapterShape(PrimitiveType.Cube,"Journey_Descent_Gate",new Vector3(0,1.4f,22),new Vector3(3.9f,2.8f,.35f),new Color(.31f,.32f,.35f),
+                    dressed&&PassiveArtVisuals.Has("DungeonGate")?"DungeonGate":"CryptDoor");
             }
+        }
+        private static long JourneyTile(JourneyGeometry map,long xmm,long zmm)
+        {
+            return DungeonTileKey(Mathf.RoundToInt((xmm-map.OriginMm)/(float)map.CellMm),Mathf.RoundToInt((zmm-map.OriginMm)/(float)map.CellMm));
         }
         private void UpdateJourneyPresentation()
         {

@@ -7,6 +7,10 @@ Shader "AshenCrypt/Backdrop"
         _FogStrength ("Fog", Range(0,1)) = 1
         _BaseMap ("Ground texture", 2D) = "white" {}
         _TextureStrength ("Ground texture strength", Range(0,1)) = 0
+        _GroundMapping ("Ground texture repeats per metre (xy) and shift (zw)", Vector) = (0.4, 0.4, 0, 0)
+        _GroundColor ("Light on the ground texture (linear, not a colour swatch)", Vector) = (0.35, 0.35, 0.35, 1)
+        _GlowMap ("Ground glow", 2D) = "black" {}
+        _GlowStrength ("Ground glow strength", Range(0,4)) = 0
     }
     SubShader
     {
@@ -24,8 +28,12 @@ Shader "AshenCrypt/Backdrop"
                 float _FogStrength;
                 float _Exposure;
                 float _TextureStrength;
+                float4 _GroundMapping;
+                float4 _GroundColor;
+                float _GlowStrength;
             CBUFFER_END
             TEXTURE2D(_BaseMap);
+            TEXTURE2D(_GlowMap);
             SAMPLER(sampler_BaseMap);
             struct In { float4 positionOS : POSITION; half4 color : COLOR; };
             struct Out { float4 positionCS : SV_POSITION; half4 color : COLOR; half fog : TEXCOORD0; float2 ground : TEXCOORD1; };
@@ -38,9 +46,13 @@ Shader "AshenCrypt/Backdrop"
             half4 frag(Out i) : SV_Target
             {
                 float distance = max(abs(i.ground.x), abs(i.ground.y));
-                half textureWeight = (1 - smoothstep(30, 95, distance)) * _TextureStrength;
-                half3 soil = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.ground * .4).rgb * .35;
-                half3 color = lerp(i.color.rgb, soil, textureWeight) * _Exposure;
+                half textureWeight = (1 - smoothstep(30, 80, distance)) * _TextureStrength;
+                // The land beyond the walked ground continues that ground: same repeat, same place, same brightness.
+                float2 uv = i.ground * _GroundMapping.xy + _GroundMapping.zw;
+                half3 soil = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv).rgb * _GroundColor.rgb;
+                half3 color = lerp(i.color.rgb * _Exposure, soil, textureWeight);   // the ground colour already carries the light
+                // Glowing veins do not dim with the daylight.
+                color += SAMPLE_TEXTURE2D(_GlowMap, sampler_BaseMap, uv).rgb * (_GlowStrength * textureWeight);
                 return half4(lerp(color, MixFog(color, i.fog), _FogStrength), 1);
             }
             ENDHLSL

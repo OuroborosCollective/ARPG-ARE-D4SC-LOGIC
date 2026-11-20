@@ -106,6 +106,18 @@ namespace AreArpg.UnityClient
             _villageLightGlow = -1f;
         }
 
+        /// <summary>The shared flame look for other presentation code (crypt candles); false when the shader is unavailable.</summary>
+        private bool TryFlameAssets(out Material material, out Mesh mesh)
+        {
+            material = null; mesh = null;
+            var shader = Resources.Load<Shader>("AshenFlame");
+            if (shader == null || !shader.isSupported) return false;
+            if (_villageFlameMaterial == null) _villageFlameMaterial = new Material(shader) { name = "ARE torch flame (presentation only)" };
+            if (_villageFlameMesh == null) _villageFlameMesh = FlameQuad();
+            material = _villageFlameMaterial; mesh = _villageFlameMesh;
+            return true;
+        }
+
         /// <summary>A unit quad standing on its bottom edge, wide enough in bounds to stay visible while billboarding.</summary>
         private static Mesh FlameQuad()
         {
