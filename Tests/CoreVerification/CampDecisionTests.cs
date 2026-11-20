@@ -41,6 +41,10 @@ internal static class CampDecisionTests
         Near(theft,SocialLedger.MaraNpcId);
         check(theft.TakeCampRation().Accepted&&t.CampDecisionMade&&!theft.CampPanelVisible&&!theft.CanDonateCampRation,"camp-decision-theft-closes-the-panel");
         check(Decisions(t)=="camp.decision.stolen","camp-decision-theft-recorded-once");
+        var events = t.Social.Forge.Archive.Events;
+        var cause = events.Single(e => e.Context == "camp.theft");
+        var decision = events.Single(e => e.Context == "camp.decision.stolen");
+        check(cause.Id < decision.Id, "causal-camp-theft-precedes-its-story-consequence");
         Near(theft,SocialLedger.MaraNpcId);
         string stolen=t.SaveString();
         check(!theft.TakeCampRation().Accepted&&!theft.DonateCampRation().Accepted&&t.SaveString()==stolen,"camp-decision-theft-rejects-later-ways");
