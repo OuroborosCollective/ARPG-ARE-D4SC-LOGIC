@@ -89,20 +89,26 @@ namespace AreArpg.EditorTools
             ground.SetFloat("_Metres", 5.2f);
             EditorUtility.SetDirty(ground);
             AssetDatabase.SaveAssetIfDirty(ground);
-            string slatePath = Destination + "/RoughSlate.mat";
-            var slate = AssetDatabase.LoadAssetAtPath<Material>(slatePath);
-            if (slate == null)
+            BakeGroundVariant(ground, "VillageAsh", "ARE_VILLAGE_EARTH", 5.2f);
+            return BakeGroundVariant(ground, "RoughSlate", "ARE_CLEFT_STONE", 2.8f);
+        }
+
+        private static Material BakeGroundVariant(Material ground, string name, string keyword, float metres)
+        {
+            string path = Destination + "/" + name + ".mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
             {
-                slate = new Material(shader);
-                AssetDatabase.CreateAsset(slate, slatePath);
+                material = new Material(ground.shader);
+                AssetDatabase.CreateAsset(material, path);
             }
-            slate.shader = shader;
-            slate.SetTexture("_Mask", ground.GetTexture("_Mask"));
-            slate.SetFloat("_Metres", 2.8f);
-            slate.EnableKeyword("ARE_CLEFT_STONE");
-            EditorUtility.SetDirty(slate);
-            AssetDatabase.SaveAssetIfDirty(slate);
-            return slate;
+            material.shader = ground.shader;
+            material.SetTexture("_Mask", ground.GetTexture("_Mask"));
+            material.SetFloat("_Metres", metres);
+            material.EnableKeyword(keyword);
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssetIfDirty(material);
+            return material;
         }
 
         static void BakeModel(string path, Material material)
