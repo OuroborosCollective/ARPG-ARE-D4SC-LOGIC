@@ -176,3 +176,26 @@ The original substring rule treated Bowl_01, Pipe_Elbow, Balance_Scale in Rainbo
 An additional fixture on `79c6e6f0ae17659d9dd8689c9af418ef98d2e8c5` imported, moved and deleted a temporary prefab using Unity's AssetDatabase. The review window retained the GUID at its new path and removed the deleted entry. The full WorldForge EditMode namespace passed 44/44 with zero skips. XML SHA-256 `322c306a7f44cc7acee31a1cf0fe9ea0d965681d6bb28411c11226fbb964c54e`. The editor classified 1,365 real private GameObjects (237 protected, 745 requiring manual review, 383 candidates). The tests also covered root-offset clearance, pending POI export, GLB/GLTF queueing and disabled-visual cleanup. The isolated VPS receipt files are `review95-{red-86b5a21,green-9838a33,realimport-79c6e6f}.xml` in the existing asset-intake-20261119 evidence directory.
 
 [Core workflow 44702047124](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44702047124) passed 21,239 Core assertions, 10 world-map scenarios and 48 static preflight tests. Licensed CI PlayMode was skipped. Device and Android build evidence are outside this editor acceptance. The owner DOCX reference could not be opened for writeback. Recheck CI and native tests after integrating #93.
+## Einheitliches Figurensystem aus dem BoZo-Paket – 20.11.2026 [bozo-characters-20261119]
+
+- Branch `feat/bozo-characters-20261119` auf `main` `488567f`. Neu: `Assets/Editor/BozoCharacters/` (Rezepte `figures.json`, `BozoFigureRecipes`, `BozoFigureBaker`, `BozoPartColours`, `BozoBuildGuard`), Tests `BozoFigureRecipeTests` und `BozoFigureVisualTests`, Anleitung `docs/BOZO_CHARACTERS.md`; angepasst: `EntryWorldArtBuilder`, `EntryCombatArtBuilder`, `MillPatientAuthoring`, `.gitignore`. Kein Core- oder Laufzeitcode geändert.
+- Live-Workspace B: Paket 361388 (2.6.5) privat installiert, zwölf Figuren gebacken, bisherige Menschenfiguren ersetzt (Sicherung der vorherigen Visuals privat), Held und Verletzte neu gebaut, Waffenlage in der Hand neu bestimmt.
+- Owner-Befund „Figuren stehen im Dunkeln“ behoben (Normal-Textur neu geschrieben, Farben aufgehellt); Neuro-Director-Fachbereiche `shaders` und `lighting` befragt, Ursache per Messung gefunden.
+- Evidence: EditMode `BozoFigure*` 9/9, EditMode 135/135, PlayMode 171/171, Core 21239, Preflight 40, Android-Skriptkompilierung fehlerfrei; Details in `docs/evidence/bozo-characters-20261119/acceptance.md`.
+- Grenzen: APK und Gerät ungeprüft (Bildrate mit 22 000–28 000 Dreiecken je Figur, Kodierung der Normal-Textur); nicht gepusht; Owner-DOCX nicht bearbeitet.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:bbd0a7f168701e2666ad5d7a7cee2aaa159696d1423e6fa9120b293d176ab75c -->
+
+- Nächster Schritt: gekauftes Paket „Stylized Dark Fantasy Asset“ (135244) einbinden, Dungeon-Umgebung überarbeiten und die Aschenwelt der Oberwelt gestalten (Owner-Auftrag 19./20.11.); Bau-Modus-Bewohner auf `Villager0–2`/`Merchant0` umstellen, sobald beide Branches zusammenkommen.
+
+## BoZo Reviewkorrekturen – 20.11.2026
+
+Ausgangsrevision `b75c02e36f8f4bcb5fc2ff716de14de5ef06d5bc`, lokaler Patch: verschachtelte Resources-Umbenennung, temporärer Bake mit GUID-Erhaltung/Rücksicherung, vollständiges Szenen-Setup und SaveScene-Abbruch, Ressourcenfreigabe, Report-Verzeichnis, MayWrite-Vorprüfung, Farbfolgen und flächengewichtete Farbstichproben, Hero-Clip-Vorbedingung sowie NPC-Fallback und gezieltes Test-Ignore korrigiert. Core 21239 Assertions, 40 Preflights und statischer Unity-Kontrakt bestanden; Unity-Editor und privates Paket hier nicht vorhanden, Editor-Regressionen und echter BuildGuard-/APK-Lauf offen. Patch-Hashes im workspace-context/validation-record.md (Arbeitskontext). Historischer getesteter SHA samt unabhängigem Readback fehlt; Implementations-SHA allein ersetzt ihn nicht. Owner-DOCX mangels verifizierter bearbeitbarer Dokumentidentität weiterhin offen. Nächster Schritt: Editor-Tests mit Paket einschließlich Fehlerfällen und SHA-gebundene unabhängige Readbacks.
+
+<!-- /coderabbit-ai-generated:v1 -->
+
+
+## PR #96 – unabhängiger nativer Readback
+
+Commit `a169f3af7c0b2c5990c207f43a9192ae1af1a204` integriert #93 und #95. Eine fehlerhafte Materialkonvertierung vor dem ersten Kamerabild und die sichtbarkeitsabhängige Hand-IK der Spielfigur wurden anhand von zwei nativen Regressionen behoben. EditMode 11/11, PlayMode 2/2, jeweils ohne Skips, Core 21 239, Preflight 48/48, GitHub Core 44703565340 erfolgreich. Der unabhängige negative Rebake-Test bestätigte zwei wiederhergestellte Szenen und 25 unveränderte SHA-256-Einträge. Einzelbelege, privater Metadatenbefund und verbleibende APK-/Gerätegrenzen stehen in `docs/evidence/bozo-characters-20261119/acceptance.md`.

@@ -35,6 +35,9 @@ namespace AreArpg.UnityClient
             // The targets must be independent of the arm being solved; otherwise the solver feeds itself.
             if (grip == null || elbow == null || grip.IsChildOf(arm) || elbow.IsChildOf(arm)) return false;
             var projection = animator.GetComponent<EntryWeaponGrip>() ?? animator.gameObject.AddComponent<EntryWeaponGrip>();
+            // The player can enter the camera frame or be sampled before its first renderer
+            // visibility update. Hand IK must run on that frame as well.
+            animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             projection._animator = animator; projection._grip = grip; projection._elbow = elbow;
             projection._hand = hand;
             projection._calibrated = false;

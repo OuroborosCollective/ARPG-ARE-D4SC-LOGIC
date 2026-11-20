@@ -1,0 +1,233 @@
+{
+  "schema": "ashen.bozo-figures.v1",
+  "pack": "BoZo: Stylized Modular Characters - Fantasy Pack (Asset Store 361388, 2.6.5)",
+  "light": 0.6,
+  "figures": [
+    {
+      "id": "ilyan", "role": "Ilyan, der Pfadleser: verarmt, vorsichtig, hungrig; abgetragene graugrüne Tunika, ausgeblichener Schal, umwickelte Hände",
+      "base": "Fantasy/Hero", "height": 1.9, "texture": 1024, "motion": "m", "keys": ["EntryNpc0", "Npc0"],
+      "body": [{"id": "Muscle", "value": 0}, {"id": "Weight", "value": 0}],
+      "face": [{"id": "Muscle", "value": 0}, {"id": "Sharpness", "value": 70}, {"id": "LowerBrows", "value": 35}],
+      "remove": ["Shoulders", "Hat", "LowerFace"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_BasicHead", "colors": ["#b98a70", "#5a1410", "#cf9f86", "#ecebe6", "#6a3a30", "#6a2018"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#b98a70", "#5a1410", "#cf9f86"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2c3a2a", "#5d7358"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#2e241d"]},
+        {"slot": "Top", "id": "Top_RusticTunic", "colors": ["#6f6c5c", "#4a3828", "#8a7a5a", "#565241", "#8c8470", "#3e3228", "#6f6c5c", "#000000", "#000000"]},
+        {"slot": "Bottom", "id": "Bottom_TightTravelPants", "colors": ["#4a453e", "#4a453e", "#3a352f", "#3e3228", "#3f3a34"]},
+        {"slot": "Feet", "id": "Feet_TiedBoots", "colors": ["#4a3a2e", "#2a221c", "#7a6a54"]},
+        {"slot": "Neck", "id": "Neck_TatteredMuffler", "colors": ["#66755f"]},
+        {"slot": "Gloves", "id": "Gloves_ClothHandwraps", "colors": ["#a39a86"]},
+        {"slot": "HairFront", "id": "HairFront_UnkeptLoose", "colors": ["#30261f", "#4a3a2e"]},
+        {"slot": "HairBack", "id": "HairBack_ShortShag", "colors": ["#30261f", "#4a3a2e"]}
+      ]
+    },
+    {
+      "id": "mara", "role": "Mara, die Versorgerin: hält das Lager zusammen; Leinenbluse mit Ledermieder, Rock mit Leinenschürze, ockerfarbenes Schultertuch, geflochtenes Haar",
+      "base": "Fantasy/Ranger", "height": 1.82, "texture": 1024, "motion": "f", "keys": ["EntryNpc1", "Npc1"],
+      "body": [{"id": "Chest", "value": 45}, {"id": "Weight", "value": 25}],
+      "face": [{"id": "EarsElf", "value": 0}, {"id": "Stern", "value": 25}, {"id": "RaiseBrows", "value": 10}],
+      "remove": ["Gloves", "Hat", "Neck", "MakeUpEyes", "MakeUpCheeks"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_BasicHead", "colors": ["#d3a084", "#7a2a1c", "#e2b49a", "#efeee9", "#6a3a30", "#8a3a34"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#d3a084", "#7a2a1c", "#e2b49a"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2e2014", "#6b4a2e"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#3a2418"]},
+        {"slot": "Top", "id": "Top_RusticCorset", "colors": ["#cdc2a4", "#6b4a34", "#a08060", "#9a8660", "#a08060", "#4a3a30", "#cdc2a4", "#000000", "#000000"]},
+        {"slot": "Bottom", "id": "Bottom_ApronSkirt", "colors": ["#6e5a44", "#a89a7a", "#c4b99c"]},
+        {"slot": "Feet", "id": "Feet_VillagerBoots", "colors": ["#4a382a", "#33271e", "#8a6a3a", "#2a221c"]},
+        {"slot": "Shoulders", "id": "Shoulders_HomelyShawl", "colors": ["#8f7340", "#a88a5a", "#6a5a3a"]},
+        {"slot": "HairFront", "id": "HairFront_ProperPart", "colors": ["#4a2f20", "#6b4630", "#4a2f20"]},
+        {"slot": "HairBack", "id": "HairBack_NobleBraid", "colors": ["#4a2f20", "#6b4630", "#5a3a28"]}
+      ]
+    },
+    {
+      "id": "dorn", "role": "Dorn, die Wache: sichert den Zugang; dunkler Eisenharnisch über Kettenzeug, Kesselhut, roter Gürtel, kurzer dunkler Bart, kräftig und größer als die Dorfbewohner",
+      "base": "Fantasy/Hero", "height": 2.05, "texture": 1024, "motion": "m", "keys": ["EntryNpc2", "Npc2"],
+      "body": [{"id": "Muscle", "value": 75}, {"id": "Weight", "value": 25}],
+      "face": [{"id": "Muscle", "value": 60}, {"id": "Stern", "value": 70}, {"id": "Squareness", "value": 60}, {"id": "LowerBrows", "value": 50}],
+      "remove": ["Neck", "HairFront"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_Stern", "colors": ["#a8765c", "#541410", "#c08d72", "#e8e6e0", "#5a3028", "#6a2018"]},
+        {"slot": "Body", "id": "Body_StrongBody", "colors": ["#a8765c", "#541410", "#8a3a28"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#22180f", "#4a3423"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#231d19"]},
+        {"slot": "Top", "id": "Top_SteelArmor", "colors": ["#737a80", "#737a80", "#737a80", "#7d848a", "#343a42", "#4a3528", "#666c72"]},
+        {"slot": "Bottom", "id": "Bottom_SteelGreaves", "colors": ["#3a4048", "#4a3a30", "#737a80", "#6e2f2a", "#6a6a6a"]},
+        {"slot": "Feet", "id": "Feet_SteelSabatons", "colors": ["#6c7379", "#2e2620", "#4a3a30"]},
+        {"slot": "Gloves", "id": "Gloves_SteelGauntlets", "colors": ["#4a3830", "#737a80", "#3a2c26"]},
+        {"slot": "Shoulders", "id": "Shoulders_SoldiersPauldrons", "colors": ["#737a80"]},
+        {"slot": "Hat", "id": "Hat_KettleHelmet", "colors": ["#737a80", "#5f666c", "#8f9499"]},
+        {"slot": "LowerFace", "id": "LowerFace_SquareBeard", "colors": ["#231d19", "#3a302a"]},
+        {"slot": "HairBack", "id": "HairBack_ShortChoppy", "colors": ["#231d19", "#3a302a"]}
+      ]
+    },
+    {
+      "id": "hunter", "role": "Der Jäger an der Aschestraße: Waldläufer mit grüner Kapuze, Lederwams mit geschwärztem Brustschutz, waldgrünen Ärmeln und gebundenem Bart; dankbarer Begleiter mit Bogen",
+      "base": "Fantasy/Hero", "height": 1.9, "texture": 1024, "motion": "m", "keys": ["RoadHunter"],
+      "body": [{"id": "Muscle", "value": 35}],
+      "face": [{"id": "Stern", "value": 30}, {"id": "Sharpness", "value": 60}],
+      "remove": ["Shoulders", "Neck"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_SharpHead", "colors": ["#a9795e", "#541410", "#c18f74", "#e8e6e0", "#5a3028", "#6a2018"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#a9795e", "#541410", "#c18f74"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2a2412", "#6a5a34"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#3d2b1e"]},
+        {"slot": "Top", "id": "Top_RangerVest", "colors": ["#5e4a36", "#77603f", "#4c3c2e", "#56644b", "#6a553c", "#5e4a36", "#3e3026", "#8a7040", "#50555a"]},
+        {"slot": "Bottom", "id": "Bottom_TightTravelPants", "colors": ["#4d4438", "#4d4438", "#3e352b", "#3e3026", "#443b30"]},
+        {"slot": "Feet", "id": "Feet_ForestLongBoots", "colors": ["#46362a", "#3a2c22", "#6a5a48", "#5a4836", "#241d18"]},
+        {"slot": "Gloves", "id": "Gloves_LeatherArmbands", "colors": ["#4a3828", "#3a2c20", "#8a8a8a"]},
+        {"slot": "Hat", "id": "Hat_RusticHood", "colors": ["#47553e", "#5e4a36"]},
+        {"slot": "LowerFace", "id": "LowerFace_TiedBeard", "colors": ["#3d2b1e", "#5a4230", "#6e2f2a"]},
+        {"slot": "HairFront", "id": "HairFront_TuffCuff", "colors": ["#3d2b1e", "#5a4230", "#3d2b1e"]},
+        {"slot": "HairBack", "id": "HairBack_WarriorWolfTail", "colors": ["#3d2b1e", "#5a4230", "#5a3a2a"]}
+      ]
+    },
+    {
+      "id": "patient_a", "role": "Verletzter in der alten Mühle: einfacher Bauer mit Kopfverband über einem Auge, ungefärbtes Leinen, blass",
+      "base": "Fantasy/Hero", "height": 1.85, "texture": 512, "motion": "m", "sources": ["PatientSource0"],
+      "body": [{"id": "Muscle", "value": 10}],
+      "face": [{"id": "Muscle", "value": 0}],
+      "remove": ["Shoulders", "Neck", "Gloves", "Feet", "HairBack"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_BasicHead", "colors": ["#c29a86", "#5a1a14", "#d6b09c", "#ecebe6", "#6a3a30", "#6a2018"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#c29a86", "#5a1a14", "#d6b09c"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#3a322c"]},
+        {"slot": "Top", "id": "Top_VillagerTunic", "colors": ["#b9af99", "#988e78", "#8a8272", "#6a5a48", "#8a7a5a"]},
+        {"slot": "Bottom", "id": "Bottom_VillagerSlacks", "colors": ["#6e6657", "#57503f"]},
+        {"slot": "UpperFace", "id": "UpperFace_ClothEyeWrap", "colors": ["#cfc7b4", "#b8ad98"]},
+        {"slot": "HairFront", "id": "HairFront_FreeTussle", "colors": ["#3a322c", "#544a42"]}
+      ]
+    },
+    {
+      "id": "patient_b", "role": "Verletzte in der alten Mühle: Dorfbewohnerin mit verbundenen Händen, graues Hemd und graue Hose, offenes braunes Haar",
+      "base": "Fantasy/Ranger", "height": 1.78, "texture": 512, "motion": "f", "sources": ["PatientSource1"],
+      "body": [{"id": "Chest", "value": 40}],
+      "face": [{"id": "EarsElf", "value": 0}],
+      "remove": ["Hat", "Neck", "Shoulders", "Feet", "MakeUpEyes", "MakeUpCheeks"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_BasicHead", "colors": ["#d9b29c", "#7a2a1c", "#e6c3ae", "#efeee9", "#6a3a30", "#8a3a34"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#d9b29c", "#7a2a1c", "#e6c3ae"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#1e2a30", "#506878"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#5a3e28"]},
+        {"slot": "Top", "id": "Top_VillagerTunic", "colors": ["#9f998d", "#7d776d", "#b5ad9c", "#5e5448", "#7d7566"]},
+        {"slot": "Bottom", "id": "Bottom_VillagerSlacks", "colors": ["#66625c", "#55514b"]},
+        {"slot": "Gloves", "id": "Gloves_ClothHandwraps", "colors": ["#cfc7b4"]},
+        {"slot": "HairFront", "id": "HairFront_ProperPart", "colors": ["#6a4a30", "#8a6644", "#6a4a30"]},
+        {"slot": "HairBack", "id": "HairBack_LooseLong", "colors": ["#6a4a30", "#8a6644"]}
+      ]
+    },
+    {
+      "id": "patient_c", "role": "Verletzter in der alten Mühle: älterer Mann mit kurzem grauem Bart, zerschlissene Kleidung",
+      "base": "Fantasy/Hero", "height": 1.84, "texture": 512, "motion": "m", "sources": ["PatientSource2"],
+      "body": [{"id": "Muscle", "value": 0}, {"id": "Weight", "value": 30}],
+      "face": [{"id": "Muscle", "value": 0}, {"id": "Stern", "value": 40}],
+      "remove": ["Shoulders", "Neck", "Gloves", "Feet", "HairFront"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_Stern", "colors": ["#bb9684", "#5a1a14", "#d0ab99", "#ecebe6", "#6a3a30", "#6a2018"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#bb9684", "#5a1a14", "#d0ab99"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#8f8a82"]},
+        {"slot": "Top", "id": "Top_VillagerTunic", "colors": ["#8c7f66", "#6e634e", "#a3987f", "#4e4236", "#7a6a4a"]},
+        {"slot": "Bottom", "id": "Bottom_TatteredPants", "colors": ["#524b41", "#3f3932"]},
+        {"slot": "LowerFace", "id": "LowerFace_SquareBeard", "colors": ["#8f8a82", "#b0aba2"]},
+        {"slot": "HairBack", "id": "HairBack_ShortShag", "colors": ["#8f8a82", "#b0aba2"]}
+      ]
+    },
+    {
+      "id": "hero", "role": "Der Wanderer (Spielfigur): Abenteurer mit Lederwams, stählernem Brustschutz und Schulterplatten, stahlblauen Ärmeln und rostrotem Schal; bereit für Schwert, Bogen und Stab",
+      "base": "Fantasy/Hero", "height": 1.9, "texture": 2048, "motion": "m", "keys": ["Hero"], "sources": ["HeroSource"],
+      "body": [], "face": [], "remove": [],
+      "outfits": [
+        {"slot": "Head", "id": "Head_YoungSharpHead", "colors": ["#c08a6c", "#6a1c14", "#d6a388", "#ecebe6", "#6a3a30", "#7a2a22"]},
+        {"slot": "Body", "id": "Body_StrongBody", "colors": ["#c08a6c", "#6a1c14", "#8a3a28"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#1c2a34", "#52728a"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#2f2620"]},
+        {"slot": "Top", "id": "Top_RangerVest", "colors": ["#5a4532", "#7a6040", "#4a3a2c", "#46606f", "#6a523a", "#5a4532", "#33271e", "#a08040", "#878e94"]},
+        {"slot": "Bottom", "id": "Bottom_MeditativePants", "colors": ["#4f4a43", "#6a5a48", "#5a4a3a", "#5a3a30", "#3a2a20"]},
+        {"slot": "Neck", "id": "Neck_LooseScarf", "colors": ["#84392c"]},
+        {"slot": "Feet", "id": "Feet_CuffedBoots", "colors": ["#4d382a", "#624a36", "#3a2a20", "#46332a", "#4d382a", "#261e19"]},
+        {"slot": "Gloves", "id": "Gloves_LeatherArmbands", "colors": ["#4d382a", "#3a2a20", "#9a9a9a"]},
+        {"slot": "Shoulders", "id": "Shoulders_SoldiersPauldrons", "colors": ["#878e94"]},
+        {"slot": "HairFront", "id": "HairFront_FreeTussle", "colors": ["#2f2620", "#4b3b2f"]},
+        {"slot": "HairBack", "id": "HairBack_ShortChoppy", "colors": ["#2f2620", "#4b3b2f"]}
+      ]
+    },
+    {
+      "id": "villager_a", "role": "Dorfbewohner der Aschengrenze: Bauer in brauner Tunika über Leinenhemd, lange Hose mit Beinwickeln, Stiefel, lockiges Haar",
+      "base": "Fantasy/Hero", "height": 1.86, "texture": 512, "motion": "m", "keys": ["Villager0"],
+      "body": [{"id": "Muscle", "value": 20}, {"id": "Weight", "value": 20}],
+      "face": [{"id": "Muscle", "value": 10}, {"id": "NoseWidth", "value": 40}],
+      "remove": ["Shoulders", "Neck", "Gloves"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_BasicHead", "colors": ["#b5846a", "#5a1410", "#cb9a80", "#ecebe6", "#6a3a30", "#6a2018"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#b5846a", "#5a1410", "#cb9a80"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2e2014", "#6b4a2e"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#5a4430"]},
+        {"slot": "Top", "id": "Top_VillagerTunic", "colors": ["#80694a", "#604e38", "#a39a84", "#4a3828", "#8a7a5a"]},
+        {"slot": "Bottom", "id": "Bottom_VillagerLongPants", "colors": ["#5a5347", "#4f483d", "#4f483d", "#4a3828", "#6a5a48", "#8a7a5a", "#7a6c56"]},
+        {"slot": "Feet", "id": "Feet_VillagerBoots", "colors": ["#43342a", "#2e241c", "#7a6a4a", "#261f1a"]},
+        {"slot": "HairFront", "id": "HairFront_TightCurls", "colors": ["#6b5236", "#8a6c48"]},
+        {"slot": "HairBack", "id": "HairBack_ProperUndercut", "colors": ["#6b5236", "#7a5e3e", "#5a442c"]}
+      ]
+    },
+    {
+      "id": "villager_b", "role": "Dorfbewohnerin der Aschengrenze: Leinenbluse mit moosgrünem Mieder, Wollrock mit grünem Überwurf, Sandalen, dunkles Haar im langen Zopf",
+      "base": "Fantasy/Ranger", "height": 1.78, "texture": 512, "motion": "f", "keys": ["Villager1"],
+      "body": [{"id": "Chest", "value": 50}],
+      "face": [{"id": "EarsElf", "value": 0}, {"id": "NoseTiltUp", "value": 20}],
+      "remove": ["Gloves", "Hat", "Neck", "Shoulders", "MakeUpEyes"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_BasicHead", "colors": ["#d0a088", "#7a2a1c", "#dfb49c", "#efeee9", "#6a3a30", "#8a3a34"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#d0a088", "#7a2a1c", "#dfb49c"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2a2412", "#6a5a34"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#2a221c"]},
+        {"slot": "Top", "id": "Top_RusticCorset", "colors": ["#b9ae94", "#56624e", "#8a8068", "#8a8068", "#8a8068", "#3e4438", "#b9ae94", "#000000", "#000000"]},
+        {"slot": "Bottom", "id": "Bottom_RusticSkirt", "colors": ["#5f6b54", "#56624e", "#56624e", "#4a3a2c", "#6a5a48", "#8a7a5a", "#6a5f50"]},
+        {"slot": "Feet", "id": "Feet_TravelSandal", "colors": ["#5a4632", "#8a7040", "#33291f"]},
+        {"slot": "HairFront", "id": "HairFront_PureCut", "colors": ["#2a221c", "#40342a"]},
+        {"slot": "HairBack", "id": "HairBack_DolphinTail", "colors": ["#2a221c", "#40342a", "#6e2f2a"]}
+      ]
+    },
+    {
+      "id": "villager_c", "role": "Alter Dorfbewohner der Aschengrenze: langer grauer Bart, graues Schultertuch, schlichte graue Kleidung",
+      "base": "Fantasy/Hero", "height": 1.8, "texture": 512, "motion": "m", "keys": ["Villager2"],
+      "body": [{"id": "Muscle", "value": 0}, {"id": "Weight", "value": 35}, {"id": "Belly", "value": 30}],
+      "face": [{"id": "Muscle", "value": 0}, {"id": "Stern", "value": 35}],
+      "remove": ["Neck", "Gloves", "HairFront"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_Stern", "colors": ["#b08a78", "#5a1a14", "#c6a08e", "#ecebe6", "#6a3a30", "#6a2018"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#b08a78", "#5a1a14", "#c6a08e"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2a3036", "#6a7880"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#a09b92"]},
+        {"slot": "Top", "id": "Top_VillagerTunic", "colors": ["#6f695c", "#544f45", "#928c7c", "#3e3630", "#6a6050"]},
+        {"slot": "Bottom", "id": "Bottom_VillagerSlacks", "colors": ["#4d473f", "#39342e"]},
+        {"slot": "Feet", "id": "Feet_PointedShoes", "colors": ["#3e3228", "#6a5a48", "#261f1a", "#3e3228", "#7a6a4a"]},
+        {"slot": "Shoulders", "id": "Shoulders_HomelyShawl", "colors": ["#625a4b", "#7e745f", "#4a4338"]},
+        {"slot": "LowerFace", "id": "LowerFace_WizzendBeard", "colors": ["#a09b92", "#bcb7ae"]},
+        {"slot": "HairBack", "id": "HairBack_SchalorTail", "colors": ["#a09b92", "#bcb7ae", "#6a5a4a"]}
+      ]
+    },
+    {
+      "id": "merchant", "role": "Händler: wohlgenährt, weinroter Schulterumhang mit Goldsaum über cremefarbenem Hemd, lange dunkelrote Robe, Schärpe, Handschuhe, gepflegter Spitzbart",
+      "base": "Fantasy/Hero", "height": 1.84, "texture": 512, "motion": "m", "keys": ["Merchant0"],
+      "body": [{"id": "Muscle", "value": 0}, {"id": "Weight", "value": 60}, {"id": "Belly", "value": 55}],
+      "face": [{"id": "Muscle", "value": 0}, {"id": "Weight", "value": 50}, {"id": "MouthWide", "value": 40}],
+      "remove": ["Neck"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_BasicHead", "colors": ["#b77d62", "#5a1410", "#cd947a", "#ecebe6", "#6a3a30", "#6a2018"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#b77d62", "#5a1410", "#cd947a"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#22180f", "#4a3423"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#3a2c22"]},
+        {"slot": "Top", "id": "Top_MeditativeVest", "colors": ["#4f3236", "#a38445", "#c9b98f", "#cfc6b0", "#a38445", "#8a7a5a", "#35504f", "#4a3524", "#b08d3e"]},
+        {"slot": "Bottom", "id": "Bottom_DevoutPants", "colors": ["#3a342e", "#4a3524", "#3a342e", "#4f3236", "#a38445", "#b08d3e"]},
+        {"slot": "Feet", "id": "Feet_PointedShoes", "colors": ["#33261c", "#7a6240", "#1f1814", "#33261c", "#b08d3e"]},
+        {"slot": "Gloves", "id": "Gloves_CuffedGloves", "colors": ["#4a3524", "#a38445"]},
+        {"slot": "Shoulders", "id": "Shoulders_DevoutShawl", "colors": ["#6a3338", "#a38445", "#b08d3e"]},
+        {"slot": "LowerFace", "id": "LowerFace_CommandingBeard", "colors": ["#3a2c22", "#55443a"]},
+        {"slot": "HairFront", "id": "HairFront_ScholarPart", "colors": ["#3a2c22", "#55443a", "#3a2c22"]},
+        {"slot": "HairBack", "id": "HairBack_SchalorTail", "colors": ["#3a2c22", "#55443a", "#6a3338"]}
+      ]
+    }
+  ]
+}

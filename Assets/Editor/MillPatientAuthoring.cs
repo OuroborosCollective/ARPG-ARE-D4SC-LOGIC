@@ -11,19 +11,32 @@ namespace AreArpg.EditorTools
     {
         private const string Root = "Assets/Resources/ARE/Visuals/";
         private const string Output = Root + "MillPatients/";
+        private const string PatientSources = "Assets/PrivateArt/BozoCharacters/Sources/";
+        /// <summary>Assets written by the current build; everything else in the output folder is left over.</summary>
+        private static readonly HashSet<string> Written = new HashSet<string>();
 
         [MenuItem("ARE ARPG/Art/Build Private Mill Patients")]
         public static void Build()
         {
             Directory.CreateDirectory(Output); AssetDatabase.Refresh();
+            Written.Clear();
             for (int i = 0; i < 3; i++) BuildPatient(i);
+            // A figure with fewer parts than its predecessor leaves unused meshes behind; inside Resources they
+            // would still be shipped with every build.
+            foreach (string guid in AssetDatabase.FindAssets("t:Mesh t:Material", new[] { Output.TrimEnd('/') }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!Written.Contains(path)) AssetDatabase.DeleteAsset(path);
+            }
             AssetDatabase.SaveAssets();
             Debug.Log("ARE_MILL_PATIENTS: three passive resting figures baked from existing private peasant models.");
         }
 
         private static void BuildPatient(int id)
         {
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>(Root + "EntryNpc" + (id == 1 ? 1 : 0) + ".prefab");
+            // A dedicated private patient figure (unified BoZo character system) wins over the reused villager model.
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(PatientSources + "PatientSource" + id + ".prefab");
+            if (source == null) source = AssetDatabase.LoadAssetAtPath<GameObject>(Root + "EntryNpc" + (id == 1 ? 1 : 0) + ".prefab");
             if (source == null) throw new InvalidOperationException("Import the private peasant visuals first.");
             foreach (var component in source.GetComponentsInChildren<Component>(true))
                 if (!(component is Transform || component is Renderer || component is MeshFilter || component is Animator || component is LODGroup))
@@ -71,10 +84,14 @@ namespace AreArpg.EditorTools
                         if (!materials.TryGetValue(original, out var copy))
                         {
                             copy = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-                            Texture texture = original.HasProperty("_BaseMap") ? original.GetTexture("_BaseMap") : original.mainTexture;
+                            // URP/Lit, legacy shaders and the stylized shader of the unified figures name the colour atlas differently.
+                            Texture texture = null;
+                            foreach (string property in new[] { "_BaseMap", "_MainTex", "_Diffuse" })
+                                if (texture == null && original.HasProperty(property)) texture = original.GetTexture(property);
                             if (texture == null) throw new InvalidOperationException("Patient source is missing its baked colour atlas.");
                             copy.SetTexture("_BaseMap", texture);
-                            copy.SetColor("_BaseColor", original.HasProperty("_BaseColor") ? original.GetColor("_BaseColor") : original.color);
+                            copy.SetColor("_BaseColor", original.HasProperty("_BaseColor") ? original.GetColor("_BaseColor") :
+                                original.HasProperty("_Color") ? original.color : Color.white);
                             copy.SetFloat("_Smoothness", .12f);
                             copy = SaveAsset(copy, Output + "Patient" + id + "_Material" + materials.Count + ".mat");
                             materials.Add(original, copy);
@@ -143,6 +160,7 @@ namespace AreArpg.EditorTools
 
         private static T SaveAsset<T>(T value, string path) where T : UnityEngine.Object
         {
+            Written.Add(path);
             var existing = AssetDatabase.LoadAssetAtPath<T>(path);
             if (existing == null) { AssetDatabase.CreateAsset(value, path); return value; }
             EditorUtility.CopySerialized(value, existing); EditorUtility.SetDirty(existing);

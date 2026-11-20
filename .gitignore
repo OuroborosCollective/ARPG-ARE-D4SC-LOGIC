@@ -55,3 +55,10 @@ Tests/**/obj/
 .sdlc/*.lock
 .sdlc/*.tmp
 .sdlc/local.yaml
+
+# Purchased BoZo character pack and its tool settings stay private (never redistributed through this public repo)
+/Assets/BoZo_StylizedModularCharacters/
+/Assets/BoZo_StylizedModularCharacters.meta
+/Assets/CharacterToolSettings.asset*
+# Private scripting defines of a workspace (for example ARE_BOZO_CHARACTERS where the pack is installed)
+/Assets/csc.rsp*

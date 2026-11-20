@@ -142,7 +142,8 @@ namespace AreArpg.UnityClient
                 for (int index = 0; index < materials.Length; index++)
                 {
                     Material source = materials[index];
-                    if (source == null || source.GetTag("RenderPipeline", false, "").Length != 0) continue;
+                    if (source == null || source.GetTag("RenderPipeline", false, "").Length != 0 ||
+                        HasPipelineSubshader(source.shader, pipeline.renderPipelineShaderTag)) continue;
                     Material adapter = AdapterFor(source, pipeline);
                     if (adapter == null) continue;
                     materials[index] = adapter;
@@ -150,6 +151,17 @@ namespace AreArpg.UnityClient
                 }
                 if (changed) renderer.sharedMaterials = materials;
             }
+        }
+
+        // Multi-target Shader Graphs also contain an untagged built-in subshader. Before the
+        // first camera render the material's active tag can be empty even when a matching pass exists.
+        private static readonly ShaderTagId RenderPipelineTag = new ShaderTagId("RenderPipeline");
+        private static bool HasPipelineSubshader(Shader shader, string pipelineTag)
+        {
+            if (shader == null || !shader.isSupported || string.IsNullOrEmpty(pipelineTag)) return false;
+            for (int i = 0; i < shader.subshaderCount; i++)
+                if (shader.FindSubshaderTagValue(i, RenderPipelineTag).name == pipelineTag) return true;
+            return false;
         }
 
         /// <summary>Cache an instance-owned pipeline conversion without changing the source material asset.</summary>

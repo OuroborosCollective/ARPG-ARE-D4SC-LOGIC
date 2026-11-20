@@ -150,3 +150,10 @@ Owner requested a persistent Design Report evidence logbook after every work rou
 - 2026-11-20 [pr93-merge-readback]: Bestehenden Sovott-Broker gegen Hub `c5835ab766e2c114b2d899d6849169e7f6a5a4a0` und sauberen Unity-Stand `eb4a009f90ed0c11d7013246784239870234d897` geprüft. Zweimal bytegleicher World-Design-Readback, falsche Unity-SHA abgewiesen, Council 28/28; 40 Node-, 59 Director-, 6 Bridge-Tests grün. Evidence: `docs/evidence/quality-sky-20261116/logbook-handoff.md`, CI 44690809203.
 
 - 2026-11-20 [World Forge #95]: Der Asset-Eingang erkennt Waffenbezeichnungen als Namensteile. Schüsseln, Rohrbögen und Waagen bleiben als Dekoration vorschlagbar. Unity 6000.6.8f1 zeigte vier reproduzierte Fehler auf `86b5a21` und 44/44 grüne WorldForge-EditMode-Tests auf `79c6e6f`, einschließlich Import, Verschieben und Löschen. 1.365 private GameObjects geprüft, 21.239 Core-Assertions in CI 44702047124. XML-Hashes im Logbuch-Handoff.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:13a97aecd034e53d0a50234cde3a974cde3944e8e52708d9545991fe430c08cb -->
+
+- 2026-11-20 [bozo-characters-20261119]: Zwölf menschliche Rollen verwenden die privaten BoZo-Figuren. Der Baker schützt bestehende Assets beim Rebake und stellt die Szenen wieder her. Beim nativen Gegencheck ersetzte der Materialadapter den URP-fähigen Figuren-Shader vor dem ersten Kamerabild. Die Spielerhand verfehlte bei sichtbarkeitsabhängiger IK den Griff um 57 cm. Beide Regressionen sind im Code `a169f3af7c0b2c5990c207f43a9192ae1af1a204` korrigiert. Unity 6000.6.8f1 mit Paket: 11/11 EditMode, 2/2 PlayMode, keine Skips. Core 21 239, Preflight 48/48, CI 44703565340. XML-Hashes, historische Messgrenzen und offene APK-/Geräteprüfung in `docs/evidence/bozo-characters-20261119/acceptance.md`.
+
+<!-- /coderabbit-ai-generated:v1 -->
