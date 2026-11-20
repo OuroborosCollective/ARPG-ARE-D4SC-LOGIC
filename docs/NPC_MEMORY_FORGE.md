@@ -10,6 +10,8 @@ Ilyan's help produces trust and gratitude; near a trusted player he may select `
 
 Existing `NpcMemory` BigInteger action accounts are preserved and updated once by their original transaction. Forge relationships interpret the accepted receipt; they do not issue another reward or another `Record`. Older accounts remain available for disposition and dialogue. Migration does not fabricate dated historical episodes from aggregate counters.
 
+The road traveler walks back to the story village after the hunter encounter. Every 100 encounter ticks, a conscious villager within 2,400 mm and in sight can hear one eligible fact. Simultaneous recipients are processed by ascending NPC ID. With Forge enabled, the village dialogue changes only after `Archive.Report` accepts the original event and the eyewitness's acquisition sequence. A loaded character keeps the rumors they already heard. A witness account from before Forge was enabled cannot start a new rumor without that source record.
+
 ## Contracts
 
 - `AshenCrypt.NpcArchetypeControllerRegistry.v1`: immutable archetype/action/observation manifests, controller ID/version/hash, runtime/memory compatibility and real evaluator regression receipts. Registration rejects mismatched hashes and failed suites. Historical restore requires the exact tuple; the latest release is only for new spawns. Unknown spawn roles bind the admitted `fallback` controller.

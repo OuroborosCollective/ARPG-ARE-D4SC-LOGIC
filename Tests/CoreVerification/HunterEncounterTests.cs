@@ -4,10 +4,11 @@ using AreArpg.Core;
 
 internal static class HunterEncounterTests
 {
-    internal static ArenaSimulation Road(ulong seed = 123)
+    internal static ArenaSimulation Road(ulong seed = 123, bool enableForge = false)
     {
         // Explicit authored-region fixture. All movement, damage, saves and interactions below are production paths.
         var p = CharacterProgression.CreateEntryProfile(); p.DiscoverHungerClue(); p.TravelHunger(3, false);
+        if (enableForge) p.Social.EnableForge();
         return new ArenaSimulation(seed, p, BigInteger.One, LootCatalog.Version1);
     }
     internal static void Move(ArenaSimulation w, long x, long z, int limit = 200)

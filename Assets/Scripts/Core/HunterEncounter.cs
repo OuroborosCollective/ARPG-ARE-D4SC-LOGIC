@@ -108,8 +108,12 @@ namespace AreArpg.Core
         {
             // A real meeting transfers the most consequential missing fact, once; no rumor amplification.
             for (int f = 3; f >= 0; f--)
-                if (_roadKnowledge[source, f] == 1 && _roadKnowledge[receiver, f] == 0)
-                { _roadKnowledge[receiver, f] = source + 2; RememberRoadReport(source,receiver,(RoadFact)f);return; }
+            {
+                if (_roadKnowledge[source, f] != 1 || _roadKnowledge[receiver, f] != 0) continue;
+                if (Forge != null && !TryReportForgeRoadFact(source, receiver, (RoadFact)f)) continue;
+                _roadKnowledge[receiver, f] = source + 2;
+                return;
+            }
         }
         internal void ReceiveHunterCoins(HunterEncounter h)
         { Coins += h.Purse; h.Purse = 0; }
@@ -255,9 +259,17 @@ namespace AreArpg.Core
                 long dx = tx - h.TravelerX, dz = tz - h.TravelerZ, distance = FixedMath.IntegerSqrt(dx * dx + dz * dz);
                 if (distance > 200) { long step = Math.Min(170, distance); h.TravelerX += dx * step / distance; h.TravelerZ += dz * step / distance; }
                 else if (h.TravelerRegion == 3) { h.TravelerRegion = 2; h.TravelerX = 0; h.TravelerZ = 21000; }
-                if (h.TravelerRegion == 2 && IsVillage && h.Age % 100 == 0)
-                    foreach (var npc in Npcs)
-                        if (npc.Memory.Health > 0 && DistanceSquared(h.TravelerX, h.TravelerZ, npc.Xmm, npc.Zmm) <= FixedMath.Square(2400) && EntryWorldLayout.HasSight(h.TravelerX, h.TravelerZ, npc.Xmm, npc.Zmm)) Progression.Social.ReportRoadFact(4, npc.Id);
+                if (h.TravelerRegion == 2 && CurrentAreaId == h.TravelerRegion && h.Age % 100 == 0)
+                {
+                    // Simultaneous reports receive persistent acquisition sequences in NPC-ID order.
+                    foreach (var npc in Npcs.OrderBy(n => n.Id))
+                    {
+                        if (npc.Memory.Health > 0 &&
+                            DistanceSquared(h.TravelerX, h.TravelerZ, npc.Xmm, npc.Zmm) <= FixedMath.Square(NpcInteractionRadiusMm) &&
+                            EntryWorldLayout.HasSight(h.TravelerX, h.TravelerZ, npc.Xmm, npc.Zmm))
+                            Progression.Social.ReportRoadFact(4, npc.Id);
+                    }
+                }
             }
             SaveRoadPlayer();
         }

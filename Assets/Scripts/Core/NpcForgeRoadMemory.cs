@@ -21,15 +21,14 @@ namespace AreArpg.Core
             if(hunterDirect)Forge.Archive.Learn("hunter",e.Id,KnowledgeOrigin.Self,"hunter",Forge.ProcessedTicks);
             if(travelerWitness)Forge.Archive.Learn("road.traveler",e.Id,KnowledgeOrigin.Witnessed,"road.traveler",Forge.ProcessedTicks,6000);
         }
-        private void RememberRoadReport(int source,int recipient,RoadFact fact)
+        private bool TryReportForgeRoadFact(int source, int recipient, RoadFact fact)
         {
-            if(Forge==null)return;
-            var e=Forge.Archive.Events.FirstOrDefault(x=>x.Context=="road.fact."+RoadEventId(fact).ToString(CultureInfo.InvariantCulture));
-            // Legacy road knowledge remains in its original owner; unknown historical ticks are never invented.
-            if(e==null)return;
-            Forge.Ensure(RoadIdentity(source),source==3?"companion":source==4?"traveler":source==0?"traveler":source==1?"merchant":"guard");
-            Forge.Ensure(RoadIdentity(recipient),recipient==3?"companion":recipient==4?"traveler":recipient==0?"traveler":recipient==1?"merchant":"guard");
-            Forge.Archive.Report(RoadIdentity(source),RoadIdentity(recipient),e.Id,Forge.ProcessedTicks);
+            // A legacy save may contain a witnessed road fact from before the archive was enabled.
+            var sender = Forge.Archive.Get(RoadIdentity(source));
+            if (sender == null) return false;
+            string context = "road.fact." + RoadEventId(fact).ToString(CultureInfo.InvariantCulture);
+            var witnessed = sender.Known.FirstOrDefault(k => k.IsFact && k.Event.Context == context);
+            return witnessed != null && Forge.Archive.Report(sender.Id, RoadIdentity(recipient), witnessed.Event.Id, Forge.ProcessedTicks);
         }
     }
 }

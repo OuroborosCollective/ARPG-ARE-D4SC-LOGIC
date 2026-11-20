@@ -12,6 +12,64 @@ namespace AreArpg.PlayMode.Tests
     public sealed partial class EntryJourneyRuntimeTests
     {
         [UnityTest]
+        public IEnumerator RoadTravelerReportsTheWitnessedDeathOnlyAtAVillageMeeting()
+        {
+            EnterVillageAfterScene();
+            var ilyan = Game.Npcs.Single(n => n.Id == 0);
+            ilyan.Xmm = Game.PlayerXmm + 1000;
+            ilyan.Zmm = Game.PlayerZmm;
+            yield return StoryAction(HungerAction.HearIlyan);
+            MoveStory(0, 24000);
+            TravelStory();
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            MoveStory(0, 0);
+            for (int tick = 0; tick < 400 && Game.Progression.Road.HunterHealth > 0; tick++) Game.Step();
+            Assert.AreEqual(0, Game.Progression.Road.HunterHealth);
+
+            var archive = Game.Progression.Social.Forge.Archive;
+            var death = archive.Events.Single(e => e.Kind == MemoryKind.Death && e.Target == "hunter");
+            var witness = archive.Get("road.traveler").Knowledge(death.Id);
+            Assert.IsNotNull(witness);
+            Assert.AreEqual(KnowledgeOrigin.Witnessed, witness.Origin);
+            foreach (string villager in new[] { "ilyan", "mara", "dorn" })
+                Assert.IsNull(archive.Get(villager).Knowledge(death.Id), villager + " was absent from the road");
+
+            MoveStory(0, -24000);
+            TravelStory();
+            Assert.IsTrue(Game.IsVillage);
+            archive = Game.Progression.Social.Forge.Archive; // The travel adapter restores the checkpoint.
+            var mara = Game.Npcs.Single(n => n.Id == SocialLedger.MaraNpcId);
+            Assert.IsNull(mara.Mind.Knowledge(death.Id));
+            int distantObservations = 0;
+            for (int tick = 0; tick < 1000 && mara.Mind.Knowledge(death.Id) == null; tick++)
+            {
+                var uninformed = Game.Npcs.Where(n => n.Mind.Knowledge(death.Id) == null).ToArray();
+                Game.Step();
+                var traveler = Game.Progression.Road;
+                foreach (var npc in uninformed)
+                {
+                    long dx = traveler.TravelerX - npc.Xmm, dz = traveler.TravelerZ - npc.Zmm;
+                    if (traveler.TravelerRegion == 2 && dx * dx + dz * dz <= 2400L * 2400 &&
+                        EntryWorldLayout.HasSight(traveler.TravelerX, traveler.TravelerZ, npc.Xmm, npc.Zmm)) continue;
+                    Assert.IsNull(npc.Mind.Knowledge(death.Id), "An NPC outside the meeting learned the report");
+                    distantObservations++;
+                }
+            }
+            Assert.Greater(distantObservations, 0);
+            var report = mara.Mind.Knowledge(death.Id);
+            Assert.IsNotNull(report, "The returning eyewitness must meet Mara");
+            Assert.AreEqual(KnowledgeOrigin.Reported, report.Origin);
+            Assert.AreEqual("road.traveler", report.Source);
+            Assert.AreEqual(witness.Sequence, report.SourceSequence);
+            Assert.AreSame(archive.Events.Single(e => e.Id == death.Id), report.Event);
+            Assert.IsNotEmpty(Game.Progression.Social.RoadRumor(mara.Id));
+
+            typeof(ArenaRuntime).GetMethod("SaveCharacter", Flags, null, System.Type.EmptyTypes, null).Invoke(_runtime, null);
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), NativeJourneyMaps, out var saved));
+            Assert.AreEqual(report.Checksum, saved.Social.Forge.Archive.Get("mara").Knowledge(death.Id).Checksum);
+        }
+
+        [UnityTest]
         public IEnumerator CompanionShortcutLeavesNpcAttackInputAvailable()
         {
             _runtime.enabled=false;_runtime.CloseMenu();
