@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using AreArpg.Core;
+using AshenCrypt.MemoryForge;
 
 internal static class HunterEncounterTests
 {
@@ -120,5 +122,46 @@ internal static class HunterEncounterTests
         check(village.Progression.Road.TravelerRegion==2 && village.Progression.Social.RoadKnowledge(1,RoadFact.Rescue)==6,"hunter-witness-walks-and-reports-to-mara");
         check(village.Progression.Social.GetMemory(1).PositivePoints==0,"hunter-reports-do-not-fabricate-direct-help");
         Load(village);
+        CheckRoadReportOrder(check);
+    }
+
+    private static ArenaSimulation VillageBeforeRoadMeeting()
+    {
+        var road = Road();
+        road.Progression.Social.EnableForge();
+        road = new ArenaSimulation(123, road.Progression, BigInteger.One, LootCatalog.Version1);
+        Move(road, 0, 3000);
+        for (int tick = 0; tick < 700 && !road.Progression.Road.Rescued && !road.GameOver; tick++)
+            FightTick(road, true);
+        if (!road.Progression.Road.Rescued) throw new Exception("Road report fixture did not rescue the hunter");
+        Move(road, 0, ArenaSimulation.ReturnPassageZmm);
+        var h = road.Progression.Road;
+        for (int tick = 0; tick < 1500; tick++)
+        {
+            if (h.TravelerRegion == 2 && Math.Abs(h.TravelerX + 5500) < 200 &&
+                Math.Abs(h.TravelerZ + 6000) < 200 && h.Age % 100 == 99)
+                return road.TryTraversePassage() ?? throw new Exception("Road return passage rejected");
+            road.Step();
+        }
+        throw new Exception("The eyewitness never reached the village");
+    }
+
+    private static void CheckRoadReportOrder(Action<bool, string> check)
+    {
+        var village = VillageBeforeRoadMeeting();
+        var road = village.Progression.Road;
+        foreach (var npc in village.Npcs)
+        {
+            npc.Xmm = road.TravelerX + 700;
+            npc.Zmm = road.TravelerZ;
+        }
+        // The public actor list is enumeration order, not a recipient priority.
+        village.Npcs.Reverse();
+        village.Step();
+        var reports = village.Progression.Social.Forge.Archive.Acquisitions
+            .Where(k => k.Origin == KnowledgeOrigin.Reported).ToArray();
+        check(reports.Length == 3, "report-three-actual-recipients-on-the-same-tick");
+        check(reports.Select(k => k.Knower).SequenceEqual(new[] { "ilyan", "mara", "dorn" }),
+            "report-simultaneous-encounters-have-stable-npc-id-order");
     }
 }
