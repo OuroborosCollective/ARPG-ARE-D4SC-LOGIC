@@ -27,8 +27,8 @@ namespace AreArpg.Core
             var sender = Forge.Archive.Get(RoadIdentity(source));
             if (sender == null) return false;
             string context = "road.fact." + RoadEventId(fact).ToString(CultureInfo.InvariantCulture);
-            var incident = Forge.Archive.Events.FirstOrDefault(e => e.Context == context);
-            return incident != null && Forge.Archive.Report(sender.Id, RoadIdentity(recipient), incident.Id, Forge.ProcessedTicks);
+            var witnessed = sender.Known.FirstOrDefault(k => k.IsFact && k.Event.Context == context);
+            return witnessed != null && Forge.Archive.Report(sender.Id, RoadIdentity(recipient), witnessed.Event.Id, Forge.ProcessedTicks);
         }
     }
 }
