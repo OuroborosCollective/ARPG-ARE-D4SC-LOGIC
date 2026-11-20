@@ -14,11 +14,13 @@
 
 ## Blender-Export auf dem Ashen-Crypt-VPS
 
-Im **Asset-Eingang → Blender-Export** eine gepackte `.blend`, eine eigenständige `.fbx` oder eine `.glb` auswählen. Bei Blender-Dateien mit externen Bildern zuerst **Datei → Externe Daten → Ressourcen packen** und anschließend speichern. Der Auftrag akzeptiert eine einzelne Datei bis 1 GiB. Der private Dienst verarbeitet sie auch bei geschlossenem Unity-Editor. Eine über SSH erhaltene Auftrags-ID lässt sich im selben Fenster öffnen.
+Auf dem VPS-Desktop **Ashen Crypt – World Forge Asset-Eingang** starten. Der Director verwendet für diesen Arbeitsstand das Profil `project-worldforge.json`. Im Editor ist das Fenster unter **Tools → World Forge → Asset-Eingang** erreichbar.
+
+Unter **Blender-Export** eine gepackte `.blend`, eine eigenständige `.fbx` oder eine `.glb` auswählen. Bei Blender-Dateien mit externen Bildern zuerst **Datei → Externe Daten → Ressourcen packen** und anschließend speichern. Der Auftrag akzeptiert eine einzelne Datei bis 1 GiB. Der private Dienst verarbeitet sie auch bei geschlossenem Unity-Editor. Eine über SSH erhaltene Auftrags-ID lässt sich im selben Fenster öffnen.
 
 Jeder erfolgreiche Auftrag liefert `model.fbx` mit eingebetteten Bildern, `model.glb` und `model.gltf` mit separatem Binärpuffer und gegebenenfalls einem Texturordner. Beim Kopieren der glTF-Ausgabe den Puffer und die referenzierten Bilder mitnehmen. Der Export verwendet die aktive Blender-Szene und die Material- und Animationsfunktionen der jeweiligen Austauschformate. Komplexe Shader und Rigs benötigen eine Sichtprüfung im Zielprogramm.
 
-**Exportordner öffnen** zeigt die Dateien. **FBX importieren** übernimmt das geprüfte Modell in `Assets/PrivateArt/WorldForgeBlender/<id>/model.fbx`. Das Modell erscheint zur Einzelprüfung. Eine erneute Auswahl erhält seine Unity-GUID.
+**FBX-, GLB- und glTF-Ordner öffnen** zeigt die Dateien. **Exportiertes FBX in den Asset-Eingang importieren** übernimmt das geprüfte Modell in `Assets/PrivateArt/WorldForgeBlender/<id>/model.fbx`. Das Modell erscheint zur Einzelprüfung. Eine erneute Auswahl erhält seine Unity-GUID.
 
 Über SSH stehen dieselben Aufträge zur Verfügung:
 
