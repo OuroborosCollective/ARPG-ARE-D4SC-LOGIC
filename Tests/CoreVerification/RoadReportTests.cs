@@ -16,6 +16,7 @@ internal static class RoadReportTests
         CheckNoRelay(check, checkpoint);
         CheckUnwitnessedDeath(check);
         CheckLegacyWitness(check);
+        CheckRefutedClaimAtMeeting(check);
         CheckReplay(check, Restore(checkpoint), "NMF1");
 
         // Exercise an actual NMF2 save with an admitted non-default guard controller.
@@ -135,38 +136,47 @@ internal static class RoadReportTests
             "report-no-relay-laundering");
     }
 
-    private static void CheckUnwitnessedDeath(Action<bool, string> check)
+    private static ArenaSimulation ReturnAfterHunterDeath(bool enableForge, bool distantWitness = false)
     {
-        var road = HunterEncounterTests.Road(Seed, enableForge: true);
-        road.Progression.Road.TravelerX = 25000;
+        var road = HunterEncounterTests.Road(Seed, enableForge);
+        if (distantWitness) road.Progression.Road.TravelerX = 25000;
         HunterEncounterTests.Move(road, 0, 0);
         for (int tick = 0; tick < 400 && road.Progression.Road.HunterHealth > 0; tick++) road.Step();
-        var death = road.Progression.Social.Forge.Archive.Events.Single(e => e.Kind == MemoryKind.Death);
+        if (road.Progression.Road.HunterHealth != 0) throw new Exception("Road encounter did not resolve");
         HunterEncounterTests.Move(road, 0, ArenaSimulation.ReturnPassageZmm);
-        var village = road.TryTraversePassage() ?? throw new Exception("Unwitnessed road return rejected");
+        return road.TryTraversePassage() ?? throw new Exception("Road return passage rejected");
+    }
+
+    private static NpcAgent MeetMara(ArenaSimulation village)
+    {
         var traveler = village.Progression.Road;
         var mara = village.Npcs.Single(n => n.Id == SocialLedger.MaraNpcId);
-        bool met = false;
-        for (int tick = 0; tick < 1000 && !met; tick++)
+        for (int tick = 0; tick < 1000; tick++)
         {
             village.Step();
             long dx = mara.Xmm - traveler.TravelerX, dz = mara.Zmm - traveler.TravelerZ;
-            met = traveler.Age % 100 == 0 && traveler.TravelerRegion == 2 && dx * dx + dz * dz <= 2400L * 2400 &&
-                EntryWorldLayout.HasSight(traveler.TravelerX, traveler.TravelerZ, mara.Xmm, mara.Zmm);
+            if (traveler.TravelerRegion == 2 && traveler.Age % 100 == 0 && mara.Memory.Health > 0 &&
+                dx * dx + dz * dz <= 2400L * 2400 &&
+                EntryWorldLayout.HasSight(traveler.TravelerX, traveler.TravelerZ, mara.Xmm, mara.Zmm))
+                return mara;
         }
+        throw new Exception("The returning traveler did not meet Mara");
+    }
+
+    private static void CheckUnwitnessedDeath(Action<bool, string> check)
+    {
+        var village = ReturnAfterHunterDeath(enableForge: true, distantWitness: true);
         var ledger = village.Progression.Social;
-        check(met && ledger.Forge.Archive.Get("road.traveler").Knowledge(death.Id) == null &&
+        var death = ledger.Forge.Archive.Events.Single(e => e.Kind == MemoryKind.Death);
+        var mara = MeetMara(village);
+        check(ledger.Forge.Archive.Get("road.traveler").Knowledge(death.Id) == null &&
             mara.Mind.Knowledge(death.Id) == null && ledger.RoadKnowledge(mara.Id, RoadFact.Death) == 0,
             "report-a-real-meeting-cannot-convey-an-unwitnessed-death");
     }
 
     private static void CheckLegacyWitness(Action<bool, string> check)
     {
-        var road = HunterEncounterTests.Road(Seed);
-        HunterEncounterTests.Move(road, 0, 0);
-        for (int tick = 0; tick < 400 && road.Progression.Road.HunterHealth > 0; tick++) road.Step();
-        HunterEncounterTests.Move(road, 0, ArenaSimulation.ReturnPassageZmm);
-        var oldVillage = road.TryTraversePassage() ?? throw new Exception("Legacy road return rejected");
+        var oldVillage = ReturnAfterHunterDeath(enableForge: false);
         var oldLedger = oldVillage.Progression.Social;
         var oldDorn = oldVillage.Npcs.Single(n => n.Id == 2);
         oldDorn.Xmm = 0; oldDorn.Zmm = 14000;
@@ -193,6 +203,26 @@ internal static class RoadReportTests
         check(greeting.Accepted && greeting.FollowupSpeech == SpeechLine.None && progress.Social.RoadRumor(dorn.Id) == "" &&
             !dorn.Mind.Known.Any(k => k.Origin == KnowledgeOrigin.Reported),
             "report-migrated-witness-cannot-start-an-untraceable-rumor");
+    }
+
+    private static void CheckRefutedClaimAtMeeting(Action<bool, string> check)
+    {
+        var village = ReturnAfterHunterDeath(enableForge: true);
+        var ledger = village.Progression.Social;
+        var archive = ledger.Forge.Archive;
+        var refusal = archive.Events.Single(e => e.Kind == MemoryKind.Quest && e.Target == "hunter");
+        var death = archive.Events.Single(e => e.Kind == MemoryKind.Death);
+        ulong tick = ledger.Forge.ProcessedTicks;
+        // Arrange a valid archived refutation before the first meeting. The real report must respect it.
+        check(archive.Learn("mara", refusal.Id, KnowledgeOrigin.Suspected, "mara", tick) &&
+            archive.Learn("mara", refusal.Id, KnowledgeOrigin.Refuted, "mara", tick),
+            "report-merchant-has-refuted-the-higher-priority-claim");
+        var mara = MeetMara(village);
+        check(ledger.RoadKnowledge(mara.Id, RoadFact.RefusedHelp) == 0 &&
+            mara.Mind.Knowledge(refusal.Id).Origin == KnowledgeOrigin.Refuted &&
+            ledger.RoadKnowledge(mara.Id, RoadFact.Death) == 6 && mara.Mind.Knowledge(death.Id)?.Origin == KnowledgeOrigin.Reported &&
+            NpcSpeech.Rumor(ledger, mara.Id) == SpeechLine.RumorDeath,
+            "report-first-meeting-falls-through-to-the-highest-admissible-fact");
     }
 
     private static void CheckReplay(Action<bool, string> check, ArenaSimulation world, string format)
