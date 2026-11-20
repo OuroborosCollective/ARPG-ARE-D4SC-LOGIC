@@ -62,3 +62,6 @@ Tests/**/obj/
 /Assets/CharacterToolSettings.asset*
 # Private scripting defines of a workspace (for example ARE_BOZO_CHARACTERS where the pack is installed)
 /Assets/csc.rsp*
+# Purchased dark fantasy dungeon pack stays private (never redistributed through this public repo)
+/Assets/Stylized Dark Fantasy Asset/
+/Assets/Stylized Dark Fantasy Asset.meta

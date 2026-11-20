@@ -23,7 +23,9 @@ Shader "AshenCrypt/Flame" {
     float len = max(length(toCamera), 1e-4);
     float3 right = float3(toCamera.z, 0, -toCamera.x) / len;
     float3 scale = float3(length(UNITY_MATRIX_M._m00_m10_m20), length(UNITY_MATRIX_M._m01_m11_m21), 1);
-    float phase = _Time.y * 1.7 + _Seed;
+    // Each flame also takes a phase from where it stands, so many flames can share one material
+    // (one batch) and still flicker out of step.
+    float phase = _Time.y * 1.7 + _Seed + frac(dot(origin.xz, float2(0.731, 1.137))) * 6.2832;
     // The tip sways, the base stays on the wick.
     float sway = sin(phase * 2.3 + i.positionOS.y * 3.0) * 0.06 * i.uv.y * i.uv.y;
     float3 world = origin + right * (i.positionOS.x * scale.x + sway) + float3(0, i.positionOS.y * scale.y, 0);

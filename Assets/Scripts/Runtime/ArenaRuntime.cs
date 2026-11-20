@@ -1099,6 +1099,7 @@ namespace AreArpg.UnityClient
             RefreshWorldSky();
             RefreshPostProcessing();
             AnimateVillageLights();
+            AnimateDungeonLights();
             UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {

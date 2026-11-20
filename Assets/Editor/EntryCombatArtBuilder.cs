@@ -51,7 +51,9 @@ namespace AreArpg.EditorTools
             material.SetFloat("_Smoothness", .15f);
             EditorUtility.SetDirty(material);
             string[] keys = { "Floor", "Wall", "Pillar", "Arch" };
-            for (int i = 0; i < keys.Length; i++) MeshPrefab(paths[i], "Dungeon" + keys[i], material);
+            // Visuals of the reworked crypt set are built by DarkFantasyCryptArt; this builder keeps them.
+            for (int i = 0; i < keys.Length; i++)
+                if (!DarkFantasyCryptArt.Owns("Dungeon" + keys[i])) MeshPrefab(paths[i], "Dungeon" + keys[i], material);
             BuildController(input);
             BuildWeapon(input);
             BuildHero(input);

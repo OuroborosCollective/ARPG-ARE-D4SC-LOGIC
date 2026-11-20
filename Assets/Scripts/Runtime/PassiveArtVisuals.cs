@@ -17,6 +17,12 @@ namespace AreArpg.UnityClient
         private static readonly Dictionary<Material, Material> PipelineAdapters = new Dictionary<Material, Material>();
         private static readonly string[] BaseMapHints = { "base", "albedo", "diffuse", "color" };
 
+        /// <summary>True when a private visual exists for this key; presentation code asks before it plans dressing.</summary>
+        public static bool Has(string key)
+        {
+            return !string.IsNullOrEmpty(key) && Resources.Load<GameObject>(ResourceRoot + key) != null;
+        }
+
         /// <summary>Keep the fallback primitive when a reviewed private visual is missing.</summary>
         public static bool TryBind(Transform placeholder, string key)
         {
