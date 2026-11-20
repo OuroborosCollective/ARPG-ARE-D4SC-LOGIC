@@ -43,3 +43,22 @@ Der reguläre Director-Auftrag `20261120T145328Z-a85cac8b97a5` meldete `passed` 
 Im tatsächlich installierten privaten Figurenpaket enthielten vier Script-Metadateien nur die GUID. Der vollständige Asset-Test meldete den fehlenden Importerblock. Unity hat die vier vorhandenen `MonoImporter` neu serialisiert. Anschließend stimmten alle vier vorherigen GUIDs und Script-Hashes, und die gleichen 54/54 Vorprüfungen bestanden auch im Arbeitsordner mit den Privatpaketen. Die gesicherten Vorherstände, `private-importer-unity.log` und `complete-preflight-private-fixed.log` liegen im privaten Belegverzeichnis.
 
 Das Owner-DOCX war unter seiner hinterlegten Datei-ID nicht lesbar. Die Runde ist zusätzlich im bestehenden privaten Markdown-Evidenzbuch und in der Projektübergabe dokumentiert. Die Geräteprüfung auf dem Samsung Tab A9 bleibt offen.
+
+<a id="aschengrenze-dorfplatz-105"></a>
+
+## Dorfplatz von Aschengrenze · Nachprüfung zu #105
+
+Die vollständigen Ankunftsszenen von #104 zeigten neben Mara und Ilyan noch die braune Erde des privaten Dorf-Prefabs. Sein 120 m großes Bodenmesh hatte einen eigenen URP/Lit-Materialpfad. Code `1448807314382a5ad79a22c871a0f254d59a92ae`, Tree `ffba5375f23a440eedd876eafae8271245d97cbb`, weist genau diesem Mesh eine Schneeasche-Variante zu und übernimmt die vorhandene Bodentextur samt UV-Skalierung und Versatz. Die öffentliche Dorfprojektion nutzt das gleiche Material. Die Asche lagert sich vor allem an den Rändern der Nordstraße und am Markt ab. Der bewohnte Weg bleibt ausgetreten. Die Höhe der Pflastersteine, die Bodenanker, Maras Vorräte, das Fable-Kameraverhalten und die Dorflaternen verwenden die bestehenden Pfade. [PR #105](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/pull/105)
+
+Der native Regressionstest scheiterte vorher am Material des belegten Dorfplatzes. Danach bestätigte er in derselben Spielszene die Originaltextur, ihre UV-Transformation, die vorhandene Wegblende und den unveränderten World-Hash und Save-String während der Aufnahme. Zwei weitere Prüfungen öffneten das öffentliche Material und den Shader im Editor. Die vollständigen Bilder `complete/act2-supply-square.png` und `vfinal/act2-supply-square.png` zeigen denselben Ausschnitt. Der Median der 210 × 135 Pixel links am Boden wechselte von RGB (99, 85, 57) auf (174, 175, 173). Die Kanalspreizung sank von 42 auf 2. SHA-256 der neuen Marktaufnahme `4ad4d54da51d33856ee9c6314bd350396a524d6ebc7e38d2759959c3b7a15251`.
+
+Die ausgespielten Ankunfts- und Marktszenen zeigen die Heldin mit Rüstung und rotem Halstuch. Ein einzelner sofortiger Editor-Capture bei ausgeschalteter Spielschleife zeigte die Figur als dunkle Silhouette. Der spätere Vergleich des gleichen Blicks im vollständigen Lauf ergab in ihrer Oberkörperpartie denselben Median wie vor dem Materialwechsel, RGB (108, 73, 54). Die veröffentlichten Vergleiche verwenden die vollständigen Szenendurchläufe.
+
+| Prüfungen auf dem Nachtrag | Ergebnis | SHA-256 oder Lauf |
+| --- | --- | --- |
+| Core und Werkzeuge | 21.549 Core-, vier FwJson- und 45 Fadenwerk-Assertions sowie WorldForge bestanden. 54/54 Vorprüfungen mit den installierten Privatpaketen und sechs Director-Bridge-Tests bestanden. Historischer Spielstand erneut bytegleich | `vfinal-core.log` · `fb56c3cda50e95cd980c240a2c0eef7b514476468999e42d325c418692a9e40e` |
+| Unity EditMode | 226 von 230 im Gesamtlauf. Die vier von Eingangsdaten abhängigen Fälle bestanden separat mit realen Aufträgen und freiem Bauplatz | `vfinal-edit.xml` · `ebff7ef74f225c0f516f01d5adc65c85cc5701e90154ce5847112665d84b79c1`, `vfinal-extra-edit.xml` · `064f59de5121423ca381ccde3660c174c7abaea6a7c7e86f4cf4701f82856e9b` |
+| Unity PlayMode | 181/181 bestanden. Die drei Unity-Testlogs enthalten keine Compiler-, Shader- oder NullReference-Fehler. Im Kiefernvergleich unterschieden sich wieder 4.834 Pixel | `vfinal-play.xml` · `ce0ccac43d3feff9c2fc04cc0a0e06569bf65999a755ddecd8a3c912e7c70cc3` |
+| Android ARM64 IL2CPP | 174.366.707 Byte, Debugsignatur bestätigt, ZIP und sieben native Bibliotheken auf 16 KiB ausgerichtet | Director `20261120T151807Z-638b06402676`, APK `42596a035eae76294acccfbe8b301b17bbdfcd483dd47fadcfd7cc0439709aae`, Receipt `0473324b67baf58cd8079d01c6a58fca93f5c21e5ae3acee817ed72c5caeb988` |
+
+Der APK-Build verwendete dieselben privaten und unveränderlichen Projekteingaben wie #104. Die Prüfung auf dem physischen Tab A9 ist offen. [Core-CI](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44761173374)

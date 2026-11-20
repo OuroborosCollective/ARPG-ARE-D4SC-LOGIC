@@ -262,3 +262,7 @@ Getesteter gemeinsamer Code `40eb8c7ecac79db1cbfa457734cfa3bfa2cbbe76`, Tree `f4
 
 - [Abnahme mit Gebietsmaßen, Bildvergleich und Prüfsummen](../borderland-art-20261120/acceptance.md). Die Änderungen aus #98 sind in #104 enthalten. Auf Code `f9b29edca0c985d129877c622ac0317324ae0bbd` wurden 26 neue LOD-Prefabs aus dem privaten Headless-Blender-Eingang, zehn Baupläne, fünf Außenkulissen und die 256-m-Reisekarte im nativen Unity-Projekt überprüft.
 - Der Kameravergleich zählte 4.834 Kiefernpixel. Boden, Wegrand und alte wie neue Glutflora folgen dem gleichen Aschebild und der Einstellung „Reduzierte Effekte“. Core 21.549, EditMode 225 plus vier separat ausgeführte Fälle, PlayMode 181/181. Android ARM64, Signatur und Kartenkompatibilität stehen im verlinkten Beleg. Die fünf historischen Kapitel behalten ihre Laufgrenzen. Der physische Gerätetest ist offen.
+
+## 20. November 2026 · Aschengrenzer Markt
+
+Der Rollout auf die privaten Dorfmeshes ist mit #105 belegt. Das Originalmaterial des begehbaren Platzes war beim ersten Landschaftsdurchlauf separat geblieben. Im gleichen Kamerablick liegt nun graue Asche am Wegrand und zwischen den Ständen. Code `1448807`, 21.549 Core-Assertions, 230 EditMode- und 181 PlayMode-Fälle sowie verifiziertes ARM64-APK. [Vorher/Nachher und Bildgrenzen](../borderland-art-20261120/acceptance.md#aschengrenze-dorfplatz-105)
