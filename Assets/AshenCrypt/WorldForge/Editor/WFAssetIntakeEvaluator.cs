@@ -107,12 +107,20 @@ namespace AshenCrypt.WorldForge.EditorTools
             return false;
         }
 
+        // Split vendor names such as SM_Wep_IronSword02 before case-insensitive matching.
+        // Known single-word weapon compounds stay explicit so Bowl, Elbow and Balance remain props.
+        private static readonly Regex NameTokens = new Regex(
+            @"[A-Z]+(?=[A-Z][a-z]|[^A-Za-z]|$)|[A-Z]?[a-z]+|[A-Z]+",
+            RegexOptions.CultureInvariant);
+        private static readonly Regex WeaponToken = new Regex(
+            @"^(?:weapon|wep|sword|axe|bow|dagger|spear|shield|mace|hammer|crossbow|halberd|knife|club|polearm|lance|pistol|rifle|waffe|longbow|shortbow|longsword|shortsword|greatsword|broadsword|battleaxe|warhammer)s?$|^(?:knives|waffen)$",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
         private static bool IsWeaponName(string value)
         {
-            // Reject weapon markers conservatively, including common vendor abbreviations.
-            return Regex.IsMatch(value ?? "",
-                "weapon|wep|sword|axe|bow|dagger|spear|shield|mace|hammer|crossbow|halberd|knife|club|polearm|lance|pistol|rifle|waffe",
-                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            foreach (Match token in NameTokens.Matches(value ?? ""))
+                if (WeaponToken.IsMatch(token.Value)) return true;
+            return false;
         }
 
         private static bool IsGameBound(string name, ISet<string> runtimeBindings)
