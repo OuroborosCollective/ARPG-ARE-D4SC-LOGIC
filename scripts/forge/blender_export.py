@@ -103,10 +103,14 @@ def export_models(source, output):
     document = json.loads(gltf.read_text(encoding="utf-8"))
     check_geometry(document)
     for resource in document["buffers"] + document.get("images", []):
+        if "bufferView" in resource and "uri" not in resource:
+            continue  # Embedded image bytes share an already validated glTF buffer.
+        if not isinstance(resource.get("uri"), str):
+            raise ValueError("glTF resource has neither a local URI nor an embedded buffer view.")
         uri = urlsplit(resource["uri"])
         relative = Path(unquote(uri.path))
         file = (output / relative).resolve()
-        if (uri.scheme or uri.netloc or relative.is_absolute() or not file.is_relative_to(output)
+        if (uri.scheme or uri.netloc or uri.query or uri.fragment or relative.is_absolute() or not file.is_relative_to(output)
                 or not file.is_file() or file.stat().st_size == 0):
             raise ValueError("glTF references a missing or non-portable resource.")
 
