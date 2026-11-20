@@ -91,13 +91,15 @@ namespace AreArpg.EditorTools
         static void BakeModel(string path, Material material)
         {
             var importer = (ModelImporter)AssetImporter.GetAtPath(path);
+            // The outer tree line combines only the lowest pine LOD into four ordinary renderers.
+            bool readForCanopy = path.EndsWith("/AshPine.fbx", StringComparison.Ordinal);
             if (importer.materialImportMode != ModelImporterMaterialImportMode.None || importer.importAnimation ||
-                importer.addCollider || importer.isReadable)
+                importer.addCollider || importer.isReadable != readForCanopy)
             {
                 importer.materialImportMode = ModelImporterMaterialImportMode.None;
                 importer.importAnimation = false;
                 importer.addCollider = false;
-                importer.isReadable = false;
+                importer.isReadable = readForCanopy;
                 importer.SaveAndReimport();
             }
             var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);

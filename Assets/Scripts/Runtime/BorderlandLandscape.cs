@@ -11,8 +11,6 @@ namespace AreArpg.UnityClient
     {
         private Mesh _pine;
         private Material _foliage;
-        private readonly Matrix4x4[][] _groves = new Matrix4x4[4][];
-        private readonly RenderParams[] _draw = new RenderParams[4];
 
         public static void Build(Transform chapter, string region)
         {
@@ -124,20 +122,29 @@ namespace AreArpg.UnityClient
 
         private void PublishTrees(List<Matrix4x4>[] batches)
         {
-            for (int i = 0; i < 4; i++)
+            // Permanent MeshRenderers participate in every camera pass, including explicit URP renders.
+            // Only the source pine remains readable on Android. The combined vertex buffers go to the GPU.
+            for (int sector = 0; sector < batches.Length; sector++)
             {
-                _groves[i] = batches[i].ToArray();
-                _draw[i] = new RenderParams(_foliage) { shadowCastingMode = ShadowCastingMode.Off,
-                    receiveShadows = false, worldBounds = new Bounds(new Vector3((i % 2 == 1 ? 64 : -64), 14,
-                        (i >= 2 ? 64 : -64)), new Vector3(146, 42, 146)) };
+                var stands = batches[sector];
+                if (stands.Count == 0) continue;
+                var instances = new CombineInstance[stands.Count];
+                for (int i = 0; i < instances.Length; i++)
+                    instances[i] = new CombineInstance { mesh = _pine, transform = transform.worldToLocalMatrix * stands[i] };
+                var surface = new Mesh { name = "AshPine_Stand_" + sector };
+                if ((long)_pine.vertexCount * instances.Length > 65535) surface.indexFormat = IndexFormat.UInt32;
+                surface.CombineMeshes(instances, true, true);
+                surface.RecalculateBounds();
+                surface.UploadMeshData(!Application.isEditor);
+                var stand = new GameObject(surface.name);
+                stand.transform.SetParent(transform, false);
+                stand.AddComponent<WoodlandMeshOwner>().Mesh = surface;
+                stand.AddComponent<MeshFilter>().sharedMesh = surface;
+                var renderer = stand.AddComponent<MeshRenderer>();
+                renderer.sharedMaterial = _foliage;
+                renderer.shadowCastingMode = ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
             }
-        }
-
-        private void LateUpdate()
-        {
-            if (_pine == null || !SystemInfo.supportsInstancing) return;
-            for (int i = 0; i < _groves.Length; i++)
-                if (_groves[i].Length != 0) Graphics.RenderMeshInstanced(_draw[i], _pine, 0, _groves[i]);
         }
     }
 }

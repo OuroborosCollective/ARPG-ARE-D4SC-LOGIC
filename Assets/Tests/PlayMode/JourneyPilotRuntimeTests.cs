@@ -12,6 +12,43 @@ namespace AreArpg.PlayMode.Tests
 {
     public sealed partial class EntryJourneyRuntimeTests
     {
+        private int VisibleTreelinePixels(GameObject treeline)
+        {
+            var camera = Camera.main;
+            var previous = camera.targetTexture;
+            var active = RenderTexture.active;
+            var target = RenderTexture.GetTemporary(240, 135, 24);
+            var pixels = new Texture2D(240, 135, TextureFormat.RGB24, false);
+            Color32[] Sample()
+            {
+                camera.Render();
+                RenderTexture.active = target;
+                pixels.ReadPixels(new Rect(0, 0, 240, 135), 0, 0);
+                pixels.Apply();
+                return pixels.GetPixels32();
+            }
+            try
+            {
+                camera.targetTexture = target;
+                var canopy = Sample();
+                treeline.SetActive(false);
+                var bare = Sample();
+                int changed = 0;
+                for (int i = 0; i < bare.Length; i++)
+                    if (Math.Abs(canopy[i].r-bare[i].r) + Math.Abs(canopy[i].g-bare[i].g) + Math.Abs(canopy[i].b-bare[i].b) > 36) changed++;
+                Debug.Log("BORDERLAND_CANOPY pixels=" + changed + " frame=240x135");
+                return changed;
+            }
+            finally
+            {
+                treeline.SetActive(true);
+                camera.targetTexture = previous;
+                RenderTexture.active = active;
+                RenderTexture.ReleaseTemporary(target);
+                UnityEngine.Object.Destroy(pixels);
+            }
+        }
+
         private JourneyMapCatalog NativeJourneyMaps=>(JourneyMapCatalog)typeof(ArenaRuntime).GetField("_journeyMaps",Flags).GetValue(_runtime);
         private void InstallJourneyStationFixture()
         {
@@ -47,12 +84,29 @@ namespace AreArpg.PlayMode.Tests
             var treeline = Find("Journey_AshPine_Stands");
             Assert.IsNotNull(treeline);
             Assert.IsEmpty(treeline.GetComponentsInChildren<Collider>());
-            var grove = treeline.GetComponent<BorderlandLandscape>();
-            var batches = (Matrix4x4[][])typeof(BorderlandLandscape).GetField("_groves", Flags).GetValue(grove);
-            var treesOnBanks = batches.SelectMany(batch => batch).Select(matrix => (Vector3)matrix.GetColumn(3)).ToArray();
-            Assert.That(treesOnBanks.Length, Is.InRange(40, 300));
-            Assert.IsTrue(treesOnBanks.All(at => !Game.JourneyGeometry.CanStand(Mathf.RoundToInt(at.x*1000), Mathf.RoundToInt(at.z*1000))));
-            Assert.GreaterOrEqual(treesOnBanks.Count(at => (new Vector2(at.x - Game.PlayerXmm*.001f, at.z - Game.PlayerZmm*.001f)).sqrMagnitude < 900f), 3);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            Assert.Greater(VisibleTreelinePixels(treeline), 80, "The normal arrival camera must actually render the tree line.");
+            var pine = BorderlandArt.LoadVisual("AshPine").GetComponent<LODGroup>().GetLODs()[2].renderers[0];
+            var segment = pine.GetComponent<MeshFilter>().sharedMesh.vertexCount;
+            var stands = treeline.GetComponentsInChildren<MeshFilter>();
+            Assert.That(stands.Length, Is.InRange(1, 4), "At most four shared-material tree draws.");
+            Assert.That(stands.Sum(s => s.sharedMesh.vertexCount) / segment, Is.InRange(40, 300));
+            if (Application.isEditor)
+            {
+                int close = 0;
+                foreach (var stand in stands)
+                {
+                    var vertices = stand.sharedMesh.vertices;
+                    for (int start = 0; start < vertices.Length; start += segment)
+                    {
+                        var foot = vertices.Skip(start).Take(segment).OrderBy(v => v.y).First();
+                        var at = stand.transform.TransformPoint(foot);
+                        Assert.IsFalse(Game.JourneyGeometry.CanStand(Mathf.RoundToInt(at.x*1000), Mathf.RoundToInt(at.z*1000)));
+                        if (new Vector2(at.x-Game.PlayerXmm*.001f,at.z-Game.PlayerZmm*.001f).sqrMagnitude < 900f) close++;
+                    }
+                }
+                Assert.GreaterOrEqual(close, 3);
+            }
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();yield return Capture("journey-worldforge-entry.png");
             var firstEnemy=Game.Monsters[0];JourneyNativeWalk(firstEnemy.Xmm,firstEnemy.Zmm,false);
             var pending=(Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills",Flags).GetValue(_runtime);int killsBefore=Game.Kills;pending.Enqueue(0);
