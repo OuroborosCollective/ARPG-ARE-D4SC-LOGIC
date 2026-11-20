@@ -33,6 +33,11 @@ try{
     assert.ok(response.result.instructions.includes(required),
       'initialize guidance must mention '+required);
   }
+  assert.match(response.result.instructions,/First call director_snapshot to obtain the current snapshotId/);
+  assert.match(response.result.instructions,/Prefer one relevant advice_<department> tool/);
+  assert.match(response.result.instructions,/read-only advisory surface/);
+  assert.match(response.result.instructions,/never executes work/);
+  assert.match(response.result.instructions,/cannot edit, build, deploy or run Unity/);
   const t=await collectMcpList({method:'tools/list',
     request:(method,params)=>request(endpoint.url,2,method,params)});
   const tools=t.items;
@@ -68,15 +73,14 @@ try{
     name:'advice_world_design',arguments:{snapshotId:snapshot.snapshotId,issues}
   });
   assert.equal(answer.result.structuredContent.status,
-    issues.some(x=>x.number===66&&x.state==='open')?'PROPOSE':'ABSTAIN');
+    issues.some(x=>[66,69,70].includes(x.number)&&x.state==='open')?'PROPOSE':'ABSTAIN');
   assert.equal(answer.result.structuredContent.execution,'NONE');
   assert.equal(answer.result.structuredContent.sourceVerification,'SUPPLIED_ISSUE_NOT_INDEPENDENTLY_VERIFIED');
   const all=await request(endpoint.url,6,'tools/call',{
     name:'director_consult',arguments:{snapshotId:snapshot.snapshotId,issues}
   });
   assert.equal(all.result.structuredContent.consulted,28);
-  assert.ok(['THREE_PATHS_READY_FOR_DIRECTOR_REVIEW','INSUFFICIENT_DISTINCT_PATHS']
-    .includes(all.result.structuredContent.status));
+  assert.equal(all.result.structuredContent.execution,'NONE');
   assert.equal(all.result.structuredContent.runtimeVerified,false);
   const sourceCatalog=await request(endpoint.url,7,'tools/call',{
     name:'director_sources',arguments:{snapshotId:snapshot.snapshotId}
@@ -111,6 +115,10 @@ try{
     });
   }
   assert.equal(advisorFindings.length,28,'all advisory tools actually called over MCP');
+  const tracks=new Set(advisorFindings.filter(x=>x.status==='PROPOSE').map(x=>x.proposal?.track));
+  assert.equal(all.result.structuredContent.status,
+    tracks.size>=3?'THREE_PATHS_READY_FOR_DIRECTOR_REVIEW':'INSUFFICIENT_DISTINCT_PATHS',
+    'council status must be fixed by distinct advisor tracks');
   console.log(JSON.stringify({
     schema:'ashen.mcp-protocol-canary.v2',status:'PASS',
     toolCount:tools.length,promptCount:prompts.length,advisorCount:snapshot.advisors.length,

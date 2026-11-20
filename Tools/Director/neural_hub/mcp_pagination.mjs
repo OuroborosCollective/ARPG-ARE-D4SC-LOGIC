@@ -46,7 +46,8 @@ export async function collectMcpList({
     if(items.length+result[field].length>maxItems)throw Error('ITEM_LIMIT');
     for(const item of result[field]){
       if(!item||typeof item!=='object'||Array.isArray(item))throw Error('INVALID_ITEM');
-      const identity=item.name??item.uri??item.uriTemplate;
+      const identity=method==='resources/list'?item.uri:
+        method==='resources/templates/list'?item.uriTemplate:item.name;
       if(typeof identity!=='string'||!identity)throw Error('INVALID_ITEM_ID');
       if(seen.has(identity))throw Error('DUPLICATE_ITEM');
       seen.add(identity);items.push(item);

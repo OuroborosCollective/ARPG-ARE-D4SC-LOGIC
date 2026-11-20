@@ -11,8 +11,12 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
+import selectors
+import signal
 import stat
 import subprocess
+import time
 import sys
 
 REPOSITORY = "https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC"
@@ -118,11 +122,69 @@ def parse_probe_output(stdout, expected_sha, department, issue_digest):
 
 
 def checked(command, timeout=30, max_bytes=MAX_OUTPUT_BYTES):
-    p = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                       timeout=timeout, check=False)
-    if p.returncode or len(p.stdout) > max_bytes or len(p.stderr) > max_bytes:
-        raise RuntimeError("COMMAND_FAILED:" + command[0] + ":" + str(p.returncode))
-    return p.stdout.decode("utf-8", "strict").strip()
+    """Drain both child streams under strict byte/time limits; kill the whole group on failure."""
+    if not isinstance(max_bytes, int) or max_bytes < 1 or timeout <= 0:
+        raise ValueError("INVALID_COMMAND_LIMITS")
+    deadline = time.monotonic() + timeout
+    buffers = {}
+    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                          start_new_session=True) as process:
+        with selectors.DefaultSelector() as selector:
+            try:
+                for stream in (process.stdout, process.stderr):
+                    os.set_blocking(stream.fileno(), False)
+                    buffers[stream] = bytearray()
+                    selector.register(stream, selectors.EVENT_READ)
+                while selector.get_map():
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise subprocess.TimeoutExpired(command, timeout)
+                    for key, _ in selector.select(min(remaining, 0.2)):
+                        stream = key.fileobj
+                        buffer = buffers[stream]
+                        try:
+                            chunk = os.read(stream.fileno(), min(8192, max_bytes + 1 - len(buffer)))
+                        except BlockingIOError:
+                            continue
+                        if not chunk:
+                            selector.unregister(stream)
+                            stream.close()
+                            continue
+                        buffer.extend(chunk)
+                        if len(buffer) > max_bytes:
+                            raise RuntimeError("OUTPUT_LIMIT:" + command[0])
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise subprocess.TimeoutExpired(command, timeout)
+                process.wait(timeout=remaining)
+                if process.returncode != 0:
+                    raise RuntimeError("COMMAND_FAILED:" + command[0] + ":" + str(process.returncode))
+                return bytes(buffers[process.stdout]).decode("utf-8", "strict").strip()
+            except BaseException:
+                # start_new_session isolates the Docker CLI and any inherited child pipes.
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                try:
+                    process.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                raise
+
+
+def cleanup_probe_container(name):
+    """Verify Docker's actual container state, not merely its detached CLI lifetime."""
+    lookup = ["docker", "ps", "-a", "--filter", "name=^/" + name + "$",
+              "--format", "{{.Names}}"]
+    remaining = checked(lookup, timeout=8, max_bytes=4096).splitlines()
+    if remaining:
+        if remaining != [name]:
+            raise RuntimeError("AMBIGUOUS_PROBE_CONTAINER")
+        checked(["docker", "rm", "-f", name], timeout=10, max_bytes=4096)
+    if checked(lookup, timeout=8, max_bytes=4096):
+        raise RuntimeError("DOCKER_PROBE_CLEANUP_FAILED")
 
 
 def inspect_git_checkout(path, expected_sha):
@@ -175,7 +237,9 @@ def main(argv=None):
         "ASHEN_CATALOG_SHA256": hashlib.sha256((path / "Tools/Director/neural_catalog.json").read_bytes()).hexdigest(),
         "ASHEN_SOURCES_SHA256": hashlib.sha256((path / "Tools/Director/neural_hub/upstream_sources.json").read_bytes()).hexdigest(),
     }
-    cmd = ["docker", "run", "--rm", "--network", "none", "--read-only",
+    container_name = "ashen-neural-probe-" + secrets.token_hex(12)
+    cmd = ["docker", "run", "--rm", "--name", container_name,
+           "--network", "none", "--read-only",
            "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
            "--memory", "256m", "--cpus", "1", "--pids-limit", "64",
            "-e", "NEURAL_HUB_LOCAL_ONLY=1",
@@ -185,7 +249,10 @@ def main(argv=None):
         cmd.extend(["-e", key + "=" + value])
     cmd.extend(["-v", str(issue_path) + ":/tmp/ashen-public-issues.json:ro",
                 a.image_id, "node", "mcp_probe.mjs", a.department])
-    output = checked(cmd, timeout=45)
+    try:
+        output = checked(cmd, timeout=45)
+    finally:
+        cleanup_probe_container(container_name)
     result = parse_probe_output(output, a.source_sha, a.department, digest)
     # Independent second read after the tool call; no source or Unity mutation.
     reread = checked(["runuser", "-u", "unityarpg", "--", sys.executable, str(DIRECTOR),

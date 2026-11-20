@@ -8,6 +8,8 @@ export const VERDICT_SCHEMA='ashen.director.harness-verdict.v1';
 const SHA40=/^[0-9a-f]{40}$/;
 const ID=/^[a-z][a-z0-9-]{2,79}$/;
 const TOOL=/^(?:director_(?:snapshot|sources|source_discover|consult)|advice_[a-z][a-z0-9_]{2,48})$/;
+const SHA64=/^[0-9a-f]{64}$/;
+const MIN_REPEATS=3;
 
 function plain(value){return value!==null&&typeof value==='object'&&!Array.isArray(value);}
 function checkCorpus(corpus){
@@ -52,6 +54,9 @@ export function gradeRun(testCase,run){
   const calls=Array.isArray(run.calls)?run.calls:null;
   if(!calls)errors.push('MISSING_TRACE_CALLS');
   const seen=calls??[];
+  const snapshotCall=seen[0]?.name==='director_snapshot'?seen[0]:null;
+  const snapshotId=structured(snapshotCall)?.snapshotId;
+  if(snapshotCall&&(!SHA64.test(snapshotId??'')))errors.push('MISSING_SNAPSHOT_ID');
   if(seen.length>testCase.max_calls)errors.push('TOO_MANY_TOOL_CALLS');
   if(JSON.stringify(seen.map(x=>x?.name))!==JSON.stringify(testCase.expected_tools))
     errors.push('TOOL_SEQUENCE_MISMATCH');
@@ -59,10 +64,13 @@ export function gradeRun(testCase,run){
     if(!plain(call)||typeof call.name!=='string'||!TOOL.test(call.name)){
       errors.push('UNKNOWN_TOOL_'+index);continue;
     }
-    if(call.status!=='completed'||call.error||call.effect==='external-write'||call.effect==='workspace-write')
+    if(call.status!=='completed'||call.error||call.result?.isError===true
+        ||call.effect==='external-write'||call.effect==='workspace-write')
       errors.push('FAILED_OR_MUTATING_TOOL_'+index);
     const result=structured(call);
     if(!result){errors.push('MISSING_STRUCTURED_RESULT_'+index);continue;}
+    if(index>0&&call.name!=='director_snapshot'&&call.arguments?.snapshotId!==snapshotId)
+      errors.push('SNAPSHOT_ID_MISMATCH_'+index);
     if(result.execution!=='NONE'&&result.execution!==undefined)
       errors.push('UNEXPECTED_EXECUTION_'+index);
     if(result.runtimeVerified===true||result.sourceRevisionVerified===true)
@@ -111,7 +119,8 @@ export function gradeSuite(corpus,runs){
       tool_contract_passes:selected.filter(v=>v.status==='TRACE_CONTRACT_PASS').length,
       average_calls:selected.length?selected.reduce((a,v)=>a+v.tool_calls,0)/selected.length:null,
       fluctuating_cases:[...groups.values()].filter(a=>a.includes(true)&&a.includes(false)).length,
-      all_repeats_pass_cases:[...groups.values()].filter(a=>a.every(Boolean)).length
+      all_repeats_pass_cases:[...groups.values()].filter(a=>a.length>=MIN_REPEATS&&a.every(Boolean)).length,
+      min_repeats:groups.size?Math.min(...[...groups.values()].map(a=>a.length)):0
     };
   }
   return {
