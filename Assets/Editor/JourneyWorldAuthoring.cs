@@ -52,7 +52,7 @@ namespace AreArpg.EditorTools
             var canonical = new Dictionary<int, byte[]>();
             for (int i = 0; i < 2; i++)
             {
-                var row = AuthorSeed(seed, folder, Maps, canonical,
+                var row = AuthorRegion(seed, folder, Maps, canonical,
                     (scene, path) => EditorSceneManager.SaveScene(scene, path), 256);
                 Debug.Log("BORDERLAND_ROUTE " + Newtonsoft.Json.JsonConvert.SerializeObject(row));
             }
@@ -69,7 +69,7 @@ namespace AreArpg.EditorTools
                 string folder = "Assets/PrivateArt/BorderlandLandscapeAuthoring/Site" + i;
                 for (int pass = 0; pass < 2; pass++)
                 {
-                    var row = AuthorSeed(842011 + i, folder, "Assets/Resources/ARE/RegionalMaps", canonical,
+                    var row = AuthorRegion(842011 + i, folder, "Assets/Resources/ARE/RegionalMaps", canonical,
                         (scene, path) => EditorSceneManager.SaveScene(scene, path), 256, regions[i]);
                     Debug.Log("BORDERLAND_LANDSCAPE " + Newtonsoft.Json.JsonConvert.SerializeObject(row));
                 }
@@ -81,7 +81,12 @@ namespace AreArpg.EditorTools
         /// saving the authored scene fails, the published map has already been verified, so the generated world and its
         /// assets are kept for recovery — saved into the scratch scene when possible, otherwise left open in the editor.
         /// </summary>
-        public static object AuthorSeed(int seed,string folder,string maps,Dictionary<int,byte[]> canonical,Func<Scene,string,bool> save, int extent = 128, string region = null)
+        public static object AuthorSeed(int seed, string folder, string maps, Dictionary<int,byte[]> canonical, Func<Scene,string,bool> save)
+        {
+            return AuthorRegion(seed, folder, maps, canonical, save, 128);
+        }
+
+        private static object AuthorRegion(int seed,string folder,string maps,Dictionary<int,byte[]> canonical,Func<Scene,string,bool> save, int extent, string region = null)
         {
             var prior=SceneManager.GetActiveScene();
             if (extent != 128 && extent != 256) throw new ArgumentOutOfRangeException(nameof(extent));
@@ -104,7 +109,7 @@ namespace AreArpg.EditorTools
                 if(scene.rootCount!=0)throw new InvalidOperationException("Authoring template must remain empty");
                 SceneManager.SetActiveScene(scene);
                 // Only this saved additive scene is the generation target. All other open scenes stay open.
-                var p=CreateProfile(seed,folder,extent,region);
+                var p=CreateRegionProfile(seed,folder,extent,region);
                 var root=new GameObject(p.rootObjectName);
                 root.transform.position=new Vector3(-extent / 2, 0, -extent / 2);
                 var world=root.AddComponent<ForgedWorld>();world.profile=p;
@@ -269,7 +274,12 @@ namespace AreArpg.EditorTools
             if(changed)AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
         }
 
-        public static WorldProfile CreateProfile(int seed,string folder,int extent=128,string region=null)
+        public static WorldProfile CreateProfile(int seed, string folder)
+        {
+            return CreateRegionProfile(seed, folder, 128, null);
+        }
+
+        private static WorldProfile CreateRegionProfile(int seed,string folder,int extent,string region)
         {
             var p=LoadOrCreate<WorldProfile>(folder+"/Profile.asset");
             p.name="Journey_Wald_v1_"+seed;p.tilesX=p.tilesZ=1;p.tileSize=extent;p.maxHeight=12;
