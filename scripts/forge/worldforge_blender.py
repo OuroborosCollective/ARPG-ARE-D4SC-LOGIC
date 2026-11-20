@@ -25,6 +25,7 @@ BLENDER = Path(f"/opt/worldforge-blender/blender-{VERSION}-linux-x64")
 EXPORTER = Path(__file__).resolve().with_name("blender_export.py")
 FORMATS = {".blend", ".fbx", ".glb"}
 MAX_SOURCE = 1024 ** 3
+ATTEMPTS = (".attempt-1", ".attempt-2")
 
 
 def prepare(root):
@@ -105,6 +106,8 @@ def retry(root, key):
         failed = root / "failed" / key
         if not (failed / "error.txt").is_file():
             raise ValueError("Only a failed job can be retried")
+        for marker in ATTEMPTS:
+            (failed / marker).unlink(missing_ok=True)
         failed.rename(root / "queue" / key)
         (root / "queue" / key / "error.txt").unlink()
 
@@ -223,6 +226,15 @@ def process(root, job):
         source_hash = fingerprint(source)[0]
         if job_key(source.suffix, source_hash) != key:
             raise ValueError("Input or installed export recipe changed; submit the source again")
+        # A hard-killed worker cannot quarantine its input. Limit restarts across service invocations.
+        for marker in ATTEMPTS:
+            try:
+                (job / marker).touch(exist_ok=False)
+                break
+            except FileExistsError:
+                continue
+        else:
+            raise ValueError("Worker interrupted twice; inspect the source and retry this job explicitly")
         with log_path.open("wb") as log:
             subprocess.run(sandbox(source, output), stdin=subprocess.DEVNULL, stdout=log,
                            stderr=subprocess.STDOUT, check=True, timeout=900)

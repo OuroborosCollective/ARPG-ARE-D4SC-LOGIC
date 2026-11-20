@@ -77,3 +77,17 @@ class BlenderQueueTests(unittest.TestCase):
     def test_invalid_id_never_addresses_another_directory(self):
         with self.assertRaises(ValueError):
             intake.status(self.root, "../results")
+
+    def test_repeated_worker_interruptions_quarantine_one_job_and_allow_explicit_retry(self):
+        source = self.work / "interrupted.blend"
+        source.write_bytes(b"queue transport fixture")
+        key = intake.submit(self.root, source)
+        queued = self.root / "queue" / key
+        # These markers are what survives two worker terminations before publication.
+        for marker in (".attempt-1", ".attempt-2"):
+            (queued / marker).touch()
+        intake.process(self.root, queued)
+        self.assertIn("interrupted twice", intake.status(self.root, key)["error"])
+        self.assertFalse(queued.exists())
+        intake.retry(self.root, key)
+        self.assertEqual(sorted(p.name for p in queued.iterdir()), ["source.blend"])
