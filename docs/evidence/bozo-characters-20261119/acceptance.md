@@ -30,8 +30,17 @@ Fadenwerk 1.1.0 und World Forge (andere Branches), daher die höhere Gesamtzahl 
 | `Merchant0` | 28 259 | 1 / 1 | BozoLocomotionM |
 | `MillPatient0`–`MillPatient2` | 22 131 / 24 428 / 21 909 | 2 / 2 (Körper, Decke) | – (liegend) |
 
-Ein Build nimmt aus den Figurenordnern 73 Dateien mit (Quellgröße 42 MB, davon Meshes 29,9 MB, Texturen 9,2 MB),
-aus dem Ordner des Herstellers nur fünf: den Kleidungs-Shader und vier Idle-/Geh-Clips.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:ea1366e624b8ed28c72b51fdd8a62a68a2ab2930b62b81c240acb35d3bcdca8e -->
+
+Die gemeldete Abhängigkeitsanalyse prognostiziert 73 Figurendateien (Quellgröße 42 MB, davon Meshes 29,9 MB,
+Texturen 9,2 MB) und fünf Vendor-Dateien (Kleidungs-Shader und vier Idle-/Geh-Clips). Als reproduzierbare Methode
+ist die rekursive Ermittlung mit `AssetDatabase.GetDependencies` ausgehend von den Spiel-Visuals vorgesehen;
+der ursprüngliche Analyseaufruf ist nicht archiviert und muss unabhängig zurückgelesen werden. Diese Zahlen
+belegen keine tatsächlichen Build-Inhalte: Ein APK und ein zugehöriger Build-Report fehlen (siehe „Nicht geprüft“).
+
+<!-- /coderabbit-ai-generated:v1 -->
 
 ## Befunde und Korrekturen
 

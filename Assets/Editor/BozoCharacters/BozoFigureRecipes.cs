@@ -148,8 +148,13 @@ namespace AreArpg.EditorTools
                     if (o == null || !Part.IsMatch(o.slot ?? "") || !Part.IsMatch(o.id ?? "")) return f.id + ": invalid outfit entry.";
                     if (!slots.Add(o.slot)) return f.id + ": slot " + o.slot + " is set twice.";
                     if (o.colors != null && o.colors.Length > 9) return f.id + ": at most nine colours per outfit.";
+                    bool ended = false;
                     foreach (string c in o.colors ?? new string[0])
+                    {
                         if (c != "" && !Hex.IsMatch(c ?? "")) return f.id + ": colour '" + c + "' is not #rrggbb.";
+                        if (c == "") ended = true;
+                        else if (ended) return f.id + ": colour after an empty entry.";
+                    }
                 }
                 foreach (string c in f.skin ?? new string[0])
                     if (c != "" && !Hex.IsMatch(c ?? "")) return f.id + ": skin colour '" + c + "' is not #rrggbb.";
@@ -180,7 +185,7 @@ namespace AreArpg.EditorTools
             foreach (Shape s in b ?? new Shape[0]) yield return s;
         }
 
-        /// <summary>"#rrggbb" to colour; an empty entry means "keep the part's own colour".</summary>
+        /// <summary>"#rrggbb" to colour; an empty entry returns false; the baker stops overrides there and keeps all remaining part colours.</summary>
         public static bool TryColor(string hex, out Color color)
         {
             color = Color.white;

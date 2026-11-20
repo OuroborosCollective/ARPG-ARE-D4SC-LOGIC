@@ -29,7 +29,7 @@ namespace AreArpg.EditorTools
         public static void WriteReport()
         {
             var report = new StringBuilder();
-            report.AppendLine("part [names of the pack] / colour: share of the part's surface, height range in metres, default colour");
+            report.AppendLine("part [names of the pack] / colour: approximate share of the part's surface (64 equal-area samples per triangle), height range in metres, default colour");
             foreach (string slot in Slots)
                 foreach (Outfit part in Resources.LoadAll<Outfit>(slot).OrderBy(p => p.name, StringComparer.Ordinal))
                     Describe(slot + "/" + part.name, part, report);
@@ -63,7 +63,14 @@ namespace AreArpg.EditorTools
                         Vector3 a = vertices[triangles[t]], b = vertices[triangles[t + 1]], c = vertices[triangles[t + 2]];
                         double area = Vector3.Cross(b - a, c - a).magnitude * .5;
                         if (area <= 0) continue;
-                        Vector2 at = (uv[triangles[t]] + uv[triangles[t + 1]] + uv[triangles[t + 2]]) / 3f;
+                        // A square-root map distributes equal-area samples across the whole triangle.
+                        const int steps = 8;
+                        for (int row = 0; row < steps; row++)
+                        for (int column = 0; column < steps; column++)
+                        {
+                        float u = Mathf.Sqrt((row + .5f) / steps), v = (column + .5f) / steps;
+                        Vector3 bary = new Vector3(1 - u, u * (1 - v), u * v);
+                        Vector2 at = uv[triangles[t]] * bary.x + uv[triangles[t + 1]] * bary.y + uv[triangles[t + 2]] * bary.z;
                         float green = 0, blue = 0, r = 1, g = 0, bl = 0;
                         if (ids != null)
                         {
@@ -73,13 +80,14 @@ namespace AreArpg.EditorTools
                         }
                         if (tones != null) { Color32 tone = Sample(tones, sizes[diffuse], at); r = tone.r / 255f; g = tone.g / 255f; bl = tone.b / 255f; }
                         float[] group = { (1 - green) * (1 - blue), green * (1 - blue), blue }; float[] weight = { r, g, bl };
-                        double y = (a.y + b.y + c.y) / 3.0;
+                        double y = a.y * bary.x + b.y * bary.y + c.y * bary.z;
                         for (int k = 0; k < 9; k++)
                         {
                             double amount = group[k / 3] * weight[k % 3];
                             if (amount <= 0) continue;
-                            share[k] += area * amount;
+                            share[k] += area * amount / (steps * steps);
                             if (amount > .3) { low[k] = Math.Min(low[k], y); high[k] = Math.Max(high[k], y); }
+                        }
                         }
                     }
                 }

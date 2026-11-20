@@ -49,6 +49,12 @@ namespace AreArpg.EditorTools
         {
             string[] folders = Folders(from);
             if (folders.Length == 0) return 0;
+            // Children must still be reachable under their recorded path when RenameAsset runs.
+            Array.Sort(folders, (a, b) =>
+            {
+                int depth = b.Split('/').Length.CompareTo(a.Split('/').Length);
+                return depth != 0 ? depth : StringComparer.Ordinal.Compare(a, b);
+            });
             int count = 0;
             AssetDatabase.StartAssetEditing();
             try

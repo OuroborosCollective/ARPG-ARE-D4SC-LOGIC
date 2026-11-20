@@ -30,6 +30,33 @@ namespace AreArpg.EditMode.Tests
             return null;
         }
 
+        [Test]
+        public void BuildGuardRestoresNestedResourcesFolders()
+        {
+            Type guard = Tool("BozoBuildGuard");
+            string vendor = (string)guard.GetField("VendorRoot").GetRawConstantValue();
+            bool createdVendor = !AssetDatabase.IsValidFolder(vendor);
+            string probe = vendor + "/BuildGuardRegression";
+            Assert.IsFalse(AssetDatabase.IsValidFolder(probe));
+            try
+            {
+                if (createdVendor) AssetDatabase.CreateFolder("Assets", System.IO.Path.GetFileName(vendor));
+                AssetDatabase.CreateFolder(vendor, "BuildGuardRegression");
+                AssetDatabase.CreateFolder(probe, "Resources");
+                AssetDatabase.CreateFolder(probe + "/Resources", "Child");
+                AssetDatabase.CreateFolder(probe + "/Resources/Child", "Resources");
+                guard.GetMethod("Exclude").Invoke(null, null);
+                Assert.IsTrue(AssetDatabase.IsValidFolder(probe + "/ResourcesNotInBuild/Child/ResourcesNotInBuild"));
+                guard.GetMethod("Restore").Invoke(null, null);
+                Assert.IsTrue(AssetDatabase.IsValidFolder(probe + "/Resources/Child/Resources"));
+            }
+            finally
+            {
+                try { guard.GetMethod("Restore").Invoke(null, null); }
+                finally { AssetDatabase.DeleteAsset(createdVendor ? vendor : probe); }
+            }
+        }
+
         /// <summary>
         /// The pack keeps all its parts in Resources folders. During a player build they are hidden, otherwise the whole
         /// purchased pack would be shipped inside the APK; afterwards the creator finds its parts again.
@@ -186,7 +213,11 @@ namespace AreArpg.EditMode.Tests
         [Test]
         public void HeroAndMillPatientsComeFromTheUnifiedFigures()
         {
-            if (BakedFigures().Count == 0) Assert.Ignore(NotInstalled);
+            foreach (string id in new[] { "hero", "patient_a", "patient_b", "patient_c" })
+            {
+                string path = (string)Recipes().GetMethod("BakedPath").Invoke(null, new object[] { id });
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null) Assert.Ignore(NotInstalled);
+            }
             foreach (string key in new[] { "EntryCombatHero", "EntryHero" })
             {
                 GameObject prefab = Resources.Load<GameObject>("ARE/Visuals/" + key);

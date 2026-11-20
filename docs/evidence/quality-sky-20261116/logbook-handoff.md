@@ -109,4 +109,14 @@ Each new round records UTC date, incoming and resulting revisions, exact changed
 - Owner-Befund „Figuren stehen im Dunkeln“ behoben (Normal-Textur neu geschrieben, Farben aufgehellt); Neuro-Director-Fachbereiche `shaders` und `lighting` befragt, Ursache per Messung gefunden.
 - Evidence: EditMode `BozoFigure*` 9/9, EditMode 135/135, PlayMode 171/171, Core 21239, Preflight 40, Android-Skriptkompilierung fehlerfrei; Details in `docs/evidence/bozo-characters-20261119/acceptance.md`.
 - Grenzen: APK und Gerät ungeprüft (Bildrate mit 22 000–28 000 Dreiecken je Figur, Kodierung der Normal-Textur); nicht gepusht; Owner-DOCX nicht bearbeitet.
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:bbd0a7f168701e2666ad5d7a7cee2aaa159696d1423e6fa9120b293d176ab75c -->
+
 - Nächster Schritt: gekauftes Paket „Stylized Dark Fantasy Asset“ (135244) einbinden, Dungeon-Umgebung überarbeiten und die Aschenwelt der Oberwelt gestalten (Owner-Auftrag 19./20.11.); Bau-Modus-Bewohner auf `Villager0–2`/`Merchant0` umstellen, sobald beide Branches zusammenkommen.
+
+## BoZo Reviewkorrekturen – 20.11.2026
+
+Ausgangsrevision `b75c02e36f8f4bcb5fc2ff716de14de5ef06d5bc`, lokaler Patch: verschachtelte Resources-Umbenennung, temporärer Bake mit GUID-Erhaltung/Rücksicherung, vollständiges Szenen-Setup und SaveScene-Abbruch, Ressourcenfreigabe, Report-Verzeichnis, MayWrite-Vorprüfung, Farbfolgen und flächengewichtete Farbstichproben, Hero-Clip-Vorbedingung sowie NPC-Fallback und gezieltes Test-Ignore korrigiert. Core 21239 Assertions, 40 Preflights und statischer Unity-Kontrakt bestanden; Unity-Editor und privates Paket hier nicht vorhanden, Editor-Regressionen und echter BuildGuard-/APK-Lauf offen. Patch-Hashes im workspace-context/validation-record.md (Arbeitskontext). Historischer getesteter SHA samt unabhängigem Readback fehlt; Implementations-SHA allein ersetzt ihn nicht. Owner-DOCX mangels verifizierter bearbeitbarer Dokumentidentität weiterhin offen. Nächster Schritt: Editor-Tests mit Paket einschließlich Fehlerfällen und SHA-gebundene unabhängige Readbacks.
+
+<!-- /coderabbit-ai-generated:v1 -->

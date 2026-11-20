@@ -31,6 +31,13 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
+        public void OutfitColoursAllowOnlyTrailingEmptyEntries()
+        {
+            Assert.IsNull(Defect(Probe.Replace("[\"#6f6c5c\"]", "[\"#6f6c5c\",\"\",\"\"]")));
+            StringAssert.Contains("empty", Rejection(Probe.Replace("[\"#6f6c5c\"]", "[\"\",\"#6f6c5c\"]")));
+        }
+
+        [Test]
         public void EveryHumanFigureOfTheGameHasARoleRecipe()
         {
             string json = File.ReadAllText(RecipePath);

@@ -32,6 +32,8 @@ namespace AreArpg.EditorTools
         const string PresetRoot = VendorRoot + "/CustomCharacters/Resources/";
         const string StageScene = BakeFolder + "/BakeStage.unity";
         const string QueueKey = "ARE.Bozo.Queue", FinalizeKey = "ARE.Bozo.Finalize", ReturnSceneKey = "ARE.Bozo.ReturnScene";
+        const string StagingFolder = "Assets/PrivateArt/BozoBakeStaging";
+        [Serializable] sealed class SceneSetupState { public SceneSetup[] scenes; }
         static string ReportPath { get { return Path.Combine(Directory.GetCurrentDirectory(), "Library/BozoCharacters/report.txt"); } }
 
         static BozoFigureBaker()
@@ -59,14 +61,25 @@ namespace AreArpg.EditorTools
                 if (scene.isDirty) throw new InvalidOperationException("Offene Szene hat ungespeicherte Änderungen: " + scene.path);
             EnsureFolder(BakeFolder); EnsureFolder(SourceFolder);
             var settings = CharacterToolSettingsProvider.Get();
-            settings._prefabFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(BakeFolder);
+            EnsureFolder(StagingFolder);
+            settings._prefabFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(StagingFolder);
             EditorUtility.SetDirty(settings); AssetDatabase.SaveAssetIfDirty(settings);
-            foreach (string id in ids) AssetDatabase.DeleteAsset(BakeFolder + "/" + id);
+            foreach (string id in ids) AssetDatabase.DeleteAsset(StagingFolder + "/" + id);
             Directory.CreateDirectory(Path.GetDirectoryName(ReportPath));
             File.WriteAllText(ReportPath, "");
-            SessionState.SetString(ReturnSceneKey, EditorSceneManager.GetActiveScene().path);
-            var stage = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
-            EditorSceneManager.SaveScene(stage, StageScene);
+            SessionState.SetString(ReturnSceneKey, JsonUtility.ToJson(new SceneSetupState { scenes = EditorSceneManager.GetSceneManagerSetup() }));
+            try
+            {
+                var stage = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
+                if (!EditorSceneManager.SaveScene(stage, StageScene)) throw new IOException("Bake-Szene konnte nicht gespeichert werden.");
+            }
+            catch
+            {
+                settings._prefabFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(BakeFolder);
+                EditorUtility.SetDirty(settings); AssetDatabase.SaveAssetIfDirty(settings);
+                RestoreScenes();
+                throw;
+            }
             SessionState.SetString(QueueKey, string.Join(",", ids));
             EditorApplication.EnterPlaymode();
         }
@@ -106,37 +119,54 @@ namespace AreArpg.EditorTools
             CharacterData data = Compose(recipe);
             // Instantiate below an inactive parent so the settings are in place before the vendor's Awake runs.
             var holder = new GameObject("BozoBakeHolder"); holder.SetActive(false);
-            GameObject go = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(BasePrefab), holder.transform);
-            go.name = recipe.id;
-            var system = go.GetComponent<OutfitSystem>();
-            if (system == null) throw new InvalidOperationException("Basisfigur ohne OutfitSystem.");
-            system.loadMode = OutfitSystem.LoadMode.Manual;
-            system.characterData = null;
-            system._textureSize = (OutfitSystem.TextureSize)recipe.texture;
-            system.async = false;
-            go.transform.SetParent(null, false);
-            Object.Destroy(holder);
-            await Frames(3);
+            GameObject go = null;
+            try
+            {
+                go = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(BasePrefab), holder.transform);
+                go.name = recipe.id;
+                var system = go.GetComponent<OutfitSystem>();
+                if (system == null) throw new InvalidOperationException("Basisfigur ohne OutfitSystem.");
+                system.loadMode = OutfitSystem.LoadMode.Manual;
+                system.characterData = null;
+                system._textureSize = (OutfitSystem.TextureSize)recipe.texture;
+                system.async = false;
+                go.transform.SetParent(null, false);
+                Object.Destroy(holder);
+                await Frames(3);
 
-            bool loaded = false;
-            UnityAction onLoaded = () => loaded = true;
-            system.OnLoadComplete.AddListener(onLoaded);
-            _ = system.LoadCharacter(data);
-            await Until(() => loaded, 240, recipe.id + ": Laden/Zusammenfügen");
-            system.OnLoadComplete.RemoveListener(onLoaded);
-            await Until(() => !system.isMerging && !system.isloading && !system.isUpdatingTexture, 120, recipe.id + ": Texturen");
-            await Frames(6);
+                bool loaded = false;
+                UnityAction onLoaded = () => loaded = true;
+                system.OnLoadComplete.AddListener(onLoaded);
+                try
+                {
+                    _ = system.LoadCharacter(data);
+                    await Until(() => loaded, 240, recipe.id + ": Laden/Zusammenfügen");
+                }
+                finally { system.OnLoadComplete.RemoveListener(onLoaded); }
+                await Until(() => !system.isMerging && !system.isloading && !system.isUpdatingTexture, 120, recipe.id + ": Texturen");
+                await Frames(6);
 
-            int outfits = system.GetOutfits().Count(o => o != null);
-            if (outfits < recipe.outfits.Length) throw new InvalidOperationException("Nur " + outfits + " Teile geladen (Rezept nennt " + recipe.outfits.Length + ").");
-            system.prefabName = recipe.id;
-            system.cleanScriptsAfterPrefab = true;
-            await system.SaveCharacterToPrefab();
-            await Frames(2);
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(recipe.id)) == null)
-                throw new InvalidOperationException("Hersteller-Speichern lieferte kein Prefab.");
-            Object.Destroy(go);
-            await Frames(2);
+                int outfits = system.GetOutfits().Count(o => o != null);
+                if (outfits < recipe.outfits.Length) throw new InvalidOperationException("Nur " + outfits + " Teile geladen (Rezept nennt " + recipe.outfits.Length + ").");
+                system.prefabName = recipe.id;
+                system.cleanScriptsAfterPrefab = true;
+                await system.SaveCharacterToPrefab();
+                await Frames(2);
+                if (AssetDatabase.LoadAssetAtPath<GameObject>(StagingFolder + "/" + recipe.id + "/" + recipe.id + ".prefab") == null)
+                    throw new InvalidOperationException("Hersteller-Speichern lieferte kein Prefab.");
+                var candidate = AssetDatabase.LoadAssetAtPath<GameObject>(StagingFolder + "/" + recipe.id + "/" + recipe.id + ".prefab");
+                var skins = candidate.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                var animator = candidate.GetComponentInChildren<Animator>(true);
+                if (skins.Length != 1 || skins[0].sharedMesh == null || skins[0].sharedMaterial == null ||
+                    animator == null || animator.avatar == null || !animator.avatar.isValid || !animator.avatar.isHuman)
+                    throw new InvalidOperationException("Temporärer Bake ist unvollständig: " + recipe.id);
+                PublishBake(recipe.id);
+            }
+            finally
+            {
+                if (go != null) Object.DestroyImmediate(go);
+                if (holder != null) Object.DestroyImmediate(holder);
+            }
         }
 
         /// <summary>Recipe = vendor preset + overrides (shapes, removed slots, outfits with colours).</summary>
@@ -201,19 +231,140 @@ namespace AreArpg.EditorTools
             }
         }
 
-        static void Report(string line) { File.AppendAllText(ReportPath, line + "\n"); }
+        static void Report(string line)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(ReportPath));
+            File.AppendAllText(ReportPath, line + "\n");
+        }
         static string BakedPath(string id) { return BozoFigureRecipes.BakedPath(id); }
 
         // ------------------------------------------------------------------ step 2: Edit Mode
 
+        static void RestoreScenes()
+        {
+            string json = SessionState.GetString(ReturnSceneKey, "");
+            if (string.IsNullOrEmpty(json)) return;
+            EditorSceneManager.RestoreSceneManagerSetup(JsonUtility.FromJson<SceneSetupState>(json).scenes);
+            SessionState.EraseString(ReturnSceneKey);
+        }
+
+        // Publish only a complete vendor bake. Preserve existing .meta files (GUIDs) and roll back bytes on errors.
+        static void PublishBake(string id)
+        {
+            string source = StagingFolder + "/" + id, target = BakeFolder + "/" + id;
+            var serialization = EditorSettings.serializationMode;
+            try
+            {
+                EditorSettings.serializationMode = SerializationMode.ForceText;
+                AssetDatabase.ForceReserializeAssets(AssetDatabase.GetAllAssetPaths().Where(p => p.StartsWith(source + "/", StringComparison.Ordinal)).ToArray());
+            }
+            finally { EditorSettings.serializationMode = serialization; }
+            string backup = Path.Combine("Library/BozoCharacters/Backup", id);
+            if (Directory.Exists(backup)) Directory.Delete(backup, true);
+            Directory.CreateDirectory(backup);
+            bool existed = Directory.Exists(target);
+            if (existed)
+            {
+                CopyTree(target, backup + "/assets");
+                File.WriteAllText(backup + "/.existing", "");
+            }
+            try
+            {
+                var guids = new Dictionary<string, string>();
+                foreach (string meta in Directory.GetFiles(source, "*.meta", SearchOption.AllDirectories))
+                {
+                    string destination = target + meta.Substring(source.Length);
+                    if (File.Exists(destination))
+                    {
+                        string oldGuid = File.ReadAllLines(meta).First(l => l.StartsWith("guid: ")).Substring(6);
+                        string newGuid = File.ReadAllLines(destination).First(l => l.StartsWith("guid: ")).Substring(6);
+                        guids[oldGuid] = newGuid;
+                    }
+                }
+                foreach (string file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
+                {
+                    string destination = target + file.Substring(source.Length);
+                    Directory.CreateDirectory(Path.GetDirectoryName(destination));
+                    if (file.EndsWith(".meta") && File.Exists(destination)) continue;
+                    byte[] bytes = File.ReadAllBytes(file);
+                    // Unity YAML references must point at the retained production GUIDs.
+                    if (file.EndsWith(".meta") || System.Text.Encoding.UTF8.GetString(bytes.Take(5).ToArray()) == "%YAML")
+                    {
+                        string yaml = System.Text.Encoding.UTF8.GetString(bytes);
+                        foreach (var pair in guids) yaml = yaml.Replace("guid: " + pair.Key, "guid: " + pair.Value);
+                        bytes = System.Text.Encoding.UTF8.GetBytes(yaml);
+                    }
+                    File.WriteAllBytes(destination, bytes);
+                }
+                // Remove temporary GUID duplicates before importing production files.
+                Directory.Delete(source, true);
+                if (File.Exists(source + ".meta")) File.Delete(source + ".meta");
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                var published = AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(id));
+                if (published == null || AssetDatabase.GetDependencies(BakedPath(id), true)
+                    .Any(path => path.StartsWith(StagingFolder + "/", StringComparison.Ordinal)))
+                    throw new IOException("Bake enthält ungültige temporäre Referenzen: " + id);
+            }
+            catch
+            {
+                if (Directory.Exists(target)) Directory.Delete(target, true);
+                if (existed) CopyTree(backup + "/assets", target);
+                else if (File.Exists(target + ".meta")) File.Delete(target + ".meta");
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                throw;
+            }
+            finally { AssetDatabase.DeleteAsset(source); }
+        }
+
+        sealed class AssetSnapshot
+        {
+            readonly string[] paths;
+            readonly Dictionary<string, byte[]> files = new Dictionary<string, byte[]>();
+            public AssetSnapshot(IEnumerable<string> targets)
+            {
+                paths = targets.ToArray();
+                foreach (string path in paths)
+                {
+                    if (Directory.Exists(path))
+                        foreach (string file in Directory.GetFiles(path, "*", SearchOption.AllDirectories)) files[file] = File.ReadAllBytes(file);
+                    else if (File.Exists(path)) files[path] = File.ReadAllBytes(path);
+                    if (File.Exists(path + ".meta")) files[path + ".meta"] = File.ReadAllBytes(path + ".meta");
+                }
+            }
+            public void Restore()
+            {
+                foreach (string path in paths)
+                {
+                    if (Directory.Exists(path)) Directory.Delete(path, true);
+                    else if (File.Exists(path)) File.Delete(path);
+                    if (File.Exists(path + ".meta")) File.Delete(path + ".meta");
+                }
+                foreach (var file in files)
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(file.Key));
+                    File.WriteAllBytes(file.Key, file.Value);
+                }
+                AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+            }
+        }
+
+        static void CopyTree(string source, string target)
+        {
+            Directory.CreateDirectory(target);
+            foreach (string file in Directory.GetFiles(source)) File.Copy(file, Path.Combine(target, Path.GetFileName(file)), true);
+            foreach (string folder in Directory.GetDirectories(source)) CopyTree(folder, Path.Combine(target, Path.GetFileName(folder)));
+        }
+
         static void AfterSession()
         {
             SessionState.SetBool(FinalizeKey, false);
-            string back = SessionState.GetString(ReturnSceneKey, "");
-            if (!string.IsNullOrEmpty(back) && File.Exists(back)) EditorSceneManager.OpenScene(back, OpenSceneMode.Single);
+            RestoreScenes();
+            var settings = CharacterToolSettingsProvider.Get();
+            settings._prefabFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(BakeFolder);
+            EditorUtility.SetDirty(settings); AssetDatabase.SaveAssetIfDirty(settings);
             var baked = File.Exists(ReportPath)
                 ? File.ReadAllLines(ReportPath).Where(l => l.EndsWith("\tBAKED")).Select(l => l.Split('\t')[0]).ToArray() : new string[0];
-            FinalizeFigures(baked);
+            FinalizeFigures(baked, true);
         }
 
         [MenuItem("ARE ARPG/Art/BoZo Characters/Rebuild Game Visuals From Baked Figures")]
@@ -223,24 +374,42 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>Turn baked vendor prefabs into the passive visuals the game binds.</summary>
-        public static void FinalizeFigures(string[] ids)
+        public static void FinalizeFigures(string[] ids) { FinalizeFigures(ids, false); }
+
+        static void FinalizeFigures(string[] ids, bool fromBake)
         {
             var recipes = BozoFigureRecipes.Load();
-            EnsureFolder(SourceFolder);
             foreach (string id in ids)
             {
                 var recipe = recipes.First(f => f.id == id);
+                AssetSnapshot snapshot = null;
                 try
                 {
+                    foreach (string key in recipe.keys ?? new string[0])
+                        if (!MayWrite(key)) throw new InvalidOperationException("Visual " + key + " ist keine Figur dieses Systems.");
+                    snapshot = new AssetSnapshot(new[] { BakeFolder + "/" + id, BakeFolder + "/Animation", SourceFolder }
+                        .Concat((recipe.keys ?? new string[0]).Select(key => Visuals + key + ".prefab")));
+                    EnsureFolder(SourceFolder);
                     Mesh mesh = GameMesh(recipe);
                     Material material = GameMaterial(recipe);
                     Avatar avatar = GameAvatar(recipe);
                     foreach (string key in recipe.keys ?? new string[0]) Save(recipe, mesh, material, avatar, Visuals + key + ".prefab", key, true);
                     foreach (string key in recipe.sources ?? new string[0]) Save(recipe, mesh, material, avatar, SourceFolder + "/" + key + ".prefab", key, false);
+                    AssetDatabase.SaveAssets();
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
                 catch (Exception e)
                 {
+                    if (snapshot != null) snapshot.Restore();
+                    if (fromBake)
+                    {
+                        string backup = Path.Combine("Library/BozoCharacters/Backup", id);
+                        string target = BakeFolder + "/" + id;
+                        if (Directory.Exists(target)) Directory.Delete(target, true);
+                        if (File.Exists(backup + "/.existing")) CopyTree(backup + "/assets", target);
+                        else if (File.Exists(target + ".meta")) File.Delete(target + ".meta");
+                        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+                    }
                     Debug.LogException(e);
                     Report(id + "\tVISUALS_FAILED\t" + e.Message.Replace('\n', ' '));
                 }

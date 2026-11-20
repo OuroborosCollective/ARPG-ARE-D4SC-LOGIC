@@ -70,6 +70,8 @@ namespace AreArpg.EditorTools
             ValidatePath(input.hero);
             _controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(Output + "EntryMelee.controller");
             if (_controller == null) throw new InvalidOperationException("Missing the existing hero controller");
+            if (input.stabilizeWeaponGrip && AssetDatabase.LoadAssetAtPath<AnimationClip>(Output + "EntryIdle.anim") == null)
+                throw new InvalidOperationException("EntryIdle.anim fehlt für die Griffstabilisierung; zuerst den vollständigen Build ausführen.");
             BuildHero(input);
             _enabled = true;
         }

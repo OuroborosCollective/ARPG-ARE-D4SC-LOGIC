@@ -60,7 +60,7 @@ namespace AreArpg.EditorTools
             {
                 int id = i;
                 // Figures of the unified character system are built by BozoFigureBaker; this builder keeps them.
-                if (!BozoFigureRecipes.Owns("EntryNpc" + id))
+                if (!IsBozoVisual("EntryNpc" + id))
                     Save("EntryNpc" + id, root => Actor(root, id == 2 ? "Hero" : "Npc" + id, "Npc" + id, id == 2 ? 2.05f : 1.9f));
                 Save("EntryEnemy" + id, root => Actor(root, "Enemy" + id, "Enemy" + id, id == 2 ? 2.6f : 1.6f));
             }
@@ -68,6 +68,15 @@ namespace AreArpg.EditorTools
             AssetDatabase.SaveAssets();
             AuditInputs();
             Debug.Log("ARE_ENTRY_ART_BUILT: crypt, village, supply parcels; private render-only prefabs.");
+        }
+
+        static bool IsBozoVisual(string key)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/ARE/Visuals/" + key + ".prefab");
+            if (prefab == null) return false;
+            var skins = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            return skins.Length > 0 && Array.TrueForAll(skins, skin => skin.sharedMesh != null &&
+                AssetDatabase.GetAssetPath(skin.sharedMesh).StartsWith(BozoFigureRecipes.BakeFolder + "/", StringComparison.Ordinal));
         }
 
         /// <summary>Rebuild only the hero prefabs (combat hero and grounded entry hero) from the configured hero source.</summary>
