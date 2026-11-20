@@ -32,7 +32,7 @@ class BlenderQueueTests(unittest.TestCase):
         source.write_bytes(b"edited source")
         self.assertNotEqual(intake.submit(self.root, source), ids[0])
 
-    def test_failed_job_can_be_retried_and_successful_job_is_reused(self):
+    def test_failed_job_can_be_retried_and_damaged_result_is_recovered(self):
         source = self.work / "input.glb"
         source.write_bytes(b"queue transport fixture")
         key = intake.submit(self.root, source)
@@ -48,12 +48,14 @@ class BlenderQueueTests(unittest.TestCase):
         (result / "receipt.json").write_text("{}", encoding="utf-8")
         (queued / "source.glb").unlink()
         queued.rmdir()
+        self.assertEqual(intake.status(self.root, key)["state"], "damaged")
         self.assertEqual(intake.submit(self.root, source), key)
-        self.assertFalse(queued.exists())
+        self.assertTrue((queued / "source.glb").exists())
+        self.assertEqual(len(list((self.root / "damaged").glob("*/previous/receipt.json"))), 1)
 
     def test_separate_gltf_requires_every_buffer_and_texture_inside_the_result(self):
         gltf = self.work / "model.gltf"
-        doc = {"asset": {"version": "2.0"}, "buffers": [{"uri": "model.bin"}],
+        doc = {"asset": {"version": "2.0"}, "buffers": [{"uri": "model.bin", "byteLength": 14}],
                "images": [{"uri": "textures/stone%20moss.png"}]}
         gltf.write_text(json.dumps(doc))
         (self.work / "model.bin").write_bytes(b"buffer fixture")
@@ -62,6 +64,10 @@ class BlenderQueueTests(unittest.TestCase):
         (self.work / "textures").mkdir()
         (self.work / "textures/stone moss.png").write_bytes(b"image fixture")
         intake.check_gltf(self.work)
+        (self.work / "model.bin").write_bytes(b"x")
+        with self.assertRaisesRegex(ValueError, "buffer length"):
+            intake.check_gltf(self.work)
+        (self.work / "model.bin").write_bytes(b"buffer fixture")
         for uri in ("../outside.png", "%2e%2e/other.png", "/etc/hosts", "https://example.org/a"):
             doc["images"][0]["uri"] = uri
             gltf.write_text(json.dumps(doc))

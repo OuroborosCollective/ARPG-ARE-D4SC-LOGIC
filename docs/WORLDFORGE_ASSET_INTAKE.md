@@ -12,6 +12,26 @@
 6. New POIs are saved **with `intakePlacementPending=true`**, **flattenRadius=0** and **clearSpawnRadius=0**. Only after setting verified coordinates may the owner configure a deliberate flatten/clear radius and explicitly uncheck pending. Even legacy pending entries with positive radii are ignored by the height layer; approval alone never flattens the origin.
 7. Every generation/respawn/height-only entry point revalidates active approved POI GUIDs and classification **inside Validate(p), before changing terrain, scene roots, or profile settings**. Disabling or removing all POIs clears the previous `WF_POIs` root. Missing private references retain their GUID for future re-import.
 
+## Blender-Export auf dem Ashen-Crypt-VPS
+
+Im **Asset-Eingang → Blender-Export** eine gepackte `.blend`, eine eigenständige `.fbx` oder eine `.glb` auswählen. Bei Blender-Dateien mit externen Bildern zuerst **Datei → Externe Daten → Ressourcen packen** und anschließend speichern. Der Auftrag akzeptiert eine einzelne Datei bis 1 GiB. Der private Dienst verarbeitet sie auch bei geschlossenem Unity-Editor. Eine über SSH erhaltene Auftrags-ID lässt sich im selben Fenster öffnen.
+
+Jeder erfolgreiche Auftrag liefert `model.fbx` mit eingebetteten Bildern, `model.glb` und `model.gltf` mit separatem Binärpuffer und gegebenenfalls einem Texturordner. Beim Kopieren der glTF-Ausgabe den Puffer und die referenzierten Bilder mitnehmen. Der Export verwendet die aktive Blender-Szene und die Material- und Animationsfunktionen der jeweiligen Austauschformate. Komplexe Shader und Rigs benötigen eine Sichtprüfung im Zielprogramm.
+
+**Exportordner öffnen** zeigt die Dateien. **FBX importieren** übernimmt das geprüfte Modell in `Assets/PrivateArt/WorldForgeBlender/<id>/model.fbx`. Das Modell erscheint zur Einzelprüfung. Eine erneute Auswahl erhält seine Unity-GUID.
+
+Über SSH stehen dieselben Aufträge zur Verfügung:
+
+```sh
+job=$(worldforge-blender submit '/absoluter/Pfad/Modell.blend')
+worldforge-blender status "$job"
+worldforge-blender retry "$job"   # nach einem fehlgeschlagenen Lauf
+```
+
+Die private Warteschlange liegt unter `/var/lib/unityarpg/.local/share/are-arpg/worldforge-blender`. Fertige Exporte stehen in `results/<id>/`. `receipt.json` enthält die SHA-256 der Quelle, des Exportskripts und jeder Ausgabedatei. Bei identischer Quelle und Exportrezept wird das geprüfte Ergebnis wiederverwendet. Bei Status `damaged` dieselbe Quelldatei erneut einreichen. Der Dienst bewahrt die beschädigte Ausgabe unter `damaged/` auf und erzeugt das Trio neu. Bei fehlenden Texturen zuerst die Quelle korrigieren und neu einreichen.
+
+Auf dem Ubuntu-x64-VPS installiert `sudo bash scripts/forge/install_worldforge_blender.sh` die festgelegte Blender-Version und aktiviert `worldforge-blender.timer`. Voraussetzungen sind der bestehende Benutzer `unityarpg`, systemd und Bubblewrap. Der Worker läuft unter `unityarpg` mit isoliertem Dateisystem, privatem Netzwerk-Namensraum und deaktivierter Skriptausführung aus Quelldateien. Ein Auftrag erhält bis zu 15 Minuten, der Dienst bis zu zwei CPU-Kerne und 5 GiB RAM. `systemctl status worldforge-blender.timer` zeigt den Zeitgeber, `journalctl -u worldforge-blender.service` die verarbeiteten Auftrags-IDs.
+
 ## Safety and policy
 
 The source path is never a policy. Only known **per-package** roots produce candidates: `VisualPass1/VikingVillage`, `DesignAssets/StylizedFruitProps`, `DesignAssets/AlchemyLabProps`, `DesignAssets/SimpleMedievalProps`, `OwnerForestReview/Prefabs`, and `FantasyKingdom3D/Prefabs`. These allow only *proposals*, not automatic imports.

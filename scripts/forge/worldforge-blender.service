@@ -1,0 +1,22 @@
+[Unit]
+Description=World Forge headless Blender export queue
+
+[Service]
+Type=oneshot
+User=unityarpg
+Group=unityarpg
+ExecStart=/usr/local/bin/worldforge-blender drain
+UMask=0077
+Nice=10
+CPUQuota=200%
+MemoryMax=5G
+TasksMax=128
+LimitFSIZE=2G
+TimeoutStartSec=infinity
+PrivateTmp=yes
+PrivateNetwork=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+ReadWritePaths=/var/lib/unityarpg/.local/share/are-arpg/worldforge-blender
