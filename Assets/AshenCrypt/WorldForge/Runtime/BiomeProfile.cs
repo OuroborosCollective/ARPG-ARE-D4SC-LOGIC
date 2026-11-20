@@ -14,6 +14,8 @@ namespace AshenCrypt.WorldForge
 
         [Tooltip("Processed in order. Earlier rules reserve space (clearRadius) for later ones, so put large objects first.")]
         public List<WFSpawnRule> spawnRules = new List<WFSpawnRule>();
+        [Tooltip("Reviewer rejections persisted inside the existing BiomeProfile, never an external asset catalog.")]
+        public List<string> rejectedAssetGuids = new List<string>();
 
         /// <summary>Unique TerrainLayers in rule order; index = splatmap channel.</summary>
         public List<TerrainLayer> CollectTerrainLayers(out int[] ruleToLayer)

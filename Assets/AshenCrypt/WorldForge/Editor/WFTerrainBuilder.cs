@@ -364,7 +364,8 @@ namespace AshenCrypt.WorldForge.EditorTools
             var poiOccupancy = new WFOccupancy(8f);
             if (p.pois != null)
                 foreach (WFPoiDefinition poi in p.pois)
-                    if (poi != null) poiOccupancy.Add(poi.position.x, poi.position.y, poi.clearSpawnRadius);
+                    if (poi != null && !poi.intakePlacementPending && poi.clearSpawnRadius > 0f)
+                        poiOccupancy.Add(poi.position.x, poi.position.y, poi.clearSpawnRadius);
 
             // Tree prototypes shared by all tiles.
             var treePrefabs = new List<GameObject>();
@@ -593,6 +594,29 @@ namespace AshenCrypt.WorldForge.EditorTools
 
         // ------------------------------------------------------------------ POIs, NavMesh, stats
 
+        // Run before GenerateAll / Respawn / heights-only can change terrains or objects.
+        // Missing private art retains its approved GUID without automatic placement.
+        private static void ValidateApprovedPoiVisuals(WorldProfile p)
+        {
+            if (!p.createPoiObjects || p.pois == null) return;
+            ISet<string> runtimeBindings = null;
+            foreach (WFPoiDefinition candidate in p.pois)
+            {
+                if (candidate == null || candidate.intakePlacementPending ||
+                    string.IsNullOrEmpty(candidate.approvedAssetGuid) ||
+                    candidate.decorativePrefab == null) continue;
+                string source = AssetDatabase.GetAssetPath(candidate.decorativePrefab);
+                if (AssetDatabase.AssetPathToGUID(source) != candidate.approvedAssetGuid)
+                    throw new InvalidOperationException("POI_ASSET_GUID_DRIFT");
+                if (runtimeBindings == null)
+                    runtimeBindings = WFAssetIntakeEvaluator.CollectRuntimeBoundNames();
+                var verdict = WFAssetIntakeEvaluator.Assess(
+                    candidate.decorativePrefab, source, runtimeBindings);
+                if (verdict.kind != WFAssetIntakeKind.Poi && verdict.kind != WFAssetIntakeKind.Spawn)
+                    throw new InvalidOperationException("POI_ASSET_IS_NO_LONGER_SAFE");
+            }
+        }
+
         private static void CreatePois(WorldProfile p, ForgedWorld world, WFHeightContext ctx, WFBuildReport report)
         {
             Transform old = world.transform.Find(PoiRootName);
@@ -602,11 +626,23 @@ namespace AshenCrypt.WorldForge.EditorTools
             foreach (WFPoiDefinition def in p.pois)
             {
                 if (def == null) continue;
+                // A newly admitted visual is NOT a world placement. The owner must
+                // select coordinates and clear pending in the existing WorldProfile.
+                if (def.intakePlacementPending)
+                    continue;
                 var go = new GameObject("POI_" + def.type + "_" + WFEditorUtil.SafeName(def.id));
                 go.transform.SetParent(root, false);
                 go.transform.position = world.transform.position + new Vector3(def.position.x, ctx.SampleHeight(def.position.x, def.position.y), def.position.y);
                 var poi = go.AddComponent<ForgedPoi>();
                 poi.poiId = def.id; poi.type = def.type; poi.radius = def.radius; poi.tags = def.tags;
+                if (def.decorativePrefab != null && !string.IsNullOrEmpty(def.approvedAssetGuid))
+                {
+                    // Only a confirmed, still-safe decorative prefab; marker owns the world position.
+                    var visual = PrefabUtility.InstantiatePrefab(def.decorativePrefab, go.transform) as GameObject;
+                    if (visual == null) throw new InvalidOperationException("POI_VISUAL_INSTANTIATION_FAILED");
+                    visual.transform.localPosition = Vector3.zero;
+                    visual.transform.localRotation = Quaternion.identity;
+                }
                 report.pois++;
             }
             Undo.RegisterCreatedObjectUndo(root.gameObject, "World Forge POIs");
@@ -658,6 +694,7 @@ namespace AshenCrypt.WorldForge.EditorTools
         private static void Validate(WorldProfile p)
         {
             if (p == null) throw new ArgumentNullException("profile");
+            ValidateApprovedPoiVisuals(p); // must be fail-closed before the first scene/terrain mutation
             int fixedRes = WorldProfile.ValidHeightmapResolution(p.heightmapResolution);
             if (fixedRes != p.heightmapResolution) { p.heightmapResolution = fixedRes; EditorUtility.SetDirty(p); }
             if (p.heightLayers == null || p.heightLayers.Count == 0)
