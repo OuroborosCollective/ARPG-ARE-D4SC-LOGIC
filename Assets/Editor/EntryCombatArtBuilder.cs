@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -21,6 +22,8 @@ namespace AreArpg.EditorTools
             public Vector3 weaponModelEuler;
             public float weaponLength, weaponGripFromBase;
             public bool stabilizeWeaponGrip;
+            /// <summary>Keep the source figure's own materials (unified BoZo character system) instead of URP/Lit copies.</summary>
+            public bool keepHeroMaterials;
         }
         private static bool _enabled;
         private static AnimatorController _controller;
@@ -53,6 +56,42 @@ namespace AreArpg.EditorTools
             BuildWeapon(input);
             BuildHero(input);
             _enabled = true;
+        }
+
+        /// <summary>
+        /// Rebuild only the hero prefab from the configured source and keep the existing controller with all its
+        /// states (melee, guard, cast, bow). Used when the hero figure changes but its animation set does not.
+        /// </summary>
+        public static void RebuildHero()
+        {
+            if (!File.Exists(Catalog)) throw new InvalidOperationException("Missing combat art inputs");
+            var input = JsonUtility.FromJson<Inputs>(File.ReadAllText(Catalog));
+            if (input == null) throw new InvalidOperationException("Missing combat art inputs");
+            ValidatePath(input.hero);
+            _controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(Output + "EntryMelee.controller");
+            if (_controller == null) throw new InvalidOperationException("Missing the existing hero controller");
+            BuildHero(input);
+            _enabled = true;
+        }
+
+        /// <summary>
+        /// Material copies made for an earlier hero stay in Resources and would be shipped together with that hero's
+        /// textures. Remove the copies neither hero prefab uses any more.
+        /// </summary>
+        public static int RemoveUnusedHeroMaterials()
+        {
+            var used = new HashSet<string>();
+            foreach (string key in new[] { "EntryCombatHero", "EntryHero" })
+                if (File.Exists(Output + key + ".prefab"))
+                    foreach (string dependency in AssetDatabase.GetDependencies(Output + key + ".prefab", true)) used.Add(dependency);
+            int removed = 0;
+            foreach (string guid in AssetDatabase.FindAssets("EntryHeroMaterial_ t:Material", new[] { Output.TrimEnd('/') }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!Path.GetFileName(path).StartsWith("EntryHeroMaterial_", StringComparison.Ordinal) || used.Contains(path)) continue;
+                if (AssetDatabase.DeleteAsset(path)) removed++;
+            }
+            return removed;
         }
 
         /// <summary>Return a prepared private key or the previous revision's visual.</summary>
@@ -359,8 +398,9 @@ namespace AreArpg.EditorTools
                 var animator = animators[0];
                 animator.runtimeAnimatorController = _controller;
                 animator.applyRootMotion = false;
-                foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
-                    renderer.sharedMaterials = renderer.sharedMaterials.Select(HeroMaterial).ToArray();
+                if (!input.keepHeroMaterials)
+                    foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+                        renderer.sharedMaterials = renderer.sharedMaterials.Select(HeroMaterial).ToArray();
                 var hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
                 if (hand == null) throw new InvalidOperationException("Hero has no right-hand weapon attachment");
                 var socket = new GameObject("EntryWeaponSocket").transform;
@@ -387,7 +427,8 @@ namespace AreArpg.EditorTools
             var scales = transforms.Select(t => t.localScale).ToArray();
             try
             {
-                AssetDatabase.LoadAssetAtPath<AnimationClip>(Output + "EntryIdle.anim").SampleAnimation(root, 0f);
+                // A humanoid clip poses the object that carries the Animator; that may be a child of the prefab root.
+                AssetDatabase.LoadAssetAtPath<AnimationClip>(Output + "EntryIdle.anim").SampleAnimation(animator.gameObject, 0f);
                 var grip = new GameObject("EntryReadyGrip").transform;
                 grip.SetParent(chest, false); grip.SetPositionAndRotation(hand.position, hand.rotation);
                 var hint = new GameObject("EntryReadyElbow").transform;

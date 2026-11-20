@@ -1,0 +1,238 @@
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using AreArpg.UnityClient;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+
+namespace AreArpg.EditMode.Tests
+{
+    /// <summary>
+    /// Owner rule 2026-11-19: every human figure the game shows is built from the unified BoZo figures. The purchased
+    /// pack and the baked figures are private; without them these checks are reported as ignored, never as passed.
+    /// </summary>
+    public sealed class BozoFigureVisualTests
+    {
+        const string Baked = "Assets/PrivateArt/BozoCharacters/";
+        const string NotInstalled = "Requires the purchased BoZo pack with baked figures (private, never in the repository)";
+
+        static Type Recipes() { return Tool("BozoFigureRecipes"); }
+
+        static Type Tool(string name)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type type = assembly.GetType("AreArpg.EditorTools." + name);
+                if (type != null) return type;
+            }
+            Assert.Fail(name + " is missing");
+            return null;
+        }
+
+        /// <summary>
+        /// The pack keeps all its parts in Resources folders. During a player build they are hidden, otherwise the whole
+        /// purchased pack would be shipped inside the APK; afterwards the creator finds its parts again.
+        /// </summary>
+        [Test]
+        public void BuildGuardHidesThePackFromPlayerBuildsAndRestoresIt()
+        {
+            Type guard = Tool("BozoBuildGuard");
+            MethodInfo folders = guard.GetMethod("Folders", BindingFlags.Public | BindingFlags.Static);
+            var before = (string[])folders.Invoke(null, new object[] { "Resources" });
+            if (before.Length == 0) Assert.Ignore(NotInstalled);
+            const string part = "Top/Top_RangerVest";
+            Assert.IsNotNull(Resources.Load(part), "The creator loads its parts by name");
+            try
+            {
+                Assert.AreEqual(before.Length, (int)guard.GetMethod("Exclude", BindingFlags.Public | BindingFlags.Static).Invoke(null, null));
+                Assert.IsEmpty((string[])folders.Invoke(null, new object[] { "Resources" }), "No pack folder may stay a Resources folder during a build");
+                Assert.IsNull(Resources.Load(part), "Hidden parts are not shipped");
+            }
+            finally { guard.GetMethod("Restore", BindingFlags.Public | BindingFlags.Static).Invoke(null, null); }
+            CollectionAssert.AreEqual(before, (string[])folders.Invoke(null, new object[] { "Resources" }));
+            Assert.IsNotNull(Resources.Load(part), "The creator finds its parts again after the build");
+        }
+
+        static T Field<T>(object target, string name) { return (T)target.GetType().GetField(name).GetValue(target); }
+
+        /// <summary>Game visuals of the figures baked in this workspace with the height their role asks for.</summary>
+        static Dictionary<string, float> BakedFigures()
+        {
+            Type recipes = Recipes();
+            MethodInfo owns = recipes.GetMethod("Owns", BindingFlags.Public | BindingFlags.Static);
+            var result = new Dictionary<string, float>();
+            foreach (object figure in (Array)recipes.GetMethod("Load", BindingFlags.Public | BindingFlags.Static).Invoke(null, null))
+                foreach (string key in Field<string[]>(figure, "keys"))
+                    if ((bool)owns.Invoke(null, new object[] { key })) result.Add(key, Field<float>(figure, "height"));
+            return result;
+        }
+
+        [Test]
+        public void AVisualWithoutABakedFigureStaysWithItsPreviousBuilder()
+        {
+            MethodInfo owns = Recipes().GetMethod("Owns", BindingFlags.Public | BindingFlags.Static);
+            Assert.IsFalse((bool)owns.Invoke(null, new object[] { "EntryEnemy0" }), "Monsters are not part of the figure recipes");
+            Assert.IsFalse((bool)owns.Invoke(null, new object[] { "NoSuchVisual" }));
+        }
+
+        /// <summary>A mistyped recipe key must not overwrite art that is not a figure (monsters, weapons, worlds).</summary>
+        [Test]
+        public void ARecipeKeyCannotOverwriteOtherArt()
+        {
+            if (BakedFigures().Count == 0) Assert.Ignore(NotInstalled);
+            Type baker = Tool("BozoFigureBaker");
+            MethodInfo mayWrite = baker.GetMethod("MayWrite", BindingFlags.Public | BindingFlags.Static);
+            foreach (string foreign in new[] { "EntryEnemy0", "Enemy0", "EntryWeapon", "EntryCryptWorld" })
+                if (Resources.Load<GameObject>("ARE/Visuals/" + foreign) != null)
+                    Assert.IsFalse((bool)mayWrite.Invoke(null, new object[] { foreign }), foreign + " is not a figure and must stay");
+            Assert.IsTrue((bool)mayWrite.Invoke(null, new object[] { "EntryNpc0" }), "A figure may be renewed");
+            Assert.IsTrue((bool)mayWrite.Invoke(null, new object[] { "VillagerNotYetBuilt" }), "A new visual may be created");
+        }
+
+        [Test]
+        public void EveryBakedFigureIsAcceptedByTheGameAsOnePassiveHumanoid()
+        {
+            Dictionary<string, float> figures = BakedFigures();
+            if (figures.Count == 0) Assert.Ignore(NotInstalled);
+            foreach (KeyValuePair<string, float> figure in figures)
+            {
+                string key = figure.Key;
+                GameObject prefab = Resources.Load<GameObject>("ARE/Visuals/" + key);
+                Assert.IsNotNull(prefab, key + " belongs to the unified figures but has no game visual");
+                var host = new GameObject("FigureHost");
+                var posed = new Mesh();
+                try
+                {
+                    Assert.IsTrue(PassiveArtVisuals.TryBindGroundedPrefab(host.transform, prefab, 0f), key + " must pass the game's passive-art check");
+                    SkinnedMeshRenderer[] skins = host.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                    Assert.AreEqual(1, skins.Length, key + ": one merged mesh");
+                    SkinnedMeshRenderer skin = skins[0];
+                    Assert.AreEqual(1, skin.sharedMaterials.Length, key + ": one material");
+                    Assert.IsTrue(skin.sharedMaterial != null && skin.sharedMaterial.shader.isSupported, key + ": the material must render");
+                    StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(skin.sharedMaterial), key + ": the game keeps the figure's own material");
+                    StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(skin.sharedMesh), key);
+                    Assert.AreEqual(0, skin.sharedMesh.blendShapeCount, key + ": the sliders are baked into the game mesh");
+                    AssertReadableNormalMap(key, skin.sharedMaterial);
+                    long triangles = 0;
+                    for (int part = 0; part < skin.sharedMesh.subMeshCount; part++) triangles += skin.sharedMesh.GetIndexCount(part) / 3;
+                    Assert.Less(triangles, 32000, key + ": triangle budget of one figure");
+
+                    Animator animator = host.GetComponentInChildren<Animator>(true);
+                    Assert.IsTrue(animator != null && animator.avatar != null && animator.avatar.isHuman && animator.avatar.isValid, key + ": humanoid rig");
+                    Assert.IsFalse(animator.applyRootMotion, key + ": the Core moves the figure, not the animation");
+                    AssertAvatarKnowsTheReshapedBones(key, animator);
+                    Assert.IsFalse(PassiveArtVisuals.NeedsSharedLocomotion(animator), key + ": idle and walk come with the figure");
+                    var controller = animator.runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
+                    Assert.IsNotNull(controller, key);
+                    Assert.IsTrue(Array.Exists(controller.parameters, p => p.name == "MoveMagnitude" && p.type == AnimatorControllerParameterType.Float),
+                        key + ": walks on the game's MoveMagnitude signal");
+
+                    skin.BakeMesh(posed); // world-sized: the scale of all parents is baked into the vertices
+                    Matrix4x4 toWorld = Matrix4x4.TRS(skin.transform.position, skin.transform.rotation, Vector3.one);
+                    float low = float.MaxValue, high = float.MinValue;
+                    foreach (Vector3 vertex in posed.vertices)
+                    {
+                        float y = toWorld.MultiplyPoint3x4(vertex).y;
+                        low = Mathf.Min(low, y); high = Mathf.Max(high, y);
+                    }
+                    Assert.AreEqual(0f, low, .02f, key + " stands on its visible feet");
+                    Assert.AreEqual(figure.Value, high - low, figure.Value * .02f, key + " has the height of its role");
+                }
+                finally { UnityEngine.Object.DestroyImmediate(host); UnityEngine.Object.DestroyImmediate(posed); }
+            }
+        }
+
+        /// <summary>
+        /// The pack saves its normal atlas in a packing this project does not read. Used as it is, every surface seems
+        /// to face away from the light and the figure looks as if it stood in the dark (owner finding 2026-11-19).
+        /// </summary>
+        static void AssertReadableNormalMap(string key, Material material)
+        {
+            Texture normal = material.HasProperty("_Normal") ? material.GetTexture("_Normal") : null;
+            Assert.IsNotNull(normal, key + ": normal map");
+            string path = AssetDatabase.GetAssetPath(normal);
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            Assert.IsTrue(importer != null && importer.textureType == TextureImporterType.NormalMap,
+                key + ": the normal atlas must be imported as a normal map, otherwise the figure is lit as if it stood in the dark");
+            var pixels = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
+            try
+            {
+                Assert.IsTrue(pixels.LoadImage(System.IO.File.ReadAllBytes(path)), key);
+                Color32[] colors = pixels.GetPixels32();
+                long outward = 0; int samples = 0;
+                for (int i = 0; i < colors.Length; i += 97) { outward += colors[i].b; samples++; }
+                Assert.Greater(outward / (float)samples, 200f, key + ": normals must point out of the surface (blue channel)");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(pixels); }
+        }
+
+        /// <summary>
+        /// The body sliders scale bones. An avatar that describes the unscaled skeleton makes Unity place hands and
+        /// feet beside the real bones (the hero's sword hand missed its grip by four centimetres).
+        /// </summary>
+        static void AssertAvatarKnowsTheReshapedBones(string key, Animator animator)
+        {
+            var known = new Dictionary<string, Vector3>();
+            foreach (SkeletonBone bone in animator.avatar.humanDescription.skeleton) known[bone.name] = bone.scale;
+            foreach (Transform bone in animator.GetComponentsInChildren<Transform>(true))
+            {
+                Vector3 scale;
+                if (!known.TryGetValue(bone.name, out scale)) continue;
+                Assert.Less((bone.localScale - scale).magnitude, .001f, key + ": the avatar must describe the scale of bone " + bone.name);
+            }
+        }
+
+        [Test]
+        public void HeroAndMillPatientsComeFromTheUnifiedFigures()
+        {
+            if (BakedFigures().Count == 0) Assert.Ignore(NotInstalled);
+            foreach (string key in new[] { "EntryCombatHero", "EntryHero" })
+            {
+                GameObject prefab = Resources.Load<GameObject>("ARE/Visuals/" + key);
+                Assert.IsNotNull(prefab, key);
+                GameObject hero = UnityEngine.Object.Instantiate(prefab);
+                try
+                {
+                    SkinnedMeshRenderer[] skins = hero.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                    Assert.AreEqual(1, skins.Length, key + ": one merged mesh");
+                    StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(skins[0].sharedMesh), key + " must be the unified hero figure");
+                    foreach (Material material in skins[0].sharedMaterials)
+                    {
+                        StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(material), key + " keeps the figure's own material");
+                        AssertReadableNormalMap(key, material);
+                    }
+                    Animator animator = hero.GetComponentInChildren<Animator>(true);
+                    Assert.IsTrue(animator != null && animator.avatar != null && animator.avatar.isHuman, key + ": humanoid rig");
+                    AssertAvatarKnowsTheReshapedBones(key, animator);
+                    Assert.IsTrue(PassiveArtVisuals.HasPlayableClip(animator.runtimeAnimatorController), key + ": combat animations");
+                    Transform hand = animator.GetBoneTransform(HumanBodyBones.RightHand), socket = null;
+                    foreach (Transform node in hero.GetComponentsInChildren<Transform>(true))
+                    {
+                        if (node.name != "EntryWeaponSocket") continue;
+                        Assert.IsNull(socket, key + ": exactly one weapon socket");
+                        socket = node;
+                    }
+                    Assert.IsNotNull(socket, key + ": weapon socket");
+                    Assert.AreSame(hand, socket.parent, key + ": the weapon is held in the right hand");
+                }
+                finally { UnityEngine.Object.DestroyImmediate(hero); }
+            }
+            for (int id = 0; id < 3; id++)
+            {
+                GameObject patient = Resources.Load<GameObject>("ARE/Visuals/MillPatient" + id);
+                Assert.IsNotNull(patient, "MillPatient" + id);
+                int parts = 0;
+                foreach (Renderer renderer in patient.GetComponentsInChildren<Renderer>(true))
+                {
+                    if (renderer.name == "Blanket") continue;
+                    parts++;
+                    foreach (Material material in renderer.sharedMaterials)
+                        StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(material.mainTexture),
+                            "MillPatient" + id + " must wear the colour atlas of a unified figure");
+                }
+                Assert.Greater(parts, 0, "MillPatient" + id + " has a body");
+            }
+        }
+    }
+}
