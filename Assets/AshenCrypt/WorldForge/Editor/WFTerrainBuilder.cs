@@ -598,7 +598,7 @@ namespace AshenCrypt.WorldForge.EditorTools
         // Missing private art retains its approved GUID without automatic placement.
         private static void ValidateApprovedPoiVisuals(WorldProfile p)
         {
-            if (p.pois == null) return;
+            if (!p.createPoiObjects || p.pois == null) return;
             ISet<string> runtimeBindings = null;
             foreach (WFPoiDefinition candidate in p.pois)
             {

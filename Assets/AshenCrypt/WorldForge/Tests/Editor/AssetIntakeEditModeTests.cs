@@ -98,6 +98,105 @@ namespace AshenCrypt.WorldForge.Tests
             finally { UnityEngine.Object.DestroyImmediate(go); }
         }
 
+        [TestCase("Weapons/Sword.prefab")]
+        [TestCase("Props/SM_Wep_Axe_01.prefab")]
+        public void WeaponsInsideAllowedPackageRequireReview(string relativePath)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                Assert.AreEqual(WFAssetIntakeKind.ReviewRequired,
+                    WFAssetIntakeEvaluator.Assess(go, TestParent + "/" + relativePath).kind);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(go); }
+        }
+
+        [Test]
+        public void OffsetGeometryKeepsRootCenteredClearanceAndObstacleRadius()
+        {
+            string guid;
+            var prefab = CreateSourcePrefab("OffsetProp", out guid);
+            var biome = ScriptableObject.CreateInstance<BiomeProfile>();
+            GameObject contents = PrefabUtility.LoadPrefabContents(AssetDatabase.GetAssetPath(prefab));
+            try
+            {
+                var mesh = contents.GetComponent<MeshFilter>();
+                var child = new GameObject("OffsetMesh");
+                child.transform.SetParent(contents.transform, false);
+                child.transform.localPosition = new Vector3(5f, 0f, 3f);
+                child.AddComponent<MeshFilter>().sharedMesh = mesh.sharedMesh;
+                child.AddComponent<MeshRenderer>();
+                UnityEngine.Object.DestroyImmediate(mesh);
+                UnityEngine.Object.DestroyImmediate(contents.GetComponent<MeshRenderer>());
+                PrefabUtility.SaveAsPrefabAsset(contents, AssetDatabase.GetAssetPath(prefab));
+                prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GetAssetPath(prefab));
+                var verdict = WFAssetIntakeEvaluator.Assess(prefab, AssetDatabase.GetAssetPath(prefab));
+                float expected = 1f + Mathf.Sqrt(5.5f * 5.5f + 3.5f * 3.5f);
+                Assert.AreEqual(expected, verdict.clearanceRadius, .001f);
+                Assert.AreEqual(Vector3.one, verdict.size);
+                WFAssetIntakeApprovals.ConfirmSpawn(biome, prefab, guid, verdict);
+                Assert.AreEqual(expected, biome.spawnRules[0].clearRadius, .001f);
+                Assert.AreEqual(expected, biome.spawnRules[0].coreObstacleRadius, .001f);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(contents);
+                UnityEngine.Object.DestroyImmediate(biome);
+                AssetDatabase.DeleteAsset(TestRoot);
+            }
+        }
+
+        [TestCase(".glb")]
+        [TestCase(".GLTF")]
+        public void GltfChangesEnterIncrementalQueue(string extension)
+        {
+            var window = ScriptableObject.CreateInstance<WFAssetIntakeWindow>();
+            try
+            {
+                string path = "Assets/PrivateArt/Prop" + extension;
+                WFAssetIntakeWindow.QueueChanged(new[] { path });
+                var field = typeof(WFAssetIntakeWindow).GetField("changedPaths",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                CollectionAssert.Contains((System.Collections.IEnumerable)field.GetValue(window), path);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(window); }
+        }
+
+        [Test]
+        public void DisabledPoiVisualsAllowCleanupDespiteGuidDrift()
+        {
+            var profile = ScriptableObject.CreateInstance<WorldProfile>();
+            var prefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var root = new GameObject("CleanupTest");
+            try
+            {
+                var world = root.AddComponent<ForgedWorld>();
+                var old = new GameObject("WF_POIs");
+                old.transform.SetParent(root.transform);
+                profile.createPoiObjects = false;
+                profile.pois.Add(new WFPoiDefinition
+                {
+                    decorativePrefab = prefab, approvedAssetGuid = new string('a', 32)
+                });
+                var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic;
+                var validate = typeof(WFTerrainBuilder).GetMethod("ValidateApprovedPoiVisuals", flags);
+                Assert.DoesNotThrow(() => validate.Invoke(null, new object[] { profile }));
+                typeof(WFTerrainBuilder).GetMethod("CreatePois", flags).Invoke(null,
+                    new object[] { profile, world, null, new WFBuildReport() });
+                Assert.IsTrue(old == null, "Disabling visuals must remove the existing POI root");
+                profile.createPoiObjects = true;
+                var error = Assert.Throws<System.Reflection.TargetInvocationException>(() =>
+                    validate.Invoke(null, new object[] { profile }));
+                StringAssert.Contains("POI_ASSET_GUID_DRIFT", error.InnerException.Message);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+                UnityEngine.Object.DestroyImmediate(prefab);
+                UnityEngine.Object.DestroyImmediate(profile);
+            }
+        }
+
         [Test]
         public void ConfirmedSpawnWritesOnlyExistingBiomeAndKeepsGuid()
         {

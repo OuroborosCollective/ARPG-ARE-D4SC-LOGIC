@@ -16,13 +16,14 @@ namespace AshenCrypt.WorldForge.EditorTools
         public readonly string reason;
         public readonly float clearanceRadius;
         public readonly Vector3 size;
-        public WFAssetIntakeVerdict(WFAssetIntakeKind kind, string reason, Vector3 size)
+        public WFAssetIntakeVerdict(WFAssetIntakeKind kind, string reason, Vector3 size, float? horizontalRadius = null)
         {
             this.kind = kind;
             this.reason = reason;
             this.size = size;
-            // Half of horizontal footprint diagonal plus a one-metre clearance.
-            clearanceRadius = 1f + 0.5f * Mathf.Sqrt(size.x * size.x + size.z * size.z);
+            // Root-centered footprint plus a one-metre clearance.
+            clearanceRadius = 1f + (horizontalRadius ??
+                0.5f * Mathf.Sqrt(size.x * size.x + size.z * size.z));
         }
     }
 
@@ -106,6 +107,14 @@ namespace AshenCrypt.WorldForge.EditorTools
             return false;
         }
 
+        private static bool IsWeaponName(string value)
+        {
+            // Reject weapon markers conservatively, including common vendor abbreviations.
+            return Regex.IsMatch(value ?? "",
+                "weapon|wep|sword|axe|bow|dagger|spear|shield|mace|hammer|crossbow|halberd|knife|club|polearm|lance|pistol|rifle|waffe",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
         private static bool IsGameBound(string name, ISet<string> runtimeBindings)
         {
             if (string.IsNullOrEmpty(name)) return false;
@@ -144,6 +153,13 @@ namespace AshenCrypt.WorldForge.EditorTools
         /// <summary>Real mesh-local geometry, not the unrelated prefab world position.</summary>
         public static Vector3 MeasureLocalSize(GameObject prefab)
         {
+            float horizontalRadius;
+            return MeasureLocalSize(prefab, out horizontalRadius);
+        }
+
+        private static Vector3 MeasureLocalSize(GameObject prefab, out float horizontalRadius)
+        {
+            horizontalRadius = 0f;
             if (prefab == null) return Vector3.zero;
             Bounds bounds = default(Bounds);
             bool hasAny = false;
@@ -160,6 +176,8 @@ namespace AshenCrypt.WorldForge.EditorTools
                         {
                             Vector3 v = toRoot.MultiplyPoint3x4(b.center + Vector3.Scale(
                                 b.extents, new Vector3(ix, iy, iz)));
+                            horizontalRadius = Mathf.Max(horizontalRadius,
+                                Mathf.Sqrt(v.x * v.x + v.z * v.z));
                             if (!hasAny) { bounds = new Bounds(v, Vector3.zero); hasAny = true; }
                             else bounds.Encapsulate(v);
                         }
@@ -188,8 +206,19 @@ namespace AshenCrypt.WorldForge.EditorTools
                 return new WFAssetIntakeVerdict(WFAssetIntakeKind.Protected,
                     "Figur, Waffe, Partikel, Gameplay-Komponente oder gebundener Objektname", Vector3.zero);
 
-            Vector3 size = MeasureLocalSize(prefab);
-            if (size.x <= 0f || size.z <= 0f || float.IsNaN(size.x) || float.IsInfinity(size.x) ||
+            // Package approval alone cannot establish that a weapon is decoration.
+            foreach (Transform node in prefab.GetComponentsInChildren<Transform>(true))
+                if (IsWeaponName(node.name))
+                    return new WFAssetIntakeVerdict(WFAssetIntakeKind.ReviewRequired,
+                        "Waffe – manuelle Dekorationsprüfung nötig", Vector3.zero);
+            if (IsWeaponName(path))
+                return new WFAssetIntakeVerdict(WFAssetIntakeKind.ReviewRequired,
+                    "Waffenpfad – manuelle Dekorationsprüfung nötig", Vector3.zero);
+
+            float horizontalRadius;
+            Vector3 size = MeasureLocalSize(prefab, out horizontalRadius);
+            if (float.IsNaN(horizontalRadius) || float.IsInfinity(horizontalRadius) ||
+                size.x <= 0f || size.z <= 0f || float.IsNaN(size.x) || float.IsInfinity(size.x) ||
                 float.IsNaN(size.y) || float.IsInfinity(size.y) ||
                 float.IsNaN(size.z) || float.IsInfinity(size.z))
                 return new WFAssetIntakeVerdict(WFAssetIntakeKind.ReviewRequired,
@@ -202,7 +231,7 @@ namespace AshenCrypt.WorldForge.EditorTools
                 WFAssetIntakeKind kind = (size.magnitude > 12f || size.y > 8f)
                     ? WFAssetIntakeKind.Poi : rule.kind;
                 return new WFAssetIntakeVerdict(kind,
-                    "Paketregel " + rule.path + " und Renderer-Geometrie; nur Vorschlag", size);
+                    "Paketregel " + rule.path + " und Renderer-Geometrie; nur Vorschlag", size, horizontalRadius);
             }
             return new WFAssetIntakeVerdict(WFAssetIntakeKind.ReviewRequired,
                 "Unbekanntes Paket – manuelle Katalogprüfung nötig", size);

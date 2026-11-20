@@ -120,3 +120,19 @@ Each new round records UTC date, incoming and resulting revisions, exact changed
 - Effects and authority: no change to 100-ms C# simulation, saved game records, real scene or Unity Editor; the adapter only prevents a not-yet-placed metadata record being promoted into an authoritative world POI. Already placed legacy story POIs remain included. No merge/promotion.
 - Blocked/UNVERIFIED: original Unity Editor 6000.6.8f1 run against 791 private assets, native EditMode behavior, live image and game rendering, Android Tab A9, and persistent owner `Ashen_Crypt_Evidenz_Logbuch.docx` identity (SSH owner delegation disconnected). Native checks MUST NOT be inferred from Python preflight.
 - Next: reread final PR-HEAD CI; restore existing owner-only Sovott v2 SSH, compare active Unity workspace SHA, isolate unchanged private assets, run native EditMode acceptance and independent readback, then append the original DOCX and one Memory entry before any approved merge.
+
+<!-- coderabbit-ai-generated:v1 -->
+
+<!-- coderabbit-ai-generated-section:v1:9438b726b3e560299c39b63d06f60199620268d52e66eacb7ea2f438ae698bc5 -->
+
+## WorldForge review repairs — 2026-11-20
+
+- Base: `fdb0554eceab5eec464b77eb096160753c442c40`; result is the uncommitted task patch. Evaluator now measures root-centered horizontal mesh-bounds radius plus one metre of clearance, feeding both spawn and Core obstacle radii. Weapon markers in paths/hierarchy require review within allowed packages. Window includes GLB/GLTF changes. Disabled POI visuals permit cleanup; enabled visuals keep GUID validation.
+- Pending POI export finding skipped: current BuildActivePoiRecords already excludes pending entries, with existing regression coverage. Core/save authority unchanged.
+- Added behavioral tests before repairs for offset geometry/confirmed radii, allowed-package weapons, GLTF queueing and disabled cleanup versus enabled GUID rejection. Unity RED attempt exited 127 (no Editor); native RED/GREEN remains unverified, and private fixtures are unavailable.
+- Executed: SDK 8.0.428 CoreVerification 21,239 assertions passed; WorldForgeCoreVerification 10/10 passed; Python Preflight 48/48 passed; git diff --check passed. Initial .NET execution failed due to missing ICU; installed libicu78 and reran successfully. Exact commands/input hashes are in workspace-context/validation-record.md outside Git.
+- SDLC dependencies restored; start attempts rejected missing request / invalid run ID; no lifecycle completion claimed. No new CI, publication, merge, Unity, visual or Android acceptance.
+- Owner Ashen_Crypt_Evidenz_Logbuch.docx inaccessible; writeback pending. Next: execute Unity 6000.6.8f1 EditMode fixture with private art, then append results to the same owner document.
+
+
+<!-- /coderabbit-ai-generated:v1 -->

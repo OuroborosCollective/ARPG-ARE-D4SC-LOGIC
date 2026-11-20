@@ -59,7 +59,9 @@ namespace AshenCrypt.WorldForge.EditorTools
                 if (!string.IsNullOrEmpty(path) &&
                     (path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase) ||
                      path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase) ||
-                     path.EndsWith(".obj", StringComparison.OrdinalIgnoreCase)))
+                     path.EndsWith(".obj", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".glb", StringComparison.OrdinalIgnoreCase) ||
+                     path.EndsWith(".gltf", StringComparison.OrdinalIgnoreCase)))
                     active.changedPaths.Add(path);
         }
 
