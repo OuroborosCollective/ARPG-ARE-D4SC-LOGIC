@@ -53,13 +53,15 @@ Spiel (auch APK): ArenaRuntime lädt den Bauplan des aktuellen Gebiets nach jede
   `Library/BauModus` (nicht versioniert).
 - **Katalog**: `BuildCatalog` in `Assets/Scripts/Runtime/BuildLayout.cs`. Größen werden aus den echten Modellen
   gemessen. Story-Figuren (Held, Mara, Ilyan, Dorn, Patienten, Jäger, Bär, Gegner), Beute und Weltschalen sind
-  bewusst nicht platzierbar. Fehlen die privaten Modelle, erscheinen einfache Platzhalter-Formen.
+  bewusst nicht platzierbar. Die drei Dorfbewohner nutzen die Figuren Villager0–2, der Händler Merchant0.
+  Bereits gespeicherte Baupläne behalten ihre Npc0–2-Schlüssel. Fehlen die privaten Modelle, erscheinen einfache Platzhalter-Formen.
 - **Baugebiete**: feste Gebiete (Aschengrenze, Krypta, Aschestraße, Mühle, Speicher, verborgene Krypta,
   Rattlernest, Aschenzoll, Wald, Bärenhöhle). Prozedurale Dungeon-Ebenen und Reisen haben keinen Bauplan.
   Editor-Vorschau mit echter Umgebung gibt es für Aschengrenze und Krypta; die anderen Gebiete zeigen im
   Edit-Modus nur die Bauplatte – im Play-Modus zeigt die Karte das echte Gebiet.
 - **Konflikte**: Jede Änderung trägt die Revision des Bauplans. Hat jemand anderes inzwischen gebaut, lehnt Unity ab
-  (409) und der Browser lädt den aktuellen Stand.
+  (409) und der Browser zeigt den aktuellen Stand. Das gilt auch für **Rückgängig**. Nach einem externen Austausch des
+  Plans wird sein alter Rückgängig-Verlauf verworfen, selbst wenn die Datei dieselbe Revisionsnummer trägt.
 
 ## Grenzen
 

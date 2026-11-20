@@ -39,10 +39,6 @@ namespace AreArpg.EditMode.Tests
             foreach (string owned in new[] { "EntryHero", "Hero", "EntryNpc0", "EntryNpc1", "EntryNpc2", "MillPatient0", "RoadHunter", "RoadBear",
                          "CryptRattler", "Enemy0", "EntryEnemy0", "Sword", "EntryWeapon", "EntryRation", "AshChest", "EntryVillageWorld", "EntryCryptWorld", "VillageBackdrop" })
                 Assert.IsNull(BuildCatalog.Find(owned), owned + " must not be placeable");
-            // Existing Npc0–2 plan IDs project with the distinct village figures from the character catalog.
-            for (int i = 0; i < 3; i++)
-                Assert.AreEqual(BuildCatalog.PrefabRoot + "Villager" + i, BuildCatalog.Find("Npc" + i).ResourcePath);
-            Assert.AreEqual(BuildCatalog.Residents, BuildCatalog.Find("Merchant0").Category);
             foreach (string key in BuildCatalog.ForestKeys) Assert.IsNotNull(BuildCatalog.Find(key), key);
         }
 
@@ -148,6 +144,29 @@ namespace AreArpg.EditMode.Tests
             finally { Object.DestroyImmediate(root.gameObject); }
         }
 
+        [TestCase("Npc0", "Villager0")]
+        [TestCase("Npc1", "Villager1")]
+        [TestCase("Npc2", "Villager2")]
+        [TestCase("Merchant0", "Merchant0")]
+        public void ResidentPlanKeysProjectTheCharacterCatalogOrPassiveFallback(string key, string visual)
+        {
+            var entry = BuildCatalog.Find(key);
+            Assert.AreEqual(BuildCatalog.Residents, entry.Category);
+            Assert.AreEqual(BuildCatalog.PrefabRoot + visual, entry.ResourcePath);
+            bool hasArt = Resources.Load<GameObject>(entry.ResourcePath) != null;
+            var piece = new BuildPiece { id = "b0001", key = key, scale = 1f };
+            Transform host = BuildLayer.CreatePiece(piece, null, null, 0);
+            try
+            {
+                Assert.AreEqual(!hasArt, host.Find("Platzhalter_" + key) != null);
+                Assert.IsNotNull(host.GetComponentInChildren<Renderer>());
+                Assert.IsFalse(host.GetComponentsInChildren<Collider>(true).Any(c => c.enabled));
+                Assert.IsEmpty(host.GetComponentsInChildren<MonoBehaviour>(true));
+                TestContext.WriteLine(visual + (hasArt ? ": baked prefab" : ": passive fallback"));
+            }
+            finally { Object.DestroyImmediate(host.gameObject); }
+        }
+
         [Test]
         public void GhostMarksItsFootprintAndIsNotAPlanPiece()
         {
@@ -159,6 +178,13 @@ namespace AreArpg.EditMode.Tests
                 Assert.IsNull(BuildLayer.Load("nirgendwo"));
             }
             finally { Object.DestroyImmediate(ghost.gameObject); }
+        }
+
+        [Serializable]
+        sealed class PreviewState
+        {
+            public bool previewVisible = false;
+            public string previewArea = "";
         }
 
         [Test]
@@ -173,6 +199,8 @@ namespace AreArpg.EditMode.Tests
             string path = folder + area.Key + ".json";
             string historyPath = history + area.Key + ".json";
             var query = new Dictionary<string, string> { { "area", area.Key } };
+            var stateReply = FadenwerkAuthoringBridge.Extension("GET", "state", "", query);
+            var prior = JsonUtility.FromJson<PreviewState>(Encoding.UTF8.GetString(stateReply.body));
             FadenwerkExtensionReply Post(string action, int revision)
             {
                 string json = "{\"area\":\"" + area.Key + "\",\"revision\":" + revision
@@ -212,6 +240,10 @@ namespace AreArpg.EditMode.Tests
             {
                 AssetDatabase.DeleteAsset(path);
                 if (File.Exists(historyPath)) File.Delete(historyPath);
+                if (prior.previewVisible)
+                    FadenwerkAuthoringBridge.Extension("POST", "preview", "{\"area\":\"" + prior.previewArea + "\"}", query);
+                else
+                    EditorApplication.ExecuteMenuItem("Tools/Ashen Crypt/Bau-Modus/Vorschau aus der Szene entfernen");
             }
         }
 
