@@ -17,7 +17,7 @@ namespace AreArpg.Core
             var hashes=new HashSet<ulong>();
             foreach(var map in _maps)
             {
-                if(map==null||map.NodesX!=129||map.NodesZ!=129||map.SpacingMm!=1000||map.OriginXmm!=-64000||map.OriginZmm!=-64000||!hashes.Add(map.ContentHash))
+                if(map==null||map.NodesX!=129||map.NodesZ!=129||(map.SpacingMm!=1000 && map.SpacingMm!=2000)||map.OriginXmm!=-64L*map.SpacingMm||map.OriginZmm!=map.OriginXmm||!hashes.Add(map.ContentHash))
                     throw new ArgumentException("Unsupported or duplicate journey map");
                 foreach(string id in new[]{"arrival","onward","cave","treasure","rest"})
                 {
@@ -36,6 +36,8 @@ namespace AreArpg.Core
         public int Size { get; }
         public int CellMm { get; }
         public long OriginMm { get; }
+        internal long PositionLimitMm => Math.Max(70000L, -OriginMm);
+        private bool WithinLimit(long value) => value >= -PositionLimitMm && value <= PositionLimitMm;
         public long ReturnX { get; protected set; }
         public long ReturnZ { get; protected set; }
         public long ForwardX { get; protected set; }
@@ -51,6 +53,7 @@ namespace AreArpg.Core
         public long Centre(int cell)=>OriginMm+(long)cell*CellMm;
         public virtual bool CanStand(long x,long z)
         {
+            if (!WithinLimit(x) || !WithinLimit(z)) return false;
             const long r=ArenaSimulation.PlayerRadiusMm;
             if(x-r<OriginMm-CellMm/2||z-r<OriginMm-CellMm/2||x+r>=OriginMm+(Size-1L)*CellMm+CellMm/2||z+r>=OriginMm+(Size-1L)*CellMm+CellMm/2)return false;
             int ax=(int)((x-r-OriginMm+CellMm/2)/CellMm),bx=(int)((x+r-OriginMm+CellMm/2)/CellMm);
@@ -64,7 +67,7 @@ namespace AreArpg.Core
         }
         public virtual bool HasSight(long ax,long az,long bx,long bz)
         {
-            if(Math.Abs(ax)>70000||Math.Abs(az)>70000||Math.Abs(bx)>70000||Math.Abs(bz)>70000)return false;
+            if (!WithinLimit(ax) || !WithinLimit(az) || !WithinLimit(bx) || !WithinLimit(bz)) return false;
             long steps=Math.Max(Math.Abs(ax-bx),Math.Abs(az-bz))/250+1;
             for(long i=0;i<=steps;i++)if(!CanStand(ax+(bx-ax)*i/steps,az+(bz-az)*i/steps))return false;
             return true;
@@ -88,7 +91,7 @@ namespace AreArpg.Core
         public ForgedWorldMap Map { get; }
         public long CaveX { get; }
         public long CaveZ { get; }
-        public JourneyRouteLayout(ForgedWorldMap map,ulong seed):base(65,2000,-64000)
+        public JourneyRouteLayout(ForgedWorldMap map,ulong seed):base(65, 2 * (map ?? throw new ArgumentNullException(nameof(map))).SpacingMm, map.OriginXmm)
         {
             Map=map??throw new ArgumentNullException(nameof(map));
             var entry=map.FindPoi("arrival");var exit=map.FindPoi("onward");var cave=map.FindPoi("cave");var treasure=map.FindPoi("treasure");var rest=map.FindPoi("rest");
@@ -97,18 +100,21 @@ namespace AreArpg.Core
             for(int x=1;x<Size-1;x++)for(int z=1;z<Size-1;z++)valid[x,z]=map.CanStand(Centre(x),Centre(z),700);
             var rng=new DeterministicRng(seed^map.ContentHash^0x524F55544531UL);
             // Two distinct bends plus optional branches. Randomized BFS is bounded by the 65x65 graph.
-            long southX=(rng.Next64()%2==0?-20000:20000),northX=(rng.Next64()%2==0?-16000:16000);
-            Join(ReturnX,ReturnZ,southX,-32000,valid,rng);Join(southX,-32000,rest.Xmm,rest.Zmm,valid,rng);
-            Join(rest.Xmm,rest.Zmm,northX,32000,valid,rng);Join(northX,32000,ForwardX,ForwardZ,valid,rng);
+            long unit = map.SpacingMm;
+            long southX = (rng.Next64()%2==0 ? -20 : 20) * unit;
+            long northX = (rng.Next64()%2==0 ? -16 : 16) * unit;
+            long bendZ = 32 * unit;
+            Join(ReturnX,ReturnZ,southX,-bendZ,valid,rng);Join(southX,-bendZ,rest.Xmm,rest.Zmm,valid,rng);
+            Join(rest.Xmm,rest.Zmm,northX,bendZ,valid,rng);Join(northX,bendZ,ForwardX,ForwardZ,valid,rng);
             Join(rest.Xmm,rest.Zmm,CaveX,CaveZ,valid,rng);Join(rest.Xmm,rest.Zmm,treasure.Xmm,treasure.Zmm,valid,rng);
             Chests.Add((treasure.Xmm,treasure.Zmm));
             var encounter=new DeterministicRng(seed^0x454E434F554E5445UL);
-            AddMonster(1101,0,southX,-32000,420);
-            AddMonster(1102,1,northX,32000,680);
+            AddMonster(1101,0,southX,-bendZ,420);
+            AddMonster(1102,1,northX,bendZ,680);
             // Extra enemies occupy reachable route centres, never the safe arrival or rest clearing.
             var candidates=new List<(long x,long z)>();
             for(int z=1;z<Size-1;z++)for(int x=1;x<Size-1;x++)
-                if(Cells[x,z]&&Math.Abs(Centre(z))>=20000&&Math.Abs(Centre(z))<=40000&&CanStand(Centre(x),Centre(z))&&
+                if(Cells[x,z]&&Math.Abs(Centre(z))>=20*unit&&Math.Abs(Centre(z))<=40*unit&&CanStand(Centre(x),Centre(z))&&
                     Spawns.All(m=>FixedMath.Square(m.Xmm-Centre(x))+FixedMath.Square(m.Zmm-Centre(z))>=FixedMath.Square(3000)))candidates.Add((Centre(x),Centre(z)));
             for(int i=0;i<2;i++)
             {
@@ -132,7 +138,7 @@ namespace AreArpg.Core
                 {
                     int k=(turn+i)%4,nx=x+dx[k],nz=z+dz[k];
                     if(nx<1||nz<1||nx>=Size-1||nz>=Size-1||!valid[nx,nz]||previous[nz*Size+nx]>=0)continue;
-                    bool clear=true;for(int t=1;t<8;t++)if(!Map.CanStand(Centre(x)+(long)dx[k]*250*t,Centre(z)+(long)dz[k]*250*t,700)){clear=false;break;}
+                    bool clear=true;for(int t=1;t<CellMm/250;t++)if(!Map.CanStand(Centre(x)+(long)dx[k]*250*t,Centre(z)+(long)dz[k]*250*t,700)){clear=false;break;}
                     if(!clear)continue;previous[nz*Size+nx]=n;queue.Enqueue(nz*Size+nx);
                 }
             }

@@ -87,6 +87,11 @@ namespace AreArpg.UnityClient
         }
         private static void FreightGroundMaterial(Transform floor,string key,Vector2 tiling)
         {
+            if (key == "OutdoorGround" && WorldSurfacePresentation.AshSnow is Material ash)
+            {
+                floor.GetComponent<Renderer>().sharedMaterial = ash;
+                return;
+            }
             var surface=Resources.Load<Material>("ARE/Visuals/WorldSurfaces/"+key);
             if(surface==null)return;
             var material=new Material(surface);material.mainTextureScale=tiling;

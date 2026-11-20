@@ -64,7 +64,7 @@ namespace AreArpg.UnityClient
             if(!_game.InForest) { BuildWoodlandAnchor();return; }
             var backdrop=OutdoorBackdrop.Create(8);backdrop.localScale=new Vector3(1.7f,1f,2f);_chapterScenery.Add(backdrop);
             var map=_game.Progression.Woodland.Layout;
-            var ground=Resources.Load<Material>("ARE/Visuals/WoodlandGround");
+            var ground=WorldSurfacePresentation.AshSnow ?? Resources.Load<Material>("ARE/Visuals/WoodlandGround");
             if(ground==null)ground=WoodlandFallbackMaterial();
             var rng=new DeterministicRng(map.Seed ^ 0xA47UL);
             // Eight metre chunks share the exact same world-space height and UV field; shared materials and distance culling.

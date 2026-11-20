@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using AreArpg.Core;
 using AshenCrypt.WorldForge;
 using AshenCrypt.WorldForge.Core;
 using AshenCrypt.WorldForge.EditorTools;
@@ -43,14 +44,47 @@ namespace AreArpg.EditorTools
             finally{if(prior.IsValid()&&prior.isLoaded)SceneManager.SetActiveScene(prior);}
         }
 
+        [MenuItem("Tools/World Forge/Grenzregion/256-m-Reiseroute backen")]
+        public static void BuildBorderlandRoute()
+        {
+            const int seed = 731906;
+            const string folder = "Assets/PrivateArt/BorderlandRouteAuthoring";
+            var canonical = new Dictionary<int, byte[]>();
+            for (int i = 0; i < 2; i++)
+            {
+                var row = AuthorSeed(seed, folder, Maps, canonical,
+                    (scene, path) => EditorSceneManager.SaveScene(scene, path), 256);
+                Debug.Log("BORDERLAND_ROUTE " + Newtonsoft.Json.JsonConvert.SerializeObject(row));
+            }
+        }
+
+        [MenuItem("Tools/World Forge/Grenzregion/Außenlandschaften backen")]
+        public static void BuildRegionalLandscapes()
+        {
+            string[] regions = { RegionNetwork.Aschengrenze, RegionNetwork.Aschenstrasse,
+                RegionNetwork.AlteMuehle, RegionNetwork.Waldweg, RegionNetwork.Aschenzoll };
+            for (int i = 0; i < regions.Length; i++)
+            {
+                var canonical = new Dictionary<int, byte[]>();
+                string folder = "Assets/PrivateArt/BorderlandLandscapeAuthoring/Site" + i;
+                for (int pass = 0; pass < 2; pass++)
+                {
+                    var row = AuthorSeed(842011 + i, folder, "Assets/Resources/ARE/RegionalMaps", canonical,
+                        (scene, path) => EditorSceneManager.SaveScene(scene, path), 256, regions[i]);
+                    Debug.Log("BORDERLAND_LANDSCAPE " + Newtonsoft.Json.JsonConvert.SerializeObject(row));
+                }
+            }
+        }
+
         /// <summary>
         /// Author one seed into its folder. Any failure restores the folder byte for byte, with one exception: when only
         /// saving the authored scene fails, the published map has already been verified, so the generated world and its
         /// assets are kept for recovery — saved into the scratch scene when possible, otherwise left open in the editor.
         /// </summary>
-        public static object AuthorSeed(int seed,string folder,string maps,Dictionary<int,byte[]> canonical,Func<Scene,string,bool> save)
+        public static object AuthorSeed(int seed,string folder,string maps,Dictionary<int,byte[]> canonical,Func<Scene,string,bool> save, int extent = 128, string region = null)
         {
             var prior=SceneManager.GetActiveScene();
+            if (extent != 128 && extent != 256) throw new ArgumentOutOfRangeException(nameof(extent));
             string scratch=folder+"/GenerationScratch.unity";
             if(AssetDatabase.LoadAssetAtPath<SceneAsset>(scratch)!=null)throw new InvalidOperationException("Previous authoring scratch scene needs review: "+scratch);
             // Never write into a world that another open scene already uses for this profile.
@@ -70,19 +104,20 @@ namespace AreArpg.EditorTools
                 if(scene.rootCount!=0)throw new InvalidOperationException("Authoring template must remain empty");
                 SceneManager.SetActiveScene(scene);
                 // Only this saved additive scene is the generation target. All other open scenes stay open.
-                var p=CreateProfile(seed,folder);
+                var p=CreateProfile(seed,folder,extent,region);
                 var root=new GameObject(p.rootObjectName);
-                root.transform.position=new Vector3(-64,0,-64);
+                root.transform.position=new Vector3(-extent / 2, 0, -extent / 2);
                 var world=root.AddComponent<ForgedWorld>();world.profile=p;
                 var report=WFTerrainBuilder.GenerateAll(p);
                 var map=WFCoreMapExporter.Build(p,world,report);
-                if(map.NodesX!=129||map.NodesZ!=129||map.WidthMm!=128000||map.DepthMm!=128000)
-                    throw new InvalidOperationException("Pilot map dimensions differ from 128m / 129 nodes");
+                if(map.NodesX!=129||map.NodesZ!=129||map.WidthMm!=extent*1000L||map.DepthMm!=extent*1000L)
+                    throw new InvalidOperationException("World Forge dimensions differ from the selected regional profile");
                 byte[] bytes=map.ToBytes();
                 if(canonical.TryGetValue(seed,out var first)&&!first.SequenceEqual(bytes))
                     throw new InvalidOperationException("Repeated World Forge seed changed canonical bytes");
                 canonical[seed]=bytes;
-                string path=maps+"/Wald_v1_"+seed.ToString(CultureInfo.InvariantCulture)+".bytes";
+                string prefix = extent == 128 ? "/Wald_v1_" : "/Wald_256_";
+                string path = maps + (region == null ? prefix + seed.ToString(CultureInfo.InvariantCulture) : "/" + region) + ".bytes";
                 // Published identities are immutable: a different map requires a new authored version, and a matching
                 // published map is never rewritten (an interrupted rewrite could leave a partial file outside the snapshot).
                 if(File.Exists(path))
@@ -103,7 +138,7 @@ namespace AreArpg.EditorTools
                 }
                 var row=new {seed,revision=Revision,profile=AssetDatabase.GetAssetPath(p),scene=scene.path,map=path,
                     hash=map.ContentHash.ToString("X16"),sha256=Sha(bytes),nodes=map.NodesX*map.NodesZ,
-                    areaSquareMetres=16384,obstacles=map.Obstacles.Count,pois=map.Pois.Count,
+                    areaSquareMetres=extent*extent,obstacles=map.Obstacles.Count,pois=map.Pois.Count,
                     paths=p.paths.Count,seconds=report.seconds,report.treeInstances,report.gameObjects,
                     warnings=report.warnings.ToArray(),manualTerrainEdits=0};
                 completed=true;
@@ -234,10 +269,10 @@ namespace AreArpg.EditorTools
             if(changed)AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
         }
 
-        public static WorldProfile CreateProfile(int seed,string folder)
+        public static WorldProfile CreateProfile(int seed,string folder,int extent=128,string region=null)
         {
             var p=LoadOrCreate<WorldProfile>(folder+"/Profile.asset");
-            p.name="Journey_Wald_v1_"+seed;p.tilesX=p.tilesZ=1;p.tileSize=128;p.maxHeight=12;
+            p.name="Journey_Wald_v1_"+seed;p.tilesX=p.tilesZ=1;p.tileSize=extent;p.maxHeight=12;
             p.heightmapResolution=129;p.alphamapResolution=64;p.detailResolution=32;p.detailResolutionPerPatch=16;
             p.seed=seed;p.quality=QualityPreset.Android_ThirdPerson;p.maxWalkableSlope=30;
             p.rootObjectName="Journey_WorldForge_"+seed;p.outputFolder=folder+"/Generated";
@@ -262,21 +297,48 @@ namespace AreArpg.EditorTools
                 Poi("west.north",PoiType.SpawnZone,48,96,"encounter"),
                 Poi("east.south",PoiType.SpawnZone,84,32,"encounter"),
                 Poi("east.north",PoiType.SpawnZone,80,96,"encounter")};
+            if (extent == 256)
+            {
+                p.name = "Journey_Wald_256_" + seed;
+                foreach (var path in p.paths)
+                    for (int i = 0; i < path.points.Count; i++) path.points[i] *= 2f;
+                foreach (var poi in p.pois) poi.position *= 2f;
+            }
+            if (region != null)
+            {
+                float bend = region == RegionNetwork.AlteMuehle ? -63 : region == RegionNetwork.Waldweg ? 78 :
+                    region == RegionNetwork.Aschenzoll ? 48 : region == RegionNetwork.Aschengrenze ? -35 : 26;
+                p.name = region;
+                ((WFNoiseLayer)p.heightLayers[0]).amplitude = region == RegionNetwork.Waldweg ? 9 :
+                    region == RegionNetwork.AlteMuehle ? 6 : 4;
+                var south = new Vector2(128, 12);
+                var north = new Vector2(128 + bend * .55f, 244);
+                var centre = new Vector2(128, 128);
+                var west = new Vector2(46, 124 + bend * .4f);
+                var east = new Vector2(218, 140 - bend * .5f);
+                p.paths = new List<WFPath> {
+                    Path("Hauptweg", south, new Vector2(128 - bend, 72), centre, new Vector2(128 + bend, 185), north),
+                    Path("Westschleife", south, west, north), Path("Querverbindung", west, centre, east) };
+                p.pois = new List<WFPoiDefinition> { Poi("arrival", PoiType.Waypoint, south.x, south.y, "arrival"),
+                    Poi("centre", PoiType.Landmark, centre.x, centre.y, "centre"),
+                    Poi("onward", PoiType.Waypoint, north.x, north.y, "onward"),
+                    Poi("west", PoiType.Landmark, west.x, west.y, "vista"), Poi("east", PoiType.Landmark, east.x, east.y, "vista") };
+            }
             // Persist the fresh profile before the next asset is created: an import in between reloads an unsaved
             // asset from disk, which silently restored the 4 x 64 m defaults instead of the 128 m pilot.
             EditorUtility.SetDirty(p);AssetDatabase.SaveAssetIfDirty(p);
             var biome=LoadOrCreate<BiomeProfile>(folder+"/Biome.asset");
             biome.spawnRules.Clear();biome.textureRules.Clear();
-            foreach(string key in new[]{"WoodlandTreeA","WoodlandTreeB"})
+            foreach(string key in region == null ? new[]{"WoodlandTreeA","WoodlandTreeB"} : new[]{"AshPine"})
             {
-                var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/ARE/Visuals/"+key+".prefab");
+                var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/ARE/" + (region == null ? "Visuals/" : "Borderland/") + key + ".prefab");
                 if(prefab==null)throw new InvalidOperationException("Missing existing private visual: "+key);
                 var renderers=prefab.GetComponentsInChildren<Renderer>();
                 if(renderers.Length==0)throw new InvalidOperationException("Tree has no renderers: "+key);
                 var bounds=renderers[0].bounds;foreach(var r in renderers)bounds.Encapsulate(r.bounds);
                 float scale=5f/Mathf.Max(.1f,bounds.size.y);
                 biome.spawnRules.Add(new WFSpawnRule{name=key,kind=SpawnKind.GameObject,prefabs=new List<GameObject>{prefab},
-                    densityPer100m2=.6f,minSpacing=6,clearRadius=2,maxCount=70,scaleMin=scale,scaleMax=scale*1.35f,
+                    densityPer100m2=.6f,minSpacing=6,clearRadius=2,maxCount=region == null ? 70 : region == RegionNetwork.Waldweg ? 270 : 160,scaleMin=scale,scaleMax=scale*1.35f,
                     coreObstacle=true,coreObstacleRadius=.5f/scale,coreBlocksSight=true,alignToNormal=0,sinkDepth=0,
                     mask=new WFMask{pathMode=PathMode.AvoidPath,pathDistance=6,pathFalloff=2,useSlope=true,slopeMaxDeg=25}});
             }

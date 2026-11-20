@@ -32,7 +32,10 @@ namespace AreArpg.Core
             var f=token.Split('~');if(f.Length!=3)return false;
             var a=JourneyNumbers.Read(f[0],18);if(a==null)return false;
             if(a[0]<0||a[0]>1||a[1]<0||a[1]>=(1<<Geometry.ChestCount)||a[8]<0||a[8]>maximumHealth||a[9]<0||a[9]>100||a[10]<0||a[10]>Monsters.Length)return false;
-            for(int i=2;i<8;i++)if(a[i]<-70000||a[i]>70000)return false;
+            // V1 and cave bounds stay exact. Only the 256 m route identified by its map hash
+            // admits the outer terrain; CanStand below still validates every occupied position.
+            long positionLimit = Geometry.PositionLimitMm;
+            for(int i=2;i<6;i++)if(a[i]<-positionLimit||a[i]>positionLimit)return false;
             if(a[6]<-10000||a[6]>10000||a[7]<-10000||a[7]>10000)return false;
             for(int i=11;i<14;i++)if(a[i]<0||a[i]>ulong.MaxValue)return false;
             for(int i=14;i<18;i++)if(a[i]<0||a[i]>1000)return false;
@@ -43,7 +46,7 @@ namespace AreArpg.Core
             for(int i=0;i<ms.Length;i++)
             {
                 var n=JourneyNumbers.Read(ms[i],7);var m=Monsters[i];if(n==null)return false;
-                for(int j=0;j<4;j++)if(n[j]<-70000||n[j]>70000)return false;
+                for(int j=0;j<4;j++)if(n[j]<-positionLimit||n[j]>positionLimit)return false;
                 if(!Geometry.CanStand((long)n[0],(long)n[1])||!Geometry.CanStand((long)n[2],(long)n[3])||n[4]<0||n[4]>m.MaxHealth||n[5]<0||n[5]>17||n[6]<0||n[6]>1||(n[4]==0)!=(n[6]==1))return false;
                 if(!Visited&&(n[0]!=m.Xmm||n[1]!=m.Zmm||n[2]!=m.PreviousXmm||n[3]!=m.PreviousZmm||n[4]!=m.MaxHealth||n[5]!=0||n[6]!=0))return false;
                 m.Xmm=(long)n[0];m.Zmm=(long)n[1];m.PreviousXmm=(long)n[2];m.PreviousZmm=(long)n[3];m.Health=(int)n[4];m.AttackCooldownTicks=(int)n[5];m.LootGranted=n[6]==1;
@@ -53,7 +56,7 @@ namespace AreArpg.Core
             foreach(string text in f[2].Length==0?Array.Empty<string>():f[2].Split('/'))
             {
                 var v=text.Split(',');if(v.Length<5)return false;
-                var n=JourneyNumbers.Read(string.Join(",",v.Take(4)),4);if(n==null||n[0]<1||n[0]>10000||!ids.Add((int)n[0])||n[1]<-70000||n[1]>70000||n[2]<-70000||n[2]>70000||n[3]<1||n[3]>1000||!Geometry.CanStand((long)n[1],(long)n[2]))return false;
+                var n=JourneyNumbers.Read(string.Join(",",v.Take(4)),4);if(n==null||n[0]<1||n[0]>10000||!ids.Add((int)n[0])||n[1]<-positionLimit||n[1]>positionLimit||n[2]<-positionLimit||n[2]>positionLimit||n[3]<1||n[3]>1000||!Geometry.CanStand((long)n[1],(long)n[2]))return false;
                 int id=(int)n[0];var m=Monsters.FirstOrDefault(e=>e.Id==id);LootItem item=null;
                 if(m!=null)
                 {

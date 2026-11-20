@@ -28,6 +28,7 @@ namespace AreArpg.UnityClient
         private ulong _worldSkyPhase = ulong.MaxValue;
         private bool _worldSkyReduced;
 
+        private static readonly int EmberGainId = Shader.PropertyToID("_AREEmberGain");
         private static readonly int WorldTintId = Shader.PropertyToID("_AshenWorldTint");
 
         private static bool IsOutdoorSkyArea(int area)
@@ -84,6 +85,7 @@ namespace AreArpg.UnityClient
             }
             if (!outdoors)
             {
+                Shader.SetGlobalFloat(EmberGainId, reduced ? .28f : .80f);
                 if (_worldSkyOutdoor)
                 {
                     RenderSettings.skybox = _worldSkyOriginalMaterial;
@@ -113,6 +115,7 @@ namespace AreArpg.UnityClient
             float angle = time * Mathf.PI * 2f;
             float altitude = Mathf.Cos(angle);
             float daylight = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(-0.23f, 0.38f, altitude));
+            Shader.SetGlobalFloat(EmberGainId, reduced ? .28f : Mathf.Lerp(1.50f, .70f, daylight));
             Vector3 direction = new Vector3(Mathf.Sin(angle) * 0.84f, altitude, Mathf.Cos(angle) * 0.46f).normalized;
 
             _worldSkyMaterial.SetVector("_SunDirection", new Vector4(direction.x, direction.y, direction.z, 0));
@@ -193,6 +196,8 @@ namespace AreArpg.UnityClient
                     backdrop.SetDaylight(1f);
                 }
             }
+            WorldSurfacePresentation.ReleaseAshPaint();
+            Shader.SetGlobalFloat(EmberGainId, 0f);
             DisposeVillageLights();
             DisposePostProcessing();
             Shader.SetGlobalColor(WorldTintId, Color.clear);

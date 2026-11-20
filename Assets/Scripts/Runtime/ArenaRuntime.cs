@@ -233,6 +233,7 @@ namespace AreArpg.UnityClient
             RenderSettings.fogDensity = 0.014f;
             BuildChapterScenery();
             BuildPlacedLayer();
+            BuildRegionalDetails();
             // Torch islands belong to the village projection, not to the optional private art overlay.
             if (_game.IsVillage) BuildVillageLights();
             else _villageTorches.Clear();
@@ -682,6 +683,7 @@ namespace AreArpg.UnityClient
             _monsterVisuals.Add(monster.Id, root);
             if (!_entryProfile || !PassiveArtVisuals.TryBindGrounded(root, "EntryEnemy" + monster.Kind, 0f))
                 PassiveArtVisuals.TryBind(root, "Enemy" + monster.Kind);
+            BindRoleArt(root, monster.Role);
             RegisterActorMotion(root);
             if (monster.Kind == 3)
             {
@@ -952,6 +954,7 @@ namespace AreArpg.UnityClient
             _passageAnnounced = false;
             BuildChapterScenery();
             BuildPlacedLayer();
+            BuildRegionalDetails();
             // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
             if (_game.IsVillage) BuildVillageLights();
             else _villageTorches.Clear();
@@ -1132,6 +1135,7 @@ namespace AreArpg.UnityClient
             }
             UpdateJourneyPresentation();
             UpdateDungeonPresentation();
+            RefreshRegionalAppearance();
             UpdateWoodlandPresentation();
             UpdateEquipmentPresentation();
             if (_worldPassage != null)

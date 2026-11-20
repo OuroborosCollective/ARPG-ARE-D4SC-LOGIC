@@ -1,0 +1,331 @@
+"""Create Ashen Crypt's original regional kit. Run with Blender -b -P ... -- OUT.
+
+Blender Z is up. All meshes share one hand-authored trim atlas and start at the
+ground plane. The individual packed scenes are inputs for worldforge-blender submit.
+No source from PrivateArt, the Asset Store, or a running game is read.
+"""
+import math
+import sys
+from pathlib import Path
+
+import bpy
+from mathutils import Vector
+
+TAU = 2 * math.pi
+OUT = Path(sys.argv[sys.argv.index("--") + 1]).resolve()
+OUT.mkdir(parents=True, exist_ok=True)
+# Stone, slate, mortar, ochre wood, bark, cut wood, iron, dull bronze, foliage,
+# moss, ivory, bloodcap, gills, canvas, ember and warm gold.
+PALETTE = ("77736b", "474c50", "635f57", "876a49", "52412e", "ad9062",
+           "41474a", "ab8050", "3b5140", "687653", "b8b8b2", "a32113",
+           "b76b53", "a28a67", "e28945", "c99f46")
+KEYS = ("BloodcapBank", "AshPine", "StoneOutcrop", "TimberHouse", "MillWheel",
+        "MillHouse", "GrainBay", "CryptArch", "CaveMouth", "StoneBridge",
+        "WatchPost", "RibPillar", "Brazier", "SupplySack", "CoinStack",
+        "BrokenCart", "Palisade", "Waystone",
+        "RangedQuiver", "ShieldPlate", "SwarmSpines", "EliteCrest")
+
+def paint_atlas():
+    size, tile = 256, 64
+    image = bpy.data.images.new("BorderlandAtlas", width=size, height=size, alpha=False)
+    pixels = []
+    for y in range(size):
+        for x in range(size):
+            band = (y // tile) * 4 + x // tile
+            c = tuple(int(PALETTE[band][j:j+2], 16) / 255 for j in (0, 2, 4))
+            u, v = x % tile, y % tile
+            grain = ((x * 137 + y * 389 + x*y*17) % 31) / 31 - .5
+            form = math.sin(u*.23 + 1.3*math.sin(v*.12)) + .6*math.sin(u*.59 + v*.11)
+            if band in (3, 4, 5): detail = .064*form + .034*grain
+            elif band in (0, 1, 2, 9): detail = .04*math.sin(u*.34+v*.26) + .10*grain
+            elif band == 13: detail = .022*((u%4)-1.5) + .019*((v%4)-1.5)
+            elif band == 12: detail = .09*math.sin(u*.65 + .2*math.sin(v*.21))
+            else: detail = .044*grain + .035*math.cos(v*.105)
+            pixels.extend([max(.01, min(1, a*(1+detail))) for a in c]+[1.0])
+    image.pixels.foreach_set(pixels)
+    image.filepath_raw = str(OUT/"BorderlandAtlas.png")
+    image.file_format = 'PNG'
+    image.save()
+    image.pack()
+    return image
+
+class Mesh:
+    def __init__(self, lod):
+        self.lod = lod
+        self.verts, self.faces, self.bands = [], [], []
+
+    def rings(self, rows, side, bottom=None, top=None):
+        """Rows go from base to tip, each counterclockwise around the axis."""
+        n = len(rows[0])
+        start = len(self.verts)
+        for row in rows: self.verts.extend(row)
+        def face(indices, band):
+            self.faces.append(tuple(start+i for i in indices))
+            self.bands.append(band)
+        face(reversed(range(n)), side if bottom is None else bottom)
+        for j in range(len(rows)-1):
+            for i in range(n):
+                k=(i+1)%n
+                face([j*n+i,j*n+k,(j+1)*n+k,(j+1)*n+i],side)
+        end=(len(rows)-1)*n
+        face(range(end,end+n),side if top is None else top)
+
+    def post(self, a, b, ra, rb, band, n=None):
+        a,b=Vector(a),Vector(b)
+        axis=(b-a).normalized()
+        u=axis.cross(Vector((0,1,0)) if abs(axis.y)<.9 else Vector((1,0,0))).normalized()
+        v=axis.cross(u)
+        n=n or (9,6,4)[self.lod]
+        ring=[math.cos(TAU*i/n)*u + math.sin(TAU*i/n)*v for i in range(n)]
+        self.rings([[a+d*ra for d in ring],[b+d*rb for d in ring]],band)
+
+    def box(self, x,y,z, w,d,h,band, yaw=0):
+        """A cropped-corner dressed block or plank, dimensions in metres."""
+        co,si=math.cos(yaw),math.sin(yaw)
+        a,b=w/2,d/2
+        t=min(a,b)*.16
+        outline=[(-a,-b),(a,-b),(a,b),(-a,b)]
+        if self.lod==0:
+            outline=[(-a+t,-b),(a-t,-b),(a,-b+t),(a,b-t),(a-t,b),(-a+t,b),(-a,b-t),(-a,-b+t)]
+        self.rings([[(x+u*co-v*si,y+u*si+v*co,z+k) for u,v in outline] for k in (0,h)],band)
+
+    def bulb(self,x,y,z,rx,ry,h,band,profile, n=None, phase=0,rough=0):
+        n=n or (12,8,5)[self.lod]
+        rows=[]
+        for j,(height,radius) in enumerate(profile):
+            row=[]
+            for i in range(n):
+                a=TAU*i/n+phase
+                factor=radius*(1+rough*math.sin(a*3+.53*j)+rough*.4*math.sin(a*5))
+                row.append((x+rx*factor*math.cos(a),y+ry*factor*math.sin(a),z+h*height))
+            rows.append(row)
+        self.rings(rows,band)
+
+    def wheel(self,x,y,z,r,width,steps,band, paddles=True):
+        """Open wheel in the YZ plane, with two timber rims and a real axle."""
+        for s in (-1,1):
+            side=x+s*width*.42
+            for i in range(steps):
+                a,b=TAU*i/steps,TAU*(i+1)/steps
+                p=(side,y+r*math.cos(a),z+r*math.sin(a))
+                q=(side,y+r*math.cos(b),z+r*math.sin(b))
+                self.post(p,q,r*.075,r*.075,band,4)
+                if s==1 and i%2==0:
+                    self.post((x,y,z),p,r*.068,r*.05,3,4)
+                if s==1 and paddles:
+                    self.post((x-width*.62,p[1],p[2]),(x+width*.62,p[1],p[2]),r*.105,r*.105,5,4)
+        self.post((x-width*.78,y,z),(x+width*.78,y,z),r*.15,r*.15,6)
+
+    def house(self,w,d,h, mill=False):
+        self.box(0,0,0,w,d,.55,0)
+        self.box(0,0,.54,w*.94,d*.94,h-.54,13)
+        for s in (-1,1):
+            self.box(s*w*.47,0,.48,.15,d,h-.48,4)
+            for j in range((4,3,2)[self.lod]):
+                y=-d*.44+j*d*.88/((4,3,2)[self.lod]-1)
+                self.box(s*w*.48,y,.42,.17,.18,h-.42,4)
+            for y in (-d*.472,d*.472):
+                self.post((s*w*.45,y,.6),(0,y,h-.09),.085,.085,4,4)
+            x=s*(w*.5+.35)
+            self.rings([[(x,-d*.55,h-.15),(x,d*.55,h-.15),(0,d*.55,h+1.65),(0,-d*.55,h+1.65)],
+                        [(x,-d*.55,h+.02),(x,d*.55,h+.02),(0,d*.55,h+1.82),(0,-d*.55,h+1.82)]],1)
+            if self.lod<2:
+                for j in range(1,5 if self.lod==0 else 3):
+                    t=j/(5 if self.lod==0 else 3)
+                    self.post((x*t,-d*.55,h+1.82*(1-t)+.03),(x*t,d*.55,h+1.82*(1-t)+.03),.04,.04,2,4)
+        self.box(0,-d*.482,.50,1.15,.085,2.15,4)
+        self.box(0,-d*.49,.51,.86,.10,1.96,3)
+        for x in (-w*.31,w*.31):
+            self.box(x,-d*.484,1.56,.72,.12,.89,6)
+            if self.lod<2:
+                self.box(x,-d*.5,1.51,.9,.16,.11,5)
+                self.box(x,-d*.5,1.61,.08,.13,.81,5)
+        self.box(w*.22,d*.2,h+.45,.58,.66,1.87,0)
+        if mill and self.lod<2:
+            for s in (-1,1):
+                self.box(s*w*.48,d*.2,.48,.34,.8,.94,0)
+
+    def arch(self,rx,rz,thick,depth,blocks,stone=True):
+        for i in range(blocks):
+            a=math.pi*i/blocks+.008
+            b=math.pi*(i+1)/blocks-.008
+            k=1.12 if i==blocks//2 else 1
+            outline=[(rx*math.cos(a),rz*math.sin(a)),((rx+thick*k)*math.cos(a),(rz+thick*k)*math.sin(a)),
+                     ((rx+thick*k)*math.cos(b),(rz+thick*k)*math.sin(b)),(rx*math.cos(b),rz*math.sin(b))]
+            self.rings([[(x,y,z+.55) for x,z in outline] for y in (depth/2,-depth/2)],(0,2,1)[i%3] if stone else 3)
+        for s in (-1,1): self.box(s*(rx+thick/2),0,0,thick+.14,depth+.2,.57,0)
+
+    def make(self,key):
+        l=self.lod
+        rock=((0,.63),(.17,1),(.64,.91),(1,.28))
+        if key=="BloodcapBank":
+            for i,(x,y,h,r) in enumerate([(-.23,.08,.29,.16),(.12,0,.33,.18),(.28,.10,.19,.11),(-.05,-.16,.21,.115),(.02,.18,.15,.09)][:5-l]):
+                self.bulb(x,y,0,r*.36,r*.34,h*.77,10,((0,1),(.2,.95),(.83,.65),(1,.82)))
+                self.bulb(x,y,h*.64,r,r*.93,h*.13,12,((0,.22),(.62,.88),(1,1)),phase=i*.37)
+                self.bulb(x,y,h*.72,r,r*.93,h*.28,11,((0,1),(.35,.95),(.78,.69),(1,.18)),phase=i*.37,rough=.035)
+                if l==0:
+                    for j in range(3):
+                        a=TAU*j/3+i
+                        self.bulb(x+r*.48*math.cos(a),y+r*.47*math.sin(a),h*.933,r*.10,r*.065,h*.029,10,((0,1),(1,.58)),n=5)
+        elif key=="AshPine":
+            self.post((0,0,0),(.16,-.03,6.9),.36,.045,4)
+            for j in range((7,5,3)[l]):
+                t=j/((7,5,3)[l]-1);z=1.25+4.65*t;r=1.68-1.1*t
+                self.bulb(.14*t,-.10*t,z,r,r*.9,2.05-t*.66,8 if j%2==0 else 9,((0,.19),(.13,1),(.43,.81),(1,.05)),n=(11,8,5)[l],phase=j*.74,rough=.13)
+        elif key=="StoneOutcrop":
+            for i,(x,y,w,h) in enumerate([(0,0,1.15,1.46),(.84,.33,.66,.76),(-.72,.19,.67,.71),(.32,-.66,.42,.36)][:4-l]):
+                self.bulb(x,y,0,w,w*.75,h,(0,2,1,0)[i],rock,phase=i+.28,rough=.16)
+        elif key in ("TimberHouse","MillHouse"):
+            self.house(6.45 if key=="MillHouse" else 4.8,10.5 if key=="MillHouse" else 5.9,4.0 if key=="MillHouse" else 3.75,key=="MillHouse")
+        elif key=="MillWheel":
+            self.wheel(0,0,1.82,1.64,.70,(18,12,8)[l],4)
+            for s in (-1,1):self.box(s*.43,0,0,.21,.48,1.81,2)
+        elif key=="GrainBay":
+            self.box(0,0,0,3,1.5,.15,3)
+            for s in (-1,1):
+                self.post((s*1.34,-.59,.13),(s*1.34,-.59,2.4),.13,.1,4)
+                self.post((s*1.34,.59,.13),(s*1.34,.59,2.4),.13,.1,4)
+            for z in (.95,2.18):self.box(0,0,z,2.96,1.42,.14,5)
+            for j in range(6-2*l):
+                self.bulb((j%3-1)*.81,-.08,.16+(j//3)*.94,.39,.40,.68,13,((0,.72),(.2,1),(.74,.87),(1,.33)))
+        elif key=="CryptArch":self.arch(1.65,2.45,.50,.91,(13,9,5)[l])
+        elif key=="CaveMouth":
+            self.arch(2.02,2.15,.86,1.48,(11,7,5)[l])
+            for s in (-1,1):
+                self.bulb(s*2.7,.47,0,1.12,.94,2.13,1,rock,rough=.16,phase=s*.32)
+                if l<2:self.bulb(s*3.37,.18,0,.77,.61,1.11,2,rock,rough=.13)
+        elif key=="StoneBridge":
+            for s in (-1,1):
+                for y in (-2.7,2.7):self.box(s*1.32,y,0,.64,.82,1.46,0)
+                self.post((s*1.53,-2.8,1.42),(s*1.53,2.8,1.42),.12,.12,3)
+            n=(16,10,6)[l]
+            for j in range(n):
+                y=-2.8+(j+.5)*5.6/n
+                self.box(0,y,.52+.16*(1-abs(y)/2.8),3,.99*5.6/n,.19,3+j%3)
+        elif key=="WatchPost":
+            for x in (-1.2,1.2):
+                for y in (-1.1,1.1):
+                    self.post((x,y,0),(x*.94,y*.94,4.94),.2,.145,4)
+                self.post((x,-1.1,.7),(x,1.1,3.25),.10,.10,5,4)
+            self.box(0,0,3.1,3.1,2.9,.30,3)
+            for s in (-1,1):
+                self.box(0,s*1.26,3.45,3.0,.14,.68,3)
+                self.box(s*1.35,0,3.45,.13,2.65,.68,3)
+            self.bulb(0,0,4.84,2.66,2.45,1.45,1,((0,1),(1,.12)),n=4,phase=math.pi*.25)
+            if l<2:
+                for j in range(7-l*2):self.box(.1,-1.33,.32+j*.39,.74,.17,.12,5)
+        elif key=="RibPillar":
+            for z,r,h,band in [(0,.62,.28,2),(.28,.46,.29,0),(.57,.39,2.5,1),(3.07,.49,.27,0),(3.34,.61,.31,2)]:
+                self.post((0,0,z),(0,0,z+h),r,r,band)
+            if l<2:
+                for i in range((8,4)[l]):
+                    a=TAU*i/(8,4)[l];x,y=.37*math.cos(a),.37*math.sin(a)
+                    self.post((x,y,.53),(x,y,3.12),.066,.066,0,5)
+        elif key=="Brazier":
+            for i in range(3):
+                a=TAU*i/3
+                self.post((.38*math.cos(a),.38*math.sin(a),.026),(.21*math.cos(a),.21*math.sin(a),.69),.05,.076,6)
+            self.bulb(0,0,.58,.44,.44,.41,6,((0,.44),(.74,1),(1,.95)))
+            self.bulb(0,0,.89,.34,.34,.15,14,((0,1),(.63,.84),(1,.32)),rough=.13)
+        elif key=="SupplySack":
+            self.bulb(0,0,0,.29,.215,.55,13,((0,.68),(.16,.96),(.46,1),(.79,.70),(.87,.42),(1,.53)),rough=.065)
+            self.bulb(0,0,.447,.148,.113,.049,4,((0,1),(1,.94)))
+            if l<2:self.post((.10,-.09,.47),(.18,-.14,.32),.017,.013,5,5)
+        elif key=="CoinStack":
+            for x,y,count in [(0,0,4),(.14,-.07,2),(-.1,-.12,1)][:3 if l<2 else 2]:
+                for i in range(count if l==0 else max(1,count//2)):
+                    self.post((x,y,.022*i),(x,y,.022*i+.021),.097,.095,15)
+        elif key=="BrokenCart":
+            self.box(0,0,.54,1.42,2.28,.17,3)
+            for s in (-1,1):
+                self.wheel(s*.77,.18,.57,.47,.16,(10,8,6)[l],4,False)
+                for j in range(3-l):self.box(s*.68,.1,.74+j*.19,.12,2.1-j*.12,.14,3)
+                self.post((s*.48,-1,.61),(s*.45,-2.05,.14),.09,.055,5)
+            self.box(0,.99,.73,1.25,.13,.52,3)
+            self.box(-.10,-1.69,0,.40,.31,.16,2)
+        elif key=="Palisade":
+            for i in range((9,7,5)[l]):
+                x=-1.5+3*i/((9,7,5)[l]-1);h=1.86+.2*math.sin(i*1.9)
+                self.post((x,0,0),(x+.04,0,h),.20,.16,4)
+                self.post((x+.04,0,h),(x+.07,0,h+.31),.16,.013,5)
+            for h in (.50,1.24):self.box(0,-.16,h,3.45,.17,.17,3)
+        elif key=="RangedQuiver":
+            self.post((-.09,0,.04),(.11,0,.56),.072,.11,4)
+            self.post((.092,0,.50),(.12,0,.57),.112,.113,7)
+            self.box(-.09,0,0,.10,.09,.06,4)
+            for i in range(4-l):
+                x=.045+.027*i; y=-.052+.029*i
+                self.post((x,y,.44),(x+.13,y,.85-i*.025),.009,.009,5,5)
+                self.post((x+.097,y,.74-i*.025),(x+.13,y,.85-i*.025),.021,.006,10,4)
+        elif key=="ShieldPlate":
+            outline=[(0,0),(.26,.22),(.31,.57),(.19,.66),(-.19,.66),(-.31,.57),(-.26,.22)]
+            self.rings([[(x,y,z) for x,z in outline] for y in (.04,-.04)],4)
+            self.post((0,-.045,.34),(0,-.11,.34),.13,.07,6)
+            self.box(0,-.049,.12,.057,.028,.52,7)
+            if l<2:
+                for s in (-1,1):self.box(s*.20,-.048,.30,.031,.025,.27,7)
+        elif key=="SwarmSpines":
+            for s in (-1,1):
+                for i in range(4-l):
+                    x=s*(.04+i*.054)
+                    self.post((x,0,.023),(x+s*.115,.02,.22+.045*i),.06,.008,10)
+            self.box(0,0,0,.36,.12,.055,4)
+        elif key=="EliteCrest":
+            self.bulb(0,0,0,.27,.19,.22,6,((0,.7),(.35,1),(1,.68)))
+            for i in range(5-l):
+                a=TAU*i/(5-l)
+                self.post((.21*math.cos(a),.14*math.sin(a),.13),
+                          (.29*math.cos(a),.19*math.sin(a),.38+.035*(i%2)),.065,.011,7)
+        elif key=="Waystone":
+            self.bulb(0,0,0,.54,.38,1.64,2,((0,1),(.25,.88),(.8,.65),(1,.31)),rough=.12)
+            for i in range(3-l):
+                self.box(0,-.249,.78+i*.17,.32-i*.045,.09,.075,10,yaw=.08)
+
+    def bake(self,label,mat):
+        mesh=bpy.data.meshes.new(label)
+        mesh.from_pydata(self.verts,[],self.faces)
+        mesh.update()
+        layer=mesh.uv_layers.new(name="TrimAtlas")
+        # Each face is a planar island inside its padded material tile.
+        for face,band in zip(mesh.polygons,self.bands):
+            n=face.normal
+            axis=max(range(3),key=lambda i:abs(n[i]))
+            a,b=((1,2),(0,2),(0,1))[axis]
+            xy=[(mesh.vertices[v].co[a],mesh.vertices[v].co[b]) for v in face.vertices]
+            xmin=min(x for x,y in xy);ymin=min(y for x,y in xy)
+            span=max(max(x for x,y in xy)-xmin,max(y for x,y in xy)-ymin,.000001)
+            for index,(x,y) in zip(face.loop_indices,xy):
+                layer.data[index].uv=((band%4+.09+.82*(x-xmin)/span)/4,
+                                      (band//4+.09+.82*(y-ymin)/span)/4)
+        obj=bpy.data.objects.new(label,mesh)
+        bpy.context.collection.objects.link(obj)
+        mesh.materials.append(mat)
+        return obj
+
+bpy.ops.wm.read_factory_settings(use_empty=True)
+image=paint_atlas()
+material=bpy.data.materials.new("BorderlandAtlas")
+material.use_nodes=True
+node=material.node_tree.nodes.new("ShaderNodeTexImage")
+node.image=image
+principled=material.node_tree.nodes.get("Principled BSDF")
+material.node_tree.links.new(node.outputs["Color"],principled.inputs["Base Color"])
+principled.inputs["Roughness"].default_value=.88
+bpy.context.preferences.filepaths.save_version=0
+selected = sys.argv[sys.argv.index("--")+2:] or KEYS
+if set(selected)-set(KEYS): raise ValueError("Unknown regional mesh")
+for key in selected:
+    counts=[]
+    for level in range(3):
+        builder=Mesh(level)
+        builder.make(key)
+        obj=builder.bake(key+"Detail"+str(level),material)
+        obj.data.calc_loop_triangles()
+        counts.append(len(obj.data.loop_triangles))
+    print("BORDERLAND_MESH",key,counts,flush=True)
+    assert 3500 >= counts[0] > counts[1] > counts[2] >= 4, (key,counts)
+    bpy.ops.wm.save_as_mainfile(filepath=str(OUT/(key+".blend")),compress=True)
+    for obj in list(bpy.context.scene.objects):
+        m=obj.data
+        bpy.data.objects.remove(obj,do_unlink=True)
+        bpy.data.meshes.remove(m)

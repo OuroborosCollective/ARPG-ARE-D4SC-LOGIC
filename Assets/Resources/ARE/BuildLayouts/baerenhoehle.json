@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "area": "baerenhoehle",
+  "revision": 1,
+  "pieces": [
+    {
+      "id": "b0001",
+      "key": "CaveMouth",
+      "x": 0,
+      "z": -18,
+      "rot": 0,
+      "scale": 1.18
+    },
+    {
+      "id": "b0002",
+      "key": "StoneOutcrop",
+      "x": -9.1,
+      "z": -3.3,
+      "rot": 16,
+      "scale": 1.45
+    },
+    {
+      "id": "b0003",
+      "key": "StoneOutcrop",
+      "x": 10.2,
+      "z": -1.5,
+      "rot": 310,
+      "scale": 1.77
+    },
+    {
+      "id": "b0004",
+      "key": "BloodcapBank",
+      "x": 5.65,
+      "z": -11.1,
+      "rot": 250,
+      "scale": 1.4
+    },
+    {
+      "id": "b0005",
+      "key": "BloodcapBank",
+      "x": 5.92,
+      "z": -11.6,
+      "rot": 12,
+      "scale": 0.86
+    }
+  ]
+}

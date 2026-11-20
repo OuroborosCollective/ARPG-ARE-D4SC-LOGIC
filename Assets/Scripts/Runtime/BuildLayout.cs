@@ -16,6 +16,7 @@ namespace AreArpg.UnityClient
     {
         public readonly string Key, Label, Category;
         private readonly string resourceKey;
+        public readonly bool Regional;
         public readonly BuildKind Kind;
         /// <summary>Fallback blockout size in metres when the private art is not installed.</summary>
         public readonly float Width, Depth, Height;
@@ -23,17 +24,19 @@ namespace AreArpg.UnityClient
         public readonly PrimitiveType Shape;
 
         public BuildCatalogEntry(string key, string label, string category, BuildKind kind, float width, float depth, float height,
-            Color fallback, PrimitiveType shape = PrimitiveType.Cube, string resourceKey = null)
+            Color fallback, PrimitiveType shape = PrimitiveType.Cube, string resourceKey = null, bool regional = false)
         {
             Key = key; Label = label; Category = category; Kind = kind;
             this.resourceKey = resourceKey ?? key;
+            Regional = regional;
             Width = width; Depth = depth; Height = height; Fallback = fallback; Shape = shape;
         }
 
         /// <summary>Resource path below Resources/ (prefab or surface material).</summary>
         public string ResourcePath
         {
-            get { return Kind == BuildKind.Surface ? BuildCatalog.SurfaceRoot + resourceKey : BuildCatalog.PrefabRoot + resourceKey; }
+            get { if (Regional) return BorderlandArt.Folder + resourceKey;
+                return Kind == BuildKind.Surface ? BuildCatalog.SurfaceRoot + resourceKey : BuildCatalog.PrefabRoot + resourceKey; }
         }
     }
 
@@ -87,6 +90,23 @@ namespace AreArpg.UnityClient
             new BuildCatalogEntry("DungeonArch", "Torbogen", Walls, BuildKind.Prefab, 4f, 1f, 3.5f, Stone),
             new BuildCatalogEntry("DungeonPillar", "Säule", Walls, BuildKind.Prefab, 1f, 1f, 3.5f, Stone, PrimitiveType.Cylinder),
             new BuildCatalogEntry("AshSteps", "Steinstufen", Walls, BuildKind.Prefab, 3f, 2f, 0.8f, Stone),
+
+            new BuildCatalogEntry("BloodcapBank", "Blutpilzgruppe", Nature, BuildKind.Prefab, 1f, 0.7f, 0.34f, Leaf, regional: true),
+            new BuildCatalogEntry("AshPine", "Aschenkiefer", Nature, BuildKind.Prefab, 3.3f, 2.9f, 7.6f, Leaf, regional: true),
+            new BuildCatalogEntry("StoneOutcrop", "Felsrippe", Nature, BuildKind.Prefab, 3f, 1.6f, 1.5f, Stone, regional: true),
+            new BuildCatalogEntry("TimberHouse", "Fachwerkhaus", Houses, BuildKind.Prefab, 5.5f, 6.5f, 6f, Wood, regional: true),
+            new BuildCatalogEntry("MillHouse", "Mühlenhaus", Houses, BuildKind.Prefab, 7f, 11f, 6f, Wood, regional: true),
+            new BuildCatalogEntry("MillWheel", "Mühlrad", Props, BuildKind.Prefab, 1.15f, 3.7f, 3.7f, Wood, regional: true),
+            new BuildCatalogEntry("GrainBay", "Kornregal", Props, BuildKind.Prefab, 3f, 1.5f, 2.4f, Wood, regional: true),
+            new BuildCatalogEntry("CryptArch", "Kryptabogen", Walls, BuildKind.Prefab, 4.6f, 1.2f, 3.5f, Stone, regional: true),
+            new BuildCatalogEntry("CaveMouth", "Höhlenmund", Walls, BuildKind.Prefab, 8f, 2.2f, 3.7f, Stone, regional: true),
+            new BuildCatalogEntry("StoneBridge", "Steg auf Steinlagern", Houses, BuildKind.Prefab, 3.3f, 6.3f, 1.6f, Wood, regional: true),
+            new BuildCatalogEntry("WatchPost", "Zollwache", Houses, BuildKind.Prefab, 4f, 3.8f, 6.4f, Wood, regional: true),
+            new BuildCatalogEntry("RibPillar", "Gewölbepfeiler", Walls, BuildKind.Prefab, 1.25f, 1.25f, 3.65f, Stone, regional: true),
+            new BuildCatalogEntry("Brazier", "Kohlenbecken", Props, BuildKind.Prefab, 0.9f, 0.9f, 1.05f, Stone, regional: true),
+            new BuildCatalogEntry("BrokenCart", "Gebrochener Karren", Props, BuildKind.Prefab, 2f, 3.4f, 1.4f, Wood, regional: true),
+            new BuildCatalogEntry("Palisade", "Palisadenfeld", Walls, BuildKind.Prefab, 3.5f, 0.5f, 2.3f, Wood, regional: true),
+            new BuildCatalogEntry("Waystone", "Wegstein", Props, BuildKind.Prefab, 1.1f, 0.8f, 1.64f, Stone, regional: true),
 
             new BuildCatalogEntry("AshCrate", "Kiste", Props, BuildKind.Prefab, 0.9f, 0.9f, 0.9f, Wood),
             new BuildCatalogEntry("AshLantern", "Laterne", Props, BuildKind.Prefab, 0.5f, 0.5f, 2.2f, new Color(0.85f, 0.62f, 0.25f), PrimitiveType.Cylinder),

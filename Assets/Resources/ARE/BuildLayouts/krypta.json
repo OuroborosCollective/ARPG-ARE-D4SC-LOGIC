@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "area": "krypta",
+  "revision": 1,
+  "pieces": [
+    {
+      "id": "b0001",
+      "key": "RibPillar",
+      "x": -8.4,
+      "z": 10,
+      "rot": 83,
+      "scale": 0.92
+    },
+    {
+      "id": "b0002",
+      "key": "RibPillar",
+      "x": 8.4,
+      "z": 10,
+      "rot": 39,
+      "scale": 0.92
+    },
+    {
+      "id": "b0003",
+      "key": "Brazier",
+      "x": -3.5,
+      "z": 20.8,
+      "rot": 0,
+      "scale": 0.85
+    },
+    {
+      "id": "b0004",
+      "key": "BloodcapBank",
+      "x": 6,
+      "z": 18,
+      "rot": 76,
+      "scale": 1.25
+    }
+  ]
+}

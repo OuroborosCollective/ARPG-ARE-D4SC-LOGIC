@@ -149,7 +149,11 @@ namespace AreArpg.UnityClient
         /// <summary>Fit reviewed passive art into the existing projection volume without moving its Core-owned host.</summary>
         private static void FitHungerArt(Transform host, string key)
         {
-            if (!PassiveArtVisuals.TryBindGrounded(host, key, 0f)) return;
+            if (key == "MillHouse" || key == "MillWheel")
+            {
+                if (!PassiveArtVisuals.TryBindGroundedPrefab(host, BorderlandArt.LoadVisual(key), 0f)) return;
+            }
+            else if (!PassiveArtVisuals.TryBindGrounded(host, key, 0f)) return;
             Transform art = host.GetChild(host.childCount - 1);
             Renderer[] renderers = art.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0)
@@ -204,11 +208,10 @@ namespace AreArpg.UnityClient
                 return;
             }
             ChapterShape(PrimitiveType.Cube, "OldMill_House", new Vector3(10.5f, 3f, 5),
-                new Vector3(7, 6, 11), new Color(.42f, .37f, .29f), "VillageSupplyHall");
+                new Vector3(7, 6, 11), new Color(.42f, .37f, .29f), "MillHouse");
             // Wheel lies inside the same solid footprint, so art never invents a collision boundary.
-            Transform wheel = ChapterShape(PrimitiveType.Cylinder, "OldMill_Wheel", new Vector3(7.3f, 2.2f, 7),
-                new Vector3(3.8f, .2f, 3.8f), new Color(.22f, .17f, .13f));
-            wheel.rotation = Quaternion.Euler(0, 0, 90);
+            ChapterShape(PrimitiveType.Cube, "OldMill_Wheel", new Vector3(7.53f, 1.90f, 7),
+                new Vector3(1.02f, 3.80f, 3.80f), new Color(.22f, .17f, .13f), "MillWheel");
             ChapterShape(PrimitiveType.Cube, "OldMill_Medical_Supplies", new Vector3(-4, .3f, -2),
                 new Vector3(1.2f, .6f, .8f), new Color(.54f, .43f, .3f), "AshCrate");
             for (int i = 0; i < 3; i++)
