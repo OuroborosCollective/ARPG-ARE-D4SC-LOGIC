@@ -63,18 +63,25 @@ namespace AreArpg.UnityClient
             renderer.shadowCastingMode = ShadowCastingMode.Off;
         }
 
-        private void BuildGroves(ForgedWorldMap map, Vector2 centre)
+        private bool PrepareTrees(out Matrix4x4 basis, out List<Matrix4x4>[] batches)
         {
+            basis = Matrix4x4.identity;
+            batches = new List<Matrix4x4>[4];
             var visual = BorderlandArt.LoadVisual("AshPine");
-            if (visual == null) return;
+            if (visual == null) return false;
             LOD[] lods = visual.GetComponent<LODGroup>().GetLODs();
             var tree = lods[lods.Length - 1].renderers[0];
             _pine = tree.GetComponent<MeshFilter>().sharedMesh;
             _foliage = tree.sharedMaterial;
-            var batches = new List<Matrix4x4>[4];
             for (int i = 0; i < 4; i++) batches[i] = new List<Matrix4x4>();
             // Model importer axes and scale are identical to the baked prefab.
-            var basis = visual.transform.parent.worldToLocalMatrix * tree.localToWorldMatrix;
+            basis = visual.transform.parent.worldToLocalMatrix * tree.localToWorldMatrix;
+            return true;
+        }
+
+        private void BuildGroves(ForgedWorldMap map, Vector2 centre)
+        {
+            if (!PrepareTrees(out var basis, out var batches)) return;
             int index = 0;
             foreach (var anchor in map.Obstacles)
             {
@@ -86,6 +93,37 @@ namespace AreArpg.UnityClient
                     Matrix4x4.TRS(new Vector3(x, height, z), Quaternion.Euler(0, index * 137.5f, 0), Vector3.one * size) * basis);
                 index++;
             }
+            PublishTrees(batches);
+        }
+
+        public static void BuildJourneyStands(Transform parent, JourneyRouteLayout route)
+        {
+            var root = new GameObject("Journey_AshPine_Stands");
+            root.transform.SetParent(parent, false);
+            var landscape = root.AddComponent<BorderlandLandscape>();
+            if (!landscape.PrepareTrees(out var basis, out var batches)) return;
+
+            // Existing clear cells and their shoulders stay entirely open, including on old maps.
+            // A small coordinate jitter breaks up the grid without changing the route RNG stream.
+            for (int z = 2; z < route.Size - 2; z += 3)
+                for (int x = 2; x < route.Size - 2; x += 3)
+                {
+                    int sample = 1367*x + 4967*z + 337*x*z;
+                    if (sample % 5 < 2 || route.IsFloor(x,z) || route.IsFloor(x-1,z) ||
+                        route.IsFloor(x+1,z) || route.IsFloor(x,z-1) || route.IsFloor(x,z+1)) continue;
+                    float cell = route.CellMm * .001f;
+                    float wx = route.Centre(x)*.001f + ((sample % 37)/36f-.5f)*cell*.68f;
+                    float wz = route.Centre(z)*.001f + (((sample/31) % 41)/40f-.5f)*cell*.68f;
+                    float wy = route.HeightMm(Mathf.RoundToInt(wx*1000), Mathf.RoundToInt(wz*1000))*.001f;
+                    float scale = .85f + (sample % 53)*.012f;
+                    var stand = Matrix4x4.TRS(new Vector3(wx,wy,wz), Quaternion.Euler(0,sample%360,0), Vector3.one*scale);
+                    batches[(wx >= 0 ? 1 : 0) + (wz >= 0 ? 2 : 0)].Add(stand*basis);
+                }
+            landscape.PublishTrees(batches);
+        }
+
+        private void PublishTrees(List<Matrix4x4>[] batches)
+        {
             for (int i = 0; i < 4; i++)
             {
                 _groves[i] = batches[i].ToArray();

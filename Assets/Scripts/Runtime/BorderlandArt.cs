@@ -65,6 +65,7 @@ namespace AreArpg.UnityClient
                 z = map.ReturnZ * .001f + 1.2f;
                 if (map is JourneyRouteLayout route)
                 {
+                    BorderlandLandscape.BuildJourneyStands(_regionalDetails, route);
                     AddRegionalPiece(_regionalDetails, "CaveMouth", route.CaveX * .001f, route.CaveZ * .001f);
                     AddRegionalPiece(_regionalDetails, "Waystone", route.ForwardX * .001f + 2.7f, route.ForwardZ * .001f);
                     AddRegionalPiece(_regionalDetails, "BloodcapBank", route.CaveX * .001f + 2.55f, route.CaveZ * .001f - .69f, 19, 1.3f);

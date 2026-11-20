@@ -28,6 +28,8 @@ namespace AreArpg.EditMode.Tests
         [TestCase("ShieldPlate")]
         [TestCase("SwarmSpines")]
         [TestCase("EliteCrest")]
+        [TestCase("ShaleLedge")]
+        [TestCase("DenLitter")]
         public void OriginalRegionalPrefabHasThreeTexturedMobileLods(string key)
         {
             var p = Resources.Load<GameObject>("ARE/Borderland/" + key);

@@ -23,7 +23,7 @@ KEYS = ("BloodcapBank", "AshPine", "StoneOutcrop", "TimberHouse", "MillWheel",
         "MillHouse", "GrainBay", "CryptArch", "CaveMouth", "StoneBridge",
         "WatchPost", "RibPillar", "Brazier", "SupplySack", "CoinStack",
         "BrokenCart", "Palisade", "Waystone",
-        "RangedQuiver", "ShieldPlate", "SwarmSpines", "EliteCrest")
+        "RangedQuiver", "ShieldPlate", "SwarmSpines", "EliteCrest", "ShaleLedge", "DenLitter")
 
 def paint_atlas():
     size, tile = 256, 64
@@ -155,6 +155,49 @@ class Mesh:
             self.rings([[(x,y,z+.55) for x,z in outline] for y in (depth/2,-depth/2)],(0,2,1)[i%3] if stone else 3)
         for s in (-1,1): self.box(s*(rx+thick/2),0,0,thick+.14,depth+.2,.57,0)
 
+    def shale_ledge(self):
+        # Folded beds share a slope. Each weathered lip casts a short shadow on the seam below.
+        for block,(x,y,width,height) in enumerate(((-1.82,.22,1.68,2.30),(.62,.10,1.45,1.94),(2.45,.35,1.10,1.38))):
+            steps = (6,4,3)[self.lod]
+            sides = (11,8,6)[self.lod]
+            for layer in range(steps):
+                base = height * layer / steps
+                taper = 1.04 - .30 * layer / steps
+                rows = []
+                for lift,lip in ((0,.93),(.17,1),(.77,1.06),(1,.94)):
+                    row = []
+                    for i in range(sides):
+                        a = TAU * i/sides + block*.24
+                        chip = 1 + .11*math.sin(3*a + block) + .055*math.sin(5*a + layer*.48)
+                        dx = width * taper * lip * math.cos(a) * chip
+                        dy = (.76 + .12*block) * lip * math.sin(a) * chip
+                        z = base + lift*height/steps + (dx*.10 + dy*.08)*min(1,layer+lift)
+                        row.append((x+dx+.11*layer/steps, y+dy, max(0,z)))
+                    rows.append(row)
+                self.rings(rows,(1,2,0,1,2,0)[(layer+block)%6],top=2 if layer%2 else 0)
+        for i in range((9,5,2)[self.lod]):
+            angle = 2.21*i
+            self.bulb(-2.85+i*.77,-.91+.22*math.cos(angle),0,.24,.15,.11,
+                      0 if i%3 else 2,((0,.8),(.42,1),(1,.42)),n=5,phase=angle,rough=.14)
+
+    def den_litter(self):
+        # A bed of earth, flattened reeds and snapped boughs. The young bears can stand on the level centre.
+        self.bulb(0,0,0,2.15,1.56,.035,4,((0,.94),(.65,1),(1,.81)),
+                  n=(24,16,9)[self.lod],rough=.11)
+        pieces = (68,38,15)[self.lod]
+        for i in range(pieces):
+            a = i*2.39996323
+            ring = .34 + .64*math.sqrt((i+.5)/pieces)
+            x,y = 2.06*ring*math.cos(a),1.48*ring*math.sin(a)
+            length = .24 + .34*((i*19)%27)/26
+            direction = a + 1.13 + .41*math.sin(i)
+            dx,dy = length*math.cos(direction),length*math.sin(direction)
+            z = .035+.043*ring
+            band = (3,4,5,9,13)[i%5]
+            self.post((x-dx,y-dy,z),(x+dx,y+dy,z+.035*(i%3)),.029 if i%4 else .045,.009,band,3)
+            if self.lod==0 and i%6==0:
+                self.post((x,y,z+.018),(x+.63*dx-.24*dy,y+.63*dy+.24*dx,z+.13),.019,.006,4,3)
+
     def make(self,key):
         l=self.lod
         rock=((0,.63),(.17,1),(.64,.91),(1,.28))
@@ -175,6 +218,8 @@ class Mesh:
         elif key=="StoneOutcrop":
             for i,(x,y,w,h) in enumerate([(0,0,1.15,1.46),(.84,.33,.66,.76),(-.72,.19,.67,.71),(.32,-.66,.42,.36)][:4-l]):
                 self.bulb(x,y,0,w,w*.75,h,(0,2,1,0)[i],rock,phase=i+.28,rough=.16)
+        elif key=="ShaleLedge": self.shale_ledge()
+        elif key=="DenLitter": self.den_litter()
         elif key in ("TimberHouse","MillHouse"):
             self.house(6.45 if key=="MillHouse" else 4.8,10.5 if key=="MillHouse" else 5.9,4.0 if key=="MillHouse" else 3.75,key=="MillHouse")
         elif key=="MillWheel":

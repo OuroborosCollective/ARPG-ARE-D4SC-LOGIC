@@ -44,6 +44,15 @@ namespace AreArpg.PlayMode.Tests
             foreach(string plant in new[]{"WoodlandMushroomRed","WoodlandFern","WoodlandShrub"})
                 Assert.IsTrue(chunks.SelectMany(c=>c.GetComponentsInChildren<Transform>(true)).Any(t=>t.name==plant),"Reviewed forest undergrowth must be visible: "+plant);
             string before=Game.Progression.SaveString();DungeonProject();Assert.AreEqual(before,Game.Progression.SaveString(),"Projection never creates rewards or advances ticks");
+            var treeline = Find("Journey_AshPine_Stands");
+            Assert.IsNotNull(treeline);
+            Assert.IsEmpty(treeline.GetComponentsInChildren<Collider>());
+            var grove = treeline.GetComponent<BorderlandLandscape>();
+            var batches = (Matrix4x4[][])typeof(BorderlandLandscape).GetField("_groves", Flags).GetValue(grove);
+            var treesOnBanks = batches.SelectMany(batch => batch).Select(matrix => (Vector3)matrix.GetColumn(3)).ToArray();
+            Assert.That(treesOnBanks.Length, Is.InRange(40, 300));
+            Assert.IsTrue(treesOnBanks.All(at => !Game.JourneyGeometry.CanStand(Mathf.RoundToInt(at.x*1000), Mathf.RoundToInt(at.z*1000))));
+            Assert.GreaterOrEqual(treesOnBanks.Count(at => (new Vector2(at.x - Game.PlayerXmm*.001f, at.z - Game.PlayerZmm*.001f)).sqrMagnitude < 900f), 3);
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();yield return Capture("journey-worldforge-entry.png");
             var firstEnemy=Game.Monsters[0];JourneyNativeWalk(firstEnemy.Xmm,firstEnemy.Zmm,false);
             var pending=(Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills",Flags).GetValue(_runtime);int killsBefore=Game.Kills;pending.Enqueue(0);

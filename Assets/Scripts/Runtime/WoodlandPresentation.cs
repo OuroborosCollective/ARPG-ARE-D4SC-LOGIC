@@ -142,7 +142,10 @@ namespace AreArpg.UnityClient
             {
                 for(int side=-1;side<=1;side+=2)for(int z=-16;z<=12;z+=4)ChapterShape(PrimitiveType.Cube,"BearCave_RockWall",new Vector3(side*11,1.8f,z),new Vector3(3,3.6f,4.4f),new Color(.22f,.24f,.27f),"AshRocks");
                 ChapterShape(PrimitiveType.Cube,"BearCave_BackWall",new Vector3(0,1.7f,16),new Vector3(23,3.4f,4),new Color(.22f,.24f,.27f),"AshRocks");
-                ChapterShape(PrimitiveType.Cylinder,"BearCave_Nest",new Vector3(0,.04f,5),new Vector3(4,.05f,3),new Color(.31f,.24f,.12f));
+                var nest = new GameObject("BearCave_Nest").transform;
+                nest.position = new Vector3(0, .012f, 5);
+                _chapterScenery.Add(nest);
+                PassiveArtVisuals.TryBindPrefab(nest, BorderlandArt.LoadVisual("DenLitter"));
                 for(int i=0;i<3;i++)
                 {
                     var t=ChapterShape(PrimitiveType.Cube,"BearCub_"+i,new Vector3((i-1)*1.2f,.3f,5+(i%2)*.8f),new Vector3(.8f,.6f,1.1f),new Color(.4f,.25f,.13f));

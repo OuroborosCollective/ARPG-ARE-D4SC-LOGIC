@@ -94,6 +94,7 @@ namespace AreArpg.UnityClient
             new BuildCatalogEntry("BloodcapBank", "Blutpilzgruppe", Nature, BuildKind.Prefab, 1f, 0.7f, 0.34f, Leaf, regional: true),
             new BuildCatalogEntry("AshPine", "Aschenkiefer", Nature, BuildKind.Prefab, 3.3f, 2.9f, 7.6f, Leaf, regional: true),
             new BuildCatalogEntry("StoneOutcrop", "Felsrippe", Nature, BuildKind.Prefab, 3f, 1.6f, 1.5f, Stone, regional: true),
+            new BuildCatalogEntry("ShaleLedge", "Schieferbank", Nature, BuildKind.Prefab, 7f, 2.2f, 2.4f, Stone, regional: true),
             new BuildCatalogEntry("TimberHouse", "Fachwerkhaus", Houses, BuildKind.Prefab, 5.5f, 6.5f, 6f, Wood, regional: true),
             new BuildCatalogEntry("MillHouse", "Mühlenhaus", Houses, BuildKind.Prefab, 7f, 11f, 6f, Wood, regional: true),
             new BuildCatalogEntry("MillWheel", "Mühlrad", Props, BuildKind.Prefab, 1.15f, 3.7f, 3.7f, Wood, regional: true),
