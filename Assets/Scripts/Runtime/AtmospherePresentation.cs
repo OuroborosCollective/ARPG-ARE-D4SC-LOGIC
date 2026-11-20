@@ -22,8 +22,10 @@ namespace AreArpg.UnityClient
             _atmosphere.EnterRegion(_game.CurrentAreaId);
             int act = _game.CurrentAreaId;
             if (act == 3)
-                foreach (int side in new[] { -1, 1 }) ChapterShape(PrimitiveType.Cube, "Grass verge", new Vector3(side * 8, -.015f, 0),
-                    new Vector3(4, .04f, 36), new Color(.20f, .25f, .14f));
+                // Ash, not grass (owner direction 2026-11-20). The strip lies flush on the ground, whose top is at -.1:
+                // floating above it, its edge and shadow drew a dark line beside the road.
+                foreach (int side in new[] { -1, 1 }) ChapterShape(PrimitiveType.Cube, "Grass verge", new Vector3(side * 8, -.118f, 0),
+                    new Vector3(4, .04f, 36), new Color(.40f, .40f, .42f));
             if (act == 4)
             {
                 for (int i = 0; i < 10; i++) ChapterShape(PrimitiveType.Cube, "Mill wooden board", new Vector3(-6.25f + i * .5f, .01f, -2),

@@ -34,12 +34,39 @@ namespace AreArpg.UnityClient
             return null;
         }
 
+        public static Material AshSnow => Resources.Load<Material>("ARE/Borderland/AshSnow");
+
+        // Reuse the art director's private ash islands and vein painting if installed. The public
+        // mobile material has its own seamless mask for checkouts without this optional overlay.
+        internal static void BindAshPaint()
+        {
+            var source = Resources.Load<Material>("ARE/Visuals/WorldSurfaces/OutdoorGround");
+            Texture colour = source != null && source.HasProperty("_BaseMap") ? source.GetTexture("_BaseMap") : null;
+            Texture veins = source != null && source.HasProperty("_EmissionMap") ? source.GetTexture("_EmissionMap") : null;
+            if (colour == null || veins == null || colour.name != "AshGround_Albedo" || veins.name != "AshGround_Emission")
+            {
+                ReleaseAshPaint();
+                return;
+            }
+            Shader.SetGlobalTexture("_AREAshPainting", colour);
+            Shader.SetGlobalTexture("_AREAshVeins", veins);
+            Shader.EnableKeyword("ARE_BORDERLAND_PAINT");
+        }
+
+        internal static void ReleaseAshPaint()
+        {
+            Shader.DisableKeyword("ARE_BORDERLAND_PAINT");
+            Shader.SetGlobalTexture("_AREAshPainting", null);
+            Shader.SetGlobalTexture("_AREAshVeins", null);
+        }
+
         /// <summary>Use a persistent imported material if present; a missing private overlay preserves existing art.</summary>
         public static bool TryApply(Renderer renderer, string label)
         {
             string key = KeyFor(label);
             if (renderer == null || !renderer.enabled || key == null) return false;
-            Material material = Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key);
+            Material material = (key == "OutdoorGround" || key == "GrassVerge" ? AshSnow : null)
+                ?? Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key);
             if (material == null) return false;
             renderer.sharedMaterial = material;
             return true;

@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "area": "speicher",
+  "revision": 1,
+  "pieces": [
+    {
+      "id": "b0001",
+      "key": "GrainBay",
+      "x": -10,
+      "z": 7,
+      "rot": 90,
+      "scale": 1
+    },
+    {
+      "id": "b0002",
+      "key": "GrainBay",
+      "x": 10.2,
+      "z": 12.2,
+      "rot": 270,
+      "scale": 0.95
+    },
+    {
+      "id": "b0003",
+      "key": "BrokenCart",
+      "x": -9.8,
+      "z": -13.6,
+      "rot": 113,
+      "scale": 0.77
+    },
+    {
+      "id": "b0004",
+      "key": "Brazier",
+      "x": 4.25,
+      "z": 17.5,
+      "rot": 14,
+      "scale": 0.82
+    },
+    {
+      "id": "b0005",
+      "key": "BloodcapBank",
+      "x": -9.7,
+      "z": 15.8,
+      "rot": 45,
+      "scale": 1.12
+    },
+    {
+      "id": "b0006",
+      "key": "Waystone",
+      "x": -4.8,
+      "z": 19,
+      "rot": 8,
+      "scale": 0.74
+    }
+  ]
+}

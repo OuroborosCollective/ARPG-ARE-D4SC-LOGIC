@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "area": "rattlernest",
+  "revision": 1,
+  "pieces": [
+    {
+      "id": "b0001",
+      "key": "RibPillar",
+      "x": -10.2,
+      "z": 11.4,
+      "rot": 36,
+      "scale": 1.3
+    },
+    {
+      "id": "b0002",
+      "key": "RibPillar",
+      "x": 10.2,
+      "z": 11.4,
+      "rot": 19,
+      "scale": 1.3
+    },
+    {
+      "id": "b0003",
+      "key": "StoneOutcrop",
+      "x": 12.8,
+      "z": 4.6,
+      "rot": 12,
+      "scale": 1.6
+    },
+    {
+      "id": "b0004",
+      "key": "StoneOutcrop",
+      "x": -13.7,
+      "z": 6.8,
+      "rot": 72,
+      "scale": 1.48
+    },
+    {
+      "id": "b0005",
+      "key": "Brazier",
+      "x": -7.8,
+      "z": -8.6,
+      "rot": 0,
+      "scale": 1
+    },
+    {
+      "id": "b0006",
+      "key": "Brazier",
+      "x": 7.8,
+      "z": -8.6,
+      "rot": 0,
+      "scale": 1
+    }
+  ]
+}

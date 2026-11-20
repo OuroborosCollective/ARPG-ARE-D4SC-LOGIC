@@ -76,7 +76,13 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(9,Game.Progression.EntryAct);MoveStory(0,5000);
             yield return StoryAction(HungerAction.InspectCubs);yield return StoryAction(HungerAction.SpareCubs);
             Assert.IsFalse(Game.Progression.Woodland.WarBearEligibility);DungeonProject();
-            Assert.IsTrue(Find("BearCub_0").activeSelf);Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();yield return Capture("bear-cubs-story-cave.png");
+            Assert.IsTrue(Find("BearCub_0").activeSelf);
+            Assert.IsNotNull(Find("BearCave_Nest").GetComponentInChildren<LODGroup>(), "The cubs rest on the authored den floor.");
+            var caveArt = Find("ARE_BuildLayer_baerenhoehle");
+            Assert.IsNotNull(caveArt);
+            Assert.GreaterOrEqual(caveArt.GetComponentsInChildren<LODGroup>().Count(group =>
+                group.transform.parent.name.Contains("ShaleLedge") && group.transform.position.z > 7f), 3);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();yield return Capture("bear-cubs-story-cave.png");
             MoveStory(0,-18000);TravelStory();yield return null;
             Assert.AreEqual(seed,Game.Progression.Woodland.Seed);Assert.AreEqual(CubChoice.Spared,Game.Progression.Woodland.Choice);
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]),out var saved));Assert.AreEqual(seed,saved.Woodland.Seed);

@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "area": "baerenhoehle",
+  "revision": 2,
+  "pieces": [
+    {
+      "id": "b0001",
+      "key": "CaveMouth",
+      "x": 0,
+      "z": -18,
+      "rot": 0,
+      "scale": 1.18
+    },
+    {
+      "id": "b0002",
+      "key": "StoneOutcrop",
+      "x": -9.1,
+      "z": -3.3,
+      "rot": 16,
+      "scale": 1.45
+    },
+    {
+      "id": "b0003",
+      "key": "StoneOutcrop",
+      "x": 10.2,
+      "z": -1.5,
+      "rot": 310,
+      "scale": 1.77
+    },
+    {
+      "id": "b0004",
+      "key": "BloodcapBank",
+      "x": 5.65,
+      "z": -11.1,
+      "rot": 250,
+      "scale": 1.4
+    },
+    {
+      "id": "b0005",
+      "key": "BloodcapBank",
+      "x": 5.92,
+      "z": -11.6,
+      "rot": 12,
+      "scale": 0.86
+    },
+    {
+      "id": "b0006",
+      "key": "ShaleLedge",
+      "x": -4.75,
+      "z": 11.1,
+      "rot": 344,
+      "scale": 1.27
+    },
+    {
+      "id": "b0007",
+      "key": "ShaleLedge",
+      "x": 2.55,
+      "z": 12.75,
+      "rot": 15,
+      "scale": 1.45
+    },
+    {
+      "id": "b0008",
+      "key": "ShaleLedge",
+      "x": 7.3,
+      "z": 8.7,
+      "rot": 60,
+      "scale": 1.05
+    },
+    {
+      "id": "b0009",
+      "key": "ShaleLedge",
+      "x": -7.55,
+      "z": 5.65,
+      "rot": 298,
+      "scale": 0.87
+    },
+    {
+      "id": "b0010",
+      "key": "BloodcapBank",
+      "x": -2.95,
+      "z": 10,
+      "rot": 35,
+      "scale": 2.1
+    },
+    {
+      "id": "b0011",
+      "key": "BloodcapBank",
+      "x": 4.8,
+      "z": 9.95,
+      "rot": 194,
+      "scale": 1.66
+    },
+    {
+      "id": "b0012",
+      "key": "BloodcapBank",
+      "x": 6.9,
+      "z": 6.9,
+      "rot": 73,
+      "scale": 0.95
+    }
+  ]
+}

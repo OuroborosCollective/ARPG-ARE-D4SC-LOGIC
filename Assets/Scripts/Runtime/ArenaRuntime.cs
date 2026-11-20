@@ -233,6 +233,7 @@ namespace AreArpg.UnityClient
             RenderSettings.fogDensity = 0.014f;
             BuildChapterScenery();
             BuildPlacedLayer();
+            BuildRegionalDetails();
             // Torch islands belong to the village projection, not to the optional private art overlay.
             if (_game.IsVillage) BuildVillageLights();
             else _villageTorches.Clear();
@@ -682,6 +683,7 @@ namespace AreArpg.UnityClient
             _monsterVisuals.Add(monster.Id, root);
             if (!_entryProfile || !PassiveArtVisuals.TryBindGrounded(root, "EntryEnemy" + monster.Kind, 0f))
                 PassiveArtVisuals.TryBind(root, "Enemy" + monster.Kind);
+            BindRoleArt(root, monster.Role);
             RegisterActorMotion(root);
             if (monster.Kind == 3)
             {
@@ -952,6 +954,7 @@ namespace AreArpg.UnityClient
             _passageAnnounced = false;
             BuildChapterScenery();
             BuildPlacedLayer();
+            BuildRegionalDetails();
             // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
             if (_game.IsVillage) BuildVillageLights();
             else _villageTorches.Clear();
@@ -1101,6 +1104,7 @@ namespace AreArpg.UnityClient
             RefreshWorldSky();
             RefreshPostProcessing();
             AnimateVillageLights();
+            AnimateDungeonLights();
             UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
@@ -1132,6 +1136,7 @@ namespace AreArpg.UnityClient
             }
             UpdateJourneyPresentation();
             UpdateDungeonPresentation();
+            RefreshRegionalAppearance();
             UpdateWoodlandPresentation();
             UpdateEquipmentPresentation();
             if (_worldPassage != null)
@@ -1195,10 +1200,16 @@ namespace AreArpg.UnityClient
                     new Vector3(item.Xmm / 1000f, 0.55f + GroundHeight(item.Xmm/1000f,item.Zmm/1000f), item.Zmm / 1000f),
                     Vector3.one * 0.55f, new Color(0.97f, 0.76f, 0.18f), 0.8f);
                 var equipment=_game.Progression.Equipment.ForItem(item.Item);
-                if(equipment!=null&&PassiveArtVisuals.TryBindGrounded(drop,equipment.Definition.VisualKey,GroundHeight(item.Xmm/1000f,item.Zmm/1000f)))
+                float floor = GroundHeight(item.Xmm * .001f, item.Zmm * .001f);
+                if(equipment!=null&&PassiveArtVisuals.TryBindGrounded(drop,equipment.Definition.VisualKey,floor))
                 {
                     var art=drop.GetChild(drop.childCount-1);var rs=art.GetComponentsInChildren<Renderer>();var bounds=rs[0].bounds;foreach(var r in rs)bounds.Encapsulate(r.bounds);
-                    art.position+=Vector3.up*(GroundHeight(item.Xmm/1000f,item.Zmm/1000f)+.15f-bounds.min.y);
+                    art.position+=Vector3.up*(floor+.15f-bounds.min.y);
+                }
+                else if (PassiveArtVisuals.TryBindGroundedPrefab(drop, BorderlandArt.LoadVisual("SupplySack"), floor))
+                {
+                    // A generic carried bundle represents the existing receipt, regardless of its upgrade value.
+                    drop.GetChild(drop.childCount - 1).name = "GroundedBag";
                 }
                 _lootVisuals.Add(item.Id,drop);
             }
@@ -1212,7 +1223,7 @@ namespace AreArpg.UnityClient
                     if (entry.Value != null) Destroy(entry.Value.gameObject);
                     removed.Add(entry.Key);
                 }
-                else if (entry.Value != null) entry.Value.Rotate(Vector3.up, 90f * Time.deltaTime);
+                else if (entry.Value != null && entry.Value.Find("GroundedBag") == null) entry.Value.Rotate(Vector3.up, 90f * Time.deltaTime);
             }
             foreach (int id in removed) _lootVisuals.Remove(id);
         }

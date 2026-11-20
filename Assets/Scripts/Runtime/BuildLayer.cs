@@ -92,6 +92,7 @@ namespace AreArpg.UnityClient
         private static void BuildPrefab(Transform host, BuildCatalogEntry entry, float scale)
         {
             GameObject prefab = Resources.Load<GameObject>(entry.ResourcePath);
+            if (entry.Regional) prefab = BorderlandArt.VisualChild(prefab);
             if (prefab != null && PassiveArtVisuals.TryBindPrefab(host, prefab))
             {
                 PassiveArtVisuals.EnsurePlayableHumanoidLocomotion(host.GetChild(host.childCount - 1).gameObject);

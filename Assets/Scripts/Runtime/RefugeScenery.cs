@@ -9,6 +9,11 @@ namespace AreArpg.UnityClient
     public sealed class RefugeScenery : MonoBehaviour
     {
         private readonly List<Material> _materials = new List<Material>();
+        private readonly List<(Renderer renderer, int slot, int property, Color source)> _emberSurfaces
+            = new List<(Renderer, int, int, Color)>();
+        private MaterialPropertyBlock _emberBlock;
+        private static readonly int EmissionId = Shader.PropertyToID("_EmissionColor");
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private Mesh _canopy;
 
         public static Transform Create(bool mill)
@@ -16,6 +21,7 @@ namespace AreArpg.UnityClient
             var root = new GameObject(mill ? "OldMill_Refuge" : "AshRoad_Verges");
             var scenery = root.AddComponent<RefugeScenery>();
             scenery.AddRoadside(mill);
+            scenery.AddAshFlora(mill);
             if (mill) scenery.AddShelter();
             return root.transform;
         }
@@ -109,10 +115,50 @@ namespace AreArpg.UnityClient
                     float x = side * (5.4f + i % 3 * .75f);
                     if (mill && side < 0) x = -15f - i % 2;
                     BindClump("Route_Grass_" + side + "_" + i, "RoadsideShrub" + i % 2,
-                        new Vector3(x, -.08f, -20 + i * 8), .8f, 2f, i * 47 + side * 15);
+                        new Vector3(x, -.08f, -20 + i * 8), 1f, 2.9f, i * 47 + side * 15);
                 }
                 for (int i = 0; i < 3; i++)
                     BindClump("Route_OuterRocks_" + side + "_" + i, "AshRocks", new Vector3(side * 31, -.1f, -18 + i * 17), 3.2f, 4f);
+            }
+        }
+
+        /// <summary>
+        /// Ember plants in the open ash field (owner direction 2026-11-20). Passive art only: without the private
+        /// plant visuals nothing is placed, and nothing here blocks movement.
+        /// </summary>
+        private void AddAshFlora(bool mill)
+        {
+            int number = 0;
+            foreach (AshFloraScatter.Spot spot in AshFloraScatter.Spots(mill))
+                BindClump("Ash_Flora_" + number++, spot.Key, spot.Position, spot.Height, spot.Width, spot.Yaw);
+            foreach (var renderer in GetComponentsInChildren<MeshRenderer>())
+            {
+                var materials = renderer.sharedMaterials;
+                for (int slot = 0; slot < materials.Length; slot++)
+                {
+                    var mat = materials[slot];
+                    if (mat == null) continue;
+                    int property;
+                    if (mat.name == "EmberCap" || mat.name == "AshFlora") property = EmissionId;
+                    else if (mat.name == "EmberGlow") property = BaseColorId;
+                    else continue;
+                    _emberSurfaces.Add((renderer,slot,property,mat.GetColor(property)));
+                }
+            }
+        }
+
+        public void SetReducedEffects(bool reduced)
+        {
+            if (_emberSurfaces.Count == 0) return;
+            if (_emberBlock == null) _emberBlock = new MaterialPropertyBlock();
+            foreach (var slot in _emberSurfaces)
+            {
+                Color value = slot.source;
+                if (slot.property == BaseColorId) value.a *= reduced ? .10f : .58f;
+                else value *= reduced ? .08f : .38f;
+                slot.renderer.GetPropertyBlock(_emberBlock,slot.slot);
+                _emberBlock.SetColor(slot.property,value);
+                slot.renderer.SetPropertyBlock(_emberBlock,slot.slot);
             }
         }
 

@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "area": "aschenzoll",
+  "revision": 2,
+  "pieces": [
+    {
+      "id": "b0001",
+      "key": "WatchPost",
+      "x": -17,
+      "z": 9.3,
+      "rot": 90,
+      "scale": 1.16
+    },
+    {
+      "id": "b0002",
+      "key": "Palisade",
+      "x": -17.4,
+      "z": 5.5,
+      "rot": 90,
+      "scale": 1
+    },
+    {
+      "id": "b0003",
+      "key": "Palisade",
+      "x": -17.4,
+      "z": 1.9,
+      "rot": 90,
+      "scale": 1
+    },
+    {
+      "id": "b0004",
+      "key": "Waystone",
+      "x": 3.1,
+      "z": -16.7,
+      "rot": 28,
+      "scale": 1
+    },
+    {
+      "id": "b0005",
+      "key": "GrainBay",
+      "x": 12.5,
+      "z": -9.2,
+      "rot": 92,
+      "scale": 0.97
+    },
+    {
+      "id": "b0006",
+      "key": "Brazier",
+      "x": 3,
+      "z": -12.7,
+      "rot": 0,
+      "scale": 0.91
+    },
+    {
+      "id": "b0007",
+      "key": "AshPine",
+      "x": -20.7,
+      "z": 14.4,
+      "rot": 13,
+      "scale": 1.04
+    },
+    {
+      "id": "b0008",
+      "key": "CryptArch",
+      "x": 0,
+      "z": -11.5,
+      "rot": 1,
+      "scale": 1.74
+    },
+    {
+      "id": "b0009",
+      "key": "RibPillar",
+      "x": -4.15,
+      "z": -11.1,
+      "rot": 6,
+      "scale": 1.21
+    },
+    {
+      "id": "b0010",
+      "key": "ShaleLedge",
+      "x": -7.7,
+      "z": -10.7,
+      "rot": 8,
+      "scale": 0.94
+    }
+  ]
+}

@@ -8,13 +8,50 @@ namespace AreArpg.UnityClient
     public sealed class OutdoorBackdrop : MonoBehaviour
     {
         private const int Segments = 64;
+        /// <summary>Edge of the walked outdoor ground (a cube built by the journey scenery), in metres.</summary>
+        private const float GroundMetres = 57f;
         private readonly List<Mesh> _meshes = new List<Mesh>();
         private Material _land, _sky;
         private MeshRenderer _skyRenderer;
+        private bool _groundTextured;
+        private Light _sun;
+        private Color _groundColor = Color.white;
 
         public void SetDaylight(float daylight)
         {
-            if (_land != null) _land.SetFloat("_Exposure", Mathf.Lerp(.10f, 1f, Mathf.Clamp01(daylight)));
+            if (_land == null) return;
+            _land.SetFloat("_Exposure", Mathf.Lerp(.10f, 1f, Mathf.Clamp01(daylight)));
+        }
+
+        /// <summary>
+        /// The textured land continues the lit ground, so every frame it takes the light that falls on that ground,
+        /// whoever moves the sun: day, dusk and night stay seamless at the ground's edge.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_groundTextured && _land != null) _land.SetVector("_GroundColor", GroundLight(_groundColor));
+        }
+
+        /// <summary>Linear light reflected by flat ground: the flat ambient light plus the sun or moon proxy.</summary>
+        private Vector4 GroundLight(Color ground)
+        {
+            Color light = RenderSettings.ambientLight.linear;
+            if (_sun == null || !_sun.isActiveAndEnabled) _sun = FindSun();
+            if (_sun != null)
+                light += _sun.color.linear * (_sun.intensity * Mathf.Max(0f, -_sun.transform.forward.y));
+            Color lit = ground.linear * light;
+            return new Vector4(lit.r, lit.g, lit.b, 1f);
+        }
+
+        private static Light FindSun()
+        {
+            Light sun = RenderSettings.sun;
+            if (sun != null && sun.isActiveAndEnabled) return sun;
+            sun = null;
+            foreach (Light light in FindObjectsByType<Light>(FindObjectsSortMode.None))
+                if (light.type == LightType.Directional && light.isActiveAndEnabled && (sun == null || light.intensity > sun.intensity))
+                    sun = light;
+            return sun;
         }
 
         public void SetSkyDomeVisible(bool visible)
@@ -39,14 +76,29 @@ namespace AreArpg.UnityClient
             {
                 _land.SetTexture("_BaseMap", ground.GetTexture("_BaseMap"));
                 _land.SetFloat("_TextureStrength", 1);
+                // Continue the walked ground beyond its edge: same repeat, same place, same brightness, same glow.
+                // The ground is a cube of GroundMetres; a cube maps its top face as u = 0.5 - x, v = 0.5 - z.
+                Vector2 repeat = ground.GetTextureScale("_BaseMap"), shift = ground.GetTextureOffset("_BaseMap");
+                _land.SetVector("_GroundMapping", new Vector4(-repeat.x / GroundMetres, -repeat.y / GroundMetres,
+                    repeat.x * .5f + shift.x, repeat.y * .5f + shift.y));
+                _groundColor = ground.HasProperty("_BaseColor") ? ground.GetColor("_BaseColor") : Color.white;
+                _groundTextured = true;
+                _land.SetVector("_GroundColor", GroundLight(_groundColor));
+                if (ground.IsKeywordEnabled("_EMISSION") && ground.HasProperty("_EmissionMap") && ground.GetTexture("_EmissionMap") != null)
+                {
+                    _land.SetTexture("_GlowMap", ground.GetTexture("_EmissionMap"));
+                    _land.SetFloat("_GlowStrength", Mathf.Min(4f, ground.GetColor("_EmissionColor").maxColorComponent));
+                }
             }
             _sky = new Material(shader) { name = "Ashen overcast sky", renderQueue = 1000 };
             _sky.SetFloat("_ZWrite", 0); _sky.SetFloat("_FogStrength", 0);
 
-            var soil = new Color(.045f, .065f, .035f);
-            var near = new Color(.09f, .13f, .10f);
-            var middle = new Color(.18f, .23f, .21f);
-            var far = new Color(.29f, .34f, .33f);
+            // Ash-grey land to the horizon (owner direction 2026-11-20: an ash world, not green meadows).
+            // Pale like the ash snow underfoot and cooler towards the horizon, where the land meets the sky.
+            var soil = new Color(.43f, .43f, .44f);
+            var near = new Color(.39f, .39f, .40f);
+            var middle = new Color(.34f, .35f, .37f);
+            var far = new Color(.30f, .32f, .35f);
             AddBand("Outdoor_GroundSkirt", 0, 1, soil, near, act);
             AddBand("Outdoor_NearRidge", 1, 2, near, middle, act);
             AddBand("Outdoor_FarRidge", 2, 3, middle, far, act);

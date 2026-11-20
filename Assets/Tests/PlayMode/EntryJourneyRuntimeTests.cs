@@ -748,6 +748,14 @@ namespace AreArpg.PlayMode.Tests
                 arrow |= h.ArrowFlash > 0;
             }
             Assert.IsFalse(Game.GameOver); Assert.IsTrue(Game.Progression.Road.Rescued); Assert.IsTrue(arrow && warning);
+            typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
+            var purse = Find("ARE_HunterPurse");
+            Assert.IsNotNull(purse);
+            Assert.IsNotNull(purse.transform.Find("CoinStack"));
+            Assert.IsNotNull(purse.transform.Find("SupplySack"));
+            Assert.IsEmpty(purse.GetComponentsInChildren<Light>());
+            foreach (var lod in purse.GetComponentsInChildren<LODGroup>())
+                Assert.That(lod.GetLODs()[0].renderers[0].bounds.min.y, Is.EqualTo(0f).Within(.05f));
             MoveStory(2000, -5000);
             Assert.IsFalse((bool)typeof(ArenaRuntime).GetMethod("CanShowHunterAction", Flags).Invoke(_runtime, null));
             MoveStory(2000, 9000);
@@ -756,6 +764,8 @@ namespace AreArpg.PlayMode.Tests
             TickOnce();
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
             Assert.IsTrue(saved.Road.Rescued && saved.Road.FavorClaimed); Assert.AreEqual(0, saved.Road.Purse);
+            typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
+            Assert.IsFalse(purse.activeSelf, "Claiming the Core purse removes the projected coins");
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget(); yield return Capture("hunter-bear-rescued.png");
             var speech = _runtime.GetComponentInChildren<AshenAtmosphere>();
             StringAssert.Contains("Jäger", speech.Subtitle);
