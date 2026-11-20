@@ -77,6 +77,23 @@ namespace AreArpg.PlayMode.Tests
             Light[] lights = Object.FindObjectsByType<Light>(FindObjectsSortMode.None)
                 .Where(l => l.name.StartsWith("Dungeon_Room_Light_", System.StringComparison.Ordinal)).ToArray();
             Assert.AreEqual(map.RoomCount, lights.Length, "One budgeted light per room");
+            var atmosphere = (AshenAtmosphere)typeof(ArenaRuntime).GetField("_atmosphere", Flags).GetValue(_runtime);
+            bool reduced = atmosphere.ReducedEffects;
+            try
+            {
+                foreach (bool quiet in new[] { false, true })
+                {
+                    atmosphere.SetPreferences(atmosphere.MusicVolume, atmosphere.VoiceVolume, atmosphere.EffectsVolume, atmosphere.Muted, quiet);
+                    typeof(ArenaRuntime).GetMethod("AnimateDungeonLights", Flags).Invoke(_runtime, null);
+                    int lit = modules.SelectMany(m => m.GetComponentsInChildren<Light>(true)).Distinct().Count(l => l.enabled);
+                    Assert.That(lit, Is.InRange(1, quiet ? ArenaRuntime.VillageLightReducedBudget : ArenaRuntime.VillageLightBudget));
+                }
+            }
+            finally
+            {
+                atmosphere.SetPreferences(atmosphere.MusicVolume, atmosphere.VoiceVolume, atmosphere.EffectsVolume, atmosphere.Muted, reduced);
+                typeof(ArenaRuntime).GetMethod("AnimateDungeonLights", Flags).Invoke(_runtime, null);
+            }
             // Each room keeps its light over the room centre, where the fights happen, and shows its source.
             for (int room = 0; room < map.RoomCount; room++)
             {

@@ -58,6 +58,17 @@ namespace AreArpg.EditMode.Tests
             Assert.IsFalse((bool)owns.Invoke(null, new object[] { "EntryEnemy0" }), "Only its own visuals belong to the set");
         }
 
+        [TestCase("DungeonFloor")]
+        [TestCase("DungeonWall")]
+        public void DressedStoneRetainsItsSourceColourTexture(string key)
+        {
+            if (!Built().Contains(key)) Assert.Ignore(NotInstalled);
+            var skin = Resources.Load<GameObject>("ARE/Visuals/" + key);
+            foreach (var mat in skin.GetComponentInChildren<MeshRenderer>().sharedMaterials)
+                Assert.IsNotNull(mat.GetTexture("_BaseMap"), key + "/" + mat.name +
+                    " requires the real privately imported masonry texture");
+        }
+
         [Test]
         public void EveryCryptVisualIsOnePassiveMeshWithProjectMaterials()
         {

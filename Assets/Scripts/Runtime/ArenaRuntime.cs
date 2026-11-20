@@ -1200,10 +1200,16 @@ namespace AreArpg.UnityClient
                     new Vector3(item.Xmm / 1000f, 0.55f + GroundHeight(item.Xmm/1000f,item.Zmm/1000f), item.Zmm / 1000f),
                     Vector3.one * 0.55f, new Color(0.97f, 0.76f, 0.18f), 0.8f);
                 var equipment=_game.Progression.Equipment.ForItem(item.Item);
-                if(equipment!=null&&PassiveArtVisuals.TryBindGrounded(drop,equipment.Definition.VisualKey,GroundHeight(item.Xmm/1000f,item.Zmm/1000f)))
+                float floor = GroundHeight(item.Xmm * .001f, item.Zmm * .001f);
+                if(equipment!=null&&PassiveArtVisuals.TryBindGrounded(drop,equipment.Definition.VisualKey,floor))
                 {
                     var art=drop.GetChild(drop.childCount-1);var rs=art.GetComponentsInChildren<Renderer>();var bounds=rs[0].bounds;foreach(var r in rs)bounds.Encapsulate(r.bounds);
-                    art.position+=Vector3.up*(GroundHeight(item.Xmm/1000f,item.Zmm/1000f)+.15f-bounds.min.y);
+                    art.position+=Vector3.up*(floor+.15f-bounds.min.y);
+                }
+                else if (PassiveArtVisuals.TryBindGroundedPrefab(drop, BorderlandArt.LoadVisual("SupplySack"), floor))
+                {
+                    // A generic carried bundle represents the existing receipt, regardless of its upgrade value.
+                    drop.GetChild(drop.childCount - 1).name = "GroundedBag";
                 }
                 _lootVisuals.Add(item.Id,drop);
             }
@@ -1217,7 +1223,7 @@ namespace AreArpg.UnityClient
                     if (entry.Value != null) Destroy(entry.Value.gameObject);
                     removed.Add(entry.Key);
                 }
-                else if (entry.Value != null) entry.Value.Rotate(Vector3.up, 90f * Time.deltaTime);
+                else if (entry.Value != null && entry.Value.Find("GroundedBag") == null) entry.Value.Rotate(Vector3.up, 90f * Time.deltaTime);
             }
             foreach (int id in removed) _lootVisuals.Remove(id);
         }

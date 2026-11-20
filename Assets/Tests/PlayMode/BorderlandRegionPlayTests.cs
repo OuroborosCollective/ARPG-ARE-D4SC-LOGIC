@@ -28,6 +28,29 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator ChestBundleUsesTheGroundedBagUntilTheRealPickup()
+        {
+            InstallJourneyStationFixture();
+            MoveStory(0, 18000); TravelStory(); yield return null; DungeonProject();
+            Game.JourneyGeometry.Chest(0, out var x, out var z);
+            JourneyNativeWalk(x, z);
+            yield return StoryAction(HungerAction.OpenWestChest);
+            var receipt = Game.GroundLoot.Find(item => item.Id == 9000);
+            Assert.IsNotNull(receipt);
+            DungeonProject();
+            var drop = Find("Loot_" + receipt.Id);
+            Assert.IsNotNull(drop.transform.Find("GroundedBag"));
+            var mesh = drop.GetComponentInChildren<LODGroup>().GetLODs()[0].renderers[0];
+            float floor = Game.JourneyGeometry.HeightMm(x, z) * .001f;
+            Assert.That(mesh.bounds.min.y, Is.EqualTo(floor).Within(.015f));
+            Assert.IsEmpty(drop.GetComponentsInChildren<Light>());
+            while (Game.GroundLoot.Exists(item => item.Id == receipt.Id))
+                Assert.IsTrue(Game.TryCollectLoot());
+            DungeonProject(); yield return null;
+            Assert.IsNull(Find("Loot_" + receipt.Id));
+        }
+
+        [UnityTest]
         public IEnumerator SnowAshAndBloodcapUseTheSavedSkyAndReducedEffects()
         {
             _runtime.enabled = false;
@@ -77,6 +100,8 @@ namespace AreArpg.PlayMode.Tests
                     Assert.That(block.GetColor("_EmissionColor").r, Is.EqualTo(shot == 2 ? .22f : .92f).Within(.01f));
                     string label = shot == 0 ? "tag" : shot == 1 ? "nacht" : "reduziert";
                     yield return Capture("schneeasche-" + label + ".png", overridePosition:eye, overrideFocus:focus);
+                    if (shot == 0 && !string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                        yield return MeasureRoadView(eye, focus);
                     Assert.AreEqual(saved, Game.Progression.SaveString());
                     Assert.AreEqual(hash, Game.ComputeWorldHash());
                 }
@@ -88,6 +113,44 @@ namespace AreArpg.PlayMode.Tests
                 refresh.Invoke(_runtime, null);
                 appear.Invoke(_runtime, null);
             }
+        }
+
+        private IEnumerator MeasureRoadView(Vector3 eye, Vector3 focus)
+        {
+            var camera = Camera.main;
+            var previousTarget = camera.targetTexture;
+            var position = camera.transform.position;
+            var rotation = camera.transform.rotation;
+            var active = RenderTexture.active;
+            var target = new RenderTexture(1280, 720, 24);
+            var watch = new System.Diagnostics.Stopwatch();
+            var ms = new double[32];
+            try
+            {
+                camera.targetTexture = target;
+                camera.transform.position = eye;
+                camera.transform.LookAt(focus);
+                for (int i = -3; i < ms.Length; i++)
+                {
+                    watch.Restart();
+                    camera.Render();
+                    watch.Stop();
+                    if (i >= 0) ms[i] = watch.Elapsed.TotalMilliseconds;
+                }
+                System.Array.Sort(ms);
+                Debug.LogFormat("BORDERLAND_EDITOR camera-submit 1280x720 samples={0} medianMs={1:F2} p95Ms={2:F2} allocatedBytes={3} device={4}",
+                    ms.Length, (ms[15] + ms[16]) * .5, ms[30], UnityEngine.Profiling.Profiler.GetTotalAllocatedMemoryLong(),
+                    SystemInfo.graphicsDeviceName);
+            }
+            finally
+            {
+                camera.transform.SetPositionAndRotation(position, rotation);
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = active;
+                target.Release();
+                Object.Destroy(target);
+            }
+            yield break;
         }
 
         [UnityTest]

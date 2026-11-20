@@ -69,7 +69,7 @@ namespace AreArpg.UnityClient
                 var lamp=new GameObject("Dungeon_Room_Light_"+i); lamp.transform.position=lampAt;
                 var light=lamp.AddComponent<Light>(); light.color=dressed?new Color(1,.62f,.30f):new Color(1,.69f,.35f); light.intensity=brightness; light.range=dressed?14:10; light.shadows=LightShadows.None;
                 _chapterScenery.Add(lamp.transform);
-                if(dressed) _dungeonLights.Add(light);
+                _dungeonLights.Add(light);
             }
             DungeonTiles("Dungeon_",-6,6,map.IsFloor,index=>index*CryptDungeonDressing.TileMetres,seed,reserved,calm,dressed);
             for(int i=0;i<2;i++)
@@ -101,6 +101,7 @@ namespace AreArpg.UnityClient
                 ClueMark("Dungeon_Inner_Door_Clue",0,15);
                 ChapterShape(PrimitiveType.Cube,"Dungeon_Fresh_Bandage",new Vector3(0,.08f,15),new Vector3(.8f,.12f,.3f),new Color(.8f,.72f,.5f));
             }
+            AnimateDungeonLights();
             UpdateDungeonPresentation();
         }
 
@@ -197,6 +198,7 @@ namespace AreArpg.UnityClient
             if(frame==null) return;
             var glow=new GameObject(label+"_Light"); glow.transform.SetParent(frame,false); glow.transform.localPosition=new Vector3(0,2.5f,.9f);
             var light=glow.AddComponent<Light>(); light.type=LightType.Point; light.color=new Color(.35f,1f,.85f); light.intensity=5f; light.range=8f; light.shadows=LightShadows.None;
+            _dungeonLights.Add(light);
         }
 
         private static long DungeonTileKey(int x,int z) { return ((long)x<<32)^(uint)z; }
@@ -237,16 +239,32 @@ namespace AreArpg.UnityClient
             }
         }
 
-        /// <summary>Candle light breathes between Core ticks; reduced effects keep it steady.</summary>
+        // Emissive lanterns and portal frames stay visible outside the closest-light budget.
+        // Stable list order breaks equal distances and reproduces the same set on reload.
         private void AnimateDungeonLights()
         {
-            if(!_dungeonDressed || _dungeonLights.Count==0 || !_game.InDungeon) return;
-            if(_atmosphere!=null && _atmosphere.ReducedEffects) return;
-            float time=Time.time;
-            for(int i=0;i<_dungeonLights.Count;i++)
+            if (!_game.InDungeon || _dungeonLights.Count == 0) return;
+            bool reduced = _atmosphere != null && _atmosphere.ReducedEffects;
+            int budget = reduced ? VillageLightReducedBudget : VillageLightBudget;
+            Vector3 player = new Vector3(_game.PlayerXmm * .001f, 0, _game.PlayerZmm * .001f);
+            float phase = (_game.CurrentTick % 3000UL) * .1f;
+            for (int i = 0; i < _dungeonLights.Count; i++)
             {
-                var light=_dungeonLights[i]; if(light==null) continue;
-                light.intensity=DungeonCandleLight*(.86f+.14f*Mathf.PerlinNoise(time*2.7f,i*3.1f)+.04f*Mathf.Sin(time*13f+i));
+                var light = _dungeonLights[i];
+                if (light == null) continue;
+                float distance = (light.transform.position - player).sqrMagnitude;
+                int rank = 0;
+                for (int j = 0; j < _dungeonLights.Count && rank < budget; j++)
+                {
+                    var other = _dungeonLights[j];
+                    if (other == null || j == i) continue;
+                    float otherDistance = (other.transform.position - player).sqrMagnitude;
+                    if (otherDistance < distance || (otherDistance == distance && j < i)) rank++;
+                }
+                light.enabled = rank < budget;
+                if (!_dungeonDressed || !light.enabled || light.range < 10f) continue;
+                light.intensity = reduced ? DungeonCandleLight : DungeonCandleLight *
+                    (.88f + .12f * Mathf.PerlinNoise(phase * 2.7f, i * 3.1f) + .035f * Mathf.Sin(phase * 13f + i));
             }
         }
 

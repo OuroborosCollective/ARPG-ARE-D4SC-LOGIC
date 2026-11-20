@@ -5,7 +5,7 @@ namespace AreArpg.UnityClient
 {
     public sealed partial class ArenaRuntime
     {
-        private Transform _roadBear, _roadHunter, _roadTraveler, _roadWarning, _roadArrow;
+        private Transform _roadBear, _roadHunter, _roadTraveler, _roadWarning, _roadArrow, _hunterPurse;
         private Animator _roadBearAnimator;
         private int _pendingHunterAction = -1;
         private int _roadVisualAct = -1;
@@ -69,9 +69,9 @@ namespace AreArpg.UnityClient
 
         private void ClearRoadVisuals()
         {
-            foreach (var t in new[] { _roadBear, _roadHunter, _roadTraveler, _roadWarning, _roadArrow })
+            foreach (var t in new[] { _roadBear, _roadHunter, _roadTraveler, _roadWarning, _roadArrow, _hunterPurse })
                 if (t != null) Destroy(t.gameObject);
-            _roadBear = _roadHunter = _roadTraveler = _roadWarning = _roadArrow = null;
+            _roadBear = _roadHunter = _roadTraveler = _roadWarning = _roadArrow = _hunterPurse = null;
             _roadBearAnimator = null; _roadAnimation = "";
         }
 
@@ -105,6 +105,17 @@ namespace AreArpg.UnityClient
                     bear.Xmm != bear.PreviousXmm || bear.Zmm != bear.PreviousZmm ? "Run" : "Idle";
                 if (_roadBearAnimator != null && _roadBearAnimator.isActiveAndEnabled && animation != _roadAnimation)
                 { _roadBearAnimator.CrossFade(animation, .1f); _roadAnimation = animation; }
+                bool hasPurse = h.Started && h.Purse > 0 && (h.HunterHealth == 0 || h.Rescued) &&
+                    !_game.Progression.Companion.HasJoined;
+                if (hasPurse && _hunterPurse == null)
+                {
+                    float x = HunterEncounter.HunterX * .001f + .47f, z = HunterEncounter.HunterZ * .001f + .23f;
+                    _hunterPurse = new GameObject("ARE_HunterPurse").transform;
+                    AddRegionalPiece(_hunterPurse, "SupplySack", x, z, 18, .72f);
+                    AddRegionalPiece(_hunterPurse, "CoinStack", x + .27f, z - .12f, 47, .94f);
+                }
+                if (_hunterPurse != null && _hunterPurse.gameObject.activeSelf != hasPurse)
+                    _hunterPurse.gameObject.SetActive(hasPurse);
                 _roadHunter.position = new Vector3(2, h.HunterHealth > 0 ? 1 : .3f, 9);
                 _roadHunter.gameObject.SetActive(!_game.Progression.Companion.HasJoined);
                 _roadHunter.rotation = h.HunterHealth > 0 ? Quaternion.identity : Quaternion.Euler(90, 0, 0);
