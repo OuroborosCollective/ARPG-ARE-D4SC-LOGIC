@@ -37,3 +37,19 @@ Fadenwerk-Zugangsschlüssel entspricht jetzt der Schlüsseldatei des vorhandenen
 
 Nicht geprüft: Android/APK, Tablet, GitHub-CI für diesen Commit (nicht gepusht), Gebiete außer Aschengrenze und
 Krypta im Play-Modus.
+
+## Integrationsabnahme vom 20.11.2026
+
+Geprüfter Code `40eb8c7ecac79db1cbfa457734cfa3bfa2cbbe76`, Tree `f42a3d75f0d51fb1d2f966e7bdb5820d42a246c5`. Eingebundener Hauptbranch `14e3b31b87b38476a38eb814c4be6cda1b551740` enthält #93, #95 und #96. Unity 6000.6.8f1 lief auf dem VPS.
+
+| Prüfung | Beobachtung | SHA-256 des Belegs |
+| --- | --- | --- |
+| EditMode-RED auf `b801dc91d52d4b3917645f6a2c15ea23308d31cb` | Veraltetes Undo erhielt 200, erwartet war 409. | `00d3921997197cb16ce1bfa3443330e43c3aef3a32753234d607847b80194dd8` |
+| EditMode ohne BoZo-Paket | 15/15, keine Skips. Bauplan, veralteter Undo-Aufruf, extern ersetzte Datei gleicher Revision, vier passive Ersatzfiguren und zwei Fadenwerk-Erweiterungstests. | `5695c7db1d51330401b65f0cb61bf3560d4df616e0a9a27b469172c2fa47dd7c` |
+| PlayMode | 1/1. Der Bauplan erreicht das laufende Dorf. | `4ec1ec0efac24b3ec764ff621c03f0bbebea870e6eead50f7d5f3c0e59314fca` |
+| Private BoZo-Figuren in Unity | 4/4 ohne Skips. Villager0, Villager1, Villager2 und Merchant0 luden jeweils ihr gebackenes Prefab. | `87bdf475c61166cd6eba4d750bd12c7f7469c1c8b7c7dac703ccffac53c3973f` |
+| Unabhängige private Projektion über `BuildLayer.CreatePiece` | Ursprüngliches Mesh und verfasstes Material je Figur anhand der Asset-Referenzen und GUIDs bestätigt. Kein Collider oder MonoBehaviour an den erzeugten Figuren. | Manifest `fa149cc53cdebace63ced6a6efbb4a193390f13105c781984d588729fec2b91a` |
+| Chromium/Playwright am echten Fadenwerk-Port | Zweiter Bearbeiter speicherte Revision 2. Klick des ersten mit Revision 1 erhielt HTTP 409 und zeigte beide Teile. Zweiter Klick mit Revision 2 erhielt 200. Die Datei auf Platte enthielt danach Revision 3 und nur das ursprüngliche Haus. | Ablauf `183316a6bd4b1ed62364f6dce746284a0309d0a593fa6136722c0fa0468fd022`, Bauplan `f980160376fc8972d8e456f96c69709b92741fec4af6158a457d24b8b3a9fdbc` |
+| Geteilter C#-Core | 21 239 Assertions bestanden. Preflight 48/48, Gateway 5/5 und statischer Unity-Vertrag separat bestanden. | Core `bafba6f747bd3486a576eef3fc8dac473b21978497177819f63d499b5c3fa99e` |
+
+[Core-CI 44704743520](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44704743520) war erfolgreich. [Lizenzierter Unity-CI-Lauf 44704743481](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44704743481) wurde übersprungen. Die Unity-Ergebnisse in der Tabelle stammen aus den separaten lokalen Läufen. Im Browsertest wurde die periodische Aktualisierung eines Clients verzögert, um den konkurrierenden Benutzerablauf reproduzierbar auszulösen. Der Server lief im isolierten Projekt auf Loopback-Port 18997. Testpläne und Server wurden anschließend entfernt bzw. beendet. Rohbelege liegen auf dem VPS in `~unityarpg/.local/share/are-arpg/pr97-reruns/` und `pr97-private-residents/`. Android/APK und Store-Upload wurden in diesem Durchlauf nicht geprüft.

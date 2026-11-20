@@ -207,3 +207,7 @@ Commit `a169f3af7c0b2c5990c207f43a9192ae1af1a204` integriert #93 und #95. Eine f
 - Evidence: EditMode 126/126, PlayMode 171/171, Core 21239, Preflight 40, Gateway 5/5, Playwright-E2E und Live-Check im Play-Modus; Details und SHA-256 in `docs/evidence/bau-modus-20261119/acceptance.md`.
 - Grenzen: Gebautes ist Kulisse (keine Kollision/Wege/KI); Editor-Vorschau mit echter Umgebung nur für Aschengrenze und Krypta; APK erst mit dem nächsten Build; nicht gepusht (keine Zugangsdaten); Owner-DOCX nicht bearbeitet.
 - Nächster Schritt: Owner-Entscheidung, ob gebaute Häuser im Spiel blockieren sollen (Core-Regel), danach Push/PR.
+
+## 20.11.2026 · PR #97 nach dem Merge des Figurensystems
+
+Getesteter gemeinsamer Code `40eb8c7ecac79db1cbfa457734cfa3bfa2cbbe76`, Tree `f42a3d75f0d51fb1d2f966e7bdb5820d42a246c5`. Die Prüfung am Bauplan schützt gegen veraltete Browser und den Verlauf extern ersetzter Dateien. Bestehende Bewohner-Schlüssel und der neue Händler wurden sowohl ohne Kunstpaket als auch mit den gebackenen privaten Figuren in Unity geprüft. Chromium, zweite Schreibanforderung und anschließender Dateireadback bestätigten HTTP 409 und danach eine erfolgreiche bewusste Wiederholung. Unity-Kulisse ohne Kollision. Der native Bericht, XML-Hashes, Core-Lauf und GitHub-Checks stehen in `docs/evidence/bau-modus-20261119/acceptance.md`. Android-Geräteprüfung und Asset-Store-Upload sind offen.
