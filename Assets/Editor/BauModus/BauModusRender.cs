@@ -15,7 +15,7 @@ using Object = UnityEngine.Object;
 internal static class BauModusRender
 {
     public const int Frames = 8;
-    public const int Version = 3;
+    public const int Version = 4;
     const float SpritePpm = 22f, MapPpm = 14f;
     const int SpriteLayer = 31, MaxFrame = 420, MaxMap = 2048;
     static readonly Vector3 Studio = new Vector3(9000f, -4000f, 9000f);

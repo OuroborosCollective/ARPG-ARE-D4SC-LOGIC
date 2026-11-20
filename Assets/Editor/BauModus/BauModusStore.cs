@@ -14,7 +14,11 @@ internal static class BauModusStore
     public const string Folder = "Assets/Resources/ARE/BuildLayouts";
     const int HistoryLimit = 40;
 
-    [Serializable] class History { public List<string> items = new List<string>(); }
+    [Serializable] class History
+    {
+        public string head;
+        public List<string> items = new List<string>();
+    }
 
     static string LibraryDir { get { return Path.Combine(Directory.GetCurrentDirectory(), "Library/BauModus"); } }
     public static string AssetPath(string area) { return Folder + "/" + area + ".json"; }
@@ -43,30 +47,30 @@ internal static class BauModusStore
         next.revision = previous.revision + 1;
         string error = BuildLayoutRules.Validate(next, previous.area);
         if (error != null) throw new InvalidOperationException(error);
-        History history = ReadHistory(previous.area);
+        History history = ReadHistory(previous);
         history.items.Add(BuildLayoutRules.ToJson(previous));
         while (history.items.Count > HistoryLimit) history.items.RemoveAt(0);
         Write(next);
-        WriteHistory(previous.area, history);
+        WriteHistory(next, history);
         return next;
     }
 
-    public static bool CanUndo(string area) { return ReadHistory(area).items.Count > 0; }
+    public static bool CanUndo(BuildLayoutData current) { return ReadHistory(current).items.Count > 0; }
 
     /// <summary>Restore the previous plan as a new revision (revisions only ever grow).</summary>
-    public static BuildLayoutData Undo(BuildLayoutData current)
+    public static bool TryUndo(BuildLayoutData current, out BuildLayoutData restored)
     {
-        History history = ReadHistory(current.area);
-        if (history.items.Count == 0) throw new InvalidOperationException("Es gibt nichts mehr rückgängig zu machen.");
+        History history = ReadHistory(current);
+        restored = null;
+        if (history.items.Count == 0) return false;
         string last = history.items[history.items.Count - 1];
         history.items.RemoveAt(history.items.Count - 1);
-        BuildLayoutData restored;
         try { restored = BuildLayoutRules.Parse(last, current.area); }
         catch (FormatException e) { throw new InvalidOperationException("Verlaufseintrag ist beschädigt: " + e.Message); }
         restored.revision = current.revision + 1;
         Write(restored);
-        WriteHistory(current.area, history);
-        return restored;
+        WriteHistory(restored, history);
+        return true;
     }
 
     static void Write(BuildLayoutData data)
@@ -84,24 +88,26 @@ internal static class BauModusStore
 
     static string HistoryPath(string area) { return Path.Combine(LibraryDir, "history-" + area + ".json"); }
 
-    static History ReadHistory(string area)
+    static History ReadHistory(BuildLayoutData current)
     {
         try
         {
-            string path = HistoryPath(area);
+            string path = HistoryPath(current.area);
             if (File.Exists(path))
             {
                 History history = JsonUtility.FromJson<History>(File.ReadAllText(path));
-                if (history != null && history.items != null) return history;
+                // Only undo the exact plan this history produced. A checkout may reuse a revision number.
+                if (history != null && history.items != null && history.head == BuildLayoutRules.ToJson(current)) return history;
             }
         }
         catch (Exception) { }
         return new History();
     }
 
-    static void WriteHistory(string area, History history)
+    static void WriteHistory(BuildLayoutData current, History history)
     {
         Directory.CreateDirectory(LibraryDir);
-        File.WriteAllText(HistoryPath(area), JsonUtility.ToJson(history));
+        history.head = BuildLayoutRules.ToJson(current);
+        File.WriteAllText(HistoryPath(current.area), JsonUtility.ToJson(history));
     }
 }

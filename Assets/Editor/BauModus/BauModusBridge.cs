@@ -205,7 +205,7 @@ public static class BauModusBridge
         var reply = new LayoutDto
         {
             area = data.area, revision = data.revision, pieces = data.pieces.ToArray(), message = message ?? "",
-            canUndo = BauModusStore.CanUndo(data.area), live = live ?? CurrentLive(data)
+            canUndo = BauModusStore.CanUndo(data), live = live ?? CurrentLive(data)
         };
         if (data.area == "aschengrenze")
         {
@@ -319,13 +319,7 @@ public static class BauModusBridge
     {
         BuildArea area = BauModusStore.Area(q.area);
         BuildLayoutData current = BauModusStore.Load(q.area);
-        if (q.revision != current.revision)
-        {
-            LayoutDto conflict = LayoutReply(current, null, "");
-            conflict.ok = false;
-            conflict.error = "Der Bauplan wurde inzwischen geändert (Revision " + current.revision + "). Die Ansicht ist jetzt aktuell – bitte noch einmal.";
-            return FadenwerkExtensionReply.Json(JsonUtility.ToJson(conflict), 409);
-        }
+        if (q.revision != current.revision) return Conflict(current);
         BuildLayoutData next = current.Clone();
         var ids = new List<string>();
         string message = mutation(q, area, next, ids);
@@ -390,10 +384,19 @@ public static class BauModusBridge
         return "Wald gepflanzt: " + planted.ToString(CultureInfo.InvariantCulture) + " Pflanzen";
     }
 
+    static FadenwerkExtensionReply Conflict(BuildLayoutData current)
+    {
+        LayoutDto reply = LayoutReply(current, null, "");
+        reply.ok = false;
+        reply.error = "Der Bauplan oder sein Verlauf hat sich geändert (Revision " + current.revision + "). Die Ansicht ist jetzt aktuell.";
+        return FadenwerkExtensionReply.Json(JsonUtility.ToJson(reply), 409);
+    }
+
     static FadenwerkExtensionReply Undo(Req q)
     {
         BuildLayoutData current = BauModusStore.Load(q.area);
-        BuildLayoutData restored = BauModusStore.Undo(current);
+        if (q.revision != current.revision) return Conflict(current);
+        if (!BauModusStore.TryUndo(current, out BuildLayoutData restored)) return Conflict(current);
         LiveDto live = ApplyLive(restored);
         return Json(LayoutReply(restored, live, "Rückgängig gemacht"));
     }

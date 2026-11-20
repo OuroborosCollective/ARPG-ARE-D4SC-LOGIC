@@ -669,8 +669,9 @@ $("#undo").onclick = undo;
 async function undo() {
   if (S.busy) return;
   cancelGhost(true); S.busy = true;
-  try { const lay = await api("undo", { area: S.area }); applyLayout(lay); toast("↶ " + lay.message + " · " + liveText(lay.live)); draw(); }
-  catch (e) { toast(e.message, true); } finally { S.busy = false; }
+  try { const lay = await api("undo", { area: S.area, revision: S.rev }); applyLayout(lay); toast("↶ " + lay.message + " · " + liveText(lay.live)); draw(); }
+  catch (e) { if (e.status === 409 && e.data) { applyLayout(e.data); draw(); } toast(e.message, true); }
+  finally { S.busy = false; }
 }
 $("#download").onclick = () => {
   if (!S.layout) return;

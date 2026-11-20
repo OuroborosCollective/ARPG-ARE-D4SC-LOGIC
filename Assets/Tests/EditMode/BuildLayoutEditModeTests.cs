@@ -39,6 +39,10 @@ namespace AreArpg.EditMode.Tests
             foreach (string owned in new[] { "EntryHero", "Hero", "EntryNpc0", "EntryNpc1", "EntryNpc2", "MillPatient0", "RoadHunter", "RoadBear",
                          "CryptRattler", "Enemy0", "EntryEnemy0", "Sword", "EntryWeapon", "EntryRation", "AshChest", "EntryVillageWorld", "EntryCryptWorld", "VillageBackdrop" })
                 Assert.IsNull(BuildCatalog.Find(owned), owned + " must not be placeable");
+            // Existing Npc0–2 plan IDs project with the distinct village figures from the character catalog.
+            for (int i = 0; i < 3; i++)
+                Assert.AreEqual(BuildCatalog.PrefabRoot + "Villager" + i, BuildCatalog.Find("Npc" + i).ResourcePath);
+            Assert.AreEqual(BuildCatalog.Residents, BuildCatalog.Find("Merchant0").Category);
             foreach (string key in BuildCatalog.ForestKeys) Assert.IsNotNull(BuildCatalog.Find(key), key);
         }
 

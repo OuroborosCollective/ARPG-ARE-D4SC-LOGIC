@@ -15,6 +15,7 @@ namespace AreArpg.UnityClient
     public sealed class BuildCatalogEntry
     {
         public readonly string Key, Label, Category;
+        private readonly string resourceKey;
         public readonly BuildKind Kind;
         /// <summary>Fallback blockout size in metres when the private art is not installed.</summary>
         public readonly float Width, Depth, Height;
@@ -22,16 +23,17 @@ namespace AreArpg.UnityClient
         public readonly PrimitiveType Shape;
 
         public BuildCatalogEntry(string key, string label, string category, BuildKind kind, float width, float depth, float height,
-            Color fallback, PrimitiveType shape = PrimitiveType.Cube)
+            Color fallback, PrimitiveType shape = PrimitiveType.Cube, string resourceKey = null)
         {
             Key = key; Label = label; Category = category; Kind = kind;
+            this.resourceKey = resourceKey ?? key;
             Width = width; Depth = depth; Height = height; Fallback = fallback; Shape = shape;
         }
 
         /// <summary>Resource path below Resources/ (prefab or surface material).</summary>
         public string ResourcePath
         {
-            get { return Kind == BuildKind.Surface ? BuildCatalog.SurfaceRoot + Key : BuildCatalog.PrefabRoot + Key; }
+            get { return Kind == BuildKind.Surface ? BuildCatalog.SurfaceRoot + resourceKey : BuildCatalog.PrefabRoot + resourceKey; }
         }
     }
 
@@ -89,9 +91,10 @@ namespace AreArpg.UnityClient
             new BuildCatalogEntry("AshCrate", "Kiste", Props, BuildKind.Prefab, 0.9f, 0.9f, 0.9f, Wood),
             new BuildCatalogEntry("AshLantern", "Laterne", Props, BuildKind.Prefab, 0.5f, 0.5f, 2.2f, new Color(0.85f, 0.62f, 0.25f), PrimitiveType.Cylinder),
 
-            new BuildCatalogEntry("Npc0", "Dorfbewohner A", Residents, BuildKind.Prefab, 0.7f, 0.7f, 1.8f, new Color(0.62f, 0.46f, 0.32f), PrimitiveType.Capsule),
-            new BuildCatalogEntry("Npc1", "Dorfbewohner B", Residents, BuildKind.Prefab, 0.7f, 0.7f, 1.8f, new Color(0.50f, 0.36f, 0.30f), PrimitiveType.Capsule),
-            new BuildCatalogEntry("Npc2", "Dorfbewohner C", Residents, BuildKind.Prefab, 0.7f, 0.7f, 1.8f, new Color(0.40f, 0.44f, 0.34f), PrimitiveType.Capsule),
+            new BuildCatalogEntry("Npc0", "Dorfbewohner A", Residents, BuildKind.Prefab, 0.7f, 0.7f, 1.8f, new Color(0.62f, 0.46f, 0.32f), PrimitiveType.Capsule, "Villager0"),
+            new BuildCatalogEntry("Npc1", "Dorfbewohner B", Residents, BuildKind.Prefab, 0.7f, 0.7f, 1.8f, new Color(0.50f, 0.36f, 0.30f), PrimitiveType.Capsule, "Villager1"),
+            new BuildCatalogEntry("Npc2", "Dorfbewohner C", Residents, BuildKind.Prefab, 0.7f, 0.7f, 1.8f, new Color(0.40f, 0.44f, 0.34f), PrimitiveType.Capsule, "Villager2"),
+            new BuildCatalogEntry("Merchant0", "Händler", Residents, BuildKind.Prefab, 0.8f, 0.7f, 1.84f, Cloth, PrimitiveType.Capsule),
 
             new BuildCatalogEntry("WoodlandTreeA", "Baum", Nature, BuildKind.Prefab, 3f, 3f, 7f, Leaf, PrimitiveType.Cylinder),
             new BuildCatalogEntry("WoodlandTreeB", "Baum (hoch)", Nature, BuildKind.Prefab, 3f, 3f, 8f, Leaf, PrimitiveType.Cylinder),
