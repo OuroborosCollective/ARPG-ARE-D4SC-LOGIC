@@ -202,7 +202,8 @@ namespace AreArpg.Core
 
         /// <summary>restoring carries the weapon skills of an enclosing AC21 checkpoint into the progression this chain
         /// creates, so every saved-health check below already uses the final maximum health.</summary>
-        private static bool TryLoadRestoring(string saved, WeaponMasteryState restoring, out CharacterProgression progress)
+        private static bool TryLoadRestoring(string saved, WeaponMasteryState restoring, out CharacterProgression progress,
+            bool insideEquipment = false)
         {
             progress = null;
             if (string.IsNullOrEmpty(saved)) return false;
@@ -298,6 +299,9 @@ namespace AreArpg.Core
             var woodland = new WoodlandState();
             if (ac15 && (!rattler.Reported || !WoodlandState.TryRead(parts[21], entryAct, kills, items,
                 ac14 ? Enumerable.Range(1,3).SelectMany(d=>dungeon.Floor(d).Loot) : Enumerable.Empty<LootState>(), out woodland))) return false;
+            // A marked woodland drop exists only after equipment was enabled. Its AC16 envelope
+            // checks the activation ordinal and exclusive ownership after this base checkpoint is read.
+            if (!insideEquipment && woodland.Loot.Exists(drop => drop.HasFieldPauldron)) return false;
             progress = new CharacterProgression {
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LootOrdinal = kills,

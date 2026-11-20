@@ -19,6 +19,21 @@ namespace AreArpg.Core
         public BigInteger KillOrdinal { get; }
         internal LootItem(string context, string definitionId, ItemRarity rarity, int value, BigInteger killOrdinal)
         { _context = context; DefinitionId = definitionId; Rarity = rarity; AffixValue = value; KillOrdinal = killOrdinal; }
+        // Only used when restoring an explicit equipment award. An old iron shard never grants it on load.
+        internal bool IsFieldPauldronSource(CharacterProgression character)
+        {
+            if (character.EntryAct < 1) return false;
+            var context = _context.Split(',');
+            if (context[2] != "1" || context[5] != "1") return false;
+            if (context[4] == "2") return true; // original entry crypt knight
+            if (!character.Woodland.Active) return false;
+            int enemyId = int.Parse(context[4], CultureInfo.InvariantCulture);
+            if (enemyId < WoodlandLayout.FirstMonsterId || enemyId >= WoodlandLayout.FirstMonsterId + WoodlandLayout.MonstersPerRun)
+                return false;
+            ulong seed = ulong.Parse(context[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            var layout = character.Woodland.Seed == seed ? character.Woodland.Layout : new WoodlandLayout(seed);
+            return layout.Monster(enemyId - WoodlandLayout.FirstMonsterId).Kind == 1;
+        }
         /// <summary>Encode the complete canonical kill identity without culture-sensitive formatting.</summary>
         internal static string Context(int revision, ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger ordinal)
         {

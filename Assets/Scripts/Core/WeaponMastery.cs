@@ -163,7 +163,7 @@ namespace AreArpg.Core
             get
             {
                 var weapon = Equipment.Weapon;
-                return weapon != null && WeaponMasteryRules.Trains(weapon.Definition.Family) ? weapon.Definition.Family : (WeaponFamily?)null;
+                return weapon != null && WeaponMasteryRules.Trains(weapon.Definition.TrainingFamily) ? weapon.Definition.TrainingFamily : (WeaponFamily?)null;
             }
         }
 

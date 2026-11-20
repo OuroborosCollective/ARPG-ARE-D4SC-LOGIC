@@ -1,0 +1,5 @@
+interface:
+  display_name: "Release Director"
+  short_description: "Android APK/AAB Releasekandidaten, Signierung, Build-Provenienz und Store-Gates verwalten."
+policy:
+  allow_implicit_invocation: true

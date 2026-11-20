@@ -26,6 +26,8 @@ internal static class WeaponEquipmentTests
             seen.Add(a.Definition.Id);rareTwo|=a.SecondValue>0&&a.Affix!=a.SecondAffix;magicOne|=a.Rarity==ItemRarity.Magic&&a.SecondValue==0;
         }
         require(seen.Count==WeaponCatalog.Count&&rareTwo&&magicOne,"every-model-can-drop-with-persistent-varied-affixes");
+        FieldPauldronTests.Run(require);
+        RegionalRelicTests.Run(require);
         var old=new CharacterProgression();var historical=Give(old,WeaponFamily.Sword);string legacy=old.SaveString();
         require(CharacterProgression.TryLoad(legacy,out var p)&&p.SaveString()==legacy&&!p.Equipment.Active,"legacy-receipts-remain-byte-stable");
         p.Equipment.Enable(p);require(p.Equipment.ForItem(historical)==null,"old-spent-shards-not-retroactively-new-equipment");

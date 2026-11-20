@@ -1,0 +1,5 @@
+interface:
+  display_name: "Product Design"
+  short_description: "Action-RPG-Spielqualitaet, Game Loops, UX, Accessibility und Balancing verbessern."
+policy:
+  allow_implicit_invocation: true

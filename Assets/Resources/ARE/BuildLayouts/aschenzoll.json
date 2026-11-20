@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "aschenzoll",
-  "revision": 2,
+  "revision": 3,
   "pieces": [
     {
       "id": "b0001",
@@ -82,6 +82,22 @@
       "z": -10.7,
       "rot": 8,
       "scale": 0.94
+    },
+    {
+      "id": "b0201",
+      "key": "StoneOutcrop",
+      "x": -5.7,
+      "z": -12.5,
+      "rot": 28,
+      "scale": 0.59
+    },
+    {
+      "id": "b0202",
+      "key": "Brazier",
+      "x": -5.25,
+      "z": -11.65,
+      "rot": 109,
+      "scale": 0.76
     }
   ]
 }

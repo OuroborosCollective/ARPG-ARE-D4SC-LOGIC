@@ -109,6 +109,7 @@ namespace AreArpg.Core
     public sealed class LootState
     {
         public LootItem Item { get; internal set; }
+        public bool HasFieldPauldron { get; internal set; }
         public int Id;
         public long Xmm;
         public long Zmm;
@@ -720,11 +721,17 @@ namespace AreArpg.Core
                     Progression.EarnExperience(new System.Numerics.BigInteger(enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
                 }
                 else Progression.RecordCompanionKill();
-                GroundLoot.Add(new LootState { Id = InJourney || InDungeon || InForest ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
+                var drop = new LootState { Id = InJourney || InDungeon || InForest ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
                     WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8),
                     Item = InJourney ? LootCatalog.Version1.Generate(JourneySeed, InJourneyCave ? Progression.Journey.Depth : 1, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) :
                         _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
-                        CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) });
+                        CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) };
+                // The woodland lets a returning character find the same unique piece after leaving the entry crypt.
+                bool knightSource = !InJourney && enemy.Kind == 1 && enemy.Family == MonsterFamily.Legacy &&
+                    (InForest || (Progression.EntryAct == 1 && enemy.Id == 2));
+                drop.HasFieldPauldron = knightSource && drop.Item != null && Progression.Equipment.Active &&
+                    !Progression.Equipment.FieldPauldronOwned && !GroundLoot.Exists(l => l.HasFieldPauldron);
+                GroundLoot.Add(drop);
             }
         }
 
@@ -785,6 +792,7 @@ namespace AreArpg.Core
                 if (item.Item != null)
                 {
                     if (!Progression.CollectItem(item.Item)) return false;
+                    if (item.HasFieldPauldron) Progression.Equipment.CollectFieldPauldron(item.Item);
                 }
                 else Progression.AddWeaponUpgrade(item.WeaponBonus);
                 GroundLoot.RemoveAt(i);
@@ -839,6 +847,7 @@ namespace AreArpg.Core
             {
                 Mix(ref h, (ulong)loot.Id); Mix(ref h, (ulong)loot.Xmm);
                 Mix(ref h, (ulong)loot.Zmm); Mix(ref h, (ulong)loot.WeaponBonus);
+                if (loot.HasFieldPauldron) Mix(ref h, 0x46454C4453434831UL); // "FELDSCH1"
             }
             if (_lootCatalog != null)
             {

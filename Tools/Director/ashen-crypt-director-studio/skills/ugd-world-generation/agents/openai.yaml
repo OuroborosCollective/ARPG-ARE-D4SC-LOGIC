@@ -1,0 +1,5 @@
+interface:
+  display_name: "World Generation"
+  short_description: "Reproduzierbare Welten, Dungeons, Terrain, Seeds, Regiongraphen und Streaming planen."
+policy:
+  allow_implicit_invocation: true

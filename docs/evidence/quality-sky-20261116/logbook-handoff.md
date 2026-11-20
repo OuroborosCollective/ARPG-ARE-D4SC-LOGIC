@@ -266,3 +266,17 @@ Getesteter gemeinsamer Code `40eb8c7ecac79db1cbfa457734cfa3bfa2cbbe76`, Tree `f4
 ## 20. November 2026 · Aschengrenzer Markt
 
 Der Rollout auf die privaten Dorfmeshes ist mit #105 belegt. Das Originalmaterial des begehbaren Platzes war beim ersten Landschaftsdurchlauf separat geblieben. Im gleichen Kamerablick liegt nun graue Asche am Wegrand und zwischen den Ständen. Code `1448807`, 21.549 Core-Assertions, 230 EditMode- und 181 PlayMode-Fälle sowie verifiziertes ARM64-APK. [Vorher/Nachher und Bildgrenzen](../borderland-art-20261120/acceptance.md#aschengrenze-dorfplatz-105)
+
+## Regionale Weltkunst am 20. November 2026
+
+Der private Kunstzweig enthält den auf `c600181d42da666c4ac0aa6ade4489ef4903e24a` ausgeführten Durchgang. Die auf dem VPS erneut gelesenen Nutzdateien ergeben Kunststand `2afd38070f8915ad2f1f3e060cbb0ff30cc5172a`. Sechs Stationen auf dem Hauptweg und vier Nebenorte wurden in der Projektkamera aufgenommen. 26 neue Platzierungen, acht Regional-Prefabs, 11 gezielte PlayMode-Fälle, 21.549 Core-Prüfungen und zwölf CPU-LOD-Projektionen sind erfasst. Das Unity-Paket enthält 38 Nutzdateien mit geprüfter GUID und Dateiprüfsumme. 15 Projektabhängigkeiten stimmen mit der Basisrevision überein. Der physische Android-Lauf und ein abschließendes künstlerisches Urteil stehen aus. Die private DOCX-Identität war nicht erreichbar. Das aktuelle Markdown-Projektlogbuch führt die Runde. [Native Belege](../regionale-weltkunst-20261120/readback.json)
+
+## Feldschulter am 20. November 2026
+
+Privater Quellstand `ff1d1ce4331f69ef5646f236e7b7960292c4ea0a`. Im regulären Spiel fiel die Feldschulter beim Kryptaritter, wurde aufgehoben, im Inventar angelegt und nach einem Szenenneustart wieder geladen. 21.574 Core-Prüfungen und acht gezielte Unity-Spieltests bestanden. Das native Unity-Paket enthält sieben selbst erstellte Nutzdateien mit geprüfter GUID und identischen Bytes. Drei bestehende private Projektprüfungen verhindern die generelle Releasefreigabe. Es gab keinen physischen Tablet-Lauf. Das Markdown-Projektlogbuch führt den Nachtrag, solange das private Word-Original nicht erreichbar ist. [Aufnahmen und Messwerte](../feldschulter-20261120/readback.json)
+
+## Mühlwehr, Werkarsenal und Tiefscharrer am 20. November 2026
+
+Die öffentliche Projektfassung enthält 23 feste Fundorte, die eigenen Spielmodelle, neun editierbare Blender-Dateien und Director Studio 1.3.1. Die Materialien und Meshes des Aschepasses liegen unter `Assets/AshenCrypt/Aschepass`. Ihre Unity-GUIDs stimmen mit dem im Spiel geprüften Export überein. Die lizenzabhängige Figurenpassform lässt sich im eingerichteten Projekt unter **Ashen Crypt → Ausrüstung → Regionale Arbeitsmonturen backen** erzeugen.
+
+Auf dem privaten Kunststand `cbe67fea` bestanden sechs Unity-Spieltests und 21.919 Core-Prüfungen. Der vollständige private Beleg hat die Revision `bc1915fd`. Die ursprüngliche XML-Datei liegt im privaten Belegstand. Die [Ergebnisse je Spieltest](../muehlwehr-20261120/playmode-cases.json), die [23 Fundorte](../muehlwehr-20261120/fundorte.json) und die [Prüfsummen der nativen Aufnahmen](../muehlwehr-20261120/readback.json) sind im Projekt verfügbar. Der physische Android-Test steht aus.

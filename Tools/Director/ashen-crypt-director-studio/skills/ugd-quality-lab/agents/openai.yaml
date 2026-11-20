@@ -1,0 +1,5 @@
+interface:
+  display_name: "Quality Lab"
+  short_description: "Unity-EditMode/PlayMode, Core Replay, Graphics Regression und Android-Performance belegen."
+policy:
+  allow_implicit_invocation: true
