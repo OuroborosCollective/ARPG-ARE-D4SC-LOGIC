@@ -36,15 +36,17 @@ namespace AshenCrypt.MemoryForge
         public string Actor { get; }
         public string Target { get; }
         public string Context { get; }
+        public ulong? CauseEventId { get; }
         public int Importance { get; }
         public bool Essential { get; }
         public RelationshipChange Impact { get; }
         public string Checksum { get; }
-        internal string Canonical=>ContractText.Number(Id)+","+ContractText.Number(Tick)+","+ContractText.Number((long)Kind)+","+Actor+","+Target+","+Context+","+ContractText.Number(Importance)+","+(Essential?"1":"0")+","+Impact.Canonical;
-        internal MemoryEvent(ulong id,MemoryKind kind,string actor,string target,ulong tick,int importance,bool essential,string context,RelationshipChange impact)
+        internal string Canonical=>ContractText.Number(Id)+","+ContractText.Number(Tick)+","+ContractText.Number((long)Kind)+","+Actor+","+Target+","+Context+","+ContractText.Number(Importance)+","+(Essential?"1":"0")+","+Impact.Canonical
+            +(CauseEventId.HasValue?"|cause:"+ContractText.Number(CauseEventId.Value):"");
+        internal MemoryEvent(ulong id,MemoryKind kind,string actor,string target,ulong tick,int importance,bool essential,string context,RelationshipChange impact,ulong? causeEventId)
         {
             if(id==0||kind<MemoryKind.Greeting||kind>MemoryKind.CompanionPractice||importance<0||importance>10000)throw new ArgumentException("Invalid memory event");
-            Id=id;Kind=kind;Actor=ContractText.Id(actor);Target=ContractText.Id(target);Tick=tick;Importance=importance;Essential=essential;Context=ContractText.Id(context);Impact=impact??throw new ArgumentNullException(nameof(impact));Checksum=ContractText.Hash(Canonical);
+            Id=id;Kind=kind;Actor=ContractText.Id(actor);Target=ContractText.Id(target);Tick=tick;Importance=importance;Essential=essential;Context=ContractText.Id(context);Impact=impact??throw new ArgumentNullException(nameof(impact));CauseEventId=causeEventId;Checksum=ContractText.Hash(Canonical);
         }
     }
     public sealed class KnownMemory
@@ -133,9 +135,59 @@ namespace AshenCrypt.MemoryForge
         }
         public NpcMind Get(string id)=>_minds.TryGetValue(id,out var mind)?mind:null;
         public MemoryEvent Append(MemoryKind kind,string actor,string target,ulong tick,int importance,bool essential,string context,RelationshipChange impact)
+            =>Append(kind,actor,target,tick,importance,essential,context,impact,null);
+
+        public MemoryEvent Append(MemoryKind kind,string actor,string target,ulong tick,int importance,bool essential,string context,RelationshipChange impact,ulong? causeEventId)
         {
-            if(_events.Count>0&&tick<_events[_events.Count-1].Tick||_migrations.Count>0&&tick<_migrations.Last().Tick)throw new ArgumentException("Event tick moved backwards");
-            var ev=new MemoryEvent(checked((ulong)_events.Count+1),kind,actor,target,tick,importance,essential,context,impact);_events.Add(ev);return ev;
+            var ev = new MemoryEvent((ulong)_events.Count+1,kind,actor,target,tick,importance,essential,context,impact,causeEventId);
+            AddEvent(ev, legacy: false);
+            return ev;
+        }
+
+        private void AddEvent(MemoryEvent ev, bool legacy)
+        {
+            if(ev.Id!=(ulong)_events.Count+1)throw new ArgumentException("Invalid event sequence");
+            if(_events.Count>0&&ev.Tick<_events[_events.Count-1].Tick||_migrations.Count>0&&ev.Tick<_migrations.Last().Tick)throw new ArgumentException("Event tick moved backwards");
+            if (!legacy) ValidateCause(ev);
+            _events.Add(ev);
+        }
+
+        private void ValidateCause(MemoryEvent ev)
+        {
+            if (!ev.Context.StartsWith("camp.decision.", StringComparison.Ordinal))
+            {
+                if (ev.CauseEventId.HasValue) throw new ArgumentException("Unexpected cause on root event");
+                return;
+            }
+
+            bool donation = ev.Context == "camp.decision.replaced";
+            if ((!donation && ev.Context != "camp.decision.stolen") || ev.Kind != MemoryKind.Quest ||
+                ev.Actor != "player" || ev.Target != "mara" || !ev.CauseEventId.HasValue ||
+                ev.CauseEventId.Value == 0 || ev.CauseEventId.Value >= ev.Id)
+                throw new ArgumentException("Invalid camp decision or cause");
+
+            // Only the final transaction can explain the decision. The donation may
+            // have also reconciled Mara or completed her refill quest before this append.
+            int parentIndex = (int)(ev.CauseEventId.Value - 1);
+            var parent = _events[parentIndex];
+            if (parent.Tick != ev.Tick || parent.Actor != ev.Actor || parent.Target != ev.Target ||
+                parent.Kind != (donation ? MemoryKind.Help : MemoryKind.Theft) ||
+                parent.Context != (donation ? "camp.donation" : "camp.theft"))
+                throw new ArgumentException("Mismatched camp transaction");
+
+            int next = parentIndex + 1;
+            if (donation && IsCampEffect(next, MemoryKind.Visit, "npc.reconciled")) next++;
+            if (donation && IsCampEffect(next, MemoryKind.Quest, "quest.camp.refilled")) next++;
+            if (next != _events.Count) throw new ArgumentException("Camp decision refers to a stale transaction");
+            if (_events.Any(e => e.Context.StartsWith("camp.decision.", StringComparison.Ordinal)))
+                throw new ArgumentException("Camp decision already recorded");
+        }
+
+        private bool IsCampEffect(int index, MemoryKind kind, string context)
+        {
+            if (index == _events.Count) return false;
+            var effect = _events[index];
+            return effect.Kind == kind && effect.Context == context && effect.Actor == "player" && effect.Target == "mara";
         }
         public bool Learn(string knower,ulong eventId,KnowledgeOrigin origin,string source,ulong tick,int personal=10000,int social=10000)
         {

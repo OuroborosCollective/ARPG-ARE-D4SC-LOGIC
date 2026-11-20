@@ -83,5 +83,6 @@ internal static class NpcForgeTests
         require(UtilityEvaluator.Decide(guard,nearlyCalm,stable,105,true).Action==ForgeAction.Travel,"forge-stable-action-can-change-after-minimum-duration");
         bool overflow=false;try{FixedPoint.Multiply(int.MaxValue,int.MaxValue);}catch(OverflowException){overflow=true;}
         require(overflow,"forge-fixed-point-overflow-is-not-silent");
+        CausalArchiveTests.Run(require);
     }
 }

@@ -48,9 +48,9 @@ namespace AshenCrypt.MemoryForge
                 Write(writer,m.RegressionHash);Write(writer,m.Checksum);
             }
         }
-        private bool ReadMigrations(BinaryReader reader,NpcArchetypeControllerRegistry registry)
+        private bool ReadMigrations(BinaryReader reader,NpcArchetypeControllerRegistry registry,bool allowEmpty)
         {
-            int count=Count(reader);if(count==0)return false;
+            int count=Count(reader);if(count==0)return allowEmpty;
             var last=new Dictionary<string,ControllerArtifact>(StringComparer.Ordinal);
             for(int i=0;i<count;i++)
             {

@@ -45,6 +45,10 @@ internal static class NpcForgeIntegrationTests
             check(merchant.Mind.Known.Count==1&&merchant.Mind.Known[0].Origin==KnowledgeOrigin.Self,"forge-victim-remembers-actual-theft-"+hidden);
             check(guardNpc.Mind.Known.Count==(hidden?0:1),"forge-building-occlusion-gates-personal-knowledge-"+hidden);
             if(!hidden)check(guardNpc.Mind.Known[0].Origin==KnowledgeOrigin.Witnessed,"forge-guard-witness-provenance");
+            var theft = merchant.Mind.Known.Single().Event;
+            var decision = crimeProfile.Social.Forge.Archive.Events.Single(e => e.Context == "camp.decision.stolen");
+            check(decision.CauseEventId == theft.Id && (hidden || guardNpc.Mind.Known.Single().Event.Id == theft.Id),
+                  "causal-theft-decision-victim-and-visible-witness-share-one-id-" + hidden);
             var token=crimeProfile.SaveString();
             check(!crime.TakeCampRation().Accepted&&crimeProfile.SaveString()==token,"forge-rejected-repeat-produces-no-memory-"+hidden);
             check(CharacterProgression.TryLoad(token,out var afterCrime)&&afterCrime.Social.Forge.Archive.Get("dorn").Known.Count==(hidden?0:1),"forge-witness-versus-occluded-state-persists-"+hidden);
