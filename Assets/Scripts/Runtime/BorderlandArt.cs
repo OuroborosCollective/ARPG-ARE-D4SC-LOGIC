@@ -26,6 +26,7 @@ namespace AreArpg.UnityClient
     {
         private enum SiteAppearance { Ruined, Contested, Secured }
         private Transform _regionalDetails, _conditionSocket, _conditionArt;
+        private RefugeScenery _refugeFlora;
         private SiteAppearance? _shownCondition;
         private string _conditionRegion;
         private bool _conditionReduced;
@@ -171,6 +172,7 @@ namespace AreArpg.UnityClient
             _conditionSocket.name = "Condition_" + state;
             AdjustEmbers(_regionalDetails, reduced);
             if (_buildLayer != null) AdjustEmbers(_buildLayer, reduced);
+            if (_refugeFlora != null) _refugeFlora.SetReducedEffects(reduced);
         }
 
         private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");

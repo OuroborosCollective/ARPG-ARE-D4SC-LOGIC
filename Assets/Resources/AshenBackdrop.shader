@@ -35,6 +35,7 @@ Shader "AshenCrypt/Backdrop"
             TEXTURE2D(_BaseMap);
             TEXTURE2D(_GlowMap);
             SAMPLER(sampler_BaseMap);
+            float _AREEmberGain;
             struct In { float4 positionOS : POSITION; half4 color : COLOR; };
             struct Out { float4 positionCS : SV_POSITION; half4 color : COLOR; half fog : TEXCOORD0; float2 ground : TEXCOORD1; };
             Out vert(In i)
@@ -51,8 +52,7 @@ Shader "AshenCrypt/Backdrop"
                 float2 uv = i.ground * _GroundMapping.xy + _GroundMapping.zw;
                 half3 soil = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv).rgb * _GroundColor.rgb;
                 half3 color = lerp(i.color.rgb * _Exposure, soil, textureWeight);   // the ground colour already carries the light
-                // Glowing veins do not dim with the daylight.
-                color += SAMPLE_TEXTURE2D(_GlowMap, sampler_BaseMap, uv).rgb * (_GlowStrength * textureWeight);
+                color += SAMPLE_TEXTURE2D(_GlowMap, sampler_BaseMap, uv).rgb * (_GlowStrength * textureWeight * .55h * _AREEmberGain);
                 return half4(lerp(color, MixFog(color, i.fog), _FogStrength), 1);
             }
             ENDHLSL

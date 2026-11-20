@@ -9,6 +9,11 @@ namespace AreArpg.UnityClient
     public sealed class RefugeScenery : MonoBehaviour
     {
         private readonly List<Material> _materials = new List<Material>();
+        private readonly List<(Renderer renderer, int slot, int property, Color source)> _emberSurfaces
+            = new List<(Renderer, int, int, Color)>();
+        private MaterialPropertyBlock _emberBlock;
+        private static readonly int EmissionId = Shader.PropertyToID("_EmissionColor");
+        private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         private Mesh _canopy;
 
         public static Transform Create(bool mill)
@@ -126,6 +131,35 @@ namespace AreArpg.UnityClient
             int number = 0;
             foreach (AshFloraScatter.Spot spot in AshFloraScatter.Spots(mill))
                 BindClump("Ash_Flora_" + number++, spot.Key, spot.Position, spot.Height, spot.Width, spot.Yaw);
+            foreach (var renderer in GetComponentsInChildren<MeshRenderer>())
+            {
+                var materials = renderer.sharedMaterials;
+                for (int slot = 0; slot < materials.Length; slot++)
+                {
+                    var mat = materials[slot];
+                    if (mat == null) continue;
+                    int property;
+                    if (mat.name == "EmberCap" || mat.name == "AshFlora") property = EmissionId;
+                    else if (mat.name == "EmberGlow") property = BaseColorId;
+                    else continue;
+                    _emberSurfaces.Add((renderer,slot,property,mat.GetColor(property)));
+                }
+            }
+        }
+
+        public void SetReducedEffects(bool reduced)
+        {
+            if (_emberSurfaces.Count == 0) return;
+            if (_emberBlock == null) _emberBlock = new MaterialPropertyBlock();
+            foreach (var slot in _emberSurfaces)
+            {
+                Color value = slot.source;
+                if (slot.property == BaseColorId) value.a *= reduced ? .10f : .58f;
+                else value *= reduced ? .08f : .38f;
+                slot.renderer.GetPropertyBlock(_emberBlock,slot.slot);
+                _emberBlock.SetColor(slot.property,value);
+                slot.renderer.SetPropertyBlock(_emberBlock,slot.slot);
+            }
         }
 
         private void BindClump(string name, string key, Vector3 position, float height, float width, float yaw = 0)

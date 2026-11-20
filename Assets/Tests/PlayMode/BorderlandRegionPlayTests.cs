@@ -68,6 +68,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsEmpty(terrain.GetComponentsInChildren<Collider>());
             var ground = Find("AshRoad_Ground").GetComponent<Renderer>().sharedMaterial;
             Assert.AreSame(WorldSurfacePresentation.AshSnow, ground);
+            Assert.AreSame(ground, Find("Grass verge").GetComponent<Renderer>().sharedMaterial,
+                "The shoulder and field must share one continuous ash and fissure pattern.");
             Assert.IsNotNull(ground.GetTexture("_Mask"));
             var bank = Find("Bau_b0002_BloodcapBank");
             var gill = bank.GetComponentInChildren<LODGroup>().GetLODs()[0].renderers[0];
@@ -118,6 +120,24 @@ namespace AreArpg.PlayMode.Tests
                     Assert.That(Shader.GetGlobalFloat("_AREEmberGain"), Is.EqualTo(shot == 0 ? .70f : shot == 1 ? 1.50f : .28f).Within(.01f));
                     gill.GetPropertyBlock(block);
                     Assert.That(block.GetColor("_EmissionColor").r, Is.EqualTo(shot == 2 ? .22f : .92f).Within(.01f));
+                    if (Resources.Load<GameObject>("ARE/Visuals/AshFloraMushrooms") != null)
+                    {
+                        bool foundCap = false;
+                        foreach (var leaf in Find("AshRoad_Verges").GetComponentsInChildren<MeshRenderer>())
+                        {
+                            var slots = leaf.sharedMaterials;
+                            for (int k = 0; k < slots.Length; k++)
+                            {
+                                if (slots[k] == null || slots[k].name != "EmberCap") continue;
+                                leaf.GetPropertyBlock(block,k);
+                                float source = slots[k].GetColor("_EmissionColor").r;
+                                Assert.That(block.GetColor("_EmissionColor").r,
+                                    Is.EqualTo(source * (shot == 2 ? .08f : .38f)).Within(.02f));
+                                foundCap = true;
+                            }
+                        }
+                        Assert.IsTrue(foundCap);
+                    }
                     string label = shot == 0 ? "tag" : shot == 1 ? "nacht" : "reduziert";
                     yield return Capture("schneeasche-" + label + ".png", overridePosition:eye, overrideFocus:focus);
                     var groveFocus = (wood.transform.position + bank.transform.position) * .5f + Vector3.up * 1.1f;

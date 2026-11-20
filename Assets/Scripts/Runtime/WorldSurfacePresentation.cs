@@ -65,7 +65,8 @@ namespace AreArpg.UnityClient
         {
             string key = KeyFor(label);
             if (renderer == null || !renderer.enabled || key == null) return false;
-            Material material = (key == "OutdoorGround" ? AshSnow : null) ?? Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key);
+            Material material = (key == "OutdoorGround" || key == "GrassVerge" ? AshSnow : null)
+                ?? Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key);
             if (material == null) return false;
             renderer.sharedMaterial = material;
             return true;
