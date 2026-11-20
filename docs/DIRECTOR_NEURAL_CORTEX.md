@@ -63,3 +63,36 @@ erst in späterer Phase. Gerät und Android bleiben UNVERIFIED.
 
 Der Katalog behauptet nicht, alle existierenden Unity-Tools weltweit zu
 kennen, zu besitzen, lizenzieren oder bereits integrieren zu können.
+
+
+## Harness-aware Plugin-Evaluations (isolierter Pilot, 2026-11-19)
+
+Quelle: [OpenAI Cookbook – Harness-aware evaluation of plugins](https://github.com/openai/openai-cookbook/blob/c3bb658dfa413a0b5d9c0bf77c8059dd06b9998b/examples/partners/harness_aware_plugin_evals/harness_aware_plugin_evals.ipynb). Das kleine BLS-Beispiel nutzt einen gemeinsamen Testkorpus und trennt direkten Tool-Test, eigenständigen Modellloop und Codex-Produktharness. Die Beispiel-Passraten sind **keine** Ashen-Crypt-Messungen.
+
+**Eine bestehende Authority, drei voneinander getrennte Evidenzschichten:**
+
+| Schicht | Aktiv eingerichtet | Aussagegrenze |
+| --- | --- | --- |
+| L1 – ohne Modell | `Tools/Director/test_neural_cortex.py`, Neural-Hub-Node-Tests und der echte lokale `mcp_canary.mjs` mit MCP-`initialize` | Prüft Python-Routing, JSON-Contracts, `instructions`, echtes `tools/list`/`tools/call`; keine produktive Unity-Runtime |
+| L2 – Standalone-Tool-Loop | **Nicht aktiviert**; gemeinsamer Korpus `Tools/Director/neural_hub/harness_eval_cases.json` und Offline-Grader vorhanden | Erst ein tatsächlich aufgezeichneter Modelllauf darf eine L2-Aussage liefern; kein API-Key, keine Paid-Calls oder Ersatz-Responses |
+| L3 – Produkt-Harness | **Nicht aktiviert**; derselbe Korpus und Grader können normalisierte reale `mcp_tool_call`-Traces bewerten | Erfordert installiertes Plugin, isolierte Codex/ChatGPT-Ausführung, Modellidentität und unveränderte Revision; derzeit kein Beweis |
+
+Das MCP-`instructions`-Feld wird bei `initialize` übermittelt und ist nur ein **Hinweis für den Client**, kein Zugriffsschutz. Der Text begrenzt Werkzeugwahl auf `director_snapshot` als Identitätsvorbereitung, gezielte `advice_<department>` für Einzeldomänen und `director_consult` nur für expliziten Mehrabteilungsbedarf. `gitRevisionClaim`, caller-supplied Issue-Daten und Skills im Katalog sind ohne unabhängigen Readback **keine** gesicherte GitHub-, Autorisierungs- oder Runtime-Evidence.
+
+### Gemeinsamer Korpus und Offline-Bewertung
+
+`harness_eval_cases.json` enthält auch Gegenbeispiele: fehlende fachliche Abdeckung, ungeprüfte externe Quellen, überflüssige Broadcasts, widerrechtliche Ausführung und Autoritätstäuschung. Ein L2-/L3-Runner muss echte Traces in dieses minimale Datenmodell normalisieren:
+
+- `runs[].case_id`, `harness` (`standalone` oder `codex`), `source_revision` (vollständiger SHA-*Claim*), `completed`, `answer`
+- `runs[].calls[]` in beobachteter Reihenfolge: `name`, `status`, `arguments`, `result.structuredContent`; bei Fehlern `error` und beobachtete `effect`
+- Nur der zugelassene, protokollierte Ziel-MCP darf unter den erwarteten Toolnamen auftauchen. Namespaces sind vor der Bewertung **belegt**, nicht per beliebigem Suffix entfernt. Die Fälle, Antworten und erwarteten Ergebnisse bleiben für den Modelllauf unlesbar.
+
+Die Datei mit tatsächlichen, **separat gesicherten** Traces wird ausschließlich offline bewertet:
+
+```sh
+node Tools/Director/neural_hub/harness_eval.mjs /path/to/captured-traces.json
+```
+
+Der Grader prüft Toolreihenfolge, unerwartete Aufrufe, konkrete Ergebnis-/Argumentfelder, fehlgeschlagene Tools, nicht abgeschlossene Antworten und nicht belegte Runtime-/Quellbehauptungen. Er meldet Wiederholungen, Werkzeugaufrufe und Fälle mit umschlagenden Bestehen-/Nichtbestehen-Ergebnissen. **Er prüft weder fachliche Antwortqualität noch die Echtheit der übergebenen Traces.** Sein bestmöglicher Status `TRACE_CONTRACT_PASS` ist daher **keine** Produktfreigabe. Node-Unittests verwenden ausdrücklich synthetische Eingaben als *Test-Fixtures*.
+
+Vor einer wirklichen Release-Abnahme: identischer Git-/Katalog-/Harness-Pin, isolierte Berechtigungen (`filesystem deny` für Testdatensatz und Secrets), echte `mcp_tool_call`-Traces, mindestens drei unabhängige Modellwiederholungen, negative Cases und menschlicher Antwort-Review. Jeder unerlaubte Effekt oder erfundene Runtime-Beweis ist ein harter Stop; keine Test-Abkürzung durch gelöschte Assertions. Costs, Berechtigungen und ein getrenntes L2-/L3-Verfahren benötigen vorher explizite technische Autorisierung. Weder die Source-Anpassung noch ein grüner MCP-Test schaltet OpenAI-Billing oder Unity aus.
