@@ -40,6 +40,12 @@ namespace AshenCrypt.WorldForge
     public class WFPoiDefinition
     {
         public string id = "poi";
+        [Tooltip("Approved Asset GUID; retained when private source is absent.")]
+        public string approvedAssetGuid = "";
+        [Tooltip("Optional visual for a confirmed landmark. No gameplay authority.")]
+        public GameObject decorativePrefab;
+        [Tooltip("New intake landmarks remain unplaced until the owner sets the POI coordinates and clears this checkbox.")]
+        public bool intakePlacementPending;
         public PoiType type = PoiType.Landmark;
         public Vector2 position;
         [Min(0f)] public float radius = 8f;
@@ -98,6 +104,8 @@ namespace AshenCrypt.WorldForge
     public class WFSpawnRule
     {
         public string name = "Spawner";
+        [Tooltip("Asset-Eingang approval, retained even when private prefab cannot resolve.")]
+        public string approvedAssetGuid = "";
         public bool enabled = true;
         public SpawnKind kind = SpawnKind.TerrainTree;
 

@@ -59,12 +59,34 @@ namespace AreArpg.EditorTools
             for (int i = 0; i < 3; i++)
             {
                 int id = i;
-                Save("EntryNpc" + id, root => Actor(root, id == 2 ? "Hero" : "Npc" + id, "Npc" + id, id == 2 ? 2.05f : 1.9f));
+                // Figures of the unified character system are built by BozoFigureBaker; this builder keeps them.
+                if (!IsBozoVisual("EntryNpc" + id))
+                    Save("EntryNpc" + id, root => Actor(root, id == 2 ? "Hero" : "Npc" + id, "Npc" + id, id == 2 ? 2.05f : 1.9f));
                 Save("EntryEnemy" + id, root => Actor(root, "Enemy" + id, "Enemy" + id, id == 2 ? 2.6f : 1.6f));
             }
+            EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
             AssetDatabase.SaveAssets();
             AuditInputs();
             Debug.Log("ARE_ENTRY_ART_BUILT: crypt, village, supply parcels; private render-only prefabs.");
+        }
+
+        static bool IsBozoVisual(string key)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/ARE/Visuals/" + key + ".prefab");
+            if (prefab == null) return false;
+            var skins = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            return skins.Length > 0 && Array.TrueForAll(skins, skin => skin.sharedMesh != null &&
+                AssetDatabase.GetAssetPath(skin.sharedMesh).StartsWith(BozoFigureRecipes.BakeFolder + "/", StringComparison.Ordinal));
+        }
+
+        /// <summary>Rebuild only the hero prefabs (combat hero and grounded entry hero) from the configured hero source.</summary>
+        [MenuItem("ARE ARPG/Art/Rebuild Hero From Configured Source")]
+        public static void RebuildHero()
+        {
+            EntryCombatArtBuilder.RebuildHero();
+            Save("EntryHero", root => Actor(root, EntryCombatArtBuilder.HeroKey, "Hero", 1.9f));
+            EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
+            AssetDatabase.SaveAssets();
         }
 
         /// <summary>Preserve character proportions, ground the feet and bind the existing passive animation controller.</summary>
@@ -182,7 +204,7 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>Lower or raise the actor so its lowest visible vertex touches the actor origin.</summary>
-        private static void StandOnVisibleFeet(GameObject art)
+        internal static void StandOnVisibleFeet(GameObject art)
         {
             Transform parent = art.transform.parent;
             float feet = VisibleBody(art).min.y - parent.position.y;
@@ -193,7 +215,7 @@ namespace AreArpg.EditorTools
         /// Extents of the active skinned meshes in their current pose. Inactive outfit variants are ignored; their
         /// renderer bounds reach lower than the worn boots and previously left villagers floating.
         /// </summary>
-        private static Bounds VisibleBody(GameObject art)
+        internal static Bounds VisibleBody(GameObject art)
         {
             var mesh = new Mesh();
             bool any = false;
@@ -203,7 +225,9 @@ namespace AreArpg.EditorTools
                 foreach (SkinnedMeshRenderer skin in art.GetComponentsInChildren<SkinnedMeshRenderer>(true))
                 {
                     if (!skin.enabled || !skin.gameObject.activeInHierarchy || skin.sharedMesh == null) continue;
-                    skin.BakeMesh(mesh, true);
+                    // Without the scale flag the baked vertices already carry the scale of all parents; only position
+                    // and rotation remain. (With the flag they stay unscaled and a scaled actor was measured too small.)
+                    skin.BakeMesh(mesh);
                     Matrix4x4 toWorld = Matrix4x4.TRS(skin.transform.position, skin.transform.rotation, Vector3.one);
                     foreach (Vector3 vertex in mesh.vertices)
                     {
