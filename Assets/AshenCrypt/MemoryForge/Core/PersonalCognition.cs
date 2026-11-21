@@ -244,7 +244,7 @@ namespace AshenCrypt.MemoryForge
             return null;
         }
         internal bool HasState => _weights != null || _episodes.Count != 0;
-        internal bool ValidAt(ulong tick) => (!_lastOutcome.HasValue || _lastOutcome.Value <= tick) && (_episodes.Count == 0 || NextExpiry() > tick) &&
+        public bool IsCurrentAt(ulong tick) => (!_lastOutcome.HasValue || _lastOutcome.Value <= tick) && (_episodes.Count == 0 || NextExpiry() > tick) &&
             System.Linq.Enumerable.All(_episodes.Values, e => e.Used <= tick);
 
         internal void WriteState(BinaryWriter w)

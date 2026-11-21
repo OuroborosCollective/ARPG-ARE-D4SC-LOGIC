@@ -50,7 +50,7 @@ namespace AreArpg.Core
             if(archive.Minds.Count<3||archive.Minds.Any(m=>!ValidIdentity(m))||
                 archive.Get("road.traveler")!=null&&archive.Get("road.traveler").Controller.ArchetypeId!="traveler"||
                 archive.Get("hunter")!=null&&archive.Get("hunter").Controller.ArchetypeId!="companion"||archive.Get("ilyan")?.Controller.ArchetypeId!="traveler"||archive.Get("mara")?.Controller.ArchetypeId!="merchant"||archive.Get("dorn")?.Controller.ArchetypeId!="guard"||
-                archive.Acquisitions.Any(k=>k.LearnedTick>ticks)||archive.Events.Any(e=>e.Tick>ticks)||archive.Migrations.Any(m=>m.Tick>ticks)||archive.Minds.Any(m=>m.DecisionState.LastTick>ticks||!m.Cognition.ValidAt(ticks)))return false;
+                archive.Acquisitions.Any(k=>k.LearnedTick>ticks)||archive.Events.Any(e=>e.Tick>ticks)||archive.Migrations.Any(m=>m.Tick>ticks)||archive.Minds.Any(m=>m.DecisionState.LastTick>ticks||!m.Cognition.IsCurrentAt(ticks)))return false;
             if(!ForgeVillageCheckpoint.TryRead(f[3],out _))return false;
             state=new NpcForgeState{ProcessedTicks=ticks,Archive=archive,Checkpoint=f[3]};return true;
         }
