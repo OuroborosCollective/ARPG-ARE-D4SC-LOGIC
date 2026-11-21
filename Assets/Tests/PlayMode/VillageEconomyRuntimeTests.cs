@@ -127,6 +127,53 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(hash, Game.ComputeWorldHash(), "A reading gesture never becomes a hand-over");
         }
 
+        /// <summary>
+        /// Review finding: a finger that began to scroll and then vanished without an end or cancel phase (the app
+        /// was paused, the system took the touch) kept the open board for itself. No later tap could close it or
+        /// hand anything over, and the open board holds the player in place.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator ALostScrollFingerDoesNotLockTheBoard()
+        {
+            StartVillageWork();
+            yield return RunFrames(1);
+            WalkToBoard();
+            var layout = new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
+            var input = typeof(ArenaRuntime).GetMethod("VillageBoardTouch", Flags);
+            var finger = typeof(ArenaRuntime).GetField("_villageScrollFinger", Flags);
+            var open = typeof(ArenaRuntime).GetField("_villageBoardOpen", Flags);
+            void Touch(int id, TouchPhase phase, Vector2 point) { input.Invoke(_runtime, new object[] { layout, id, phase, point }); }
+
+            Touch(7, TouchPhase.Began, ArenaRuntime.VillageBoardToggleRect(layout).center);
+            Touch(7, TouchPhase.Ended, ArenaRuntime.VillageBoardToggleRect(layout).center);
+            yield return RunFrames(2);
+            Assert.IsTrue((bool)open.GetValue(_runtime), "The board is open");
+            Vector2 reading = ArenaRuntime.VillageBoardTextRect(layout, 0).center;
+
+            // The finger goes down on the text and is never heard of again.
+            Touch(7, TouchPhase.Began, reading);
+            Assert.AreEqual(7, (int)finger.GetValue(_runtime), "The reading gesture belongs to its finger");
+            yield return RunFrames(2);   // input frames in which no such finger is down
+            Assert.AreEqual(-1, (int)finger.GetValue(_runtime), "A gesture ends when its finger is gone");
+            Assert.IsTrue((bool)open.GetValue(_runtime), "Losing the finger does not close the board by itself");
+            Touch(8, TouchPhase.Began, ArenaRuntime.VillageBoardCloseRect(layout).center);
+            Assert.IsFalse((bool)open.GetValue(_runtime), "Another finger closes the board");
+
+            // The same when the app is paused or loses focus in the middle of the gesture.
+            foreach (string leave in new[] { "OnApplicationPause", "OnApplicationFocus" })
+            {
+                Touch(7, TouchPhase.Began, ArenaRuntime.VillageBoardToggleRect(layout).center);
+                Touch(7, TouchPhase.Ended, ArenaRuntime.VillageBoardToggleRect(layout).center);
+                Touch(7, TouchPhase.Began, reading);
+                Assert.AreEqual(7, (int)finger.GetValue(_runtime));
+                typeof(ArenaRuntime).GetMethod(leave, Flags).Invoke(_runtime, new object[] { leave == "OnApplicationPause" });
+                Assert.AreEqual(-1, (int)finger.GetValue(_runtime), leave + " ends the reading gesture");
+                typeof(ArenaRuntime).GetMethod(leave, Flags).Invoke(_runtime, new object[] { leave != "OnApplicationPause" });
+                Touch(8, TouchPhase.Began, ArenaRuntime.VillageBoardCloseRect(layout).center);
+                Assert.IsFalse((bool)open.GetValue(_runtime), "The board closes after " + leave);
+            }
+        }
+
         [UnityTest]
         public IEnumerator VillageWorkShowsTheCoresStockAndNeverChangesIt()
         {
@@ -344,6 +391,18 @@ namespace AreArpg.PlayMode.Tests
             UpdateVillageWork(600f);
             Debug.Log("VILLAGE_PICTURES after " + ticks + " ticks: " + string.Join(" | ", VillageBoard.StockLines(Game.Progression)) + " || " +
                 string.Join(" ", Economy.Residents.Select(VillageBoard.ResidentLine)));
+            // Where each place lies in the overview picture (0..1 from the lower left), for labels beside the picture.
+            var overview = (Camera)typeof(ArenaRuntime).GetField("_camera", Flags).GetValue(_runtime);
+            Vector3 keptPosition = overview.transform.position; Quaternion keptRotation = overview.transform.rotation;
+            overview.transform.position = new Vector3(0f, 17f, -22f); overview.transform.LookAt(new Vector3(0f, 0f, -4f));
+            var labels = new List<string>();
+            for (int spot = 0; spot < VillageEconomyLayout.SpotCount; spot++)
+            {
+                Vector3 at = overview.WorldToViewportPoint(new Vector3(VillageEconomyLayout.PlaceXmm((VillageSpot)spot) / 1000f, 0.5f, VillageEconomyLayout.PlaceZmm((VillageSpot)spot) / 1000f));
+                labels.Add((VillageSpot)spot + "=" + at.x.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + at.y.ToString("F3", System.Globalization.CultureInfo.InvariantCulture));
+            }
+            overview.transform.SetPositionAndRotation(keptPosition, keptRotation);
+            System.IO.File.WriteAllLines(System.IO.Path.Combine(directory, "village-economy-labels.txt"), labels);
             yield return Capture("village-economy.png", overridePosition: new Vector3(0f, 17f, -22f), overrideFocus: new Vector3(0f, 0f, -4f));
             foreach (ArenaRuntime.VillageWorkplace workplace in ArenaRuntime.VillageWorkplaces)
             {
@@ -356,6 +415,9 @@ namespace AreArpg.PlayMode.Tests
             WalkToBoard();
             yield return RunFrames(2);
             yield return Capture("board-reach.png");
+            // For the picture of the board the pack holds a few things the village takes.
+            Game.Progression.Crafting.AddMaterial(MaterialKind.Holz, 5); Game.Progression.Crafting.AddMaterial(MaterialKind.Dornbeere, 2);
+            Game.Progression.Crafting.AddMaterial(MaterialKind.Ascheisen, 1);
             var layout = new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
             typeof(ArenaRuntime).GetMethod("VillageBoardTouch", Flags).Invoke(_runtime,
                 new object[] {layout, 1, TouchPhase.Began, ArenaRuntime.VillageBoardToggleRect(layout).center});

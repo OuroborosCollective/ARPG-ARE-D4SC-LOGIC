@@ -167,6 +167,7 @@ namespace AreArpg.UnityClient
             if (paused)
             {
                 ReleasePresentationTouches();
+                ReleaseVillageBoardScroll(false);
                 SaveCharacter();
             }
         }
@@ -175,7 +176,7 @@ namespace AreArpg.UnityClient
         {
             _appUnfocused = !focused;
             if (_atmosphere != null) _atmosphere.Suspend(_appPaused || _appUnfocused);
-            if (!focused) ReleasePresentationTouches();
+            if (!focused) { ReleasePresentationTouches(); ReleaseVillageBoardScroll(false); }
         }
 
         /// <summary>Discard interrupted gestures without changing chosen zoom or character progression.</summary>

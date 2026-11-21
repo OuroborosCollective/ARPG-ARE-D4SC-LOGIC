@@ -129,7 +129,11 @@ namespace AreArpg.Core
             bool care = p.Village.OrselTeachesUnlocked;
             bool atMill = r.Site == VillageSite.Mill && !r.Walking;
             VillageWork plan;
-            if (atMill && care && r.Health < VillageEconomyRules.MaxHealth) plan = VillageWork.None;
+            // A patient stays in Orsel's care until whole. Care does not heal the starving, though, and an errand
+            // bars the way home to eat: a starving resident at the mill does what the errand still allows and
+            // otherwise goes home, where Mara may have rations again.
+            if (atMill && care && r.Health < VillageEconomyRules.MaxHealth)
+                plan = r.Hunger >= VillageEconomyRules.MaxNeed ? AwayAssignment(r, night) : VillageWork.None;
             else if (!r.CanWork) plan = inVillage ? (care && (food || r.Hunger < VillageEconomyRules.EatHunger) ? VillageWork.SeekCare : VillageWork.None) : VillageWork.GoHome;
             else plan = Plan(p, r, night, campLimit, care);
 
@@ -205,9 +209,13 @@ namespace AreArpg.Core
                 r.Activity = VillageActivity.Walking;
                 r.TravelTicks -= Stride;
                 if (r.TravelTicks > 0) return;
+                // An errand to an outlying site is not done by getting there: its result is what the work brings,
+                // and the work settles its own decision when it ends. A plain walk - home, to food, to Orsel -
+                // is complete on arrival.
+                bool errand = r.Destination != VillageSite.Village && IsExternalAssignment(r.Assignment);
                 Arrive(r);
                 var action = mind.DecisionState.Action;
-                if (action == ForgeAction.Travel || action == ForgeAction.SeekFood)
+                if (!errand && (action == ForgeAction.Travel || action == ForgeAction.SeekFood))
                     mind.Cognition.SettleCommittedOutcome(action, tick, 1);
                 return;
             }

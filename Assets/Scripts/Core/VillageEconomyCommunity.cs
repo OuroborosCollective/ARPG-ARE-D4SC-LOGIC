@@ -219,13 +219,16 @@ namespace AreArpg.Core
             }
             if (wasWalking && !resident.Walking && resident.Site == VillageSite.Village && resident.SiteSample != 0)
             {
-                if (IsForestReport(resident.SiteSample) && resident.SiteSampleTick > ForestReportTick)
+                // Two residents can leave a site in the same tick with something happening there between their
+                // departures. The way home takes both equally long and they arrive in the order they left, so of
+                // two reports with the same tick the one that comes in later is the newer one.
+                if (IsForestReport(resident.SiteSample) && resident.SiteSampleTick >= ForestReportTick)
                 {
                     ForestReport = resident.SiteSample;
                     ForestReportTick = resident.SiteSampleTick;
                     ForestReporterOrdinal = resident.Ordinal;
                 }
-                else if (resident.SiteSample <= 1 + VillageEconomyRules.MillHerbCap && resident.SiteSampleTick > MillReportTick)
+                else if (resident.SiteSample <= 1 + VillageEconomyRules.MillHerbCap && resident.SiteSampleTick >= MillReportTick)
                 {
                     ReportedMillHerbs = resident.SiteSample - 1;
                     MillReportTick = resident.SiteSampleTick;

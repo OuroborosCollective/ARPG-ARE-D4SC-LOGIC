@@ -75,6 +75,7 @@ internal static class Program
             VillageEconomyMigrationTests.Run(Require);
             VillageEconomyCommunityTests.Run(Require);
             VillageEconomyJourneyTests.Run(Require);
+            VillageEconomyErrandTests.Run(Require);
             Console.WriteLine("ALL PASS: " + _checks + " deterministic core assertions");
             return 0;
         }

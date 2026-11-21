@@ -608,7 +608,9 @@ namespace AreArpg.Core
             StepFreight();
             CalmVillagers();
             StepNpcs();
-            StepVillageEconomy();
+            // A villager's blow can end the game in this very tick. From then on the village rests like the rest
+            // of the world: no work step is finished and no stock moves while the player is down.
+            if (!GameOver) StepVillageEconomy();
             StepRoadEncounter();
             StepCompanion();
             StepRattler();

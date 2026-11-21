@@ -436,6 +436,20 @@ namespace AreArpg.UnityClient
             _villageScrollY = _villageScrollLimit = 0f;
         }
 
+        /// <summary>
+        /// A reading gesture ends with its finger. A finger can vanish without an end or cancel phase - the app
+        /// was paused, the system took the touch - and would otherwise keep the board for itself: no later tap
+        /// could close it or hand anything over. Called on every input frame, and when the app leaves the screen.
+        /// </summary>
+        private void ReleaseVillageBoardScroll(bool unlessFingerDown)
+        {
+            if (_villageScrollFinger < 0) return;
+            if (unlessFingerDown)
+                for (int i = 0; i < Input.touchCount; i++)
+                    if (Input.GetTouch(i).fingerId == _villageScrollFinger) return;
+            _villageScrollFinger = -1;
+        }
+
         // A gesture belongs to the region in which it began, even if the finger crosses a gift button.
         private bool VillageBoardTouch(ArenaHudLayout layout, int finger, TouchPhase phase, Vector2 point)
         {
@@ -474,6 +488,7 @@ namespace AreArpg.UnityClient
         private bool PollVillageBoardInput(ArenaHudLayout layout)
         {
             if (!_game.VillageBoardInReach || _hungerJournalOpen) { if (_villageBoardOpen) SetVillageBoardOpen(false); return false; }
+            ReleaseVillageBoardScroll(true);
             bool consumed = false;
             if (Input.GetKeyDown(KeyCode.N) || (_villageBoardOpen && Input.GetKeyDown(KeyCode.Escape)))
             { SetVillageBoardOpen(!_villageBoardOpen); consumed = true; }
