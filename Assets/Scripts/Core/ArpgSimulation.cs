@@ -629,10 +629,13 @@ namespace AreArpg.Core
                         ReceiveCreatureHit(enemy, MonsterRoles.AttackDamage(enemy.Role), committed: true);
                     continue;
                 }
-                if(StepMonsterAgainstCompanion(enemy))continue;
+                // A committed pulse already has a target and saved decision. Do not
+                // replace its frame or start another attack before the outcome settles.
+                bool committedPulse=ChapterId==2 && enemy.Kind==3 && enemy.BossWindupTicks>0;
+                if(!committedPulse && StepMonsterAgainstCompanion(enemy))continue;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
                 if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
-                if(!ForgeCreatureMayAttack(enemy,PlayerXmm,PlayerZmm))continue;
+                if(!committedPulse && !ForgeCreatureMayAttack(enemy,PlayerXmm,PlayerZmm))continue;
                 if (ChapterId == 2 && enemy.Kind == 3)
                 {
                     // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.

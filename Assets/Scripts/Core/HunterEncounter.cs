@@ -220,7 +220,7 @@ namespace AreArpg.Core
                 if (!bear.IsDead && (targetPlayer || h.HunterHealth > 0))
                 {
                     long tx = targetPlayer ? PlayerXmm : HunterEncounter.HunterX, tz = targetPlayer ? PlayerZmm : HunterEncounter.HunterZ;
-                    bool pursue=ForgeCreatureMayAttack(bear,tx,tz);
+                    bool pursue=bear.BossWindupTicks==0 && ForgeCreatureMayAttack(bear,tx,tz);
                     if (bear.BossWindupTicks > 0)
                     {
                         bear.BossWindupTicks--;

@@ -17,6 +17,7 @@ internal static class PersonalCognitionTests
         SocialLearning(check);
         UpgradeReport(check);
         CommittedHits(check);
+        EncounterWindups(check);
         GameClockAndVisibleMemory(check);
         FutureResidents(check);
     }
@@ -183,12 +184,36 @@ internal static class PersonalCognitionTests
             check(enemy.BossWindupTicks>0 && enemy.Mind.Cognition.Weight(ForgeAction.Attack,2)==0,"starting-warning-earns-no-credit-"+pulse);
             if(dodge) enemy.Xmm=world.PlayerXmm+6500;
             int health=world.PlayerHealth, delay=enemy.BossWindupTicks;
+            ulong decisionTick=enemy.Mind.DecisionState.LastTick;
             for(int i=0;i<delay;i++)world.Step();
+            check(enemy.Mind.DecisionState.LastTick==decisionTick,"windup-keeps-original-decision-"+pulse+"-"+dodge);
             int weight=enemy.Mind.Cognition.Weight(ForgeAction.Attack,2);
             check(enemy.BossWindupTicks==0 && (dodge ? world.PlayerHealth==health && weight==0 : world.PlayerHealth<health && weight>0),
                   "settled-hit-learns-once-and-dodged-hit-never-earns-credit-"+pulse+"-"+dodge);
             check(CharacterProgression.TryLoad(p.SaveString(),out var loaded) &&
                 loaded.Social.Forge.Archive.Get(enemy.Mind.Id).Cognition.Weight(ForgeAction.Attack,2)==weight,"settled-outcome-reloads-"+pulse+"-"+dodge);
+        }
+    }
+    private static void EncounterWindups(Action<bool,string> check)
+    {
+        var road=HunterEncounterTests.Road(123,true);
+        var h=road.Progression.Road; h.Started=true; h.Age=31;
+        h.Bear.Xmm=HunterEncounter.HunterX+500;h.Bear.Zmm=HunterEncounter.HunterZ;
+        var p=RattlerEncounterTests.Den().Progression;p.Social.EnableForge();
+        var den=new ArenaSimulation(123,p,1,LootCatalog.Version1);
+        var r=p.Rattler.Creature;r.Xmm=den.PlayerXmm+500;r.Zmm=den.PlayerZmm;
+        foreach (var world in new[]{road,den})
+        {
+            bool bear=world==road;
+            var creature=bear?h.Bear:r;
+            for(int i=0;i<65 && creature.BossWindupTicks==0;i++)world.Step();
+            check(creature.BossWindupTicks>0,"encounter-real-windup-started-"+bear);
+            ulong issued=creature.Mind.DecisionState.LastTick;
+            int prior=bear?h.HunterHealth:den.PlayerHealth;
+            int delay=creature.BossWindupTicks;
+            for(int i=0;i<delay;i++)world.Step();
+            check(creature.Mind.DecisionState.LastTick==issued && creature.Mind.Cognition.Weight(ForgeAction.Attack,2)>0 &&
+                (bear?h.HunterHealth:den.PlayerHealth)<prior,"hunter-and-rattler-impact-credit-original-frame-"+bear);
         }
     }
     private static void FutureResidents(Action<bool,string> check)
