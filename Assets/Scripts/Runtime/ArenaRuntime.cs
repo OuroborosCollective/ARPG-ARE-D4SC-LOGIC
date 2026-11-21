@@ -233,6 +233,7 @@ namespace AreArpg.UnityClient
             RenderSettings.fogDensity = 0.014f;
             BuildChapterScenery();
             BuildPlacedLayer();
+            BuildVillageEconomy();
             BuildRegionalDetails();
             // Torch islands belong to the village projection, not to the optional private art overlay.
             if (_game.IsVillage) BuildVillageLights();
@@ -788,6 +789,7 @@ namespace AreArpg.UnityClient
             if (PollMenuInput()) return;
             if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
+            if (PollVillageBoardInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollRattlerInput(layout)) { ReleasePresentationTouches(); return; }
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
@@ -962,6 +964,7 @@ namespace AreArpg.UnityClient
             _passageAnnounced = false;
             BuildChapterScenery();
             BuildPlacedLayer();
+            BuildVillageEconomy();
             BuildRegionalDetails();
             // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
             if (_game.IsVillage) BuildVillageLights();
@@ -1012,6 +1015,8 @@ namespace AreArpg.UnityClient
                 _accumulator -= TickSeconds;
                 steps++;
                 ProcessCompanionAction();
+                if (_storageFault) break;
+                ProcessVillageGift();
                 if (_storageFault) break;
                 if (_pendingHunterAction >= 0)
                 {
@@ -1101,6 +1106,7 @@ namespace AreArpg.UnityClient
             UpdateCompanionPresentation(Mathf.Clamp01(_accumulator / TickSeconds));
             UpdateInvestigationPresentation();
             UpdateRattlerPresentation();
+            UpdateVillageEconomy(SimulationPaused ? 0f : Time.deltaTime);
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
             UpdateHud();
             UpdateMenu();
@@ -1274,6 +1280,7 @@ namespace AreArpg.UnityClient
                 DrawRoadHud(layout);
                 DrawRattlerHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
+                if (DrawVillageBoard(layout)) return;
                 DrawSpeechSubtitle(layout);
             }
             finally

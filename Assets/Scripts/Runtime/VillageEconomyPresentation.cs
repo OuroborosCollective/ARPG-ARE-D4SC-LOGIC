@@ -1,0 +1,618 @@
+using System;
+using System.Collections.Generic;
+using AreArpg.Core;
+using UnityEngine;
+
+namespace AreArpg.UnityClient
+{
+    /// <summary>
+    /// The village economy as the player sees it: workplaces whose stock is the Core's stock, residents who stand
+    /// where the Core has them, and the village board. Nothing here owns a number. A log, a sack, a fire or a
+    /// figure is shown because the Core says so, and hiding or showing one changes nothing in the Core.
+    ///
+    /// What is simplified on purpose: forest and mill are not walked through. A resident who leaves is seen as far
+    /// as the north gate and again from there on the way home. Figures walk at their own pace along free ground,
+    /// so a figure can still be on its way while the Core already counts the work as begun.
+    /// </summary>
+    public sealed partial class ArenaRuntime
+    {
+        public const string VillageWorkRoot = "ARE_VillageWork";
+        public const string VillageResidentsRoot = "ARE_VillageResidents";
+        public const string WorkplacePrefix = "ARE_Work_";
+        public const string ResidentPrefix = "ARE_Resident_";
+        public const string StockPrefix = "Stock_";
+        public const string FireName = "Fire";
+        /// <summary>Figures of the village residents: the reviewed villager visuals, taken in turn.</summary>
+        public const int ResidentFigures = 3;
+        private const float ResidentPace = 1.9f;
+        /// <summary>Between two steps of work a resident is free for a moment; only a longer pause leads to the board.</summary>
+        private const float IdlePause = 4f;
+
+        /// <summary>One workplace: its Core place, its model, the ground it covers and the goods it can show.</summary>
+        public sealed class VillageWorkplace
+        {
+            public readonly VillageSpot Spot;
+            public readonly string Key;
+            /// <summary>Covered ground in the model's own frame (x to the side, z towards the worker), in metres.</summary>
+            public readonly Vector2 Centre, Size;
+            public readonly float Height;
+            public readonly VillageGood[] Goods;
+            public readonly int[] Units;
+            public readonly bool Fire;
+
+            public VillageWorkplace(VillageSpot spot, string key, float centreX, float centreZ, float width, float depth, float height, bool fire, params int[] stock)
+            {
+                Spot = spot; Key = key; Centre = new Vector2(centreX, centreZ); Size = new Vector2(width, depth); Height = height; Fire = fire;
+                Goods = new VillageGood[stock.Length / 2]; Units = new int[stock.Length / 2];
+                for (int i = 0; i < Goods.Length; i++) { Goods[i] = (VillageGood)stock[i * 2]; Units[i] = stock[i * 2 + 1]; }
+            }
+        }
+
+        /// <summary>
+        /// The workplaces built for the village (Tools/Art/blender/village_work_props.py). The store is Mara's
+        /// existing camp; home and gate are places, not props.
+        /// </summary>
+        public static readonly VillageWorkplace[] VillageWorkplaces =
+        {
+            new VillageWorkplace(VillageSpot.Woodyard, "WorkWoodyard", 0.75f, -0.02f, 3.0f, 1.35f, 1.0f, false, (int)VillageGood.Wood, 12, (int)VillageGood.Axe, 2),
+            new VillageWorkplace(VillageSpot.Workbench, "WorkBench", -0.05f, 0.05f, 2.4f, 0.85f, 0.95f, false, (int)VillageGood.WoodFrame, 2, (int)VillageGood.Bow, 2,
+                (int)VillageGood.BrokenAxe, 1, (int)VillageGood.Metal, 2, (int)VillageGood.ThornBerry, 2),
+            new VillageWorkplace(VillageSpot.Kitchen, "WorkKitchen", -0.55f, -0.03f, 2.66f, 1.5f, 1.8f, true, (int)VillageGood.Ration, 4, (int)VillageGood.Water, 4),
+            new VillageWorkplace(VillageSpot.GameRack, "WorkGameRack", 0f, 0f, 2.2f, 0.35f, 1.9f, false, (int)VillageGood.Game, 4),
+            new VillageWorkplace(VillageSpot.DryingRack, "WorkDryingRack", 0f, 0f, 3.6f, 0.9f, 1.95f, false, (int)VillageGood.Hide, 3),
+            new VillageWorkplace(VillageSpot.Well, "WorkWell", -0.08f, 0f, 2.2f, 1.6f, 2.45f, false),
+            new VillageWorkplace(VillageSpot.Board, "WorkBoard", 0f, 0f, 1.8f, 0.6f, 2.3f, false),
+        };
+
+        private sealed class StockDisplay
+        {
+            public VillageGood Good;
+            public Transform[] Units;
+        }
+
+        private sealed class ResidentView
+        {
+            public int Ordinal;
+            public Transform Visual;
+            public Vector2 At;
+            public bool Visible;
+            /// <summary>The figure is on the way to a place where it leaves the picture (gate or house door).</summary>
+            public bool Leaving;
+            /// <summary>Out of the picture through the gate (true) or into the house (false): it comes back the same way.</summary>
+            public bool Outside;
+            public bool HasTarget;
+            public VillageSpot Target;
+            /// <summary>Place among the residents at the same spot, so two never stand in each other.</summary>
+            public int Slot;
+            /// <summary>Seconds the resident has been without work while the figure still stands at the last workplace.</summary>
+            public float Pause;
+            public readonly List<Vector2> Path = new List<Vector2>();
+        }
+
+        private Transform _villageWork, _villageResidents, _cookingFire;
+        private readonly List<StockDisplay> _villageStock = new List<StockDisplay>();
+        private readonly List<ResidentView> _residentViews = new List<ResidentView>();
+        private readonly VillageWalkGrid _villageWalk = new VillageWalkGrid();
+        private readonly int[] _villageSpotUse = new int[VillageEconomyLayout.SpotCount];
+        private bool _villageBoardOpen, _villageNeedPending;
+        private int _pendingVillageGift = -1;
+
+        private static Vector2 Stand(VillageSpot spot) { return new Vector2(VillageEconomyLayout.StandXmm(spot) / 1000f, VillageEconomyLayout.StandZmm(spot) / 1000f); }
+        private static Vector2 Place(VillageSpot spot) { return new Vector2(VillageEconomyLayout.PlaceXmm(spot) / 1000f, VillageEconomyLayout.PlaceZmm(spot) / 1000f); }
+
+        /// <summary>Where the n-th resident at a spot stands: the first at the stand point, the others beside it.</summary>
+        private static Vector2 Stand(VillageSpot spot, int slot)
+        {
+            Vector2 stand = Stand(spot), toPlace = Place(spot) - stand;
+            Vector2 side = toPlace.sqrMagnitude < 0.01f ? Vector2.right : new Vector2(-toPlace.y, toPlace.x).normalized;
+            return stand + side * (((slot + 1) / 2) * 0.9f * (slot % 2 == 1 ? 1f : -1f));
+        }
+
+        private Vector3 OnGround(Vector2 at, float lift = 0f) { return new Vector3(at.x, BuildGround(at.x, at.y) + lift, at.y); }
+
+        /// <summary>Rebuild the village work scenery for the current area; called with every scenery rebuild.</summary>
+        private void BuildVillageEconomy()
+        {
+            ClearVillageEconomy();
+            if (_game == null || !_game.IsVillage || !_game.Progression.Economy.Started) return;
+            // Not chapter scenery: racks, tripod and board are low and open, and the camera must not pull in
+            // for them as it does for houses and trees. Both roots are removed here on every rebuild.
+            _villageWork = new GameObject(VillageWorkRoot).transform;
+            _villageResidents = new GameObject(VillageResidentsRoot).transform;
+            foreach (VillageWorkplace workplace in VillageWorkplaces) BuildWorkplace(workplace);
+            BuildVillageWalkGrid();
+            _villageNeedPending = true;
+            UpdateVillageEconomy(0f);
+        }
+
+        private void ClearVillageEconomy()
+        {
+            if (_villageWork != null) Destroy(_villageWork.gameObject);
+            if (_villageResidents != null)
+            {
+                foreach (ResidentView view in _residentViews) if (view.Visual != null) _actorAnimations.Remove(view.Visual);
+                Destroy(_villageResidents.gameObject);
+            }
+            _villageWork = _villageResidents = _cookingFire = null;
+            _villageStock.Clear();
+            _residentViews.Clear();
+            _villageBoardOpen = _villageNeedPending = false;
+            _pendingVillageGift = -1;
+        }
+
+        /// <summary>A workplace faces the point its worker stands at; the model's front is its +Z side.</summary>
+        private static Quaternion WorkplaceFacing(VillageSpot spot)
+        {
+            Vector2 toWorker = Stand(spot) - Place(spot);
+            return toWorker.sqrMagnitude < 0.0001f ? Quaternion.identity : Quaternion.LookRotation(new Vector3(toWorker.x, 0f, toWorker.y));
+        }
+
+        private void BuildWorkplace(VillageWorkplace workplace)
+        {
+            var host = new GameObject(WorkplacePrefix + workplace.Spot).transform;
+            host.SetParent(_villageWork, false);
+            host.position = OnGround(Place(workplace.Spot));
+            host.rotation = WorkplaceFacing(workplace.Spot);
+            GameObject prefab = Resources.Load<GameObject>("ARE/Visuals/" + workplace.Key);
+            bool art = prefab != null && PassiveArtVisuals.TryBindPrefab(host, prefab);
+            if (!art)
+            {
+                // No private art: a plain block of the same footprint, with one small cube per unit of stock.
+                Transform block = Shape(PrimitiveType.Cube, "Platzhalter_" + workplace.Key, Vector3.zero,
+                    new Vector3(workplace.Size.x, Mathf.Min(workplace.Height, 1f), workplace.Size.y), new Color(0.40f, 0.29f, 0.19f));
+                block.SetParent(host, false);
+                block.localPosition = new Vector3(workplace.Centre.x, Mathf.Min(workplace.Height, 1f) * 0.5f, workplace.Centre.y);
+                block.localRotation = Quaternion.identity;
+            }
+            int slot = 0, slots = 0;
+            foreach (int units in workplace.Units) slots += units;
+            for (int g = 0; g < workplace.Goods.Length; g++)
+            {
+                var display = new StockDisplay { Good = workplace.Goods[g] };
+                var found = new List<Transform>();
+                if (art)
+                {
+                    string prefix = StockPrefix + workplace.Goods[g] + "_";
+                    foreach (Transform part in host.GetComponentsInChildren<Transform>(true))
+                        if (part.name.StartsWith(prefix, StringComparison.Ordinal)) found.Add(part);
+                    found.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
+                }
+                else
+                {
+                    for (int i = 0; i < workplace.Units[g]; i++, slot++)
+                    {
+                        Transform unit = Shape(PrimitiveType.Cube, StockPrefix + workplace.Goods[g] + "_" + i.ToString("00"), Vector3.zero,
+                            Vector3.one * 0.2f, StockColour(workplace.Goods[g]));
+                        unit.SetParent(host, false);
+                        unit.localPosition = new Vector3(workplace.Centre.x - workplace.Size.x * 0.5f + (slot + 0.5f) * workplace.Size.x / slots,
+                            Mathf.Min(workplace.Height, 1f) + 0.1f, workplace.Centre.y);
+                        unit.localRotation = Quaternion.identity;
+                        found.Add(unit);
+                    }
+                }
+                display.Units = found.ToArray();
+                foreach (Transform unit in display.Units) unit.gameObject.SetActive(false);
+                _villageStock.Add(display);
+            }
+            if (!workplace.Fire) return;
+            if (art)
+            {
+                foreach (Transform part in host.GetComponentsInChildren<Transform>(true))
+                    if (part.name == FireName) _cookingFire = part;
+            }
+            else
+            {
+                _cookingFire = Shape(PrimitiveType.Cube, FireName, Vector3.zero, new Vector3(0.4f, 0.4f, 0.4f), new Color(1f, 0.5f, 0.12f));
+                _cookingFire.SetParent(host, false);
+                _cookingFire.localPosition = new Vector3(0f, Mathf.Min(workplace.Height, 1f) + 0.4f, 0f);
+            }
+            if (_cookingFire != null) _cookingFire.gameObject.SetActive(false);
+        }
+
+        private static Color StockColour(VillageGood good)
+        {
+            switch (good)
+            {
+                case VillageGood.Wood: case VillageGood.WoodFrame: case VillageGood.Bow: return new Color(0.58f, 0.45f, 0.31f);
+                case VillageGood.Axe: case VillageGood.BrokenAxe: case VillageGood.Metal: return new Color(0.34f, 0.35f, 0.38f);
+                case VillageGood.Game: case VillageGood.Hide: return new Color(0.50f, 0.36f, 0.24f);
+                case VillageGood.Water: return new Color(0.20f, 0.31f, 0.38f);
+                case VillageGood.ThornBerry: return new Color(0.56f, 0.10f, 0.15f);
+                default: return new Color(0.60f, 0.55f, 0.45f);
+            }
+        }
+
+        /// <summary>Free ground for the figures: no building, no workplace, none of the village's standing people and things.</summary>
+        private void BuildVillageWalkGrid()
+        {
+            _villageWalk.Reset();
+            foreach (VillageWorkplace workplace in VillageWorkplaces)
+            {
+                Quaternion facing = WorkplaceFacing(workplace.Spot);
+                Vector3 centre = OnGround(Place(workplace.Spot)) + facing * new Vector3(workplace.Centre.x, 0f, workplace.Centre.y);
+                Vector3 side = facing * Vector3.right;
+                _villageWalk.BlockBox(new Vector2(centre.x, centre.z), new Vector2(side.x, side.z), workplace.Size.x * 0.5f + 0.35f, workplace.Size.y * 0.5f + 0.35f);
+            }
+            // Mara's camp with its crates and the three villagers' usual places.
+            _villageWalk.BlockDisc(new Vector2(ArenaSimulation.CampXmm / 1000f, ArenaSimulation.CampZmm / 1000f), 1.0f);
+            _villageWalk.BlockDisc(new Vector2(-2.9f, -5.5f), 1.1f);
+            foreach (NpcAgent npc in _game.Npcs) _villageWalk.BlockDisc(new Vector2(npc.Xmm / 1000f, npc.Zmm / 1000f), 0.8f);
+            if (_buildLayer != null)
+                foreach (Transform piece in _buildLayer)
+                    _villageWalk.BlockDisc(new Vector2(piece.position.x, piece.position.z), 0.9f);
+        }
+
+        /// <summary>Show the Core's stock and people. Seconds only move figures; they never reach the Core.</summary>
+        private void UpdateVillageEconomy(float seconds)
+        {
+            if (_game == null) return;
+            VillageEconomyState economy = _game.Progression.Economy;
+            bool wanted = _game.IsVillage && economy.Started;
+            if (wanted != (_villageWork != null))
+            {
+                if (wanted) BuildVillageEconomy();
+                else ClearVillageEconomy();
+                return;
+            }
+            if (!wanted) return;
+            // Checked against the Core every frame: whatever else touched a unit, the next frame shows the truth again.
+            foreach (StockDisplay display in _villageStock)
+            {
+                int count = economy.Commons(display.Good);
+                for (int i = 0; i < display.Units.Length; i++)
+                    if (display.Units[i] != null && display.Units[i].gameObject.activeSelf != i < count) display.Units[i].gameObject.SetActive(i < count);
+            }
+            bool cooking = false;
+            foreach (VillageResidentState resident in economy.Residents)
+                cooking |= !resident.Walking && resident.Site == VillageSite.Village && resident.Activity == VillageActivity.Working && resident.Work == VillageWork.Cook;
+            if (_cookingFire != null && _cookingFire.gameObject.activeSelf != cooking) _cookingFire.gameObject.SetActive(cooking);
+
+            if (_villageNeedPending && seconds > 0f)
+            {
+                // Once per arrival: what the village lacks most is said aloud, the rest stands on the board.
+                _villageNeedPending = false;
+                List<string> needs = economy.OpenNeeds(_game.Progression);
+                if (needs.Count > 0) _message += " / Dorftafel: " + needs[0];
+            }
+            Array.Clear(_villageSpotUse, 0, _villageSpotUse.Length);
+            for (int i = _residentViews.Count; i < economy.Residents.Count; i++) _residentViews.Add(CreateResidentView(economy.Residents[i]));
+            Array.Clear(_villageSpotUse, 0, _villageSpotUse.Length);
+            for (int i = 0; i < _residentViews.Count && i < economy.Residents.Count; i++) StepResidentView(_residentViews[i], economy.Residents[i], seconds);
+        }
+
+        private ResidentView CreateResidentView(VillageResidentState resident)
+        {
+            var view = new ResidentView { Ordinal = resident.Ordinal };
+            int figure = (resident.Ordinal - VillageServicesState.BasePopulation) % ResidentFigures;
+            if (figure < 0) figure += ResidentFigures;
+            Color colour = figure == 0 ? new Color(0.62f, 0.46f, 0.32f) : figure == 1 ? new Color(0.50f, 0.36f, 0.30f) : new Color(0.40f, 0.44f, 0.34f);
+            view.Visual = Shape(PrimitiveType.Capsule, ResidentPrefix + resident.Ordinal, new Vector3(0f, 1f, 0f), new Vector3(0.8f, 1f, 0.8f), colour);
+            view.Visual.SetParent(_villageResidents, true);
+            PassiveArtVisuals.TryBindGrounded(view.Visual, "Villager" + figure, 0f);
+            var shared = _entryProfile ? Resources.Load<RuntimeAnimatorController>("ARE/Visuals/EntryMelee") : null;
+            foreach (Animator animator in view.Visual.GetComponentsInChildren<Animator>(true))
+            {
+                if (shared != null && PassiveArtVisuals.NeedsSharedLocomotion(animator)) animator.runtimeAnimatorController = shared;
+                animator.applyRootMotion = false;
+            }
+            RegisterActorMotion(view.Visual);
+            // A game that starts or loads with the village already at work shows everybody in place at once.
+            VillageSpot spot;
+            view.Visible = VillageEconomyLayout.Seen(resident, out spot);
+            view.Outside = resident.Walking || resident.Site != VillageSite.Village;
+            if (!view.Visible) spot = view.Outside ? VillageSpot.Gate : VillageSpot.Home;
+            view.Slot = _villageSpotUse[(int)spot]++;
+            view.At = Stand(spot, view.Slot);
+            view.Target = spot; view.HasTarget = view.Visible;
+            PlaceResident(view, Vector2.zero);
+            if (view.Visible) FaceWorkplace(view, spot);
+            view.Visual.gameObject.SetActive(view.Visible);
+            return view;
+        }
+
+        private void PlaceResident(ResidentView view, Vector2 moved)
+        {
+            view.Visual.position = OnGround(view.At, 1f);
+            AnimateActor(view.Visual, (long)(moved.x * 1000f), (long)(moved.y * 1000f));
+        }
+
+        private void FaceWorkplace(ResidentView view, VillageSpot spot)
+        {
+            Vector2 look = Place(spot) - view.At;
+            // At the house door and at the gate there is nothing to look at: turn towards the village.
+            if (look.sqrMagnitude < 0.01f) look = -view.At;
+            if (look.sqrMagnitude > 0.0001f) view.Visual.rotation = Quaternion.LookRotation(new Vector3(look.x, 0f, look.y));
+        }
+
+        /// <summary>
+        /// Move one figure towards where the Core has its resident. A resident who is not seen any more (away,
+        /// asleep) still walks the visible rest of the way and then leaves the picture.
+        /// </summary>
+        private void StepResidentView(ResidentView view, VillageResidentState resident, float seconds)
+        {
+            VillageSpot spot;
+            bool seen = VillageEconomyLayout.Seen(resident, out spot);
+            if (!seen)
+            {
+                if (!view.Visible) return;
+                // Indoors to sleep, otherwise out through the gate.
+                spot = resident.Site == VillageSite.Village && !resident.Walking ? VillageSpot.Home : VillageSpot.Gate;
+            }
+            else if (!view.Visible)
+            {
+                // Back in the picture the way the figure left it: through the gate, or out of the house.
+                view.At = Stand(view.Outside ? VillageSpot.Gate : VillageSpot.Home);
+                view.Visible = true; view.HasTarget = false;
+                view.Visual.gameObject.SetActive(true);
+            }
+            if (seen && spot == VillageSpot.Board && view.HasTarget && !view.Leaving && view.Target != VillageSpot.Board)
+            {
+                view.Pause += Mathf.Max(0f, seconds);
+                if (view.Pause < IdlePause) spot = view.Target;
+            }
+            else view.Pause = 0f;
+            int slot = _villageSpotUse[(int)spot]++;
+            if (!view.HasTarget || view.Target != spot || view.Slot != slot || view.Leaving == seen)
+            {
+                view.Target = spot; view.Slot = slot; view.HasTarget = true; view.Leaving = !seen;
+                _villageWalk.Find(view.At, Stand(spot, slot), view.Path);
+            }
+            Vector2 before = view.At;
+            float budget = ResidentPace * Mathf.Max(0f, seconds);
+            while (view.Path.Count > 0 && budget > 0f)
+            {
+                Vector2 step = view.Path[0] - view.At;
+                float length = step.magnitude;
+                if (length <= budget) { view.At = view.Path[0]; view.Path.RemoveAt(0); budget -= length; }
+                else { view.At += step / length * budget; budget = 0f; }
+            }
+            bool arrived = view.Path.Count == 0;
+            PlaceResident(view, arrived ? Vector2.zero : view.At - before);
+            if (!arrived) return;
+            if (view.Leaving)
+            {
+                view.Visible = false; view.HasTarget = false; view.Leaving = false;
+                view.Outside = spot == VillageSpot.Gate;
+                view.Visual.gameObject.SetActive(false);
+            }
+            else FaceWorkplace(view, spot);
+        }
+
+        // ---------------------------------------------------------------- the village board
+
+        /// <summary>The button that opens the board, offered while the player stands at it.</summary>
+        public static Rect VillageBoardToggleRect(ArenaHudLayout layout) { return layout.ContextActionRect; }
+
+        /// <summary>One layout for drawing and for touch: the board, its close button and up to six hand-over buttons.</summary>
+        public static Rect VillageBoardPanel(ArenaHudLayout layout) { return new Rect((layout.Width - 600f) * .5f, 44f, 600f, 410f); }
+
+        public static Rect VillageBoardCloseRect(ArenaHudLayout layout)
+        { Rect panel = VillageBoardPanel(layout); return new Rect(panel.xMax - 132f, panel.y + 8f, 120f, 30f); }
+
+        public static Rect VillageGiftRect(ArenaHudLayout layout, int index)
+        {
+            Rect panel = VillageBoardPanel(layout);
+            return new Rect(panel.x + 14f + (index % 3) * 192f, panel.yMax - 92f + (index / 3) * 42f, 188f, 38f);
+        }
+
+        /// <summary>What the player could hand over right now: goods the pack holds and the village works with.</summary>
+        private List<VillageGood> VillageGifts()
+        {
+            var gifts = new List<VillageGood>();
+            foreach (VillageGood good in VillageBoard.GiftGoods)
+                if (_game.Progression.Crafting.VillageGiftCount(good) > 0) gifts.Add(good);
+            return gifts;
+        }
+
+        /// <summary>The board is read standing at it; the Core checks the distance again when goods are handed over.</summary>
+        private bool PollVillageBoardInput(ArenaHudLayout layout)
+        {
+            if (!_game.VillageBoardInReach || _hungerJournalOpen) { _villageBoardOpen = false; return false; }
+            bool consumed = false;
+            if (Input.GetKeyDown(KeyCode.N) || (_villageBoardOpen && Input.GetKeyDown(KeyCode.Escape)))
+            { _villageBoardOpen = !_villageBoardOpen; consumed = true; }
+            List<VillageGood> gifts = _villageBoardOpen ? VillageGifts() : null;
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                Touch touch = Input.GetTouch(i);
+                if (touch.phase != TouchPhase.Began || !layout.IsWithinSafeArea(touch.position)) continue;
+                Vector2 point = layout.ToGuiTouch(touch.position);
+                if (!_villageBoardOpen)
+                {
+                    if (VillageBoardToggleRect(layout).Contains(point)) { _villageBoardOpen = true; consumed = true; }
+                    continue;
+                }
+                // The open board takes every touch, so a tap on it never also moves, attacks or turns the camera.
+                consumed = true;
+                if (VillageBoardCloseRect(layout).Contains(point)) { _villageBoardOpen = false; continue; }
+                for (int gift = 0; gifts != null && gift < gifts.Count; gift++)
+                    if (VillageGiftRect(layout, gift).Contains(point)) _pendingVillageGift = (int)gifts[gift];
+            }
+            if (!consumed && !_villageBoardOpen) return false;
+            _game.SetMoveInput(0, 0);
+            ReleasePresentationTouches();
+            return true;
+        }
+
+        /// <summary>Hand one unit over on the game tick; the Core decides and the save follows an accepted hand-over.</summary>
+        private void ProcessVillageGift()
+        {
+            if (_pendingVillageGift < 0) return;
+            var good = (VillageGood)_pendingVillageGift;
+            _pendingVillageGift = -1;
+            SocialResult result = _game.GiveToVillage(good, 1);
+            if (!string.IsNullOrEmpty(result.Text)) _message = result.Text;
+            if (result.Accepted) SaveCharacter();
+        }
+
+        /// <summary>The text of the board, read from the Core at the moment it is drawn.</summary>
+        private string VillageBoardText()
+        {
+            CharacterProgression p = _game.Progression;
+            var text = new System.Text.StringBuilder();
+            foreach (string line in VillageBoard.StockLines(p)) text.AppendLine(line);
+            text.AppendLine();
+            foreach (VillageResidentState resident in p.Economy.Residents) text.AppendLine(VillageBoard.ResidentLine(resident));
+            List<string> needs = p.Economy.OpenNeeds(p);
+            text.AppendLine();
+            if (needs.Count == 0) text.Append("Im Moment fehlt dem Dorf nichts.");
+            else foreach (string need in needs) text.AppendLine("Es fehlt: " + need);
+            return text.ToString();
+        }
+
+        /// <summary>Draw the board button while the player stands at the board, and the board itself when opened.</summary>
+        private bool DrawVillageBoard(ArenaHudLayout layout)
+        {
+            if (!_game.VillageBoardInReach || _hungerJournalOpen) return false;
+            bool touch = Application.isMobilePlatform;
+            if (!_villageBoardOpen)
+            {
+                if (touch) GUI.Box(VillageBoardToggleRect(layout), "DORFTAFEL LESEN");
+                else if (GUI.Button(VillageBoardToggleRect(layout), "N: DORFTAFEL LESEN")) _villageBoardOpen = true;
+                return false;
+            }
+            Rect panel = VillageBoardPanel(layout);
+            GUI.Box(panel, "");
+            GUI.Label(new Rect(panel.x + 16f, panel.y + 10f, panel.width - 160f, 26f), "DORFTAFEL VON ASCHENGRENZE", _labelStyle);
+            if (touch) GUI.Box(VillageBoardCloseRect(layout), "SCHLIESSEN");
+            else if (GUI.Button(VillageBoardCloseRect(layout), "SCHLIESSEN (N)")) _villageBoardOpen = false;
+            List<VillageGood> gifts = VillageGifts();
+            float foot = gifts.Count > 3 ? 100f : 58f;
+            GUI.Label(new Rect(panel.x + 16f, panel.y + 46f, panel.width - 32f, panel.height - 52f - foot), VillageBoardText(), _smallStyle);
+            if (gifts.Count == 0)
+                GUI.Label(new Rect(panel.x + 16f, panel.yMax - 54f, panel.width - 32f, 46f),
+                    "Du hast nichts dabei, was das Dorf verarbeitet: Holz, Dornbeeren, Ascheisen, Heilkräuter, Holzrahmen oder einen Bogen.", _smallStyle);
+            for (int i = 0; i < gifts.Count; i++)
+            {
+                string label = "ABGEBEN: " + VillageEconomyRules.GoodName(gifts[i]) + " (du hast " + _game.Progression.Crafting.VillageGiftCount(gifts[i]) + ")";
+                if (touch) GUI.Box(VillageGiftRect(layout, i), label);
+                else if (GUI.Button(VillageGiftRect(layout, i), label)) _pendingVillageGift = (int)gifts[i];
+            }
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Free ground of the village for walking figures, on a one-metre grid. Presentation only: the Core's own
+    /// movement rules never read it, and a figure that finds no way walks straight.
+    /// </summary>
+    public sealed class VillageWalkGrid
+    {
+        public const int Half = 27, Side = Half * 2 + 1;
+        private readonly bool[] _blocked = new bool[Side * Side];
+        private readonly float[] _cost = new float[Side * Side];
+        private readonly int[] _from = new int[Side * Side];
+        private readonly List<int> _open = new List<int>();
+
+        private static int Cell(float metres) { return Mathf.Clamp(Mathf.RoundToInt(metres), -Half, Half) + Half; }
+        private static int Index(int x, int z) { return z * Side + x; }
+        private static Vector2 Centre(int index) { return new Vector2(index % Side - Half, index / Side - Half); }
+
+        /// <summary>Start again from the village's buildings, which nobody walks through.</summary>
+        public void Reset()
+        {
+            for (int z = 0; z < Side; z++)
+                for (int x = 0; x < Side; x++)
+                    _blocked[Index(x, z)] = !EntryWorldLayout.CanStand((x - Half) * 1000L, (z - Half) * 1000L);
+        }
+
+        public bool Blocked(Vector2 at) { return _blocked[Index(Cell(at.x), Cell(at.y))]; }
+
+        public void BlockDisc(Vector2 centre, float radius)
+        {
+            for (int z = Cell(centre.y - radius); z <= Cell(centre.y + radius); z++)
+                for (int x = Cell(centre.x - radius); x <= Cell(centre.x + radius); x++)
+                    if ((new Vector2(x - Half, z - Half) - centre).sqrMagnitude <= radius * radius) _blocked[Index(x, z)] = true;
+        }
+
+        /// <summary>A turned rectangle: side is its local x direction on the ground.</summary>
+        public void BlockBox(Vector2 centre, Vector2 side, float halfWidth, float halfDepth)
+        {
+            side.Normalize();
+            var front = new Vector2(-side.y, side.x);
+            float reach = Mathf.Sqrt(halfWidth * halfWidth + halfDepth * halfDepth);
+            for (int z = Cell(centre.y - reach); z <= Cell(centre.y + reach); z++)
+                for (int x = Cell(centre.x - reach); x <= Cell(centre.x + reach); x++)
+                {
+                    Vector2 offset = new Vector2(x - Half, z - Half) - centre;
+                    if (Mathf.Abs(Vector2.Dot(offset, side)) <= halfWidth && Mathf.Abs(Vector2.Dot(offset, front)) <= halfDepth) _blocked[Index(x, z)] = true;
+                }
+        }
+
+        private bool Clear(Vector2 a, Vector2 b, int start, int goal)
+        {
+            float length = (b - a).magnitude;
+            int samples = Mathf.Max(1, Mathf.CeilToInt(length / 0.3f));
+            for (int i = 0; i <= samples; i++)
+            {
+                Vector2 point = Vector2.Lerp(a, b, i / (float)samples);
+                int index = Index(Cell(point.x), Cell(point.y));
+                if (_blocked[index] && index != start && index != goal) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// The way from one point to another as a short list of corners, ending at the target itself. The start and
+        /// the target may lie on blocked ground (a worker stands close to the workplace). Without a way the list
+        /// holds the target alone, and false is returned.
+        /// </summary>
+        public bool Find(Vector2 from, Vector2 to, List<Vector2> path)
+        {
+            path.Clear();
+            int start = Index(Cell(from.x), Cell(from.y)), goal = Index(Cell(to.x), Cell(to.y));
+            if (start == goal || Clear(from, to, start, goal)) { path.Add(to); return true; }
+            for (int i = 0; i < _cost.Length; i++) { _cost[i] = float.MaxValue; _from[i] = -1; }
+            _open.Clear();
+            _cost[start] = 0f; _open.Add(start);
+            bool found = false;
+            while (_open.Count > 0)
+            {
+                // The grid is small (55 x 55): the nearest open cell is found by looking at all of them.
+                int best = 0;
+                float bestScore = float.MaxValue;
+                for (int i = 0; i < _open.Count; i++)
+                {
+                    float score = _cost[_open[i]] + (Centre(_open[i]) - Centre(goal)).magnitude;
+                    if (score < bestScore) { bestScore = score; best = i; }
+                }
+                int current = _open[best];
+                _open[best] = _open[_open.Count - 1]; _open.RemoveAt(_open.Count - 1);
+                if (current == goal) { found = true; break; }
+                int cx = current % Side, cz = current / Side;
+                for (int dz = -1; dz <= 1; dz++)
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        if (dx == 0 && dz == 0) continue;
+                        int nx = cx + dx, nz = cz + dz;
+                        if (nx < 0 || nz < 0 || nx >= Side || nz >= Side) continue;
+                        int next = Index(nx, nz);
+                        if (_blocked[next] && next != goal) continue;
+                        // No squeezing diagonally between two blocked cells.
+                        if (dx != 0 && dz != 0 && (_blocked[Index(cx + dx, cz)] || _blocked[Index(cx, cz + dz)])) continue;
+                        float cost = _cost[current] + (dx != 0 && dz != 0 ? 1.4142f : 1f);
+                        if (cost >= _cost[next]) continue;
+                        if (_cost[next] == float.MaxValue) _open.Add(next);
+                        _cost[next] = cost; _from[next] = current;
+                    }
+            }
+            if (!found) { path.Add(to); return false; }
+            var cells = new List<Vector2>();
+            for (int at = goal; at != start && at >= 0; at = _from[at]) cells.Add(Centre(at));
+            cells.Reverse();
+            cells[cells.Count - 1] = to;
+            // Keep only the corners: from each point walk straight to the farthest one that is in clear view.
+            Vector2 standing = from;
+            int reached = -1;
+            while (reached < cells.Count - 1)
+            {
+                int farthest = reached + 1;
+                for (int candidate = cells.Count - 1; candidate > reached + 1; candidate--)
+                    if (Clear(standing, cells[candidate], start, goal)) { farthest = candidate; break; }
+                standing = cells[farthest]; reached = farthest;
+                path.Add(standing);
+            }
+            return true;
+        }
+    }
+}
