@@ -6,8 +6,8 @@ namespace AreArpg.EditMode.Tests
 {
     public sealed class BorderlandArtTests
     {
-        /// <summary>A detail part of a regional asset: one small draw call with a working material.</summary>
-        private static void AssertRegionalDetail(Renderer detail, string key)
+        /// <summary>A detail part of a regional asset: one draw call with a working material. Returns its triangles.</summary>
+        private static int AssertRegionalDetail(Renderer detail, string key)
         {
             Assert.IsNotNull(detail, key + " detail renderer");
             var filter = detail.GetComponent<MeshFilter>();
@@ -15,13 +15,17 @@ namespace AreArpg.EditMode.Tests
             var mesh = filter.sharedMesh;
             Assert.IsNotNull(mesh, key + " detail mesh");
             Assert.AreEqual(1, mesh.subMeshCount, key + " detail is one draw call");
-            Assert.That((int)mesh.GetIndexCount(0) / 3, Is.InRange(1, DetailTriangleLimit), key + " detail triangles (" + detail.name + ")");
             Assert.AreEqual(1, detail.sharedMaterials.Length, key + " detail material count");
             Assert.IsNotNull(detail.sharedMaterial, key + " detail material");
             Assert.IsFalse(ShaderUtil.ShaderHasError(detail.sharedMaterial.shader), key + " detail shader");
+            return (int)mesh.GetIndexCount(0) / 3;
         }
 
-        private const int DetailTriangleLimit = 1500;
+        /// <summary>
+        /// Triangles of a whole regional asset with its detail parts, by level: close to the camera, in the middle
+        /// distance, far away. The reworked props of November 2026 measure up to 6670, 3156 and 448.
+        /// </summary>
+        private static readonly int[] RegionalTriangleBudget = { 7000, 3500, 500 };
 
         [TestCase("BloodcapBank")]
         [TestCase("AshPine")]
@@ -64,13 +68,15 @@ namespace AreArpg.EditMode.Tests
                 // region (flames, shale relief, a cooled ember channel); the farthest level is the asset alone.
                 Assert.That(lod.renderers.Length, Is.InRange(1, level == lods.Length - 1 ? 1 : 4),
                     "one renderer per visible asset, detail parts only near the camera");
-                for (int extra = 1; extra < lod.renderers.Length; extra++) AssertRegionalDetail(lod.renderers[extra], key);
+                int details = 0;
+                for (int extra = 1; extra < lod.renderers.Length; extra++) details += AssertRegionalDetail(lod.renderers[extra], key);
                 var r = lod.renderers[0];
                 var m = r.GetComponent<MeshFilter>().sharedMesh;
                 Assert.IsNotNull(m);
                 Assert.AreEqual(1, m.subMeshCount);
                 int tris = (int)m.GetIndexCount(0) / 3;
                 Assert.That(tris, Is.InRange(4, 3500));
+                Assert.That(tris + details, Is.AtMost(RegionalTriangleBudget[level]), key + " triangles with detail parts at level " + level);
                 Assert.Less(tris, previous);
                 previous = tris;
                 Assert.IsTrue(m.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0));
