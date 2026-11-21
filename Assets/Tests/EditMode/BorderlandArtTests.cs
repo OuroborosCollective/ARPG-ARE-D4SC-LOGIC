@@ -6,6 +6,23 @@ namespace AreArpg.EditMode.Tests
 {
     public sealed class BorderlandArtTests
     {
+        /// <summary>A detail part of a regional asset: one small draw call with a working material.</summary>
+        private static void AssertRegionalDetail(Renderer detail, string key)
+        {
+            Assert.IsNotNull(detail, key + " detail renderer");
+            var filter = detail.GetComponent<MeshFilter>();
+            Assert.IsNotNull(filter, key + " detail mesh filter");
+            var mesh = filter.sharedMesh;
+            Assert.IsNotNull(mesh, key + " detail mesh");
+            Assert.AreEqual(1, mesh.subMeshCount, key + " detail is one draw call");
+            Assert.That((int)mesh.GetIndexCount(0) / 3, Is.InRange(1, DetailTriangleLimit), key + " detail triangles (" + detail.name + ")");
+            Assert.AreEqual(1, detail.sharedMaterials.Length, key + " detail material count");
+            Assert.IsNotNull(detail.sharedMaterial, key + " detail material");
+            Assert.IsFalse(ShaderUtil.ShaderHasError(detail.sharedMaterial.shader), key + " detail shader");
+        }
+
+        private const int DetailTriangleLimit = 1500;
+
         [TestCase("BloodcapBank")]
         [TestCase("AshPine")]
         [TestCase("StoneOutcrop")]
@@ -40,9 +57,14 @@ namespace AreArpg.EditMode.Tests
             Assert.AreEqual(3, lods.Length, key);
             int previous = int.MaxValue;
             Material palette = null;
-            foreach (var lod in lods)
+            for (int level = 0; level < lods.Length; level++)
             {
-                Assert.AreEqual(1, lod.renderers.Length, "one renderer per visible asset");
+                var lod = lods[level];
+                // The asset itself is one renderer. Near the camera it may carry up to three detail parts of the
+                // region (flames, shale relief, a cooled ember channel); the farthest level is the asset alone.
+                Assert.That(lod.renderers.Length, Is.InRange(1, level == lods.Length - 1 ? 1 : 4),
+                    "one renderer per visible asset, detail parts only near the camera");
+                for (int extra = 1; extra < lod.renderers.Length; extra++) AssertRegionalDetail(lod.renderers[extra], key);
                 var r = lod.renderers[0];
                 var m = r.GetComponent<MeshFilter>().sharedMesh;
                 Assert.IsNotNull(m);
