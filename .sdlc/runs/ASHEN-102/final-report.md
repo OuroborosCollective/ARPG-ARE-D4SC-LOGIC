@@ -15,3 +15,5 @@ Der revisionsgebundene Nachweis ist unter `docs/evidence/npc-personal-memory-202
 ## Review-Nachprüfung
 
 Code `671a3fd` behebt die Wiederherstellung einer erst erzählten, später persönlich bestätigten Aussage. Der unveränderte Regressionstest reproduzierte den Fehler vor der Korrektur. Auf der korrigierten Revision bestanden 21.821 Core-Prüfungen, 54 Preflight-, 59 Director-, 14 native EditMode- und 11 native PlayMode-Fälle. Der native Beleg oben nennt die zugehörigen XML-Prüfsummen.
+
+Das Nachprüfen verzögerter Aktionen führte zur Korrektur `1ad561c`. Ein tatsächlicher Treffer trainiert einmal, ein ausgewichener Angriff nicht. Die endgültige Abnahme auf dieser Revision umfasst 21.833 Core-Prüfungen, 54 Preflight-, 59 Director-, 15/15 native EditMode- und 11/11 PlayMode-Fälle.

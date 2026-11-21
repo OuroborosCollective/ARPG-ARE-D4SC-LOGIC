@@ -1,6 +1,6 @@
 {
-  "source_commit": "671a3fd8c01a208be4e936b59cbadcbcdda9f767",
-  "source_tree": "7207ed32d77446d84b14b54ebc1d5237d20a9228",
+  "source_commit": "1ad561c5bf9e9e1eb71cd44003a5584ea9659eda",
+  "source_tree": "d499931037305520d86eaeb0b4eb2168762e7dc1",
   "unity_version": "6000.6.8f1",
   "suites": {
     "playmode": {
@@ -8,8 +8,8 @@
       "passed": 11,
       "failed": 0,
       "skipped": 0,
-      "finished_utc": "2026-11-21 02:17:26Z",
-      "xml_sha256": "b93bc6d2728e4e5d583317d1494f5ab06d963ebfa7a649f3982e86f7afbe6a00",
+      "finished_utc": "2026-11-21 02:25:53Z",
+      "xml_sha256": "6d054135b0340379e3a8c3d1d5f2aabafc5f44a8b65b758af0e63b094dba92b9",
       "cases": [
         "ArrivalSceneOwnsAllInputUntilItEnds",
         "AskingIlyanIsTheDecisionAndRemovesTheRationPanel",
@@ -26,15 +26,16 @@
     },
     "editmode": {
       "result": "Passed",
-      "passed": 14,
+      "passed": 15,
       "failed": 0,
       "skipped": 0,
-      "finished_utc": "2026-11-21 02:16:49Z",
-      "xml_sha256": "841a94444ebef6de8489bdc4264cd9afbe13b16edc9db170e12cf30a8f88dd54",
+      "finished_utc": "2026-11-21 02:25:17Z",
+      "xml_sha256": "3c66a435ddb82964153723bf64526ddea57257d12bf5d59cff9f80f4c7ed39b2",
       "cases": [
         "AutomaticGameBootstrapOnlyOwnsTheTwoGameScenes(\"Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.unity\",False)",
         "EditableConfigurationRequiresRealAdmissionAndRejectsChangedBytes",
         "FailingRegressionCannotSealAConfiguration",
+        "ACommittedActionCanSettleOnceAfterReloadWithoutAdvancingTheDecision",
         "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(1,False)",
         "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(2,False)",
         "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(1,True)",
@@ -51,6 +52,6 @@
   },
   "screenshot": {
     "name": "forge-ilyan-memory-after-load.png",
-    "sha256": "385a447bca23f54acb7af11e5ce48eb7875eb8d5c7c176153d5e04764ef6e3b5"
+    "sha256": "f9fa315eeed9741f332f3ef759ceab7c31d9188927f551ad460e29ad8dbbea7d"
   }
 }
