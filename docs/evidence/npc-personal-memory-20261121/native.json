@@ -1,6 +1,6 @@
 {
-  "source_commit": "376230ddb6cbeac71f02ccc18cb41b10c2438c80",
-  "source_tree": "91703c02011a9ccd5bdbf6b653dc2887b1a154e4",
+  "source_commit": "671a3fd8c01a208be4e936b59cbadcbcdda9f767",
+  "source_tree": "7207ed32d77446d84b14b54ebc1d5237d20a9228",
   "unity_version": "6000.6.8f1",
   "suites": {
     "playmode": {
@@ -8,8 +8,8 @@
       "passed": 11,
       "failed": 0,
       "skipped": 0,
-      "finished_utc": "2026-11-21 02:08:50Z",
-      "xml_sha256": "30a6ce3806df35aeb486e1b2dff8a52b3700e201f46e2b0267a551424e2daed3",
+      "finished_utc": "2026-11-21 02:17:26Z",
+      "xml_sha256": "b93bc6d2728e4e5d583317d1494f5ab06d963ebfa7a649f3982e86f7afbe6a00",
       "cases": [
         "ArrivalSceneOwnsAllInputUntilItEnds",
         "AskingIlyanIsTheDecisionAndRemovesTheRationPanel",
@@ -26,11 +26,11 @@
     },
     "editmode": {
       "result": "Passed",
-      "passed": 13,
+      "passed": 14,
       "failed": 0,
       "skipped": 0,
-      "finished_utc": "2026-11-21 01:57:56Z",
-      "xml_sha256": "33f4b9016fe1d240278515dceaa39d5c64758fe4cabecdcf266c0cee6fe4a402",
+      "finished_utc": "2026-11-21 02:16:49Z",
+      "xml_sha256": "841a94444ebef6de8489bdc4264cd9afbe13b16edc9db170e12cf30a8f88dd54",
       "cases": [
         "AutomaticGameBootstrapOnlyOwnsTheTwoGameScenes(\"Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.unity\",False)",
         "EditableConfigurationRequiresRealAdmissionAndRejectsChangedBytes",
@@ -39,6 +39,7 @@
         "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(2,False)",
         "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(1,True)",
         "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(2,True)",
+        "DirectConfirmationCannotAdoptHearsayDetailsAndBreakReload",
         "ExplicitMigrationPreservesHistoricalMemoryAndExactVersion",
         "HardPermissionsAreAppliedBeforeWeightedAndNeuralScores",
         "IncludedExampleSceneKeepsBuildTimeShaderDependencies",
@@ -50,6 +51,6 @@
   },
   "screenshot": {
     "name": "forge-ilyan-memory-after-load.png",
-    "sha256": "78518cc9042a75ef3af55434ebee52a369f1e4e13475908dd9bcf412e250ca3e"
+    "sha256": "385a447bca23f54acb7af11e5ce48eb7875eb8d5c7c176153d5e04764ef6e3b5"
   }
 }

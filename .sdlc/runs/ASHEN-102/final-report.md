@@ -11,3 +11,7 @@ revision: 1
 Der Lernpfad ist im Spiel und im Speicherformat integriert. Der Unity-Player zeigt Ilyans persönliche Reaktion. Im Core-Test verschwindet die letzte Episodenkategorie exakt 43.200 Spielticks nach dem Ereignis, mit identischem Ergebnis nach Neustart. Verbürgtes Wissen, Erzähltes und Entkräftetes haben unterschiedliche Folgen.
 
 Der revisionsgebundene Nachweis ist unter `docs/evidence/npc-personal-memory-20261121/native.json` abgelegt. Der öffentliche Anschluss für spätere Berufe steht unter `docs/NPC_PERSONAL_MEMORY.md`. Wirtschaft, zusätzliche Lebenszyklen und neue Tätigkeiten waren ausdrücklich für den folgenden Ausbau vorgesehen.
+
+## Review-Nachprüfung
+
+Code `671a3fd` behebt die Wiederherstellung einer erst erzählten, später persönlich bestätigten Aussage. Der unveränderte Regressionstest reproduzierte den Fehler vor der Korrektur. Auf der korrigierten Revision bestanden 21.821 Core-Prüfungen, 54 Preflight-, 59 Director-, 14 native EditMode- und 11 native PlayMode-Fälle. Der native Beleg oben nennt die zugehörigen XML-Prüfsummen.
