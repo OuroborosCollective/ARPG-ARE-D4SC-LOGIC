@@ -1,3 +1,4 @@
+using AshenCrypt.MemoryForge;
 using System;
 using System.Globalization;
 using System.Text;
@@ -197,6 +198,7 @@ namespace AreArpg.Core
             if (GameOver || !Progression.Village.OrselTeachesUnlocked) { r.Text = "Orsel: Erst muss die Mühle versorgt sein."; return r; }
             bool ok = lesson == 0 ? Progression.Village.LearnFirstAid() : lesson == 1 ? Progression.Village.LearnHealSpell() : Progression.Village.LearnBuffet();
             r.Accepted = ok;
+            if (ok) RememberService("orsel", "player", "lesson.taught", "mill", lesson == 0 ? "first-aid" : lesson == 1 ? "healing" : "meal");
             r.Text = ok ? "Orsel: Merk es dir gut." : "Orsel: Das habe ich dir schon gezeigt.";
             return r;
         }
@@ -225,6 +227,7 @@ namespace AreArpg.Core
             var c = Progression.Companion;
             if (GameOver || Progression.EntryAct != 4 || !c.HasJoined || c.Status != CompanionStatus.Dead) return r;
             if (!Progression.CompanionRecovery.ReviveAtMill(c)) { r.Text = "Orsel: Ihn kann ich nicht mehr zurückholen. Nur das heilige Tuch vermag es."; return r; }
+            RememberService("orsel", "hunter", "companion.revived", "mill", "sickbed");
             r.Accepted = true; r.Text = "Orsel: Ich habe ihn zurückgeholt. Er wartet im Krankenbett auf dich.";
             return r;
         }
@@ -239,13 +242,19 @@ namespace AreArpg.Core
         }
 
         public bool EnterOrkelCave() { return Progression.Village.EnterOrkelCave(); }
-        public bool ResolveOrkelFind(bool honey) { return Progression.Village.ResolveOrkelFind(honey); }
+        public bool ResolveOrkelFind(bool honey)
+        {
+            if (!Progression.Village.ResolveOrkelFind(honey)) return false;
+            RememberService("player", "orkel", "orkel.found", "cave", honey ? "honey" : "fleeing");
+            return true;
+        }
 
         /// <summary>Lead Orkel back to Orsel; afterwards he can be hired.</summary>
         public SocialResult ReturnOrkelToOrsel()
         {
             var r = new SocialResult { SpeakerId = 3 };
             if (GameOver || !Progression.Village.ReturnOrkelToOrsel()) { r.Text = "Orsel: Bring mir erst meinen Bruder."; return r; }
+            RememberService("player", "orkel", "orkel.returned", "mill", "homecoming", "orsel");
             r.Accepted = true; r.Text = "Orsel: Du hast ihn heimgebracht. Danke. Wenn du willst, kommt Orkel mit dir.";
             return r;
         }
@@ -255,11 +264,37 @@ namespace AreArpg.Core
         {
             var r = new SocialResult { SpeakerId = 3 };
             if (GameOver || !Progression.Village.RecruitOrkel()) { r.Text = "Orkel ist noch nicht bereit."; return r; }
+            RememberService("player", "orkel", "orkel.hired", "mill", "agreement");
             r.Accepted = true; r.Text = "Orkel: Ich komme mit! Ich passe auf ... meistens.";
             return r;
         }
 
+        private void RememberService(string actor, string target, string predicate, string place, string detail, string witness = null)
+        {
+            var forge = Progression.Social.Forge;
+            if (forge == null) return;
+            var ev = forge.Archive.Append(MemoryKind.SemanticClaim, actor, target, forge.ProcessedTicks, 7500, true, predicate, new RelationshipChange());
+            var words = new EpisodeDetails("service", place, detail);
+            foreach (string person in new[] {actor, target, witness})
+            {
+                if (person == null || person == "player") continue;
+                forge.Ensure(person, person == "hunter" ? "companion" : "healer");
+                forge.Archive.Perceive(person, ev.Id, person == witness ? KnowledgeOrigin.Witnessed : KnowledgeOrigin.Self, forge.ProcessedTicks, words);
+            }
+        }
+
+        public NpcMind VillageResident(int ordinal)
+        {
+            var forge = Progression.Social.Forge;
+            if (forge == null || ordinal < 0 || ordinal >= Progression.Village.Population) return null;
+            if (ordinal < VillageServicesState.BasePopulation) return forge.Archive.Get(NpcForgeState.Identity(ordinal));
+            return forge.BindResident("village." + ordinal.ToString(CultureInfo.InvariantCulture), "villager");
+        }
         /// <summary>Record a completed main quest: the village grows by one resident.</summary>
-        public void CompleteMainQuest() { Progression.Village.RecordMainQuestCompleted(); }
+        public void CompleteMainQuest()
+        {
+            Progression.Village.RecordMainQuestCompleted();
+            VillageResident(Progression.Village.Population - 1);
+        }
     }
 }

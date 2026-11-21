@@ -450,7 +450,21 @@ namespace AreArpg.Core
                 result.Speech = action == NpcAction.Greet ? NpcSpeech.Greeting(npc) :
                     action == NpcAction.Help ? SpeechLine.ThankHelp :
                     action == NpcAction.Attack ? SpeechLine.Hurt : SpeechLine.Robbed;
-                if (action == NpcAction.Greet) result.FollowupSpeech = NpcSpeech.Rumor(Progression.Social, id);
+                if (action == NpcAction.Greet)
+                {
+                    result.FollowupSpeech = NpcSpeech.Rumor(Progression.Social, id);
+                    if (result.FollowupSpeech == SpeechLine.None && npc.Mind != null)
+                    {
+                        var forge = Progression.Social.Forge;
+                        var memory = npc.Mind.Cognition.SocialRecall("player", forge.ProcessedTicks);
+                        if (memory != null)
+                        {
+                            forge.Archive.Recollect(npc.Mind.Id, memory.EventId, forge.ProcessedTicks);
+                            result.FollowupSpeech = NpcSpeech.Personal(memory);
+                            result.Text += " " + NpcSpeech.Text(result.FollowupSpeech);
+                        }
+                    }
+                }
             }
             npc.InteractionCooldownTicks = 10;
             RememberNpcAction(npc,action,wasAware,action==NpcAction.Help?"provisions":"encounter");
@@ -572,7 +586,12 @@ namespace AreArpg.Core
             Progression.Crafting.AdvanceTick();
             Progression.CompanionRecovery.AdvanceTick(Progression.Companion);
             Progression.Village.AdvanceTick();
-            if(Progression.Social.Forge!=null)Progression.Social.Forge.ProcessedTicks=checked(Progression.Social.Forge.ProcessedTicks+1);
+            var forge = Progression.Social.Forge;
+            if (forge != null)
+            {
+                forge.ProcessedTicks = checked(forge.ProcessedTicks + 1);
+                forge.Archive.AdvancePersonalTime(forge.ProcessedTicks);
+            }
             PrevPlayerXmm = PlayerXmm;
             PrevPlayerZmm = PlayerZmm;
             foreach (MonsterState monster in Monsters)
@@ -655,7 +674,10 @@ namespace AreArpg.Core
                 {
                     int damage = enemy.Role != MonsterRole.None ? MonsterRoles.AttackDamage(enemy.Role) : (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40));
                     enemy.AttackCooldownTicks = enemy.Role != MonsterRole.None ? MonsterRoles.AttackCooldownTicks(enemy.Role) : (enemy.Kind >= 2 ? 12 : 17);
+                    int healthBefore = PlayerHealth;
                     ReceiveDamage(damage);
+                    if (enemy.Mind != null && forge != null)
+                        enemy.Mind.Cognition.RecordOutcome(AshenCrypt.MemoryForge.ForgeAction.Attack, forge.ProcessedTicks, healthBefore - PlayerHealth);
                     if (GameOver) break;
                 }
             }

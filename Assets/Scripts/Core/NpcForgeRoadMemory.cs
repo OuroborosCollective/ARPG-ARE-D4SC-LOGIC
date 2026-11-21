@@ -18,8 +18,9 @@ namespace AreArpg.Core
                 fact==RoadFact.RefusedHelp?new RelationshipChange(trust:-1200,mistrust:2000):new RelationshipChange(fear:5000);
             string actor=fact==RoadFact.Death?"road.bear":"player";
             var e=Forge.Archive.Append(kind,actor,"hunter",Forge.ProcessedTicks,10000,true,"road.fact."+RoadEventId(fact).ToString(CultureInfo.InvariantCulture),impact);
-            if(hunterDirect)Forge.Archive.Learn("hunter",e.Id,KnowledgeOrigin.Self,"hunter",Forge.ProcessedTicks);
-            if(travelerWitness)Forge.Archive.Learn("road.traveler",e.Id,KnowledgeOrigin.Witnessed,"road.traveler",Forge.ProcessedTicks,6000);
+            var words=new EpisodeDetails("road","ash-road",fact.ToString().ToLowerInvariant());
+            if(hunterDirect)Forge.Archive.Perceive("hunter",e.Id,KnowledgeOrigin.Self,Forge.ProcessedTicks,words);
+            if(travelerWitness)Forge.Archive.Perceive("road.traveler",e.Id,KnowledgeOrigin.Witnessed,Forge.ProcessedTicks,words,6000);
         }
         private bool TryReportForgeRoadFact(int source, int recipient, RoadFact fact)
         {

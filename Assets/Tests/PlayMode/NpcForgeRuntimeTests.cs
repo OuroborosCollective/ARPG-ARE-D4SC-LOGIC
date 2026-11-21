@@ -12,6 +12,38 @@ namespace AreArpg.PlayMode.Tests
     public sealed partial class EntryJourneyRuntimeTests
     {
         [UnityTest]
+        public IEnumerator PersonalMemoryChangesAnActualGreetingAndSurvivesThreeDays()
+        {
+            EnterVillageAfterScene();
+            var ilyan = Game.Npcs.Single(n => n.Id == 0);
+            var dorn = Game.Npcs.Single(n => n.Id == 2);
+            ilyan.Xmm = Game.PlayerXmm + 900; ilyan.Zmm = Game.PlayerZmm;
+            var forge = Game.Progression.Social.Forge;
+            Assert.IsTrue(Game.InteractNpc(0, NpcAction.Help).Accepted);
+            var e = forge.Archive.Events.Last(ev => ev.Kind == MemoryKind.Help && ev.Target == "ilyan");
+            Assert.Greater(ilyan.Mind.Cognition.Weight(ForgeAction.Observe, 3), 0);
+            Assert.IsNull(dorn.Mind.Cognition.Recall(e.Id, forge.ProcessedTicks));
+            for (int i = 0; i < 12; i++) Game.Step();
+            ilyan.Xmm = Game.PlayerXmm + 900; ilyan.Zmm = Game.PlayerZmm;
+            var greeting = Game.InteractNpc(0, NpcAction.Greet);
+            Assert.AreEqual(SpeechLine.SharedRation, greeting.FollowupSpeech);
+            var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
+            audio.AcceptedSpeech(greeting);
+            string expected = "Ilyan: " + NpcSpeech.Text(SpeechLine.SharedRation);
+            float until = Time.realtimeSinceStartup + 18f;
+            while (audio.Subtitle != expected && Time.realtimeSinceStartup < until) yield return null;
+            Assert.AreEqual(expected, audio.Subtitle);
+            string checkpoint = Game.Progression.SaveString();
+            Assert.IsTrue(CharacterProgression.TryLoad(checkpoint, out var restored));
+            var copy = restored.Social.Forge.Archive;
+            copy.AdvancePersonalTime(e.Tick + PersonalCognition.DetailLimit);
+            var fact = copy.Get("ilyan").Cognition.Recall(e.Id, e.Tick + PersonalCognition.DetailLimit);
+            Assert.AreEqual(RecallStage.Fact, fact.Stage);
+            Assert.IsNull(fact.Details);
+            Assert.AreEqual("player", fact.Subject);
+        }
+
+        [UnityTest]
         public IEnumerator RoadTravelerReportsTheWitnessedDeathOnlyAtAVillageMeeting()
         {
             EnterVillageAfterScene();

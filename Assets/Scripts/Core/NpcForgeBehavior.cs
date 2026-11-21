@@ -12,7 +12,7 @@ namespace AreArpg.Core
             var forge=Progression.Social.Forge;if(forge==null)return null;
             var witnesses=explicitWitnesses??(action==NpcAction.Attack||action==NpcAction.Rob?
                 Npcs.Where(n=>n.Id!=target.Id&&n.Memory.Health>0&&DistanceSquared(n.Xmm,n.Zmm,PlayerXmm,PlayerZmm)<=FixedMath.Square(8000)&&CombatSight(n.Xmm,n.Zmm,PlayerXmm,PlayerZmm)).Select(n=>n.Id).ToArray():Array.Empty<int>());
-            var recorded = forge.Record(target.Id,action,wasAware||action==NpcAction.Help,witnesses,context);
+            var recorded = forge.Record(target.Id,action,wasAware||action==NpcAction.Help,witnesses,context,IsVillage?"village":"zone."+CurrentAreaId.ToString(System.Globalization.CultureInfo.InvariantCulture));
             Reconcile(target,action);
             return recorded;
         }
@@ -45,7 +45,9 @@ namespace AreArpg.Core
                 new Observation(Feature.Fear,relation.Fear),new Observation(Feature.Hostility,hostile?Math.Max(8000,relation.Hostility):relation.Hostility)});
             var state=npc.Mind.DecisionState;
             bool changed=state.LastObservations==null||state.LastObservations[Feature.Danger]!=frame[Feature.Danger]||state.LastObservations[Feature.Gratitude]!=frame[Feature.Gratitude];
-            var decision=UtilityEvaluator.Decide(npc.Mind.Controller,frame,state,Progression.Social.Forge.ProcessedTicks,changed);
+            var decision=UtilityEvaluator.Decide(npc.Mind.Controller,frame,state,Progression.Social.Forge.ProcessedTicks,changed,npc.Mind.Cognition);
+            int hunger=memory.Hunger, fatigue=memory.Fatigue, health=memory.Health, playerHealth=PlayerHealth;
+            long foodDistance=DistanceSquared(npc.Xmm,npc.Zmm,CampXmm,CampZmm);
             switch(decision.Action)
             {
                 case ForgeAction.Flee:
@@ -66,6 +68,16 @@ namespace AreArpg.Core
                 case ForgeAction.Observe:npc.Behavior=NpcBehavior.Observe;break;
                 default:npc.Behavior=NpcBehavior.Wait;break;
             }
+            int effect=0;
+            switch(decision.Action)
+            {
+                case ForgeAction.Eat: effect=hunger-memory.Hunger; break;
+                case ForgeAction.Rest: effect=fatigue-memory.Fatigue+memory.Health-health; break;
+                case ForgeAction.Attack: effect=playerHealth-PlayerHealth; break;
+                case ForgeAction.Flee: effect=DistanceSquared(npc.Xmm,npc.Zmm,PlayerXmm,PlayerZmm).CompareTo(distance); break;
+                case ForgeAction.SeekFood: effect=foodDistance.CompareTo(DistanceSquared(npc.Xmm,npc.Zmm,CampXmm,CampZmm)); break;
+            }
+            npc.Mind.Cognition.RecordOutcome(decision.Action,Progression.Social.Forge.ProcessedTicks,effect);
             return true;
         }
     }

@@ -51,6 +51,7 @@ internal static class Program
             CryptDungeonTests.Run(Require);
             WoodlandTests.Run(Require);
             WeaponEquipmentTests.Run(Require);
+            PersonalCognitionTests.Run(Require);
             NpcForgeTests.Run(Require);
             NpcForgeIntegrationTests.Run(Require);
             CompanionForgeTests.Run(Require);

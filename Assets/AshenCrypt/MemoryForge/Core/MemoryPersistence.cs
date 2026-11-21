@@ -10,38 +10,40 @@ namespace AshenCrypt.MemoryForge
         /// <summary>Canonical, checksummed archive. The host embeds this token into its existing save owner.</summary>
         public string Save()
         {
-            int schema = _events.Any(e => e.CauseEventId.HasValue) ? 3 : _migrations.Count > 0 ? 2 : 1;
+            int ledgerSchema = _events.Any(e => e.CauseEventId.HasValue) ? 3 : _migrations.Count > 0 ? 2 : 1;
+            int schema = _minds.Values.Any(m => m.Cognition.HasState || m.DecisionState.LastObservations?.PersonalScores != null) ? 4 : ledgerSchema;
             using(var stream=new MemoryStream())
             {
                 using(var w=new BinaryWriter(stream,Encoding.UTF8,true))
                 {
-                    w.Write(schema);w.Write(_events.Count);
+                    w.Write(schema);if(schema==4)w.Write((byte)ledgerSchema);w.Write(_events.Count);
                     foreach(var e in _events)
                     {
                         w.Write(e.Id);w.Write((byte)e.Kind);Write(w,e.Actor);Write(w,e.Target);w.Write(e.Tick);w.Write(e.Importance);w.Write(e.Essential);Write(w,e.Context);
                         for(int i=0;i<8;i++)w.Write(e.Impact[(RelationshipAxis)i]);
-                        if(schema==3)w.Write(e.CauseEventId.GetValueOrDefault());
+                        if(ledgerSchema==3)w.Write(e.CauseEventId.GetValueOrDefault());
                         Write(w,e.Checksum);
                     }
                     w.Write(_minds.Count);
                     foreach(var entry in _minds)
                     {
                         var m=entry.Value;Write(w,m.Id);Write(w,m.Controller.ArchetypeId);Write(w,m.Controller.ControllerId);w.Write(m.Controller.Version);Write(w,m.Controller.Hash);
-                        WriteDecision(w,m.DecisionState);
+                        WriteDecision(w,m.DecisionState,schema);
                     }
                     w.Write(_acquisitions.Count);
                     foreach(var k in _acquisitions)
                     {
                         w.Write(k.Sequence);w.Write(k.Event.Id);Write(w,k.Knower);w.Write((byte)k.Origin);Write(w,k.Source);w.Write(k.SourceSequence);w.Write(k.LearnedTick);w.Write(k.PersonalImpact);w.Write(k.SocialCloseness);Write(w,k.Checksum);
                     }
-                    if(schema>=2)WriteMigrations(w);
+                    if(ledgerSchema>=2)WriteMigrations(w);
+                    if(schema==4)foreach(var mind in _minds.Values)mind.Cognition.WriteState(w);
                 }
                 string payload=Convert.ToBase64String(stream.ToArray());return "NMF"+ContractText.Number(schema)+"."+payload+"."+ContractText.Hash(payload);
             }
         }
         private static void Write(BinaryWriter writer,string value)
         {var bytes=Encoding.UTF8.GetBytes(value);writer.Write(bytes.Length);writer.Write(bytes);}
-        private static void WriteDecision(BinaryWriter writer,DecisionState state)
+        private static void WriteDecision(BinaryWriter writer,DecisionState state,int schema)
         {
             writer.Write(state.LastDecision!=null);
             if(state.LastDecision==null)return;
@@ -49,8 +51,13 @@ namespace AshenCrypt.MemoryForge
             writer.Write(state.LastTick);writer.Write(state.EvaluatedTick);Write(writer,state.LastDecision.Reason);
             var frame=state.LastObservations;writer.Write(frame.LegalActions);writer.Write(frame.PresentFeatures);
             for(int i=0;i<(int)Feature.Count;i++)if((frame.PresentFeatures&(1UL<<i))!=0)writer.Write(frame[(Feature)i]);
+            if(schema==4)
+            {
+                writer.Write(frame.PersonalScores!=null);
+                if(frame.PersonalScores!=null)foreach(short score in frame.PersonalScores)writer.Write(score);
+            }
         }
-        private static void ReadDecision(BinaryReader reader,NpcMind mind)
+        private static void ReadDecision(BinaryReader reader,NpcMind mind,int schema)
         {
             byte present=reader.ReadByte();if(present==0)return;if(present!=1)throw new InvalidDataException("Invalid decision marker");
             var action=(ForgeAction)reader.ReadInt32();ulong started=reader.ReadUInt64(),next=reader.ReadUInt64(),last=reader.ReadUInt64(),evaluated=reader.ReadUInt64();string reason=Read(reader);
@@ -58,7 +65,21 @@ namespace AshenCrypt.MemoryForge
             if((features&~((1UL<<(int)Feature.Count)-1))!=0||started>evaluated||evaluated>last||next!=checked(evaluated+(ulong)mind.Controller.DecisionInterval))throw new InvalidDataException("Invalid decision continuity");
             var observations=new System.Collections.Generic.List<Observation>();
             for(int i=0;i<(int)Feature.Count;i++)if((features&(1UL<<i))!=0)observations.Add(new Observation((Feature)i,reader.ReadInt32()));
-            var frame=new ObservationFrame(legal,observations);var decision=UtilityEvaluator.Evaluate(mind.Controller,frame);
+            var frame=new ObservationFrame(legal,observations);
+            if(schema==4&&reader.ReadBoolean())
+            {
+                var scores=new short[PersonalCognition.ActionCount];
+                for(int i=0;i<scores.Length;i++)
+                {
+                    scores[i]=reader.ReadInt16();
+                    if(Math.Abs((int)scores[i])>PersonalCognition.MaxAdjustment ||
+                        scores[i]!=0&&!ActionSet.Contains(legal&mind.Controller.Archetype.AllowedActions,(ForgeAction)i))
+                        throw new InvalidDataException("Invalid personal action score");
+                }
+                if(!scores.Any(score=>score!=0))throw new InvalidDataException("Empty score overlay");
+                frame=new ObservationFrame(frame,scores);
+            }
+            var decision=UtilityEvaluator.Evaluate(mind.Controller,frame);
             if(reason=="minimum-duration"||reason=="hysteresis")
             {
                 var score=decision.Priorities.FirstOrDefault(p=>p.Action==action);
@@ -85,33 +106,40 @@ namespace AshenCrypt.MemoryForge
                 var bytes=Convert.FromBase64String(fields[1]);if(bytes.Length>maximumBytes||Convert.ToBase64String(bytes)!=fields[1])return false;
                 using(var stream=new MemoryStream(bytes,false))using(var reader=new BinaryReader(stream,new UTF8Encoding(false,true)))
                 {
-                    int schema=reader.ReadInt32();if(schema<1||schema>3||fields[0]!="NMF"+ContractText.Number(schema))return false;
+                    int schema=reader.ReadInt32();if(schema<1||schema>4||fields[0]!="NMF"+ContractText.Number(schema))return false;
+                    int ledgerSchema=schema==4?reader.ReadByte():schema;
+                    if(ledgerSchema<1||ledgerSchema>3)return false;
                     var a=new MemoryArchive();int events=Count(reader);
                     for(int i=0;i<events;i++)
                     {
                         ulong id=reader.ReadUInt64();var kind=(MemoryKind)reader.ReadByte();string actor=Read(reader),target=Read(reader);ulong tick=reader.ReadUInt64();int importance=reader.ReadInt32();byte essential=reader.ReadByte();if(essential>1)return false;string context=Read(reader);
                         var impact=new int[8];for(int j=0;j<8;j++)impact[j]=reader.ReadInt32();
-                        ulong cause=schema==3?reader.ReadUInt64():0;
+                        ulong cause=ledgerSchema==3?reader.ReadUInt64():0;
                         var e=new MemoryEvent(id,kind,actor,target,tick,importance,essential==1,context,
                             new RelationshipChange(impact[0],impact[1],impact[2],impact[3],impact[4],impact[5],impact[6],impact[7]),cause==0?(ulong?)null:cause);
                         if(e.Checksum!=Read(reader))return false;
-                        a.AddEvent(e, legacy: schema<3);
+                        a.AddEvent(e, legacy: ledgerSchema<3);
                     }
                     int minds=Count(reader);string previous=null;
                     for(int i=0;i<minds;i++)
                     {
                         string id=Read(reader),archetype=Read(reader),controllerId=Read(reader);int version=reader.ReadInt32();string hash=Read(reader);
                         if(previous!=null&&StringComparer.Ordinal.Compare(previous,id)>=0||!registry.TryRestore(archetype,controllerId,version,hash,out var controller))return false;
-                        var mind=new NpcMind(id,controller);ReadDecision(reader,mind);a._minds.Add(id,mind);previous=id;
+                        var mind=new NpcMind(id,controller);ReadDecision(reader,mind,schema);a._minds.Add(id,mind);previous=id;
                     }
                     int acquisitions=Count(reader);
                     for(int i=0;i<acquisitions;i++)
                     {
                         ulong sequence=reader.ReadUInt64(),eventId=reader.ReadUInt64();string knower=Read(reader);var origin=(KnowledgeOrigin)reader.ReadByte();string source=Read(reader);ulong sourceSequence=reader.ReadUInt64(),tick=reader.ReadUInt64();int personal=reader.ReadInt32(),social=reader.ReadInt32();string hash=Read(reader);
-                        bool accepted=origin==KnowledgeOrigin.Reported?a.Report(source,knower,eventId,tick,personal,social):a.Learn(knower,eventId,origin,source,tick,personal,social);
+                        bool accepted=origin==KnowledgeOrigin.Reported?a.AcceptReport(source,knower,a.Get(source)?.Knowledge(eventId),tick,personal,social):a.Learn(knower,eventId,origin,source,tick,personal,social);
                         if(!accepted)return false;var known=a._acquisitions.Last();if(known.Sequence!=sequence||known.SourceSequence!=sourceSequence||known.Checksum!=hash)return false;
                     }
-                    if(schema>=2&&!a.ReadMigrations(reader,registry,allowEmpty:schema==3))return false;
+                    if(ledgerSchema>=2&&!a.ReadMigrations(reader,registry,allowEmpty:ledgerSchema==3))return false;
+                    if(schema==4)foreach(var mind in a._minds.Values)
+                    {
+                        mind.Cognition.ReadState(reader);
+                        a._nextPersonalExpiry=Math.Min(a._nextPersonalExpiry,mind.Cognition.NextExpiry());
+                    }
                     if(stream.Position!=stream.Length||a.Save()!=token)return false;archive=a;return true;
                 }
             }
