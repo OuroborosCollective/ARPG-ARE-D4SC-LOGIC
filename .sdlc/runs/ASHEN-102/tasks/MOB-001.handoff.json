@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "run_id": "ASHEN-102",
+  "task_id": "MOB-001",
+  "assignment_revision": 2,
+  "assignment_sha256": "27494c292bf445f52ab2981c8841868bd12da9f0e8ea6cc45f5f049ef9d46cfa",
+  "report_sha256": "3435c0b526913c83f259078913d27cdbdfd1525730026119342d8502c292aba9",
+  "files": [
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ForgeContracts.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "53c48b7a11d4e392619f50499c2b38bb1ac2c99a496e8b4e5cc57c1280643107"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/MemoryPersistence.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "66b026c9243f04ea8139e4cf224b0ad17cda3588381f92792f11c8b551ebd2a3"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/NpcMemory.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "e18544e2817c4cc5457f65290f060ea1556dcb7f9bf8b078686eac2bc815a384"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/PersonalCognition.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "13d60bf13f7371e3680999fc856b35ee0f8aa880d825f63e22be105bffed885a"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/PersonalCognition.cs.meta",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "f73f9d5400ee711f7c7db404cdc5c76afae38d03a708efd00c0cdf09008cb5fe"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/UtilityEvaluator.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "b23a38009defb844b2d82497b7c2c1f935a8bde31cb8bbb5e7e3267ef3832ac6"
+    },
+    {
+      "path": "Assets/Scripts/Core/ArpgSimulation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "8d95d141d476587820f43af70674b734d37ca86876aaf9ba3c1aa75ddff8490d"
+    },
+    {
+      "path": "Assets/Scripts/Core/HungerJourney.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "cef1edb672960236909c96c6590efe2a6e7fab2a687cce254b4e585512f8961a"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeBehavior.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "29ec38fd2dc9b56095d9468055bd0496a5ce73a34ef71428066797cccdba110d"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeCompanion.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "4ddc17b80cef0a595bf03e77a2a3745997c15d03e50c1ed443a0500a293595e2"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgePopulation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "00cd73457fba9603687e2bce5846cce51b4d3f4717f71f97294df9e0cfff4b88"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeRoadMemory.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "0329089e590fbaae203da70bfdc7593264bed969cc46593c7e6619640947b681"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeState.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "f6579c0642c2cb4fcf7eb86f71af19e6a8df713de922360d1dfa20ceee1a5119"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcRelations.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "2b3589556c4d44075c1d0ea612ba9c04923f36cafd03f4da88daf70994cf7a5b"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcSpeech.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "7e824fbf3d08ded5a4ed5f68468affe32802b1dddcb24cea474270c26c00cf2d"
+    },
+    {
+      "path": "Assets/Scripts/Core/VillageServices.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "45d4b8f90d8b1dead6b9cf8366c2898951fe46db4cccdb5337aabc517486ab00"
+    },
+    {
+      "path": "Assets/Scripts/Core/WorldSkyClock.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "1325803ef8d24509866edfd7d2db34128d5772a813de10df9ffe4f6783ec83c6"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/NpcForgeRuntimeTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "80feb872da1c1094b59ebcdaa3fc6ee3e93d0f6e3ff1899a0a182fd50b51f852"
+    },
+    {
+      "path": "Tests/CoreVerification/CoreVerification.csproj",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "a112785e27b8a0b7bcdfaef50cdc4cf18fd193472bc24d432647b3ad50632e75"
+    },
+    {
+      "path": "Tests/CoreVerification/Fixtures/road-before-meeting-NMF1.txt",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "de8d97c7c0f92919bf17a68eccb476f12372e4fef4cf035eb7313002b8e5a466"
+    },
+    {
+      "path": "Tests/CoreVerification/Fixtures/road-before-meeting-NMF2.txt",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "5094d346518568c1f40dad3c9d20e4ab4c255c21cade4d95caa6a39d91a06a5c"
+    },
+    {
+      "path": "Tests/CoreVerification/PersonalCognitionTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "6508f6c8504c9059c7f1b33bb41bf2fa3a3e14ed427c3a7d42b109cea65b6548"
+    },
+    {
+      "path": "Tests/CoreVerification/Program.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "e445c002ce75ba0b2d3f94dca8b164629f0c8ea180a15ccd2384ec1f23c4e7c5"
+    },
+    {
+      "path": "Tests/CoreVerification/RoadReportTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "9f309b54c864cba6fdd9ed661f97c73dbcf61df90f115e8090996d44999010dc"
+    }
+  ]
+}

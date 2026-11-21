@@ -113,7 +113,7 @@ namespace AreArpg.Core
             {r.Text="Der Jäger muss in deiner Nähe sein, Hilfe benötigen und du musst Proviant besitzen.";return r;}
             var forge=Progression.Social.Forge;
             var e=forge.Archive.Append(MemoryKind.Help,"player","hunter",forge.ProcessedTicks,5000,false,"companion.provision",new RelationshipChange(trust:1200,gratitude:2000,familiarity:500));
-            forge.Archive.Learn("hunter",e.Id,KnowledgeOrigin.Self,"hunter",forge.ProcessedTicks);
+            forge.Archive.Perceive("hunter",e.Id,KnowledgeOrigin.Self,forge.ProcessedTicks,new EpisodeDetails("food","","provision"));
             r.Accepted=true;r.Text="Jäger: Danke für den Proviant. Ich erinnere mich an deine Hilfe.";return r;
         }
         private ulong CompanionAreaSeed => InJourney?JourneySeed:InForest?Progression.Woodland.Seed:InDungeon?Progression.Dungeon.Seed:0;
@@ -179,7 +179,8 @@ namespace AreArpg.Core
             var actions=target==null?(ally<FixedMath.Square(800)?ActionSet.Of(ForgeAction.Follow):ActionSet.Of(ForgeAction.Wait,ForgeAction.Follow,ForgeAction.Rest)):ActionSet.Of(ForgeAction.Follow,ForgeAction.Attack,ForgeAction.Flee);
             var frame=new ObservationFrame(actions,new[]{new Observation(Feature.Danger,target!=null?10000:0),new Observation(Feature.Hostility,target!=null?10000:0),new Observation(Feature.Injury,(CompanionState.MaximumHealth-c.Health)*10000/CompanionState.MaximumHealth),new Observation(Feature.AllyDistance,(int)Math.Min(10000,FixedMath.IntegerSqrt(ally))),new Observation(Feature.Fatigue,c.Fatigue*10),new Observation(Feature.Trust,FixedPoint.Clamp(mind.RelationshipTo("player").Trust))});
             bool changed=mind.DecisionState.LastObservations==null||mind.DecisionState.LastObservations[Feature.Danger]!=frame[Feature.Danger];
-            var decision=UtilityEvaluator.Decide(mind.Controller,frame,mind.DecisionState,forge.ProcessedTicks,changed);
+            var decision=UtilityEvaluator.Decide(mind.Controller,frame,mind.DecisionState,forge.ProcessedTicks,changed,mind.Cognition);
+            int oldFatigue=c.Fatigue, oldHealth=c.Health, targetHealth=target?.Health??0;
             if(decision.Action==ForgeAction.Attack&&target!=null)
             {
                 if(best>FixedMath.Square(CompanionWeaponDefinition.RangeMm))MoveCompanion(target.Xmm,target.Zmm,260);
@@ -197,6 +198,14 @@ namespace AreArpg.Core
             else if(decision.Action==ForgeAction.Rest){c.Fatigue=Math.Max(0,c.Fatigue-3);c.Health=Math.Min(CompanionState.MaximumHealth,c.Health+1);}
             else if(ally<FixedMath.Square(800))MoveCompanion(c.Xmm+(c.Xmm==PlayerXmm?1000:c.Xmm-PlayerXmm),c.Zmm+c.Zmm-PlayerZmm,450);
             else if(ally>FixedMath.Square(1800)){MoveCompanion(PlayerXmm,PlayerZmm,target==null?PlayerSpeedMmPerTick:450);if(forge.ProcessedTicks%10==0)c.Fatigue=Math.Min(1000,c.Fatigue+1);}
+            int effect=0;
+            if(decision.Action==ForgeAction.Attack&&target!=null)effect=targetHealth-target.Health;
+            if(decision.Action==ForgeAction.Rest)effect=oldFatigue-c.Fatigue+c.Health-oldHealth;
+            if(decision.Action==ForgeAction.Follow&&ally>FixedMath.Square(1800))
+                effect=ally.CompareTo(DistanceSquared(c.Xmm,c.Zmm,PlayerXmm,PlayerZmm));
+            if(decision.Action==ForgeAction.Flee&&target!=null)
+                effect=DistanceSquared(c.Xmm,c.Zmm,target.Xmm,target.Zmm).CompareTo(best);
+            mind.Cognition.RecordOutcome(decision.Action,forge.ProcessedTicks,effect);
         }
     }
     public sealed partial class SocialLedger

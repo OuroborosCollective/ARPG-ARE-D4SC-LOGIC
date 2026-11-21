@@ -89,10 +89,11 @@ namespace AshenCrypt.MemoryForge
         private readonly List<ulong> _recent=new List<ulong>();
         private readonly SortedSet<ulong> _essential=new SortedSet<ulong>();
         public string Id { get; }
+        public PersonalCognition Cognition { get; }
         public ControllerArtifact Controller { get; private set; }
         public DecisionState DecisionState { get; private set; }=new DecisionState();
         public IReadOnlyList<KnownMemory> Known=>new ReadOnlyCollection<KnownMemory>(_known.Values.ToArray());
-        internal NpcMind(string id,ControllerArtifact controller){Id=ContractText.Id(id);Controller=controller??throw new ArgumentNullException(nameof(controller));}
+        internal NpcMind(string id,ControllerArtifact controller){Id=ContractText.Id(id);Cognition=new PersonalCognition(this);Controller=controller??throw new ArgumentNullException(nameof(controller));}
         internal void MigrateTo(ControllerArtifact controller,ulong tick){Controller=controller;DecisionState=new DecisionState{LastTick=tick};}
         public Relationship RelationshipTo(string actor)
         {ContractText.Id(actor);return _relations.TryGetValue(actor,out var relationship)?relationship:new Relationship();}
@@ -110,6 +111,7 @@ namespace AshenCrypt.MemoryForge
             // Raw sums are retained before clamping, so retracting one rumor cannot erase another event's impact.
             if(prior!=null)relationship.Apply(prior.Event.Impact,prior.SocialWeight,-1);
             relationship.Apply(next.Event.Impact,next.SocialWeight,1);_known[next.Event.Id]=next;
+            Cognition.Index(next);
             if(next.Event.Essential)_essential.Add(next.Event.Id);
             else{_recent.Remove(next.Event.Id);_recent.Add(next.Event.Id);if(_recent.Count>64)_recent.RemoveAt(0);}
             return true;
@@ -209,7 +211,20 @@ namespace AshenCrypt.MemoryForge
         public bool Report(string source,string recipient,ulong eventId,ulong tick,int personal=6000,int social=10000)
         {
             var memory=Get(source)?.Knowledge(eventId);
-            return source!=recipient&&memory!=null&&memory.IsFact&&tick>=memory.LearnedTick&&LearnCore(recipient,eventId,KnowledgeOrigin.Reported,source,memory.Sequence,tick,personal,social);
+            var recall=Get(source)?.Cognition.Recall(eventId,tick);
+            if(recall==null||!AcceptReport(source,recipient,memory,tick,personal,social))return false;
+            AdvancePersonalTime(tick);
+            if(recall.Details!=null && recall.Details.Category.Length!=0)
+            {
+                var listener=Get(recipient);
+                listener.Cognition.Remember(listener.Knowledge(eventId),new EpisodeDetails(recall.Details.Category,"",""),tick);
+                _nextPersonalExpiry=Math.Min(_nextPersonalExpiry,listener.Cognition.NextExpiry());
+            }
+            return true;
+        }
+        private bool AcceptReport(string source,string recipient,KnownMemory memory,ulong tick,int personal,int social)
+        {
+            return source!=recipient&&memory!=null&&memory.IsFact&&tick>=memory.LearnedTick&&LearnCore(recipient,memory.Event.Id,KnowledgeOrigin.Reported,source,memory.Sequence,tick,personal,social);
         }
     }
 }

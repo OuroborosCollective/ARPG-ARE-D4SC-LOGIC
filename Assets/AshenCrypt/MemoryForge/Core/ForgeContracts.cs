@@ -55,14 +55,21 @@ namespace AshenCrypt.MemoryForge
     /// <summary>The host supplies observations and the hard legal-action mask. No world queries or clock live here.</summary>
     public sealed class ObservationFrame
     {
-        private readonly int[] _values=new int[(int)Feature.Count];
+        private readonly int[] _values;
+        internal short[] PersonalScores { get; }
+        internal int PersonalScore(ForgeAction action) => PersonalScores == null ? 0 : PersonalScores[(int)action];
+        internal ObservationFrame(ObservationFrame original, short[] personal)
+        {
+            LegalActions=original.LegalActions; PresentFeatures=original.PresentFeatures;
+            _values=original._values; PersonalScores=personal;
+        }
         public ulong LegalActions { get; }
         public ulong PresentFeatures { get; }
         public int this[Feature feature] => _values[(int)feature];
         public ObservationFrame(ulong legalActions,IEnumerable<Observation> observations)
         {
             if((legalActions&~ActionSet.Known)!=0)throw new ArgumentOutOfRangeException(nameof(legalActions));
-            LegalActions=legalActions;ulong present=0;
+            _values=new int[(int)Feature.Count];LegalActions=legalActions;ulong present=0;
             foreach(var observation in observations??throw new ArgumentNullException(nameof(observations)))
             {ulong bit=1UL<<(int)observation.Feature;if((present&bit)!=0)throw new ArgumentException("Duplicate observation");present|=bit;_values[(int)observation.Feature]=observation.Value;}
             PresentFeatures=present;

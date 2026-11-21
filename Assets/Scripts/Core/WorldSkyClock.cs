@@ -10,7 +10,7 @@ namespace AreArpg.Core
     /// </summary>
     public static class WorldSkyClock
     {
-        public const ulong TicksPerDay = 14400UL;
+        public const ulong TicksPerDay = AshenCrypt.MemoryForge.PersonalCognition.TicksPerDay;
 
         public static ulong PhaseTicks(ulong sourceTicks)
         {

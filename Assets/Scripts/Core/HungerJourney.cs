@@ -185,7 +185,7 @@ namespace AreArpg.Core
                 Progression.DiscoverHungerClue();
                 // The mill quest is now complete; Orsel trusts the player, teaches her craft and the village grows.
                 Progression.Village.UnlockOrselTeaches(Progression);
-                Progression.Village.RecordMainQuestCompleted();
+                CompleteMainQuest();
                 result.Text = "Eine Lagerstatt ist leer. Die anderen berichten von weiteren Vermissten. Verband und Schleifspuren weisen zum alten Speicher. Orsel nickt dir zu: Sie bringt dir Erste Hilfe, einen Heilspruch und ein Mahl bei.";
             }
             else return result;

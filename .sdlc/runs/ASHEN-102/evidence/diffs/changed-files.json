@@ -1,0 +1,131 @@
+{
+  "files": [
+    "Assets/AshenCrypt/MemoryForge/Core/ForgeContracts.cs",
+    "Assets/AshenCrypt/MemoryForge/Core/MemoryPersistence.cs",
+    "Assets/AshenCrypt/MemoryForge/Core/NpcMemory.cs",
+    "Assets/AshenCrypt/MemoryForge/Core/PersonalCognition.cs",
+    "Assets/AshenCrypt/MemoryForge/Core/PersonalCognition.cs.meta",
+    "Assets/AshenCrypt/MemoryForge/Core/UtilityEvaluator.cs",
+    "Assets/Scripts/Core/ArpgSimulation.cs",
+    "Assets/Scripts/Core/HungerJourney.cs",
+    "Assets/Scripts/Core/NpcForgeBehavior.cs",
+    "Assets/Scripts/Core/NpcForgeCompanion.cs",
+    "Assets/Scripts/Core/NpcForgePopulation.cs",
+    "Assets/Scripts/Core/NpcForgeRoadMemory.cs",
+    "Assets/Scripts/Core/NpcForgeState.cs",
+    "Assets/Scripts/Core/NpcRelations.cs",
+    "Assets/Scripts/Core/NpcSpeech.cs",
+    "Assets/Scripts/Core/VillageServices.cs",
+    "Assets/Scripts/Core/WorldSkyClock.cs",
+    "Assets/Tests/PlayMode/NpcForgeRuntimeTests.cs",
+    "Tests/CoreVerification/CoreVerification.csproj",
+    "Tests/CoreVerification/Fixtures/road-before-meeting-NMF1.txt",
+    "Tests/CoreVerification/Fixtures/road-before-meeting-NMF2.txt",
+    "Tests/CoreVerification/PersonalCognitionTests.cs",
+    "Tests/CoreVerification/Program.cs",
+    "Tests/CoreVerification/RoadReportTests.cs",
+    ".sdlc/runs/ASHEN-102/artifacts/mobile/implementation-summary.md"
+  ],
+  "ownership": [
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/ForgeContracts.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/MemoryPersistence.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/NpcMemory.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/PersonalCognition.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/PersonalCognition.cs.meta",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/AshenCrypt/MemoryForge/Core/UtilityEvaluator.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/ArpgSimulation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/HungerJourney.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeBehavior.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeCompanion.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgePopulation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeRoadMemory.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeState.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcRelations.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcSpeech.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/VillageServices.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/WorldSkyClock.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/NpcForgeRuntimeTests.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/CoreVerification.csproj",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/Fixtures/road-before-meeting-NMF1.txt",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/Fixtures/road-before-meeting-NMF2.txt",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/PersonalCognitionTests.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/Program.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/RoadReportTests.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": ".sdlc/runs/ASHEN-102/artifacts/mobile/implementation-summary.md",
+      "task_id": "MOB-001"
+    }
+  ]
+}

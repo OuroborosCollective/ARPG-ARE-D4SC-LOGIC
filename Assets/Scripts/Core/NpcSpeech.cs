@@ -5,7 +5,8 @@ namespace AreArpg.Core
     {
         None, Greeting, Remember, ThankHelp, Wary, Hostile, Hurt, Robbed,
         IlyanSecret, IlyanProtected, MaraInformed, SuppliesReplaced, CryptReport,
-        HunterThanks, RumorRescue, RumorDeath, RumorRefused, RumorTheft
+        HunterThanks, RumorRescue, RumorDeath, RumorRefused, RumorTheft,
+        SharedRation, RememberedFood, RememberedHelp, WitnessedHarm, SufferedHarm, HeardOfHarm, HeardOfHelp, WitnessedHelp
     }
 
     public static class NpcSpeech
@@ -31,8 +32,26 @@ namespace AreArpg.Core
                 case SpeechLine.RumorDeath: return "Ein Jäger wurde auf der Aschestraße von einem Bären getötet.";
                 case SpeechLine.RumorRefused: return "Der Reisende sagt, du sahst den Angriff und hast nicht geholfen.";
                 case SpeechLine.RumorTheft: return "Der Reisende sah, wie du den toten Jäger beraubt hast.";
+                case SpeechLine.SharedRation: return "Du hast deinen Proviant mit mir geteilt. Das hat mir gutgetan.";
+                case SpeechLine.RememberedFood: return "Du hast mir damals etwas zu essen gebracht.";
+                case SpeechLine.RememberedHelp: return "Als ich Hilfe brauchte, warst du da.";
+                case SpeechLine.WitnessedHarm: return "Ich habe gesehen, was du getan hast. Ich behalte dich im Auge.";
+                case SpeechLine.SufferedHarm: return "Von dir halte ich lieber Abstand.";
+                case SpeechLine.HeardOfHarm: return "Mir wurde von deinem Übergriff erzählt.";
+                case SpeechLine.HeardOfHelp: return "Ich habe gehört, dass du geholfen hast.";
+                case SpeechLine.WitnessedHelp: return "Ich habe gesehen, wie du geholfen hast.";
                 default: return "";
             }
+        }
+
+        internal static SpeechLine Personal(AshenCrypt.MemoryForge.PersonalRecall memory)
+        {
+            bool helped = memory.Predicate == nameof(AshenCrypt.MemoryForge.MemoryKind.Help);
+            if (memory.Origin == AshenCrypt.MemoryForge.KnowledgeOrigin.Reported) return helped ? SpeechLine.HeardOfHelp : SpeechLine.HeardOfHarm;
+            if (memory.Origin == AshenCrypt.MemoryForge.KnowledgeOrigin.Witnessed) return helped ? SpeechLine.WitnessedHelp : SpeechLine.WitnessedHarm;
+            if (!helped) return SpeechLine.SufferedHarm;
+            if (memory.Details?.Category != "food") return SpeechLine.RememberedHelp;
+            return memory.Stage == AshenCrypt.MemoryForge.RecallStage.Episode ? SpeechLine.SharedRation : SpeechLine.RememberedFood;
         }
 
         public static SpeechLine Greeting(NpcAgent npc)

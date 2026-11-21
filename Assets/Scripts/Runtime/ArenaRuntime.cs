@@ -168,6 +168,7 @@ namespace AreArpg.UnityClient
             if (paused)
             {
                 ReleasePresentationTouches();
+                ReleaseVillageBoardScroll(false);
                 SaveCharacter();
             }
         }
@@ -176,7 +177,7 @@ namespace AreArpg.UnityClient
         {
             _appUnfocused = !focused;
             if (_atmosphere != null) _atmosphere.Suspend(_appPaused || _appUnfocused);
-            if (!focused) ReleasePresentationTouches();
+            if (!focused) { ReleasePresentationTouches(); ReleaseVillageBoardScroll(false); }
         }
 
         /// <summary>Discard interrupted gestures without changing chosen zoom or character progression.</summary>
@@ -234,6 +235,7 @@ namespace AreArpg.UnityClient
             RenderSettings.fogDensity = 0.014f;
             BuildChapterScenery();
             BuildPlacedLayer();
+            BuildVillageEconomy();
             BuildRegionalDetails();
             BuildRegionalWorker();
             // Torch islands belong to the village projection, not to the optional private art overlay.
@@ -788,9 +790,11 @@ namespace AreArpg.UnityClient
             }
 
             if (PollArrivalScene()) return;
+            if (_villageBoardOpen && PollVillageBoardInput(layout)) return;
             if (PollMenuInput()) return;
             if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
+            if (PollVillageBoardInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollRattlerInput(layout)) { ReleasePresentationTouches(); return; }
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
@@ -965,6 +969,7 @@ namespace AreArpg.UnityClient
             _passageAnnounced = false;
             BuildChapterScenery();
             BuildPlacedLayer();
+            BuildVillageEconomy();
             BuildRegionalDetails();
             BuildRegionalWorker();
             // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
@@ -1017,6 +1022,8 @@ namespace AreArpg.UnityClient
                 _accumulator -= TickSeconds;
                 steps++;
                 ProcessCompanionAction();
+                if (_storageFault) break;
+                ProcessVillageGift();
                 if (_storageFault) break;
                 if (_pendingHunterAction >= 0)
                 {
@@ -1120,6 +1127,7 @@ namespace AreArpg.UnityClient
             UpdateCompanionPresentation(Mathf.Clamp01(_accumulator / TickSeconds));
             UpdateInvestigationPresentation();
             UpdateRattlerPresentation();
+            UpdateVillageEconomy(SimulationPaused ? 0f : Time.deltaTime);
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
             UpdateHud();
             UpdateMenu();
@@ -1300,9 +1308,11 @@ namespace AreArpg.UnityClient
             GUI.skin = AshenGuiSkin();
             try
             {
+                if (_villageBoardOpen && DrawVillageBoard(layout)) return;
                 DrawRoadHud(layout);
                 DrawRattlerHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
+                if (DrawVillageBoard(layout)) return;
                 DrawSpeechSubtitle(layout);
             }
             finally

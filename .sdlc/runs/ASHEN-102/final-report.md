@@ -1,0 +1,19 @@
+---
+run_id: ASHEN-102
+task_id: PM-004
+producer: pm
+status: reviewed
+revision: 1
+---
+
+# Persönliches NPC-Gedächtnis
+
+Der Lernpfad ist im Spiel und im Speicherformat integriert. Der Unity-Player zeigt Ilyans persönliche Reaktion. Im Core-Test verschwindet die letzte Episodenkategorie exakt 43.200 Spielticks nach dem Ereignis, mit identischem Ergebnis nach Neustart. Verbürgtes Wissen, Erzähltes und Entkräftetes haben unterschiedliche Folgen.
+
+Der revisionsgebundene Nachweis ist unter `docs/evidence/npc-personal-memory-20261121/native.json` abgelegt. Der öffentliche Anschluss für spätere Berufe steht unter `docs/NPC_PERSONAL_MEMORY.md`. Wirtschaft, zusätzliche Lebenszyklen und neue Tätigkeiten waren ausdrücklich für den folgenden Ausbau vorgesehen.
+
+## Review-Nachprüfung
+
+Code `671a3fd` behebt die Wiederherstellung einer erst erzählten, später persönlich bestätigten Aussage. Der unveränderte Regressionstest reproduzierte den Fehler vor der Korrektur. Auf der korrigierten Revision bestanden 21.821 Core-Prüfungen, 54 Preflight-, 59 Director-, 14 native EditMode- und 11 native PlayMode-Fälle. Der native Beleg oben nennt die zugehörigen XML-Prüfsummen.
+
+Das Nachprüfen verzögerter Aktionen führte zur Korrektur `1ad561c`. Ein tatsächlicher Treffer trainiert einmal, ein ausgewichener Angriff nicht. Der anschließende Regressionstest zeigte, dass ein Ticken während des Ausholens bei Bär, Klapperer und Glutwächter die ursprüngliche Beobachtung ersetzen konnte. Code `d5d4ee2` bindet die Wirkung auch bei einem Begleiter als Ziel an die ursprüngliche Entscheidung. Auf dieser Revision bestanden 21.843 deterministische Core-Prüfungen, 54 Preflight-, 59 Director-, 15/15 native EditMode- und 11/11 PlayMode-Fälle.

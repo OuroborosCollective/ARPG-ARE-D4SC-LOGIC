@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "EVD-3ad694e62e71e69f",
+  "run_id": "ASHEN-102",
+  "task_id": "MOB-001",
+  "command_id": "foundation_verify",
+  "executable": "python3",
+  "args": [
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "Tools/Director",
+    "-v"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-21T02:04:05.521Z",
+  "completed_at": "2026-11-21T02:04:05.698Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-3ad694e62e71e69f/evidence.json",
+  "stdout_path": "evidence/commands/EVD-3ad694e62e71e69f/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-3ad694e62e71e69f/stderr.txt"
+}

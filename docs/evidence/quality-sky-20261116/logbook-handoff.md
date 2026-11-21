@@ -280,3 +280,23 @@ Privater Quellstand `ff1d1ce4331f69ef5646f236e7b7960292c4ea0a`. Im regulären Sp
 Die öffentliche Projektfassung enthält 23 feste Fundorte, die eigenen Spielmodelle, neun editierbare Blender-Dateien und Director Studio 1.3.1. Die Materialien und Meshes des Aschepasses liegen unter `Assets/AshenCrypt/Aschepass`. Ihre Unity-GUIDs stimmen mit dem im Spiel geprüften Export überein. Die lizenzabhängige Figurenpassform lässt sich im eingerichteten Projekt unter **Ashen Crypt → Ausrüstung → Regionale Arbeitsmonturen backen** erzeugen.
 
 Auf dem privaten Kunststand `cbe67fea` bestanden sechs Unity-Spieltests und 21.919 Core-Prüfungen. Der vollständige private Beleg hat die Revision `bc1915fd`. Die ursprüngliche XML-Datei liegt im privaten Belegstand. Die [Ergebnisse je Spieltest](../muehlwehr-20261120/playmode-cases.json), die [23 Fundorte](../muehlwehr-20261120/fundorte.json) und die [Prüfsummen der nativen Aufnahmen](../muehlwehr-20261120/readback.json) sind im Projekt verfügbar. Der physische Android-Test steht aus.
+
+## 21. November 2026 · Persönliches NPC-Gedächtnis · PR 106
+
+Auf `d5d4ee20685110b36de3c82e87378cf5e536c3f3` reagiert Ilyan nach einer tatsächlich angenommenen Ration im laufenden Unity-Player mit einem persönlichen Untertitel. Die Beobachtung fehlt einem unbeteiligten Dorfbewohner. Beim dritten Tageswechsel verschwinden selbst nach Wiederabruf die letzten privaten Episodendetails. Der Core-Lauf über 43.200 Spielticks bestätigt identische Spielstandbytes und denselben Welthash nach Wiederaufnahme.
+
+21.843 Core-Prüfungen, 54 Preflight- und 59 Director-Tests waren erfolgreich. Im lizenzierten Unity-Editor 6000.6.8f1 liefen 11/11 ausgewählte PlayMode- und 15/15 Memory-Forge-EditMode-Fälle. Der erste Compile meldete eine Assembly-Grenze. Der erweiterte Dorf-Test benötigte zusätzlich die vorhandenen privaten Figurenmodelle für die Bildabnahme. Ein weiterer Regressionstest reproduzierte einen Ladefehler beim späteren direkten Bestätigen eines gehörten Ereignisses. Die neue Erkenntnis ersetzt dessen Herkunft und entfernt fremde Sinnesdetails. Derselbe Spielstand lädt im Core und im Unity-Editor bytegleich. Eine zweite Prüfung bindet angekündigte Aktionen an ihre gemessene Wirkung. Treffer nach der Vorwarnung trainieren einmal, Ausweichen ergibt keinen Erfolg. Das gilt auch über einen Speicherstandwechsel hinweg. Ein Regressionstest verfolgt Bär, Klapperer und Glutwächter vom Ausholen bis zur Wirkung. Auch mit einem Begleiter als Ziel bleibt die ursprüngliche Beobachtung erhalten. Der frühere Word-Dateiverweis ist unter der hinterlegten Identität aktuell nicht erreichbar. Ein APK- oder Gerätelauf gehörte nicht zu dieser Runde.
+
+- [Unity-Fälle, XML-Prüfsummen und Prüfsumme des Originalbilds](../npc-personal-memory-20261121/native.json)
+- [Anschlüsse für künftige Berufe und Bedürfnisse](../../NPC_PERSONAL_MEMORY.md)
+- [GitHub-Core-Lauf zum geprüften Code](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44856474920)
+
+## 21. November 2026 · Dorfwirtschaft · PR 107
+
+Auf `7fa2e707bd3fceb4a36071d11b9140c70a3ca2e0` arbeiten die Bewohner von Aschengrenze im laufenden Unity-Player auf echten Beständen. Die Werkplätze zeigen genau die Stückzahlen des Kerns, die Figuren stehen dort, wo der Kern sie führt, und die Dorftafel übergibt Material aus dem Gepäck der Spielerin. Zeigen, Verstecken und Anzünden ändert keinen Bestand.
+
+Fünf Hinweise aus der Prüfung des Pull Requests wurden mit roten Tests nachgestellt und behoben: ein hungernder Bewohner mit Auftrag an der Mühle, zwei Berichte desselben Ticks, ein verlorener Scrollfinger an der Tafel, die Gutschrift für das bloße Ankommen und die Dorfarbeit im Tick der Niederlage. 22.154 Core-Prüfungen und 54 Preflight-Fälle waren erfolgreich. Im lizenzierten Unity-Editor 6000.6.8f1 liefen 238 von 242 EditMode-Fällen und 189 von 189 PlayMode-Fällen; die vier übersprungenen brauchen einen freien Bauplatz oder echte Blender-Aufträge. Ein Android-Gerät wurde nicht gemessen.
+
+- [Abnahmefälle, Prüfsummen und Messwerte](../npc-economy-20261121/acceptance.md)
+- [Regeln und Orte der Dorfwirtschaft](../../VILLAGE_ECONOMY.md)
+- [GitHub-Core-Lauf zum geprüften Code](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44923695452)
