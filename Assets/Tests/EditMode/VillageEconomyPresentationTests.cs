@@ -24,10 +24,13 @@ namespace AreArpg.EditMode.Tests
         {
             var shown = new HashSet<VillageGood>();
             var spots = new HashSet<VillageSpot>();
-            int fires = 0;
-            foreach (ArenaRuntime.VillageWorkplace workplace in ArenaRuntime.VillageWorkplaces)
+            var houses = new HashSet<VillagePlace>();
+            int fires = 0, hearths = 0;
+            foreach (ArenaRuntime.VillageWorkplace workplace in ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms))
             {
-                Assert.IsTrue(spots.Add(workplace.Spot), workplace.Key + " shares its place with another workplace");
+                // A workplace out in the village has a place of its own; a room is the whole inside of one house.
+                if (workplace.House == VillagePlace.None) Assert.IsTrue(spots.Add(workplace.Spot), workplace.Key + " shares its place with another workplace");
+                else Assert.IsTrue(houses.Add(workplace.House), workplace.Key + " shares its house with another room");
                 Assert.AreEqual(workplace.Goods.Length, workplace.Units.Length);
                 for (int g = 0; g < workplace.Goods.Length; g++)
                 {
@@ -35,14 +38,28 @@ namespace AreArpg.EditMode.Tests
                     Assert.Greater(workplace.Units[g], 0);
                     Assert.IsTrue(shown.Add(workplace.Goods[g]), workplace.Goods[g] + " would be shown at two places");
                 }
-                if (workplace.Fire) fires++;
+                if (workplace.Fire && workplace.House == VillagePlace.None) fires++;
+                if (workplace.Fire && workplace.House != VillagePlace.None) hearths++;
                 Assert.Greater(workplace.Size.x, 0f); Assert.Greater(workplace.Size.y, 0f); Assert.Greater(workplace.Height, 0f);
             }
             Assert.AreEqual(1, fires, "One cooking fire");
-            // The authored models contain these stock slots. New village goods are accounted for on the board.
+            Assert.AreEqual(2, hearths, "The forge of the smithy and the hearth of the sick room");
+            Assert.AreEqual(VillagePlaceLayout.PlaceCount, houses.Count, "Every house that can be entered has its room");
+            for (int i = 0; i < ArenaRuntime.VillageRooms.Length; i++)
+            {
+                Assert.AreEqual((VillagePlace)(i + 1), ArenaRuntime.VillageRooms[i].House, "Rooms are listed in the order of the houses");
+                Assert.AreSame(ArenaRuntime.VillageRooms[i], ArenaRuntime.RoomOf((VillagePlace)(i + 1)));
+                Assert.AreEqual(VillagePlaceLayout.HalfWidthMm((VillagePlace)(i + 1)) / 500f, ArenaRuntime.VillageRooms[i].Size.x, 0.001f, "A room model covers the room of the rules");
+                Assert.AreEqual(VillagePlaceLayout.HalfDepthMm((VillagePlace)(i + 1)) / 500f, ArenaRuntime.VillageRooms[i].Size.y, 0.001f);
+            }
+            Assert.AreEqual(VillagePlaceLayout.PlaceCount, ArenaRuntime.HouseSignKeys.Length, "A sign for every house door");
+            // The authored models contain these stock slots: out in the village, and in the rooms of the houses.
+            // Seedlings stand in the nursery at the forest edge and rubble stone has no place yet; both are on the board.
             CollectionAssert.AreEquivalent(new[] { VillageGood.Wood, VillageGood.ThornBerry, VillageGood.WoodFrame, VillageGood.Bow,
-                VillageGood.Axe, VillageGood.BrokenAxe, VillageGood.Game, VillageGood.Hide, VillageGood.Ration, VillageGood.Metal,
-                VillageGood.Water }, shown);
+                VillageGood.Axe, VillageGood.Game, VillageGood.Hide, VillageGood.Ration, VillageGood.Water, VillageGood.Compost,
+                VillageGood.Herb, VillageGood.Bandage, VillageGood.Leather,
+                VillageGood.Ore, VillageGood.Metal, VillageGood.Fitting, VillageGood.BrokenAxe,
+                VillageGood.Grain, VillageGood.Flour, VillageGood.Straw, VillageGood.SeedGrain }, shown);
             foreach (VillageSpot own in new[] { VillageSpot.Store, VillageSpot.Home, VillageSpot.Gate })
                 Assert.IsFalse(spots.Contains(own), own + " is an existing place and gets no second model");
         }
@@ -183,7 +200,7 @@ namespace AreArpg.EditMode.Tests
             var type = TypeCache.GetTypesDerivedFrom<IPreprocessBuildWithReport>()
                 .SingleOrDefault(t => t.FullName == "AreArpg.EditorTools.VillageWorkBuildProcessor");
             Assert.IsNotNull(type, "A regular player build must call the existing workplace baker");
-            var keys = ArenaRuntime.VillageWorkplaces.Select(w => w.Key).ToArray();
+            var keys = ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms).Select(w => w.Key).Concat(ArenaRuntime.HouseSignKeys).ToArray();
             const string source = "Assets/PrivateArt/VillageWork/";
             bool installed = keys.All(k => System.IO.File.Exists(source + k + ".fbx")) &&
                 System.IO.File.Exists(source + "VillageWorkPalette.png") && System.IO.File.Exists(source + "VillageWorkGlow.png");
@@ -200,21 +217,96 @@ namespace AreArpg.EditMode.Tests
         [Test]
         public void PrivateModelsCarryExactlyThePartsTheGameShows()
         {
-            foreach (ArenaRuntime.VillageWorkplace workplace in ArenaRuntime.VillageWorkplaces)
+            foreach (ArenaRuntime.VillageWorkplace workplace in ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms))
             {
                 GameObject prefab = Visual(workplace);
                 Transform[] parts = prefab.GetComponentsInChildren<Transform>(true);
+                bool room = workplace.House != VillagePlace.None;
                 // A model of one part arrives as that part itself; otherwise the furniture is the part named Base.
-                Assert.IsTrue(prefab.GetComponent<MeshRenderer>() != null || parts.Any(p => p.name == "Base"), workplace.Key + " has no furniture part");
-                var expected = new HashSet<string> { prefab.name, "Base" };
+                // A room has its walls and floor as the shell and everything that holds no goods as the furniture.
+                if (room) Assert.IsTrue(parts.Any(p => p.name == "Shell") && parts.Any(p => p.name == "Furniture"), workplace.Key + " has no shell or no furniture");
+                else Assert.IsTrue(prefab.GetComponent<MeshRenderer>() != null || parts.Any(p => p.name == "Base"), workplace.Key + " has no furniture part");
+                var expected = room ? new HashSet<string> { prefab.name, "Shell", "Furniture" } : new HashSet<string> { prefab.name, "Base" };
+                // The parts the game switches by name: the three states of the crop, the lamps, the sleepers in the beds.
+                if (workplace.Spot == VillageSpot.Field && !room)
+                    foreach (string state in new[] { "Sown", "Grown", "Ripe" })
+                    {
+                        Assert.AreEqual(1, parts.Count(p => p.name == ArenaRuntime.CropPrefix + state), "The field has its crop " + state);
+                        expected.Add(ArenaRuntime.CropPrefix + state);
+                    }
+                if (room)
+                {
+                    Assert.Greater(parts.Count(p => p.name.StartsWith(ArenaRuntime.LampPrefix, StringComparison.Ordinal)), 0, workplace.Key + " has no lamp");
+                    foreach (Transform part in parts) if (part.name.StartsWith(ArenaRuntime.LampPrefix, StringComparison.Ordinal)) expected.Add(part.name);
+                    int beds = parts.Count(p => p.name.StartsWith(ArenaRuntime.PatientPrefix, StringComparison.Ordinal));
+                    Assert.AreEqual(workplace.House == VillagePlace.SickRoom ? ArenaRuntime.SickBeds : 0, beds, workplace.Key + " sleepers");
+                    for (int bed = 0; bed < beds; bed++) expected.Add(ArenaRuntime.PatientPrefix + bed);
+                }
                 for (int g = 0; g < workplace.Goods.Length; g++)
                 {
                     string prefix = ArenaRuntime.StockPrefix + workplace.Goods[g] + "_";
                     Assert.AreEqual(workplace.Units[g], parts.Count(p => p.name.StartsWith(prefix, StringComparison.Ordinal)), workplace.Key + " units of " + workplace.Goods[g]);
                     foreach (Transform part in parts) if (part.name.StartsWith(prefix, StringComparison.Ordinal)) expected.Add(part.name);
                 }
-                if (workplace.Fire) { Assert.IsTrue(parts.Any(p => p.name == ArenaRuntime.FireName), "The kitchen has its fire"); expected.Add(ArenaRuntime.FireName); }
+                if (workplace.Fire) { Assert.IsTrue(parts.Any(p => p.name == ArenaRuntime.FireName), workplace.Key + " has its fire"); expected.Add(ArenaRuntime.FireName); }
                 foreach (Transform part in parts) Assert.IsTrue(expected.Contains(part.name), workplace.Key + " carries a part the game does not know: " + part.name);
+            }
+        }
+
+        /// <summary>
+        /// The model of a room and the rules of a room are made in two places. Here they are held against each
+        /// other: turned as the game turns it, every part the game switches lies on the piece of furniture the
+        /// rules have for it. A model built for an older arrangement of the room does not pass.
+        /// </summary>
+        [Test]
+        public void PrivateRoomsHoldTheirThingsWhereTheRulesHaveTheirFurniture()
+        {
+            var homes = new Dictionary<string, string>
+            {
+                { "RoomSickRoom/Fire", "hearth" }, { "RoomSickRoom/Stock_Herb", "herbrack" }, { "RoomSickRoom/Stock_Bandage", "table" },
+                { "RoomSickRoom/Stock_Leather", "shelf" },
+                { "RoomSmithy/Fire", "forge" }, { "RoomSmithy/Stock_Ore", "orebin" }, { "RoomSmithy/Stock_Metal", "ingots" },
+                { "RoomSmithy/Stock_Fitting", "bench" }, { "RoomSmithy/Stock_BrokenAxe", "toolrack" },
+                { "RoomBarn/Stock_Grain", "grain" }, { "RoomBarn/Stock_Flour", "flour" }, { "RoomBarn/Stock_Straw", "straw" },
+                { "RoomBarn/Stock_SeedGrain", "seedbin" },
+            };
+            // BuildVillageRoom puts the model up with half a turn.
+            Quaternion turn = Quaternion.LookRotation(Vector3.back);
+            foreach (ArenaRuntime.VillageWorkplace room in ArenaRuntime.VillageRooms)
+            {
+                GameObject prefab = Visual(room);
+                VillagePlace place = room.House;
+                float hw = VillagePlaceLayout.HalfWidthMm(place) / 1000f, hd = VillagePlaceLayout.HalfDepthMm(place) / 1000f;
+                int held = 0;
+                foreach (MeshRenderer renderer in prefab.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    string name = renderer.name;
+                    Vector3 at = turn * renderer.bounds.center;
+                    if (name.StartsWith(ArenaRuntime.LampPrefix, StringComparison.Ordinal))
+                    {
+                        Assert.Greater(Mathf.Abs(at.x), hw - 0.7f, room.Key + ": " + name + " hangs on a side wall");
+                        Assert.Less(Mathf.Abs(at.z), hd, room.Key + ": " + name + " hangs inside the room");
+                        continue;
+                    }
+                    string piece;
+                    if (name.StartsWith(ArenaRuntime.PatientPrefix, StringComparison.Ordinal)) piece = "bed" + name.Substring(ArenaRuntime.PatientPrefix.Length);
+                    else if (name == ArenaRuntime.FireName) piece = homes[room.Key + "/" + name];
+                    else if (name.StartsWith(ArenaRuntime.StockPrefix, StringComparison.Ordinal)) piece = homes[room.Key + "/" + name.Substring(0, name.LastIndexOf('_'))];
+                    else continue;
+                    VillagePlaceLayout.Furniture block = VillagePlaceLayout.Find(place, piece);
+                    Assert.AreEqual(piece, block.Id, room.Key + ": the rules have no " + piece);
+                    Assert.LessOrEqual(Mathf.Abs(at.x * 1000f - block.X), block.HalfWidth + 100f,
+                        room.Key + ": " + name + " lies at x " + at.x.ToString("F2") + ", not on the " + piece + " the rules have at " + block.X);
+                    Assert.LessOrEqual(Mathf.Abs(at.z * 1000f - block.Z), block.HalfDepth + 100f,
+                        room.Key + ": " + name + " lies at z " + at.z.ToString("F2") + ", not on the " + piece + " the rules have at " + block.Z);
+                    held++;
+                }
+                Assert.AreEqual(room.Units.Sum() + (room.Fire ? 1 : 0) + (place == VillagePlace.SickRoom ? ArenaRuntime.SickBeds : 0), held,
+                    room.Key + ": every switched part was held against the rules");
+                // Whoever stands where the rules put the worker of this house stands free of all its furniture.
+                foreach (VillageSpot spot in new[] { VillageSpot.Smithy, VillageSpot.SickRoom })
+                    if (VillageEconomyLayout.HouseOf(spot) == place)
+                        Assert.IsTrue(VillagePlaceLayout.CanStandInRoom(place, VillageEconomyLayout.StandXmm(spot), VillageEconomyLayout.StandZmm(spot)), spot + " stand");
             }
         }
 
@@ -222,9 +314,10 @@ namespace AreArpg.EditMode.Tests
         public void PrivateModelsArePassiveAndCheap()
         {
             Material shared = null;
-            foreach (ArenaRuntime.VillageWorkplace workplace in ArenaRuntime.VillageWorkplaces)
+            foreach (ArenaRuntime.VillageWorkplace workplace in ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms))
             {
                 GameObject prefab = Visual(workplace);
+                bool room = workplace.House != VillagePlace.None;
                 Assert.IsEmpty(prefab.GetComponentsInChildren<Collider>(true), workplace.Key + " must not bring physics");
                 Assert.IsEmpty(prefab.GetComponentsInChildren<MonoBehaviour>(true), workplace.Key + " must not bring scripts");
                 Assert.IsEmpty(prefab.GetComponentsInChildren<Animator>(true));
@@ -242,9 +335,10 @@ namespace AreArpg.EditMode.Tests
                     Assert.IsFalse(mesh.isReadable, "No second copy of the mesh for scripts");
                     if (first) { bounds = renderer.bounds; first = false; } else bounds.Encapsulate(renderer.bounds);
                 }
-                Assert.Less(triangles, 3500, workplace.Key + " is over its triangle budget");
-                // The model stands on the ground and fits the ground the game reserves for it.
-                Assert.AreEqual(0f, bounds.min.y, 0.06f, workplace.Key + " does not stand on the ground");
+                // A workplace is one of many things in the village picture; a room is the whole picture while one is in it.
+                Assert.Less(triangles, room ? 9000 : 3500, workplace.Key + " is over its triangle budget");
+                // The model stands on the ground and fits the ground the game reserves for it. A room's floor is a slab below it.
+                Assert.AreEqual(room ? -0.1f : 0f, bounds.min.y, 0.06f, workplace.Key + " does not stand on the ground");
                 Assert.LessOrEqual(bounds.size.x, workplace.Size.x + 0.15f, workplace.Key + " is wider than its reserved ground");
                 Assert.LessOrEqual(bounds.size.z, workplace.Size.y + 0.15f, workplace.Key + " is deeper than its reserved ground");
                 Assert.AreEqual(workplace.Centre.x, bounds.center.x, 0.2f, workplace.Key + " is not where its reserved ground is");

@@ -174,7 +174,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return InJourney ? (InJourneyCave ? "Seitenhöhle – Ebene " + Progression.Journey.Depth : "Waldweg jenseits von Aschenzoll") : InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? "Die Aschengrenze" : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return InJourney ? (InJourneyCave ? "Seitenhöhle – Ebene " + Progression.Journey.Depth : "Waldweg jenseits von Aschenzoll") : InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? (InsidePlace != VillagePlace.None ? VillagePlaceLayout.Name(InsidePlace) + " von Aschengrenze" : "Die Aschengrenze") : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -555,6 +555,12 @@ namespace AreArpg.Core
         {
             if (InJourney) return JourneyGeometry.CanStand(x,z) && (!InJourneyCave || Progression.Journey.Depth==Progression.Journey.FloorCount || z<=21000 || JourneyForwardOpen);
             if (InWoodlandRegion) return CanStandInWoodland(Progression.EntryAct, Progression.Woodland.Layout, x, z);
+            if (Progression.EntryAct == 2)
+            {
+                // The rooms of the village houses lie outside the square; inside one, its walls and furniture decide.
+                VillagePlace room = VillagePlaceLayout.RoomAt(x, z);
+                if (room != VillagePlace.None) return VillagePlaceLayout.CanStandInRoom(room, x, z);
+            }
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             if (InDungeon) return Progression.Dungeon.Current.Layout.CanStand(x, z) && (z <= 21000 || DungeonForwardOpen);
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);

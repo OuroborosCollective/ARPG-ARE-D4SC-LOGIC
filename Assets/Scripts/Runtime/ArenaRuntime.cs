@@ -374,6 +374,8 @@ namespace AreArpg.UnityClient
             _campRationVisuals.Clear();
             _returnPassage = null;
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
+            // Inside a village house nothing of the village is shown: the room itself is put up with the village economy.
+            if (_game.InsidePlace != VillagePlace.None) { BuildVillageRoomScenery(); return; }
             if (_entryProfile && _game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4)
                 _chapterScenery.Add(OutdoorBackdrop.Create(_game.Progression.EntryAct));
             if (_game.InJourney) { BuildJourneyScenery(); return; }
@@ -1103,6 +1105,7 @@ namespace AreArpg.UnityClient
                     AdvanceCrypt();
                     if (_storageFault) break;
                 }
+                if (StepVillageDoors()) break;
             }
             UpdateRoadPresentation();
             UpdateCompanionPresentation(Mathf.Clamp01(_accumulator / TickSeconds));
@@ -1118,6 +1121,7 @@ namespace AreArpg.UnityClient
         private void UpdatePresentation(float alpha)
         {
             RefreshWorldSky();
+            RefreshVillageRoomLight();
             RefreshPostProcessing();
             AnimateVillageLights();
             AnimateDungeonLights();
@@ -1284,6 +1288,7 @@ namespace AreArpg.UnityClient
                 DrawRattlerHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
                 if (DrawVillageBoard(layout)) return;
+                DrawVillageDoorHint(layout);
                 DrawSpeechSubtitle(layout);
             }
             finally

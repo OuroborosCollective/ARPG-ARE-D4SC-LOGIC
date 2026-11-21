@@ -189,10 +189,11 @@ namespace AreArpg.PlayMode.Tests
             yield return RunFrames(1);
             Assert.IsNotNull(Find(ArenaRuntime.VillageWorkRoot), "The workplaces appear with the first resident");
             AssertShownStockIsTheCoresStock("at the start");
-            // The stated start stock is what lies there: wood on the pile, metal on the bench, water at the kitchen.
+            // The stated start stock is what lies there: wood on the pile, water at the kitchen. The metal lies in the smithy.
             Assert.AreEqual(Mathf.Min(Economy.Commons(VillageGood.Wood), 12), Units(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Woodyard), VillageGood.Wood).Count(u => u.gameObject.activeSelf));
             Assert.Greater(Economy.Commons(VillageGood.Wood), 0);
-            Assert.AreEqual(2, Units(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Workbench), VillageGood.Metal).Count(u => u.gameObject.activeSelf));
+            Assert.AreEqual(2, Economy.Commons(VillageGood.Metal));
+            Assert.IsEmpty(Units(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Workbench), VillageGood.Metal), "The bench no longer shows the smithy's metal");
             foreach (VillageResidentState resident in Economy.Residents) Assert.IsNotNull(Figure(resident), "Every resident has a figure");
 
             // 1. What is shown is not a stock: show everything, hide everybody, light the fire - the Core stays as it is.
@@ -339,7 +340,9 @@ namespace AreArpg.PlayMode.Tests
 
             // The same resident comes home: seen again from the gate on, then at the place of the next step.
             bool atGate = false;
-            for (int tick = 0; tick < 12000 && !(away.Site == VillageSite.Village && !away.Walking && VillageEconomyLayout.Seen(away, out _)); tick++)
+            Func<bool> inTheOpen = () => away.Site == VillageSite.Village && !away.Walking && VillageEconomyLayout.Seen(away, out VillageSpot where) &&
+                VillageEconomyLayout.HouseOf(where) == VillagePlace.None;
+            for (int tick = 0; tick < 30000 && !inTheOpen(); tick++)
             {
                 Game.Step();
                 if (!atGate && away.Walking && away.Destination == VillageSite.Village && VillageEconomyLayout.Seen(away, out _))
@@ -398,7 +401,11 @@ namespace AreArpg.PlayMode.Tests
             var labels = new List<string>();
             for (int spot = 0; spot < VillageEconomyLayout.SpotCount; spot++)
             {
-                Vector3 at = overview.WorldToViewportPoint(new Vector3(VillageEconomyLayout.PlaceXmm((VillageSpot)spot) / 1000f, 0.5f, VillageEconomyLayout.PlaceZmm((VillageSpot)spot) / 1000f));
+                // A place inside a house is marked at the door of that house.
+                bool indoors = VillageEconomyLayout.HouseOf((VillageSpot)spot) != VillagePlace.None;
+                long px = indoors ? VillageEconomyLayout.VillageXmm((VillageSpot)spot) : VillageEconomyLayout.PlaceXmm((VillageSpot)spot);
+                long pz = indoors ? VillageEconomyLayout.VillageZmm((VillageSpot)spot) : VillageEconomyLayout.PlaceZmm((VillageSpot)spot);
+                Vector3 at = overview.WorldToViewportPoint(new Vector3(px / 1000f, 0.5f, pz / 1000f));
                 labels.Add((VillageSpot)spot + "=" + at.x.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + at.y.ToString("F3", System.Globalization.CultureInfo.InvariantCulture));
             }
             overview.transform.SetPositionAndRotation(keptPosition, keptRotation);

@@ -50,6 +50,39 @@ sich mit dem Finger oder dem Mausrad rollen.
 Beim Betreten des Dorfs nennt die Meldungszeile den dringendsten Bedarf der Tafel. Bevor jemand einzieht, zeigt
 die Tafel Maras Vorrat und dass Arbeitskräfte fehlen; Material nimmt das Dorf erst mit dem ersten Bewohner an.
 
+### Häuser mit eigenen Räumen
+
+Drei Häuser des Dorfes lassen sich betreten: die **Krankenstube** (Haus westlich der Halle), die **Schmiede** und die
+**Feldscheune** (der Stall). An jeder Tür hängt ein Schild. Wer in die Tür hineinläuft, steht im Innenraum des Hauses;
+wer drinnen in die Tür in der Rückwand läuft, steht wieder vor dem Haus. Eine Taste braucht es nicht, der Hinweis über
+den Bedienfeldern nennt die Tür.
+
+| Haus | Im Raum zu sehen | Bestände des Kerns |
+|---|---|---|
+| Krankenstube | drei Betten, Herd, Kräuterstange, Pflegetisch, Regal, Waschzuber | Kräuter 6, Verbände 4, Leder 3 |
+| Schmiede | Esse mit Blasebalg, Amboss, Löschfass, Werkbank, Werkzeugwand, Kohle | Erz 6, Metall 4, Beschläge 4, zerbrochene Axt 1 |
+| Feldscheune | Kornsäcke, Mehlbank, Strohballen, Saatkiste, Geräte, Handkarren | Korn 8, Mehl 4, Stroh 6, Saatgut 3 |
+
+- Wer Erz schmilzt, Beschläge schmiedet oder die Axt richtet, steht in der Schmiede am Amboss, und die Esse brennt.
+  Verbände entstehen am Tisch der Krankenstube. Von draußen sieht man diese Bewohner zur Haustür gehen und verschwinden.
+- Wer zu verletzt zum Arbeiten ist, liegt in einem Bett der Krankenstube. Ruhende sitzen zu Hause.
+- Das **Feld** liegt im Freien im Nordwesten des Platzes. Es zeigt den Stand der Saat: leer, gesät, gewachsen, reif.
+- Solange ein Dorfbewohner dem Spieler feindlich ist, bleiben alle Türen zu.
+- Ein Begleiter wartet vor dem Haus.
+
+Regeln dazu (`Assets/Scripts/Core/VillagePlaces.cs`):
+
+- Räume sind begehbare Inseln weit außerhalb des Dorfplatzes. Ob der Spieler drinnen ist, folgt allein aus seiner
+  Position. Die Räume bringen deshalb keinen neuen Speicherzustand mit.
+- Ein Spielstand, der in einem Raum entsteht, hält die Stelle vor der Haustür fest. Alte Leser nehmen ihn unverändert an.
+- Die Raumtür liegt in der Nordwand, weil alle drei Haustüren nach Norden zeigen: Wer weiterläuft, wie er durch die
+  Tür kam, geht in den Raum hinein oder vom Haus weg. Keine Tür führt auf dem Hinweg sofort wieder zurück.
+- Möbel sind Blöcke des Kerns; niemand läuft hindurch. Das Raummodell und diese Blöcke werden im Test gegeneinander
+  gehalten (`PrivateRoomsHoldTheirThingsWhereTheRulesHaveTheirFurniture`).
+
+Die Raummodelle, das Feld und die Schilder entstehen mit `Tools/Art/blender/village_place_rooms.py`. Die fertigen
+Modelle sind private Kunst und liegen nicht im Repository; ohne sie baut das Spiel Räume aus schlichten Blöcken.
+
 ## Regeln im Kern
 
 ### Bewohner und Bedürfnisse
