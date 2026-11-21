@@ -1,6 +1,6 @@
 {
-  "source_commit": "1ad561c5bf9e9e1eb71cd44003a5584ea9659eda",
-  "source_tree": "d499931037305520d86eaeb0b4eb2168762e7dc1",
+  "source_commit": "d5d4ee20685110b36de3c82e87378cf5e536c3f3",
+  "source_tree": "38ece02da10455706b721d83d627a57647ac41db",
   "unity_version": "6000.6.8f1",
   "suites": {
     "playmode": {
@@ -8,8 +8,8 @@
       "passed": 11,
       "failed": 0,
       "skipped": 0,
-      "finished_utc": "2026-11-21 02:25:53Z",
-      "xml_sha256": "6d054135b0340379e3a8c3d1d5f2aabafc5f44a8b65b758af0e63b094dba92b9",
+      "finished_utc": "2026-11-21 02:33:56Z",
+      "xml_sha256": "0a5d9e22eb69f08de09f72048357b05eb41df6d0fae671b156ee87a250631a1d",
       "cases": [
         "ArrivalSceneOwnsAllInputUntilItEnds",
         "AskingIlyanIsTheDecisionAndRemovesTheRationPanel",
@@ -29,8 +29,8 @@
       "passed": 15,
       "failed": 0,
       "skipped": 0,
-      "finished_utc": "2026-11-21 02:25:17Z",
-      "xml_sha256": "3c66a435ddb82964153723bf64526ddea57257d12bf5d59cff9f80f4c7ed39b2",
+      "finished_utc": "2026-11-21 02:33:19Z",
+      "xml_sha256": "59fb86251a93cdb9f8abb52e898e8abcf6c1e476a233d9729e8e18d847fa7bed",
       "cases": [
         "AutomaticGameBootstrapOnlyOwnsTheTwoGameScenes(\"Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.unity\",False)",
         "EditableConfigurationRequiresRealAdmissionAndRejectsChangedBytes",
@@ -52,6 +52,6 @@
   },
   "screenshot": {
     "name": "forge-ilyan-memory-after-load.png",
-    "sha256": "f9fa315eeed9741f332f3ef759ceab7c31d9188927f551ad460e29ad8dbbea7d"
+    "sha256": "a8c73468546080f4d30980f9f5671f9622fa2d1c071b8804b05e315e5c89e03f"
   }
 }
