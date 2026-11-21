@@ -117,7 +117,9 @@ namespace AreArpg.PlayMode.Tests
             StartVillageWork();
             yield return RunFrames(1);
             var camera = (Camera)typeof(ArenaRuntime).GetField("_camera", Flags).GetValue(_runtime);
-            CameraClearFlags sky = camera.clearFlags;
+            CameraClearFlags sky = camera.clearFlags; bool fog = RenderSettings.fog;
+            var torches = (System.Collections.ICollection)typeof(ArenaRuntime).GetField("_villageTorches", Flags).GetValue(_runtime);
+            int lit = torches.Count;
             Assert.IsNull(_runtime.VillageDoorHint, "Away from the doors nothing is offered");
             VillageResidentState first = Economy.Residents[0];
             foreach (VillagePlace place in Houses)
@@ -131,6 +133,8 @@ namespace AreArpg.PlayMode.Tests
                 EnterHouse(place);
                 StringAssert.Contains(VillagePlaceLayout.Name(place), Message());
                 StringAssert.Contains(VillagePlaceLayout.Name(place), Game.ChapterName);
+                StringAssert.Contains(VillagePlaceLayout.Name(place), ArenaRuntime.DisplayChapterName(Game), "The HUD names the room");
+                Assert.AreEqual(0, torches.Count, "No village torch burns in a room");
                 GameObject host = Find(ArenaRuntime.VillageRoomRoot);
                 Assert.IsNotNull(host, "The room of " + place + " is put up");
                 Assert.Less(Vector3.Distance(host.transform.position, new Vector3(Game.PlayerXmm / 1000f, 0f, Game.PlayerZmm / 1000f)), 6f, "The room stands where the player is");
@@ -189,6 +193,10 @@ namespace AreArpg.PlayMode.Tests
 
                 LeaveHouse();
                 StringAssert.Contains("hinaus", Message());
+                // Put back at once, before any sky has had its turn: torches, fog and the camera's background.
+                Assert.AreEqual(lit, torches.Count, "The village torches burn again");
+                Assert.AreEqual(fog, RenderSettings.fog, "The village's fog setting is back");
+                Assert.AreEqual(sky, camera.clearFlags, "The camera draws the sky again");
                 yield return RunFrames(1);
                 Assert.IsNull(Find(ArenaRuntime.VillageRoomRoot), "Outside, the room is gone");
                 Assert.IsNotNull(Find(ArenaRuntime.HouseSignPrefix + place));
@@ -196,6 +204,7 @@ namespace AreArpg.PlayMode.Tests
                 Assert.IsNotNull(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Woodyard), "The village is at work again");
                 Assert.AreEqual(sky, camera.clearFlags, "The sky is back");
                 Assert.AreEqual("Die Aschengrenze", Game.ChapterName);
+                Assert.AreEqual("Die Aschengrenze", ArenaRuntime.DisplayChapterName(Game));
             }
 
             // The field shows the state of its crop, as the Core's sources have it.
