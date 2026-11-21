@@ -88,6 +88,9 @@ namespace AreArpg.Core
         {
             if(Progression.EntryAct!=2)return "-";
             var c=new ForgeVillageCheckpoint{Tick=CurrentTick,Seed=_runSeed,Rng0=_rng.S0,Rng1=_rng.S1,X=PlayerXmm,Z=PlayerZmm,PreviousX=PrevPlayerXmm,PreviousZ=PrevPlayerZmm,DirectionX=_directionXbp,DirectionZ=_directionZbp,Health=PlayerHealth,Resource=Resource};
+            // A room of a village house is no place a save knows: inside one, the player is saved in front of its door.
+            var room=VillagePlaceLayout.RoomAt(PlayerXmm,PlayerZmm);
+            if(room!=VillagePlace.None){c.X=c.PreviousX=VillagePlaceLayout.LeaveXmm(room);c.Z=c.PreviousZ=VillagePlaceLayout.LeaveZmm(room);c.DirectionX=c.DirectionZ=0;}
             Array.Copy(Cooldowns,c.Cooldowns,4);
             foreach(var npc in Npcs)c.People[npc.Id]=new[]{npc.Xmm,npc.Zmm,npc.PreviousXmm,npc.PreviousZmm,npc.AttackCooldownTicks,npc.InteractionCooldownTicks,npc.PatrolIndex,(long)npc.Behavior,npc.Id};
             return c.Token();

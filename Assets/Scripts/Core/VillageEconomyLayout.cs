@@ -3,17 +3,23 @@ using System;
 namespace AreArpg.Core
 {
     /// <summary>Places of the village economy inside Aschengrenze.</summary>
-    public enum VillageSpot { Store = 0, Kitchen = 1, Woodyard = 2, Workbench = 3, Well = 4, Home = 5, Gate = 6, Board = 7, DryingRack = 8, GameRack = 9 }
+    public enum VillageSpot
+    {
+        Store = 0, Kitchen = 1, Woodyard = 2, Workbench = 3, Well = 4, Home = 5, Gate = 6, Board = 7, DryingRack = 8, GameRack = 9,
+        Field = 10, Smithy = 11, SickRoom = 12
+    }
 
     /// <summary>
     /// Where the work of the village is seen: for every place the point a resident stands at and the centre of its
     /// workplace, in millimetres like the village's building footprints. The workplaces are set dressing without
     /// collision; the Core's movement rules for the village are unchanged. Only the village board matters to the
-    /// rules: the player hands goods over within reach of it.
+    /// rules: the player hands goods over within reach of it. The smithy and the sick room are rooms of their own
+    /// (see <see cref="VillagePlaceLayout"/>): their points lie in the room, and from the village only the house
+    /// door is seen.
     /// </summary>
     public static class VillageEconomyLayout
     {
-        public const int SpotCount = 10;
+        public const int SpotCount = 13;
         /// <summary>The player reads the board and hands goods over within this distance of it.</summary>
         public const long BoardReachMm = 3500;
         /// <summary>A resident leaving for the forest or the mill is seen for this long on the way to the gate, and again arriving.</summary>
@@ -34,6 +40,12 @@ namespace AreArpg.Core
             /* Board      */   1500,  -6500,    2400,  -5500,
             /* DryingRack */  11100,  -9600,   11100,  -8400,
             /* GameRack   */  -9900,    500,  -10700,   1300,
+            // The field lies in the open north-west of the square. Its place is the first row, the rows run north from it.
+            /* Field      */ -11000,  11000,  -11000,  12500,
+            // Inside the smithy: the smith east of the anvil. Inside the sick room: the carer at the herb table.
+            /* Smithy     */ VillagePlaceLayout.FirstRoomXmm + VillagePlaceLayout.RoomSpacingMm - 1250, 1100,
+                             VillagePlaceLayout.FirstRoomXmm + VillagePlaceLayout.RoomSpacingMm - 2200, 1100,
+            /* SickRoom   */ VillagePlaceLayout.FirstRoomXmm + 2100, 0, VillagePlaceLayout.FirstRoomXmm + 3300, 0,
         };
 
         private static long At(VillageSpot spot, int column)
@@ -47,15 +59,29 @@ namespace AreArpg.Core
         public static long PlaceXmm(VillageSpot spot) { return At(spot, 2); }
         public static long PlaceZmm(VillageSpot spot) { return At(spot, 3); }
 
+        /// <summary>The house a place of work lies in, or none for the places out in the village.</summary>
+        public static VillagePlace HouseOf(VillageSpot spot)
+        {
+            return spot == VillageSpot.Smithy ? VillagePlace.Smithy : spot == VillageSpot.SickRoom ? VillagePlace.SickRoom : VillagePlace.None;
+        }
+
+        /// <summary>Where a resident bound for this place is seen in the village: at the place, or at the door of its house.</summary>
+        public static long VillageXmm(VillageSpot spot)
+        { VillagePlace house = HouseOf(spot); return house == VillagePlace.None ? StandXmm(spot) : VillagePlaceLayout.LeaveXmm(house); }
+        public static long VillageZmm(VillageSpot spot)
+        { VillagePlace house = HouseOf(spot); return house == VillagePlace.None ? StandZmm(spot) : VillagePlaceLayout.LeaveZmm(house); }
+
         /// <summary>The place a village work step is done at.</summary>
         public static VillageSpot SpotFor(VillageWork work)
         {
             switch (work)
             {
-                case VillageWork.MakeFrame: case VillageWork.MakeBow: case VillageWork.RepairAxe: case VillageWork.SmeltOre:
-                case VillageWork.ForgeFitting: case VillageWork.MakeBandage: return VillageSpot.Workbench;
+                case VillageWork.MakeFrame: case VillageWork.MakeBow: return VillageSpot.Workbench;
+                case VillageWork.RepairAxe: case VillageWork.SmeltOre: case VillageWork.ForgeFitting: return VillageSpot.Smithy;
+                case VillageWork.MakeBandage: return VillageSpot.SickRoom;
                 case VillageWork.Cook: case VillageWork.BakeBread: case VillageWork.TendHearth: return VillageSpot.Kitchen;
                 case VillageWork.SowField: case VillageWork.HarvestField: case VillageWork.MakeCompost: case VillageWork.DressSoil:
+                    return VillageSpot.Field;
                 case VillageWork.RepairShelter: case VillageWork.OfferWater: return VillageSpot.Home;
                 case VillageWork.TanHide: return VillageSpot.DryingRack;
                 case VillageWork.FetchWater: return VillageSpot.Well;
@@ -68,6 +94,7 @@ namespace AreArpg.Core
         /// Where a resident is seen in the village, derived from the Core state alone. False while away in the
         /// forest or at the mill, on the far part of the way, and asleep in the house. On the way out the resident
         /// is seen walking to the gate; coming home, from the gate to the wood yard where the load is put down.
+        /// Someone too hurt to work lies in the sick room.
         /// </summary>
         public static bool Seen(VillageResidentState resident, out VillageSpot spot)
         {
@@ -91,7 +118,8 @@ namespace AreArpg.Core
                 case VillageActivity.Eating: spot = VillageSpot.Store; return true;
                 case VillageActivity.Drinking: spot = VillageSpot.Well; return true;
                 case VillageActivity.Working: spot = SpotFor(resident.Work); return true;
-                case VillageActivity.Resting: case VillageActivity.Recovering: spot = VillageSpot.Home; return true;
+                case VillageActivity.Recovering: spot = VillageSpot.SickRoom; return true;
+                case VillageActivity.Resting: spot = VillageSpot.Home; return true;
                 default: spot = VillageSpot.Board; return true;
             }
         }

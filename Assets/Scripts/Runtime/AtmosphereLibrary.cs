@@ -19,8 +19,12 @@ namespace AreArpg.UnityClient
     /// <summary>Projection map shared by visible surface patches and footsteps; never changes collision.</summary>
     public static class AtmosphereSurfaces
     {
+        /// <summary>Region number of the rooms inside the village houses: boards under the feet, no weather.</summary>
+        public const int VillageRoom = 21;
+
         public static GroundSurface At(int act, long x, long z)
         {
+            if (act == VillageRoom) return GroundSurface.Wood;
             if (act == 8 || act == 11) return GroundSurface.Grass;
             if (act == 3 && System.Math.Abs(x) >= 6000 && System.Math.Abs(x) <= 10000 && System.Math.Abs(z) <= 18000)
                 return GroundSurface.Grass;

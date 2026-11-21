@@ -38,7 +38,14 @@ namespace AreArpg.EditorTools
         /// <summary>How strongly the fire shines; the glow picture is black everywhere else.</summary>
         public const float FireGlow = 2.6f;
 
-        public static string[] Keys() { return ArenaRuntime.VillageWorkplaces.Select(w => w.Key).ToArray(); }
+        /// <summary>Everything this tool builds: the workplaces, the field, the rooms of the houses and the signs at their doors.</summary>
+        public static ArenaRuntime.VillageWorkplace[] Models()
+        {
+            return ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms)
+                .Concat(ArenaRuntime.HouseSignKeys.Select(key => new ArenaRuntime.VillageWorkplace(VillageSpot.Home, key, 0f, 0f, 1f, 0.2f, 2.6f, false))).ToArray();
+        }
+
+        public static string[] Keys() { return Models().Select(w => w.Key).ToArray(); }
 
         public static bool Installed
         {
@@ -49,14 +56,15 @@ namespace AreArpg.EditorTools
         public static void Build()
         {
             if (!Installed)
-                throw new InvalidOperationException("Werkplatz-Modelle fehlen in " + Source + ". Zuerst Tools/Art/blender/village_work_props.py dorthin ausführen.");
-            Build(ArenaRuntime.VillageWorkplaces);
+                throw new InvalidOperationException("Werkplatz-Modelle fehlen in " + Source +
+                    ". Zuerst Tools/Art/blender/village_work_props.py und village_place_rooms.py dorthin ausführen.");
+            Build(Models());
         }
 
         internal static void BuildMissing()
         {
             if (!Installed) return;
-            var missing = ArenaRuntime.VillageWorkplaces.Where(w =>
+            var missing = Models().Where(w =>
                 AssetDatabase.LoadAssetAtPath<GameObject>(Visuals + w.Key + ".prefab") == null).ToArray();
             if (missing.Length > 0) Build(missing);
         }
@@ -134,7 +142,7 @@ namespace AreArpg.EditorTools
             foreach (MeshRenderer renderer in visual.GetComponentsInChildren<MeshRenderer>(true))
             {
                 renderer.sharedMaterial = material;
-                bool fire = renderer.name == ArenaRuntime.FireName;
+                bool fire = renderer.name == ArenaRuntime.FireName || renderer.name.StartsWith(ArenaRuntime.LampPrefix, StringComparison.Ordinal);
                 renderer.shadowCastingMode = fire ? ShadowCastingMode.Off : ShadowCastingMode.On;
                 renderer.receiveShadows = !fire;
                 renderer.lightProbeUsage = LightProbeUsage.Off; renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
@@ -158,6 +166,18 @@ namespace AreArpg.EditorTools
             {
                 Object.DestroyImmediate(visual);
                 throw new InvalidOperationException(workplace.Key + ": das Feuer fehlt.");
+            }
+            // The named parts the game switches: the beds' sleepers, the lamps, the three states of the crop.
+            int patients = visual.GetComponentsInChildren<Transform>(true).Count(t => t.name.StartsWith(ArenaRuntime.PatientPrefix, StringComparison.Ordinal));
+            int lamps = visual.GetComponentsInChildren<Transform>(true).Count(t => t.name.StartsWith(ArenaRuntime.LampPrefix, StringComparison.Ordinal));
+            int crops = visual.GetComponentsInChildren<Transform>(true).Count(t => t.name.StartsWith(ArenaRuntime.CropPrefix, StringComparison.Ordinal));
+            string lacking = workplace.House == VillagePlace.SickRoom && patients != ArenaRuntime.SickBeds ? patients + " Kranke, erwartet " + ArenaRuntime.SickBeds :
+                workplace.House != VillagePlace.None && lamps == 0 ? "keine Lampe" :
+                workplace.Spot == VillageSpot.Field && workplace.House == VillagePlace.None && crops != 3 ? crops + " Stände der Saat, erwartet 3" : null;
+            if (lacking != null)
+            {
+                Object.DestroyImmediate(visual);
+                throw new InvalidOperationException(workplace.Key + ": " + lacking + ".");
             }
             Bounds bounds = visual.GetComponentsInChildren<Renderer>(true).Select(r => r.bounds).Aggregate((a, b) => { a.Encapsulate(b); return a; });
             string prefab = Visuals + workplace.Key + ".prefab";

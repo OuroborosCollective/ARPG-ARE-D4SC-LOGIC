@@ -31,6 +31,7 @@
     <Compile Include="../../Assets/Scripts/Core/VillageServices.cs" Link="VillageServices.cs" />
     <Compile Include="../../Assets/Scripts/Core/VillageEconomy*.cs" LinkBase="Core" />
     <Compile Include="../../Assets/Scripts/Core/VillageWorkController.cs" Link="VillageWorkController.cs" />
+    <Compile Include="../../Assets/Scripts/Core/VillagePlaces.cs" Link="VillagePlaces.cs" />
     <Compile Include="../../Assets/Scripts/Core/NpcRelations.cs" Link="NpcRelations.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootCatalog.cs" Link="LootCatalog.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootItem.cs" Link="LootItem.cs" />

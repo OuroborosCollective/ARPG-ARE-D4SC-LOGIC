@@ -162,6 +162,8 @@ namespace AreArpg.Core
             var c=Progression.Companion;if(!CompanionPresent)return;
             c.PreviousXmm=c.Xmm;c.PreviousZmm=c.Zmm;
             if(c.Status!=CompanionStatus.Following||c.Health<=0||GameOver)return;
+            // While the player is inside a village house the companion waits where it stands, in front of the door.
+            if(InsidePlace!=VillagePlace.None)return;
             // A withdrawn companion stays off the field and does not fight until recovered.
             if(Progression.CompanionRecovery.Wounded)return;
             if(c.AttackCooldown>0)c.AttackCooldown--;if(c.AttackFlash>0)c.AttackFlash--;
