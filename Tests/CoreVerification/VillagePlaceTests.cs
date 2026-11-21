@@ -406,5 +406,22 @@ internal static class VillagePlaceTests
         }
         check(seen.Count == 2 && seen[VillageActivity.Recovering] == VillageSpot.SickRoom && seen[VillageActivity.Resting] == VillageSpot.Home,
             "the-hurt-lie-in-the-sick-room-the-tired-rest-at-home");
+
+        // What happens in the village reaches somebody in a house at its door: an attacker in front of the smithy
+        // stops the work inside, as it stopped the work at the bench before the smithy had a room.
+        var world = new ArenaSimulation(61, p, BigInteger.One, LootCatalog.Version1);
+        resident.Site = resident.Destination = VillageSite.Village; resident.TravelTicks = 0;
+        resident.Activity = VillageActivity.Working; resident.Work = VillageWork.SmeltOre;
+        var attacker = world.Npcs.First(n => n.Memory.Health > 0);
+        NpcBehavior calm = attacker.Behavior; long homeX = attacker.Xmm, homeZ = attacker.Zmm;
+        attacker.Xmm = VillagePlaceLayout.LeaveXmm(VillagePlace.Smithy) + 1500; attacker.Zmm = VillagePlaceLayout.LeaveZmm(VillagePlace.Smithy) + 1000;
+        bool safeWhileCalm = !world.VillageWorkUnsafe(resident);
+        attacker.Behavior = NpcBehavior.Attack;
+        bool unsafeAtTheDoor = world.VillageWorkUnsafe(resident);
+        attacker.Xmm = homeX; attacker.Zmm = homeZ;
+        bool safeFarAway = Math.Abs(homeX - VillagePlaceLayout.LeaveXmm(VillagePlace.Smithy)) + Math.Abs(homeZ - VillagePlaceLayout.LeaveZmm(VillagePlace.Smithy)) < 9000 ||
+            !world.VillageWorkUnsafe(resident);
+        attacker.Behavior = calm;
+        check(safeWhileCalm && unsafeAtTheDoor && safeFarAway, "an-attacker-at-the-house-door-stops-the-work-inside");
     }
 }

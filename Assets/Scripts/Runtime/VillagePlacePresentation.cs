@@ -22,6 +22,9 @@ namespace AreArpg.UnityClient
         /// <summary>Region number the atmosphere gets inside a house: no ash in the air, boards under the feet.</summary>
         public const int VillageRoomAtmosphere = AtmosphereSurfaces.VillageRoom;
         private const float RoomWall = 2.8f;
+        private bool _villageKept, _villageKeptFog;
+        private CameraClearFlags _villageKeptClear;
+        private Color _villageKeptBackground;
         private static readonly Color RoomAmbient = new Color(0.33f, 0.285f, 0.25f), RoomVoid = new Color(0.016f, 0.014f, 0.015f);
 
         /// <summary>
@@ -73,11 +76,29 @@ namespace AreArpg.UnityClient
         private void ShowVillagePlace(VillagePlace left)
         {
             VillagePlace now = _game.InsidePlace;
+            // What the room takes away from the picture of the village is kept, and put back on the way out even
+            // where no sky is drawn that would set it again.
+            if (now != VillagePlace.None && left == VillagePlace.None)
+            {
+                _villageKept = true; _villageKeptFog = RenderSettings.fog;
+                if (_camera != null) { _villageKeptClear = _camera.clearFlags; _villageKeptBackground = _camera.backgroundColor; }
+            }
             BuildChapterScenery();
             BuildPlacedLayer();
             BuildVillageEconomy();
             if (_atmosphere != null) _atmosphere.EnterRegion(now != VillagePlace.None ? VillageRoomAtmosphere : _game.CurrentAreaId);
-            if (now == VillagePlace.None) ApplyEntryLighting();
+            if (now == VillagePlace.None)
+            {
+                // The torches are chapter scenery of the village; the room took them down.
+                if (_game.IsVillage) BuildVillageLights();
+                if (_villageKept)
+                {
+                    RenderSettings.fog = _villageKeptFog;
+                    if (_camera != null) { _camera.clearFlags = _villageKeptClear; _camera.backgroundColor = _villageKeptBackground; }
+                    _villageKept = false;
+                }
+                ApplyEntryLighting();
+            }
             _regionFade = 1f;
             float x = _game.PlayerXmm / 1000f, z = _game.PlayerZmm / 1000f;
             _hero.position = new Vector3(x, 1.05f + GroundHeight(x, z) + WalkSurfaceHeight(x, z), z);

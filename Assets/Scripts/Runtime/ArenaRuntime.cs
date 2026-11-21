@@ -1258,7 +1258,8 @@ namespace AreArpg.UnityClient
         public static string DisplayChapterName(ArenaSimulation game)
         {
             if (game == null) throw new ArgumentNullException(nameof(game));
-            return game.IsVillage ? "Die Aschengrenze" : game.ChapterName;
+            // In a house of the village the Core names the room; out in the village the display keeps its short name.
+            return game.IsVillage && game.InsidePlace == VillagePlace.None ? "Die Aschengrenze" : game.ChapterName;
         }
 
         /// <summary>Keep defeat instructions accurate for touch and keyboard devices.</summary>

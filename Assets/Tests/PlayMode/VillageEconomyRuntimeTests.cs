@@ -193,7 +193,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(Mathf.Min(Economy.Commons(VillageGood.Wood), 12), Units(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Woodyard), VillageGood.Wood).Count(u => u.gameObject.activeSelf));
             Assert.Greater(Economy.Commons(VillageGood.Wood), 0);
             Assert.AreEqual(2, Economy.Commons(VillageGood.Metal));
-            Assert.IsEmpty(Units(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Workbench), VillageGood.Metal), "The bench no longer shows the smithy's metal");
+            Assert.IsEmpty(Units(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Workbench), VillageGood.Metal).Where(u => u.gameObject.activeSelf),
+                "The bench no longer shows the smithy's metal");
             foreach (VillageResidentState resident in Economy.Residents) Assert.IsNotNull(Figure(resident), "Every resident has a figure");
 
             // 1. What is shown is not a stock: show everything, hide everybody, light the fire - the Core stays as it is.

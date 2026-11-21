@@ -264,7 +264,8 @@ namespace AreArpg.Core
             if (!IsVillage || !VillageEconomyLayout.Seen(resident, out var spot)) return false;
             if (!resident.Walking && resident.Work != VillageWork.None)
                 spot = VillageEconomyLayout.SpotFor(resident.Work);
-            long x = VillageEconomyLayout.StandXmm(spot), z = VillageEconomyLayout.StandZmm(spot);
+            // Somebody in a house is reached at its door: the rooms themselves lie far outside the village.
+            long x = VillageEconomyLayout.VillageXmm(spot), z = VillageEconomyLayout.VillageZmm(spot);
             foreach (var npc in Npcs)
                 if (npc.Memory.Health > 0 && npc.Behavior == NpcBehavior.Attack &&
                     DistanceSquared(npc.Xmm, npc.Zmm, x, z) <= FixedMath.Square(4500) && CombatSight(npc.Xmm, npc.Zmm, x, z))
@@ -284,7 +285,7 @@ namespace AreArpg.Core
                     forge.Archive.Perceive(npc.Mind.Id, gift.Id, KnowledgeOrigin.Witnessed, forge.ProcessedTicks, details);
             foreach (var resident in Progression.Economy.Residents)
                 if (!resident.Walking && VillageEconomyLayout.Seen(resident, out var spot) &&
-                    InVillageContact(VillageEconomyLayout.StandXmm(spot), VillageEconomyLayout.StandZmm(spot), PlayerXmm, PlayerZmm))
+                    InVillageContact(VillageEconomyLayout.VillageXmm(spot), VillageEconomyLayout.VillageZmm(spot), PlayerXmm, PlayerZmm))
                     forge.Archive.Perceive(resident.Identity, gift.Id, KnowledgeOrigin.Witnessed, forge.ProcessedTicks, details);
         }
 
@@ -333,7 +334,7 @@ namespace AreArpg.Core
                         TellSupplyNews(forge.Archive, teller.Mind, listener.Mind, forge.ProcessedTicks);
                 foreach (var neighbor in Progression.Economy.Residents)
                     if (!neighbor.Walking && neighbor.Work == VillageWork.None && VillageEconomyLayout.Seen(neighbor, out var spot) &&
-                        InVillageContact(VillageEconomyLayout.StandXmm(spot), VillageEconomyLayout.StandZmm(spot), listener.Xmm, listener.Zmm))
+                        InVillageContact(VillageEconomyLayout.VillageXmm(spot), VillageEconomyLayout.VillageZmm(spot), listener.Xmm, listener.Zmm))
                     {
                         var neighborMind = forge.Archive.Get(neighbor.Identity);
                         TellSupplyNews(forge.Archive, neighborMind, listener.Mind, forge.ProcessedTicks);
