@@ -96,7 +96,6 @@ namespace AreArpg.Core
             bool playerPerceived=playerDistance<=FixedMath.Square(RattlerEncounter.HearingRadius)&&((!r.Sneaking&&moved)||playerDistance<=FixedMath.Square(RattlerEncounter.SmellRadius));
             if(playerPerceived)HearRattlerNoise();
             PerceiveRattlerCompanion(playerPerceived,playerDistance);
-            bool pursue=r.MemoryTicks==0||ForgeCreatureMayAttack(m,r.TargetX,r.TargetZ);
             if (m.BossWindupTicks > 0)
             {
                 m.BossWindupTicks--;
@@ -104,15 +103,15 @@ namespace AreArpg.Core
                 {
                     if (DistanceSquared(PlayerXmm, PlayerZmm, r.StrikeX, r.StrikeZ) <= FixedMath.Square(RattlerEncounter.StrikeRadius) &&
                         (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm)))
-                        ReceiveDamage(280);
+                        ReceiveCreatureHit(m,280,committed:true);
                     var companion=Progression.Companion;
-                    if(CompanionPresent&&companion.Health>0&&DistanceSquared(companion.Xmm,companion.Zmm,r.StrikeX,r.StrikeZ)<=FixedMath.Square(RattlerEncounter.StrikeRadius)&&CombatSight(m.Xmm,m.Zmm,companion.Xmm,companion.Zmm))DamageCompanion(m,280);
+                    if(CompanionPresent&&companion.Health>0&&DistanceSquared(companion.Xmm,companion.Zmm,r.StrikeX,r.StrikeZ)<=FixedMath.Square(RattlerEncounter.StrikeRadius)&&CombatSight(m.Xmm,m.Zmm,companion.Xmm,companion.Zmm))DamageCompanion(m,280,committed:true);
                     m.AttackCooldownTicks = 14;
                 }
                 return;
             }
             // A lost trail returns to the authored feeding place, never to an unseen moving player.
-            if(r.MemoryTicks>0&&!pursue)return;
+            if(r.MemoryTicks>0&&!ForgeCreatureMayAttack(m,r.TargetX,r.TargetZ))return;
             if (r.MemoryTicks == 0) { r.TargetX = 0; r.TargetZ = InDungeon ? 17000 : 8000; }
             long dx = r.TargetX - m.Xmm, dz = r.TargetZ - m.Zmm;
             long d2 = dx * dx + dz * dz;

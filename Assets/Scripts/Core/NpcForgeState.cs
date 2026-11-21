@@ -23,14 +23,22 @@ namespace AreArpg.Core
             Archive.Spawn("ilyan","traveler",Registry);Archive.Spawn("mara","merchant",Registry);Archive.Spawn("dorn","guard",Registry);
         }
         internal NpcMind Ensure(string id,string archetype) => Archive.Get(id)??Archive.Spawn(id,archetype,Registry);
-        internal MemoryEvent Record(int id,NpcAction action,bool victimAware,int[] witnesses,string context)
+        /// <summary>Stable authoring entry for additional residents. Unregistered roles inherit the safe controller.</summary>
+        public NpcMind BindResident(string stableId,string role)
+        {
+            if (string.IsNullOrEmpty(stableId)) throw new ArgumentException(nameof(stableId));
+            return Ensure("resident."+stableId,role);
+        }
+        internal MemoryEvent Record(int id,NpcAction action,bool victimAware,int[] witnesses,string context,string place)
         {
             var kind=action==NpcAction.Help?MemoryKind.Help:action==NpcAction.Greet?MemoryKind.Greeting:action==NpcAction.Attack?MemoryKind.Assault:MemoryKind.Theft;
             var impact=action==NpcAction.Help?new RelationshipChange(trust:1200,gratitude:2000,familiarity:500):
                 action==NpcAction.Greet?new RelationshipChange(familiarity:50):new RelationshipChange(trust:-2000,fear:1500,mistrust:2000,hostility:2500,familiarity:500);
             var ev=Archive.Append(kind,"player",Identity(id),ProcessedTicks,action==NpcAction.Greet?100:action==NpcAction.Help?5000:8000,false,context,impact);
-            if(victimAware)Archive.Learn(Identity(id),ev.Id,KnowledgeOrigin.Self,Identity(id),ProcessedTicks);
-            foreach(int witness in witnesses)if(witness!=id)Archive.Learn(Identity(witness),ev.Id,KnowledgeOrigin.Witnessed,Identity(witness),ProcessedTicks,6000);
+            var words = action == NpcAction.Greet ? null : new EpisodeDetails(action == NpcAction.Help ? "food" : "harm",
+                context.StartsWith("camp.",StringComparison.Ordinal) ? "camp" : place, context);
+            if(victimAware)Archive.Perceive(Identity(id),ev.Id,KnowledgeOrigin.Self,ProcessedTicks,words);
+            foreach(int witness in witnesses)if(witness!=id)Archive.Perceive(Identity(witness),ev.Id,KnowledgeOrigin.Witnessed,ProcessedTicks,words,6000);
             return ev;
         }
         internal string Token() => "1:"+ProcessedTicks.ToString(CultureInfo.InvariantCulture)+":"+Archive.Save()+":"+(Capture?.Invoke()??Checkpoint);
@@ -42,7 +50,7 @@ namespace AreArpg.Core
             if(archive.Minds.Count<3||archive.Minds.Any(m=>!ValidIdentity(m))||
                 archive.Get("road.traveler")!=null&&archive.Get("road.traveler").Controller.ArchetypeId!="traveler"||
                 archive.Get("hunter")!=null&&archive.Get("hunter").Controller.ArchetypeId!="companion"||archive.Get("ilyan")?.Controller.ArchetypeId!="traveler"||archive.Get("mara")?.Controller.ArchetypeId!="merchant"||archive.Get("dorn")?.Controller.ArchetypeId!="guard"||
-                archive.Acquisitions.Any(k=>k.LearnedTick>ticks)||archive.Events.Any(e=>e.Tick>ticks)||archive.Migrations.Any(m=>m.Tick>ticks)||archive.Minds.Any(m=>m.DecisionState.LastTick>ticks))return false;
+                archive.Acquisitions.Any(k=>k.LearnedTick>ticks)||archive.Events.Any(e=>e.Tick>ticks)||archive.Migrations.Any(m=>m.Tick>ticks)||archive.Minds.Any(m=>m.DecisionState.LastTick>ticks||!m.Cognition.IsCurrentAt(ticks)))return false;
             if(!ForgeVillageCheckpoint.TryRead(f[3],out _))return false;
             state=new NpcForgeState{ProcessedTicks=ticks,Archive=archive,Checkpoint=f[3]};return true;
         }

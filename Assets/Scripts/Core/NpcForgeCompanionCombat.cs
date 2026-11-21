@@ -33,13 +33,15 @@ namespace AreArpg.Core
             {enemy.AttackCooldownTicks=enemy.Kind>=2?12:17;DamageCompanion(enemy,enemy.Kind>=2?105:enemy.Kind==1?60:40);}
             return true;
         }
-        private void DamageCompanion(MonsterState source,int amount)
+        private void DamageCompanion(MonsterState source,int amount,bool committed=false)
         {
             var c=Progression.Companion;if(!CompanionPresent||c.Health<=0||amount<=0)return;
             // A withdrawn companion is off the field and takes no further damage.
             if(Progression.CompanionRecovery.Wounded)return;
             int applied=Math.Max(1,(int)((long)amount*(10000-Math.Min(3500,CompanionBonus(WeaponAffix.Ward)+(CompanionShield?.Definition.BasePower??0)))/10000));
+            int priorHealth=c.Health;
             c.Health=Math.Max(0,c.Health-applied);
+            LearnCreatureHit(source,priorHealth-c.Health,committed);
             if(c.Health>0)
             {
                 // A non-lethal defeat withdraws the companion for one to two game days instead of killing them.

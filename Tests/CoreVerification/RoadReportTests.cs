@@ -17,7 +17,7 @@ internal static class RoadReportTests
         CheckUnwitnessedDeath(check);
         CheckLegacyWitness(check);
         CheckRefutedClaimAtMeeting(check);
-        CheckReplay(check, Restore(checkpoint), "NMF1");
+        CheckReplay(check, Restore(checkpoint), "NMF4");
 
         // Exercise an actual NMF2 save with an admitted non-default guard controller.
         var registry = NpcForgeState.Registry;
@@ -31,7 +31,15 @@ internal static class RoadReportTests
         }
         check(village.TryMigrateNpcController("dorn", next.ControllerId, next.Version, next.Hash),
             "report-nmf2-admitted-migration-before-meeting");
-        CheckReplay(check, village, "NMF2");
+        CheckReplay(check, village, "NMF4");
+        // Complete real pre-feature checkpoints from c600181d, one with the registered guard migration.
+        foreach (string format in new[] { "NMF1", "NMF2" })
+        {
+            var historical = System.IO.File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, "Fixtures", "road-before-meeting-" + format + ".txt"));
+            var restored = Restore(historical);
+            check(restored.Progression.SaveString() == historical, "historical-road-checkpoint-" + format);
+            CheckReplay(check, restored, format);
+        }
     }
 
     private static ArenaSimulation VillageBeforeMeeting(Action<bool, string> check)

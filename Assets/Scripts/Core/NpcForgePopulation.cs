@@ -14,6 +14,8 @@ namespace AreArpg.Core
         {
             string id=mind.Id,role=mind.Controller.ArchetypeId;
             if(id=="ilyan"||id=="mara"||id=="dorn"||id=="hunter"||id=="road.traveler")return true;
+            if(id=="orsel"||id=="orkel")return role=="healer";
+            if(id.StartsWith("resident.",StringComparison.Ordinal)&&id.Length>"resident.".Length)return true;
             if(id=="mill.patient.0"||id=="mill.patient.1"||id=="mill.patient.2")return role=="villager";
             if(id=="bear.cub.0"||id=="bear.cub.1"||id=="bear.cub.2")return role=="animal";
             var parts=id.Split('.');
@@ -48,6 +50,8 @@ namespace AreArpg.Core
         {
             foreach(var enemy in Monsters)EnsureCreatureMind(enemy);
             var forge=Progression.Social.Forge;
+            if(Progression.EntryAct==4)forge.Ensure("orsel","healer");
+            if(Progression.Village.OrkelQuestStage>=3)forge.Ensure("orkel","healer");
             if(Progression.EntryAct==4)for(int i=3-HungerShelterPatients;i<3;i++)forge.Ensure("mill.patient."+i.ToString(CultureInfo.InvariantCulture),"villager");
             if(Progression.EntryAct==9)for(int i=0;i<3;i++)forge.Ensure("bear.cub."+i.ToString(CultureInfo.InvariantCulture),"animal");
         }
@@ -56,7 +60,23 @@ namespace AreArpg.Core
             EnsureCreatureMind(enemy);var forge=Progression.Social.Forge;
             if(enemy.Mind==null||enemy.IsDead||enemy.Mind.Known.Any(k=>k.Event.Kind==MemoryKind.Assault&&k.Event.Actor==attacker))return;
             var e=forge.Archive.Append(MemoryKind.Assault,attacker,enemy.Mind.Id,forge.ProcessedTicks,8000,false,"combat.actual-hit",new RelationshipChange(hostility:10000,fear:1000));
-            forge.Archive.Learn(enemy.Mind.Id,e.Id,KnowledgeOrigin.Self,enemy.Mind.Id,forge.ProcessedTicks);
+            forge.Archive.Perceive(enemy.Mind.Id,e.Id,KnowledgeOrigin.Self,forge.ProcessedTicks,new EpisodeDetails("harm","","actual-hit"));
+        }
+        private void LearnCreatureHit(MonsterState enemy, int damage, bool committed = false)
+        {
+            var mind = enemy.Mind;
+            var forge = Progression.Social.Forge;
+            if (mind == null || forge == null || damage <= 0) return;
+            if (committed && forge.ProcessedTicks > mind.DecisionState.LastTick)
+                mind.Cognition.SettleCommittedOutcome(ForgeAction.Attack, forge.ProcessedTicks, damage);
+            else
+                mind.Cognition.RecordOutcome(ForgeAction.Attack, forge.ProcessedTicks, damage);
+        }
+        private void ReceiveCreatureHit(MonsterState enemy, int amount, bool committed = false)
+        {
+            int prior = PlayerHealth;
+            ReceiveDamage(amount);
+            LearnCreatureHit(enemy, prior - PlayerHealth, committed);
         }
         private bool ForgeCreatureMayAttack(MonsterState enemy,long targetX,long targetZ)
         {
@@ -66,12 +86,15 @@ namespace AreArpg.Core
             if(enemy.Kind<=1&&injury>=7500)legal|=ActionSet.Of(ForgeAction.Flee);
             var relation=enemy.Mind.RelationshipTo("player");
             var frame=new ObservationFrame(legal,new[]{new Observation(Feature.Danger,10000),new Observation(Feature.Hostility,10000),new Observation(Feature.Injury,injury),new Observation(Feature.Fear,relation.Fear)});
-            var action=UtilityEvaluator.Decide(enemy.Mind.Controller,frame,enemy.Mind.DecisionState,Progression.Social.Forge.ProcessedTicks).Action;
+            var action=UtilityEvaluator.Decide(enemy.Mind.Controller,frame,enemy.Mind.DecisionState,Progression.Social.Forge.ProcessedTicks,cognition:enemy.Mind.Cognition).Action;
             if(action==ForgeAction.Flee)
             {
+                long before=DistanceSquared(enemy.Xmm,enemy.Zmm,targetX,targetZ);
                 long dx=enemy.Xmm-targetX,dz=enemy.Zmm-targetZ;if(dx==0&&dz==0)dx=1000;
                 long distance=Math.Max(1,FixedMath.IntegerSqrt(dx*dx+dz*dz)),nx=enemy.Xmm+dx*MonsterSpeedMmPerTick/distance,nz=enemy.Zmm+dz*MonsterSpeedMmPerTick/distance;
                 if(CanStand(nx,nz)){enemy.Xmm=nx;enemy.Zmm=nz;}else if(CanStand(nx,enemy.Zmm))enemy.Xmm=nx;else if(CanStand(enemy.Xmm,nz))enemy.Zmm=nz;
+                if(DistanceSquared(enemy.Xmm,enemy.Zmm,targetX,targetZ)>before)
+                    enemy.Mind.Cognition.RecordOutcome(action,Progression.Social.Forge.ProcessedTicks,1);
             }
             return action==ForgeAction.Attack;
         }

@@ -1,0 +1,57 @@
+{
+  "source_commit": "d5d4ee20685110b36de3c82e87378cf5e536c3f3",
+  "source_tree": "38ece02da10455706b721d83d627a57647ac41db",
+  "unity_version": "6000.6.8f1",
+  "suites": {
+    "playmode": {
+      "result": "Passed",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "finished_utc": "2026-11-21 02:33:56Z",
+      "xml_sha256": "0a5d9e22eb69f08de09f72048357b05eb41df6d0fae671b156ee87a250631a1d",
+      "cases": [
+        "ArrivalSceneOwnsAllInputUntilItEnds",
+        "AskingIlyanIsTheDecisionAndRemovesTheRationPanel",
+        "CompanionShortcutLeavesNpcAttackInputAvailable",
+        "ExplicitVillageRestartRevivesPlayerWhileDeadSaveAndNpcHistoryRemainValid",
+        "IlyanRemembersActualHelpAndReactsAfterNativeSaveReload",
+        "PersonalMemoryChangesAnActualGreetingAndSurvivesThreeDays",
+        "RoadTravelerReportsTheWitnessedDeathOnlyAtAVillageMeeting",
+        "StealingFromMaraIsTheDecisionAndRemovesTheRationPanel",
+        "ActualExampleRemembersHelpRestoresSaveAndRejectsOccludedWitness",
+        "RenderingCannotAdvanceCanonicalSampleTicks",
+        "SightLineMaterialTracksActualClearAndOccludedSight"
+      ]
+    },
+    "editmode": {
+      "result": "Passed",
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "finished_utc": "2026-11-21 02:33:19Z",
+      "xml_sha256": "59fb86251a93cdb9f8abb52e898e8abcf6c1e476a233d9729e8e18d847fa7bed",
+      "cases": [
+        "AutomaticGameBootstrapOnlyOwnsTheTwoGameScenes(\"Assets/AshenCrypt/MemoryForge/Samples/RememberingVillage/RememberingVillage.unity\",False)",
+        "EditableConfigurationRequiresRealAdmissionAndRejectsChangedBytes",
+        "FailingRegressionCannotSealAConfiguration",
+        "ACommittedActionCanSettleOnceAfterReloadWithoutAdvancingTheDecision",
+        "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(1,False)",
+        "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(2,False)",
+        "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(1,True)",
+        "ChecksummedMalformedArchiveReturnsFalseWithoutThrowing(2,True)",
+        "DirectConfirmationCannotAdoptHearsayDetailsAndBreakReload",
+        "ExplicitMigrationPreservesHistoricalMemoryAndExactVersion",
+        "HardPermissionsAreAppliedBeforeWeightedAndNeuralScores",
+        "IncludedExampleSceneKeepsBuildTimeShaderDependencies",
+        "IncludedRegistryAssetsRebuildTheExactAdmittedDefaultControllers",
+        "IndividualKnowledgeDeduplicatesAndRumorsStayUnconfirmed",
+        "WrongHashesAndFailedRegressionReceiptsAreRejected"
+      ]
+    }
+  },
+  "screenshot": {
+    "name": "forge-ilyan-memory-after-load.png",
+    "sha256": "a8c73468546080f4d30980f9f5671f9622fa2d1c071b8804b05e315e5c89e03f"
+  }
+}

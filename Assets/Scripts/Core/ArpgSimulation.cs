@@ -450,7 +450,21 @@ namespace AreArpg.Core
                 result.Speech = action == NpcAction.Greet ? NpcSpeech.Greeting(npc) :
                     action == NpcAction.Help ? SpeechLine.ThankHelp :
                     action == NpcAction.Attack ? SpeechLine.Hurt : SpeechLine.Robbed;
-                if (action == NpcAction.Greet) result.FollowupSpeech = NpcSpeech.Rumor(Progression.Social, id);
+                if (action == NpcAction.Greet)
+                {
+                    result.FollowupSpeech = NpcSpeech.Rumor(Progression.Social, id);
+                    if (result.FollowupSpeech == SpeechLine.None && npc.Mind != null)
+                    {
+                        var forge = Progression.Social.Forge;
+                        var memory = npc.Mind.Cognition.SocialRecall("player", forge.ProcessedTicks);
+                        if (memory != null)
+                        {
+                            forge.Archive.Recollect(npc.Mind.Id, memory.EventId, forge.ProcessedTicks);
+                            result.FollowupSpeech = NpcSpeech.Personal(memory);
+                            result.Text += " " + NpcSpeech.Text(result.FollowupSpeech);
+                        }
+                    }
+                }
             }
             npc.InteractionCooldownTicks = 10;
             RememberNpcAction(npc,action,wasAware,action==NpcAction.Help?"provisions":"encounter");
@@ -572,7 +586,12 @@ namespace AreArpg.Core
             Progression.Crafting.AdvanceTick();
             Progression.CompanionRecovery.AdvanceTick(Progression.Companion);
             Progression.Village.AdvanceTick();
-            if(Progression.Social.Forge!=null)Progression.Social.Forge.ProcessedTicks=checked(Progression.Social.Forge.ProcessedTicks+1);
+            var forge = Progression.Social.Forge;
+            if (forge != null)
+            {
+                forge.ProcessedTicks = checked(forge.ProcessedTicks + 1);
+                forge.Archive.AdvancePersonalTime(forge.ProcessedTicks);
+            }
             PrevPlayerXmm = PlayerXmm;
             PrevPlayerZmm = PlayerZmm;
             foreach (MonsterState monster in Monsters)
@@ -607,13 +626,16 @@ namespace AreArpg.Core
                     if (enemy.BossWindupTicks == 0 &&
                         CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm) &&
                         DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(MonsterRoles.ImpactRadiusMm(enemy.Role)))
-                        ReceiveDamage(MonsterRoles.AttackDamage(enemy.Role));
+                        ReceiveCreatureHit(enemy, MonsterRoles.AttackDamage(enemy.Role), committed: true);
                     continue;
                 }
-                if(StepMonsterAgainstCompanion(enemy))continue;
+                // A committed pulse already has a target and saved decision. Do not
+                // replace its frame or start another attack before the outcome settles.
+                bool committedPulse=ChapterId==2 && enemy.Kind==3 && enemy.BossWindupTicks>0;
+                if(!committedPulse && StepMonsterAgainstCompanion(enemy))continue;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
                 if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
-                if(!ForgeCreatureMayAttack(enemy,PlayerXmm,PlayerZmm))continue;
+                if(!committedPulse && !ForgeCreatureMayAttack(enemy,PlayerXmm,PlayerZmm))continue;
                 if (ChapterId == 2 && enemy.Kind == 3)
                 {
                     // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.
@@ -622,7 +644,7 @@ namespace AreArpg.Core
                         enemy.BossWindupTicks--;
                         if (enemy.BossWindupTicks == 0 &&
                             DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(4000))
-                            ReceiveDamage(190);
+                            ReceiveCreatureHit(enemy, 190, committed: true);
                         continue;
                     }
                     if (enemy.BossPulseCooldownTicks == 0 && distance2 <= FixedMath.Square(10000))
@@ -655,7 +677,7 @@ namespace AreArpg.Core
                 {
                     int damage = enemy.Role != MonsterRole.None ? MonsterRoles.AttackDamage(enemy.Role) : (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40));
                     enemy.AttackCooldownTicks = enemy.Role != MonsterRole.None ? MonsterRoles.AttackCooldownTicks(enemy.Role) : (enemy.Kind >= 2 ? 12 : 17);
-                    ReceiveDamage(damage);
+                    ReceiveCreatureHit(enemy, damage);
                     if (GameOver) break;
                 }
             }

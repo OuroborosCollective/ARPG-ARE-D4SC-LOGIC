@@ -223,7 +223,7 @@ namespace AreArpg.Core
             if (disposition == NpcDisposition.Hostile) return "Bleib weg. Deine Taten sind nicht vergessen.";
             if (disposition == NpcDisposition.Wary) return "Ich erinnere mich an deinen Uebergriff. Halte Abstand.";
             if(Mind!=null&&Mind.RelationshipTo("player").Gratitude>0)
-                return "Deinen Proviant und deine Hilfe habe ich nicht vergessen. Es ist gut, dich wiederzusehen.";
+                return "Deine Hilfe habe ich nicht vergessen. Es ist gut, dich wiederzusehen.";
             if (disposition == NpcDisposition.Friendly) return "Da bist du wieder. Deinen Beistand vergesse ich nicht.";
             return Memory.Meetings > 1 ? "Wir sind uns schon begegnet. Was fuehrt dich her?" : "Sei gegruesst, Reisender.";
         }

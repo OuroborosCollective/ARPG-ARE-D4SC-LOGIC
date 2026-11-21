@@ -26,6 +26,8 @@ namespace AshenCrypt.MemoryForge
                     text.Append(',').Append(ContractText.Number(i)).Append('=').Append(ContractText.Number(value)).Append('*').Append(ContractText.Number(weight)).Append("->").Append(ContractText.Number(FixedPoint.Multiply(weight,value)));
                 }
                 if(_neural.HasValue)text.Append(",neural=").Append(ContractText.Number(_neural.Value));
+                int personal=_observations.PersonalScore(Action);
+                if(personal!=0)text.Append(",personal=").Append(ContractText.Number(personal));
                 return text.ToString();
             }
         }
@@ -69,6 +71,7 @@ namespace AshenCrypt.MemoryForge
         public ulong EvaluatedTick { get; internal set; }
         public ObservationFrame LastObservations { get; internal set; }
         public Decision LastDecision { get; internal set; }
+        internal ObservationFrame ActiveObservation { get; set; }
     }
     public static class UtilityEvaluator
     {
@@ -81,7 +84,7 @@ namespace AshenCrypt.MemoryForge
             {
                 bool legal=ActionSet.Contains(observations.LegalActions&controller.Archetype.AllowedActions,rule.Action);
                 if(!legal){scores.Add(new ActionScore(rule.Action,false,0,null,null));continue;}
-                int score=rule.BasePriority;
+                int score=checked(rule.BasePriority+observations.PersonalScore(rule.Action));
                 for(int i=0;i<(int)Feature.Count;i++)
                 {
                     int weight=rule.Weight((Feature)i);if(weight==0)continue;
@@ -94,12 +97,14 @@ namespace AshenCrypt.MemoryForge
             }
             return new Decision(chosen,chosen==ForgeAction.None?0:maximum,new ReadOnlyCollection<ActionScore>(scores),chosen==ForgeAction.None?"no-legal-action":"highest-utility");
         }
-        public static Decision Decide(ControllerArtifact controller,ObservationFrame observations,DecisionState state,ulong tick,bool eventChanged=false)
+        public static Decision Decide(ControllerArtifact controller,ObservationFrame observations,DecisionState state,ulong tick,bool eventChanged=false,PersonalCognition cognition=null)
         {
             if(state==null)throw new ArgumentNullException(nameof(state));if(tick<state.LastTick)throw new ArgumentException("Simulation tick moved backwards");
             bool stillLegal=ActionSet.Contains(observations.LegalActions&controller.Archetype.AllowedActions,state.Action);
-            state.LastTick=tick;
+            state.LastTick=tick;state.ActiveObservation=observations;
             if(stillLegal&&tick<state.NextDecisionTick&&!eventChanged&&state.LastDecision!=null)return state.LastDecision;
+            var personal=cognition?.Project(observations);
+            if(personal!=null)observations=new ObservationFrame(observations,personal);
             var candidate=Evaluate(controller,observations);
             if(stillLegal&&candidate.Action!=state.Action)
             {

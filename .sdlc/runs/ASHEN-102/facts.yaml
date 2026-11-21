@@ -1,0 +1,15 @@
+schema_version: 1
+run_id: ASHEN-102
+producer: pm
+revision: 1
+facts:
+  - id: FACT-001
+    subject: npc.memory.detail_horizon
+    relation: equals
+    value: {in_game_days: 3}
+    status: approved
+  - id: FACT-002
+    subject: npc.memory.execution
+    relation: equals
+    value: {local: true, remote_model: false}
+    status: approved
