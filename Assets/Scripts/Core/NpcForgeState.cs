@@ -9,7 +9,7 @@ namespace AreArpg.Core
     /// <summary>Owned by the existing SocialLedger. No independent clock or world simulation.</summary>
     public sealed partial class NpcForgeState
     {
-        internal static readonly NpcArchetypeControllerRegistry Registry=ForgeDefaults.CreateRegistry();
+        internal static readonly NpcArchetypeControllerRegistry Registry=VillageWorkController.CreateRegistry();
         public MemoryArchive Archive { get; private set; }
         public ulong ProcessedTicks { get; internal set; }
         public static System.Collections.Generic.IReadOnlyList<ControllerArtifact> ControllerCatalog => Registry.Versions;

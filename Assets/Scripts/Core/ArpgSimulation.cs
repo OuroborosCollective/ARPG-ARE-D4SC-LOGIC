@@ -606,6 +606,7 @@ namespace AreArpg.Core
             StepFreight();
             CalmVillagers();
             StepNpcs();
+            StepVillageEconomy();
             StepRoadEncounter();
             StepCompanion();
             StepRattler();
@@ -864,6 +865,7 @@ namespace AreArpg.Core
                 Mix(ref h, 1); Mix(ref h, _lootCatalog.StableHash); Mix(ref h, _runSeed);
                 foreach (LootState loot in GroundLoot) Mix(ref h, loot.Item == null ? 0 : loot.Item.StableHash);
             }
+            MixEconomy(ref h);
             return h;
         }
 

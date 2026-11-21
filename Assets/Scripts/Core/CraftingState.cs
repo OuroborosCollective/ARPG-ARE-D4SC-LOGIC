@@ -170,6 +170,24 @@ namespace AreArpg.Core
             return true;
         }
 
+        /// <summary>
+        /// Take goods out of the pack for the village commons. Fails without any change when the pack holds too
+        /// little or the good is not one the player carries. One ash-iron ore counts as one unit of metal.
+        /// </summary>
+        internal bool TakeForVillage(VillageGood good, int count)
+        {
+            if (count <= 0) return false;
+            switch (good)
+            {
+                case VillageGood.Wood: if (!Has(MaterialKind.Holz, count)) return false; Take(MaterialKind.Holz, count); return true;
+                case VillageGood.ThornBerry: if (!Has(MaterialKind.Dornbeere, count)) return false; Take(MaterialKind.Dornbeere, count); return true;
+                case VillageGood.Metal: if (!Has(MaterialKind.Ascheisen, count)) return false; Take(MaterialKind.Ascheisen, count); return true;
+                case VillageGood.WoodFrame: if (WoodenFrameCount < count) return false; WoodenFrameCount -= count; return true;
+                case VillageGood.Bow: if (BowCount < count) return false; BowCount -= count; return true;
+                default: return false;
+            }
+        }
+
         public bool CraftWoodenFrame()
         {
             if (!Has(MaterialKind.Holz, 2)) return false;
