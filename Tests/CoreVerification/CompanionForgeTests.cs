@@ -92,6 +92,20 @@ internal static class CompanionForgeTests
         var creature=bp.Rattler.Creature;creature.Xmm=bp.Companion.Xmm+1000;creature.Zmm=bp.Companion.Zmm;creature.Health=creature.MaxHealth=5200;
         int original=creature.Health;for(int i=0;i<15&&creature.Health==original;i++)boss.Step();
         check(creature.Health<original&&bp.Companion.TotalExperience>0,"companion-can-use-real-weapon-against-rattler");
+        // A fresh, naturally announced strike has only the companion inside its impact radius.
+        bp.Companion.Status=CompanionStatus.Waiting;bp.Companion.Health=CompanionState.MaximumHealth;
+        bp.Companion.Xmm=boss.PlayerXmm+6000;bp.Companion.Zmm=boss.PlayerZmm;
+        creature.Xmm=bp.Companion.Xmm+300;creature.Zmm=bp.Companion.Zmm;
+        creature.BossWindupTicks=0;creature.AttackCooldownTicks=0;
+        int heroHealth=boss.PlayerHealth;
+        int attackWeight=creature.Mind.Cognition.Weight(AshenCrypt.MemoryForge.ForgeAction.Attack,2);
+        boss.Step();
+        check(creature.BossWindupTicks==10&&bp.Rattler.StrikeX==bp.Companion.Xmm,"rattler-commits-to-companion-as-sole-target");
+        ulong issued=creature.Mind.DecisionState.LastTick;
+        for(int i=0;i<10;i++)boss.Step();
+        check(creature.Mind.DecisionState.LastTick==issued&&boss.PlayerHealth==heroHealth&&
+            bp.Companion.Health<CompanionState.MaximumHealth&&creature.Mind.Cognition.Weight(AshenCrypt.MemoryForge.ForgeAction.Attack,2)>attackWeight,
+            "companion-only-rattler-hit-trains-committed-decision");
         bp.Companion.Status=CompanionStatus.Waiting;bp.Companion.Health=100;bp.Rattler.StrikeX=bp.Companion.Xmm;bp.Rattler.StrikeZ=bp.Companion.Zmm;creature.BossWindupTicks=1;
         boss.Step();check(bp.Companion.Status==CompanionStatus.Dead,"companion-is-subject-to-rattler-telegraphed-strike");
         var journey=RescueFixture();journey.RecruitHunter();var jp=journey.Progression;

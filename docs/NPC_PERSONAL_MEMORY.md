@@ -16,7 +16,7 @@ Bei der Hochzeit sieht ein Gast zuerst Blumen und Essen am Hof. Ohne Wiederabruf
 | --- | --- |
 | Eine Figur erscheint | Dieselbe stabile Identität wiederverwenden. Für zusätzliche Bewohner `NpcForgeState.BindResident(stableId, role)` benutzen. Unbekannte Rollen erhalten den eingeschränkten Fallback-Controller. |
 | Bedürfnisse und Angebote vergleichen | Aus dem tatsächlichen Weltzustand einen `ObservationFrame` mit den zulässigen Aktionen bilden. Den Rollencontroller und `mind.Cognition` an `UtilityEvaluator.Decide` übergeben. |
-| Eine Tätigkeit abschließen | Zuerst die echte Transaktion ausführen. Danach `mind.Cognition.RecordOutcome(action, tick, effect)` mit der gemessenen Wirkung aufrufen. Der Lernpfad prüft Aktionswahl, Tick und Rollenrechte. |
+| Eine Tätigkeit abschließen | Zuerst die echte Transaktion ausführen. Danach `mind.Cognition.RecordOutcome(action, tick, effect)` mit der gemessenen Wirkung aufrufen. Für eine bereits verbindlich begonnene Aktion mit späterer Wirkung gibt es `SettleCommittedOutcome`. Es ordnet den gemessenen Effekt der gespeicherten Entscheidung genau einmal zu und funktioniert auch nach dem Laden. Der Lernpfad prüft Aktionswahl, Tick und Rollenrechte. |
 | Ein soziales Ereignis wahrnehmen | Einen stabilen semantischen Kern per `Archive.Append` festhalten. Die konkret anwesenden Personen über `Perceive` informieren. Sinnesdetails gehören in `EpisodeDetails`. Für Hörensagen nach einer Begegnung `Report` verwenden. |
 | Verhalten nach einem Neustart fortsetzen | Der existierende Charakterspielstand speichert die persönlichen Gewichte und die noch vorhandenen Details. |
 
