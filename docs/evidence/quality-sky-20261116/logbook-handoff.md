@@ -276,3 +276,13 @@ Auf `d5d4ee20685110b36de3c82e87378cf5e536c3f3` reagiert Ilyan nach einer tatsäc
 - [Unity-Fälle, XML-Prüfsummen und Prüfsumme des Originalbilds](../npc-personal-memory-20261121/native.json)
 - [Anschlüsse für künftige Berufe und Bedürfnisse](../../NPC_PERSONAL_MEMORY.md)
 - [GitHub-Core-Lauf zum geprüften Code](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44856474920)
+
+## 21. November 2026 · Dorfwirtschaft · PR 107
+
+Auf `7fa2e707bd3fceb4a36071d11b9140c70a3ca2e0` arbeiten die Bewohner von Aschengrenze im laufenden Unity-Player auf echten Beständen. Die Werkplätze zeigen genau die Stückzahlen des Kerns, die Figuren stehen dort, wo der Kern sie führt, und die Dorftafel übergibt Material aus dem Gepäck der Spielerin. Zeigen, Verstecken und Anzünden ändert keinen Bestand.
+
+Fünf Hinweise aus der Prüfung des Pull Requests wurden mit roten Tests nachgestellt und behoben: ein hungernder Bewohner mit Auftrag an der Mühle, zwei Berichte desselben Ticks, ein verlorener Scrollfinger an der Tafel, die Gutschrift für das bloße Ankommen und die Dorfarbeit im Tick der Niederlage. 22.154 Core-Prüfungen und 54 Preflight-Fälle waren erfolgreich. Im lizenzierten Unity-Editor 6000.6.8f1 liefen 238 von 242 EditMode-Fällen und 189 von 189 PlayMode-Fällen; die vier übersprungenen brauchen einen freien Bauplatz oder echte Blender-Aufträge. Ein Android-Gerät wurde nicht gemessen.
+
+- [Abnahmefälle, Prüfsummen und Messwerte](../npc-economy-20261121/acceptance.md)
+- [Regeln und Orte der Dorfwirtschaft](../../VILLAGE_ECONOMY.md)
+- [GitHub-Core-Lauf zum geprüften Code](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44923695452)
