@@ -269,9 +269,14 @@ namespace AreArpg.Core
                     if (r.Load > VillageEconomyRules.CarryCapacity || r.Carry[(int)VillageGood.Axe] > 1 || r.Carry[(int)VillageGood.Bow] > 1 ||
                         (r.Carry[(int)VillageGood.Axe] == 1) != (r.AxeUses > 0)) return false;
                     // What is held back must be exactly the inputs of the work in hand, or nothing before it started.
+                    // Rations on their way to Mara are a load of one up to a full delivery.
                     var held = new int[VillageEconomyRules.GoodCount];
                     if (r.WorkTicks > 0) foreach (var input in rule.Inputs) held[(int)input.Good] += input.Count;
-                    for (int g = 0; g < held.Length; g++) if (r.Reserved[g] != held[g]) return false;
+                    for (int g = 0; g < held.Length; g++)
+                    {
+                        bool load = r.Work == VillageWork.DeliverRations && g == (int)VillageGood.Ration;
+                        if (load ? r.Reserved[g] < 1 || r.Reserved[g] > VillageEconomyRules.DeliveryLoad : r.Reserved[g] != held[g]) return false;
+                    }
                     s._residents.Add(r);
                 }
             }

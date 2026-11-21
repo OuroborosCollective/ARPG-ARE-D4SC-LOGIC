@@ -23,6 +23,7 @@ internal static class VillageEconomyTests
         Reforestation(check);
         BrokenAxeWaitsForMetal(check);
         StoreLimitAndRepeatedCalls(check);
+        OneCarriesTheRations(check);
         HuntAndMeal(check);
         OnlyThoseInvolvedKnow(check);
         InjuredResidentsDoNotWork(check);
@@ -32,7 +33,10 @@ internal static class VillageEconomyTests
         LedgerOverTenDays(check);
         PlayersRefillTaskStaysThePlayers(check);
         PlayerHelps(check);
+        Places(check);
+        TheBoard(check);
         TamperedSavesAreRejected(check);
+        WholeSaves(check);
         LiveVillage(check);
     }
 
@@ -237,6 +241,7 @@ internal static class VillageEconomyTests
         check(e.Made(VillageGood.Wood) == 3 && e.Made(VillageGood.Axe) == 0, "without-metal-no-repair-and-no-further-felling");
         check(e.OpenNeeds(p).Any(n => n.Contains("Metall")), "the-missing-metal-is-a-visible-need");
         var world = new ArenaSimulation(31, p, 1, LootCatalog.Version1);
+        ToBoard(world);
         p.Crafting.AddMaterial(MaterialKind.Ascheisen, 1);
         check(world.GiveToVillage(VillageGood.Metal, 1).Accepted && e.Received(VillageGood.Metal) == 1 && p.Crafting.MaterialCount(MaterialKind.Ascheisen) == 0, "the-player-brings-one-ore");
         long metalUsed = e.Used(VillageGood.Metal), woodUsed = e.Used(VillageGood.Wood);
@@ -267,6 +272,73 @@ internal static class VillageEconomyTests
         check(e.Commons(VillageGood.Ration) == e.Made(VillageGood.Ration) - e.HandedOut(VillageGood.Ration) && p.Social.CampProvisions <= SocialLedger.CampCapacity - 1,
             "no-ration-doubled-or-lost-at-the-full-store");
         check(e.Audit().Count == 0 && loaded.Economy.Audit().Count == 0, "ledger-balances-at-the-store-limit");
+    }
+
+    /// <summary>A delivery is a load in somebody's hands: held back, not yet handed over, and carried by one person only.</summary>
+    private static void OneCarriesTheRations(Action<bool, string> check)
+    {
+        var p = Village(2);
+        TakeFromCamp(p, 4);                                   // 4 of 10: room for more than one load
+        var scene = Scene.Of(p);
+        scene.Resident(0); scene.Resident(1);
+        scene.Commons[(int)VillageGood.Ration] = 3;
+        scene.Into(p);
+        var e = p.Economy;
+        int camp = p.Social.CampProvisions;
+        PassUntil(p, 300, () => e.Residents.Any(r => r.Work == VillageWork.DeliverRations));
+        var carrier = e.Residents.FirstOrDefault(r => r.Work == VillageWork.DeliverRations);
+        check(carrier != null && e.Residents.Count(r => r.Work == VillageWork.DeliverRations) == 1, "one-resident-sets-out-with-the-rations");
+        check(carrier.Held(VillageGood.Ration) == 3 && e.Commons(VillageGood.Ration) == 0 && p.Social.CampProvisions == camp && e.HandedOut(VillageGood.Ration) == 0,
+            "the-load-is-held-back-not-yet-handed-over");
+        check(e.Present(VillageGood.Ration) == 3 && e.Audit().Count == 0, "rations-on-the-way-are-still-the-villages");
+        check(VillageBoard.ResidentLine(carrier).Contains("bringt Rationen zu Mara"), "the-board-names-the-errand");
+        // Mid-way: the game is saved and loaded, and the errand ends the same in both.
+        check(CharacterProgression.TryLoad(p.SaveString(), out var loaded) && Text(loaded) == Text(p), "a-delivery-in-progress-survives-save-and-load");
+        Pass(p, 100); Pass(loaded, 100);
+        check(p.Social.CampProvisions == camp + 3 && e.HandedOut(VillageGood.Ration) == 3 && e.Present(VillageGood.Ration) == 0 && e.Residents.All(r => r.Held(VillageGood.Ration) == 0),
+            "three-rations-arrive-once");
+        check(Text(p) == Text(loaded) && loaded.Social.CampProvisions == camp + 3, "the-loaded-errand-ends-identically");
+        check(e.Residents.All(r => r.Activity != VillageActivity.Working || r.Work != VillageWork.None), "nobody-is-at-work-on-nothing");
+
+        // Hurt on the way: the load goes back to the commons, nothing is handed over and nothing is lost.
+        var hurt = Village(1);
+        TakeFromCamp(hurt, 4);
+        var second = Scene.Of(hurt);
+        second.Resident(0);
+        second.Commons[(int)VillageGood.Ration] = 2;
+        second.Into(hurt);
+        var walker = hurt.Economy.Residents[0];
+        PassUntil(hurt, 300, () => walker.Work == VillageWork.DeliverRations);
+        check(walker.Work == VillageWork.DeliverRations && walker.Held(VillageGood.Ration) == 2, "a-second-village-starts-its-own-errand");
+        int before = hurt.Social.CampProvisions;
+        walker.Health = VillageEconomyRules.WorkHealth - 100;
+        Pass(hurt, 20);
+        check(walker.Work == VillageWork.None && walker.Held(VillageGood.Ration) == 0 && hurt.Economy.Commons(VillageGood.Ration) == 2 && hurt.Social.CampProvisions == before &&
+            hurt.Economy.HandedOut(VillageGood.Ration) == 0 && hurt.Economy.Audit().Count == 0, "an-abandoned-errand-returns-its-load");
+
+        // A save that claims more than a load in one pair of hands, or a load without an errand, is refused.
+        var t = Village(1);
+        TakeFromCamp(t, 4);
+        var third = Scene.Of(t);
+        third.Resident(0);
+        third.Commons[(int)VillageGood.Ration] = 4;
+        third.Into(t);
+        PassUntil(t, 300, () => t.Economy.Residents[0].Work == VillageWork.DeliverRations);
+        string[] f = Text(t).Split(';');
+        string[] row = f[13].Split(',');
+        int heldAt = 13 + VillageEconomyRules.GoodCount + (int)VillageGood.Ration;
+        check(row[heldAt] == "4" && row[7] == ((int)VillageWork.DeliverRations).ToString(CultureInfo.InvariantCulture), "the-errand-is-written-into-the-save");
+        string[] commons = f[4].Split(',');
+        row[heldAt] = "5"; commons[(int)VillageGood.Ration] = "0";
+        string[] made = f[9].Split(',');
+        var over = (string[])f.Clone(); over[13] = string.Join(",", row); over[4] = string.Join(",", commons);
+        made[(int)VillageGood.Ration] = (long.Parse(made[(int)VillageGood.Ration], CultureInfo.InvariantCulture) + 1).ToString(CultureInfo.InvariantCulture);
+        over[9] = string.Join(",", made);
+        check(!VillageEconomyState.TryRead(string.Join(";", over), out _), "more-than-a-load-in-one-pair-of-hands-is-refused");
+        var idle = (string[])f.Clone(); string[] still = f[13].Split(',');
+        still[7] = "0"; still[8] = "0";
+        idle[13] = string.Join(",", still);
+        check(!VillageEconomyState.TryRead(string.Join(";", idle), out _), "a-load-without-an-errand-is-refused");
     }
 
     /// <summary>Acceptance 5: one animal, its parts once; a meal lowers the right stock and the right person's hunger.</summary>
@@ -552,6 +624,12 @@ internal static class VillageEconomyTests
         var p = Village(1);
         Pass(p, 10);
         var world = new ArenaSimulation(77, p, 1, LootCatalog.Version1);
+        p.Crafting.AddMaterial(MaterialKind.Ascheisen, 1);
+        string far = Text(p);
+        check(!world.VillageBoardInReach && !world.GiveToVillage(VillageGood.Metal, 1).Accepted && p.Crafting.MaterialCount(MaterialKind.Ascheisen) == 1 && Text(p) == far,
+            "away-from-the-board-nothing-is-handed-over");
+        ToBoard(world);
+        check(world.VillageBoardInReach, "the-player-reaches-the-village-board");
         string before = Text(p);
         check(!world.GiveToVillage(VillageGood.Wood, 2).Accepted && Text(p) == before, "an-empty-pack-gives-nothing");
         p.Crafting.AddMaterial(MaterialKind.Holz, 5); p.Crafting.AddMaterial(MaterialKind.Dornbeere, 1);
@@ -561,12 +639,183 @@ internal static class VillageEconomyTests
         check(world.GiveToVillage(VillageGood.Wood, 4).Accepted && p.Crafting.MaterialCount(MaterialKind.Holz) == 1 && p.Economy.Commons(VillageGood.Wood) == wood + 4 &&
             p.Economy.Received(VillageGood.Wood) == 4, "the-pack-loses-exactly-what-the-commons-gains");
         check(p.Crafting.CraftWoodenFrame() == false && world.GiveToVillage(VillageGood.ThornBerry, 1).Accepted && p.Economy.Audit().Count == 0, "gifts-keep-the-ledger-balanced");
+        int metal = p.Economy.Commons(VillageGood.Metal);
+        check(world.GiveToVillage(VillageGood.Metal, 1).Accepted && p.Crafting.MaterialCount(MaterialKind.Ascheisen) == 0 && p.Economy.Commons(VillageGood.Metal) == metal + 1,
+            "what-was-refused-far-away-is-accepted-at-the-board");
         var road = CharacterProgression.CreateEntryProfile(); road.EnterVillage(); road.DiscoverHungerClue(); road.TravelHunger(3, false); road.Social.EnableForge();
         road.Village.RecordMainQuestCompleted();
         var away = new ArenaSimulation(78, road, 1, LootCatalog.Version1);
         away.Step();
         road.Crafting.AddMaterial(MaterialKind.Holz, 2);
         check(road.Economy.Started && !away.IsVillage && !away.GiveToVillage(VillageGood.Wood, 1).Accepted && road.Crafting.MaterialCount(MaterialKind.Holz) == 2, "outside-the-village-nothing-can-be-handed-over");
+    }
+
+    /// <summary>The player walks in a straight line through real movement steps; the village works on meanwhile.</summary>
+    private static void WalkTo(ArenaSimulation world, long x, long z)
+    {
+        for (int t = 0; t < 1200; t++)
+        {
+            long dx = x - world.PlayerXmm, dz = z - world.PlayerZmm;
+            if (Math.Abs(dx) < 300 && Math.Abs(dz) < 300) { world.SetMoveInput(0, 0); return; }
+            long reach = Math.Max(Math.Abs(dx), Math.Abs(dz));
+            world.SetMoveInput(dx * 10000 / reach, dz * 10000 / reach);
+            world.Step();
+        }
+        throw new Exception("FAIL the player did not reach " + x + "," + z + " but stands at " + world.PlayerXmm + "," + world.PlayerZmm);
+    }
+
+    private static void ToBoard(ArenaSimulation world)
+    { WalkTo(world, VillageEconomyLayout.StandXmm(VillageSpot.Board), VillageEconomyLayout.StandZmm(VillageSpot.Board)); }
+
+    private static void Places(Action<bool, string> check)
+    {
+        bool standable = true, inside = true, apart = true, near = true;
+        for (int a = 0; a < VillageEconomyLayout.SpotCount; a++)
+        {
+            var spot = (VillageSpot)a;
+            long sx = VillageEconomyLayout.StandXmm(spot), sz = VillageEconomyLayout.StandZmm(spot), px = VillageEconomyLayout.PlaceXmm(spot), pz = VillageEconomyLayout.PlaceZmm(spot);
+            standable &= EntryWorldLayout.CanStand(sx, sz);
+            // A workplace may stand close to a wall, but never inside a building.
+            for (int building = 0; building < EntryWorldLayout.BuildingCount; building++) standable &= !EntryWorldLayout.Building(building).Contains(px, pz, 0);
+            inside &= Math.Abs(sx) <= 25000 && Math.Abs(sz) <= 25000 && Math.Abs(px) <= 25000 && Math.Abs(pz) <= 25000;
+            long reach = (sx - px) * (sx - px) + (sz - pz) * (sz - pz);
+            near &= reach <= 2000L * 2000L;
+            for (int b = a + 1; b < VillageEconomyLayout.SpotCount; b++)
+            {
+                var other = (VillageSpot)b;
+                long ox = VillageEconomyLayout.PlaceXmm(other) - px, oz = VillageEconomyLayout.PlaceZmm(other) - pz;
+                long tx = VillageEconomyLayout.StandXmm(other) - sx, tz = VillageEconomyLayout.StandZmm(other) - sz;
+                apart &= ox * ox + oz * oz >= 1500L * 1500L && tx * tx + tz * tz >= 1000L * 1000L;
+            }
+        }
+        check(standable, "every-place-and-stand-point-is-free-of-buildings");
+        check(inside, "every-place-lies-inside-the-village");
+        check(near, "a-resident-stands-at-the-workplace");
+        check(apart, "places-and-stand-points-do-not-overlap");
+        check(VillageEconomyLayout.PlaceXmm(VillageSpot.Store) == ArenaSimulation.CampXmm && VillageEconomyLayout.PlaceZmm(VillageSpot.Store) == ArenaSimulation.CampZmm,
+            "the-store-is-maras-existing-camp");
+        bool threw = false;
+        try { VillageEconomyLayout.StandXmm((VillageSpot)VillageEconomyLayout.SpotCount); } catch (ArgumentOutOfRangeException) { threw = true; }
+        check(threw, "an-unknown-place-is-refused");
+
+        // A real stretch of village life: where the Core says somebody is, is where that person is seen.
+        var p = Village(2);
+        TakeFromCamp(p, 4);
+        var seenAt = new HashSet<VillageSpot>();
+        bool rules = true, hiddenAway = false, hiddenAsleep = false, leaves = false, returns = false;
+        for (int i = 0; i < 3 * (int)PersonalCognition.TicksPerDay; i += 10)
+        {
+            Pass(p, 10);
+            foreach (var r in p.Economy.Residents)
+            {
+                bool seen = VillageEconomyLayout.Seen(r, out var spot);
+                if (seen) seenAt.Add(spot);
+                if (r.Walking)
+                {
+                    int whole = VillageEconomyRules.TravelTicks(r.Site, r.Destination);
+                    bool expected = r.Site == VillageSite.Village ? r.TravelTicks > whole - VillageEconomyLayout.GateWalkTicks
+                        : r.Destination == VillageSite.Village && r.TravelTicks <= VillageEconomyLayout.GateWalkTicks;
+                    rules &= seen == expected && (!seen || spot == (r.Site == VillageSite.Village ? VillageSpot.Gate : VillageSpot.Woodyard));
+                    leaves |= seen && r.Site == VillageSite.Village; returns |= seen && r.Site != VillageSite.Village;
+                }
+                else if (r.Site != VillageSite.Village) { rules &= !seen; hiddenAway = true; }
+                else if (r.Activity == VillageActivity.Sleeping) { rules &= !seen; hiddenAsleep = true; }
+                else
+                {
+                    rules &= seen;
+                    if (r.Activity == VillageActivity.Working)
+                        rules &= r.Work != VillageWork.None && spot == VillageEconomyLayout.SpotFor(r.Work) && VillageEconomyRules.Rule(r.Work).Site == VillageSite.Village;
+                    if (r.Activity == VillageActivity.Eating) rules &= spot == VillageSpot.Store;
+                }
+            }
+        }
+        check(rules, "a-resident-is-seen-exactly-where-the-core-has-them");
+        check(hiddenAway && hiddenAsleep && leaves && returns, "away-asleep-leaving-and-returning-all-occurred");
+        foreach (var spot in new[] { VillageSpot.Store, VillageSpot.Kitchen, VillageSpot.Woodyard, VillageSpot.Workbench, VillageSpot.Well, VillageSpot.Home, VillageSpot.Gate })
+            check(seenAt.Contains(spot), "village-life-reaches-the-" + spot.ToString().ToLowerInvariant());
+    }
+
+    private static void TheBoard(Action<bool, string> check)
+    {
+        var empty = Village(0);
+        Pass(empty, 20);
+        check(VillageBoard.StockLines(empty).Count == 0, "the-board-is-empty-before-anybody-works");
+
+        var p = Village(1);
+        Pass(p, 10);
+        var e = p.Economy;
+        var lines = VillageBoard.StockLines(p);
+        check(lines.Count == 3 && lines[0] == "Werkstatt: Holz 4 · Holzrahmen 0 · Bogen 0 · Axt 2 · Metall 2 · Dornbeeren 0" &&
+            lines[1] == "Küche: Wild 0 · Wasser 2 · Rationen 0 · Häute 0 · Maras Vorrat 8/10", "the-board-counts-the-villages-own-stores");
+        check(lines[2] == "Umland: Wald steht dicht, nichts wächst nach · Wild reichlich · Dornbeeren reif", "the-land-is-described-not-counted");
+        string before = Text(p);
+        for (int i = 0; i < 5; i++) { VillageBoard.StockLines(p); foreach (var r in e.Residents) VillageBoard.ResidentLine(r); e.OpenNeeds(p); }
+        check(Text(p) == before, "reading-the-board-changes-nothing");
+
+        // The words follow the land: a cleared forest, hunted-out game, a broken axe.
+        var scene = Scene.Of(p);
+        scene.Sources[(int)VillageSource.MatureTrees] = VillageEconomyRules.SeedTreeReserve; scene.Sources[(int)VillageSource.Wildlife] = 0;
+        scene.Sources[(int)VillageSource.Berries] = 0; scene.Commons[(int)VillageGood.BrokenAxe] = 1;
+        scene.Into(p);
+        lines = VillageBoard.StockLines(p);
+        check(lines[0].Contains("defekte Axt 1") && lines[2].StartsWith("Umland: Wald bis auf die Samenbäume geschlagen") && lines[2].Contains("kein Wild mehr") &&
+            lines[2].Contains("Dornbeeren abgeerntet") && !lines[2].Contains("Heilkräuter"), "shortage-shows-in-the-boards-words");
+        var mill = MillVillage(1);
+        Pass(mill, 10);
+        check(VillageBoard.StockLines(mill)[2].Contains("Heilkräuter stehen gut"), "herbs-appear-once-orsel-is-known");
+
+        // One line per resident, taken from the same state the rules use.
+        var live = Village(2);
+        TakeFromCamp(live, 4);
+        var said = new HashSet<string>();
+        bool numbered = true;
+        for (int i = 0; i < 2 * (int)PersonalCognition.TicksPerDay; i += 10)
+        {
+            Pass(live, 10);
+            foreach (var r in live.Economy.Residents)
+            {
+                string line = VillageBoard.ResidentLine(r);
+                numbered &= line.StartsWith("Bewohner " + (r.Ordinal - VillageServicesState.BasePopulation + 1) + " ") && line.EndsWith(".");
+                if (r.Walking) numbered &= line.Contains(r.Destination == VillageSite.Village ? "Rückweg ins Dorf" : "auf dem Weg in den Wald");
+                else if (r.Activity == VillageActivity.Working) numbered &= line.Contains(VillageEconomyRules.WorkName(r.Work)) && line.Contains("(im Wald)") == (r.Site == VillageSite.Forest);
+                else if (r.Activity == VillageActivity.Sleeping) numbered &= line.Contains("schläft");
+                if (r.Hunger >= VillageEconomyRules.EatHunger && r.CanWork) numbered &= line.Contains("hungrig");
+                if (!r.CanWork) numbered &= line.Contains("verletzt");
+                said.Add(line.Substring(line.IndexOf(' ', 9) + 1));
+            }
+        }
+        check(numbered, "every-resident-line-matches-the-residents-state");
+        check(said.Count >= 8 && said.Any(l => l.StartsWith("fällt einen Baum (im Wald)")) && said.Any(l => l.StartsWith("schläft")) && said.Any(l => l.StartsWith("bereitet Rationen zu")),
+            "two-days-of-village-life-read-as-many-different-lines");
+
+        // The pack: what the board offers is exactly what the hand-over accepts.
+        var giver = Village(1);
+        Pass(giver, 10);
+        var world = new ArenaSimulation(88, giver, 1, LootCatalog.Version1);
+        ToBoard(world);
+        bool offers = VillageBoard.GiftGoods.Count == 6;
+        for (int g = 0; g < VillageEconomyRules.GoodCount; g++)
+        {
+            var good = (VillageGood)g;
+            offers &= giver.Crafting.VillageGiftCount(good) == 0 && !world.GiveToVillage(good, 1).Accepted;
+        }
+        giver.Crafting.AddMaterial(MaterialKind.Holz, 4); giver.Crafting.AddMaterial(MaterialKind.Dornbeere, 2); giver.Crafting.AddMaterial(MaterialKind.Ascheisen, 1);
+        giver.Crafting.AddMaterial(MaterialKind.Ashenflieder, 3);
+        check(giver.Crafting.CraftWoodenFrame() && giver.Crafting.CraftWoodenFrame() && giver.Crafting.CraftBow(), "the-player-builds-a-frame-and-a-bow");
+        int[] expected = { 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 3 };
+        for (int g = 0; g < VillageEconomyRules.GoodCount; g++)
+        {
+            var good = (VillageGood)g;
+            int has = giver.Crafting.VillageGiftCount(good);
+            offers &= has == expected[g] && VillageBoard.GiftGoods.Contains(good) == (has > 0 || good == VillageGood.Wood);
+            if (has > 0)
+            {
+                int commons = giver.Economy.Commons(good);
+                offers &= !world.GiveToVillage(good, has + 1).Accepted && world.GiveToVillage(good, has).Accepted && giver.Crafting.VillageGiftCount(good) == 0 &&
+                    giver.Economy.Commons(good) == commons + has;
+            }
+        }
+        check(offers && giver.Economy.Audit().Count == 0, "the-board-offers-exactly-what-the-pack-can-give");
     }
 
     private static void TamperedSavesAreRejected(Action<bool, string> check)
@@ -588,6 +837,55 @@ internal static class VillageEconomyTests
         check(!VillageEconomyState.TryRead(string.Join(";", f.Take(5).Concat(new[] { string.Join(",", sources) }).Concat(f.Skip(6))), out _), "a-herd-above-its-limit-is-rejected");
     }
 
+    /// <summary>A whole character save as an editor of save files would write it: the same container, a valid checksum, another economy section.</summary>
+    private static string Forged(CharacterProgression source, string economy)
+    {
+        if (!CharacterProgression.TryLoad(source.SaveString(), out var copy)) throw new Exception("FAIL the genuine save does not load");
+        const BindingFlags hidden = BindingFlags.NonPublic | BindingFlags.Instance;
+        var sections = (SortedDictionary<string, string>)typeof(CharacterProgression).GetField("_sections", hidden).GetValue(copy);
+        if (economy == null) sections.Remove("economy"); else sections["economy"] = economy;
+        string legacy = (string)typeof(CharacterProgression).GetMethod("WeaponMasteryPayload", hidden).Invoke(copy, null) + "|" + copy.StableHash.ToString("X16", CultureInfo.InvariantCulture);
+        return (string)typeof(CharacterProgression).GetMethod("SectionContainer", hidden).Invoke(copy, new object[] { legacy });
+    }
+
+    /// <summary>
+    /// The trust boundary is the stored save text. A save whose economy section does not hold a balanced, canonical
+    /// ledger is refused as a whole - the game then keeps its backup - and a save from before the economy starts
+    /// the economy now, without any made-up past.
+    /// </summary>
+    private static void WholeSaves(Action<bool, string> check)
+    {
+        var p = Village(1);
+        TakeFromCamp(p, 3);
+        Pass(p, 2500);
+        string token = Text(p);
+        check(CharacterProgression.TryLoad(Forged(p, token), out var genuine) && Text(genuine) == token, "a-rewritten-save-with-the-true-section-loads");
+        string[] f = token.Split(';');
+        string[] commons = f[4].Split(',');
+        commons[(int)VillageGood.Ration] = "9";
+        string richer = string.Join(";", f.Take(4).Concat(new[] { string.Join(",", commons) }).Concat(f.Skip(5)));
+        check(!CharacterProgression.TryLoad(Forged(p, richer), out _), "a-save-with-rations-written-in-is-refused-as-a-whole");
+        foreach (string broken in new[] { "", "x", token + " ", token.Substring(0, token.Length / 2), "1;1;0;0", token.Replace(',', '.') })
+            check(!CharacterProgression.TryLoad(Forged(p, broken), out _), "a-save-with-a-broken-economy-section-is-refused-" + broken.Length);
+
+        // Before the economy existed: a village with a resident and no economy section. It loads, and work begins now.
+        string before = Forged(p, null);
+        check(CharacterProgression.TryLoad(before, out var old) && !old.Economy.Started && old.Village.Population == VillageServicesState.BasePopulation + 1,
+            "a-save-from-before-the-economy-loads-with-its-resident");
+        int events = old.Social.Forge.Archive.Events.Count, camp = old.Social.CampProvisions;
+        ulong loadedAt = old.Social.Forge.ProcessedTicks;
+        Pass(old, 10);
+        var e = old.Economy;
+        check(e.Started && e.StartedTick > loadedAt && e.Residents.Count == 1, "its-economy-starts-at-the-first-tick-after-loading");
+        bool plain = old.Social.Forge.Archive.Events.Count == events && old.Social.CampProvisions == camp;
+        for (int g = 0; g < VillageEconomyRules.GoodCount; g++)
+        {
+            var good = (VillageGood)g;
+            plain &= e.StartStock(good) == VillageEconomyRules.StartStock(good) && e.Made(good) == 0 && e.Used(good) == 0 && e.Received(good) == 0 && e.HandedOut(good) == 0;
+        }
+        check(plain && e.Audit().Count == 0, "no-past-work-deliveries-or-memories-are-made-up-for-an-old-save");
+    }
+
     /// <summary>The whole simulation step in the village: villagers, player and economy together.</summary>
     private static void LiveVillage(Action<bool, string> check)
     {
@@ -606,6 +904,23 @@ internal static class VillageEconomyTests
                         " r0[hp=" + re.Residents[0].Health + " hun=" + re.Residents[0].Hunger + "] idle/work/walk/rest/sleep/eat/recover=" + string.Join("/", share) +
                         " npcHunger=" + rp.Social.GetMemory(0).Hunger + "," + rp.Social.GetMemory(1).Hunger + "," + rp.Social.GetMemory(2).Hunger + " herbs=" + re.MillHerbs + "/" + re.Source(VillageSource.Herbs) + " site=" + re.Residents[0].Site + " needs=" + string.Join("|", re.OpenNeeds(rp)));
                 }
+                // What the save is made of once the village works: the ledger itself is small, the minds are the bulk.
+                string whole = rp.SaveString();
+                var parts = (SortedDictionary<string, string>)typeof(CharacterProgression).GetField("_sections", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(rp);
+                Console.WriteLine("REPORT-SAVE residents=" + count + " chars=" + whole.Length + " " + string.Join(" ", parts.Select(part => part.Key + "=" + part.Value.Length)) +
+                    " events=" + rp.Social.Forge.Archive.Events.Count + " known=" + rp.Social.Forge.Archive.Acquisitions.Count + " minds=" + rp.Social.Forge.Archive.Minds.Count);
+            }
+        if (Environment.GetEnvironmentVariable("ARE_ECONOMY_REPORT") == "1")
+            foreach (int count in new[] { 0, 1, 3, 8 })
+            {
+                // Memory handed out and time per game tick, over one game day of the real simulation step.
+                var ap = Village(count); var aw = new ArenaSimulation(7, ap, 1, LootCatalog.Version1);
+                for (int i = 0; i < 2000; i++) aw.Step();
+                long bytes = GC.GetAllocatedBytesForCurrentThread(); var watch = System.Diagnostics.Stopwatch.StartNew();
+                for (int i = 0; i < Day; i++) aw.Step();
+                watch.Stop(); bytes = GC.GetAllocatedBytesForCurrentThread() - bytes;
+                Console.WriteLine("REPORT-COST residents=" + count + " bytes_per_tick=" + bytes / Day + " us_per_tick=" + (watch.Elapsed.TotalMilliseconds * 1000 / Day).ToString("F2", CultureInfo.InvariantCulture) +
+                    " save_chars=" + ap.SaveString().Length);
             }
         var p = Village(1);
         var world = new ArenaSimulation(99, p, 1, LootCatalog.Version1);

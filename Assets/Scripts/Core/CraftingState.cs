@@ -171,6 +171,24 @@ namespace AreArpg.Core
         }
 
         /// <summary>
+        /// How many units of a good the pack holds that the village takes; zero for everything the player never
+        /// carries. One ash-iron ore counts as one unit of metal.
+        /// </summary>
+        public int VillageGiftCount(VillageGood good)
+        {
+            switch (good)
+            {
+                case VillageGood.Wood: return MaterialCount(MaterialKind.Holz);
+                case VillageGood.ThornBerry: return MaterialCount(MaterialKind.Dornbeere);
+                case VillageGood.Metal: return MaterialCount(MaterialKind.Ascheisen);
+                case VillageGood.Herb: return MaterialCount(MaterialKind.Ashenflieder);
+                case VillageGood.WoodFrame: return WoodenFrameCount;
+                case VillageGood.Bow: return BowCount;
+                default: return 0;
+            }
+        }
+
+        /// <summary>
         /// Take goods out of the pack for the village commons. Fails without any change when the pack holds too
         /// little or the good is not one the player carries. One ash-iron ore counts as one unit of metal.
         /// </summary>

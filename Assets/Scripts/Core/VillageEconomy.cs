@@ -168,7 +168,11 @@ namespace AreArpg.Core
                         r.Activity = VillageActivity.Working;
                         r.WorkTicks -= Stride;
                         effect = 1;
-                        if (r.WorkTicks <= 0) effect += Finish(p, forge, r, tick, campLimit);
+                        if (r.WorkTicks <= 0)
+                        {
+                            effect += Finish(p, forge, r, tick, campLimit);
+                            r.Activity = VillageActivity.Idle;
+                        }
                     }
                     else if (StartWork(r, plan)) effect = 1;
                     break;
@@ -305,6 +309,14 @@ namespace AreArpg.Core
                 _commons[(int)VillageGood.Herb] -= Math.Max(0, take); r.Carry[(int)VillageGood.Herb] += Math.Max(0, take);
             }
             if (work == VillageWork.BringHerbs && r.Site == VillageSite.Mill && r.Carry[(int)VillageGood.Herb] == 0) return false;
+            if (work == VillageWork.DeliverRations)
+            {
+                // The rations are picked up for the walk to Mara. Held back is not yet handed over, but nobody
+                // else sets out with the same rations.
+                int load = Math.Min(VillageEconomyRules.DeliveryLoad, _commons[(int)VillageGood.Ration]);
+                if (load <= 0) return false;
+                _commons[(int)VillageGood.Ration] -= load; r.Reserved[(int)VillageGood.Ration] += load;
+            }
             // Tools are picked up in the village before leaving.
             if (rule.Tool == (int)VillageGood.Axe && r.AxeUses == 0)
             {
@@ -358,6 +370,12 @@ namespace AreArpg.Core
             VillageWork work = r.Work;
             var rule = VillageEconomyRules.Rule(work);
             int yielded = 0;
+            if (work == VillageWork.DeliverRations)
+            {
+                // Rations carried to Mara are not used up by the walk: they are put down for the hand-over itself.
+                _commons[(int)VillageGood.Ration] += r.Reserved[(int)VillageGood.Ration];
+                r.Reserved[(int)VillageGood.Ration] = 0;
+            }
             for (int g = 0; g < r.Reserved.Length; g++)
             {
                 if (r.Reserved[g] == 0) continue;
@@ -517,7 +535,7 @@ namespace AreArpg.Core
         }
 
         /// <summary>
-        /// The player gives materials from the own pack to the village commons. Only in the village, only what the
+        /// The player gives materials from the own pack to the village commons. Only at the village board, only what the
         /// player really has, and only goods the village works with. Nothing is created: the pack loses exactly what
         /// the commons gains.
         /// </summary>
@@ -525,6 +543,7 @@ namespace AreArpg.Core
         {
             var result = new SocialResult();
             if (GameOver || !IsVillage || !Progression.Economy.Started) { result.Text = "Hier nimmt niemand Material für das Dorf an."; return result; }
+            if (!VillageBoardInReach) { result.Text = "Material für das Dorf gibst du an der Dorftafel ab."; return result; }
             if (count <= 0 || !Progression.Crafting.TakeForVillage(good, count))
             { result.Text = "Davon hast du nicht genug bei dir. Nichts wurde übergeben."; return result; }
             Progression.Economy.Receive(good, count);
