@@ -6,19 +6,21 @@ namespace AreArpg.Core
     public enum VillageGood
     {
         Wood = 0, ThornBerry = 1, WoodFrame = 2, Bow = 3, Axe = 4, BrokenAxe = 5,
-        Game = 6, Hide = 7, Ration = 8, Metal = 9, Seedling = 10, Water = 11
+        Game = 6, Hide = 7, Ration = 8, Metal = 9, Seedling = 10, Water = 11, Herb = 12
     }
 
     /// <summary>Natural stocks. They change only by named work or by their own written regeneration rule.</summary>
-    public enum VillageSource { MatureTrees = 0, SeedCrop = 1, Wildlife = 2, Berries = 3, Well = 4 }
+    public enum VillageSource { MatureTrees = 0, SeedCrop = 1, Wildlife = 2, Berries = 3, Well = 4, Herbs = 5 }
 
-    public enum VillageSite { Village = 0, Forest = 1 }
+    /// <summary>Where a resident can be: the village, the forest edge, or Orsel's sick beds at the old mill.</summary>
+    public enum VillageSite { Village = 0, Forest = 1, Mill = 2 }
 
     /// <summary>One step of a trade. Order is persisted.</summary>
     public enum VillageWork
     {
         None = 0, FellTree = 1, CollectSeedlings = 2, PlantSeedling = 3, GatherBerries = 4, Hunt = 5,
-        MakeFrame = 6, MakeBow = 7, FetchWater = 8, Cook = 9, DeliverRations = 10, RepairAxe = 11, GoHome = 12
+        MakeFrame = 6, MakeBow = 7, FetchWater = 8, Cook = 9, DeliverRations = 10, RepairAxe = 11, GoHome = 12,
+        GatherHerbs = 13, BringHerbs = 14, SeekCare = 15
     }
 
     /// <summary>What a resident is visibly doing; derived from the decision, for the projection and the village board.</summary>
@@ -59,14 +61,16 @@ namespace AreArpg.Core
     public static class VillageEconomyRules
     {
         public const int Revision = 1;
-        public const int GoodCount = 12;
-        public const int SourceCount = 5;
-        public const int WorkCount = 13;
+        public const int GoodCount = 13;
+        public const int SourceCount = 6;
+        public const int WorkCount = 16;
 
         /// <summary>The economy is evaluated once per simulated second; every duration is a multiple of it.</summary>
         public const int Stride = 10;
         /// <summary>The way between the village and the forest edge, one direction.</summary>
         public const int ForestTravelTicks = 300;
+        /// <summary>The way between the village and Orsel's sick beds at the old mill, one direction.</summary>
+        public const int MillTravelTicks = 400;
         /// <summary>A resident carries this many goods at once; the tools in hand do not count.</summary>
         public const int CarryCapacity = 6;
         public const int AxeUses = 12;
@@ -79,6 +83,11 @@ namespace AreArpg.Core
         public const int BerryCap = 8, BerryRegenTicks = 1200;
         public const int SeedCropRegenTicks = 1200;
         public const int WellCap = 12, WellRegenTicks = 100;
+        public const int HerbCap = 6, HerbRegenTicks = 1800;
+        /// <summary>The village keeps this many healing herbs with Orsel; her shelf holds no more than the cap.</summary>
+        public const int HerbTarget = 3, MillHerbCap = 6, HerbLoad = 4;
+        /// <summary>Orsel's care: with a healing herb one health per 10 ticks and one herb per 100 ticks; without herbs one per 30 ticks.</summary>
+        public const int CareHealTicks = 10, CareHerbTicks = 100, PlainCareHealTicks = 30;
         /// <summary>The village cooks and delivers while the store and the food on its way hold fewer rations than this.</summary>
         public const int FoodTarget = 8;
         public const int WoodTarget = 8;
@@ -126,7 +135,19 @@ namespace AreArpg.Core
             new VillageWorkRule(VillageWork.DeliverRations, VillageSite.Village, 60, -1, Nothing, Nothing, -1, 0),
             new VillageWorkRule(VillageWork.RepairAxe, VillageSite.Village, 600, -1, new[] { G(VillageGood.BrokenAxe, 1), G(VillageGood.Metal, 1), G(VillageGood.Wood, 1) }, new[] { G(VillageGood.Axe, 1) }, -1, 0),
             new VillageWorkRule(VillageWork.GoHome, VillageSite.Village, 0, -1, Nothing, Nothing, -1, 0),
+            new VillageWorkRule(VillageWork.GatherHerbs, VillageSite.Forest, 300, -1, Nothing, new[] { G(VillageGood.Herb, 2) }, (int)VillageSource.Herbs, 2),
+            // Herbs are carried to the old mill and put on Orsel's shelf: a hand-over, nothing is made or used.
+            new VillageWorkRule(VillageWork.BringHerbs, VillageSite.Mill, 60, -1, Nothing, Nothing, -1, 0),
+            new VillageWorkRule(VillageWork.SeekCare, VillageSite.Mill, 0, -1, Nothing, Nothing, -1, 0),
         };
+
+        /// <summary>Ticks for the way between two sites. Forest and mill are both reached through the village.</summary>
+        public static int TravelTicks(VillageSite from, VillageSite to)
+        {
+            if (from == to) return 0;
+            if (from == VillageSite.Forest || to == VillageSite.Forest) return from == VillageSite.Mill || to == VillageSite.Mill ? ForestTravelTicks + MillTravelTicks : ForestTravelTicks;
+            return MillTravelTicks;
+        }
 
         public static VillageWorkRule Rule(VillageWork work)
         {
@@ -157,6 +178,7 @@ namespace AreArpg.Core
                 case VillageSource.Wildlife: return 6;
                 case VillageSource.Berries: return 8;
                 case VillageSource.Well: return WellCap;
+                case VillageSource.Herbs: return HerbCap;
                 default: throw new ArgumentOutOfRangeException(nameof(source));
             }
         }
@@ -194,6 +216,7 @@ namespace AreArpg.Core
                 case VillageGood.Metal: return "Metall";
                 case VillageGood.Seedling: return "Setzlinge";
                 case VillageGood.Water: return "Wasser";
+                case VillageGood.Herb: return "Heilkräuter";
                 default: throw new ArgumentOutOfRangeException(nameof(good));
             }
         }
@@ -214,6 +237,9 @@ namespace AreArpg.Core
                 case VillageWork.DeliverRations: return "bringt Rationen zu Mara";
                 case VillageWork.RepairAxe: return "repariert eine Axt";
                 case VillageWork.GoHome: return "geht ins Dorf zurück";
+                case VillageWork.GatherHerbs: return "sammelt Heilkräuter";
+                case VillageWork.BringHerbs: return "bringt Heilkräuter zu Orsel";
+                case VillageWork.SeekCare: return "geht zu Orsel an die Mühle";
                 default: return "wartet";
             }
         }

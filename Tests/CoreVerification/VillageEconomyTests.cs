@@ -27,6 +27,7 @@ internal static class VillageEconomyTests
         OnlyThoseInvolvedKnow(check);
         InjuredResidentsDoNotWork(check);
         NightAndNeeds(check);
+        OrselsCare(check);
         ReplayAndSaveLoad(check);
         LedgerOverTenDays(check);
         PlayersRefillTaskStaysThePlayers(check);
@@ -73,14 +74,15 @@ internal static class VillageEconomyTests
     {
         public string[] Fields;
         public long[] Commons, Sources, Made, Used, Received, HandedOut, Start;
-        public long Nursery;
+        public long Nursery, MillHerbs;
+        private const int Head = 13;
         public List<long[]> Residents = new List<long[]>();
 
         public static Scene Of(CharacterProgression p)
         {
             if (!p.Economy.Started) Pass(p, 1);
             var s = new Scene { Fields = Text(p).Split(';') };
-            s.Commons = Row(s.Fields[4]); s.Sources = Row(s.Fields[5]); s.Nursery = long.Parse(s.Fields[6], CultureInfo.InvariantCulture);
+            s.Commons = Row(s.Fields[4]); s.Sources = Row(s.Fields[5]); s.Nursery = Row(s.Fields[6])[0]; s.MillHerbs = Row(s.Fields[6])[1];
             s.Start = Row(s.Fields[8]); s.Made = Row(s.Fields[9]); s.Used = Row(s.Fields[10]); s.Received = Row(s.Fields[11]); s.HandedOut = Row(s.Fields[12]);
             if (s.Fields[13] != "x") foreach (string r in s.Fields[13].Split('/')) s.Residents.Add(Row(r));
             return s;
@@ -93,27 +95,27 @@ internal static class VillageEconomyTests
         {
             while (Residents.Count <= index)
             {
-                var r = new long[12 + 2 * VillageEconomyRules.GoodCount];
+                var r = new long[Head + 2 * VillageEconomyRules.GoodCount];
                 r[0] = VillageServicesState.BasePopulation + Residents.Count; r[1] = 200; r[2] = 100; r[3] = VillageEconomyRules.MaxHealth;
                 Residents.Add(r);
             }
             return Residents[index];
         }
 
-        public static int Carry(VillageGood good) { return 12 + (int)good; }
-        public static int Held(VillageGood good) { return 12 + VillageEconomyRules.GoodCount + (int)good; }
+        public static int Carry(VillageGood good) { return Head + (int)good; }
+        public static int Held(VillageGood good) { return Head + VillageEconomyRules.GoodCount + (int)good; }
 
         /// <summary>Write the scene into the profile. The ledger is balanced by what was made or used before.</summary>
         public void Into(CharacterProgression p)
         {
             for (int g = 0; g < VillageEconomyRules.GoodCount; g++)
             {
-                long present = Commons[g] + (g == (int)VillageGood.Seedling ? Nursery : 0);
-                foreach (var r in Residents) present += r[12 + g] + r[12 + VillageEconomyRules.GoodCount + g];
+                long present = Commons[g] + (g == (int)VillageGood.Seedling ? Nursery : 0) + (g == (int)VillageGood.Herb ? MillHerbs : 0);
+                foreach (var r in Residents) present += r[Head + g] + r[Head + VillageEconomyRules.GoodCount + g];
                 long gap = Start[g] + Made[g] + Received[g] - HandedOut[g] - Used[g] - present;
                 if (gap >= 0) Used[g] += gap; else Made[g] -= gap;
             }
-            Fields[4] = Row(Commons); Fields[5] = Row(Sources); Fields[6] = Nursery.ToString(CultureInfo.InvariantCulture);
+            Fields[4] = Row(Commons); Fields[5] = Row(Sources); Fields[6] = Nursery.ToString(CultureInfo.InvariantCulture) + "," + MillHerbs.ToString(CultureInfo.InvariantCulture);
             Fields[9] = Row(Made); Fields[10] = Row(Used); Fields[11] = Row(Received); Fields[12] = Row(HandedOut);
             Fields[13] = Residents.Count == 0 ? "x" : string.Join("/", Residents.Select(Row));
             if (!VillageEconomyState.TryRead(string.Join(";", Fields), out var state)) throw new Exception("FAIL scene is not a valid economy state");
@@ -397,6 +399,78 @@ internal static class VillageEconomyTests
         check(hungry.Economy.Residents[0].Activity == VillageActivity.Eating && hungry.Economy.Residents[0].Work == VillageWork.None, "a-hungry-resident-eats-before-working");
     }
 
+    /// <summary>A village whose mill quest is done: Orsel tends the sick at the old mill.</summary>
+    private static CharacterProgression MillVillage(int residents)
+    {
+        var p = CharacterProgression.CreateEntryProfile();
+        for (int i = 0; i < 3; i++) p.DiscoverHungerClue();
+        p.ChooseHungerSupply(HungerChoice.Protect);
+        p.TravelHunger(4, false);
+        p.DiscoverHungerClue();
+        if (!p.Village.UnlockOrselTeaches(p)) throw new Exception("FAIL mill quest not complete");
+        p.Social.EnableForge();
+        for (int i = 0; i < residents; i++) p.Village.RecordMainQuestCompleted();
+        return p;
+    }
+
+    /// <summary>Concept cycle D: herbs, care and recovery. Orsel's care needs herbs that somebody really brought.</summary>
+    private static void OrselsCare(Action<bool, string> check)
+    {
+        // Before Orsel's quest is done nobody is sent to her: the hurt resident rests at home.
+        var early = Village(1);
+        var home = Scene.Of(early);
+        home.Resident(0)[3] = 500;
+        home.Into(early);
+        Pass(early, 2000);
+        check(early.Economy.Residents[0].Site == VillageSite.Village && !early.Economy.Residents[0].Walking && early.Economy.Made(VillageGood.Herb) == 0, "without-orsels-quest-the-hurt-rest-at-home");
+
+        var p = MillVillage(1);
+        var scene = Scene.Of(p);
+        scene.Resident(0)[3] = 500;
+        scene.MillHerbs = 3;
+        scene.Into(p);
+        var e = p.Economy; var forge = p.Social.Forge;
+        int arrived = PassUntil(p, 1000, () => e.Residents[0].Site == VillageSite.Mill && !e.Residents[0].Walking);
+        check(arrived >= VillageEconomyRules.MillTravelTicks - 20 && arrived <= VillageEconomyRules.MillTravelTicks + 40 && e.Residents[0].Health <= 501, "the-hurt-resident-walks-to-orsel-at-the-old-mill");
+        long herbsUsed = e.Used(VillageGood.Herb);
+        int health = e.Residents[0].Health;
+        Pass(p, 1000);
+        check(e.Used(VillageGood.Herb) == herbsUsed + 3 && e.MillHerbs == 0 && e.Residents[0].Health == health + 3 * 10 + 7 * 3, "three-herbs-mend-ten-each-then-plain-care-mends-three");
+        var cares = forge.Archive.Events.Where(ev => ev.Context == VillageEconomyState.CareContext).ToArray();
+        check(cares.Length == 1 && cares[0].Actor == "orsel" && cares[0].Target == "resident.village.3", "one-day-of-care-is-one-memory");
+        check(forge.Archive.Get("orsel").Knowledge(cares[0].Id)?.Origin == KnowledgeOrigin.Self && forge.Archive.Get("resident.village.3").Knowledge(cares[0].Id)?.Origin == KnowledgeOrigin.Self &&
+            forge.Archive.Get("mara").Knowledge(cares[0].Id) == null, "healer-and-patient-know-of-the-care-mara-does-not");
+        check(forge.Archive.Get("resident.village.3").RelationshipTo("orsel").Gratitude > 0, "the-patient-is-grateful-to-orsel");
+        check(e.OpenNeeds(p).Any(n => n.Contains("Heilkräuter")), "missing-herbs-are-a-visible-need");
+        check(e.Residents[0].Activity == VillageActivity.Recovering && e.Residents[0].Work == VillageWork.None && e.Made(VillageGood.Wood) == 0, "a-patient-does-no-village-work");
+        int whole = PassUntil(p, 10 * Day, () => e.Residents[0].Health == VillageEconomyRules.MaxHealth);
+        check(whole >= 0, "the-patient-stays-until-whole");
+        int back = PassUntil(p, Day, () => e.Residents[0].Site == VillageSite.Village && !e.Residents[0].Walking);
+        check(back >= 0 && PassUntil(p, 2 * Day, () => e.Made(VillageGood.Wood) > 0 || e.Made(VillageGood.Herb) > 0) >= 0, "healed-the-resident-goes-home-and-works-again");
+        check(e.Audit().Count == 0, "ledger-balances-through-care");
+
+        // A healthy village keeps Orsel's shelf stocked: herbs are gathered at the forest edge and carried to the mill.
+        var well = MillVillage(1);
+        Pass(well, 1);
+        var we = well.Economy;
+        int stocked = PassUntil(well, 2 * Day, () => we.MillHerbs >= VillageEconomyRules.HerbTarget);
+        check(stocked >= 0 && we.Made(VillageGood.Herb) >= VillageEconomyRules.HerbTarget && we.MillHerbs <= VillageEconomyRules.MillHerbCap && we.Used(VillageGood.Herb) == 0, "herbs-are-gathered-and-carried-to-orsels-shelf");
+        check(we.Made(VillageGood.Herb) == we.MillHerbs + we.Commons(VillageGood.Herb) + we.Residents[0].Carried(VillageGood.Herb) && we.Audit().Count == 0, "every-herb-on-the-shelf-was-gathered");
+        long made = we.Made(VillageGood.Herb);
+        Pass(well, 2 * Day);
+        check(we.Made(VillageGood.Herb) == made && we.Source(VillageSource.Herbs) == VillageEconomyRules.HerbCap, "a-full-shelf-needs-no-more-herbs-and-the-patch-recovers");
+        check(CharacterProgression.TryLoad(well.SaveString(), out var loaded) && loaded.Economy.Token() == we.Token() && loaded.Economy.MillHerbs == we.MillHerbs, "the-shelf-survives-a-save");
+        string[] f = we.Token().Split(';');
+        f[6] = f[6].Split(',')[0] + ",7";
+        check(!VillageEconomyState.TryRead(string.Join(";", f), out _), "more-herbs-than-the-shelf-holds-are-rejected");
+
+        var giver = MillVillage(1);
+        Pass(giver, 10);
+        var world = new ArenaSimulation(41, giver, 1, LootCatalog.Version1);
+        giver.Crafting.AddMaterial(MaterialKind.Ashenflieder, 2);
+        check(!world.IsVillage && !world.GiveToVillage(VillageGood.Herb, 1).Accepted, "herbs-too-are-handed-over-in-the-village-only");
+    }
+
     /// <summary>Acceptance 8: same start and ticks, same village; a save in the middle changes nothing.</summary>
     private static void ReplayAndSaveLoad(Action<bool, string> check)
     {
@@ -520,7 +594,7 @@ internal static class VillageEconomyTests
         if (Environment.GetEnvironmentVariable("ARE_ECONOMY_REPORT") == "1")
             foreach (int count in new[] { 1, 2, 3 })
             {
-                var rp = Village(count); var rw = new ArenaSimulation(7, rp, 1, LootCatalog.Version1); var re = rp.Economy;
+                var rp = MillVillage(count); rp.EnterVillage(); var rw = new ArenaSimulation(7, rp, 1, LootCatalog.Version1); var re = rp.Economy;
                 var share = new int[7];
                 for (int d = 0; d < 12; d++)
                 {
@@ -530,7 +604,7 @@ internal static class VillageEconomyTests
                         " game=" + re.Made(VillageGood.Game) + " wild=" + re.Source(VillageSource.Wildlife) + " trees=" + re.Source(VillageSource.MatureTrees) + "+" + re.SaplingCount + " wood=" + re.Commons(VillageGood.Wood) +
                         " bows=" + re.Made(VillageGood.Bow) + " axes=" + re.Commons(VillageGood.Axe) + "/" + re.Commons(VillageGood.BrokenAxe) + " metal=" + re.Commons(VillageGood.Metal) + " hides=" + re.Commons(VillageGood.Hide) +
                         " r0[hp=" + re.Residents[0].Health + " hun=" + re.Residents[0].Hunger + "] idle/work/walk/rest/sleep/eat/recover=" + string.Join("/", share) +
-                        " npcHunger=" + rp.Social.GetMemory(0).Hunger + "," + rp.Social.GetMemory(1).Hunger + "," + rp.Social.GetMemory(2).Hunger + " needs=" + string.Join("|", re.OpenNeeds(rp)));
+                        " npcHunger=" + rp.Social.GetMemory(0).Hunger + "," + rp.Social.GetMemory(1).Hunger + "," + rp.Social.GetMemory(2).Hunger + " herbs=" + re.MillHerbs + "/" + re.Source(VillageSource.Herbs) + " site=" + re.Residents[0].Site + " needs=" + string.Join("|", re.OpenNeeds(rp)));
                 }
             }
         var p = Village(1);

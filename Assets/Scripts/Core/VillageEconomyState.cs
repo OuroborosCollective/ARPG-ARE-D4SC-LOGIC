@@ -25,6 +25,8 @@ namespace AreArpg.Core
         public VillageActivity Activity { get; internal set; }
         /// <summary>Game day of the last delivery that entered the personal memories; one memory a day is enough.</summary>
         public long DeliveryDay { get; internal set; } = -1;
+        /// <summary>Game day Orsel last took this resident into her care; one memory per day of care.</summary>
+        public long CareDay { get; internal set; } = -1;
         internal readonly int[] Carry = new int[VillageEconomyRules.GoodCount];
         /// <summary>Inputs taken from the commons for the work in hand. Returned if the work is given up.</summary>
         internal readonly int[] Reserved = new int[VillageEconomyRules.GoodCount];
@@ -62,6 +64,7 @@ namespace AreArpg.Core
         private readonly int[] _commons = new int[VillageEconomyRules.GoodCount];
         private readonly int[] _sources = new int[VillageEconomyRules.SourceCount];
         private int _nursery;
+        private int _millHerbs;
         private readonly List<KeyValuePair<ulong, int>> _saplings = new List<KeyValuePair<ulong, int>>();
         private readonly List<VillageResidentState> _residents = new List<VillageResidentState>();
         // Ledger per good: start + made + received - used - handed out = present.
@@ -75,6 +78,8 @@ namespace AreArpg.Core
         public int Source(VillageSource source) { return _sources[(int)source]; }
         /// <summary>Seedlings standing in the nursery at the forest edge.</summary>
         public int NurserySeedlings { get { return _nursery; } }
+        /// <summary>Healing herbs on Orsel's shelf at the old mill.</summary>
+        public int MillHerbs { get { return _millHerbs; } }
         public IReadOnlyList<VillageResidentState> Residents { get { return _residents; } }
         public int SaplingCount { get { int n = 0; foreach (var s in _saplings) n += s.Value; return n; } }
         /// <summary>The tick the next planted seedling becomes a tree; zero without saplings.</summary>
@@ -91,6 +96,7 @@ namespace AreArpg.Core
             int g = (int)good;
             long total = _commons[g];
             if (good == VillageGood.Seedling) total += _nursery;
+            if (good == VillageGood.Herb) total += _millHerbs;
             foreach (var r in _residents) total += r.Carry[g] + r.Reserved[g];
             return total;
         }
@@ -155,7 +161,7 @@ namespace AreArpg.Core
         internal string Token()
         {
             var b = new StringBuilder("1;").Append(N(VillageEconomyRules.Revision)).Append(';').Append(N(StartedTick)).Append(';').Append(N(LastTick));
-            b.Append(';').Append(Row(_commons)).Append(';').Append(Row(_sources)).Append(';').Append(N(_nursery)).Append(';');
+            b.Append(';').Append(Row(_commons)).Append(';').Append(Row(_sources)).Append(';').Append(N(_nursery)).Append(',').Append(N(_millHerbs)).Append(';');
             for (int i = 0; i < _saplings.Count; i++)
             { if (i > 0) b.Append('/'); b.Append(N(_saplings[i].Key)).Append(',').Append(N(_saplings[i].Value)); }
             if (_saplings.Count == 0) b.Append('x');
@@ -167,7 +173,7 @@ namespace AreArpg.Core
                 b.Append(N(r.Ordinal)).Append(',').Append(N(r.Hunger)).Append(',').Append(N(r.Fatigue)).Append(',').Append(N(r.Health))
                     .Append(',').Append(N((int)r.Site)).Append(',').Append(N((int)r.Destination)).Append(',').Append(N(r.TravelTicks))
                     .Append(',').Append(N((int)r.Work)).Append(',').Append(N(r.WorkTicks)).Append(',').Append(N(r.AxeUses))
-                    .Append(',').Append(N((int)r.Activity)).Append(',').Append(N(r.DeliveryDay + 1))
+                    .Append(',').Append(N((int)r.Activity)).Append(',').Append(N(r.DeliveryDay + 1)).Append(',').Append(N(r.CareDay + 1))
                     .Append(',').Append(Row(r.Carry)).Append(',').Append(Row(r.Reserved));
             }
             if (_residents.Count == 0) b.Append('x');
@@ -212,9 +218,10 @@ namespace AreArpg.Core
             if (!Numbers(f[5], sources.Length, 100000, sources)) return false;
             for (int i = 0; i < sources.Length; i++) s._sources[i] = (int)sources[i];
             if (s._sources[(int)VillageSource.Wildlife] > VillageEconomyRules.WildlifeCap || s._sources[(int)VillageSource.Berries] > VillageEconomyRules.BerryCap ||
-                s._sources[(int)VillageSource.Well] > VillageEconomyRules.WellCap) return false;
-            if (!Number(f[6], int.MaxValue / 4, out long nursery)) return false;
-            s._nursery = (int)nursery;
+                s._sources[(int)VillageSource.Well] > VillageEconomyRules.WellCap || s._sources[(int)VillageSource.Herbs] > VillageEconomyRules.HerbCap) return false;
+            var beds = new long[2];
+            if (!Numbers(f[6], 2, int.MaxValue / 4, beds) || beds[1] > VillageEconomyRules.MillHerbCap) return false;
+            s._nursery = (int)beds[0]; s._millHerbs = (int)beds[1];
             if (f[7] != "x")
             {
                 ulong before = 0;
@@ -235,26 +242,29 @@ namespace AreArpg.Core
                 int expected = VillageServicesState.BasePopulation;
                 foreach (string entry in f[13].Split('/'))
                 {
-                    var n = new long[12 + 2 * VillageEconomyRules.GoodCount];
+                    const int Head = 13;
+                    var n = new long[Head + 2 * VillageEconomyRules.GoodCount];
                     if (!Numbers(entry, n.Length, int.MaxValue / 4, n)) return false;
                     var r = new VillageResidentState
                     {
                         Ordinal = (int)n[0], Hunger = (int)n[1], Fatigue = (int)n[2], Health = (int)n[3], Site = (VillageSite)n[4], Destination = (VillageSite)n[5],
-                        TravelTicks = (int)n[6], Work = (VillageWork)n[7], WorkTicks = (int)n[8], AxeUses = (int)n[9], Activity = (VillageActivity)n[10], DeliveryDay = n[11] - 1
+                        TravelTicks = (int)n[6], Work = (VillageWork)n[7], WorkTicks = (int)n[8], AxeUses = (int)n[9], Activity = (VillageActivity)n[10], DeliveryDay = n[11] - 1, CareDay = n[12] - 1
                     };
                     if (r.Ordinal != expected++ || r.Hunger > VillageEconomyRules.MaxNeed || r.Fatigue > VillageEconomyRules.MaxNeed ||
                         r.Health < 1 || r.Health > VillageEconomyRules.MaxHealth ||
-                        n[4] > 1 || n[5] > 1 || r.TravelTicks > VillageEconomyRules.ForestTravelTicks || r.TravelTicks % VillageEconomyRules.Stride != 0 ||
+                        n[4] > 2 || n[5] > 2 || r.TravelTicks > VillageEconomyRules.TravelTicks(r.Site, r.Destination) || r.TravelTicks % VillageEconomyRules.Stride != 0 ||
                         (r.TravelTicks > 0) == (n[4] == n[5]) || r.TravelTicks > 0 && n[7] != 0 ||
+                        // Forest and mill are reached through the village: no walk leads from one to the other.
+                        r.TravelTicks > 0 && r.Site != VillageSite.Village && r.Destination != VillageSite.Village ||
                         n[7] >= VillageEconomyRules.WorkCount || n[10] > (long)VillageActivity.Recovering || r.AxeUses > VillageEconomyRules.AxeUses) return false;
                     var rule = VillageEconomyRules.Rule(r.Work);
                     // A work step is in hand exactly while it has time left; walking home is a walk, not a step.
-                    if (r.WorkTicks > rule.Ticks || r.WorkTicks % VillageEconomyRules.Stride != 0 || r.Work == VillageWork.GoHome ||
+                    if (r.WorkTicks > rule.Ticks || r.WorkTicks % VillageEconomyRules.Stride != 0 || r.Work == VillageWork.GoHome || r.Work == VillageWork.SeekCare ||
                         (r.Work == VillageWork.None) != (r.WorkTicks == 0)) return false;
                     for (int g = 0; g < VillageEconomyRules.GoodCount; g++)
                     {
-                        r.Carry[g] = (int)n[12 + g];
-                        r.Reserved[g] = (int)n[12 + VillageEconomyRules.GoodCount + g];
+                        r.Carry[g] = (int)n[Head + g];
+                        r.Reserved[g] = (int)n[Head + VillageEconomyRules.GoodCount + g];
                     }
                     if (r.Load > VillageEconomyRules.CarryCapacity || r.Carry[(int)VillageGood.Axe] > 1 || r.Carry[(int)VillageGood.Bow] > 1 ||
                         (r.Carry[(int)VillageGood.Axe] == 1) != (r.AxeUses > 0)) return false;

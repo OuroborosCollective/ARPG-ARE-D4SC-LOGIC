@@ -182,6 +182,7 @@ namespace AreArpg.Core
                 case VillageGood.Wood: if (!Has(MaterialKind.Holz, count)) return false; Take(MaterialKind.Holz, count); return true;
                 case VillageGood.ThornBerry: if (!Has(MaterialKind.Dornbeere, count)) return false; Take(MaterialKind.Dornbeere, count); return true;
                 case VillageGood.Metal: if (!Has(MaterialKind.Ascheisen, count)) return false; Take(MaterialKind.Ascheisen, count); return true;
+                case VillageGood.Herb: if (!Has(MaterialKind.Ashenflieder, count)) return false; Take(MaterialKind.Ashenflieder, count); return true;
                 case VillageGood.WoodFrame: if (WoodenFrameCount < count) return false; WoodenFrameCount -= count; return true;
                 case VillageGood.Bow: if (BowCount < count) return false; BowCount -= count; return true;
                 default: return false;
