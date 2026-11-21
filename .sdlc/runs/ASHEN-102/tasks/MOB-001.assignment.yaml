@@ -1,0 +1,85 @@
+schema_version: 1
+kind: delivery_assignment
+assignment_id: ASN-969843490280187361
+run_id: ASHEN-102
+task_id: MOB-001
+producer: pm
+revision: 2
+role: frontend
+target: mobile
+stage: mobile_implementation
+scenario: full_task
+facts_revision: 1
+facts_sha256: f2b699d201be1f5441b4b7af7789a576fd574fb7f60aa7b53d81a4b1c929f6e1
+task_status: running
+scaffold_status: scaffolded
+dependencies:
+  - task_id: PM-002
+    status: completed
+required_inputs:
+  - path: .sdlc/runs/ASHEN-102/artifacts/pm/requirements-review.md
+    producer: pm
+    revision: 1
+    exists: true
+    sha256: 64c9d18753121f7e957556211c156732eb4d930ca90cd893145d56c79b2954ef
+    status: available
+required_outputs:
+  - path: .sdlc/runs/ASHEN-102/artifacts/mobile/implementation-summary.md
+    artifact_kind: implementation_summary
+    producer: frontend
+    required: true
+allowed_write_roots:
+  - .
+  - .sdlc/runs/ASHEN-102/artifacts/mobile
+available_evidence:
+  - evidence_id: EVD-775b4ea4bf794b5e
+    command_key: sdlc_typecheck
+    owner: runtime_collector
+    reference: evidence/commands/EVD-775b4ea4bf794b5e/evidence.json
+    document_sha256: cd4d59a942ac2aa7ebcc725492c73d278b8af0151310d58832d9ac1f0f008e3d
+    status: passed
+  - evidence_id: EVD-aca747dbe004d572
+    command_key: mobile_analyze
+    owner: runtime_collector
+    reference: evidence/commands/EVD-aca747dbe004d572/evidence.json
+    document_sha256: 7b1daeab4df1813d43aea24a60b4d8df4c8745b311fd26fe102072758616597f
+    status: passed
+  - evidence_id: EVD-3ad694e62e71e69f
+    command_key: foundation_verify
+    owner: runtime_collector
+    reference: evidence/commands/EVD-3ad694e62e71e69f/evidence.json
+    document_sha256: 1a5fc8d5a692665eebfaa2799ff15ab8e692e3e7d3fa03cb0c1323598ea7f46f
+    status: passed
+evidence_requirements:
+  - command_key: sdlc_typecheck
+    required: true
+    owner: runtime_collector
+  - command_key: mobile_analyze
+    required: true
+    owner: runtime_collector
+  - command_key: foundation_verify
+    required: true
+    owner: runtime_collector
+transition_policy:
+  current_status: running
+  allowed_request: awaiting_review
+  unmet_disposition: refuse
+controls:
+  api_contract_status: approved
+  questions: []
+  gaps: []
+  requirements:
+    - requirement_id: REQ-001
+      capability: three_day_personal_recall
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-001
+    - requirement_id: REQ-002
+      capability: local_weighted_behavior
+      required: true
+      parameters: {}
+      source_references:
+        - kind: fact
+          reference: FACT-002

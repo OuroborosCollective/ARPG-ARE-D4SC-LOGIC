@@ -1,0 +1,27 @@
+schema_version: 1
+run_id: ASHEN-102
+task_id: BA-001
+producer: ba
+revision: 1
+claims:
+- id: CLAIM-001
+  source_fact_id: FACT-001
+  subject: npc.memory.detail_horizon
+  relation: equals
+  value:
+    in_game_days: 3
+  status: approved
+  requirement_ids:
+  - REQ-001
+  question_ids: []
+- id: CLAIM-002
+  source_fact_id: FACT-002
+  subject: npc.memory.execution
+  relation: equals
+  value:
+    local: true
+    remote_model: false
+  status: approved
+  requirement_ids:
+  - REQ-002
+  question_ids: []

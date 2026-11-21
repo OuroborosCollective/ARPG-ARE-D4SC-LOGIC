@@ -266,3 +266,13 @@ Getesteter gemeinsamer Code `40eb8c7ecac79db1cbfa457734cfa3bfa2cbbe76`, Tree `f4
 ## 20. November 2026 · Aschengrenzer Markt
 
 Der Rollout auf die privaten Dorfmeshes ist mit #105 belegt. Das Originalmaterial des begehbaren Platzes war beim ersten Landschaftsdurchlauf separat geblieben. Im gleichen Kamerablick liegt nun graue Asche am Wegrand und zwischen den Ständen. Code `1448807`, 21.549 Core-Assertions, 230 EditMode- und 181 PlayMode-Fälle sowie verifiziertes ARM64-APK. [Vorher/Nachher und Bildgrenzen](../borderland-art-20261120/acceptance.md#aschengrenze-dorfplatz-105)
+
+## 21. November 2026 · Persönliches NPC-Gedächtnis · PR 106
+
+Auf `376230ddb6cbeac71f02ccc18cb41b10c2438c80` reagiert Ilyan nach einer tatsächlich angenommenen Ration im laufenden Unity-Player mit einem persönlichen Untertitel. Die Beobachtung fehlt einem unbeteiligten Dorfbewohner. Beim dritten Tageswechsel verschwinden selbst nach Wiederabruf die letzten privaten Episodendetails. Der Core-Lauf über 43.200 Spielticks bestätigt identische Spielstandbytes und denselben Welthash nach Wiederaufnahme.
+
+21.815 Core-Prüfungen, 54 Preflight- und 59 Director-Tests waren erfolgreich. Im lizenzierten Unity-Editor 6000.6.8f1 liefen 11/11 ausgewählte PlayMode- und 13/13 Memory-Forge-EditMode-Fälle. Der erste Compile meldete eine Assembly-Grenze. Der erweiterte Dorf-Test benötigte zusätzlich die vorhandenen privaten Figurenmodelle für die Bildabnahme. Beide Ursachen wurden am jeweiligen Ursprung behoben. Der frühere Word-Dateiverweis ist unter der hinterlegten Identität aktuell nicht erreichbar. Ein APK- oder Gerätelauf gehörte nicht zu dieser Runde.
+
+- [Unity-Fälle, XML-Prüfsummen und Prüfsumme des Originalbilds](../npc-personal-memory-20261121/native.json)
+- [Anschlüsse für künftige Berufe und Bedürfnisse](../../NPC_PERSONAL_MEMORY.md)
+- [GitHub-Core-Lauf zum geprüften Code](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/44853025576)

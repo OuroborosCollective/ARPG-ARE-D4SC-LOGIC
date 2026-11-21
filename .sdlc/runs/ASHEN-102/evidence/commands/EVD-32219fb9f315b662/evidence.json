@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "EVD-32219fb9f315b662",
+  "run_id": "ASHEN-102",
+  "task_id": "QC-001",
+  "command_id": "mobile_analyze",
+  "executable": "python3",
+  "args": [
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "Tests/Preflight",
+    "-v"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-21T02:10:53.491Z",
+  "completed_at": "2026-11-21T02:10:53.779Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-32219fb9f315b662/evidence.json",
+  "stdout_path": "evidence/commands/EVD-32219fb9f315b662/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-32219fb9f315b662/stderr.txt"
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "EVD-7a502734a961a491",
+  "run_id": "ASHEN-102",
+  "task_id": "PM-001",
+  "command_id": "sdlc_validate",
+  "executable": "node",
+  "args": [
+    ".sdlc/runtime.cjs",
+    "validate-config"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-21T01:58:36.662Z",
+  "completed_at": "2026-11-21T01:58:37.209Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-7a502734a961a491/evidence.json",
+  "stdout_path": "evidence/commands/EVD-7a502734a961a491/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-7a502734a961a491/stderr.txt"
+}

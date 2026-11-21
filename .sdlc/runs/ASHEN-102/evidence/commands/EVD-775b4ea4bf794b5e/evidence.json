@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "EVD-775b4ea4bf794b5e",
+  "run_id": "ASHEN-102",
+  "task_id": "MOB-001",
+  "command_id": "sdlc_typecheck",
+  "executable": "dotnet",
+  "args": [
+    "build",
+    "Tests/CoreVerification/CoreVerification.csproj",
+    "--configuration",
+    "Release",
+    "--no-restore"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-21T02:04:02.911Z",
+  "completed_at": "2026-11-21T02:04:03.683Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-775b4ea4bf794b5e/evidence.json",
+  "stdout_path": "evidence/commands/EVD-775b4ea4bf794b5e/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-775b4ea4bf794b5e/stderr.txt"
+}

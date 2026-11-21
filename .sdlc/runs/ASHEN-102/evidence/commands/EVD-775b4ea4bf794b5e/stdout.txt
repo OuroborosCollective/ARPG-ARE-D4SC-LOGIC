@@ -1,0 +1,7 @@
+  CoreVerification -> /workspace/scratch/098762166fe3/ashen/Tests/CoreVerification/bin/Release/net8.0/CoreVerification.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:00.60
