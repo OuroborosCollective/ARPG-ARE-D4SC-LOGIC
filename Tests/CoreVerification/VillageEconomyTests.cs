@@ -1052,7 +1052,7 @@ internal static class VillageEconomyTests
             foreach (int count in new[] { 1, 2, 3 })
             {
                 var rp = MillVillage(count); rp.EnterVillage(); var rw = new ArenaSimulation(7, rp, 1, LootCatalog.Version1); var re = rp.Economy;
-                var share = new int[7];
+                var share = new int[Enum.GetValues(typeof(VillageActivity)).Length];
                 for (int d = 0; d < 12; d++)
                 {
                     Array.Clear(share, 0, share.Length);
@@ -1060,7 +1060,7 @@ internal static class VillageEconomyTests
                     Console.WriteLine("REPORT residents=" + count + " day=" + (d + 1) + " camp=" + rp.Social.CampProvisions + " rations=" + re.Made(VillageGood.Ration) + " handed=" + re.HandedOut(VillageGood.Ration) +
                         " game=" + re.Made(VillageGood.Game) + " wild=" + re.Source(VillageSource.Wildlife) + " trees=" + re.Source(VillageSource.MatureTrees) + "+" + re.SaplingCount + " wood=" + re.Commons(VillageGood.Wood) +
                         " bows=" + re.Made(VillageGood.Bow) + " axes=" + re.Commons(VillageGood.Axe) + "/" + re.Commons(VillageGood.BrokenAxe) + " metal=" + re.Commons(VillageGood.Metal) + " hides=" + re.Commons(VillageGood.Hide) +
-                        " r0[hp=" + re.Residents[0].Health + " hun=" + re.Residents[0].Hunger + "] idle/work/walk/rest/sleep/eat/recover=" + string.Join("/", share) +
+                        " r0[hp=" + re.Residents[0].Health + " hun=" + re.Residents[0].Hunger + "] idle/work/walk/rest/sleep/eat/recover/drink=" + string.Join("/", share) +
                         " npcHunger=" + rp.Social.GetMemory(0).Hunger + "," + rp.Social.GetMemory(1).Hunger + "," + rp.Social.GetMemory(2).Hunger + " herbs=" + re.MillHerbs + "/" + re.Source(VillageSource.Herbs) + " site=" + re.Residents[0].Site + " needs=" + string.Join("|", re.OpenNeeds(rp)));
                 }
                 // What the save is made of once the village works: the ledger itself is small, the minds are the bulk.
