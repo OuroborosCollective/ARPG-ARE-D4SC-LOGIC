@@ -425,7 +425,9 @@ namespace AreArpg.Core
             {
                 case NpcAction.Greet:
                     npc.Memory.Record(action, 0); result.Text = npc.Greeting();
-                    string rumor = Progression.Social.RoadRumor(id); if (rumor.Length > 0) result.Text += " " + rumor; break;
+                    string rumor = Progression.Social.RoadRumor(id); if (rumor.Length > 0) result.Text += " " + rumor;
+                    string supplyNews = VillageSupplyNews(id); if (supplyNews.Length > 0) result.Text += " " + supplyNews;
+                    break;
                 case NpcAction.Help:
                     if (!Progression.Social.Help(id)) { result.Text = "Kein Bedarf oder kein Proviant."; return result; }
                     result.Text = "Du teilst Proviant und versorgst " + npc.Role + "."; break;

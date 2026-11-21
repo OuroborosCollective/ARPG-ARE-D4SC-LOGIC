@@ -6,11 +6,17 @@ namespace AreArpg.Core
     public enum VillageGood
     {
         Wood = 0, ThornBerry = 1, WoodFrame = 2, Bow = 3, Axe = 4, BrokenAxe = 5,
-        Game = 6, Hide = 7, Ration = 8, Metal = 9, Seedling = 10, Water = 11, Herb = 12
+        Game = 6, Hide = 7, Ration = 8, Metal = 9, Seedling = 10, Water = 11, Herb = 12,
+        SeedGrain = 13, Grain = 14, Flour = 15, Straw = 16, Compost = 17, Ore = 18,
+        Stone = 19, Fitting = 20, Leather = 21, Bandage = 22
     }
 
     /// <summary>Natural stocks. They change only by named work or by their own written regeneration rule.</summary>
-    public enum VillageSource { MatureTrees = 0, SeedCrop = 1, Wildlife = 2, Berries = 3, Well = 4, Herbs = 5 }
+    public enum VillageSource
+    {
+        MatureTrees = 0, SeedCrop = 1, Wildlife = 2, Berries = 3, Well = 4, Herbs = 5,
+        OreVein = 6, Rubble = 7, Soil = 8, CropTicks = 9, RipePlot = 10, Shelter = 11, Hearth = 12
+    }
 
     /// <summary>Where a resident can be: the village, the forest edge, or Orsel's sick beds at the old mill.</summary>
     public enum VillageSite { Village = 0, Forest = 1, Mill = 2 }
@@ -20,11 +26,14 @@ namespace AreArpg.Core
     {
         None = 0, FellTree = 1, CollectSeedlings = 2, PlantSeedling = 3, GatherBerries = 4, Hunt = 5,
         MakeFrame = 6, MakeBow = 7, FetchWater = 8, Cook = 9, DeliverRations = 10, RepairAxe = 11, GoHome = 12,
-        GatherHerbs = 13, BringHerbs = 14, SeekCare = 15
+        GatherHerbs = 13, BringHerbs = 14, SeekCare = 15, SowField = 16, HarvestField = 17,
+        MillGrain = 18, BakeBread = 19, MakeCompost = 20, DressSoil = 21, RecoverOre = 22,
+        GatherStone = 23, SmeltOre = 24, ForgeFitting = 25, TanHide = 26, MakeBandage = 27,
+        RepairShelter = 28, TendHearth = 29, OfferWater = 30
     }
 
     /// <summary>What a resident is visibly doing; derived from the decision, for the projection and the village board.</summary>
-    public enum VillageActivity { Idle = 0, Working = 1, Walking = 2, Resting = 3, Sleeping = 4, Eating = 5, Recovering = 6 }
+    public enum VillageActivity { Idle = 0, Working = 1, Walking = 2, Resting = 3, Sleeping = 4, Eating = 5, Recovering = 6, Drinking = 7 }
 
     /// <summary>A good and an amount, used by the work table.</summary>
     public readonly struct GoodAmount
@@ -60,10 +69,16 @@ namespace AreArpg.Core
     /// </summary>
     public static class VillageEconomyRules
     {
-        public const int Revision = 1;
-        public const int GoodCount = 13;
-        public const int SourceCount = 6;
-        public const int WorkCount = 16;
+        public const int Revision = 2;
+        public const int GoodCount = 23;
+        public const int SourceCount = 13;
+        public const int WorkCount = 31;
+
+        // One village plot. Sowing uses a measure of fertile soil; harvest keeps seed and straw
+        // for the next season. The two rock deposits are finite, visible sources on the mill route.
+        public const int CropGrowthTicks = (int)WorldSkyClock.TicksPerDay / 2;
+        public const int SoilCapacity = 2, ShelterCapacity = 3, OreReserve = 12, StoneReserve = 12;
+        public const int ShelterWearTicks = 2 * (int)WorldSkyClock.TicksPerDay;
 
         /// <summary>The economy is evaluated once per simulated second; every duration is a multiple of it.</summary>
         public const int Stride = 10;
@@ -139,6 +154,31 @@ namespace AreArpg.Core
             // Herbs are carried to the old mill and put on Orsel's shelf: a hand-over, nothing is made or used.
             new VillageWorkRule(VillageWork.BringHerbs, VillageSite.Mill, 60, -1, Nothing, Nothing, -1, 0),
             new VillageWorkRule(VillageWork.SeekCare, VillageSite.Mill, 0, -1, Nothing, Nothing, -1, 0),
+            new VillageWorkRule(VillageWork.SowField, VillageSite.Village, 220, (int)VillageGood.Axe,
+                new[] { G(VillageGood.SeedGrain, 1), G(VillageGood.Water, 1) }, Nothing, (int)VillageSource.Soil, 1),
+            new VillageWorkRule(VillageWork.HarvestField, VillageSite.Village, 260, -1, Nothing,
+                new[] { G(VillageGood.Grain, 4), G(VillageGood.SeedGrain, 1), G(VillageGood.Straw, 2) }, (int)VillageSource.RipePlot, 1),
+            new VillageWorkRule(VillageWork.MillGrain, VillageSite.Mill, 280, -1, new[] { G(VillageGood.Grain, 2) }, new[] { G(VillageGood.Flour, 2) }, -1, 0),
+            new VillageWorkRule(VillageWork.BakeBread, VillageSite.Village, 240, -1,
+                new[] { G(VillageGood.Flour, 1), G(VillageGood.Water, 1), G(VillageGood.Wood, 1) }, new[] { G(VillageGood.Ration, 3) }, -1, 0),
+            new VillageWorkRule(VillageWork.MakeCompost, VillageSite.Village, 180, -1,
+                new[] { G(VillageGood.Straw, 1), G(VillageGood.Water, 1) }, new[] { G(VillageGood.Compost, 1) }, -1, 0),
+            new VillageWorkRule(VillageWork.DressSoil, VillageSite.Village, 140, -1, new[] { G(VillageGood.Compost, 1) }, Nothing, -1, 0),
+            new VillageWorkRule(VillageWork.RecoverOre, VillageSite.Forest, 420, -1, Nothing, new[] { G(VillageGood.Ore, 2) }, (int)VillageSource.OreVein, 2),
+            new VillageWorkRule(VillageWork.GatherStone, VillageSite.Forest, 300, -1, Nothing, new[] { G(VillageGood.Stone, 2) }, (int)VillageSource.Rubble, 2),
+            new VillageWorkRule(VillageWork.SmeltOre, VillageSite.Village, 340, -1,
+                new[] { G(VillageGood.Ore, 1), G(VillageGood.Wood, 1) }, new[] { G(VillageGood.Metal, 1) }, -1, 0),
+            new VillageWorkRule(VillageWork.ForgeFitting, VillageSite.Village, 240, -1,
+                new[] { G(VillageGood.Metal, 1), G(VillageGood.Wood, 1), G(VillageGood.Water, 1) }, new[] { G(VillageGood.Fitting, 1) }, -1, 0),
+            new VillageWorkRule(VillageWork.TanHide, VillageSite.Village, 320, -1,
+                new[] { G(VillageGood.Hide, 1), G(VillageGood.Water, 1) }, new[] { G(VillageGood.Leather, 1) }, -1, 0),
+            // Clean fibre padding held by a leather strip; healing herbs remain a separate supply.
+            new VillageWorkRule(VillageWork.MakeBandage, VillageSite.Village, 140, -1,
+                new[] { G(VillageGood.Leather, 1), G(VillageGood.Straw, 1), G(VillageGood.Water, 1) }, new[] { G(VillageGood.Bandage, 1) }, -1, 0),
+            new VillageWorkRule(VillageWork.RepairShelter, VillageSite.Village, 400, -1,
+                new[] { G(VillageGood.Wood, 2), G(VillageGood.Stone, 1), G(VillageGood.Fitting, 1) }, Nothing, -1, 0),
+            new VillageWorkRule(VillageWork.TendHearth, VillageSite.Village, 90, -1, new[] { G(VillageGood.Wood, 1) }, Nothing, -1, 0),
+            new VillageWorkRule(VillageWork.OfferWater, VillageSite.Village, 90, -1, new[] { G(VillageGood.Water, 1) }, Nothing, -1, 0),
         };
 
         /// <summary>Ticks for the way between two sites. Forest and mill are both reached through the village.</summary>
@@ -162,9 +202,10 @@ namespace AreArpg.Core
             {
                 case VillageGood.Wood: return 4;
                 case VillageGood.Axe: return 2;      // one to work with, one spare so a broken axe is no silent dead end
-                case VillageGood.Metal: return 2;    // scrap for two repairs; after that metal must come from someone
+                case VillageGood.Metal: return 2;    // recovered scrap; further metal must be smelted or delivered
                 case VillageGood.Water: return 2;
                 case VillageGood.Seedling: return 4; // stands in the nursery at the forest edge
+                case VillageGood.SeedGrain: return 2;
                 default: return 0;
             }
         }
@@ -179,8 +220,24 @@ namespace AreArpg.Core
                 case VillageSource.Berries: return 8;
                 case VillageSource.Well: return WellCap;
                 case VillageSource.Herbs: return HerbCap;
+                case VillageSource.OreVein: return OreReserve;
+                case VillageSource.Rubble: return StoneReserve;
+                case VillageSource.Soil: return SoilCapacity;
+                case VillageSource.Shelter: return ShelterCapacity;
+                case VillageSource.Hearth: return 1;
+                case VillageSource.CropTicks:
+                case VillageSource.RipePlot: return 0;
                 default: throw new ArgumentOutOfRangeException(nameof(source));
             }
+        }
+
+        internal static bool ValidProductionSources(int[] s)
+        {
+            int ticks = s[(int)VillageSource.CropTicks];
+            return s[(int)VillageSource.OreVein] <= OreReserve && s[(int)VillageSource.Rubble] <= StoneReserve &&
+                s[(int)VillageSource.Soil] <= SoilCapacity && ticks <= CropGrowthTicks && ticks % Stride == 0 &&
+                s[(int)VillageSource.RipePlot] <= 1 && (ticks == 0 || s[(int)VillageSource.RipePlot] == 0) &&
+                s[(int)VillageSource.Shelter] <= ShelterCapacity && s[(int)VillageSource.Hearth] <= 1;
         }
 
         public static bool IsNight(ulong tick)
@@ -217,6 +274,16 @@ namespace AreArpg.Core
                 case VillageGood.Seedling: return "Setzlinge";
                 case VillageGood.Water: return "Wasser";
                 case VillageGood.Herb: return "Heilkräuter";
+                case VillageGood.SeedGrain: return "Saatgut";
+                case VillageGood.Grain: return "Getreide";
+                case VillageGood.Flour: return "Mehl";
+                case VillageGood.Straw: return "Stroh";
+                case VillageGood.Compost: return "Kompost";
+                case VillageGood.Ore: return "Erz";
+                case VillageGood.Stone: return "Bruchstein";
+                case VillageGood.Fitting: return "Beschläge";
+                case VillageGood.Leather: return "Leder";
+                case VillageGood.Bandage: return "Verbände";
                 default: throw new ArgumentOutOfRangeException(nameof(good));
             }
         }
@@ -240,6 +307,21 @@ namespace AreArpg.Core
                 case VillageWork.GatherHerbs: return "sammelt Heilkräuter";
                 case VillageWork.BringHerbs: return "bringt Heilkräuter zu Orsel";
                 case VillageWork.SeekCare: return "geht zu Orsel an die Mühle";
+                case VillageWork.SowField: return "bestellt das Feld";
+                case VillageWork.HarvestField: return "erntet Getreide";
+                case VillageWork.MillGrain: return "mahlt Getreide";
+                case VillageWork.BakeBread: return "backt Brot für Maras Lager";
+                case VillageWork.MakeCompost: return "setzt Kompost an";
+                case VillageWork.DressSoil: return "bringt Kompost aufs Feld";
+                case VillageWork.RecoverOre: return "birgt Erz";
+                case VillageWork.GatherStone: return "sammelt Bruchstein";
+                case VillageWork.SmeltOre: return "verhüttet Erz";
+                case VillageWork.ForgeFitting: return "schmiedet Beschläge";
+                case VillageWork.TanHide: return "gerbt eine Haut";
+                case VillageWork.MakeBandage: return "bindet einen Verband";
+                case VillageWork.RepairShelter: return "repariert das Dach";
+                case VillageWork.TendHearth: return "schürt das Herdfeuer";
+                case VillageWork.OfferWater: return "bringt Wasser zur Krankenstube";
                 default: return "wartet";
             }
         }

@@ -118,8 +118,7 @@ namespace AreArpg.Core
             p.RestoreCraftSection();
             p.RestoreCompanionRecoverySection();
             p.RestoreVillageSection();
-            p.RestoreEconomySection();
-            if (p.SaveString() != saved) return false;
+            if (!p.RestoreEconomySection() || p.SaveString() != saved) return false;
             progress = p;
             return true;
         }

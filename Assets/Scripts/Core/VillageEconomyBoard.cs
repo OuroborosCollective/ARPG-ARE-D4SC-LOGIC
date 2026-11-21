@@ -5,9 +5,8 @@ using System.Globalization;
 namespace AreArpg.Core
 {
     /// <summary>
-    /// What stands on the village board. The village counts its own stores exactly; of forest, game and herbs it
-    /// knows only what people see when they are out there, so the land is described in words, not counted.
-    /// Everything here is read from the Core state: the board shows the village, it does not run it.
+    /// The board counts locally owned stores. A messenger must actually return before any observation of the
+    /// forest is shown. A dated report is never refreshed by opening the board or by a change in a distant source.
     /// </summary>
     public static class VillageBoard
     {
@@ -25,45 +24,105 @@ namespace AreArpg.Core
             if (p == null) throw new ArgumentNullException(nameof(p));
             var lines = new List<string>();
             VillageEconomyState e = p.Economy;
-            if (!e.Started) return lines;
+            string camp = "Maras Vorrat " + N(p.Social.CampProvisions) + "/" + N(SocialLedger.CampCapacity);
+            if (!e.Started) { lines.Add(camp); return lines; }
             lines.Add("Werkstatt: " + Count(e, VillageGood.Wood) + " · " + Count(e, VillageGood.WoodFrame) + " · " + Count(e, VillageGood.Bow) + " · " +
                 Count(e, VillageGood.Axe) + (e.Commons(VillageGood.BrokenAxe) > 0 ? " · " + Count(e, VillageGood.BrokenAxe) : "") + " · " +
                 Count(e, VillageGood.Metal) + " · " + Count(e, VillageGood.ThornBerry));
             lines.Add("Küche: " + Count(e, VillageGood.Game) + " · " + Count(e, VillageGood.Water) + " · " + Count(e, VillageGood.Ration) + " · " +
-                Count(e, VillageGood.Hide) + " · Maras Vorrat " + N(p.Social.CampProvisions) + "/" + N(SocialLedger.CampCapacity));
-            lines.Add("Umland: " + Forest(e) + " · " + Wildlife(e) + " · " + Berries(e) + (p.Village.OrselTeachesUnlocked ? " · " + Herbs(e) : ""));
+                Count(e, VillageGood.Hide) + " · " + camp);
+            lines.Add(ForestReport(e));
+            string field = e.Source(VillageSource.RipePlot) > 0 ? "erntereif" : e.Source(VillageSource.CropTicks) > 0 ? "wächst" : "frei";
+            lines.Add("Hausgarten (" + field + "): " + Count(e, VillageGood.SeedGrain) + " · " + Count(e, VillageGood.Grain) + " · " +
+                Count(e, VillageGood.Straw) + " · " + Count(e, VillageGood.Compost));
+            lines.Add("Back- und Pflegestube: " + Count(e, VillageGood.Flour) + " · " + Count(e, VillageGood.Herb) + " · " +
+                Count(e, VillageGood.Leather) + " · " + Count(e, VillageGood.Bandage));
+            lines.Add("Bau und Werkzeugpflege: " + Count(e, VillageGood.Ore) + " · " + Count(e, VillageGood.Stone) + " · " + Count(e, VillageGood.Fitting));
+            if (p.Village.OrselTeachesUnlocked)
+                lines.Add(e.ReportedMillHerbs < 0 ? "Alte Mühle: Noch kein Bericht von Orsels Vorrat eingetroffen." :
+                    "Alte Mühle · " + ReturningWitness(e.MillReporterOrdinal, e.MillReportTick) + ": " +
+                    N(e.ReportedMillHerbs) + "/" + N(VillageEconomyRules.MillHerbCap) + " Heilkräuter bei Orsel.");
             return lines;
         }
 
         private static string Count(VillageEconomyState e, VillageGood good)
         { return VillageEconomyRules.GoodName(good) + " " + N(e.Commons(good)); }
 
-        private static string Forest(VillageEconomyState e)
+        private static string ForestReport(VillageEconomyState e)
         {
-            int trees = e.Source(VillageSource.MatureTrees);
-            string stand = trees <= VillageEconomyRules.SeedTreeReserve ? "Wald bis auf die Samenbäume geschlagen" :
-                trees < VillageEconomyRules.StandTarget * 2 / 3 ? "Wald gelichtet" : "Wald steht dicht";
-            int young = e.SaplingCount;
-            return stand + (young > 0 ? ", " + N(young) + (young == 1 ? " Setzling wächst" : " Setzlinge wachsen") : ", nichts wächst nach");
+            if (e.ForestReporterOrdinal == 0) return "Umland: Noch kein Bericht vom Waldsaum eingetroffen.";
+            return "Waldsaum · " + ReturningWitness(e.ForestReporterOrdinal, e.ForestReportTick) + ": " +
+                Reported(e, VillageSource.MatureTrees, "Nutzholz") + " · " + Reported(e, VillageSource.Wildlife, "Wild") + " · " +
+                Reported(e, VillageSource.Berries, "Dornbeeren") + " · " + Reported(e, VillageSource.Herbs, "Heilkräuter") + " · " +
+                Reported(e, VillageSource.SeedCrop, "Baumsaat") + " · " + Reported(e, VillageSource.OreVein, "Erz") + " · " +
+                Reported(e, VillageSource.Rubble, "Stein");
         }
 
-        private static string Wildlife(VillageEconomyState e)
+        private static string ReturningWitness(int ordinal, ulong tick)
         {
-            int game = e.Source(VillageSource.Wildlife);
-            return game == 0 ? "kein Wild mehr" : game <= VillageEconomyRules.WildlifeBreeders ? "Wild fast verschwunden" :
-                game < VillageEconomyRules.WildlifeCap * 3 / 4 ? "Wild wird seltener" : "Wild reichlich";
+            string day = (1UL + tick / WorldSkyClock.TicksPerDay).ToString(CultureInfo.InvariantCulture);
+            return "Rückkehrbericht von Bewohner " + N(ordinal - VillageServicesState.BasePopulation + 1) + ", beobachtet an Tag " + day;
         }
 
-        private static string Berries(VillageEconomyState e)
+        private static string Reported(VillageEconomyState e, VillageSource source, string name)
         {
-            int berries = e.Source(VillageSource.Berries);
-            return berries == 0 ? "Dornbeeren abgeerntet" : berries < VillageEconomyRules.BerryCap / 2 ? "wenig Dornbeeren" : "Dornbeeren reif";
+            int level = e.ReportedSupply(source);
+            return name + (level < 0 ? " unbekannt" : level == 0 ? " nicht verfügbar" : level == 1 ? " knapp" : " reichlich");
         }
 
-        private static string Herbs(VillageEconomyState e)
+        /// <summary>Requests a player can read at the village. Remote stock levels and the health of absent people stay private.</summary>
+        public static List<string> LocalNeeds(CharacterProgression p)
         {
-            int herbs = e.Source(VillageSource.Herbs);
-            return herbs == 0 ? "Heilkräuter abgeerntet" : herbs < VillageEconomyRules.HerbCap / 2 ? "wenig Heilkräuter" : "Heilkräuter stehen gut";
+            VillageEconomyState e = p.Economy;
+            var needs = new List<string>();
+            if (!e.Started)
+            {
+                needs.Add("Es fehlen freie Arbeitskräfte. Mit den Hauptaufträgen ziehen Bewohner ins Dorf.");
+                return needs;
+            }
+            if (p.Social.CampProvisions < VillageEconomyRules.FoodTarget)
+            {
+                needs.Add("Mara braucht Nachschub. Jagd und Backstube liefern Rationen.");
+                if (e.ReportedSupply(VillageSource.Wildlife) == 0)
+                    needs.Add("Der letzte Rückkehrbericht meldet kein jagdbares Wild.");
+                if (e.Commons(VillageGood.Bow) == 0 && e.Commons(VillageGood.Game) == 0)
+                    needs.Add("An der Werkbank liegt kein freier Bogen. Die Dorftafel nimmt Bögen, Holzrahmen und Dornbeeren an.");
+            }
+            if (e.Commons(VillageGood.BrokenAxe) > 0 && e.Commons(VillageGood.Metal) == 0)
+                needs.Add("In der Werkstatt wartet eine defekte Axt auf Metall. Ascheisen kannst du hier abgeben.");
+            else if (e.Commons(VillageGood.Axe) == 0) needs.Add("Am Holzplatz liegt keine freie Axt.");
+            if (e.ReportedSupply(VillageSource.MatureTrees) == 0)
+                needs.Add("Im letzten Rückkehrbericht blieben nur Samenbäume. Die Forstpflege braucht Nachwuchs.");
+            if (e.Commons(VillageGood.Water) == 0) needs.Add("Der Wasservorrat ist leer. Wasser wird am Dorfbrunnen geholt.");
+            if (e.Source(VillageSource.RipePlot) > 0) needs.Add("Das Korn am Hausgarten ist reif für die Ernte.");
+            if (e.Source(VillageSource.Soil) == 0) needs.Add("Der Hausgarten braucht Kompost aus Stroh und Wasser.");
+            if (e.Source(VillageSource.Shelter) < VillageEconomyRules.ShelterCapacity)
+                needs.Add("Für das Dach werden Holz, Stein und Beschlag gebraucht.");
+            if (e.Source(VillageSource.Hearth) == 0) needs.Add("Die Feuerstelle braucht Brennholz.");
+            if (p.Social.CampProvisions == SocialLedger.CampCapacity && e.Commons(VillageGood.Ration) > 0)
+                needs.Add("Maras Lager ist voll. Fertige Rationen warten in der Küche.");
+            bool localInjury = false, needsWaterAtHome = false;
+            foreach (VillageResidentState r in e.Residents)
+                if (r.Site == VillageSite.Village && !r.Walking && !r.CanWork)
+                {
+                    localInjury = true;
+                    needsWaterAtHome |= r.Thirst >= VillageEconomyState.DrinkThreshold;
+                }
+            if (localInjury) needs.Add(p.Village.OrselTeachesUnlocked ?
+                "Im Dorf ist jemand verletzt. Orsel hilft an der alten Mühle." :
+                "Im Dorf ist jemand verletzt und braucht Ruhe und Versorgung zu Hause.");
+            if (needsWaterAtHome) needs.Add("Eine verletzte Person am Haus braucht eine Kanne Wasser aus dem Dorfvorrat.");
+            if (p.Village.OrselTeachesUnlocked && e.ReportedMillHerbs == 0)
+                needs.Add(ReturningWitness(e.MillReporterOrdinal, e.MillReportTick) + ": Orsel fehlen Heilkräuter an der alten Mühle.");
+            return needs;
+        }
+
+        public static string ResidentNotice(VillageResidentState r)
+        {
+            if (r.Site == VillageSite.Village && !r.Walking) return ResidentLine(r);
+            if (r.Walking && r.Activity == VillageActivity.Resting && VillageEconomyLayout.Seen(r, out _))
+                return "Bewohner " + N(r.Ordinal - VillageServicesState.BasePopulation + 1) + " wartet am Tor auf einen sicheren Weg.";
+            return "Bewohner " + N(r.Ordinal - VillageServicesState.BasePopulation + 1) + " ist unterwegs.";
         }
 
         /// <summary>One line about a resident: what the person does, where, and whether hunger or an injury is in the way.</summary>
@@ -79,6 +138,7 @@ namespace AreArpg.Core
                 {
                     case VillageActivity.Sleeping: what = "schläft"; break;
                     case VillageActivity.Eating: what = "isst an Maras Lager"; break;
+                    case VillageActivity.Drinking: what = "trinkt am Dorfbrunnen"; break;
                     case VillageActivity.Resting: what = "ruht sich aus"; break;
                     case VillageActivity.Recovering: what = r.Site == VillageSite.Mill ? "wird an der Mühle gepflegt" : "erholt sich"; break;
                     case VillageActivity.Working:
@@ -87,6 +147,7 @@ namespace AreArpg.Core
                     default: what = r.Site == VillageSite.Village ? "hat gerade keine Arbeit" : "wartet draußen"; break;
                 }
             string state = !r.CanWork ? ", verletzt" : r.Hunger >= VillageEconomyRules.EatHunger ? ", hungrig" : "";
+            if (r.Thirst >= VillageEconomyState.DrinkThreshold) state += ", durstig";
             return "Bewohner " + N(r.Ordinal - VillageServicesState.BasePopulation + 1) + " " + what + state + ".";
         }
     }

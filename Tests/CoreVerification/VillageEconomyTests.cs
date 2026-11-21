@@ -18,6 +18,11 @@ internal static class VillageEconomyTests
     public static void Run(Action<bool, string> check)
     {
         NothingBeforeTheFirstResident(check);
+        ALastAxeReturnsBeforeOverfilling(check);
+        EatBeforeLeavingForCare(check);
+        AFullStockRefusesTheWholeGift(check);
+        WorkIsLearnedOnlyWhenItYields(check);
+        DeliveryUsesItsOwnReservedLoad(check);
         SmallWoodChain(check);
         MissingMaterialStopsTheBow(check);
         Reforestation(check);
@@ -132,6 +137,124 @@ internal static class VillageEconomyTests
         for (int i = 0; i < rations; i++) if (!p.Social.TakeCampRation()) throw new Exception("FAIL camp ration not available");
     }
 
+    private static void ALastAxeReturnsBeforeOverfilling(Action<bool, string> check)
+    {
+        var p = Village(1);
+        var scene = Scene.Of(p);
+        var row = scene.Resident(0);
+        row[4] = row[5] = (int)VillageSite.Forest;
+        row[Scene.Carry(VillageGood.Axe)] = 1;
+        row[Scene.Carry(VillageGood.Wood)] = 3;
+        row[9] = 1;
+        scene.Commons[(int)VillageGood.Axe] = 0;
+        scene.Commons[(int)VillageGood.Wood] = 0;
+        scene.Into(p);
+        var r = p.Economy.Residents[0];
+        check(p.Economy.Plan(p, r, false, SocialLedger.CampCapacity, false) == VillageWork.GoHome,
+            "last-axe-needs-room-for-wood-and-broken-tool");
+        bool bounded = true;
+        bool returned = false;
+        for (int i = 0; i < 3000; i += VillageEconomyRules.Stride)
+        {
+            Pass(p, VillageEconomyRules.Stride);
+            bounded &= r.Load <= VillageEconomyRules.CarryCapacity;
+            if (r.Site == VillageSite.Village) returned = true;
+            if (p.Economy.Made(VillageGood.BrokenAxe) > 0) break;
+        }
+        string save = p.SaveString();
+        check(bounded && returned && p.Economy.Made(VillageGood.BrokenAxe) == 1 && CharacterProgression.TryLoad(save, out var restored) && restored.SaveString() == save,
+            "last-axe-remains-within-carry-and-loads-after-breaking");
+    }
+
+    private static void EatBeforeLeavingForCare(Action<bool, string> check)
+    {
+        var p = MillVillage(1);
+        var scene = Scene.Of(p);
+        var row = scene.Resident(0);
+        row[1] = VillageEconomyRules.MaxNeed;
+        row[3] = VillageEconomyRules.WorkHealth - 5;
+        scene.Into(p);
+        var r = p.Economy.Residents[0];
+        int camp = p.Social.CampProvisions;
+        Pass(p, VillageEconomyRules.Stride);
+        var mind = p.Social.Forge.Archive.Get(r.Identity);
+        check(r.Activity == VillageActivity.Eating && r.Hunger == VillageEconomyRules.MaxNeed - VillageEconomyRules.EatRelief &&
+            p.Social.CampProvisions == camp - 1 && mind.Cognition.Weight(ForgeAction.Eat, 0) > 0,
+            "injured-resident-eats-real-ration-before-journey-to-orsel");
+        check(PassUntil(p, 1200, () => r.Site == VillageSite.Mill && !r.Walking) >= 0,
+            "fed-injured-resident-can-still-reach-orsel");
+    }
+
+    private static void AFullStockRefusesTheWholeGift(Action<bool, string> check)
+    {
+        var p = Village(1);
+        var world = new ArenaSimulation(77, p, 1, LootCatalog.Version1);
+        Pass(p, VillageEconomyRules.Stride);
+        ToBoard(world);
+        p.Crafting.AddMaterial(MaterialKind.Holz, int.MaxValue);
+        int wood = p.Economy.Commons(VillageGood.Wood);
+        long received = p.Economy.Received(VillageGood.Wood);
+        var declined = world.GiveToVillage(VillageGood.Wood, int.MaxValue);
+        check(!declined.Accepted && p.Crafting.MaterialCount(MaterialKind.Holz) == int.MaxValue &&
+            p.Economy.Commons(VillageGood.Wood) == wood && p.Economy.Received(VillageGood.Wood) == received,
+            "overflowing-player-gift-is-rejected-before-inventory-withdrawal");
+        check(CharacterProgression.TryLoad(p.SaveString(), out var after) && after.SaveString() == p.SaveString(),
+            "refused-outsize-gift-remains-a-loadable-character");
+    }
+
+    private static void WorkIsLearnedOnlyWhenItYields(Action<bool, string> check)
+    {
+        var p = Village(1);
+        var scene = Scene.Of(p);
+        scene.Commons[(int)VillageGood.Wood] = 0;
+        scene.Into(p);
+        check(PassUntil(p, 3000, () => p.Economy.Residents.Count == 1 && p.Economy.Residents[0].Work == VillageWork.FellTree) >= 0,
+            "worker-starts-an-actual-tree");
+        var r = p.Economy.Residents[0];
+        var mind = p.Social.Forge.Archive.Get(r.Identity);
+        ulong decision = mind.DecisionState.LastTick;
+        int before = mind.Cognition.Weight(ForgeAction.Travel, 0);
+        Pass(p, 100);
+        check(mind.DecisionState.LastTick == decision && mind.Cognition.Weight(ForgeAction.Travel, 0) == before &&
+            p.Economy.Made(VillageGood.Wood) == 0, "unfinished-work-does-not-train-or-overwrite-initiating-frame");
+        string save = p.SaveString();
+        check(CharacterProgression.TryLoad(save, out var loaded), "ongoing-work-loads-before-outcome");
+        int remaining = r.WorkTicks;
+        Pass(p, remaining);
+        Pass(loaded, remaining);
+        var other = loaded.Social.Forge.Archive.Get(r.Identity);
+        int learned = mind.Cognition.Weight(ForgeAction.Travel, 0);
+        check(p.Economy.Made(VillageGood.Wood) == 3 && learned > before && mind.DecisionState.LastTick == decision &&
+            other.DecisionState.LastTick == decision && other.Cognition.Weight(ForgeAction.Travel, 0) == learned && p.SaveString() == loaded.SaveString(),
+            "actual-work-yield-trains-the-original-decision-once-through-save");
+        p.Economy.Advance(p);
+        check(mind.Cognition.Weight(ForgeAction.Travel, 0) == learned, "repeat-work-tick-gives-no-second-learning");
+    }
+
+    private static void DeliveryUsesItsOwnReservedLoad(Action<bool, string> check)
+    {
+        var p = Village(2);
+        TakeFromCamp(p, 4);
+        var scene = Scene.Of(p);
+        var cook = scene.Resident(0);
+        cook[7] = (int)VillageWork.Cook;
+        cook[8] = VillageEconomyRules.Rule(VillageWork.DeliverRations).Ticks;
+        cook[10] = (int)VillageActivity.Working;
+        foreach (var ingredient in VillageEconomyRules.Rule(VillageWork.Cook).Inputs)
+            cook[Scene.Held(ingredient.Good)] = ingredient.Count;
+        var carrier = scene.Resident(1);
+        carrier[7] = (int)VillageWork.DeliverRations;
+        carrier[8] = cook[8];
+        carrier[10] = (int)VillageActivity.Working;
+        carrier[Scene.Held(VillageGood.Ration)] = 1;
+        scene.Into(p);
+        int before = p.Social.CampProvisions;
+        Pass(p, (int)cook[8]);
+        check(p.Economy.Made(VillageGood.Ration) >= 2 && p.Social.CampProvisions == before + 1 &&
+            p.Economy.HandedOut(VillageGood.Ration) == 1 && p.Economy.Commons(VillageGood.Ration) == 2,
+            "carrier-delivers-only-reserved-ration-while-other-resident-finishes-cooking");
+    }
+
     // ------------------------------------------------------------------ cases
 
     private static void NothingBeforeTheFirstResident(Action<bool, string> check)
@@ -194,20 +317,25 @@ internal static class VillageEconomyTests
     {
         var p = Village(1);
         var e = p.Economy;
-        int until = PassUntil(p, 4500, () => e.SaplingCount == 2);
-        check(until > 0 && e.Source(VillageSource.MatureTrees) == 22 && e.NurserySeedlings == 2 && e.Used(VillageGood.Seedling) == 2, "two-trees-felled-two-seedlings-planted-from-the-nursery");
+        int untilFirst = PassUntil(p, 4500, () => e.SaplingCount == 1);
+        ulong firstPlanting = e.LastTick;
+        int untilSecond = PassUntil(p, 4500 - untilFirst, () => e.SaplingCount == 2);
+        ulong secondDue = e.LastTick + VillageEconomyRules.SaplingGrowthTicks;
+        check(untilFirst > 0 && untilSecond > 0 && e.Source(VillageSource.MatureTrees) == 22 && e.NurserySeedlings == 2 && e.Used(VillageGood.Seedling) == 2, "two-trees-felled-two-seedlings-planted-from-the-nursery");
         ulong due = e.NextSaplingTick;
-        check(due > p.Social.Forge.ProcessedTicks + 2UL * (ulong)Day && due <= p.Social.Forge.ProcessedTicks + VillageEconomyRules.SaplingGrowthTicks, "a-seedling-needs-three-game-days");
+        check(due == firstPlanting + 3UL * Day && secondDue > due, "a-seedling-needs-three-game-days");
         // A quiet village for the waiting time: no game to hunt, so no wood is burnt and no further tree is felled.
         var quiet = Scene.Of(p);
         quiet.Sources[(int)VillageSource.Wildlife] = 0;
         quiet.Into(p);
         e = p.Economy;
-        Pass(p, (int)(due - p.Social.Forge.ProcessedTicks) - 10);
-        check(e.Source(VillageSource.MatureTrees) == 22 && e.SaplingCount == 2, "no-tree-before-its-time");
-        Pass(p, 10);
-        check(e.Source(VillageSource.MatureTrees) == 23 && e.SaplingCount == 1, "the-planted-seedling-is-a-tree-exactly-when-due");
-        Pass(p, 400);
+        Pass(p, (int)(due - p.Social.Forge.ProcessedTicks) - 1);
+        check(e.Source(VillageSource.MatureTrees) == 22 && e.SaplingCount == 2 && e.Used(VillageGood.Seedling) == 2, "no-tree-before-its-time");
+        Pass(p, 1);
+        check(e.Source(VillageSource.MatureTrees) == 23 && e.SaplingCount == 1 && e.NextSaplingTick == secondDue, "the-planted-seedling-is-a-tree-exactly-when-due");
+        Pass(p, (int)(secondDue - p.Social.Forge.ProcessedTicks) - 1);
+        check(e.Source(VillageSource.MatureTrees) == 23 && e.SaplingCount == 1, "no-second-tree-one-tick-before-its-own-maturity");
+        Pass(p, 1);
         check(e.Source(VillageSource.MatureTrees) == 24 && e.SaplingCount == 0 && e.Audit().Count == 0, "both-seedlings-grew-up-and-the-stand-is-whole-again");
 
         // Without seedlings and without seed nothing is planted, and felling stops at the seed trees.
@@ -219,7 +347,10 @@ internal static class VillageEconomyTests
         Pass(bare, 1150);
         check(bare.Economy.Source(VillageSource.MatureTrees) == VillageEconomyRules.SeedTreeReserve && bare.Economy.Made(VillageGood.Wood) == 3 && bare.Economy.SaplingCount == 0,
             "felling-stops-at-the-seed-trees-and-nothing-grows-from-nothing");
-        check(bare.Economy.OpenNeeds(bare).Any(n => n.Contains("Samenbäume")), "the-exhausted-forest-is-a-visible-need");
+        check(bare.Economy.ForestReportTick == 0 && !bare.Economy.OpenNeeds(bare).Any(n => n.Contains("Samenbäume")),
+            "the-village-does-not-yet-know-which-trees-the-forester-saw");
+        check(PassUntil(bare, VillageEconomyRules.ForestTravelTicks + 100, () => bare.Economy.ForestReportTick != 0) >= 0 &&
+            bare.Economy.OpenNeeds(bare).Any(n => n.Contains("Samenbäume")), "the-exhausted-forest-is-a-visible-need");
         Pass(bare, 3000);
         check(bare.Economy.Source(VillageSource.MatureTrees) == VillageEconomyRules.SeedTreeReserve && bare.Economy.Made(VillageGood.Wood) == 3, "the-seed-trees-are-never-felled");
     }
@@ -389,8 +520,14 @@ internal static class VillageEconomyTests
         scene.Commons[(int)VillageGood.Ration] = 2;
         scene.Into(p);
         var forge = p.Social.Forge;
+        var world = new ArenaSimulation(89, p, 1, LootCatalog.Version1);
+        var mara = world.Npcs.Single(n => n.Id == SocialLedger.MaraNpcId);
         int events = forge.Archive.Events.Count;
-        Pass(p, 200);
+        // Make the local encounter at the instant of the handover, after the carrier's real journey.
+        for (int i = 0; i < 200 && !p.Economy.Residents.Any(r => r.Work == VillageWork.DeliverRations && r.WorkTicks == VillageEconomyRules.Stride); i++) world.Step();
+        mara.Xmm = VillageEconomyLayout.StandXmm(VillageSpot.Store);
+        mara.Zmm = VillageEconomyLayout.StandZmm(VillageSpot.Store);
+        for (int i = 0; i <= VillageEconomyRules.Stride && !forge.Archive.Events.Any(ev => ev.Context == VillageEconomyState.DeliveryContext); i++) world.Step();
         var deliveries = forge.Archive.Events.Where(ev => ev.Context == VillageEconomyState.DeliveryContext).ToArray();
         check(deliveries.Length == 1 && forge.Archive.Events.Count == events + 1 && deliveries[0].Actor == "resident.village.3" && deliveries[0].Target == "mara", "the-first-hand-over-of-the-day-is-one-event");
         ulong id = deliveries[0].Id;
@@ -513,11 +650,13 @@ internal static class VillageEconomyTests
         check(forge.Archive.Get("orsel").Knowledge(cares[0].Id)?.Origin == KnowledgeOrigin.Self && forge.Archive.Get("resident.village.3").Knowledge(cares[0].Id)?.Origin == KnowledgeOrigin.Self &&
             forge.Archive.Get("mara").Knowledge(cares[0].Id) == null, "healer-and-patient-know-of-the-care-mara-does-not");
         check(forge.Archive.Get("resident.village.3").RelationshipTo("orsel").Gratitude > 0, "the-patient-is-grateful-to-orsel");
-        check(e.OpenNeeds(p).Any(n => n.Contains("Heilkräuter")), "missing-herbs-are-a-visible-need");
+        check(e.ReportedMillHerbs < 0 && !e.OpenNeeds(p).Any(n => n.Contains("Heilkräuter")),
+            "an-empty-mill-shelf-does-not-inform-the-distant-board");
         check(e.Residents[0].Activity == VillageActivity.Recovering && e.Residents[0].Work == VillageWork.None && e.Made(VillageGood.Wood) == 0, "a-patient-does-no-village-work");
         int whole = PassUntil(p, 10 * Day, () => e.Residents[0].Health == VillageEconomyRules.MaxHealth);
         check(whole >= 0, "the-patient-stays-until-whole");
         int back = PassUntil(p, Day, () => e.Residents[0].Site == VillageSite.Village && !e.Residents[0].Walking);
+        check(back >= 0 && e.ReportedMillHerbs == 0 && e.OpenNeeds(p).Any(n => n.Contains("Heilkräuter")), "missing-herbs-are-a-visible-need");
         check(back >= 0 && PassUntil(p, 2 * Day, () => e.Made(VillageGood.Wood) > 0 || e.Made(VillageGood.Herb) > 0) >= 0, "healed-the-resident-goes-home-and-works-again");
         check(e.Audit().Count == 0, "ledger-balances-through-care");
 
@@ -739,30 +878,47 @@ internal static class VillageEconomyTests
     {
         var empty = Village(0);
         Pass(empty, 20);
-        check(VillageBoard.StockLines(empty).Count == 0, "the-board-is-empty-before-anybody-works");
+        check(VillageBoard.StockLines(empty).Any(l => l.Contains("8/10")), "first-visit-board-reads-the-existing-camp");
+        check(VillageBoard.LocalNeeds(empty).Any(l => l.Contains("Arbeitskräfte")) && !empty.Economy.Started,
+            "first-visit-board-shows-the-unfilled-job-without-creating-stock-or-workers");
 
         var p = Village(1);
         Pass(p, 10);
         var e = p.Economy;
         var lines = VillageBoard.StockLines(p);
-        check(lines.Count == 3 && lines[0] == "Werkstatt: Holz 4 · Holzrahmen 0 · Bogen 0 · Axt 2 · Metall 2 · Dornbeeren 0" &&
+        check(lines.Count >= 3 && lines[0] == "Werkstatt: Holz 4 · Holzrahmen 0 · Bogen 0 · Axt 2 · Metall 2 · Dornbeeren 0" &&
             lines[1] == "Küche: Wild 0 · Wasser 2 · Rationen 0 · Häute 0 · Maras Vorrat 8/10", "the-board-counts-the-villages-own-stores");
-        check(lines[2] == "Umland: Wald steht dicht, nichts wächst nach · Wild reichlich · Dornbeeren reif", "the-land-is-described-not-counted");
+        check(lines[2].Contains("Noch kein Bericht"), "the-land-is-unknown-until-someone-returns");
+        foreach (VillageGood good in Enum.GetValues(typeof(VillageGood)))
+            if (good != VillageGood.Seedling && good != VillageGood.BrokenAxe)
+                check(lines.Any(l => l.Contains(VillageEconomyRules.GoodName(good) + " " + e.Commons(good))),
+                    "the-village-register-accounts-for-" + good);
         string before = Text(p);
-        for (int i = 0; i < 5; i++) { VillageBoard.StockLines(p); foreach (var r in e.Residents) VillageBoard.ResidentLine(r); e.OpenNeeds(p); }
+        for (int i = 0; i < 5; i++) { VillageBoard.StockLines(p); foreach (var r in e.Residents) VillageBoard.ResidentNotice(r); VillageBoard.LocalNeeds(p); }
         check(Text(p) == before, "reading-the-board-changes-nothing");
 
-        // The words follow the land: a cleared forest, hunted-out game, a broken axe.
+        // A broken axe in the workshop is visible. A change at the distant forest is not a report.
         var scene = Scene.Of(p);
         scene.Sources[(int)VillageSource.MatureTrees] = VillageEconomyRules.SeedTreeReserve; scene.Sources[(int)VillageSource.Wildlife] = 0;
         scene.Sources[(int)VillageSource.Berries] = 0; scene.Commons[(int)VillageGood.BrokenAxe] = 1;
         scene.Into(p);
         lines = VillageBoard.StockLines(p);
-        check(lines[0].Contains("defekte Axt 1") && lines[2].StartsWith("Umland: Wald bis auf die Samenbäume geschlagen") && lines[2].Contains("kein Wild mehr") &&
-            lines[2].Contains("Dornbeeren abgeerntet") && !lines[2].Contains("Heilkräuter"), "shortage-shows-in-the-boards-words");
+        check(lines[0].Contains("defekte Axt 1") && lines[2].Contains("Noch kein Bericht") &&
+            !VillageBoard.LocalNeeds(p).Any(n => n.Contains("Wild ist erschöpft")), "only-local-shortages-reach-the-board-before-a-return");
         var mill = MillVillage(1);
         Pass(mill, 10);
-        check(VillageBoard.StockLines(mill)[2].Contains("Heilkräuter stehen gut"), "herbs-appear-once-orsel-is-known");
+        check(VillageBoard.StockLines(mill)[2].Contains("Noch kein Bericht"), "knowing-orsel-does-not-reveal-unvisited-herbs");
+        var reporter = Village(1);
+        int home = PassUntil(reporter, Day, () => reporter.Economy.ForestReporterOrdinal > 0);
+        check(home >= 0, "a-real-returning-worker-reaches-the-board");
+        string forestReport = VillageBoard.StockLines(reporter)[2];
+        check(forestReport.Contains("Rückkehrbericht von Bewohner 1") && forestReport.Contains("beobachtet an Tag ") &&
+            forestReport.Contains("Nutzholz") && forestReport.Contains("Wild"), "the-returned-report-names-its-source-and-time");
+        var changedLand = Scene.Of(reporter);
+        changedLand.Sources[(int)VillageSource.MatureTrees] = VillageEconomyRules.SeedTreeReserve;
+        changedLand.Sources[(int)VillageSource.Wildlife] = 0;
+        changedLand.Into(reporter);
+        check(VillageBoard.StockLines(reporter)[2] == forestReport, "a-remote-change-cannot-rewrite-the-last-returned-report");
 
         // One line per resident, taken from the same state the rules use.
         var live = Village(2);
@@ -776,11 +932,14 @@ internal static class VillageEconomyTests
             {
                 string line = VillageBoard.ResidentLine(r);
                 numbered &= line.StartsWith("Bewohner " + (r.Ordinal - VillageServicesState.BasePopulation + 1) + " ") && line.EndsWith(".");
-                if (r.Walking) numbered &= line.Contains(r.Destination == VillageSite.Village ? "Rückweg ins Dorf" : "auf dem Weg in den Wald");
+                if (r.Walking) numbered &= line.Contains(r.Destination == VillageSite.Village ? "Rückweg ins Dorf" :
+                    r.Destination == VillageSite.Mill ? "auf dem Weg zur Mühle" : "auf dem Weg in den Wald");
                 else if (r.Activity == VillageActivity.Working) numbered &= line.Contains(VillageEconomyRules.WorkName(r.Work)) && line.Contains("(im Wald)") == (r.Site == VillageSite.Forest);
                 else if (r.Activity == VillageActivity.Sleeping) numbered &= line.Contains("schläft");
                 if (r.Hunger >= VillageEconomyRules.EatHunger && r.CanWork) numbered &= line.Contains("hungrig");
                 if (!r.CanWork) numbered &= line.Contains("verletzt");
+                if (r.Walking || r.Site != VillageSite.Village)
+                    numbered &= VillageBoard.ResidentNotice(r).EndsWith("ist unterwegs.");
                 said.Add(line.Substring(line.IndexOf(' ', 9) + 1));
             }
         }
@@ -807,7 +966,7 @@ internal static class VillageEconomyTests
         {
             var good = (VillageGood)g;
             int has = giver.Crafting.VillageGiftCount(good);
-            offers &= has == expected[g] && VillageBoard.GiftGoods.Contains(good) == (has > 0 || good == VillageGood.Wood);
+            offers &= has == (g < expected.Length ? expected[g] : 0) && VillageBoard.GiftGoods.Contains(good) == (has > 0 || good == VillageGood.Wood);
             if (has > 0)
             {
                 int commons = giver.Economy.Commons(good);

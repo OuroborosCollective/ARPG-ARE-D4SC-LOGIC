@@ -5,6 +5,7 @@ using AreArpg.Core;
 using AreArpg.UnityClient;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEngine;
 
 namespace AreArpg.EditMode.Tests
@@ -38,9 +39,10 @@ namespace AreArpg.EditMode.Tests
                 Assert.Greater(workplace.Size.x, 0f); Assert.Greater(workplace.Size.y, 0f); Assert.Greater(workplace.Height, 0f);
             }
             Assert.AreEqual(1, fires, "One cooking fire");
-            // Goods kept in the village are all seen somewhere. Seedlings stand at the forest edge and herbs go to the mill.
-            foreach (VillageGood good in Enum.GetValues(typeof(VillageGood)))
-                if (good != VillageGood.Seedling && good != VillageGood.Herb) Assert.IsTrue(shown.Contains(good), good + " has no place to be seen at");
+            // The authored models contain these stock slots. New village goods are accounted for on the board.
+            CollectionAssert.AreEquivalent(new[] { VillageGood.Wood, VillageGood.ThornBerry, VillageGood.WoodFrame, VillageGood.Bow,
+                VillageGood.Axe, VillageGood.BrokenAxe, VillageGood.Game, VillageGood.Hide, VillageGood.Ration, VillageGood.Metal,
+                VillageGood.Water }, shown);
             foreach (VillageSpot own in new[] { VillageSpot.Store, VillageSpot.Home, VillageSpot.Gate })
                 Assert.IsFalse(spots.Contains(own), own + " is an existing place and gets no second model");
         }
@@ -156,6 +158,43 @@ namespace AreArpg.EditMode.Tests
             var prefab = Resources.Load<GameObject>("ARE/Visuals/" + workplace.Key);
             if (prefab == null) Assert.Ignore(NotInstalled);
             return prefab;
+        }
+
+        [Test]
+        public void BoardReadingAreaEndsAboveFirstGiftAtEveryLoad()
+        {
+            var layout = new ArenaHudLayout(1340, 800, new Rect(0, 0, 1340, 800));
+            for (int count = 1; count <= VillageBoard.GiftGoods.Count; count++)
+            {
+                Rect reading = ArenaRuntime.VillageBoardTextRect(layout, count);
+                Assert.Greater(reading.height, 100f);
+                for (int i = 0; i < count; i++)
+                {
+                    Rect button = ArenaRuntime.VillageGiftRect(layout, i);
+                    Assert.LessOrEqual(reading.yMax, button.yMin - 4f,
+                        "Text overlaps gift button " + i + " when " + count + " gifts are offered");
+                }
+            }
+        }
+
+        [Test]
+        public void NormalBuildPreparesEachInstalledWorkplaceForResources()
+        {
+            var type = TypeCache.GetTypesDerivedFrom<IPreprocessBuildWithReport>()
+                .SingleOrDefault(t => t.FullName == "AreArpg.EditorTools.VillageWorkBuildProcessor");
+            Assert.IsNotNull(type, "A regular player build must call the existing workplace baker");
+            var keys = ArenaRuntime.VillageWorkplaces.Select(w => w.Key).ToArray();
+            const string source = "Assets/PrivateArt/VillageWork/";
+            bool installed = keys.All(k => System.IO.File.Exists(source + k + ".fbx")) &&
+                System.IO.File.Exists(source + "VillageWorkPalette.png") && System.IO.File.Exists(source + "VillageWorkGlow.png");
+            var before = keys.Select(k => Resources.Load<GameObject>("ARE/Visuals/" + k)).ToArray();
+            ((IPreprocessBuildWithReport)Activator.CreateInstance(type)).OnPreprocessBuild(null);
+            for (int i = 0; i < keys.Length; i++)
+            {
+                var after = Resources.Load<GameObject>("ARE/Visuals/" + keys[i]);
+                if (installed) Assert.IsNotNull(after, "Installed source missing from the player Resources: " + keys[i]);
+                if (!installed || before[i] != null) Assert.AreSame(before[i], after, keys[i] + " should be preserved");
+            }
         }
 
         [Test]

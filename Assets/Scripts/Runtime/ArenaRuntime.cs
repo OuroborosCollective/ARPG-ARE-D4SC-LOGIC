@@ -786,6 +786,7 @@ namespace AreArpg.UnityClient
             }
 
             if (PollArrivalScene()) return;
+            if (_villageBoardOpen && PollVillageBoardInput(layout)) return;
             if (PollMenuInput()) return;
             if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
@@ -1277,6 +1278,7 @@ namespace AreArpg.UnityClient
             GUI.skin = AshenGuiSkin();
             try
             {
+                if (_villageBoardOpen && DrawVillageBoard(layout)) return;
                 DrawRoadHud(layout);
                 DrawRattlerHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }

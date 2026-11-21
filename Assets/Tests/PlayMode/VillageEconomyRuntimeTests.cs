@@ -57,7 +57,8 @@ namespace AreArpg.PlayMode.Tests
                         Assert.AreEqual(i < expected, units[i].gameObject.activeSelf, workplace.Goods[g] + " unit " + i + " " + when + " (Core has " + Economy.Commons(workplace.Goods[g]) + ")");
                 }
             }
-            bool cooking = Economy.Residents.Any(r => !r.Walking && r.Site == VillageSite.Village && r.Activity == VillageActivity.Working && r.Work == VillageWork.Cook);
+            bool cooking = Economy.Residents.Any(r => !r.Walking && r.Site == VillageSite.Village && r.Activity == VillageActivity.Working &&
+                VillageEconomyLayout.SpotFor(r.Work) == VillageSpot.Kitchen);
             Assert.AreEqual(cooking, Find(ArenaRuntime.FireName).activeSelf, "The fire burns exactly while somebody cooks " + when);
         }
 
@@ -78,12 +79,61 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator FirstVillageVisitShowsTheActualStoreAndItsUnstaffedWork()
+        {
+            EnterVillageAfterScene();
+            yield return RunFrames(1);
+            Assert.IsNotNull(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Board), "The first visitor can find the board");
+            Assert.IsNull(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Workbench), "Workshops appear with their first worker");
+            WalkToBoard();
+            string board = (string)typeof(ArenaRuntime).GetMethod("VillageBoardText", Flags).Invoke(_runtime, null);
+            StringAssert.Contains("8/10", board);
+            StringAssert.Contains("Arbeitskräfte", board);
+            Game.Progression.Crafting.AddMaterial(MaterialKind.Holz, 1);
+            Assert.IsFalse(Game.GiveToVillage(VillageGood.Wood, 1).Accepted);
+            Assert.AreEqual(1, Game.Progression.Crafting.MaterialCount(MaterialKind.Holz));
+            Assert.IsFalse(Economy.Started);
+        }
+
+        [UnityTest]
+        public IEnumerator ScrollingTheBoardReachesTheLastLineWithoutDonating()
+        {
+            StartVillageWork();
+            for (int i = 0; i < 16; i++) Game.CompleteMainQuest();
+            for (int i = 0; i < VillageEconomyRules.Stride; i++) Game.Step();
+            Game.Progression.Crafting.AddMaterial(MaterialKind.Holz, 1);
+            yield return RunFrames(1); // Complete the actual region change and its scenery rebuild before opening the board.
+            Assert.IsNotNull(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Board));
+            WalkToBoard();
+            var layout = new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
+            var input = typeof(ArenaRuntime).GetMethod("VillageBoardTouch", Flags);
+            void TouchBoard(TouchPhase phase, Vector2 point)
+            { input.Invoke(_runtime, new object[] { layout, 7, phase, point }); }
+            TouchBoard(TouchPhase.Began, ArenaRuntime.VillageBoardToggleRect(layout).center);
+            TouchBoard(TouchPhase.Ended, ArenaRuntime.VillageBoardToggleRect(layout).center);
+            yield return RunFrames(2); // The real IMGUI layout measures the wrapped text and the available viewport.
+            Assert.IsTrue((bool)typeof(ArenaRuntime).GetField("_villageBoardOpen", Flags).GetValue(_runtime), "The board remains open in the current village");
+            float limit = (float)typeof(ArenaRuntime).GetField("_villageScrollLimit", Flags).GetValue(_runtime);
+            Assert.Greater(limit, 0f, "The complete village list actually overflows this viewport");
+            Rect viewport = ArenaRuntime.VillageBoardTextRect(layout, 1);
+            int gifts = Game.Progression.Crafting.MaterialCount(MaterialKind.Holz);
+            ulong hash = Game.ComputeWorldHash();
+            TouchBoard(TouchPhase.Began, viewport.center);
+            TouchBoard(TouchPhase.Moved, viewport.center - Vector2.up * (limit + 100f));
+            Assert.AreEqual(limit, (float)typeof(ArenaRuntime).GetField("_villageScrollY", Flags).GetValue(_runtime));
+            TouchBoard(TouchPhase.Ended, ArenaRuntime.VillageGiftRect(layout, 0).center);
+            typeof(ArenaRuntime).GetMethod("ProcessVillageGift", Flags).Invoke(_runtime, null);
+            Assert.AreEqual(gifts, Game.Progression.Crafting.MaterialCount(MaterialKind.Holz));
+            Assert.AreEqual(hash, Game.ComputeWorldHash(), "A reading gesture never becomes a hand-over");
+        }
+
+        [UnityTest]
         public IEnumerator VillageWorkShowsTheCoresStockAndNeverChangesIt()
         {
             EnterVillageAfterScene();
             yield return RunFrames(1);
-            Assert.IsNull(Find(ArenaRuntime.VillageWorkRoot), "No workplace stands before anybody works");
-            Assert.IsFalse(Game.VillageBoardInReach);
+            Assert.IsNotNull(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Board));
+            Assert.IsNull(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Woodyard), "Production waits for a resident");
 
             Game.CompleteMainQuest(); Game.CompleteMainQuest();
             for (int tick = 0; tick < 12 && Economy.Residents.Count < 2; tick++) Game.Step();
@@ -129,7 +179,11 @@ namespace AreArpg.PlayMode.Tests
             Game.Progression.Crafting.AddMaterial(MaterialKind.Holz, 3);
             WalkToBoard();
             int wood = Economy.Commons(VillageGood.Wood);
-            typeof(ArenaRuntime).GetField("_pendingVillageGift", Flags).SetValue(_runtime, (int)VillageGood.Wood);
+            var layout = new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
+            var touch = typeof(ArenaRuntime).GetMethod("VillageBoardTouch", Flags);
+            touch.Invoke(_runtime, new object[] {layout, 2, TouchPhase.Began, ArenaRuntime.VillageBoardToggleRect(layout).center});
+            touch.Invoke(_runtime, new object[] {layout, 2, TouchPhase.Ended, ArenaRuntime.VillageBoardToggleRect(layout).center});
+            touch.Invoke(_runtime, new object[] {layout, 2, TouchPhase.Began, ArenaRuntime.VillageGiftRect(layout, 0).center});
             yield return RunFrames(3);
             Assert.GreaterOrEqual(Economy.Commons(VillageGood.Wood), wood + 1, "The hand-over at the board reached the commons");
             Assert.AreEqual(1, Economy.Received(VillageGood.Wood), "Exactly one unit was handed over");
@@ -262,7 +316,7 @@ namespace AreArpg.PlayMode.Tests
             // The board says what the Core says, line by line.
             string board = (string)typeof(ArenaRuntime).GetMethod("VillageBoardText", Flags).Invoke(_runtime, null);
             foreach (string line in VillageBoard.StockLines(Game.Progression)) StringAssert.Contains(line, board);
-            foreach (VillageResidentState resident in Economy.Residents) StringAssert.Contains(VillageBoard.ResidentLine(resident), board);
+            foreach (VillageResidentState resident in Economy.Residents) StringAssert.Contains(VillageBoard.ResidentNotice(resident), board);
             Assert.AreEqual(token, Economy.StableHash, "Reading the board changes nothing");
         }
 
@@ -302,7 +356,20 @@ namespace AreArpg.PlayMode.Tests
             WalkToBoard();
             yield return RunFrames(2);
             yield return Capture("board-reach.png");
-            typeof(ArenaRuntime).GetField("_villageBoardOpen", Flags).SetValue(_runtime, true);
+            var layout = new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
+            typeof(ArenaRuntime).GetMethod("VillageBoardTouch", Flags).Invoke(_runtime,
+                new object[] {layout, 1, TouchPhase.Began, ArenaRuntime.VillageBoardToggleRect(layout).center});
+            if (Application.isBatchMode)
+            {
+                // A batch player has a renderable scene camera but no presented game-view framebuffer with IMGUI.
+                // Keep the actual panel contents and the actual scene-camera image separately.
+                var board = Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Board).transform;
+                Vector3 focus = board.position + Vector3.up;
+                yield return Capture("board-workplace.png", overridePosition: focus + board.forward * 4f + Vector3.up, overrideFocus: focus);
+                string text = (string)typeof(ArenaRuntime).GetMethod("VillageBoardText", Flags).Invoke(_runtime, null);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(directory, "board-readback.txt"), text);
+                yield break;
+            }
             _runtime.enabled = true;
             for (int i = 0; i < 6; i++) yield return null;
             yield return new WaitForEndOfFrame();

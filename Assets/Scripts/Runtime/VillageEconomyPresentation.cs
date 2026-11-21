@@ -96,6 +96,8 @@ namespace AreArpg.UnityClient
         private readonly int[] _villageSpotUse = new int[VillageEconomyLayout.SpotCount];
         private bool _villageBoardOpen, _villageNeedPending;
         private int _pendingVillageGift = -1;
+        private int _villageScrollFinger = -1;
+        private float _villageScrollY, _villageScrollLimit, _villageTouchY;
 
         private static Vector2 Stand(VillageSpot spot) { return new Vector2(VillageEconomyLayout.StandXmm(spot) / 1000f, VillageEconomyLayout.StandZmm(spot) / 1000f); }
         private static Vector2 Place(VillageSpot spot) { return new Vector2(VillageEconomyLayout.PlaceXmm(spot) / 1000f, VillageEconomyLayout.PlaceZmm(spot) / 1000f); }
@@ -114,15 +116,22 @@ namespace AreArpg.UnityClient
         private void BuildVillageEconomy()
         {
             ClearVillageEconomy();
-            if (_game == null || !_game.IsVillage || !_game.Progression.Economy.Started) return;
+            if (_game == null || !_game.IsVillage) return;
             // Not chapter scenery: racks, tripod and board are low and open, and the camera must not pull in
             // for them as it does for houses and trees. Both roots are removed here on every rebuild.
             _villageWork = new GameObject(VillageWorkRoot).transform;
-            _villageResidents = new GameObject(VillageResidentsRoot).transform;
-            foreach (VillageWorkplace workplace in VillageWorkplaces) BuildWorkplace(workplace);
-            BuildVillageWalkGrid();
+            foreach (VillageWorkplace workplace in VillageWorkplaces)
+                if (workplace.Spot == VillageSpot.Board) BuildWorkplace(workplace);
             _villageNeedPending = true;
             UpdateVillageEconomy(0f);
+        }
+
+        private void OpenVillageWorkplaces()
+        {
+            _villageResidents = new GameObject(VillageResidentsRoot).transform;
+            foreach (VillageWorkplace workplace in VillageWorkplaces)
+                if (workplace.Spot != VillageSpot.Board) BuildWorkplace(workplace);
+            BuildVillageWalkGrid();
         }
 
         private void ClearVillageEconomy()
@@ -136,7 +145,8 @@ namespace AreArpg.UnityClient
             _villageWork = _villageResidents = _cookingFire = null;
             _villageStock.Clear();
             _residentViews.Clear();
-            _villageBoardOpen = _villageNeedPending = false;
+            SetVillageBoardOpen(false);
+            _villageNeedPending = false;
             _pendingVillageGift = -1;
         }
 
@@ -247,7 +257,7 @@ namespace AreArpg.UnityClient
         {
             if (_game == null) return;
             VillageEconomyState economy = _game.Progression.Economy;
-            bool wanted = _game.IsVillage && economy.Started;
+            bool wanted = _game.IsVillage;
             if (wanted != (_villageWork != null))
             {
                 if (wanted) BuildVillageEconomy();
@@ -255,6 +265,8 @@ namespace AreArpg.UnityClient
                 return;
             }
             if (!wanted) return;
+            if (!economy.Started) return;
+            if (_villageResidents == null) OpenVillageWorkplaces();
             // Checked against the Core every frame: whatever else touched a unit, the next frame shows the truth again.
             foreach (StockDisplay display in _villageStock)
             {
@@ -264,14 +276,15 @@ namespace AreArpg.UnityClient
             }
             bool cooking = false;
             foreach (VillageResidentState resident in economy.Residents)
-                cooking |= !resident.Walking && resident.Site == VillageSite.Village && resident.Activity == VillageActivity.Working && resident.Work == VillageWork.Cook;
+                cooking |= !resident.Walking && resident.Site == VillageSite.Village && resident.Activity == VillageActivity.Working &&
+                    VillageEconomyLayout.SpotFor(resident.Work) == VillageSpot.Kitchen;
             if (_cookingFire != null && _cookingFire.gameObject.activeSelf != cooking) _cookingFire.gameObject.SetActive(cooking);
 
             if (_villageNeedPending && seconds > 0f)
             {
                 // Once per arrival: what the village lacks most is said aloud, the rest stands on the board.
                 _villageNeedPending = false;
-                List<string> needs = economy.OpenNeeds(_game.Progression);
+                List<string> needs = VillageBoard.LocalNeeds(_game.Progression);
                 if (needs.Count > 0) _message += " / Dorftafel: " + needs[0];
             }
             Array.Clear(_villageSpotUse, 0, _villageSpotUse.Length);
@@ -358,7 +371,7 @@ namespace AreArpg.UnityClient
                 _villageWalk.Find(view.At, Stand(spot, slot), view.Path);
             }
             Vector2 before = view.At;
-            float budget = ResidentPace * Mathf.Max(0f, seconds);
+            float budget = resident.Walking && resident.Activity == VillageActivity.Resting ? 0f : ResidentPace * Mathf.Max(0f, seconds);
             while (view.Path.Count > 0 && budget > 0f)
             {
                 Vector2 step = view.Path[0] - view.At;
@@ -384,7 +397,11 @@ namespace AreArpg.UnityClient
         public static Rect VillageBoardToggleRect(ArenaHudLayout layout) { return layout.ContextActionRect; }
 
         /// <summary>One layout for drawing and for touch: the board, its close button and up to six hand-over buttons.</summary>
-        public static Rect VillageBoardPanel(ArenaHudLayout layout) { return new Rect((layout.Width - 600f) * .5f, 44f, 600f, 410f); }
+        public static Rect VillageBoardPanel(ArenaHudLayout layout)
+        {
+            float height = Mathf.Min(600f, layout.Height - 58f);
+            return new Rect((layout.Width - 600f) * .5f, (layout.Height - height) * .5f, 600f, height);
+        }
 
         public static Rect VillageBoardCloseRect(ArenaHudLayout layout)
         { Rect panel = VillageBoardPanel(layout); return new Rect(panel.xMax - 132f, panel.y + 8f, 120f, 30f); }
@@ -395,38 +412,76 @@ namespace AreArpg.UnityClient
             return new Rect(panel.x + 14f + (index % 3) * 192f, panel.yMax - 92f + (index / 3) * 42f, 188f, 38f);
         }
 
+        public static Rect VillageBoardTextRect(ArenaHudLayout layout, int giftCount)
+        {
+            Rect panel = VillageBoardPanel(layout);
+            float footerTop = giftCount > 0 ? VillageGiftRect(layout, 0).yMin : panel.yMax - 54f;
+            return Rect.MinMaxRect(panel.x + 16f, panel.y + 46f, panel.xMax - 16f, footerTop - 6f);
+        }
+
         /// <summary>What the player could hand over right now: goods the pack holds and the village works with.</summary>
         private List<VillageGood> VillageGifts()
         {
             var gifts = new List<VillageGood>();
+            if (!_game.Progression.Economy.Started) return gifts;
             foreach (VillageGood good in VillageBoard.GiftGoods)
                 if (_game.Progression.Crafting.VillageGiftCount(good) > 0) gifts.Add(good);
             return gifts;
         }
 
+        private void SetVillageBoardOpen(bool open)
+        {
+            _villageBoardOpen = open;
+            _villageScrollFinger = -1;
+            _villageScrollY = _villageScrollLimit = 0f;
+        }
+
+        // A gesture belongs to the region in which it began, even if the finger crosses a gift button.
+        private bool VillageBoardTouch(ArenaHudLayout layout, int finger, TouchPhase phase, Vector2 point)
+        {
+            if (!_villageBoardOpen)
+            {
+                if (phase != TouchPhase.Began || !VillageBoardToggleRect(layout).Contains(point)) return false;
+                SetVillageBoardOpen(true);
+                return true;
+            }
+            if (_villageScrollFinger >= 0)
+            {
+                if (finger != _villageScrollFinger) return true;
+                if (phase == TouchPhase.Moved)
+                {
+                    _villageScrollY = Mathf.Clamp(_villageScrollY + _villageTouchY - point.y, 0f, _villageScrollLimit);
+                    _villageTouchY = point.y;
+                }
+                if (phase == TouchPhase.Ended || phase == TouchPhase.Canceled) _villageScrollFinger = -1;
+                return true;
+            }
+            if (phase != TouchPhase.Began) return true;
+            if (VillageBoardCloseRect(layout).Contains(point)) { SetVillageBoardOpen(false); return true; }
+            List<VillageGood> gifts = VillageGifts();
+            if (VillageBoardTextRect(layout, gifts.Count).Contains(point))
+            {
+                _villageScrollFinger = finger;
+                _villageTouchY = point.y;
+                return true;
+            }
+            for (int i = 0; i < gifts.Count; i++)
+                if (VillageGiftRect(layout, i).Contains(point)) { _pendingVillageGift = (int)gifts[i]; break; }
+            return true;
+        }
+
         /// <summary>The board is read standing at it; the Core checks the distance again when goods are handed over.</summary>
         private bool PollVillageBoardInput(ArenaHudLayout layout)
         {
-            if (!_game.VillageBoardInReach || _hungerJournalOpen) { _villageBoardOpen = false; return false; }
+            if (!_game.VillageBoardInReach || _hungerJournalOpen) { if (_villageBoardOpen) SetVillageBoardOpen(false); return false; }
             bool consumed = false;
             if (Input.GetKeyDown(KeyCode.N) || (_villageBoardOpen && Input.GetKeyDown(KeyCode.Escape)))
-            { _villageBoardOpen = !_villageBoardOpen; consumed = true; }
-            List<VillageGood> gifts = _villageBoardOpen ? VillageGifts() : null;
+            { SetVillageBoardOpen(!_villageBoardOpen); consumed = true; }
             for (int i = 0; i < Input.touchCount; i++)
             {
                 Touch touch = Input.GetTouch(i);
-                if (touch.phase != TouchPhase.Began || !layout.IsWithinSafeArea(touch.position)) continue;
-                Vector2 point = layout.ToGuiTouch(touch.position);
-                if (!_villageBoardOpen)
-                {
-                    if (VillageBoardToggleRect(layout).Contains(point)) { _villageBoardOpen = true; consumed = true; }
-                    continue;
-                }
-                // The open board takes every touch, so a tap on it never also moves, attacks or turns the camera.
-                consumed = true;
-                if (VillageBoardCloseRect(layout).Contains(point)) { _villageBoardOpen = false; continue; }
-                for (int gift = 0; gifts != null && gift < gifts.Count; gift++)
-                    if (VillageGiftRect(layout, gift).Contains(point)) _pendingVillageGift = (int)gifts[gift];
+                if (touch.fingerId != _villageScrollFinger && !layout.IsWithinSafeArea(touch.position)) continue;
+                consumed |= VillageBoardTouch(layout, touch.fingerId, touch.phase, layout.ToGuiTouch(touch.position));
             }
             if (!consumed && !_villageBoardOpen) return false;
             _game.SetMoveInput(0, 0);
@@ -452,12 +507,45 @@ namespace AreArpg.UnityClient
             var text = new System.Text.StringBuilder();
             foreach (string line in VillageBoard.StockLines(p)) text.AppendLine(line);
             text.AppendLine();
-            foreach (VillageResidentState resident in p.Economy.Residents) text.AppendLine(VillageBoard.ResidentLine(resident));
-            List<string> needs = p.Economy.OpenNeeds(p);
+            foreach (VillageResidentState resident in p.Economy.Residents) text.AppendLine(VillageBoard.ResidentNotice(resident));
+            List<string> needs = VillageBoard.LocalNeeds(p);
             text.AppendLine();
-            if (needs.Count == 0) text.Append("Im Moment fehlt dem Dorf nichts.");
-            else foreach (string need in needs) text.AppendLine("Es fehlt: " + need);
+            foreach (string need in needs) text.AppendLine(need);
             return text.ToString();
+        }
+
+        private void DrawBoardText(Rect viewport, bool touch)
+        {
+            var body = new GUIContent(VillageBoardText());
+            const float gutter = 20f;
+            float width = viewport.width - gutter;
+            float height = _smallStyle.CalcHeight(body, width);
+            _villageScrollLimit = Mathf.Max(0f, height - viewport.height);
+            _villageScrollY = Mathf.Clamp(_villageScrollY, 0f, _villageScrollLimit);
+            if (_villageScrollLimit > 0f)
+            {
+                Rect rail = new Rect(viewport.xMax - 15f, viewport.y, 15f, viewport.height);
+                if (touch)
+                {
+                    float thumb = Mathf.Max(18f, rail.height * rail.height / height);
+                    GUI.Box(rail, GUIContent.none, GUI.skin.verticalScrollbar);
+                    GUI.Box(new Rect(rail.x, rail.y + (rail.height - thumb) * _villageScrollY / _villageScrollLimit,
+                        rail.width, thumb), GUIContent.none, GUI.skin.verticalScrollbarThumb);
+                }
+                else
+                {
+                    Event input = Event.current;
+                    if (input.type == EventType.ScrollWheel && viewport.Contains(input.mousePosition))
+                    {
+                        _villageScrollY = Mathf.Clamp(_villageScrollY + input.delta.y * 20f, 0f, _villageScrollLimit);
+                        input.Use();
+                    }
+                    _villageScrollY = GUI.VerticalScrollbar(rail, _villageScrollY, viewport.height, 0f, height);
+                }
+            }
+            GUI.BeginGroup(new Rect(viewport.x, viewport.y, width, viewport.height));
+            GUI.Label(new Rect(0f, -_villageScrollY, width, height), body, _smallStyle);
+            GUI.EndGroup();
         }
 
         /// <summary>Draw the board button while the player stands at the board, and the board itself when opened.</summary>
@@ -468,20 +556,20 @@ namespace AreArpg.UnityClient
             if (!_villageBoardOpen)
             {
                 if (touch) GUI.Box(VillageBoardToggleRect(layout), "DORFTAFEL LESEN");
-                else if (GUI.Button(VillageBoardToggleRect(layout), "N: DORFTAFEL LESEN")) _villageBoardOpen = true;
+                else if (GUI.Button(VillageBoardToggleRect(layout), "N: DORFTAFEL LESEN")) SetVillageBoardOpen(true);
                 return false;
             }
             Rect panel = VillageBoardPanel(layout);
             GUI.Box(panel, "");
             GUI.Label(new Rect(panel.x + 16f, panel.y + 10f, panel.width - 160f, 26f), "DORFTAFEL VON ASCHENGRENZE", _labelStyle);
             if (touch) GUI.Box(VillageBoardCloseRect(layout), "SCHLIESSEN");
-            else if (GUI.Button(VillageBoardCloseRect(layout), "SCHLIESSEN (N)")) _villageBoardOpen = false;
+            else if (GUI.Button(VillageBoardCloseRect(layout), "SCHLIESSEN (N)")) SetVillageBoardOpen(false);
             List<VillageGood> gifts = VillageGifts();
-            float foot = gifts.Count > 3 ? 100f : 58f;
-            GUI.Label(new Rect(panel.x + 16f, panel.y + 46f, panel.width - 32f, panel.height - 52f - foot), VillageBoardText(), _smallStyle);
+            DrawBoardText(VillageBoardTextRect(layout, gifts.Count), touch);
             if (gifts.Count == 0)
                 GUI.Label(new Rect(panel.x + 16f, panel.yMax - 54f, panel.width - 32f, 46f),
-                    "Du hast nichts dabei, was das Dorf verarbeitet: Holz, Dornbeeren, Ascheisen, Heilkräuter, Holzrahmen oder einen Bogen.", _smallStyle);
+                    _game.Progression.Economy.Started ? "Hier kannst du Holz, Dornbeeren, Ascheisen, Heilkräuter, Holzrahmen oder einen Bogen abgeben."
+                        : "Sobald jemand einzieht, kann das Dorf Material für seine Werkstätten annehmen.", _smallStyle);
             for (int i = 0; i < gifts.Count; i++)
             {
                 string label = "ABGEBEN: " + VillageEconomyRules.GoodName(gifts[i]) + " (du hast " + _game.Progression.Crafting.VillageGiftCount(gifts[i]) + ")";

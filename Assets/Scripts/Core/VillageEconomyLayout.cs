@@ -52,8 +52,12 @@ namespace AreArpg.Core
         {
             switch (work)
             {
-                case VillageWork.MakeFrame: case VillageWork.MakeBow: case VillageWork.RepairAxe: return VillageSpot.Workbench;
-                case VillageWork.Cook: return VillageSpot.Kitchen;
+                case VillageWork.MakeFrame: case VillageWork.MakeBow: case VillageWork.RepairAxe: case VillageWork.SmeltOre:
+                case VillageWork.ForgeFitting: case VillageWork.MakeBandage: return VillageSpot.Workbench;
+                case VillageWork.Cook: case VillageWork.BakeBread: case VillageWork.TendHearth: return VillageSpot.Kitchen;
+                case VillageWork.SowField: case VillageWork.HarvestField: case VillageWork.MakeCompost: case VillageWork.DressSoil:
+                case VillageWork.RepairShelter: case VillageWork.OfferWater: return VillageSpot.Home;
+                case VillageWork.TanHide: return VillageSpot.DryingRack;
                 case VillageWork.FetchWater: return VillageSpot.Well;
                 case VillageWork.DeliverRations: return VillageSpot.Store;
                 default: return VillageSpot.Woodyard;
@@ -85,6 +89,7 @@ namespace AreArpg.Core
             {
                 case VillageActivity.Sleeping: return false;
                 case VillageActivity.Eating: spot = VillageSpot.Store; return true;
+                case VillageActivity.Drinking: spot = VillageSpot.Well; return true;
                 case VillageActivity.Working: spot = SpotFor(resident.Work); return true;
                 case VillageActivity.Resting: case VillageActivity.Recovering: spot = VillageSpot.Home; return true;
                 default: spot = VillageSpot.Board; return true;
@@ -99,7 +104,7 @@ namespace AreArpg.Core
         {
             get
             {
-                return !GameOver && IsVillage && Progression.Economy.Started &&
+                return !GameOver && IsVillage &&
                     DistanceSquared(PlayerXmm, PlayerZmm, VillageEconomyLayout.PlaceXmm(VillageSpot.Board), VillageEconomyLayout.PlaceZmm(VillageSpot.Board)) <=
                     FixedMath.Square(VillageEconomyLayout.BoardReachMm);
             }

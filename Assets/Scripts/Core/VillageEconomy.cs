@@ -37,9 +37,11 @@ namespace AreArpg.Core
     public sealed partial class VillageEconomyState
     {
         private const int Stride = VillageEconomyRules.Stride;
+        internal const int StockLimit = int.MaxValue / 4;
+        internal const long LedgerLimit = 1000000000000L;
 
         /// <summary>Evaluate the village once for the current game tick. Safe to call every tick.</summary>
-        internal void Advance(CharacterProgression p)
+        internal void Advance(CharacterProgression p, ArenaSimulation area = null)
         {
             var forge = p.Social.Forge;
             if (forge == null) return;
@@ -51,13 +53,20 @@ namespace AreArpg.Core
                 Begin(tick);
             }
             if (tick % (ulong)Stride != 0 || tick <= LastTick) return;
+            UpgradeRules();
             LastTick = tick;
             while (_residents.Count < residents)
                 _residents.Add(new VillageResidentState { Ordinal = VillageServicesState.BasePopulation + _residents.Count, Hunger = 200, Fatigue = 100 });
             Regrow(tick);
+            if (p.Village.OrselTeachesUnlocked) AdvanceProduction(tick);
             // The last free place in Mara's store stays the player's while her refill task is open.
             int campLimit = p.Social.CampRefilled ? SocialLedger.CampCapacity : SocialLedger.CampCapacity - 1;
-            foreach (var resident in _residents) StepResident(p, forge, resident, tick, campLimit);
+            foreach (var resident in _residents)
+            {
+                bool wasWalking = resident.Walking;
+                StepResident(p, forge, resident, tick, campLimit, area);
+                UpdateSiteReport(resident, wasWalking, tick);
+            }
         }
 
         /// <summary>Nature's own inflows: saplings grow up, game breeds, berries and seed ripen, the well refills.</summary>
@@ -82,105 +91,135 @@ namespace AreArpg.Core
                 _sources[(int)VillageSource.Herbs]++;
         }
 
-        private void StepResident(CharacterProgression p, NpcForgeState forge, VillageResidentState r, ulong tick, int campLimit)
+        private void StepResident(CharacterProgression p, NpcForgeState forge, VillageResidentState r, ulong tick, int campLimit, ArenaSimulation area)
         {
             if (tick % VillageEconomyRules.HungerTicks == 0) r.Hunger = Math.Min(VillageEconomyRules.MaxNeed, r.Hunger + 1);
+            AdvanceThirst(r, tick);
             if (r.Hunger >= VillageEconomyRules.MaxNeed && tick % VillageEconomyRules.StarvingTicks == 0 && r.Health > VillageEconomyRules.StarvingHealthFloor)
                 r.Health--;
 
             bool night = VillageEconomyRules.IsNight(tick);
             bool inVillage = r.Site == VillageSite.Village && !r.Walking;
-            bool food = p.Social.CampProvisions > 0;
-            bool hungry = r.Hunger >= VillageEconomyRules.EatHunger;
-            // An injured or worn-down resident does not work: the work in hand is given up and its inputs go back.
-            if (!r.CanWork && r.Work != VillageWork.None) GiveUp(r);
+            bool food = inVillage && p.Social.CampProvisions > 0;
+            bool drink = inVillage && ShouldDrink(p, r);
+            // Away from home a person can seek the known store, but does not see its contents.
+            // A trip to fetch ingredients must reach its source even when the camp was empty at departure.
+            bool seekMeal = !inVillage && !r.Walking && r.Work == VillageWork.None && r.Assignment == VillageWork.None;
+            bool needsMeal = r.Hunger >= VillageEconomyRules.EatHunger && (food || seekMeal);
+            bool needsSupply = drink || needsMeal;
+            var mind = forge.BindResident("village." + r.Ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture), "villager");
+            var working = VillageWorkController.Artifact;
+            if (mind.Controller.Hash != working.Hash) forge.Archive.TryMigrate(mind.Id, working, NpcForgeState.Registry, tick, out _);
+
+            if (area != null && area.VillageWorkUnsafe(r))
+            {
+                r.Activity = VillageActivity.Resting;
+                return;
+            }
+            // An interruption returns reserved inputs. Until an interruption or completion the decision
+            // frame belongs to the trip or job that actually started, including after a reload.
+            if (r.Work != VillageWork.None && (!r.CanWork || needsSupply || night || r.Fatigue >= VillageEconomyRules.MaxNeed))
+                GiveUp(r);
+            if (r.Walking || r.Work != VillageWork.None)
+            {
+                ContinueCommitment(p, forge, r, mind, tick, campLimit, area);
+                return;
+            }
             // Orsel tends the sick at the old mill once her own quest is done; before that the hurt rest at home.
             bool care = p.Village.OrselTeachesUnlocked;
             bool atMill = r.Site == VillageSite.Mill && !r.Walking;
             VillageWork plan;
-            if (r.Work != VillageWork.None) plan = r.Work;
-            else if (atMill && care && r.Health < VillageEconomyRules.MaxHealth) plan = VillageWork.None;   // stays in her care until whole
-            else if (!r.CanWork) plan = r.Walking ? VillageWork.None : inVillage ? (care ? VillageWork.SeekCare : VillageWork.None) : VillageWork.GoHome;
+            if (atMill && care && r.Health < VillageEconomyRules.MaxHealth) plan = VillageWork.None;
+            else if (!r.CanWork) plan = inVillage ? (care && (food || r.Hunger < VillageEconomyRules.EatHunger) ? VillageWork.SeekCare : VillageWork.None) : VillageWork.GoHome;
             else plan = Plan(p, r, night, campLimit, care);
 
             // The hard mask of what is possible right now; the resident's own controller chooses among it.
             // Going about the day's work is the villager's "travel" action: no new action is added to the minds.
             var legal = new List<ForgeAction>();
-            if (r.Walking || plan == VillageWork.GoHome || plan == VillageWork.SeekCare)
-                legal.Add(ForgeAction.Travel);        // a walk once begun is finished; hurt, idle or at night nobody camps at the forest edge
+            if (needsSupply && !r.CanWork)
+                legal.Add(inVillage ? ForgeAction.Eat : ForgeAction.SeekFood);
+            else if (plan == VillageWork.GoHome || plan == VillageWork.SeekCare)
+                legal.Add(ForgeAction.Travel);
             else
             {
-                legal.Add(ForgeAction.Wait);
-                legal.Add(ForgeAction.Rest);
+                bool restCanHelp = r.Fatigue > 0 || r.Health < VillageEconomyRules.MaxHealth && r.Hunger < VillageEconomyRules.MaxNeed;
+                if (plan == VillageWork.None || restCanHelp || night) legal.Add(ForgeAction.Wait);
+                if (restCanHelp || night) legal.Add(ForgeAction.Rest);
                 if (plan != VillageWork.None) legal.Add(ForgeAction.Travel);
-                if (hungry && food) legal.Add(inVillage ? ForgeAction.Eat : ForgeAction.SeekFood);
+                if (needsSupply) legal.Add(inVillage ? ForgeAction.Eat : ForgeAction.SeekFood);
                 if (inVillage && !night && plan == VillageWork.None) legal.Add(ForgeAction.Observe);
             }
-            var mind = forge.BindResident("village." + r.Ordinal.ToString(System.Globalization.CultureInfo.InvariantCulture), "villager");
-            // A resident who works decides with the working villager controller; the change is a recorded migration.
-            var working = VillageWorkController.Artifact;
-            if (mind.Controller.Hash != working.Hash) forge.Archive.TryMigrate(mind.Id, working, NpcForgeState.Registry, tick, out _);
             var frame = new ObservationFrame(ActionSet.Of(legal.ToArray()), new[]
             {
-                new Observation(Feature.Hunger, r.Hunger * 10), new Observation(Feature.Fatigue, r.Fatigue * 10),
+                new Observation(Feature.Hunger, (drink ? Math.Max(r.Hunger, r.Thirst) : r.Hunger) * 10), new Observation(Feature.Fatigue, r.Fatigue * 10),
                 new Observation(Feature.Injury, (VillageEconomyRules.MaxHealth - r.Health) * 10000 / VillageEconomyRules.MaxHealth),
-                new Observation(Feature.Food, food ? 10000 : 0),
+                new Observation(Feature.Food, food || drink ? 10000 : 0),
                 new Observation(Feature.TravelCost, inVillage ? 0 : 3000)
             });
-            var action = UtilityEvaluator.Decide(mind.Controller, frame, mind.DecisionState, tick, false, mind.Cognition).Action;
+            var action = UtilityEvaluator.Decide(mind.Controller, frame, mind.DecisionState, tick, true, mind.Cognition).Action;
 
             int hunger = r.Hunger, fatigue = r.Fatigue, health = r.Health, effect = 0;
             switch (action)
             {
                 case ForgeAction.Eat:
-                    r.Activity = p.Social.EatAtCamp(r) ? VillageActivity.Eating : VillageActivity.Idle;
-                    effect = hunger - r.Hunger;
+                    if (drink)
+                    {
+                        effect = TryDrink(r);
+                        r.Activity = effect > 0 ? VillageActivity.Drinking : VillageActivity.Idle;
+                    }
+                    else
+                    {
+                        r.Activity = p.Social.EatAtCamp(r) ? VillageActivity.Eating : VillageActivity.Idle;
+                        effect = hunger - r.Hunger;
+                    }
                     break;
                 case ForgeAction.SeekFood:
-                    // Food is in the village: leave the forest work; nothing it had not finished is counted.
-                    GiveUp(r);
                     Walk(r, VillageSite.Village);
                     r.Activity = VillageActivity.Walking;
-                    effect = 1;
                     break;
                 case ForgeAction.Rest:
-                    r.Fatigue = Math.Max(0, r.Fatigue - VillageEconomyRules.RestRelief * Stride);
-                    if (atMill && care) Care(forge, r, tick);
+                    r.Fatigue = Math.Max(0, r.Fatigue - HomeRestRelief(night && inVillage) * Stride);
+                    if (atMill && care && r.Hunger < VillageEconomyRules.MaxNeed) Care(forge, r, tick);
                     // Rest heals, but not on an empty stomach.
                     else if (tick % VillageEconomyRules.RestHealTicks == 0 && r.Health < VillageEconomyRules.MaxHealth && r.Hunger < VillageEconomyRules.MaxNeed) r.Health++;
                     r.Activity = !r.CanWork || atMill ? VillageActivity.Recovering : night && inVillage ? VillageActivity.Sleeping : VillageActivity.Resting;
                     effect = fatigue - r.Fatigue + r.Health - health;
                     break;
                 case ForgeAction.Travel:
-                    if (tick % VillageEconomyRules.WorkFatigueTicks == 0) r.Fatigue = Math.Min(VillageEconomyRules.MaxNeed, r.Fatigue + 1);
-                    // The measured effect of going about the work is its progress: a stretch of the way walked, a
-                    // stretch of the step done, and the yield when it ends. Without that, only rest would ever be
-                    // credited and experience would teach every resident to rest.
-                    if (r.Walking)
-                    {
-                        r.Activity = VillageActivity.Walking;
-                        r.TravelTicks -= Stride;
-                        if (r.TravelTicks <= 0) Arrive(r);
-                        effect = 1;
-                    }
-                    else if (r.Work != VillageWork.None)
-                    {
-                        r.Activity = VillageActivity.Working;
-                        r.WorkTicks -= Stride;
-                        effect = 1;
-                        if (r.WorkTicks <= 0)
-                        {
-                            effect += Finish(p, forge, r, tick, campLimit);
-                            r.Activity = VillageActivity.Idle;
-                        }
-                    }
-                    else if (StartWork(r, plan)) effect = 1;
+                    StartWork(r, plan);
                     break;
                 default:
                     r.Activity = VillageActivity.Idle;
                     break;
             }
             mind.Cognition.RecordOutcome(action, tick, effect);
+        }
+
+        private void ContinueCommitment(CharacterProgression p, NpcForgeState forge, VillageResidentState r,
+            NpcMind mind, ulong tick, int campLimit, ArenaSimulation area)
+        {
+            if (tick % VillageEconomyRules.WorkFatigueTicks == 0)
+                r.Fatigue = Math.Min(VillageEconomyRules.MaxNeed, r.Fatigue + 1);
+            if (r.Walking)
+            {
+                r.Activity = VillageActivity.Walking;
+                r.TravelTicks -= Stride;
+                if (r.TravelTicks > 0) return;
+                Arrive(r);
+                var action = mind.DecisionState.Action;
+                if (action == ForgeAction.Travel || action == ForgeAction.SeekFood)
+                    mind.Cognition.SettleCommittedOutcome(action, tick, 1);
+                return;
+            }
+            r.Activity = VillageActivity.Working;
+            r.WorkTicks -= Stride;
+            if (r.WorkTicks > 0) return;
+            int units = Finish(p, forge, r, tick, campLimit, area);
+            if (r.Site != VillageSite.Village &&
+                (units == 0 || r.Assignment != VillageWork.FellTree && r.Assignment != VillageWork.PlantSeedling))
+                r.Assignment = VillageWork.None;
+            r.Activity = VillageActivity.Idle;
+            mind.Cognition.SettleCommittedOutcome(ForgeAction.Travel, tick, units);
         }
 
         /// <summary>
@@ -190,53 +229,45 @@ namespace AreArpg.Core
         /// </summary>
         internal VillageWork Plan(CharacterProgression p, VillageResidentState r, bool night, int campLimit, bool care)
         {
-            bool forest = r.Site == VillageSite.Forest;
-            // At the mill there is one thing to do: put the herbs on Orsel's shelf. Then home.
-            if (r.Site == VillageSite.Mill)
-                return r.Carry[(int)VillageGood.Herb] > 0 && _millHerbs < VillageEconomyRules.MillHerbCap ? VillageWork.BringHerbs : VillageWork.GoHome;
-            if (night) return forest ? VillageWork.GoHome : VillageWork.None;
-            // In the forest, what is carried counts as on its way to the commons.
-            Func<VillageGood, int> have = good => _commons[(int)good] + (forest ? r.Carry[(int)good] : 0);
-            bool axe = r.AxeUses > 0 || !forest && _commons[(int)VillageGood.Axe] > 0;
-            bool bow = r.Carry[(int)VillageGood.Bow] > 0 || !forest && _commons[(int)VillageGood.Bow] > 0;
-            int trees = _sources[(int)VillageSource.MatureTrees];
-            bool canFell = axe && trees > VillageEconomyRules.SeedTreeReserve;
+            if (r.Site != VillageSite.Village) return AwayAssignment(r, night);
+            if (night) return VillageWork.None;
+            var supply = PlanWater(p, r);
+            if (supply != VillageWork.None) return supply;
+            bool axe = r.AxeUses > 0 || Commons(VillageGood.Axe) > 0;
+            bool bow = r.Carried(VillageGood.Bow) > 0 || Commons(VillageGood.Bow) > 0;
+            bool canFell = axe && CanSeekSource(VillageSource.MatureTrees, LastTick);
             int camp = p.Social.CampProvisions;
             var wish = VillageWork.None;
 
-            if (have(VillageGood.Ration) > 0 && camp < campLimit) wish = VillageWork.DeliverRations;
-            if (wish == VillageWork.None && have(VillageGood.Game) > 0)
-                wish = have(VillageGood.Water) < 1 ? (_sources[(int)VillageSource.Well] > 0 ? VillageWork.FetchWater : VillageWork.None) :
-                    have(VillageGood.Wood) < 1 ? (canFell ? VillageWork.FellTree : VillageWork.None) : VillageWork.Cook;
-            bool hungryVillage = camp + have(VillageGood.Ration) + 2 * have(VillageGood.Game) < VillageEconomyRules.FoodTarget;
-            if (wish == VillageWork.None && hungryVillage && _sources[(int)VillageSource.Wildlife] > 0)
+            if (Commons(VillageGood.Ration) > 0 && camp < campLimit) wish = VillageWork.DeliverRations;
+            if (wish == VillageWork.None && Commons(VillageGood.Game) > 0)
+                wish = Commons(VillageGood.Water) < 1 ? (_sources[(int)VillageSource.Well] > 0 ? VillageWork.FetchWater : VillageWork.None) :
+                    Commons(VillageGood.Wood) < 1 ? (canFell ? VillageWork.FellTree : VillageWork.None) : VillageWork.Cook;
+            bool hungryVillage = camp + Commons(VillageGood.Ration) + 2 * Commons(VillageGood.Game) < VillageEconomyRules.FoodTarget;
+            if (wish == VillageWork.None && care) wish = PlanProduction(p, r, true);
+            if (wish == VillageWork.None && (hungryVillage || care && NeedHideForCare()) && CanSeekSource(VillageSource.Wildlife, LastTick))
                 wish = bow ? VillageWork.Hunt :
-                    have(VillageGood.WoodFrame) >= 1 && have(VillageGood.ThornBerry) >= 1 ? VillageWork.MakeBow :
-                    have(VillageGood.WoodFrame) < 1 && have(VillageGood.Wood) >= 2 ? VillageWork.MakeFrame :
-                    have(VillageGood.ThornBerry) < 1 && _sources[(int)VillageSource.Berries] > 0 ? VillageWork.GatherBerries :
-                    have(VillageGood.WoodFrame) < 1 && canFell ? VillageWork.FellTree : VillageWork.None;
-            if (wish == VillageWork.None && have(VillageGood.BrokenAxe) >= 1 && have(VillageGood.Metal) >= 1 && have(VillageGood.Wood) >= 1)
+                    Commons(VillageGood.WoodFrame) >= 1 && Commons(VillageGood.ThornBerry) >= 1 ? VillageWork.MakeBow :
+                    Commons(VillageGood.WoodFrame) < 1 && Commons(VillageGood.Wood) >= 2 ? VillageWork.MakeFrame :
+                    Commons(VillageGood.ThornBerry) < 1 && CanSeekSource(VillageSource.Berries, LastTick) ? VillageWork.GatherBerries :
+                    Commons(VillageGood.WoodFrame) < 1 && canFell ? VillageWork.FellTree : VillageWork.None;
+            if (wish == VillageWork.None && Commons(VillageGood.BrokenAxe) >= 1 && Commons(VillageGood.Metal) >= 1 && Commons(VillageGood.Wood) >= 1)
                 wish = VillageWork.RepairAxe;
             // Healing herbs for Orsel's shelf: carry what lies in the commons to the mill, gather while her shelf is short.
-            if (wish == VillageWork.None && care && have(VillageGood.Herb) > 0 && _millHerbs < VillageEconomyRules.MillHerbCap) wish = VillageWork.BringHerbs;
-            if (wish == VillageWork.None && care && _millHerbs + have(VillageGood.Herb) < VillageEconomyRules.HerbTarget && _sources[(int)VillageSource.Herbs] > 0)
+            if (wish == VillageWork.None && care && Commons(VillageGood.Herb) > 0 && WantsHerbDelivery(LastTick)) wish = VillageWork.BringHerbs;
+            if (wish == VillageWork.None && care && KnownMillHerbsForSupply(LastTick) + Commons(VillageGood.Herb) < VillageEconomyRules.HerbTarget && CanSeekSource(VillageSource.Herbs, LastTick))
                 wish = VillageWork.GatherHerbs;
-            if (wish == VillageWork.None && have(VillageGood.Wood) < VillageEconomyRules.WoodTarget && canFell) wish = VillageWork.FellTree;
-            if (wish == VillageWork.None && trees + SaplingCount < VillageEconomyRules.StandTarget)
-                wish = _nursery >= 1 ? VillageWork.PlantSeedling : _sources[(int)VillageSource.SeedCrop] > 0 ? VillageWork.CollectSeedlings : VillageWork.None;
-
-            if (wish == VillageWork.None) return forest ? VillageWork.GoHome : VillageWork.None;
-            var rule = VillageEconomyRules.Rule(wish);
-            if (!forest) return wish;
-            if (rule.Site != VillageSite.Forest) return VillageWork.GoHome;       // village work, or the way to the mill, leads through the village
-            // Hands full: carry the load home first.
-            return r.Load + CarriedYield(rule) > VillageEconomyRules.CarryCapacity ? VillageWork.GoHome : wish;
+            if (wish == VillageWork.None && care) wish = PlanProduction(p, r, false);
+            if (wish == VillageWork.None && Commons(VillageGood.Wood) < VillageEconomyRules.WoodTarget && canFell) wish = VillageWork.FellTree;
+            if (wish == VillageWork.None && ReportedPlantingNeed)
+                wish = ReportedSeedlings ? VillageWork.PlantSeedling : CanSeekSource(VillageSource.SeedCrop, LastTick) ? VillageWork.CollectSeedlings : VillageWork.None;
+            return wish;
         }
 
-        private static int CarriedYield(VillageWorkRule rule)
+        private static int CarriedYield(VillageWorkRule rule, VillageResidentState r)
         {
             if (rule.Work == VillageWork.CollectSeedlings) return 0;         // seedlings stay in the nursery at the forest edge
-            int n = 0;
+            int n = rule.Work == VillageWork.FellTree && r.AxeUses == 1 ? 1 : 0;
             foreach (var output in rule.Outputs) n += output.Count;
             return n;
         }
@@ -266,12 +297,13 @@ namespace AreArpg.Core
                 forge.Archive.Perceive(r.Identity, ev.Id, KnowledgeOrigin.Self, tick, words);
             }
             if (tick % VillageEconomyRules.CareHerbTicks != 0) return;
+            int dressingRelief = UseDressing(r) ? 2 : 0;
             if (_millHerbs > 0)
             {
                 _millHerbs--; Use(VillageGood.Herb, 1);
-                r.Health = Math.Min(VillageEconomyRules.MaxHealth, r.Health + VillageEconomyRules.CareHerbTicks / VillageEconomyRules.CareHealTicks);
+                r.Health = Math.Min(VillageEconomyRules.MaxHealth, r.Health + VillageEconomyRules.CareHerbTicks / VillageEconomyRules.CareHealTicks + dressingRelief);
             }
-            else r.Health = Math.Min(VillageEconomyRules.MaxHealth, r.Health + VillageEconomyRules.CareHerbTicks / VillageEconomyRules.PlainCareHealTicks);
+            else r.Health = Math.Min(VillageEconomyRules.MaxHealth, r.Health + VillageEconomyRules.CareHerbTicks / VillageEconomyRules.PlainCareHealTicks + dressingRelief);
         }
 
         public const string CareContext = "village.care";
@@ -282,12 +314,14 @@ namespace AreArpg.Core
             r.Site = r.Destination;
             r.TravelTicks = 0;
             if (r.Site != VillageSite.Village) return;
+            r.Assignment = VillageWork.None;
             for (int g = 0; g < r.Carry.Length; g++)
             {
                 if (g == (int)VillageGood.Axe || g == (int)VillageGood.Bow) continue;
                 _commons[g] += r.Carry[g];
                 r.Carry[g] = 0;
             }
+            r.ReturningBrokenTool = false;
         }
 
         /// <summary>
@@ -299,7 +333,7 @@ namespace AreArpg.Core
             r.Activity = VillageActivity.Idle;
             if (work == VillageWork.None) return false;
             if (work == VillageWork.GoHome) { Walk(r, VillageSite.Village); r.Activity = VillageActivity.Walking; return true; }
-            if (work == VillageWork.SeekCare) { Walk(r, VillageSite.Mill); r.Activity = VillageActivity.Walking; return true; }
+            if (work == VillageWork.SeekCare) { PackForCare(r); Walk(r, VillageSite.Mill); r.Activity = VillageActivity.Walking; return true; }
             var rule = VillageEconomyRules.Rule(work);
             if (work == VillageWork.BringHerbs && r.Site == VillageSite.Village)
             {
@@ -328,15 +362,25 @@ namespace AreArpg.Core
                 if (r.Site != VillageSite.Village || _commons[(int)VillageGood.Bow] < 1) return false;
                 _commons[(int)VillageGood.Bow]--; r.Carry[(int)VillageGood.Bow]++;
             }
-            if (rule.Site != r.Site) { Walk(r, rule.Site); r.Activity = VillageActivity.Walking; return true; }
+            if (!StartProductionTrip(r, work)) return false;
+            if (rule.Site != r.Site)
+            {
+                if (r.Site == VillageSite.Village) r.Assignment = work;
+                Walk(r, rule.Site);
+                r.Activity = VillageActivity.Walking;
+                return true;
+            }
+            if (!CanStartProduction(r, work)) return false;
             if (rule.Source >= 0 && _sources[rule.Source] < 1) return false;
             if (work == VillageWork.FellTree && _sources[(int)VillageSource.MatureTrees] <= VillageEconomyRules.SeedTreeReserve) return false;
-            if (rule.Site == VillageSite.Forest && r.Load + CarriedYield(rule) > VillageEconomyRules.CarryCapacity) return false;
+            if (work == VillageWork.PlantSeedling && Source(VillageSource.MatureTrees) + SaplingCount >= VillageEconomyRules.StandTarget) return false;
+            if (rule.Site == VillageSite.Forest && r.Load + CarriedYield(rule, r) > VillageEconomyRules.CarryCapacity) return false;
+            var inputs = InputStore(r, work);
             foreach (var input in rule.Inputs)
-                if ((input.Good == VillageGood.Seedling ? _nursery : _commons[(int)input.Good]) < input.Count) return false;
+                if ((input.Good == VillageGood.Seedling ? _nursery : inputs[(int)input.Good]) < input.Count) return false;
             foreach (var input in rule.Inputs)
             {
-                if (input.Good == VillageGood.Seedling) _nursery -= input.Count; else _commons[(int)input.Good] -= input.Count;
+                if (input.Good == VillageGood.Seedling) _nursery -= input.Count; else inputs[(int)input.Good] -= input.Count;
                 r.Reserved[(int)input.Good] += input.Count;
             }
             r.Work = work;
@@ -348,10 +392,11 @@ namespace AreArpg.Core
         /// <summary>Give the work in hand up: what was held back returns to where it came from; nothing is produced.</summary>
         private void GiveUp(VillageResidentState r)
         {
+            var inputs = InputStore(r, r.Work);
             for (int g = 0; g < r.Reserved.Length; g++)
             {
                 if (r.Reserved[g] == 0) continue;
-                if (g == (int)VillageGood.Seedling) _nursery += r.Reserved[g]; else _commons[g] += r.Reserved[g];
+                if (g == (int)VillageGood.Seedling) _nursery += r.Reserved[g]; else inputs[g] += r.Reserved[g];
                 r.Reserved[g] = 0;
             }
             r.Work = VillageWork.None;
@@ -365,16 +410,22 @@ namespace AreArpg.Core
         /// The work step ends: its inputs are used up once, nature gives what the step takes, and the yield exists
         /// once - in the resident's hands in the forest, in the commons in the village. Returns the units yielded.
         /// </summary>
-        private int Finish(CharacterProgression p, NpcForgeState forge, VillageResidentState r, ulong tick, int campLimit)
+        private int Finish(CharacterProgression p, NpcForgeState forge, VillageResidentState r, ulong tick, int campLimit, ArenaSimulation area)
         {
             VillageWork work = r.Work;
             var rule = VillageEconomyRules.Rule(work);
             int yielded = 0;
+            // Old saves may contain a last axe stroke that can no longer fit in the worker's hands.
+            if (!CanStartProduction(r, work) || !CanBookProducts(rule, r) ||
+                work == VillageWork.PlantSeedling && Source(VillageSource.MatureTrees) + SaplingCount >= VillageEconomyRules.StandTarget ||
+                rule.Site == VillageSite.Forest && r.Load + CarriedYield(rule, r) > VillageEconomyRules.CarryCapacity)
+            { GiveUp(r); return 0; }
+            if (work == VillageWork.OfferWater) return FinishWaterAid(forge, r, tick);
             if (work == VillageWork.DeliverRations)
             {
-                // Rations carried to Mara are not used up by the walk: they are put down for the hand-over itself.
-                _commons[(int)VillageGood.Ration] += r.Reserved[(int)VillageGood.Ration];
-                r.Reserved[(int)VillageGood.Ration] = 0;
+                int accepted = Deliver(p, forge, r, tick, campLimit, area != null && area.MaraReceivesAtStore());
+                GiveUp(r); // put down the unaccepted part of this carrier's load
+                return accepted;
             }
             for (int g = 0; g < r.Reserved.Length; g++)
             {
@@ -384,6 +435,7 @@ namespace AreArpg.Core
             }
             r.Work = VillageWork.None;
             r.WorkTicks = 0;
+            if (work >= VillageWork.SowField && work <= VillageWork.TendHearth) return ApplyProduction(r, work);
             switch (work)
             {
                 case VillageWork.FellTree:
@@ -432,8 +484,6 @@ namespace AreArpg.Core
                     _sources[(int)VillageSource.Well] -= yielded;
                     _commons[(int)VillageGood.Water] += yielded; Make(VillageGood.Water, yielded);
                     return yielded;
-                case VillageWork.DeliverRations:
-                    return Deliver(p, forge, r, tick, campLimit);
                 default:
                     foreach (var output in rule.Outputs)
                     {
@@ -452,79 +502,73 @@ namespace AreArpg.Core
         }
 
         /// <summary>
-        /// Rations go from the commons into Mara's store, one real hand-over each. A full store takes nothing and
-        /// the ration stays in the commons. The first hand-over of a game day is remembered by the two who were
-        /// part of it - the resident and Mara - and by nobody else.
+        /// A carrier deposits the reserved rations into the store and returns any surplus to the commons.
+        /// The carrier remembers the day's first delivery. Mara shares that memory when she receives it in person.
         /// </summary>
-        private int Deliver(CharacterProgression p, NpcForgeState forge, VillageResidentState r, ulong tick, int campLimit)
+        private int Deliver(CharacterProgression p, NpcForgeState forge, VillageResidentState r, ulong tick, int campLimit, bool maraPresent)
         {
             int delivered = 0;
-            while (delivered < VillageEconomyRules.DeliveryLoad && _commons[(int)VillageGood.Ration] > 0 && p.Social.StoreCampRation(campLimit))
+            while (r.Held(VillageGood.Ration) > 0 && _handedOut[(int)VillageGood.Ration] < LedgerLimit &&
+                p.Social.StoreCampRation(campLimit))
             {
-                _commons[(int)VillageGood.Ration]--;
+                r.Reserved[(int)VillageGood.Ration]--;
                 _handedOut[(int)VillageGood.Ration]++;
                 delivered++;
             }
             long day = (long)(tick / WorldSkyClock.TicksPerDay);
             if (delivered == 0 || day == r.DeliveryDay) return delivered;
             r.DeliveryDay = day;
-            var ev = forge.Archive.Append(MemoryKind.Help, r.Identity, "mara", tick, 3000, false, DeliveryContext,
+            var ev = forge.Archive.Append(MemoryKind.Help, r.Identity, maraPresent ? "mara" : "village.store", tick, 3000, false, DeliveryContext,
                 new RelationshipChange(trust: 300, gratitude: 400, familiarity: 200));
             var words = new EpisodeDetails("food", "village", "rations");
             forge.Archive.Perceive(r.Identity, ev.Id, KnowledgeOrigin.Self, tick, words);
-            forge.Archive.Perceive("mara", ev.Id, KnowledgeOrigin.Self, tick, words);
+            if (maraPresent) forge.Archive.Perceive("mara", ev.Id, KnowledgeOrigin.Self, tick, words);
             return delivered;
         }
 
         public const string DeliveryContext = "village.delivery.rations";
 
+        private bool CanBookProducts(VillageWorkRule rule, VillageResidentState r)
+        {
+            foreach (var output in rule.Outputs)
+                if (Present(output.Good) - r.Held(output.Good) > StockLimit - output.Count ||
+                    _made[(int)output.Good] > LedgerLimit - output.Count) return false;
+            if (rule.Work == VillageWork.FellTree && r.AxeUses == 1)
+                return Present(VillageGood.BrokenAxe) < StockLimit && Made(VillageGood.BrokenAxe) < LedgerLimit;
+            return true;
+        }
+
         /// <summary>
-        /// The player puts goods into the village commons: a real hand-over from the player's own stock, counted as
-        /// received. The caller has already taken the goods from the player.
+        /// Check both the receiving stock and its ledger before the giver's inventory changes.
         /// </summary>
+        internal bool CanReceive(VillageGood good, int count)
+        {
+            int g = (int)good;
+            return count > 0 && g >= 0 && g < _commons.Length && Present(good) <= StockLimit - (long)count &&
+                _received[g] <= LedgerLimit - count;
+        }
+
         internal void Receive(VillageGood good, int count)
         {
-            if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
+            if (!CanReceive(good, count)) throw new ArgumentOutOfRangeException(nameof(count));
+            UpgradeRules();
             if (good == VillageGood.Seedling) _nursery += count; else _commons[(int)good] += count;
             _received[(int)good] += count;
         }
 
         /// <summary>What the village is waiting for right now, in plain words for the village board.</summary>
-        public List<string> OpenNeeds(CharacterProgression p)
-        {
-            var needs = new List<string>();
-            if (!Started) return needs;
-            int camp = p.Social.CampProvisions;
-            bool anyBow = _commons[(int)VillageGood.Bow] > 0, anyAxe = _commons[(int)VillageGood.Axe] > 0, anyone = false;
-            foreach (var r in _residents)
-            {
-                anyBow |= r.Carry[(int)VillageGood.Bow] > 0; anyAxe |= r.AxeUses > 0;
-                anyone |= r.CanWork;
-            }
-            if (_residents.Count == 0) needs.Add("Niemand im Dorf hat Zeit für Handwerk.");
-            else if (!anyone) needs.Add("Alle Bewohner sind verletzt oder entkräftet. Die Arbeit ruht.");
-            if (camp < VillageEconomyRules.FoodTarget)
-            {
-                if (_sources[(int)VillageSource.Wildlife] == 0) needs.Add("Das Wild ist erschöpft. Der Jagd fehlt die Beute.");
-                else if (!anyBow) needs.Add("Der Jagd fehlt ein Bogen (Holzrahmen und Dornbeere).");
-            }
-            if (!anyAxe)
-                needs.Add(_commons[(int)VillageGood.BrokenAxe] > 0 && _commons[(int)VillageGood.Metal] == 0 ?
-                    "Die Axt ist defekt und es fehlt Metall für die Reparatur." : "Dem Holzeinschlag fehlt eine Axt.");
-            if (_sources[(int)VillageSource.MatureTrees] <= VillageEconomyRules.SeedTreeReserve) needs.Add("Der Wald ist bis auf die Samenbäume geschlagen. Holz gibt es erst wieder, wenn Setzlinge herangewachsen sind.");
-            if (_commons[(int)VillageGood.Game] > 0 && _commons[(int)VillageGood.Water] == 0 && _sources[(int)VillageSource.Well] == 0) needs.Add("Der Küche fehlt Wasser.");
-            if (_commons[(int)VillageGood.Ration] > 0 && camp >= SocialLedger.CampCapacity) needs.Add("Maras Lager ist voll. Fertige Rationen warten.");
-            bool hurt = false;
-            foreach (var r in _residents) hurt |= !r.CanWork;
-            if (hurt && p.Village.OrselTeachesUnlocked && _millHerbs == 0) needs.Add("Orsel fehlen Heilkräuter für die Verletzten.");
-            return needs;
-        }
+        public List<string> OpenNeeds(CharacterProgression p) { return VillageBoard.LocalNeeds(p); }
+
     }
 
     public sealed partial class ArenaSimulation
     {
         /// <summary>The village works on wherever the player is, as long as the game itself is running.</summary>
-        private void StepVillageEconomy() { Progression.Economy.Advance(Progression); }
+        private void StepVillageEconomy()
+        {
+            Progression.Economy.Advance(Progression, this);
+            if (Progression.Economy.Started) StepVillageContacts();
+        }
 
         private void MixEconomy(ref ulong h)
         {
@@ -544,9 +588,12 @@ namespace AreArpg.Core
             var result = new SocialResult();
             if (GameOver || !IsVillage || !Progression.Economy.Started) { result.Text = "Hier nimmt niemand Material für das Dorf an."; return result; }
             if (!VillageBoardInReach) { result.Text = "Material für das Dorf gibst du an der Dorftafel ab."; return result; }
-            if (count <= 0 || !Progression.Crafting.TakeForVillage(good, count))
+            if (!Progression.Economy.CanReceive(good, count))
+            { result.Text = "Diese Menge passt nicht ins Dorflager."; return result; }
+            if (!Progression.Crafting.TakeForVillage(good, count))
             { result.Text = "Davon hast du nicht genug bei dir. Nichts wurde übergeben."; return result; }
             Progression.Economy.Receive(good, count);
+            RememberVillageGift(good, count);
             result.Accepted = true;
             result.Text = count + " × " + VillageEconomyRules.GoodName(good) + " liegt jetzt im Dorflager.";
             return result;

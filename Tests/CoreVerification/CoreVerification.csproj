@@ -9,6 +9,7 @@
   <ItemGroup>
     <None Update="Fixtures/road-before-meeting-*.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures/causal-legacy-*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/economy-ac22-v1*.txt" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../../Assets/Scripts/Core/Journey*.cs" LinkBase="Core" />
     <Compile Include="../../Assets/AshenCrypt/WorldForge/Core/*.cs" LinkBase="WorldForge" />
     <Compile Include="../../Assets/Scripts/Core/AuthoredHungerBinding.cs" Link="AuthoredHungerBinding.cs" />

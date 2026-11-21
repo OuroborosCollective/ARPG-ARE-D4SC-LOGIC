@@ -5,12 +5,21 @@ using System.Text;
 using AreArpg.Core;
 using AreArpg.UnityClient;
 using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace AreArpg.EditorTools
 {
+    /// <summary>Use installed source art on every normal player build, including builds launched from the Unity UI.</summary>
+    public sealed class VillageWorkBuildProcessor : IPreprocessBuildWithReport
+    {
+        public int callbackOrder => 0;
+        public void OnPreprocessBuild(BuildReport report) => VillageWorkArt.BuildMissing();
+    }
+
     /// <summary>
     /// The workplaces of the village economy as passive visuals.
     ///
@@ -41,15 +50,28 @@ namespace AreArpg.EditorTools
         {
             if (!Installed)
                 throw new InvalidOperationException("Werkplatz-Modelle fehlen in " + Source + ". Zuerst Tools/Art/blender/village_work_props.py dorthin ausführen.");
+            Build(ArenaRuntime.VillageWorkplaces);
+        }
+
+        internal static void BuildMissing()
+        {
+            if (!Installed) return;
+            var missing = ArenaRuntime.VillageWorkplaces.Where(w =>
+                AssetDatabase.LoadAssetAtPath<GameObject>(Visuals + w.Key + ".prefab") == null).ToArray();
+            if (missing.Length > 0) Build(missing);
+        }
+
+        private static void Build(ArenaRuntime.VillageWorkplace[] workplaces)
+        {
             if (!AssetDatabase.IsValidFolder(Source + "/Materials")) AssetDatabase.CreateFolder(Source, "Materials");
             Material material = WorkMaterial();
             var report = new StringBuilder();
-            foreach (ArenaRuntime.VillageWorkplace workplace in ArenaRuntime.VillageWorkplaces) report.AppendLine(BuildVisual(workplace, material));
+            foreach (ArenaRuntime.VillageWorkplace workplace in workplaces) report.AppendLine(BuildVisual(workplace, material));
             AssetDatabase.SaveAssets();
             string path = Path.Combine(Directory.GetCurrentDirectory(), "Library/VillageWork/report.txt");
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, report.ToString());
-            Debug.Log("ARE_VILLAGE_WORK: " + ArenaRuntime.VillageWorkplaces.Length + " workplaces built; report " + path);
+            Debug.Log("ARE_VILLAGE_WORK: " + workplaces.Length + " workplaces built; report " + path);
         }
 
         /// <summary>Flat colours need exact pixels: no smoothing, no smaller copies, no compression.</summary>
@@ -116,7 +138,8 @@ namespace AreArpg.EditorTools
                 renderer.shadowCastingMode = fire ? ShadowCastingMode.Off : ShadowCastingMode.On;
                 renderer.receiveShadows = !fire;
                 renderer.lightProbeUsage = LightProbeUsage.Off; renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
-                triangles += renderer.GetComponent<MeshFilter>().sharedMesh.triangles.Length / 3;
+                Mesh mesh = renderer.GetComponent<MeshFilter>().sharedMesh;
+                for (int sub = 0; sub < mesh.subMeshCount; sub++) triangles += (int)(mesh.GetIndexCount(sub) / 3);
             }
             // What the game expects to find, good by good.
             var counts = new StringBuilder();
@@ -138,8 +161,9 @@ namespace AreArpg.EditorTools
             }
             Bounds bounds = visual.GetComponentsInChildren<Renderer>(true).Select(r => r.bounds).Aggregate((a, b) => { a.Encapsulate(b); return a; });
             string prefab = Visuals + workplace.Key + ".prefab";
-            PrefabUtility.SaveAsPrefabAsset(visual, prefab);
+            PrefabUtility.SaveAsPrefabAsset(visual, prefab, out bool saved);
             Object.DestroyImmediate(visual);
+            if (!saved) throw new InvalidOperationException("Werkplatz-Prefab konnte nicht gespeichert werden: " + prefab);
             return workplace.Key + "\t" + prefab + "\ttriangles=" + triangles + "\tmin=" + bounds.min.ToString("F2") + "\tmax=" + bounds.max.ToString("F2") + "\tstock:" + counts;
         }
     }
