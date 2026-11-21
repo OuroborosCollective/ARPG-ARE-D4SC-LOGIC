@@ -11,6 +11,23 @@ namespace AshenCrypt.MemoryForge.Tests
 {
     public sealed class CoreContractTests
     {
+        [Test]
+        public void DirectConfirmationCannotAdoptHearsayDetailsAndBreakReload()
+        {
+            var registry = ForgeDefaults.CreateRegistry();
+            var archive = new MemoryArchive();
+            archive.Spawn("witness", "villager", registry);
+            archive.Spawn("listener", "villager", registry);
+            var e = archive.Append(MemoryKind.SemanticClaim, "king", "queen", 1, 9500, true, "married", new RelationshipChange());
+            Assert.IsTrue(archive.Perceive("witness", e.Id, KnowledgeOrigin.Witnessed, 1, new EpisodeDetails("meal", "court", "flowers")));
+            Assert.IsTrue(archive.Report("witness", "listener", e.Id, 2));
+            Assert.IsTrue(archive.Perceive("listener", e.Id, KnowledgeOrigin.Witnessed, 3, null));
+            Assert.IsTrue(MemoryArchive.TryLoad(archive.Save(), registry, out var loaded));
+            var recall = loaded.Get("listener").Cognition.Recall(e.Id, 3);
+            Assert.AreEqual(KnowledgeOrigin.Witnessed, recall.Origin);
+            Assert.IsNull(recall.Details);
+            Assert.AreEqual(archive.Save(), loaded.Save());
+        }
         [TestCase(1,false)]
         [TestCase(2,false)]
         [TestCase(1,true)]

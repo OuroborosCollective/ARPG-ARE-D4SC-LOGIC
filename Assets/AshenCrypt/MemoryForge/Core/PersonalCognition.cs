@@ -158,7 +158,10 @@ namespace AshenCrypt.MemoryForge
             ulong id = k.Event.Id;
             _recent.Remove(id);
             _facts.RemoveAll(f => f.Event.Id == id);
-            if (k.Origin == KnowledgeOrigin.Refuted) { _episodes.Remove(id); return; }
+            // An accepted acquisition replaces the provenance. Only newly supplied senses
+            // may accompany it; an old report must never turn into a witnessed detail.
+            _episodes.Remove(id);
+            if (k.Origin == KnowledgeOrigin.Refuted) return;
             _recent.Add(id);
             if (_recent.Count > EpisodeCapacity) _recent.RemoveAt(0);
             if (!k.Event.Essential && Rank(k) < 2000) return;

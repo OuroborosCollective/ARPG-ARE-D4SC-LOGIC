@@ -15,6 +15,7 @@ internal static class PersonalCognitionTests
         CapacityAndProvenance(check);
         LiveNeedsAndDecisions(check);
         SocialLearning(check);
+        UpgradeReport(check);
         GameClockAndVisibleMemory(check);
         FutureResidents(check);
     }
@@ -115,6 +116,23 @@ internal static class PersonalCognitionTests
         check(UtilityEvaluator.Decide(actor.Mind.Controller,onlyWait,actor.Mind.DecisionState,f.ProcessedTicks,true,actor.Mind.Cognition).Action==ForgeAction.Wait, "learned-weight-cannot-bypass-host-legality");
         string save=p.SaveString();
         check(CharacterProgression.TryLoad(save,out var after) && after.SaveString()==save && after.Social.Forge.Archive.Get("mara").Cognition.Weight(ForgeAction.Eat,0)==mara.Mind.Cognition.Weight(ForgeAction.Eat,0),"live-save-preserves-trained-matrix");
+    }
+    private static void UpgradeReport(Action<bool,string> check)
+    {
+        foreach (bool directlyPerceived in new[] { false, true })
+        {
+            var a=new MemoryArchive();
+            a.Spawn("first","villager",Registry); var listener=a.Spawn("later","villager",Registry);
+            var e=a.Append(MemoryKind.SemanticClaim,"king","queen",10,9500,true,"married",new RelationshipChange());
+            a.Perceive("first",e.Id,KnowledgeOrigin.Witnessed,10,new EpisodeDetails("meal","court","flowers"));
+            check(a.Report("first","later",e.Id,12),"upgrade-listener-hears-meal");
+            bool upgraded=directlyPerceived ? a.Perceive("later",e.Id,KnowledgeOrigin.Witnessed,18,null) :
+                a.Learn("later",e.Id,KnowledgeOrigin.Witnessed,"later",18);
+            check(upgraded && MemoryArchive.TryLoad(a.Save(),Registry,out var restored) &&
+                restored.Save()==a.Save(),"upgrade-direct-confirmation-without-new-senses-reloads-"+directlyPerceived);
+            var recall=listener.Cognition.Recall(e.Id,18);
+            check(recall.Origin==KnowledgeOrigin.Witnessed && recall.Details==null,"upgrade-heard-menu-never-becomes-witnessed-menu");
+        }
     }
     private static void SocialLearning(Action<bool,string> check)
     {
