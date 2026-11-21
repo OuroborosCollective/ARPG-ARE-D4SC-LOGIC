@@ -425,7 +425,9 @@ namespace AreArpg.Core
             {
                 case NpcAction.Greet:
                     npc.Memory.Record(action, 0); result.Text = npc.Greeting();
-                    string rumor = Progression.Social.RoadRumor(id); if (rumor.Length > 0) result.Text += " " + rumor; break;
+                    string rumor = Progression.Social.RoadRumor(id); if (rumor.Length > 0) result.Text += " " + rumor;
+                    string supplyNews = VillageSupplyNews(id); if (supplyNews.Length > 0) result.Text += " " + supplyNews;
+                    break;
                 case NpcAction.Help:
                     if (!Progression.Social.Help(id)) { result.Text = "Kein Bedarf oder kein Proviant."; return result; }
                     result.Text = "Du teilst Proviant und versorgst " + npc.Role + "."; break;
@@ -606,6 +608,9 @@ namespace AreArpg.Core
             StepFreight();
             CalmVillagers();
             StepNpcs();
+            // A villager's blow can end the game in this very tick. From then on the village rests like the rest
+            // of the world: no work step is finished and no stock moves while the player is down.
+            if (!GameOver) StepVillageEconomy();
             StepRoadEncounter();
             StepCompanion();
             StepRattler();
@@ -867,6 +872,7 @@ namespace AreArpg.Core
                 Mix(ref h, 1); Mix(ref h, _lootCatalog.StableHash); Mix(ref h, _runSeed);
                 foreach (LootState loot in GroundLoot) Mix(ref h, loot.Item == null ? 0 : loot.Item.StableHash);
             }
+            MixEconomy(ref h);
             return h;
         }
 

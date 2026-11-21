@@ -9,6 +9,7 @@
   <ItemGroup>
     <None Update="Fixtures/road-before-meeting-*.txt" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures/causal-legacy-*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures/economy-ac22-v1*.txt" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../../Assets/Scripts/Core/Journey*.cs" LinkBase="Core" />
     <Compile Include="../../Assets/AshenCrypt/WorldForge/Core/*.cs" LinkBase="WorldForge" />
     <Compile Include="../../Assets/Scripts/Core/AuthoredHungerBinding.cs" Link="AuthoredHungerBinding.cs" />
@@ -27,6 +28,8 @@
     <Compile Include="../../Assets/Scripts/Core/CraftingState.cs" Link="CraftingState.cs" />
     <Compile Include="../../Assets/Scripts/Core/CompanionRecovery.cs" Link="CompanionRecovery.cs" />
     <Compile Include="../../Assets/Scripts/Core/VillageServices.cs" Link="VillageServices.cs" />
+    <Compile Include="../../Assets/Scripts/Core/VillageEconomy*.cs" LinkBase="Core" />
+    <Compile Include="../../Assets/Scripts/Core/VillageWorkController.cs" Link="VillageWorkController.cs" />
     <Compile Include="../../Assets/Scripts/Core/NpcRelations.cs" Link="NpcRelations.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootCatalog.cs" Link="LootCatalog.cs" />
     <Compile Include="../../Assets/Scripts/Core/LootItem.cs" Link="LootItem.cs" />
