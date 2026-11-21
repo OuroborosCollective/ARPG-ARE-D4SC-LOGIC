@@ -28,6 +28,28 @@ namespace AshenCrypt.MemoryForge.Tests
             Assert.IsNull(recall.Details);
             Assert.AreEqual(archive.Save(), loaded.Save());
         }
+        [Test]
+        public void ACommittedActionCanSettleOnceAfterReloadWithoutAdvancingTheDecision()
+        {
+            var registry = ForgeDefaults.CreateRegistry();
+            var archive = new MemoryArchive();
+            var mind = archive.Spawn("warden", "monster", registry);
+            var frame = new ObservationFrame(ActionSet.Of(ForgeAction.Attack), new[] {new Observation(Feature.Danger, 10000)});
+            UtilityEvaluator.Decide(mind.Controller, frame, mind.DecisionState, 7, cognition: mind.Cognition);
+            Assert.IsTrue(MemoryArchive.TryLoad(archive.Save(), registry, out var reload));
+            foreach (var a in new[] {archive, reload})
+            {
+                var actor = a.Get("warden");
+                Assert.IsFalse(actor.Cognition.SettleCommittedOutcome(ForgeAction.Attack, 15, 0));
+                Assert.IsTrue(actor.Cognition.SettleCommittedOutcome(ForgeAction.Attack, 15, 40));
+                Assert.IsFalse(actor.Cognition.SettleCommittedOutcome(ForgeAction.Attack, 16, 40));
+                Assert.AreEqual(7UL, actor.DecisionState.LastTick);
+                Assert.Greater(actor.Cognition.Weight(ForgeAction.Attack, 2), 0);
+            }
+            Assert.AreEqual(archive.Save(), reload.Save());
+            Assert.IsTrue(MemoryArchive.TryLoad(reload.Save(), registry, out _));
+        }
+
         [TestCase(1,false)]
         [TestCase(2,false)]
         [TestCase(1,true)]

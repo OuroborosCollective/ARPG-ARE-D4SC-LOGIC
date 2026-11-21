@@ -626,7 +626,7 @@ namespace AreArpg.Core
                     if (enemy.BossWindupTicks == 0 &&
                         CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm) &&
                         DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(MonsterRoles.ImpactRadiusMm(enemy.Role)))
-                        ReceiveDamage(MonsterRoles.AttackDamage(enemy.Role));
+                        ReceiveCreatureHit(enemy, MonsterRoles.AttackDamage(enemy.Role), committed: true);
                     continue;
                 }
                 if(StepMonsterAgainstCompanion(enemy))continue;
@@ -641,7 +641,7 @@ namespace AreArpg.Core
                         enemy.BossWindupTicks--;
                         if (enemy.BossWindupTicks == 0 &&
                             DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(4000))
-                            ReceiveDamage(190);
+                            ReceiveCreatureHit(enemy, 190, committed: true);
                         continue;
                     }
                     if (enemy.BossPulseCooldownTicks == 0 && distance2 <= FixedMath.Square(10000))
@@ -674,10 +674,7 @@ namespace AreArpg.Core
                 {
                     int damage = enemy.Role != MonsterRole.None ? MonsterRoles.AttackDamage(enemy.Role) : (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40));
                     enemy.AttackCooldownTicks = enemy.Role != MonsterRole.None ? MonsterRoles.AttackCooldownTicks(enemy.Role) : (enemy.Kind >= 2 ? 12 : 17);
-                    int healthBefore = PlayerHealth;
-                    ReceiveDamage(damage);
-                    if (enemy.Mind != null && forge != null)
-                        enemy.Mind.Cognition.RecordOutcome(AshenCrypt.MemoryForge.ForgeAction.Attack, forge.ProcessedTicks, healthBefore - PlayerHealth);
+                    ReceiveCreatureHit(enemy, damage);
                     if (GameOver) break;
                 }
             }

@@ -62,6 +62,22 @@ namespace AreArpg.Core
             var e=forge.Archive.Append(MemoryKind.Assault,attacker,enemy.Mind.Id,forge.ProcessedTicks,8000,false,"combat.actual-hit",new RelationshipChange(hostility:10000,fear:1000));
             forge.Archive.Perceive(enemy.Mind.Id,e.Id,KnowledgeOrigin.Self,forge.ProcessedTicks,new EpisodeDetails("harm","","actual-hit"));
         }
+        private void LearnCreatureHit(MonsterState enemy, int damage, bool committed = false)
+        {
+            var mind = enemy.Mind;
+            var forge = Progression.Social.Forge;
+            if (mind == null || forge == null || damage <= 0) return;
+            if (committed && forge.ProcessedTicks > mind.DecisionState.LastTick)
+                mind.Cognition.SettleCommittedOutcome(ForgeAction.Attack, forge.ProcessedTicks, damage);
+            else
+                mind.Cognition.RecordOutcome(ForgeAction.Attack, forge.ProcessedTicks, damage);
+        }
+        private void ReceiveCreatureHit(MonsterState enemy, int amount, bool committed = false)
+        {
+            int prior = PlayerHealth;
+            ReceiveDamage(amount);
+            LearnCreatureHit(enemy, prior - PlayerHealth, committed);
+        }
         private bool ForgeCreatureMayAttack(MonsterState enemy,long targetX,long targetZ)
         {
             EnsureCreatureMind(enemy);if(enemy.Mind==null)return true;

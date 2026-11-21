@@ -101,8 +101,20 @@ namespace AshenCrypt.MemoryForge
         public bool RecordOutcome(ForgeAction executed, ulong tick, int effect)
         {
             var state = _owner.DecisionState;
-            var before = state.ActiveObservation;
-            if (before == null || effect == 0 || state.LastDecision == null || tick != state.LastTick ||
+            return tick == state.LastTick && LearnActionEffect(executed, state.ActiveObservation, tick, effect);
+        }
+
+        /// <summary>Settle an already committed action at impact, using its saved decision frame.</summary>
+        public bool SettleCommittedOutcome(ForgeAction executed, ulong impactTick, int effect)
+        {
+            var state = _owner.DecisionState;
+            return impactTick > state.LastTick && LearnActionEffect(executed, state.LastObservations, state.LastTick, effect);
+        }
+        private bool LearnActionEffect(ForgeAction executed, ObservationFrame before, ulong tick, int effect)
+        {
+            var state = _owner.DecisionState;
+            // Credit belongs to the tick of the committed action, including after loading a windup.
+            if (before == null || effect == 0 || state.LastDecision == null ||
                 _lastOutcome.HasValue && tick <= _lastOutcome.Value || state.Action != executed ||
                 !ActionSet.Contains(before.LegalActions & _owner.Controller.Archetype.AllowedActions, executed)) return false;
             int strength = (int)Math.Min(8L, Math.Abs((long)effect));

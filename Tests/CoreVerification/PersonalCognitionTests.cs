@@ -16,6 +16,7 @@ internal static class PersonalCognitionTests
         LiveNeedsAndDecisions(check);
         SocialLearning(check);
         UpgradeReport(check);
+        CommittedHits(check);
         GameClockAndVisibleMemory(check);
         FutureResidents(check);
     }
@@ -166,6 +167,29 @@ internal static class PersonalCognitionTests
         ilyan.Xmm=live.PlayerXmm+900; ilyan.Zmm=live.PlayerZmm;
         var spoken=live.InteractNpc(0,NpcAction.Greet);
         check(spoken.Accepted && spoken.FollowupSpeech==SpeechLine.RememberedHelp && !spoken.Text.Contains("Proviant"),"clock-remembered-help-without-inventing-menu");
+    }
+    private static void CommittedHits(Action<bool,string> check)
+    {
+        foreach (bool pulse in new[]{false,true})
+        foreach (bool dodge in new[]{false,true})
+        {
+            var p=new CharacterProgression();p.Social.EnableForge();
+            var world=new ArenaSimulation(0xB055UL,p,new BigInteger(pulse?2:1));
+            var enemy=pulse ? world.Monsters.Single(m=>m.Kind==3) :
+                MonsterCatalog.Spawn("ork.warrior", 1,world.PlayerXmm+500,world.PlayerZmm,1);
+            world.Monsters.Clear();world.Monsters.Add(enemy);
+            enemy.Xmm=world.PlayerXmm+500; enemy.Zmm=world.PlayerZmm;
+            for (int i=0;i<60 && enemy.BossWindupTicks==0;i++) world.Step();
+            check(enemy.BossWindupTicks>0 && enemy.Mind.Cognition.Weight(ForgeAction.Attack,2)==0,"starting-warning-earns-no-credit-"+pulse);
+            if(dodge) enemy.Xmm=world.PlayerXmm+6500;
+            int health=world.PlayerHealth, delay=enemy.BossWindupTicks;
+            for(int i=0;i<delay;i++)world.Step();
+            int weight=enemy.Mind.Cognition.Weight(ForgeAction.Attack,2);
+            check(enemy.BossWindupTicks==0 && (dodge ? world.PlayerHealth==health && weight==0 : world.PlayerHealth<health && weight>0),
+                  "settled-hit-learns-once-and-dodged-hit-never-earns-credit-"+pulse+"-"+dodge);
+            check(CharacterProgression.TryLoad(p.SaveString(),out var loaded) &&
+                loaded.Social.Forge.Archive.Get(enemy.Mind.Id).Cognition.Weight(ForgeAction.Attack,2)==weight,"settled-outcome-reloads-"+pulse+"-"+dodge);
+        }
     }
     private static void FutureResidents(Action<bool,string> check)
     {

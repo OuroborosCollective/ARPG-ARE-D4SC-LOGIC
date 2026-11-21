@@ -226,10 +226,12 @@ namespace AreArpg.Core
                         bear.BossWindupTicks--;
                         if (bear.BossWindupTicks == 0)
                         {
-                            if (h.StrikePlayer && local && !GameOver && DistanceSquared(PlayerXmm, PlayerZmm, h.StrikeX, h.StrikeZ) <= FixedMath.Square(2400)) ReceiveDamage(320);
+                            if (h.StrikePlayer && local && !GameOver && DistanceSquared(PlayerXmm, PlayerZmm, h.StrikeX, h.StrikeZ) <= FixedMath.Square(2400)) ReceiveCreatureHit(bear,320,committed:true);
                             if (!h.StrikePlayer && h.HunterHealth > 0)
                             {
+                                int priorHealth = h.HunterHealth;
                                 h.HunterHealth = Math.Max(0, h.HunterHealth - 140);
+                                LearnCreatureHit(bear,priorHealth-h.HunterHealth,committed:true);
                                 if (h.HunterHealth == 0)
                                 {
                                     bool saw = TravelerSees(HunterEncounter.HunterX, HunterEncounter.HunterZ);

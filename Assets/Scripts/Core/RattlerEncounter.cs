@@ -104,7 +104,7 @@ namespace AreArpg.Core
                 {
                     if (DistanceSquared(PlayerXmm, PlayerZmm, r.StrikeX, r.StrikeZ) <= FixedMath.Square(RattlerEncounter.StrikeRadius) &&
                         (!InDungeon || Progression.Dungeon.Current.Layout.HasSight(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm)))
-                        ReceiveDamage(280);
+                        ReceiveCreatureHit(m,280,committed:true);
                     var companion=Progression.Companion;
                     if(CompanionPresent&&companion.Health>0&&DistanceSquared(companion.Xmm,companion.Zmm,r.StrikeX,r.StrikeZ)<=FixedMath.Square(RattlerEncounter.StrikeRadius)&&CombatSight(m.Xmm,m.Zmm,companion.Xmm,companion.Zmm))DamageCompanion(m,280);
                     m.AttackCooldownTicks = 14;

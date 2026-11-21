@@ -39,7 +39,9 @@ namespace AreArpg.Core
             // A withdrawn companion is off the field and takes no further damage.
             if(Progression.CompanionRecovery.Wounded)return;
             int applied=Math.Max(1,(int)((long)amount*(10000-Math.Min(3500,CompanionBonus(WeaponAffix.Ward)+(CompanionShield?.Definition.BasePower??0)))/10000));
+            int priorHealth=c.Health;
             c.Health=Math.Max(0,c.Health-applied);
+            LearnCreatureHit(source,priorHealth-c.Health);
             if(c.Health>0)
             {
                 // A non-lethal defeat withdraws the companion for one to two game days instead of killing them.
