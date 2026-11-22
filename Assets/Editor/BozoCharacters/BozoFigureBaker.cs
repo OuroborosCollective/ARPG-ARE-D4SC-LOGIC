@@ -396,6 +396,7 @@ namespace AreArpg.EditorTools
             var recipes = BozoFigureRecipes.Load();
             // A colour variant uses the mesh of its model figure: the models come first.
             ids = ids.OrderBy(id => string.IsNullOrEmpty(recipes.First(f => f.id == id).sameShapeAs) ? 0 : 1).ToArray();
+            var unused = new List<string>();
             foreach (string id in ids)
             {
                 var recipe = recipes.First(f => f.id == id);
@@ -413,14 +414,11 @@ namespace AreArpg.EditorTools
                     Avatar avatar = GameAvatar(recipe);
                     foreach (string key in recipe.keys ?? new string[0]) Save(recipe, mesh, parts, material, avatar, Visuals + key + ".prefab", key, true);
                     foreach (string key in recipe.sources ?? new string[0]) Save(recipe, mesh, parts, material, avatar, SourceFolder + "/" + key + ".prefab", key, false);
-                    // Meshes the figure no longer uses go only now, after every visual of the figure points at what it
-                    // uses: until then the old visual is whole. A colour variant keeps none of its own; a figure in
-                    // two parts keeps no mesh in one piece, a figure in one piece no parts.
+                    // Meshes the figure no longer uses: a colour variant keeps none of its own, a figure in two parts no
+                    // mesh in one piece, a figure in one piece no parts. They go after the whole run (see below).
                     bool variant = !string.IsNullOrEmpty(recipe.sameShapeAs);
-                    var unused = new List<string>();
                     if (variant || recipe.parts) unused.Add(GameMeshPath(recipe.id));
                     if (variant || !recipe.parts) { unused.Add(PartPath(recipe.id, FigureComposer.BodyPart)); unused.Add(PartPath(recipe.id, FigureComposer.HeadPart)); }
-                    foreach (string path in unused) if (AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
                     AssetDatabase.SaveAssets();
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
@@ -440,6 +438,12 @@ namespace AreArpg.EditorTools
                     Report(id + "\tVISUALS_FAILED\t" + e.Message.Replace('\n', ' '));
                 }
             }
+            // Only now, and only what no visual draws any more: a colour variant that was not part of this run, or
+            // whose own rebuild failed, may still draw the mesh its model just stopped using.
+            var drawn = new HashSet<string>(AssetDatabase.FindAssets("t:Prefab", new[] { Visuals.TrimEnd('/'), SourceFolder })
+                .Select(AssetDatabase.GUIDToAssetPath).SelectMany(path => AssetDatabase.GetDependencies(path, false)));
+            foreach (string path in unused.Distinct())
+                if (!drawn.Contains(path) && AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
             AssetDatabase.SaveAssets();
             Report("DONE");
         }
