@@ -12,6 +12,7 @@ internal static class LivingChronicleTests
         RejectedAndAcceptedCampActions(check);
         RealMeetingAndPlayerKnowledge(check);
         NoOmniscientOrLaunderedRumors(check);
+        NoRumorWithoutSafeMeetingOrDirectWitness(check);
         TenThousandTickIndependentReplayWithTwoColdLoads(check);
         RejectCorruptedChronicleReferences(check);
     }
@@ -157,6 +158,63 @@ internal static class LivingChronicleTests
         string inconsistent = p.SaveString();
         check(!CharacterProgression.TryLoad(inconsistent, out _),
               "chronicle-checksummed-forged-reference-fails-closed");
+    }
+
+    private static void NoRumorWithoutSafeMeetingOrDirectWitness(Action<bool, string> check)
+    {
+        foreach (int scenario in new[] { 0, 1 })
+        {
+            var p = Village((ulong)(9910 + scenario), out var world);
+            world.CompleteArrivalScene();
+            Near(world, SocialLedger.MaraNpcId);
+            check(world.DonateCampRation().Accepted, "chronicle-negative-fixture-donation-" + scenario);
+            ulong eventId = p.Social.Forge.Archive.Events.Last(e => e.Context == "camp.donation").Id;
+            var mara = world.Npcs.Single(n => n.Id == SocialLedger.MaraNpcId);
+            var other = world.Npcs.Single(n => n.Id == 0);
+            if (scenario == 1)
+            {
+                other.Memory.Health = 0;
+                other.Memory.RecoveryTicks = 300;
+            }
+            for (int tick = 0; tick < 115; tick++)
+            {
+                other.Xmm = mara.Xmm + (scenario == 0 ? 12000 : 900);
+                other.Zmm = mara.Zmm;
+                world.Step();
+            }
+            check(p.Social.Forge.Archive.Get("ilyan").Knowledge(eventId) == null,
+                  "chronicle-no-report-without-range-and-consciousness-" + scenario);
+        }
+
+        var confirmed = Village(9920, out var w);
+        w.CompleteArrivalScene();
+        Near(w, SocialLedger.MaraNpcId);
+        check(w.DonateCampRation().Accepted, "chronicle-relay-fixture-donation");
+        var source = confirmed.Social.Forge.Archive;
+        ulong receiptId = source.Events.Last(e => e.Context == "camp.donation").Id;
+        var maraNpc = w.Npcs.Single(n => n.Id == SocialLedger.MaraNpcId);
+        var ilyanNpc = w.Npcs.Single(n => n.Id == 0);
+        var dornNpc = w.Npcs.Single(n => n.Id == SocialLedger.DornNpcId);
+        for (int tick = 0; tick < 120 && source.Get("ilyan").Knowledge(receiptId) == null; tick++)
+        {
+            ilyanNpc.Xmm = maraNpc.Xmm + 850; ilyanNpc.Zmm = maraNpc.Zmm;
+            dornNpc.Xmm = maraNpc.Xmm + 12000; dornNpc.Zmm = maraNpc.Zmm;
+            w.Step();
+        }
+        check(source.Get("ilyan").Knowledge(receiptId)?.Origin == KnowledgeOrigin.Reported &&
+              source.Get("dorn").Knowledge(receiptId) == null,
+              "chronicle-only-one-hop-firsthand-source");
+        ulong learnedSequence = source.Get("ilyan").Knowledge(receiptId).Sequence;
+        for (int tick = 0; tick < 110; tick++)
+        {
+            maraNpc.Xmm = w.PlayerXmm + 12000; maraNpc.Zmm = w.PlayerZmm;
+            ilyanNpc.Xmm = w.PlayerXmm + 1500; ilyanNpc.Zmm = w.PlayerZmm;
+            dornNpc.Xmm = ilyanNpc.Xmm + 850; dornNpc.Zmm = ilyanNpc.Zmm;
+            w.Step();
+        }
+        check(source.Get("dorn").Knowledge(receiptId) == null &&
+              source.Get("ilyan").Knowledge(receiptId).Sequence == learnedSequence,
+              "chronicle-reported-knowledge-is-not-reported-again");
     }
 
     private static void NoOmniscientOrLaunderedRumors(Action<bool, string> check)
