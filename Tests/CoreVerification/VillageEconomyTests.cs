@@ -658,6 +658,69 @@ internal static class VillageEconomyTests
             kept.SaveString() == p.SaveString(), "the-village-with-its-sick-room-saves-and-loads");
         check(VillageBoard.StockLines(p).Any(l => l.Contains("Krankenstube")) && !VillageBoard.StockLines(p).Any(l => l.Contains("Alte Mühle")),
             "the-board-names-the-sick-room-instead-of-the-mill");
+
+        // Orsel brings her patients along: whoever lay at the mill lies in the sick room once it stands.
+        var moving = MillVillage(1);
+        var bedside = Scene.Of(moving);
+        bedside.Resident(0)[3] = 500;
+        bedside.Commons[(int)VillageGood.Herb] = 2;
+        bedside.Into(moving);
+        var patient = moving.Economy.Residents[0];
+        int reached = PassUntil(moving, 1000, () => patient.Site == VillageSite.Mill && !patient.Walking);
+        Pass(moving, 100);
+        bool inCareAtTheMill = reached >= 0 && patient.Activity == VillageActivity.Recovering && patient.Health < VillageEconomyRules.MaxHealth;
+        moving.Houses.NoteOrsel();
+        moving.Houses.Deliver(VillagePlace.SickRoom, 0, 8); moving.Houses.Deliver(VillagePlace.SickRoom, 1, 4);
+        moving.TravelHunger(3, false); moving.TravelHunger(2, true);
+        check(inCareAtTheMill && patient.Site == VillageSite.Village && !patient.Walking && moving.Economy.Audit().Count == 0,
+            "orsels-patients-move-into-the-sick-room-with-her");
+        int before = patient.Health; bool neverBack = true;
+        for (int t = 0; t < 600; t += 10) { Pass(moving, 10); neverBack &= patient.Site == VillageSite.Village && !patient.Walking; }
+        check(neverBack && patient.Health > before, "a-patient-who-moved-is-cared-for-in-the-village");
+
+        // Herbs that were on their way to the mill when Orsel moved are not left on an empty shelf: they come home.
+        var late = MillVillage(1);
+        var errand = Scene.Of(late);
+        errand.Resident(0)[Scene.Carry(VillageGood.Herb)] = 2;
+        errand.Into(late);
+        var carrier = late.Economy.Residents[0];
+        carrier.Site = carrier.Destination = VillageSite.Mill; carrier.TravelTicks = 0; carrier.Work = VillageWork.None; carrier.WorkTicks = 0;
+        late.Houses.NoteOrsel();
+        late.Houses.Deliver(VillagePlace.SickRoom, 0, 8); late.Houses.Deliver(VillagePlace.SickRoom, 1, 4);
+        late.TravelHunger(3, false); late.TravelHunger(2, true);
+        // Wait for a morning: at night nobody sets out.
+        for (int t = 0; t < 2 * Day; t++)
+        {
+            ulong phase = WorldSkyClock.PhaseTicks(late.Social.Forge.ProcessedTicks);
+            if (phase % (ulong)VillageEconomyRules.Stride == 0 && (phase >= VillageEconomyRules.NightEnd + 200 || phase + 3000 < VillageEconomyRules.NightStart)) break;
+            Pass(late, 1);
+        }
+        int herbsAtHome = late.Economy.Commons(VillageGood.Herb); bool shelfStaysEmpty = true;
+        int home = -1;
+        for (int t = 0; t < 3000 && home < 0; t += 10)
+        {
+            Pass(late, 10);
+            shelfStaysEmpty &= late.Economy.MillHerbs == 0;
+            if (carrier.Site == VillageSite.Village && !carrier.Walking) home = t;
+        }
+        check(shelfStaysEmpty && home >= 0 && carrier.Carried(VillageGood.Herb) == 0 && late.Economy.Commons(VillageGood.Herb) + late.Economy.Used(VillageGood.Herb) >= herbsAtHome + 2 &&
+            late.Economy.Audit().Count == 0, "herbs-on-their-way-to-the-mill-come-home-to-the-sick-room (home after " + home + ", shelf " + late.Economy.MillHerbs + ")");
+
+        // The dressings of the village are used at the bedside: bandage and water from the commons mend two more.
+        var dressed = MillVillage(1);
+        var table = Scene.Of(dressed);
+        table.Resident(0)[3] = 500;
+        table.Commons[(int)VillageGood.Bandage] = 1;
+        table.Commons[(int)VillageGood.Water] = 3;
+        table.Into(dressed);
+        dressed.Houses.NoteOrsel();
+        dressed.Houses.Deliver(VillagePlace.SickRoom, 0, 8); dressed.Houses.Deliver(VillagePlace.SickRoom, 1, 4);
+        dressed.TravelHunger(3, false); dressed.TravelHunger(2, true);
+        long bandages = dressed.Economy.Used(VillageGood.Bandage); int healthBefore = dressed.Economy.Residents[0].Health;
+        Pass(dressed, 300);
+        check(dressed.Economy.Used(VillageGood.Bandage) == bandages + 1 && dressed.Economy.Commons(VillageGood.Bandage) == 0 &&
+            dressed.Economy.Residents[0].Site == VillageSite.Village && dressed.Economy.Audit().Count == 0,
+            "care-in-the-sick-room-uses-the-villages-dressings (used " + (dressed.Economy.Used(VillageGood.Bandage) - bandages) + ", health +" + (dressed.Economy.Residents[0].Health - healthBefore) + ")");
     }
 
     /// <summary>Concept cycle D: herbs, care and recovery. Orsel's care needs herbs that somebody really brought.</summary>

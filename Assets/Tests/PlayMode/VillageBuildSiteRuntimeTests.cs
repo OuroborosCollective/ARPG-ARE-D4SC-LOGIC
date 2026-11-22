@@ -37,6 +37,9 @@ namespace AreArpg.PlayMode.Tests
         {
             MethodInfo complete = typeof(VillageBuildingState).GetMethod("Complete", Flags);
             foreach (VillagePlace place in places) complete.Invoke(VillageHouses, new object[] { place });
+            // Orsel's sick room stands only in a village whose mill quest is done; a save would refuse anything else.
+            if (places.Contains(VillagePlace.SickRoom))
+                typeof(VillageServicesState).GetProperty("OrselTeachesUnlocked").SetValue(Game.Progression.Village, true, null);
             RebuildVillagePicture();
         }
 

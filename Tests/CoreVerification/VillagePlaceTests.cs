@@ -21,8 +21,16 @@ internal static class VillagePlaceTests
 
     private static ArenaSimulation Village(ulong seed)
     {
-        var p = CharacterProgression.CreateEntryProfile(); p.EnterVillage(); p.Social.EnableForge();
         // These checks are about houses that stand; how a lot becomes a house is checked in VillageBuildingSiteTests.
+        // Orsel's sick room needs her mill quest done: the journey went to the mill and back to the village.
+        var p = CharacterProgression.CreateEntryProfile();
+        for (int i = 0; i < 3; i++) p.DiscoverHungerClue();
+        p.ChooseHungerSupply(HungerChoice.Protect);
+        p.TravelHunger(4, false);
+        p.DiscoverHungerClue();
+        if (!p.Village.UnlockOrselTeaches(p)) throw new Exception("FAIL the mill quest does not unlock Orsel");
+        p.TravelHunger(3, true); p.TravelHunger(2, true);
+        p.Social.EnableForge();
         foreach (VillagePlace place in Places) p.Houses.Complete(place);
         return new ArenaSimulation(seed, p, BigInteger.One, LootCatalog.Version1);
     }

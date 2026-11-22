@@ -104,7 +104,8 @@ namespace AreArpg.Core
             if (night || !resident.CanWork) return VillageWork.GoHome;
             if (resident.Site == VillageSite.Mill)
             {
-                if (resident.Carried(VillageGood.Herb) > 0 && MillHerbs < VillageEconomyRules.MillHerbCap)
+                // Standing at the mill a resident sees whether Orsel is still there: once she has moved, the herbs go home.
+                if (!CareInVillage && resident.Carried(VillageGood.Herb) > 0 && MillHerbs < VillageEconomyRules.MillHerbCap)
                     return VillageWork.BringHerbs;
                 if (resident.Carried(VillageGood.Grain) >= 2 && CanStartProduction(resident, VillageWork.MillGrain))
                     return VillageWork.MillGrain;

@@ -374,7 +374,10 @@ namespace AreArpg.Core
         private bool RestoreHousesSection()
         {
             if (!_sections.TryGetValue(HousesSectionName, out var token)) return true;
-            if (!VillageBuildingState.TryRead(token, out var state) || EntryAct < 2) return false;
+            // Orsel comes to the village only after her mill quest; the Rattler may live again in a new run of its den.
+            if (!VillageBuildingState.TryRead(token, out var state) || EntryAct < 2 ||
+                state.OrselInVillage && !Village.OrselTeachesUnlocked)
+                return false;
             _houses = state;
             return true;
         }

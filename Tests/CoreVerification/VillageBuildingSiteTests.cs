@@ -261,6 +261,9 @@ internal static class VillageBuildingSiteTests
             !CharacterProgression.TryLoad(Forge(save, "houses", "1;0;0,0,0;0,0,0;0,0,0"), out _) &&
             !CharacterProgression.TryLoad(Forge(save, "houses", "1;0;2,8,4;0,3,0;0,0,0"), out _) &&
             !CharacterProgression.TryLoad(Forge(save, "houses", ""), out _), "a-save-with-an-impossible-lot-is-refused-whole");
+        // Orsel's lot needs Orsel's quest: a village that never finished the mill cannot have her in it.
+        check(!CharacterProgression.TryLoad(Forge(save, "houses", "1;1;0,8,3;0,3,0;0,0,0"), out _) &&
+            !CharacterProgression.TryLoad(Forge(save, "houses", "1;1;0,0,0;0,3,0;0,0,0"), out _), "orsel-in-the-village-without-her-mill-quest-is-refused");
         var crypt = CharacterProgression.CreateEntryProfile();
         check(CharacterProgression.TryLoad(crypt.SaveString(), out _) && !CharacterProgression.TryLoad(Forge(crypt.SaveString(), "houses", "1;0;0,0,0;0,3,0;0,0,0"), out _),
             "a-lot-before-the-village-is-reached-is-refused");

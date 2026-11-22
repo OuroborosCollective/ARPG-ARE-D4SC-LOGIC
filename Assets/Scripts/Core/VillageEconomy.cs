@@ -328,11 +328,21 @@ namespace AreArpg.Core
         private VillageBuildingState _houses = new VillageBuildingState();
         private bool CareInVillage { get { return _houses.Built(VillagePlace.SickRoom); } }
 
-        /// <summary>Orsel moves into the sick room and brings the herbs from her shelf at the mill along.</summary>
+        /// <summary>
+        /// Orsel moves into the sick room. She brings the herbs from her shelf at the mill along, and her patients:
+        /// whoever lay in her care at the mill lies in the sick room now and puts down there what they carried.
+        /// </summary>
         internal void MoveCareToVillage()
         {
             _commons[(int)VillageGood.Herb] += _millHerbs;
             _millHerbs = 0;
+            foreach (VillageResidentState r in _residents)
+            {
+                if (r.Site != VillageSite.Mill || r.Walking || r.Work != VillageWork.None || r.Health >= VillageEconomyRules.MaxHealth) continue;
+                r.Destination = VillageSite.Village;
+                Arrive(r);
+                r.Activity = VillageActivity.Recovering;
+            }
         }
 
         /// <summary>Arriving in the village, a resident puts the load down in the commons and keeps the tools in hand.</summary>
@@ -502,6 +512,8 @@ namespace AreArpg.Core
                     r.Carry[(int)VillageGood.Herb] += yielded; Make(VillageGood.Herb, yielded);
                     return yielded;
                 case VillageWork.BringHerbs:
+                    // Orsel has moved to the village: nothing is left on an empty shelf, the herbs go home again.
+                    if (CareInVillage) return 0;
                     // From the hands onto Orsel's shelf; what does not fit goes home again.
                     yielded = Math.Min(r.Carry[(int)VillageGood.Herb], VillageEconomyRules.MillHerbCap - _millHerbs);
                     r.Carry[(int)VillageGood.Herb] -= yielded; _millHerbs += yielded;
