@@ -525,7 +525,7 @@
     "linen",
     "cloth2",
     "cloth2_dark",
-    "trim"
+    "cloth_dark"
    ]
   },
   {
@@ -1210,16 +1210,17 @@
   {
    "id": "knecht",
    "group": "arbeit",
-   "role": "Knecht: grobe Tunika, zerschlissene Hose, geschnürte Stiefel, umwickelte Hände",
+   "role": "Knecht: grobe Tunika, lange Hose mit Beinwickeln, geschnürte Stiefel, umwickelte Hände, Backenbart",
    "base": "Fantasy/Hero",
    "height": 1.84,
    "head": "Head_SharpHead",
    "bodyPart": "Body_BasicBody",
    "wear": [
     "Top_RusticTunic",
-    "Bottom_TatteredPants",
+    "Bottom_VillagerLongPants",
     "Feet_TiedBoots",
     "Gloves_ClothHandwraps",
+    "LowerFace_CommandingBeard",
     "HairFront_UnkeptLoose",
     "HairBack_ShortShag"
    ],
@@ -1581,7 +1582,7 @@
   {
    "id": "arzt",
    "group": "handwerk",
-   "role": "Arzt: langer Mantel über hellem Hemd, Robe, Handschuhe, gepflegter Bart",
+   "role": "Arzt: langer Mantel über hellem Hemd, Robe, Handschuhe, kurzer gepflegter Vollbart",
    "base": "Fantasy/Hero",
    "height": 1.86,
    "head": "Head_BasicHead",
@@ -1591,7 +1592,7 @@
     "Bottom_DevoutPants",
     "Feet_PointedShoes",
     "Gloves_CuffedGloves",
-    "LowerFace_CommandingBeard",
+    "LowerFace_SquareBeard",
     "HairFront_ScholarPart",
     "HairBack_SchalorTail"
    ],
@@ -1649,7 +1650,7 @@
   {
    "id": "haendler",
    "group": "handwerk",
-   "role": "Händler: wohlgenährt, Weste, Robe, Schulterumhang, Handschuhe, Spitzbart",
+   "role": "Händler: wohlgenährt, Weste, Robe, Schulterumhang, Handschuhe, gebundener Bart",
    "base": "Fantasy/Hero",
    "height": 1.84,
    "head": "Head_BasicHead",
@@ -1660,7 +1661,7 @@
     "Feet_PointedShoes",
     "Shoulders_DevoutShawl",
     "Gloves_CuffedGloves",
-    "LowerFace_CommandingBeard",
+    "LowerFace_TiedBeard",
     "HairFront_ScholarPart",
     "HairBack_SchalorTail"
    ],
@@ -1943,7 +1944,7 @@
   {
    "id": "schneider",
    "group": "handwerk",
-   "role": "Schneider: schmale Weste, Hose mit Strumpfbändern, feine Schuhe",
+   "role": "Schneider: schmale Weste, Hose mit Strumpfbändern, feine Schuhe, Backenbart",
    "base": "Fantasy/Hero",
    "height": 1.82,
    "head": "Head_SharpHead",
@@ -1952,6 +1953,7 @@
     "Top_MeditativeVest",
     "Bottom_GarterSlacks",
     "Feet_PointedShoes",
+    "LowerFace_CommandingBeard",
     "HairFront_ScholarPart",
     "HairBack_ProperUndercut"
    ],
@@ -2402,18 +2404,18 @@
   {
    "id": "bergmann",
    "group": "arbeit",
-   "role": "Bergmann: grobe Tunika, zerschlissene Hose, Stiefel, Handschuhe, Grubenhelm, gebundener Bart",
+   "role": "Bergmann: grobe Tunika, enge Hose, Stiefel, Handschuhe, kurzes Haar, gebundener Bart",
    "base": "Fantasy/Hero",
    "height": 1.86,
    "head": "Head_Stern",
    "bodyPart": "Body_BasicBody",
    "wear": [
     "Top_RusticTunic",
-    "Bottom_TatteredPants",
+    "Bottom_TightTravelPants",
     "Feet_VillagerBoots",
     "Gloves_RusticGloves",
-    "Hat_StrudyHelmet",
     "LowerFace_TiedBeard",
+    "HairFront_HeroCut",
     "HairBack_ShortShag"
    ],
    "body": [
