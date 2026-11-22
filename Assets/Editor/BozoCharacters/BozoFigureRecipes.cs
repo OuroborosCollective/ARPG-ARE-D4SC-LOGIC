@@ -93,9 +93,16 @@ namespace AreArpg.EditorTools
         public const string BakeFolder = "Assets/PrivateArt/BozoCharacters";
         public static string BakedPath(string id) { return BakeFolder + "/" + id + "/" + id + ".prefab"; }
 
+        /// <summary>The figures of figures.json and of the figure pool (BozoFigurePool), checked together.</summary>
         public static Figure[] Load()
         {
-            return Parse(System.IO.File.ReadAllText(RecipePath));
+            Figure[] figures = Parse(System.IO.File.ReadAllText(RecipePath));
+            Figure[] pool = BozoFigurePool.Load();
+            if (pool.Length == 0) return figures;
+            Figure[] all = figures.Concat(pool).ToArray();
+            string error = Validate(all);
+            if (error != null) throw new FormatException(error);
+            return all;
         }
 
         /// <summary>

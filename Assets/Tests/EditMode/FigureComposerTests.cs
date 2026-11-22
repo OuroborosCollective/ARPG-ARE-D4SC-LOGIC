@@ -16,7 +16,10 @@ namespace AreArpg.EditMode.Tests
     {
         const string NotInstalled = "Requires the purchased BoZo pack with figures baked in two parts (private, never in the repository)";
 
-        /// <summary>Game visual key and base preset of every figure the recipes build in two parts.</summary>
+        /// <summary>
+        /// Game visual key and base preset of every model figure the recipes build in two parts. A colour variant
+        /// draws the body and head meshes of its model, so the models stand for every figure of the pool.
+        /// </summary>
         static List<KeyValuePair<string, string>> TwoPartFigures()
         {
             Type recipes = null;
@@ -26,7 +29,7 @@ namespace AreArpg.EditMode.Tests
             foreach (object figure in (Array)recipes.GetMethod("Load", BindingFlags.Public | BindingFlags.Static).Invoke(null, null))
             {
                 Type type = figure.GetType();
-                if (!(bool)type.GetField("parts").GetValue(figure)) continue;
+                if (!(bool)type.GetField("parts").GetValue(figure) || !string.IsNullOrEmpty((string)type.GetField("sameShapeAs").GetValue(figure))) continue;
                 string key = ((string[])type.GetField("keys").GetValue(figure))[0];
                 if (Resources.Load<GameObject>("ARE/Visuals/" + key) != null) result.Add(new KeyValuePair<string, string>(key, (string)type.GetField("base").GetValue(figure)));
             }
@@ -87,19 +90,31 @@ namespace AreArpg.EditMode.Tests
         public void AnyHeadSitsOnTheNeckOfAnyBodyOfItsKindAndFollowsItsBones()
         {
             List<KeyValuePair<string, string>> figures = TwoPartFigures();
+            // How each figure's own head sits on its own body: the measure every pair is held against. A long beard
+            // reaches far below the head bone on its own figure, and may do so on another body too.
+            var ownOpenings = new Dictionary<string, float>();
+            var ownReach = new Dictionary<string, float>();
+            var ownDrop = new Dictionary<string, float>();
+            var ownBelowChest = new Dictionary<string, bool>();
+            foreach (var figure in figures)
+            {
+                var own = UnityEngine.Object.Instantiate(Resources.Load<GameObject>("ARE/Visuals/" + figure.Key));
+                try
+                {
+                    Transform ownHeadBone = Bone(own.transform, "head");
+                    List<Vector3> ownHead = Posed(FigureComposer.Part(own.transform, FigureComposer.HeadPart));
+                    ownOpenings[figure.Key] = NeckOpening(ownHead, Posed(FigureComposer.Part(own.transform, FigureComposer.BodyPart)), Bone(own.transform, "neck_01"), ownHeadBone);
+                    ownReach[figure.Key] = ownHead.Max(v => (v - ownHeadBone.position).magnitude);
+                    ownDrop[figure.Key] = ownHeadBone.position.y - ownHead.Min(v => v.y);
+                    ownBelowChest[figure.Key] = ownHead.Min(v => v.y) < Bone(own.transform, "pelvis").position.y + .25f;
+                }
+                finally { UnityEngine.Object.DestroyImmediate(own); }
+            }
             int pairs = 0;
             foreach (var bodyFigure in figures)
             {
                 GameObject bodyPrefab = Resources.Load<GameObject>("ARE/Visuals/" + bodyFigure.Key);
-                // How the body's own head sits on it: the measure every other head is held against.
-                var own = UnityEngine.Object.Instantiate(bodyPrefab);
-                float ownOpening;
-                try
-                {
-                    ownOpening = NeckOpening(Posed(FigureComposer.Part(own.transform, FigureComposer.HeadPart)), Posed(FigureComposer.Part(own.transform, FigureComposer.BodyPart)),
-                        Bone(own.transform, "neck_01"), Bone(own.transform, "head"));
-                }
-                finally { UnityEngine.Object.DestroyImmediate(own); }
+                float ownOpening = ownOpenings[bodyFigure.Key];
                 foreach (var headFigure in figures)
                 {
                     if (headFigure.Key == bodyFigure.Key || headFigure.Value != bodyFigure.Value) continue;
@@ -120,10 +135,15 @@ namespace AreArpg.EditMode.Tests
 
                         Transform headBone = Bone(instance.transform, "head"), pelvis = Bone(instance.transform, "pelvis");
                         List<Vector3> posed = Posed(head);
+                        // Bodies are up to a sixth taller than the figure a head comes from, and the head grows with them.
                         float far = posed.Max(v => (v - headBone.position).magnitude);
-                        Assert.Less(far, .5f, pair + ": the head stays at the head bone (farthest point " + far.ToString("F2") + " m)");
-                        // A helmet's neck guard reaches down to the collar; nothing of a head belongs lower than the chest.
-                        Assert.Greater(posed.Min(v => v.y), pelvis.position.y + .25f, pair + ": nothing of the head drops below the chest");
+                        float reach = Mathf.Max(.5f, ownReach[headFigure.Key] * 1.15f + .03f);
+                        Assert.Less(far, reach, pair + ": the head stays at the head bone (farthest point " + far.ToString("F2") + " m, allowed " + reach.ToString("F2") + " m)");
+                        // A helmet's neck guard reaches down to the collar; nothing of a head belongs lower than the chest,
+                        // unless it hangs below the chest on its own figure too (a long beard): then as far as there.
+                        float chest = pelvis.position.y + .25f;
+                        float lowest = ownBelowChest[headFigure.Key] ? Mathf.Min(chest, headBone.position.y - ownDrop[headFigure.Key] * 1.15f - .03f) : chest;
+                        Assert.Greater(posed.Min(v => v.y), lowest, pair + ": nothing of the head drops below the chest (or below its own beard)");
                         float opening = NeckOpening(posed, Posed(body), Bone(instance.transform, "neck_01"), headBone);
                         Assert.LessOrEqual(opening, Mathf.Max(ownOpening, 0f) + .015f, pair + ": no hole opens at the neck (head ends " + (opening * 1000f).ToString("F0") +
                             " mm above the body, its own head " + (ownOpening * 1000f).ToString("F0") + " mm)");

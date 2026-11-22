@@ -397,6 +397,7 @@ namespace AreArpg.EditorTools
             // A colour variant uses the mesh of its model figure: the models come first.
             ids = ids.OrderBy(id => string.IsNullOrEmpty(recipes.First(f => f.id == id).sameShapeAs) ? 0 : 1).ToArray();
             var unused = new List<string>();
+            var rebuilt = new List<string>();
             foreach (string id in ids)
             {
                 var recipe = recipes.First(f => f.id == id);
@@ -411,7 +412,7 @@ namespace AreArpg.EditorTools
                     Mesh[] parts = recipe.parts ? GameParts(recipe) : null;
                     Mesh mesh = recipe.parts ? null : GameMesh(recipe);
                     Material material = GameMaterial(recipe);
-                    Avatar avatar = GameAvatar(recipe);
+                    Avatar avatar = GameAvatar(recipe, recipes);
                     foreach (string key in recipe.keys ?? new string[0]) Save(recipe, mesh, parts, material, avatar, Visuals + key + ".prefab", key, true);
                     foreach (string key in recipe.sources ?? new string[0]) Save(recipe, mesh, parts, material, avatar, SourceFolder + "/" + key + ".prefab", key, false);
                     // Meshes the figure no longer uses: a colour variant keeps none of its own, a figure in two parts no
@@ -420,11 +421,14 @@ namespace AreArpg.EditorTools
                     if (variant || recipe.parts) unused.Add(GameMeshPath(recipe.id));
                     if (variant || !recipe.parts) { unused.Add(PartPath(recipe.id, FigureComposer.BodyPart)); unused.Add(PartPath(recipe.id, FigureComposer.HeadPart)); }
                     AssetDatabase.SaveAssets();
+                    ReloadRewritten();
+                    rebuilt.Add(id);
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
                 catch (Exception e)
                 {
                     if (snapshot != null) snapshot.Restore();
+                    ReloadRewritten(); // the restored files count, not what this attempt left in memory
                     if (fromBake)
                     {
                         string backup = Path.Combine("Library/BozoCharacters/Backup", id);
@@ -445,7 +449,24 @@ namespace AreArpg.EditorTools
             foreach (string path in unused.Distinct())
                 if (!drawn.Contains(path) && AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
             AssetDatabase.SaveAssets();
+            WriteFolkIndex(rebuilt);
             Report("DONE");
+        }
+
+        /// <summary>
+        /// The game's list of the pool figures baked here (FolkIndex), next to their visuals. A figure's line comes from
+        /// the recipe of a successful rebuild; a figure whose rebuild failed keeps the line of the visual that was
+        /// restored. Without arguments it only drops lines of visuals that are gone and adds missing ones.
+        /// </summary>
+        public static void WriteFolkIndex(IEnumerable<string> rebuiltIds = null)
+        {
+            if (!File.Exists(BozoFigurePool.PoolPath)) return;
+            string path = BozoFigurePool.IndexPath;
+            string before = File.Exists(path) ? File.ReadAllText(path) : "";
+            string text = BozoFigurePool.UpdateIndex(before, rebuiltIds, key => File.Exists(Visuals + key + ".prefab"));
+            if (text == before) return;
+            File.WriteAllText(path, text);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
         }
 
         /// <summary>
@@ -460,17 +481,48 @@ namespace AreArpg.EditorTools
             return SaveMesh(BuildGameMesh(recipe), GameMeshPath(recipe.id));
         }
 
+        /// <summary>
+        /// Meshes rewritten in place during this run. The editor keeps drawing the old data of such a mesh: once its
+        /// vertex count changed, figures using it showed no body or no head at all. Each one is therefore unloaded as
+        /// soon as it is saved, and its next use reads the file.
+        /// </summary>
+        static readonly List<Mesh> Rewritten = new List<Mesh>();
+
         /// <summary>Store a game mesh, keeping the identity of an existing asset, without a second copy for scripts.</summary>
         static Mesh SaveMesh(Mesh mesh, string path)
         {
             var saved = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             if (saved == null) { AssetDatabase.CreateAsset(mesh, path); saved = mesh; }
-            else { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); } // keep the asset identity
+            else { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); Rewritten.Add(saved); } // keep the asset identity
             var serialized = new SerializedObject(saved);
             serialized.FindProperty("m_IsReadable").boolValue = false;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(saved);
             return saved;
+        }
+
+        /// <summary>Unload the meshes rewritten in place (after saving them): every later use loads them from their file.</summary>
+        static void ReloadRewritten()
+        {
+            foreach (Mesh mesh in Rewritten) if (mesh != null) Resources.UnloadAsset(mesh);
+            Rewritten.Clear();
+        }
+
+        /// <summary>
+        /// Unload every game mesh of the baked figures, so the editor draws what their files hold. For a session that
+        /// rewrote meshes before the baker unloaded them itself.
+        /// </summary>
+        public static int ReloadGameMeshes()
+        {
+            int count = 0;
+            foreach (string guid in AssetDatabase.FindAssets("t:Mesh", new[] { BakeFolder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.Contains("_Game")) continue;
+                foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                    if (asset is Mesh) { Resources.UnloadAsset(asset); count++; }
+            }
+            return count;
         }
 
         static string GameMeshPath(string id) { return BakeFolder + "/" + id + "/" + id + "_GameMesh.asset"; }
@@ -735,7 +787,7 @@ namespace AreArpg.EditorTools
                 string normalPath = folder + recipe.id + "_GameNormal.png";
                 if (Outdated(AssetDatabase.GetAssetPath(packed), normalPath, "normal"))
                     WriteNormalMap(AssetDatabase.GetAssetPath(packed), normalPath, recipe.texture);
-                material.SetTexture("_Normal", AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath));
+                material.SetTexture("_Normal", AssetDatabase.LoadAssetAtPath<Texture2D>(SharedNormal(recipe, normalPath)));
             }
             Texture colours = baked.HasProperty("_Diffuse") ? baked.GetTexture("_Diffuse") : null;
             float light = BozoFigureRecipes.LoadLight();
@@ -749,6 +801,19 @@ namespace AreArpg.EditorTools
             }
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        /// <summary>
+        /// A colour variant wears its model's parts in the same places, so its normal atlas is normally the model's,
+        /// byte for byte. It then draws the model's texture: the game carries one normal atlas per model instead of
+        /// one per look. Its own copy stays in the private folder, where nothing of the game refers to it.
+        /// </summary>
+        static string SharedNormal(BozoFigureRecipes.Figure recipe, string ownPath)
+        {
+            if (string.IsNullOrEmpty(recipe.sameShapeAs)) return ownPath;
+            string modelPath = BakeFolder + "/" + recipe.sameShapeAs + "/" + recipe.sameShapeAs + "_GameNormal.png";
+            if (!File.Exists(modelPath) || !File.Exists(ownPath) || AssetDatabase.LoadAssetAtPath<Texture2D>(modelPath) == null) return ownPath;
+            return File.ReadAllBytes(modelPath).SequenceEqual(File.ReadAllBytes(ownPath)) ? modelPath : ownPath;
         }
 
         /// <summary>A derived texture is rebuilt when the baked source is newer or it was made with other settings.</summary>
@@ -835,10 +900,18 @@ namespace AreArpg.EditorTools
         /// hand missed its grip by four centimetres. Each reshaped figure gets its own avatar: the pack's description
         /// with the bone scales of the baked figure.
         /// </summary>
-        static Avatar GameAvatar(BozoFigureRecipes.Figure recipe)
+        static Avatar GameAvatar(BozoFigureRecipes.Figure recipe, BozoFigureRecipes.Figure[] recipes)
         {
             var source = AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(recipe.id));
             if (source == null) throw new InvalidOperationException("Gebackene Figur fehlt: " + recipe.id);
+            // A colour variant has its model's preset and body sliders (checked with the recipes), so its bones carry
+            // the same scales: it uses the avatar its model's visual uses now instead of bringing a copy of it into the
+            // game. That is the pack's own avatar when the model's bones are not reshaped any more.
+            if (!string.IsNullOrEmpty(recipe.sameShapeAs))
+            {
+                Avatar shared = VisualAvatar(recipes.FirstOrDefault(f => f.id == recipe.sameShapeAs));
+                if (shared != null) return shared;
+            }
             GameObject figure = Object.Instantiate(source);
             try
             {
@@ -871,6 +944,18 @@ namespace AreArpg.EditorTools
                 return saved;
             }
             finally { Object.DestroyImmediate(figure); }
+        }
+
+        /// <summary>The avatar a figure's game visual uses now (models are rebuilt before their variants), or null.</summary>
+        static Avatar VisualAvatar(BozoFigureRecipes.Figure figure)
+        {
+            foreach (string key in figure != null ? figure.keys ?? new string[0] : new string[0])
+            {
+                var visual = AssetDatabase.LoadAssetAtPath<GameObject>(Visuals + key + ".prefab");
+                Animator animator = visual != null ? visual.GetComponentInChildren<Animator>(true) : null;
+                if (animator != null && animator.avatar != null && animator.avatar.isValid && animator.avatar.isHuman) return animator.avatar;
+            }
+            return null;
         }
 
         /// <summary>
