@@ -10,6 +10,8 @@ The current contract is `ashen.knowledge-graph.v1`. `Build(archive, sourceRevisi
 - `event:<parentId> --causes--> event:<childId>`: only the existing `CauseEventId` with an earlier parent and nondecreasing event tick, no invented consequence
 - `event:<id> --learned-<origin>--> knowledge:<sequence> --known-by--> npc:<stableId>`: only an actual archive acquisition; `Self/Witnessed/Reported/Suspected/Refuted` retain their original distinctions. `Reported` and `Suspected` are not promoted to observed facts
 
+Historical acquisitions remain in the index for audit, but only the **currently admitted** `NpcMind.Knowledge(eventId)` entry may have a `known-by` edge. A `Refuted` current acquisition has **no active `known-by` edge**; superseded `Suspected`/`Reported` beliefs cannot reappear as current knowledge. No `Why` path may promote a refutation to an NPC fact. This edge case was reproduced with failing RED Core CI `44993338918` and fixed with a new Core and Unity NUnit regression.
+
 The minimal `Why(fromId, toId)` returns a deterministic shortest path, or the empty path if no chain exists. Nodes representing NPC knowledge are **not emitted** merely because the NPC has spawned or was near an event; a canonical acquisition is necessary. The graph never synthesizes an NPC reaction, controller choice, quest advancement or Unity rendering. Each edge is `SOURCE_ONLY`, including when the input arose from a Core test. `SOURCE_ONLY` is not evidence of active deployed gameplay.
 
 ## Failure and volume limits
