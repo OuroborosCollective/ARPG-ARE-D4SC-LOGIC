@@ -99,7 +99,12 @@ internal static class LivingChronicleTests
         check(beforeGreeting.All(e => e.Origin != ChronicleOrigin.Heard),
               "chronicle-npc-report-not-automatically-player-knowledge");
         Near(world, 0);
-        check(world.InteractNpc(0, NpcAction.Greet).Accepted, "chronicle-player-really-greeted-informed-npc");
+        var spoken = world.InteractNpc(0, NpcAction.Greet);
+        check(spoken.Accepted && spoken.ChronicleTextKey == "chronicle.camp.donation" &&
+              spoken.ChronicleSpeakerId == "ilyan" &&
+              spoken.ChronicleKnowledgeOrigin == KnowledgeOrigin.Reported &&
+              spoken.ChronicleEventId == donation.Id,
+              "chronicle-player-really-greeted-informed-npc");
         var visible = LivingChronicle.VisibleToPlayer(p);
         check(visible.Any(e => e.EventId == donation.Id && e.Origin == ChronicleOrigin.Heard &&
               e.SourceNpcId == "ilyan" && e.KnowledgeOrigin == KnowledgeOrigin.Reported),
@@ -229,10 +234,16 @@ internal static class LivingChronicleTests
                                    "camp.allegation", new RelationshipChange());
         check(archive.Learn("mara", claim.Id, KnowledgeOrigin.Suspected, "mara", 0),
               "chronicle-suspected-claim-in-actual-forge");
+        Near(world, SocialLedger.MaraNpcId);
+        var suspectedGreeting = world.InteractNpc(SocialLedger.MaraNpcId, NpcAction.Greet);
+        check(suspectedGreeting.Accepted && suspectedGreeting.ChronicleTextKey == "" &&
+              LivingChronicle.VisibleToPlayer(p).All(e => e.EventId != claim.Id),
+              "chronicle-suspected-only-is-never-player-fact");
         check(archive.Learn("mara", claim.Id, KnowledgeOrigin.Refuted, "mara", 0),
               "chronicle-refuted-claim-in-actual-forge");
         Near(world, SocialLedger.MaraNpcId);
-        check(world.InteractNpc(SocialLedger.MaraNpcId, NpcAction.Greet).Accepted &&
+        var refutedGreeting = world.InteractNpc(SocialLedger.MaraNpcId, NpcAction.Greet);
+        check(refutedGreeting.Accepted && refutedGreeting.ChronicleTextKey == "" &&
               LivingChronicle.VisibleToPlayer(p).All(e => e.EventId != claim.Id),
               "chronicle-refuted-or-suspected-is-never-presented-as-player-fact");
     }
