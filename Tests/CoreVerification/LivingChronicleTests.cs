@@ -202,7 +202,7 @@ internal static class LivingChronicleTests
         ulong receiptId = source.Events.Last(e => e.Context == "camp.donation").Id;
         var maraNpc = w.Npcs.Single(n => n.Id == SocialLedger.MaraNpcId);
         var ilyanNpc = w.Npcs.Single(n => n.Id == 0);
-        var dornNpc = w.Npcs.Single(n => n.Id == SocialLedger.DornNpcId);
+        var dornNpc = w.Npcs.Single(n => n.Id == 2);
         for (int tick = 0; tick < 120 && source.Get("ilyan").Knowledge(receiptId) == null; tick++)
         {
             ilyanNpc.Xmm = maraNpc.Xmm + 850; ilyanNpc.Zmm = maraNpc.Zmm;
