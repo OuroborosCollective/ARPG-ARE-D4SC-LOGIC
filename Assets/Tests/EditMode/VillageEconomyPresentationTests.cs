@@ -200,7 +200,8 @@ namespace AreArpg.EditMode.Tests
             var type = TypeCache.GetTypesDerivedFrom<IPreprocessBuildWithReport>()
                 .SingleOrDefault(t => t.FullName == "AreArpg.EditorTools.VillageWorkBuildProcessor");
             Assert.IsNotNull(type, "A regular player build must call the existing workplace baker");
-            var keys = ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms).Select(w => w.Key).Concat(ArenaRuntime.HouseSignKeys).ToArray();
+            var keys = ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms).Select(w => w.Key).Concat(ArenaRuntime.HouseSignKeys)
+                .Concat(new[] { ArenaRuntime.VillageSiteModel.Key }).ToArray();
             const string source = "Assets/PrivateArt/VillageWork/";
             bool installed = keys.All(k => System.IO.File.Exists(source + k + ".fbx")) &&
                 System.IO.File.Exists(source + "VillageWorkPalette.png") && System.IO.File.Exists(source + "VillageWorkGlow.png");

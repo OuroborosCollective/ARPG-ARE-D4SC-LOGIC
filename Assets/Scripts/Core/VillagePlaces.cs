@@ -193,8 +193,10 @@ namespace AreArpg.Core
         {
             get
             {
-                return GameOver || Progression.EntryAct != 2 || InsidePlace != VillagePlace.None ?
-                    VillagePlace.None : VillagePlaceLayout.DoorAt(PlayerXmm, PlayerZmm);
+                if (GameOver || Progression.EntryAct != 2 || InsidePlace != VillagePlace.None) return VillagePlace.None;
+                // A lot has no door: only a house that stands can be entered.
+                VillagePlace place = VillagePlaceLayout.DoorAt(PlayerXmm, PlayerZmm);
+                return Progression.Houses.Built(place) ? place : VillagePlace.None;
             }
         }
 

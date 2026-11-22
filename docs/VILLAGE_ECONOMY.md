@@ -50,10 +50,44 @@ sich mit dem Finger oder dem Mausrad rollen.
 Beim Betreten des Dorfs nennt die Meldungszeile den dringendsten Bedarf der Tafel. Bevor jemand einzieht, zeigt
 die Tafel Maras Vorrat und dass Arbeitskräfte fehlen; Material nimmt das Dorf erst mit dem ersten Bewohner an.
 
+### Bauplätze: Häuser entstehen mit Hilfe des Spielers
+
+Krankenstube, Schmiede und Feldscheune stehen nicht von Anfang an. Jedes dieser Häuser beginnt als abgesteckter
+**Bauplatz**. Davor steht jemand und bittet den Spieler um Material (Entscheidungen des Owners vom 22.11.2026):
+
+| Haus | Wer bittet | Was es kostet | Wann die Bitte kommt |
+|---|---|---|---|
+| Schmiede | der Schmied | 10 Holz, 6 Ascheisen | vom ersten Besuch im Dorf an |
+| Feldscheune | der Bauer | 12 Holz, 4 Ascheisen | sobald die Schmiede steht |
+| Krankenstube | Orsel | 8 Holz, 4 Aschenflieder | sobald Orsels Mühlenauftrag erledigt und der Rattler besiegt ist |
+
+- Der Spieler spricht die Person am Bauplatz an und gibt ab, was er bei sich trägt. Genommen wird nie mehr, als noch
+  fehlt. Am Bauplatz wächst der Stapel mit jedem gebrachten Stück.
+- Mit dem letzten Stück sagt die Person: „Vielen Dank. Ich mache mich an die Arbeit. Komm später wieder.“ Das Haus
+  erscheint **nicht** vor den Augen des Spielers. Es steht, wenn der Spieler das nächste Mal ins Dorf kommt.
+- Orsel zieht mit ihren Kranken von der alten Mühle ins Dorf. Steht die Krankenstube, pflegt sie dort: Verletzte
+  Bewohner müssen nicht mehr zur Mühle laufen. Heilkräuter, Verbände und Wasser kommen aus dem Dorfvorrat. Wer bei
+  ihr an der Mühle lag, liegt jetzt in der Krankenstube; was auf ihrem Regal lag, bringt sie mit. Kräuter, die gerade
+  zur Mühle unterwegs waren, kommen wieder mit nach Hause.
+- Solange ein Haus fehlt, läuft seine Arbeit wie bisher im Freien: Schmiedearbeit an der Werkbank, Verletzte ruhen zu
+  Hause oder gehen zu Orsel an die Mühle. Im fertigen Haus dauert die Arbeit nur zwei Drittel der Zeit (Schmiede:
+  Axt richten, Erz schmelzen, Beschläge schmieden; Scheune: säen, ernten, Boden und Kompost; Krankenstube: Verbände).
+- Wer das Dorf gegen sich aufgebracht hat, dem nimmt am Bauplatz niemand etwas ab.
+- Das gebrachte Baumaterial wird verbaut. Es gelangt nie in die Bestände der Dorfwirtschaft.
+
+Regeln dazu (`Assets/Scripts/Core/VillageBuildingSites.cs`): Der Spielstand führt die Häuser in einem eigenen
+Abschnitt `houses` (Stufe und Geliefertes je Haus, dazu ob Orsel im Dorf ist). Ein Spielstand ohne diesen Abschnitt
+hat drei unberührte Bauplätze. Gelesen wird nur, was das Spiel selbst erreichen kann: nichts über den Bedarf hinaus,
+keine Scheune vor der Schmiede, keine Krankenstube ohne Orsel.
+
+Das Bauplatz-Modell entsteht mit `Tools/Art/blender/village_build_site.py`, die Figuren des Schmieds und Orsels aus
+den Rezepten `smith` und `orsel` (siehe `docs/BOZO_CHARACTERS.md`). Beides ist private Kunst; ohne sie zeigt das
+Spiel schlichte Blöcke.
+
 ### Häuser mit eigenen Räumen
 
-Drei Häuser des Dorfes lassen sich betreten: die **Krankenstube** (Haus westlich der Halle), die **Schmiede** und die
-**Feldscheune** (der Stall). An jeder Tür hängt ein Schild. Wer in die Tür hineinläuft, steht im Innenraum des Hauses;
+Sobald sie stehen, lassen sich drei Häuser des Dorfes betreten: die **Krankenstube** (Haus westlich der Halle), die
+**Schmiede** und die **Feldscheune** (der Stall). An jeder Tür hängt ein Schild. Wer in die Tür hineinläuft, steht im Innenraum des Hauses;
 wer drinnen in die Tür in der Rückwand läuft, steht wieder vor dem Haus. Eine Taste braucht es nicht, der Hinweis über
 den Bedienfeldern nennt die Tür.
 

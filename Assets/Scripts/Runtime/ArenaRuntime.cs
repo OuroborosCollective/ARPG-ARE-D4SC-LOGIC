@@ -793,10 +793,12 @@ namespace AreArpg.UnityClient
 
             if (PollArrivalScene()) return;
             if (_villageBoardOpen && PollVillageBoardInput(layout)) return;
+            if (_sitePanelOpen && PollVillageSiteInput(layout)) return;
             if (PollMenuInput()) return;
             if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollVillageBoardInput(layout)) { ReleasePresentationTouches(); return; }
+            if (PollVillageSiteInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollRattlerInput(layout)) { ReleasePresentationTouches(); return; }
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
@@ -1026,6 +1028,8 @@ namespace AreArpg.UnityClient
                 ProcessCompanionAction();
                 if (_storageFault) break;
                 ProcessVillageGift();
+                if (_storageFault) break;
+                ProcessVillageSiteGift();
                 if (_storageFault) break;
                 if (_pendingHunterAction >= 0)
                 {
@@ -1314,10 +1318,12 @@ namespace AreArpg.UnityClient
             try
             {
                 if (_villageBoardOpen && DrawVillageBoard(layout)) return;
+                if (_sitePanelOpen && DrawVillageSite(layout)) return;
                 DrawRoadHud(layout);
                 DrawRattlerHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
                 if (DrawVillageBoard(layout)) return;
+                if (DrawVillageSite(layout)) return;
                 DrawVillageDoorHint(layout);
                 DrawSpeechSubtitle(layout);
             }

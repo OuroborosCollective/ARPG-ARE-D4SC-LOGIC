@@ -104,7 +104,8 @@ namespace AreArpg.Core
             if (night || !resident.CanWork) return VillageWork.GoHome;
             if (resident.Site == VillageSite.Mill)
             {
-                if (resident.Carried(VillageGood.Herb) > 0 && MillHerbs < VillageEconomyRules.MillHerbCap)
+                // Standing at the mill a resident sees whether Orsel is still there: once she has moved, the herbs go home.
+                if (!CareInVillage && resident.Carried(VillageGood.Herb) > 0 && MillHerbs < VillageEconomyRules.MillHerbCap)
                     return VillageWork.BringHerbs;
                 if (resident.Carried(VillageGood.Grain) >= 2 && CanStartProduction(resident, VillageWork.MillGrain))
                     return VillageWork.MillGrain;
@@ -261,9 +262,9 @@ namespace AreArpg.Core
 
         internal bool VillageWorkUnsafe(VillageResidentState resident)
         {
-            if (!IsVillage || !VillageEconomyLayout.Seen(resident, out var spot)) return false;
+            if (!IsVillage || !SeenInVillage(resident, out var spot)) return false;
             if (!resident.Walking && resident.Work != VillageWork.None)
-                spot = VillageEconomyLayout.SpotFor(resident.Work);
+                spot = Progression.Houses.Outdoors(VillageEconomyLayout.SpotFor(resident.Work));
             // Somebody in a house is reached at its door: the rooms themselves lie far outside the village.
             long x = VillageEconomyLayout.VillageXmm(spot), z = VillageEconomyLayout.VillageZmm(spot);
             foreach (var npc in Npcs)
@@ -284,7 +285,7 @@ namespace AreArpg.Core
                 if (npc.Mind != null && npc.Memory.Health > 0 && InVillageContact(npc.Xmm, npc.Zmm, PlayerXmm, PlayerZmm))
                     forge.Archive.Perceive(npc.Mind.Id, gift.Id, KnowledgeOrigin.Witnessed, forge.ProcessedTicks, details);
             foreach (var resident in Progression.Economy.Residents)
-                if (!resident.Walking && VillageEconomyLayout.Seen(resident, out var spot) &&
+                if (!resident.Walking && SeenInVillage(resident, out var spot) &&
                     InVillageContact(VillageEconomyLayout.VillageXmm(spot), VillageEconomyLayout.VillageZmm(spot), PlayerXmm, PlayerZmm))
                     forge.Archive.Perceive(resident.Identity, gift.Id, KnowledgeOrigin.Witnessed, forge.ProcessedTicks, details);
         }
@@ -333,7 +334,7 @@ namespace AreArpg.Core
                         InVillageContact(teller.Xmm, teller.Zmm, listener.Xmm, listener.Zmm))
                         TellSupplyNews(forge.Archive, teller.Mind, listener.Mind, forge.ProcessedTicks);
                 foreach (var neighbor in Progression.Economy.Residents)
-                    if (!neighbor.Walking && neighbor.Work == VillageWork.None && VillageEconomyLayout.Seen(neighbor, out var spot) &&
+                    if (!neighbor.Walking && neighbor.Work == VillageWork.None && SeenInVillage(neighbor, out var spot) &&
                         InVillageContact(VillageEconomyLayout.VillageXmm(spot), VillageEconomyLayout.VillageZmm(spot), listener.Xmm, listener.Zmm))
                     {
                         var neighborMind = forge.Archive.Get(neighbor.Identity);
@@ -347,11 +348,11 @@ namespace AreArpg.Core
             for (int i = 0; i < residents.Count; i++)
             {
                 var left = residents[i];
-                if (left.Walking || left.Work != VillageWork.None || !VillageEconomyLayout.Seen(left, out var place)) continue;
+                if (left.Walking || left.Work != VillageWork.None || !SeenInVillage(left, out var place)) continue;
                 for (int j = i + 1; j < residents.Count; j++)
                 {
                     var right = residents[j];
-                    if (right.Walking || right.Work != VillageWork.None || !VillageEconomyLayout.Seen(right, out var other) ||
+                    if (right.Walking || right.Work != VillageWork.None || !SeenInVillage(right, out var other) ||
                         other != place) continue;
                     var leftMind = forge.Archive.Get(left.Identity);
                     var rightMind = forge.Archive.Get(right.Identity);

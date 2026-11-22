@@ -158,6 +158,7 @@ namespace AreArpg.UnityClient
             foreach (VillageWorkplace workplace in VillageWorkplaces)
                 if (workplace.Spot == VillageSpot.Board) BuildWorkplace(workplace);
             BuildHouseSigns();
+            BuildVillageSites();
             _villageNeedPending = true;
             UpdateVillageEconomy(0f);
         }
@@ -180,6 +181,7 @@ namespace AreArpg.UnityClient
                 Destroy(_villageResidents.gameObject);
             }
             _villageWork = _villageResidents = _cookingFire = null;
+            ClearVillageSites();
             _shownPlace = VillagePlace.None;
             Array.Clear(_fieldCrops, 0, _fieldCrops.Length);
             _roomPatients.Clear();
@@ -337,6 +339,8 @@ namespace AreArpg.UnityClient
                 return;
             }
             if (!wanted) return;
+            // The lots are there from the first visit on, before anybody has moved in.
+            if (_shownPlace == VillagePlace.None) UpdateVillageSites();
             if (!economy.Started) return;
             if (_villageResidents == null) OpenVillageWorkplaces();
             // Checked against the Core every frame: whatever else touched a unit, the next frame shows the truth again.
@@ -351,7 +355,7 @@ namespace AreArpg.UnityClient
             foreach (VillageResidentState resident in economy.Residents)
             {
                 VillageSpot at;
-                if (!VillageEconomyLayout.Seen(resident, out at) || resident.Walking) continue;
+                if (!_game.SeenInVillage(resident, out at) || resident.Walking) continue;
                 if (_shownPlace == VillagePlace.None)
                     cooking |= resident.Activity == VillageActivity.Working && at == VillageSpot.Kitchen;
                 else if (VillageEconomyLayout.HouseOf(at) == _shownPlace)
@@ -400,7 +404,7 @@ namespace AreArpg.UnityClient
             RegisterActorMotion(view.Visual);
             // A game that starts or loads with the village already at work shows everybody in place at once.
             VillageSpot spot;
-            bool seen = VillageEconomyLayout.Seen(resident, out spot);
+            bool seen = _game.SeenInVillage(resident, out spot);
             if (_shownPlace != VillagePlace.None)
             {
                 // Inside a room: whoever stands at work here is at their place; everybody else is not in this room.
@@ -447,7 +451,7 @@ namespace AreArpg.UnityClient
         private void StepResidentView(ResidentView view, VillageResidentState resident, float seconds)
         {
             VillageSpot spot;
-            bool seen = VillageEconomyLayout.Seen(resident, out spot);
+            bool seen = _game.SeenInVillage(resident, out spot);
             // At work or in care inside a house the resident is behind its door: the figure walks there and is gone.
             bool indoors = seen && VillageEconomyLayout.HouseOf(spot) != VillagePlace.None;
             if (!seen || indoors)

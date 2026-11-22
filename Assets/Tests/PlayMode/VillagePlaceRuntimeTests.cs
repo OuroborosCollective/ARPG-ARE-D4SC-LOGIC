@@ -115,6 +115,8 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator HousesShowTheirRoomsAsTheCoreHasThem()
         {
             StartVillageWork();
+            // This test is about houses that stand; how a lot becomes a house is checked with the lots.
+            RaiseHouses(Houses);
             yield return RunFrames(1);
             var camera = (Camera)typeof(ArenaRuntime).GetField("_camera", Flags).GetValue(_runtime);
             CameraClearFlags sky = camera.clearFlags; bool fog = RenderSettings.fog;
@@ -234,6 +236,17 @@ namespace AreArpg.PlayMode.Tests
             string directory = Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR");
             if (string.IsNullOrEmpty(directory)) Assert.Ignore("Pictures are taken only when an evidence folder is named");
             StartVillageWork();
+            yield return RunFrames(2);
+            // First the lots as a new game has them, the smith's with a few logs brought; then the houses that stand.
+            typeof(VillageBuildingState).GetMethod("Deliver", Flags).Invoke(Game.Progression.Houses, new object[] { VillagePlace.Smithy, 0, 6 });
+            UpdateVillageWork(0f);
+            foreach (VillagePlace place in Houses)
+            {
+                EntryWorldLayout.Footprint lot = HouseOf(place);
+                var middle = new Vector3(lot.X / 1000f, 0.6f, lot.Z / 1000f);
+                yield return Capture("lot-" + place.ToString().ToLowerInvariant() + ".png", overridePosition: middle + new Vector3(3.5f, 7.5f, 11.5f), overrideFocus: middle + new Vector3(0f, 0f, 1.5f));
+            }
+            RaiseHouses(Houses);
             yield return RunFrames(2);
             foreach (VillagePlace place in Houses)
             {

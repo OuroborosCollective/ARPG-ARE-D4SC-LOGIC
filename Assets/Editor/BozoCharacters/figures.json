@@ -228,6 +228,44 @@
         {"slot": "HairFront", "id": "HairFront_ScholarPart", "colors": ["#3a2c22", "#55443a", "#3a2c22"]},
         {"slot": "HairBack", "id": "HairBack_SchalorTail", "colors": ["#3a2c22", "#55443a", "#6a3338"]}
       ]
+    },
+    {
+      "id": "smith", "role": "Der Schmied der Aschengrenze: kräftig und rußig; dunkle Lederweste über grauem Hemd, lange Arbeitshose, feste Stiefel, Lederstulpen, kurzer dunkler Bart, kurzes Haar",
+      "base": "Fantasy/Hero", "height": 1.95, "texture": 512, "motion": "m", "keys": ["Smith0"],
+      "body": [{"id": "Muscle", "value": 70}, {"id": "Weight", "value": 30}],
+      "face": [{"id": "Muscle", "value": 50}, {"id": "Stern", "value": 55}, {"id": "Squareness", "value": 45}],
+      "remove": ["Neck", "HairFront", "Hat", "Shoulders"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_Stern", "colors": ["#a3735a", "#541410", "#ba8a70", "#e6e4de", "#5a3028", "#6a2018"]},
+        {"slot": "Body", "id": "Body_StrongBody", "colors": ["#a3735a", "#541410", "#8a3a28"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#22180f", "#4a3423"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#2a221d"]},
+        {"slot": "Top", "id": "Top_RangerVest", "colors": ["#3e3229", "#54463a", "#33291f", "#6a665e", "#4a3c30", "#3e3229", "#2a221c", "#6e6258", "#4a4e52"]},
+        {"slot": "Bottom", "id": "Bottom_VillagerLongPants", "colors": ["#48443e", "#3e3a35", "#3e3a35", "#3a2c22", "#544a40", "#6e6456", "#5e5548"]},
+        {"slot": "Feet", "id": "Feet_CuffedBoots", "colors": ["#3e2e24", "#4e3c2e", "#2e221a", "#382a22", "#3e2e24", "#201a16"]},
+        {"slot": "Gloves", "id": "Gloves_LeatherArmbands", "colors": ["#3e3024", "#30251c", "#6e6e6e"]},
+        {"slot": "LowerFace", "id": "LowerFace_SquareBeard", "colors": ["#2a221d", "#3e342d"]},
+        {"slot": "HairBack", "id": "HairBack_ShortChoppy", "colors": ["#2a221d", "#3e342d"]}
+      ]
+    },
+    {
+      "id": "orsel", "role": "Orsel, die Heilerin der alten Mühle: ruhig und gefasst; helle Leinenbluse mit salbeigrünem Mieder, dunkler Rock mit heller Schürze, moosgrünes Schultertuch, ergrautes geflochtenes Haar",
+      "base": "Fantasy/Ranger", "height": 1.76, "texture": 512, "motion": "f", "keys": ["Orsel0"],
+      "body": [{"id": "Chest", "value": 35}, {"id": "Weight", "value": 30}],
+      "face": [{"id": "EarsElf", "value": 0}, {"id": "Stern", "value": 35}, {"id": "RaiseBrows", "value": 5}],
+      "remove": ["Gloves", "Hat", "Neck", "MakeUpEyes", "MakeUpCheeks"],
+      "outfits": [
+        {"slot": "Head", "id": "Head_BasicHead", "colors": ["#cfa58c", "#74322a", "#dfb7a0", "#ecebe6", "#6a3a30", "#7e3a34"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#cfa58c", "#74322a", "#dfb7a0"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2a3028", "#6a7a62"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#6e6860"]},
+        {"slot": "Top", "id": "Top_RusticCorset", "colors": ["#c8c4b2", "#4c5646", "#7a8266", "#8a8c70", "#7a8266", "#3a4036", "#c8c4b2", "#000000", "#000000"]},
+        {"slot": "Bottom", "id": "Bottom_ApronSkirt", "colors": ["#4a5046", "#b4b09c", "#cfcbb8"]},
+        {"slot": "Feet", "id": "Feet_VillagerBoots", "colors": ["#4a382a", "#33271e", "#8a6a3a", "#2a221c"]},
+        {"slot": "Shoulders", "id": "Shoulders_HomelyShawl", "colors": ["#5c6650", "#76806a", "#444c3c"]},
+        {"slot": "HairFront", "id": "HairFront_ProperPart", "colors": ["#7a746a", "#9a948a", "#7a746a"]},
+        {"slot": "HairBack", "id": "HairBack_NobleBraid", "colors": ["#7a746a", "#9a948a", "#5e5850"]}
+      ]
     }
   ]
 }

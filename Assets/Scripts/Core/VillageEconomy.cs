@@ -45,6 +45,7 @@ namespace AreArpg.Core
         {
             var forge = p.Social.Forge;
             if (forge == null) return;
+            _houses = p.Houses;
             ulong tick = forge.ProcessedTicks;
             int residents = p.Village.Population - VillageServicesState.BasePopulation;
             if (!Started)
@@ -128,13 +129,17 @@ namespace AreArpg.Core
             // Orsel tends the sick at the old mill once her own quest is done; before that the hurt rest at home.
             bool care = p.Village.OrselTeachesUnlocked;
             bool atMill = r.Site == VillageSite.Mill && !r.Walking;
+            // Once the sick room stands Orsel tends the hurt there. The mill is no place of care any more: whoever
+            // still gets there finds her gone and turns home.
+            bool careAtMill = atMill && !CareInVillage;
+            bool atCare = careAtMill || inVillage && care && CareInVillage;
             VillageWork plan;
             // A patient stays in Orsel's care until whole. Care does not heal the starving, though, and an errand
             // bars the way home to eat: a starving resident at the mill does what the errand still allows and
             // otherwise goes home, where Mara may have rations again.
-            if (atMill && care && r.Health < VillageEconomyRules.MaxHealth)
+            if (careAtMill && care && r.Health < VillageEconomyRules.MaxHealth)
                 plan = r.Hunger >= VillageEconomyRules.MaxNeed ? AwayAssignment(r, night) : VillageWork.None;
-            else if (!r.CanWork) plan = inVillage ? (care && (food || r.Hunger < VillageEconomyRules.EatHunger) ? VillageWork.SeekCare : VillageWork.None) : VillageWork.GoHome;
+            else if (!r.CanWork) plan = inVillage ? (!atCare && care && (food || r.Hunger < VillageEconomyRules.EatHunger) ? VillageWork.SeekCare : VillageWork.None) : VillageWork.GoHome;
             else plan = Plan(p, r, night, campLimit, care);
 
             // The hard mask of what is possible right now; the resident's own controller chooses among it.
@@ -183,10 +188,10 @@ namespace AreArpg.Core
                     break;
                 case ForgeAction.Rest:
                     r.Fatigue = Math.Max(0, r.Fatigue - HomeRestRelief(night && inVillage) * Stride);
-                    if (atMill && care && r.Hunger < VillageEconomyRules.MaxNeed) Care(forge, r, tick);
+                    if (atCare && care && r.Hunger < VillageEconomyRules.MaxNeed) Care(forge, r, tick);
                     // Rest heals, but not on an empty stomach.
                     else if (tick % VillageEconomyRules.RestHealTicks == 0 && r.Health < VillageEconomyRules.MaxHealth && r.Hunger < VillageEconomyRules.MaxNeed) r.Health++;
-                    r.Activity = !r.CanWork || atMill ? VillageActivity.Recovering : night && inVillage ? VillageActivity.Sleeping : VillageActivity.Resting;
+                    r.Activity = !r.CanWork || careAtMill ? VillageActivity.Recovering : night && inVillage ? VillageActivity.Sleeping : VillageActivity.Resting;
                     effect = fatigue - r.Fatigue + r.Health - health;
                     break;
                 case ForgeAction.Travel:
@@ -262,8 +267,9 @@ namespace AreArpg.Core
             if (wish == VillageWork.None && Commons(VillageGood.BrokenAxe) >= 1 && Commons(VillageGood.Metal) >= 1 && Commons(VillageGood.Wood) >= 1)
                 wish = VillageWork.RepairAxe;
             // Healing herbs for Orsel's shelf: carry what lies in the commons to the mill, gather while her shelf is short.
-            if (wish == VillageWork.None && care && Commons(VillageGood.Herb) > 0 && WantsHerbDelivery(LastTick)) wish = VillageWork.BringHerbs;
-            if (wish == VillageWork.None && care && KnownMillHerbsForSupply(LastTick) + Commons(VillageGood.Herb) < VillageEconomyRules.HerbTarget && CanSeekSource(VillageSource.Herbs, LastTick))
+            // With the sick room in the village the herbs stay where they are gathered to: on its rack.
+            if (wish == VillageWork.None && care && !CareInVillage && Commons(VillageGood.Herb) > 0 && WantsHerbDelivery(LastTick)) wish = VillageWork.BringHerbs;
+            if (wish == VillageWork.None && care && (CareInVillage ? 0 : KnownMillHerbsForSupply(LastTick)) + Commons(VillageGood.Herb) < VillageEconomyRules.HerbTarget && CanSeekSource(VillageSource.Herbs, LastTick))
                 wish = VillageWork.GatherHerbs;
             if (wish == VillageWork.None && care) wish = PlanProduction(p, r, false);
             if (wish == VillageWork.None && Commons(VillageGood.Wood) < VillageEconomyRules.WoodTarget && canFell) wish = VillageWork.FellTree;
@@ -288,8 +294,10 @@ namespace AreArpg.Core
         }
 
         /// <summary>
-        /// Orsel's care at the old mill: every hundred ticks a healing herb from her shelf mends ten health; without
-        /// herbs her hands and bandages mend three. The first care of a game day is remembered by her and the patient.
+        /// Orsel's care, at the old mill or in the sick room of the village: every hundred ticks a healing herb from
+        /// her shelf mends ten health; without herbs her hands and bandages mend three. In the village her shelf is
+        /// the herb rack of the sick room, the village's own herbs. The first care of a game day is remembered by
+        /// her and the patient.
         /// </summary>
         private void Care(NpcForgeState forge, VillageResidentState r, ulong tick)
         {
@@ -300,21 +308,44 @@ namespace AreArpg.Core
                 r.CareDay = day;
                 forge.Ensure("orsel", "healer");
                 var ev = forge.Archive.Append(MemoryKind.Help, "orsel", r.Identity, tick, 5000, false, CareContext, new RelationshipChange(trust: 500, gratitude: 900, familiarity: 300));
-                var words = new EpisodeDetails("care", "mill", "sickbed");
+                var words = new EpisodeDetails("care", r.Site == VillageSite.Village ? "village" : "mill", "sickbed");
                 forge.Archive.Perceive("orsel", ev.Id, KnowledgeOrigin.Self, tick, words);
                 forge.Archive.Perceive(r.Identity, ev.Id, KnowledgeOrigin.Self, tick, words);
             }
             if (tick % VillageEconomyRules.CareHerbTicks != 0) return;
             int dressingRelief = UseDressing(r) ? 2 : 0;
-            if (_millHerbs > 0)
+            bool inSickRoom = r.Site == VillageSite.Village;
+            if (inSickRoom ? _commons[(int)VillageGood.Herb] > 0 : _millHerbs > 0)
             {
-                _millHerbs--; Use(VillageGood.Herb, 1);
+                if (inSickRoom) _commons[(int)VillageGood.Herb]--; else _millHerbs--;
+                Use(VillageGood.Herb, 1);
                 r.Health = Math.Min(VillageEconomyRules.MaxHealth, r.Health + VillageEconomyRules.CareHerbTicks / VillageEconomyRules.CareHealTicks + dressingRelief);
             }
             else r.Health = Math.Min(VillageEconomyRules.MaxHealth, r.Health + VillageEconomyRules.CareHerbTicks / VillageEconomyRules.PlainCareHealTicks + dressingRelief);
         }
 
         public const string CareContext = "village.care";
+
+        // The houses of the village as of the step in hand; they belong to the character, not to the economy.
+        private VillageBuildingState _houses = new VillageBuildingState();
+        private bool CareInVillage { get { return _houses.Built(VillagePlace.SickRoom); } }
+
+        /// <summary>
+        /// Orsel moves into the sick room. She brings the herbs from her shelf at the mill along, and her patients:
+        /// whoever lay in her care at the mill lies in the sick room now and puts down there what they carried.
+        /// </summary>
+        internal void MoveCareToVillage()
+        {
+            _commons[(int)VillageGood.Herb] += _millHerbs;
+            _millHerbs = 0;
+            foreach (VillageResidentState r in _residents)
+            {
+                if (r.Site != VillageSite.Mill || r.Walking || r.Work != VillageWork.None || r.Health >= VillageEconomyRules.MaxHealth) continue;
+                r.Destination = VillageSite.Village;
+                Arrive(r);
+                r.Activity = VillageActivity.Recovering;
+            }
+        }
 
         /// <summary>Arriving in the village, a resident puts the load down in the commons and keeps the tools in hand.</summary>
         private void Arrive(VillageResidentState r)
@@ -392,7 +423,7 @@ namespace AreArpg.Core
                 r.Reserved[(int)input.Good] += input.Count;
             }
             r.Work = work;
-            r.WorkTicks = rule.Ticks;
+            r.WorkTicks = VillageBuildRules.WorkTicks(rule, _houses);
             r.Activity = VillageActivity.Working;
             return true;
         }
@@ -483,6 +514,8 @@ namespace AreArpg.Core
                     r.Carry[(int)VillageGood.Herb] += yielded; Make(VillageGood.Herb, yielded);
                     return yielded;
                 case VillageWork.BringHerbs:
+                    // Orsel has moved to the village: nothing is left on an empty shelf, the herbs go home again.
+                    if (CareInVillage) return 0;
                     // From the hands onto Orsel's shelf; what does not fit goes home again.
                     yielded = Math.Min(r.Carry[(int)VillageGood.Herb], VillageEconomyRules.MillHerbCap - _millHerbs);
                     r.Carry[(int)VillageGood.Herb] -= yielded; _millHerbs += yielded;

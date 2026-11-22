@@ -38,7 +38,8 @@ namespace AreArpg.Core
             lines.Add("Back- und Pflegestube: " + Count(e, VillageGood.Flour) + " · " + Count(e, VillageGood.Herb) + " · " +
                 Count(e, VillageGood.Leather) + " · " + Count(e, VillageGood.Bandage));
             lines.Add("Bau und Werkzeugpflege: " + Count(e, VillageGood.Ore) + " · " + Count(e, VillageGood.Stone) + " · " + Count(e, VillageGood.Fitting));
-            if (p.Village.OrselTeachesUnlocked)
+            if (p.Houses.Built(VillagePlace.SickRoom)) lines.Add("Krankenstube: Orsel pflegt die Verletzten im Dorf.");
+            else if (p.Village.OrselTeachesUnlocked)
                 lines.Add(e.ReportedMillHerbs < 0 ? "Alte Mühle: Noch kein Bericht von Orsels Vorrat eingetroffen." :
                     "Alte Mühle · " + ReturningWitness(e.MillReporterOrdinal, e.MillReportTick) + ": " +
                     N(e.ReportedMillHerbs) + "/" + N(VillageEconomyRules.MillHerbCap) + " Heilkräuter bei Orsel.");
@@ -75,6 +76,16 @@ namespace AreArpg.Core
         {
             VillageEconomyState e = p.Economy;
             var needs = new List<string>();
+            // The lots come first: somebody stands there and waits for the player.
+            for (int i = 1; i <= VillagePlaceLayout.PlaceCount; i++)
+            {
+                var place = (VillagePlace)i;
+                if (p.Houses.Built(place) || !VillageBuildRules.Offered(p, place)) continue;
+                needs.Add(p.Houses.Stage(place) == BuildStage.Raising ?
+                    VillageBuildRules.Asker(place) + " baut: " + VillagePlaceLayout.Name(place) + ". Komm später wieder ins Dorf." :
+                    VillageBuildRules.Asker(place) + " bittet am Bauplatz (" + VillagePlaceLayout.Name(place) + ") um " +
+                        VillageBuildRules.MissingWords(p.Houses, place) + ".");
+            }
             if (!e.Started)
             {
                 needs.Add("Es fehlen freie Arbeitskräfte. Mit den Hauptaufträgen ziehen Bewohner ins Dorf.");
@@ -108,11 +119,13 @@ namespace AreArpg.Core
                     localInjury = true;
                     needsWaterAtHome |= r.Thirst >= VillageEconomyState.DrinkThreshold;
                 }
-            if (localInjury) needs.Add(p.Village.OrselTeachesUnlocked ?
+            bool sickRoom = p.Houses.Built(VillagePlace.SickRoom);
+            if (localInjury) needs.Add(sickRoom ? "Im Dorf ist jemand verletzt. Orsel pflegt in der Krankenstube." : p.Village.OrselTeachesUnlocked ?
                 "Im Dorf ist jemand verletzt. Orsel hilft an der alten Mühle." :
                 "Im Dorf ist jemand verletzt und braucht Ruhe und Versorgung zu Hause.");
             if (needsWaterAtHome) needs.Add("Eine verletzte Person am Haus braucht eine Kanne Wasser aus dem Dorfvorrat.");
-            if (p.Village.OrselTeachesUnlocked && e.ReportedMillHerbs == 0)
+            if (sickRoom && e.Commons(VillageGood.Herb) == 0) needs.Add("Orsel fehlen Heilkräuter in der Krankenstube.");
+            else if (!sickRoom && p.Village.OrselTeachesUnlocked && e.ReportedMillHerbs == 0)
                 needs.Add(ReturningWitness(e.MillReporterOrdinal, e.MillReportTick) + ": Orsel fehlen Heilkräuter an der alten Mühle.");
             return needs;
         }

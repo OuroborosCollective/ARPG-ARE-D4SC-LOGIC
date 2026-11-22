@@ -21,7 +21,17 @@ internal static class VillagePlaceTests
 
     private static ArenaSimulation Village(ulong seed)
     {
-        var p = CharacterProgression.CreateEntryProfile(); p.EnterVillage(); p.Social.EnableForge();
+        // These checks are about houses that stand; how a lot becomes a house is checked in VillageBuildingSiteTests.
+        // Orsel's sick room needs her mill quest done: the journey went to the mill and back to the village.
+        var p = CharacterProgression.CreateEntryProfile();
+        for (int i = 0; i < 3; i++) p.DiscoverHungerClue();
+        p.ChooseHungerSupply(HungerChoice.Protect);
+        p.TravelHunger(4, false);
+        p.DiscoverHungerClue();
+        if (!p.Village.UnlockOrselTeaches(p)) throw new Exception("FAIL the mill quest does not unlock Orsel");
+        p.TravelHunger(3, true); p.TravelHunger(2, true);
+        p.Social.EnableForge();
+        foreach (VillagePlace place in Places) p.Houses.Complete(place);
         return new ArenaSimulation(seed, p, BigInteger.One, LootCatalog.Version1);
     }
 
@@ -144,7 +154,7 @@ internal static class VillagePlaceTests
     }
 
     /// <summary>The player walks there on free ground, step by real step: around buildings, never through them.</summary>
-    private static void Walk(ArenaSimulation world, long tx, long tz)
+    internal static void Walk(ArenaSimulation world, long tx, long tz)
     {
         const long cell = 500;
         Func<long, long, long> key = (x, z) => ((x + 400000) / cell) * 100000 + (z + 400000) / cell;
@@ -315,6 +325,7 @@ internal static class VillagePlaceTests
         var road = CompanionForgeTests.RescueFixture();
         if (!road.RecruitHunter().Accepted) throw new Exception("FAIL the hunter did not join");
         var p = road.Progression; p.TravelHunger(2, true);
+        p.Houses.Complete(VillagePlace.Smithy);
         var world = new ArenaSimulation(53, p, BigInteger.One, LootCatalog.Version1);
         var c = p.Companion; VillagePlace place = VillagePlace.Smithy;
         Walk(world, VillagePlaceLayout.LeaveXmm(place), VillagePlaceLayout.LeaveZmm(place));
@@ -409,6 +420,7 @@ internal static class VillagePlaceTests
 
         // What happens in the village reaches somebody in a house at its door: an attacker in front of the smithy
         // stops the work inside, as it stopped the work at the bench before the smithy had a room.
+        p.Houses.Complete(VillagePlace.Smithy);
         var world = new ArenaSimulation(61, p, BigInteger.One, LootCatalog.Version1);
         resident.Site = resident.Destination = VillageSite.Village; resident.TravelTicks = 0;
         resident.Activity = VillageActivity.Working; resident.Work = VillageWork.SmeltOre;

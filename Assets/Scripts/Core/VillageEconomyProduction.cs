@@ -220,6 +220,14 @@ namespace AreArpg.Core
 
         private bool UseDressing(VillageResidentState r)
         {
+            if (r.Site == VillageSite.Village)
+            {
+                // In the sick room the dressings lie on the carer's table: the village's own bandages and water.
+                if (!CareInVillage || _commons[(int)VillageGood.Bandage] == 0 || _commons[(int)VillageGood.Water] == 0) return false;
+                _commons[(int)VillageGood.Bandage]--; Use(VillageGood.Bandage, 1);
+                _commons[(int)VillageGood.Water]--; Use(VillageGood.Water, 1);
+                return true;
+            }
             if (r.Site != VillageSite.Mill || r.Carried(VillageGood.Bandage) == 0 || r.Carried(VillageGood.Water) == 0) return false;
             r.Carry[(int)VillageGood.Bandage]--; Use(VillageGood.Bandage, 1);
             r.Carry[(int)VillageGood.Water]--; Use(VillageGood.Water, 1);

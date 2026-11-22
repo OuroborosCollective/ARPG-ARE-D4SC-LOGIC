@@ -243,7 +243,7 @@ namespace AreArpg.UnityClient
         private void StepRoomResident(ResidentView view, VillageResidentState resident, float seconds)
         {
             VillageSpot spot;
-            bool here = VillageEconomyLayout.Seen(resident, out spot) && VillageEconomyLayout.HouseOf(spot) == _shownPlace &&
+            bool here = _game.SeenInVillage(resident, out spot) && VillageEconomyLayout.HouseOf(spot) == _shownPlace &&
                 resident.Activity != VillageActivity.Recovering;
             if (!here && !view.Visible) return;
             int slot = here ? _villageSpotUse[(int)spot]++ : 0;
@@ -330,6 +330,8 @@ namespace AreArpg.UnityClient
             for (int i = 1; i <= VillagePlaceLayout.PlaceCount; i++)
             {
                 var place = (VillagePlace)i;
+                // A lot has no door and no sign yet.
+                if (!_game.Progression.Houses.Built(place)) continue;
                 var door = new Vector2(VillagePlaceLayout.DoorXmm(place), VillagePlaceLayout.DoorZmm(place)) / 1000f;
                 var outward = new Vector2(VillagePlaceLayout.DoorOutX(place), VillagePlaceLayout.DoorOutZ(place));
                 var along = new Vector2(outward.y, -outward.x);
