@@ -20,9 +20,11 @@ bleiben, wie sie sind.
 | `patient_a`–`patient_c` | Verletzte der alten Mühle (liegend, zugedeckt) | `MillPatient0`–`MillPatient2` |
 | `villager_a`–`villager_c` | Dorfbewohner der Aschengrenze (Bauer, Frau mit Zopf, alter Mann) | `Villager0`–`Villager2` |
 | `merchant` | Händler: weinroter Umhang mit Goldsaum, lange Robe, Schärpe | `Merchant0` |
+| `smith` | Der Schmied: kräftig, dunkle Lederweste, Lederstulpen, kurzer dunkler Bart | `Smith0` |
+| `orsel` | Orsel, die Heilerin: Leinenbluse, salbeigrünes Mieder, helle Schürze, moosgrünes Tuch, ergrauter Zopf | `Orsel0` |
 
-`Villager0–2` und `Merchant0` sind für Bewohner und Händler vorbereitet; im Spiel gebunden werden sie, sobald eine
-Stelle sie braucht (zum Beispiel der Bau-Modus oder ein Händler-Stand).
+`Villager0–2` stehen für die Bewohner der Dorfwirtschaft. An den Bauplätzen der Dorfhäuser stehen `Smith0` (Schmiede),
+`Villager0` (der Bauer, Feldscheune) und `Orsel0` (Krankenstube). `Merchant0` ist für einen Händler-Stand vorbereitet.
 
 ## Rezepte
 
