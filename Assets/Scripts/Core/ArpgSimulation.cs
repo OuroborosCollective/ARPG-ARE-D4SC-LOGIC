@@ -879,6 +879,7 @@ namespace AreArpg.Core
                 foreach (LootState loot in GroundLoot) Mix(ref h, loot.Item == null ? 0 : loot.Item.StableHash);
             }
             MixEconomy(ref h);
+            MixHouses(ref h);
             return h;
         }
 

@@ -34,6 +34,7 @@ internal static class VillageEconomyTests
         InjuredResidentsDoNotWork(check);
         NightAndNeeds(check);
         OrselsCare(check);
+        CareInTheSickRoom(check);
         ReplayAndSaveLoad(check);
         LedgerOverTenDays(check);
         PlayersRefillTaskStaysThePlayers(check);
@@ -620,6 +621,43 @@ internal static class VillageEconomyTests
         p.Social.EnableForge();
         for (int i = 0; i < residents; i++) p.Village.RecordMainQuestCompleted();
         return p;
+    }
+
+    /// <summary>With the sick room in the village Orsel's care happens there: no walk to the mill, and the herbs come from the village's own rack.</summary>
+    private static void CareInTheSickRoom(Action<bool, string> check)
+    {
+        var p = MillVillage(1);
+        var scene = Scene.Of(p);
+        scene.Resident(0)[3] = 500;
+        scene.MillHerbs = 3;
+        scene.Commons[(int)VillageGood.Herb] = 1;
+        scene.Into(p);
+        // Orsel has come, everything for the sick room is handed over, and the player comes to the village again.
+        p.Houses.NoteOrsel();
+        p.Houses.Deliver(VillagePlace.SickRoom, 0, 8); p.Houses.Deliver(VillagePlace.SickRoom, 1, 4);
+        bool waiting = p.Houses.Stage(VillagePlace.SickRoom) == BuildStage.Raising && p.Economy.MillHerbs == 3;
+        p.TravelHunger(3, false); p.TravelHunger(2, true);
+        var e = p.Economy;
+        check(waiting && p.Houses.Built(VillagePlace.SickRoom) && e.MillHerbs == 0 && e.Commons(VillageGood.Herb) == 4 && e.Audit().Count == 0,
+            "orsel-brings-her-herbs-into-the-village");
+        long used = e.Used(VillageGood.Herb); int health = e.Residents[0].Health; bool stayed = true, lying = false;
+        for (int t = 0; t < 1000; t += 10)
+        {
+            Pass(p, 10);
+            stayed &= e.Residents[0].Site == VillageSite.Village && !e.Residents[0].Walking && e.Residents[0].Work == VillageWork.None;
+            lying |= e.Residents[0].Activity == VillageActivity.Recovering && VillageEconomyLayout.Seen(e.Residents[0], out var bed) &&
+                p.Houses.Outdoors(bed) == VillageSpot.SickRoom;
+        }
+        check(stayed, "with-the-sick-room-nobody-walks-to-the-mill");
+        check(lying, "the-hurt-lie-in-the-sick-room-of-the-village");
+        check(e.Used(VillageGood.Herb) == used + 4 && e.Commons(VillageGood.Herb) == 0 && e.Residents[0].Health >= health + 4 * 10 + 3,
+            "care-in-the-village-uses-the-herbs-of-the-village (used " + (e.Used(VillageGood.Herb) - used) + ", health +" + (e.Residents[0].Health - health) + ")");
+        var cares = p.Social.Forge.Archive.Events.Where(ev => ev.Context == VillageEconomyState.CareContext).ToArray();
+        check(cares.Length >= 1 && cares[0].Actor == "orsel", "orsel-is-the-one-who-cares-in-the-village-too");
+        check(e.Audit().Count == 0 && CharacterProgression.TryLoad(p.SaveString(), out var kept) && kept.Houses.Built(VillagePlace.SickRoom) &&
+            kept.SaveString() == p.SaveString(), "the-village-with-its-sick-room-saves-and-loads");
+        check(VillageBoard.StockLines(p).Any(l => l.Contains("Krankenstube")) && !VillageBoard.StockLines(p).Any(l => l.Contains("Alte Mühle")),
+            "the-board-names-the-sick-room-instead-of-the-mill");
     }
 
     /// <summary>Concept cycle D: herbs, care and recovery. Orsel's care needs herbs that somebody really brought.</summary>
