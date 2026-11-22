@@ -58,8 +58,9 @@ namespace AreArpg.Core
                 case "camp.donation": return "chronicle.camp.donation";
                 case "camp.decision.stolen": return "chronicle.camp.decision.stolen";
                 case "camp.decision.replaced": return "chronicle.camp.decision.replaced";
-                default: return ev.Context.StartsWith("story.", StringComparison.Ordinal)
-                    ? "chronicle." + ev.Context : null;
+                default:
+                    string key = "chronicle." + ev.Context;
+                    return ChronicleFadenwerkBinding.DialogueId(key) != null ? key : null;
             }
         }
 
