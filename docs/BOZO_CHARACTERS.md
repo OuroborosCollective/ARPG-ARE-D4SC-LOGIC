@@ -141,15 +141,19 @@ und prüft beide gemeinsam.
   entfernt; so bleibt kein Teil der Vorlage (Schal, Schulterplatten, Stacheln im Haar) zurück. Die Vorlage für Frauen
   bekommt menschliche Ohren und kein Augen-Make-up (`bases`).
 - **Die Prüfung lehnt ab,** was nicht zu bauen ist: unbekannte Teile, Paletten, Haut-, Haar- oder Augenfarben, zwei
-  gleiche Aussehen, eine Art ohne Oberteil, Hose oder Schuhe, ein Teil ohne Farbrollen.
+  gleiche Aussehen, eine Art ohne Oberteil, Hose oder Schuhe, ein Teil ohne Farbrollen – und zwei Aussehen einer Art
+  mit gleicher Haut-, Haar- und Augenfarbe: Ihre Köpfe sähen gleich aus, getauscht würde dann nichts.
 - **Nach dem Backen** schreibt das Werkzeug `Assets/Resources/ARE/Visuals/FolkIndex.txt`: je gebackener Pool-Figur
-  Visual, Art, Gruppe, Bewegungssatz (m/f) und Hautton. Die Datei liegt bei den privaten Visuals und wird wie sie nicht
-  eingecheckt.
+  Visual, Art, Gruppe, Bewegungssatz (m/f) und Hautton. Eine Zeile beschreibt das Visual, wie es gebaut wurde: Sie kommt
+  nur bei einem erfolgreichen Neubau aus dem aktuellen Vorrat; scheitert ein Neubau oder wird eine Figur nicht neu
+  gebaut, bleibt ihre Zeile, wie sie war (auch wenn `pool.json` inzwischen anderes sagt). Die Datei liegt bei den
+  privaten Visuals und wird wie sie nicht eingecheckt.
 
 ### Bewohner tragen Figuren aus dem Vorrat
 
 `FolkFigures` liest `FolkIndex` und gibt jedem Bewohner des Dorfs eine Figur der Gruppe `arbeit`, festgelegt durch
-seine laufende Nummer (`Ordinal`) – jedes Mal dieselbe, auf jedem Gerät, ohne Spielstand oder Core zu berühren:
+seine Nummer ab dem ersten Zugezogenen (`ArenaRuntime.ResidentNumber`) – jedes Mal dieselbe, auf jedem Gerät, ohne
+Spielstand oder Core zu berühren:
 
 - Die Figuren der Gruppe stehen in einer festen, gemischten Reihenfolge. In der ersten Runde bekommt jeder Bewohner
   eine eigene Figur.

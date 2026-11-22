@@ -43,7 +43,8 @@ namespace AreArpg.EditMode.Tests
             catch (TargetInvocationException e) when (e.InnerException is FormatException) { return e.InnerException.Message; }
         }
 
-        static string Json { get { return File.ReadAllText(PoolPath); } }
+        // Checked out with Windows line ends, the text probes below still find their lines.
+        static string Json { get { return File.ReadAllText(PoolPath).Replace("\r\n", "\n"); } }
 
         [Test]
         public void EachKindIsOneModelWithColourVariantsBuiltInTwoParts()
@@ -116,17 +117,43 @@ namespace AreArpg.EditMode.Tests
             StringAssert.Contains("nobody walks around without", Defect(changed("\n    \"Feet_VillagerBoots\",", "")));
             StringAssert.Contains("two looks are the same", Defect(changed("\"looks\": [\n    {\n     \"tone\": \"hell\",\n     \"hair\": \"braun\",\n     \"palette\": \"erde\",\n     \"eyes\": \"braun\"\n    },",
                 "\"looks\": [\n    {\n     \"tone\": \"hell\",\n     \"hair\": \"braun\",\n     \"palette\": \"erde\",\n     \"eyes\": \"braun\"\n    },\n    {\n     \"tone\": \"hell\",\n     \"hair\": \"braun\",\n     \"palette\": \"erde\",\n     \"eyes\": \"braun\"\n    },")));
+            // Another palette alone changes the clothes, not the head: a swapped head would look like the other one.
+            StringAssert.Contains("share skin, hair and eyes", Defect(changed("\"looks\": [\n    {\n     \"tone\": \"hell\",\n     \"hair\": \"braun\",\n     \"palette\": \"erde\",\n     \"eyes\": \"braun\"\n    },",
+                "\"looks\": [\n    {\n     \"tone\": \"hell\",\n     \"hair\": \"braun\",\n     \"palette\": \"erde\",\n     \"eyes\": \"braun\"\n    },\n    {\n     \"tone\": \"hell\",\n     \"hair\": \"braun\",\n     \"palette\": \"wein\",\n     \"eyes\": \"braun\"\n    },")));
+        }
+
+        static string[] IndexLines(string existing, string[] rebuilt, HashSet<string> baked)
+        {
+            string text = (string)Pool().GetMethod("UpdateIndex").Invoke(null, new object[] { existing, rebuilt, (Func<string, bool>)baked.Contains });
+            StringAssert.StartsWith("#", text);
+            return text.Split('\n').Where(l => l != "" && !l.StartsWith("#")).ToArray();
         }
 
         [Test]
         public void TheIndexListsOnlyBakedFiguresWithKindGroupMotionAndSkin()
         {
             var baked = new HashSet<string> { "FolkBauer0", "FolkMagd2" };
-            string text = (string)Pool().GetMethod("IndexText").Invoke(null, new object[] { (Func<string, bool>)baked.Contains });
-            string[] lines = text.Split('\n').Where(l => l != "" && !l.StartsWith("#")).ToArray();
-            Assert.AreEqual(2, lines.Length, text);
+            string[] lines = IndexLines("", new string[0], baked);
+            Assert.AreEqual(2, lines.Length, string.Join("\n", lines));
             CollectionAssert.AreEqual(new[] { "FolkBauer0", "bauer", "arbeit", "m", "hell" }, lines[0].Split('\t'));
             CollectionAssert.AreEqual(new[] { "FolkMagd2", "magd", "arbeit", "f", "dunkel" }, lines[1].Split('\t'));
+        }
+
+        [Test]
+        public void TheIndexDescribesEachVisualAsItWasBuilt()
+        {
+            // The index says FolkBauer0 was built with dark skin, the pool now says light skin.
+            string existing = "# index\nFolkBauer0\tbauer\tarbeit\tm\tdunkel\nFolkGone0\tgone\tarbeit\tm\thell\nFolkOld0\told\tarbeit\tf\tmittel\n";
+            var baked = new HashSet<string> { "FolkBauer0", "FolkOld0", "FolkMagd2" };
+            string[] lines = IndexLines(existing, new string[0], baked);
+            CollectionAssert.Contains(lines, "FolkBauer0\tbauer\tarbeit\tm\tdunkel", "a figure that was not rebuilt keeps the line of its visual");
+            CollectionAssert.Contains(lines, "FolkMagd2\tmagd\tarbeit\tf\tdunkel", "a visual the index never had gets its line from the pool");
+            CollectionAssert.Contains(lines, "FolkOld0\told\tarbeit\tf\tmittel", "a baked visual of a kind no longer in the pool keeps its line");
+            Assert.IsFalse(lines.Any(l => l.StartsWith("FolkGone0")), "a visual that is gone loses its line");
+            lines = IndexLines(existing, new[] { "folk_bauer_0" }, baked);
+            CollectionAssert.Contains(lines, "FolkBauer0\tbauer\tarbeit\tm\thell", "a successful rebuild writes the pool's line");
+            Assert.AreEqual(lines.Length, lines.Select(l => l.Split('\t')[0]).Distinct().Count(), "one line per visual");
+            Assert.IsEmpty(IndexLines(null, null, new HashSet<string>()), "nothing baked, nothing listed");
         }
     }
 }

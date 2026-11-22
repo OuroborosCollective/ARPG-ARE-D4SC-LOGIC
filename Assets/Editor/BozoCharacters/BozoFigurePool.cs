@@ -73,7 +73,7 @@ namespace AreArpg.EditorTools
 
         static readonly string[] HairRoles = { "hair", "hair_light", "hair_dark" };
         static readonly Regex KindId = new Regex("^[a-z]{2,20}$");
-        static readonly Regex Name = new Regex("^[a-z][a-z0-9_]{0,20}$");
+        static readonly Regex Name = new Regex("^[a-z][a-z0-9_]{0,19}$"); // at most 20 characters, as FolkFigures reads them
         static readonly Regex Part = new Regex("^[A-Za-z][A-Za-z0-9_]{1,60}$");
         static readonly Regex Hex = new Regex("^#[0-9a-fA-F]{6}$");
         const int MaxLooks = 9;
@@ -109,9 +109,10 @@ namespace AreArpg.EditorTools
             foreach (Kind kind in pool.kinds)
             {
                 Base preset = pool.bases.First(b => b.id == kind.@base);
-                var worn = kind.wear.Select(id => pool.parts.First(p => p.id == id)).ToArray();
-                var remove = pool.wearable.Where(slot => worn.All(p => p.slot != slot)).Concat(preset.remove).ToArray();
-                var face = kind.face.Concat(preset.face.Where(extra => kind.face.All(own => own.id != extra.id))).ToArray();
+                var ownFace = kind.face ?? new BozoFigureRecipes.Shape[0];
+                var worn = (kind.wear ?? new string[0]).Select(id => pool.parts.First(p => p.id == id)).ToArray();
+                var remove = pool.wearable.Where(slot => worn.All(p => p.slot != slot)).Concat(preset.remove ?? new string[0]).ToArray();
+                var face = ownFace.Concat((preset.face ?? new BozoFigureRecipes.Shape[0]).Where(extra => ownFace.All(own => own.id != extra.id))).ToArray();
                 for (int n = 0; n < kind.looks.Length; n++)
                 {
                     Look look = kind.looks[n];
@@ -137,7 +138,7 @@ namespace AreArpg.EditorTools
                         motion = preset.motion,
                         keys = new[] { Key(kind.id, n) },
                         sources = new string[0],
-                        body = kind.body.ToArray(),
+                        body = (kind.body ?? new BozoFigureRecipes.Shape[0]).ToArray(),
                         face = face,
                         remove = remove,
                         outfits = outfits.ToArray(),
@@ -229,6 +230,7 @@ namespace AreArpg.EditorTools
                 if (error != null) return error;
                 if (k.looks == null || k.looks.Length == 0 || k.looks.Length > MaxLooks) return k.id + ": one to " + MaxLooks + " looks.";
                 var seen = new HashSet<string>();
+                var faces = new HashSet<string>();
                 foreach (Look look in k.looks)
                 {
                     if (look == null) return k.id + ": empty look.";
@@ -237,6 +239,9 @@ namespace AreArpg.EditorTools
                     if (pool.palettes.All(p => p.id != look.palette)) return k.id + ": unknown palette '" + look.palette + "'.";
                     if (pool.eyes.All(e => e.id != look.eyes)) return k.id + ": unknown eye colour '" + look.eyes + "'.";
                     if (!seen.Add(look.tone + "/" + look.hair + "/" + look.palette + "/" + look.eyes)) return k.id + ": two looks are the same.";
+                    // Heads are swapped between figures: two looks with one skin, hair and eye colour would give two keys
+                    // for the same head.
+                    if (!faces.Add(look.tone + "/" + look.hair + "/" + look.eyes)) return k.id + ": two looks share skin, hair and eyes, so their heads look alike.";
                 }
             }
             return null;
@@ -280,24 +285,46 @@ namespace AreArpg.EditorTools
             return null;
         }
 
+        const string IndexHeader = "# Ashen Crypt figure pool: key<TAB>kind<TAB>group<TAB>motion<TAB>skin (written by the figure baker)\n";
+
         /// <summary>
-        /// One line per pool figure whose game visual exists: key, kind, group, motion, skin tone. The game picks
-        /// residents from it and only puts a head on a body of the same motion set and skin tone.
+        /// The index after a bake: one line per pool figure whose game visual exists (key, kind, group, motion set, skin
+        /// tone). The game picks residents from it and only puts a head on a body of the same motion set and skin, so
+        /// a line must describe the visual as it was built: it comes from the current pool only for the figures rebuilt
+        /// successfully now, or when the index has no line for a visual yet. Every other line stays as it was, lines
+        /// of visuals that are gone are dropped.
         /// </summary>
-        public static string IndexText(Func<string, bool> baked)
+        public static string UpdateIndex(string existing, IEnumerable<string> rebuiltIds, Func<string, bool> baked)
         {
-            if (!File.Exists(PoolPath)) return "";
-            Pool pool = Read(File.ReadAllText(PoolPath));
-            var text = new StringBuilder("# Ashen Crypt figure pool: key<TAB>kind<TAB>group<TAB>motion<TAB>skin (written by the figure baker)\n");
-            foreach (Kind kind in pool.kinds)
+            var lines = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (string raw in (existing ?? "").Split('\n'))
             {
-                string motion = pool.bases.First(b => b.id == kind.@base).motion;
-                for (int n = 0; n < kind.looks.Length; n++)
+                string line = raw.TrimEnd('\r');
+                if (line.Length == 0 || line[0] == '#') continue;
+                string key = line.Split('\t')[0];
+                if (!lines.ContainsKey(key)) lines.Add(key, line);
+            }
+            var rebuilt = new HashSet<string>(rebuiltIds ?? new string[0], StringComparer.Ordinal);
+            var order = new List<string>();
+            if (File.Exists(PoolPath))
+            {
+                Pool pool = Read(File.ReadAllText(PoolPath));
+                foreach (Kind kind in pool.kinds)
                 {
-                    string key = Key(kind.id, n);
-                    if (baked(key)) text.Append(key).Append('\t').Append(kind.id).Append('\t').Append(kind.group).Append('\t').Append(motion).Append('\t').Append(kind.looks[n].tone).Append('\n');
+                    string motion = pool.bases.First(b => b.id == kind.@base).motion;
+                    for (int n = 0; n < kind.looks.Length; n++)
+                    {
+                        string key = Key(kind.id, n);
+                        order.Add(key);
+                        if (rebuilt.Contains(FigureId(kind.id, n)) || !lines.ContainsKey(key))
+                            lines[key] = key + "\t" + kind.id + "\t" + kind.group + "\t" + motion + "\t" + kind.looks[n].tone;
+                    }
                 }
             }
+            var known = new HashSet<string>(order, StringComparer.Ordinal);
+            var text = new StringBuilder(IndexHeader);
+            foreach (string key in order.Concat(lines.Keys.Where(k => !known.Contains(k)).OrderBy(k => k, StringComparer.Ordinal)))
+                if (lines.ContainsKey(key) && baked(key)) text.Append(lines[key]).Append('\n');
             return text.ToString();
         }
     }

@@ -95,6 +95,7 @@ namespace AreArpg.EditMode.Tests
             var ownOpenings = new Dictionary<string, float>();
             var ownReach = new Dictionary<string, float>();
             var ownDrop = new Dictionary<string, float>();
+            var ownBelowChest = new Dictionary<string, bool>();
             foreach (var figure in figures)
             {
                 var own = UnityEngine.Object.Instantiate(Resources.Load<GameObject>("ARE/Visuals/" + figure.Key));
@@ -105,6 +106,7 @@ namespace AreArpg.EditMode.Tests
                     ownOpenings[figure.Key] = NeckOpening(ownHead, Posed(FigureComposer.Part(own.transform, FigureComposer.BodyPart)), Bone(own.transform, "neck_01"), ownHeadBone);
                     ownReach[figure.Key] = ownHead.Max(v => (v - ownHeadBone.position).magnitude);
                     ownDrop[figure.Key] = ownHeadBone.position.y - ownHead.Min(v => v.y);
+                    ownBelowChest[figure.Key] = ownHead.Min(v => v.y) < Bone(own.transform, "pelvis").position.y + .25f;
                 }
                 finally { UnityEngine.Object.DestroyImmediate(own); }
             }
@@ -138,8 +140,9 @@ namespace AreArpg.EditMode.Tests
                         float reach = Mathf.Max(.5f, ownReach[headFigure.Key] * 1.15f + .03f);
                         Assert.Less(far, reach, pair + ": the head stays at the head bone (farthest point " + far.ToString("F2") + " m, allowed " + reach.ToString("F2") + " m)");
                         // A helmet's neck guard reaches down to the collar; nothing of a head belongs lower than the chest,
-                        // unless it hangs that low on its own figure too (a long beard).
-                        float lowest = Mathf.Min(pelvis.position.y + .25f, headBone.position.y - ownDrop[headFigure.Key] * 1.15f - .03f);
+                        // unless it hangs below the chest on its own figure too (a long beard): then as far as there.
+                        float chest = pelvis.position.y + .25f;
+                        float lowest = ownBelowChest[headFigure.Key] ? Mathf.Min(chest, headBone.position.y - ownDrop[headFigure.Key] * 1.15f - .03f) : chest;
                         Assert.Greater(posed.Min(v => v.y), lowest, pair + ": nothing of the head drops below the chest (or below its own beard)");
                         float opening = NeckOpening(posed, Posed(body), Bone(instance.transform, "neck_01"), headBone);
                         Assert.LessOrEqual(opening, Mathf.Max(ownOpening, 0f) + .015f, pair + ": no hole opens at the neck (head ends " + (opening * 1000f).ToString("F0") +

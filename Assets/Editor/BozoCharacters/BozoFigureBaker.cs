@@ -397,6 +397,7 @@ namespace AreArpg.EditorTools
             // A colour variant uses the mesh of its model figure: the models come first.
             ids = ids.OrderBy(id => string.IsNullOrEmpty(recipes.First(f => f.id == id).sameShapeAs) ? 0 : 1).ToArray();
             var unused = new List<string>();
+            var rebuilt = new List<string>();
             foreach (string id in ids)
             {
                 var recipe = recipes.First(f => f.id == id);
@@ -411,7 +412,7 @@ namespace AreArpg.EditorTools
                     Mesh[] parts = recipe.parts ? GameParts(recipe) : null;
                     Mesh mesh = recipe.parts ? null : GameMesh(recipe);
                     Material material = GameMaterial(recipe);
-                    Avatar avatar = GameAvatar(recipe);
+                    Avatar avatar = GameAvatar(recipe, recipes);
                     foreach (string key in recipe.keys ?? new string[0]) Save(recipe, mesh, parts, material, avatar, Visuals + key + ".prefab", key, true);
                     foreach (string key in recipe.sources ?? new string[0]) Save(recipe, mesh, parts, material, avatar, SourceFolder + "/" + key + ".prefab", key, false);
                     // Meshes the figure no longer uses: a colour variant keeps none of its own, a figure in two parts no
@@ -421,6 +422,7 @@ namespace AreArpg.EditorTools
                     if (variant || !recipe.parts) { unused.Add(PartPath(recipe.id, FigureComposer.BodyPart)); unused.Add(PartPath(recipe.id, FigureComposer.HeadPart)); }
                     AssetDatabase.SaveAssets();
                     ReloadRewritten();
+                    rebuilt.Add(id);
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
                 catch (Exception e)
@@ -447,17 +449,22 @@ namespace AreArpg.EditorTools
             foreach (string path in unused.Distinct())
                 if (!drawn.Contains(path) && AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
             AssetDatabase.SaveAssets();
-            WriteFolkIndex();
+            WriteFolkIndex(rebuilt);
             Report("DONE");
         }
 
-        /// <summary>The game's list of the pool figures baked here (BozoFigurePool.IndexText), next to their visuals.</summary>
-        public static void WriteFolkIndex()
+        /// <summary>
+        /// The game's list of the pool figures baked here (FolkIndex), next to their visuals. A figure's line comes from
+        /// the recipe of a successful rebuild; a figure whose rebuild failed keeps the line of the visual that was
+        /// restored. Without arguments it only drops lines of visuals that are gone and adds missing ones.
+        /// </summary>
+        public static void WriteFolkIndex(IEnumerable<string> rebuiltIds = null)
         {
-            string text = BozoFigurePool.IndexText(key => File.Exists(Visuals + key + ".prefab"));
-            if (text == "") return;
+            if (!File.Exists(BozoFigurePool.PoolPath)) return;
             string path = BozoFigurePool.IndexPath;
-            if (File.Exists(path) && File.ReadAllText(path) == text) return;
+            string before = File.Exists(path) ? File.ReadAllText(path) : "";
+            string text = BozoFigurePool.UpdateIndex(before, rebuiltIds, key => File.Exists(Visuals + key + ".prefab"));
+            if (text == before) return;
             File.WriteAllText(path, text);
             AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
         }
@@ -893,16 +900,17 @@ namespace AreArpg.EditorTools
         /// hand missed its grip by four centimetres. Each reshaped figure gets its own avatar: the pack's description
         /// with the bone scales of the baked figure.
         /// </summary>
-        static Avatar GameAvatar(BozoFigureRecipes.Figure recipe)
+        static Avatar GameAvatar(BozoFigureRecipes.Figure recipe, BozoFigureRecipes.Figure[] recipes)
         {
             var source = AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(recipe.id));
             if (source == null) throw new InvalidOperationException("Gebackene Figur fehlt: " + recipe.id);
             // A colour variant has its model's preset and body sliders (checked with the recipes), so its bones carry
-            // the same scales: it uses the model's avatar instead of bringing a copy of it into the game.
+            // the same scales: it uses the avatar its model's visual uses now instead of bringing a copy of it into the
+            // game. That is the pack's own avatar when the model's bones are not reshaped any more.
             if (!string.IsNullOrEmpty(recipe.sameShapeAs))
             {
-                var shared = AssetDatabase.LoadAssetAtPath<Avatar>(BakeFolder + "/" + recipe.sameShapeAs + "/" + recipe.sameShapeAs + "_GameAvatar.asset");
-                if (shared != null && shared.isValid && shared.isHuman) return shared;
+                Avatar shared = VisualAvatar(recipes.FirstOrDefault(f => f.id == recipe.sameShapeAs));
+                if (shared != null) return shared;
             }
             GameObject figure = Object.Instantiate(source);
             try
@@ -936,6 +944,18 @@ namespace AreArpg.EditorTools
                 return saved;
             }
             finally { Object.DestroyImmediate(figure); }
+        }
+
+        /// <summary>The avatar a figure's game visual uses now (models are rebuilt before their variants), or null.</summary>
+        static Avatar VisualAvatar(BozoFigureRecipes.Figure figure)
+        {
+            foreach (string key in figure != null ? figure.keys ?? new string[0] : new string[0])
+            {
+                var visual = AssetDatabase.LoadAssetAtPath<GameObject>(Visuals + key + ".prefab");
+                Animator animator = visual != null ? visual.GetComponentInChildren<Animator>(true) : null;
+                if (animator != null && animator.avatar != null && animator.avatar.isValid && animator.avatar.isHuman) return animator.avatar;
+            }
+            return null;
         }
 
         /// <summary>
