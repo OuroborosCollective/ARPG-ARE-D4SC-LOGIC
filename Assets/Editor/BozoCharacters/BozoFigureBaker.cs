@@ -160,7 +160,8 @@ namespace AreArpg.EditorTools
                 if (skins.Length != 1 || skins[0].sharedMesh == null || skins[0].sharedMaterial == null ||
                     animator == null || animator.avatar == null || !animator.avatar.isValid || !animator.avatar.isHuman)
                     throw new InvalidOperationException("Temporärer Bake ist unvollständig: " + recipe.id);
-                PublishBake(recipe.id);
+                // The complete bake stays in the staging folder. Publishing rewrites assets as text, which the
+                // editor refuses while playing: it follows in Edit Mode (AfterSession).
             }
             finally
             {
@@ -364,7 +365,19 @@ namespace AreArpg.EditorTools
             EditorUtility.SetDirty(settings); AssetDatabase.SaveAssetIfDirty(settings);
             var baked = File.Exists(ReportPath)
                 ? File.ReadAllLines(ReportPath).Where(l => l.EndsWith("\tBAKED")).Select(l => l.Split('\t')[0]).ToArray() : new string[0];
-            FinalizeFigures(baked, true);
+            // Back in Edit Mode the staged bakes are published. A bake that cannot be published is reported and
+            // leaves the figure that was there before untouched.
+            var published = new List<string>();
+            foreach (string id in baked)
+            {
+                try { PublishBake(id); published.Add(id); }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                    Report(id + "\tFAILED\t" + e.Message.Replace('\n', ' '));
+                }
+            }
+            FinalizeFigures(published.ToArray(), true);
         }
 
         [MenuItem("ARE ARPG/Art/BoZo Characters/Rebuild Game Visuals From Baked Figures")]
