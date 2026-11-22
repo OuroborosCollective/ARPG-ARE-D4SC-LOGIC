@@ -112,8 +112,12 @@ dessen Hals und folgt dessen Bewegung. Aus 10 Körpern und 10 Köpfen werden so 
 - **Geht etwas nicht,** bleibt der eigene Kopf des Körpers, und es wird nichts halb angelegt.
 - **Gut zusammen passen** Köpfe und Körper derselben Vorlage (`base`) und derselben Hautfarbe; die Hautfarbe steckt in
   den Farben jedes Teils. Der Tausch selbst prüft das nicht.
-- Geprüft wird für jedes Paar gleicher Vorlage: Der Kopf bleibt am Kopfknochen, am Hals entsteht kein Loch (der Kopf
-  reicht so weit in den Kragen wie der eigene Kopf des Körpers), und er dreht sich als Ganzes mit dem Kopfknochen.
+- Geprüft wird für jedes Paar gleicher Vorlage: Der Kopf bleibt am Kopfknochen und reicht nicht weiter hinunter als
+  auf seiner eigenen Figur (ein langer Bart darf bis zum Gürtel hängen), am Hals entsteht kein Loch (der Kopf reicht so
+  weit in den Kragen wie der eigene Kopf des Körpers), und er dreht sich als Ganzes mit dem Kopfknochen.
+- Ein überschriebenes Modell entlädt das Werkzeug nach dem Speichern, damit der Editor es neu aus der Datei liest:
+  Behielt er das alte im Speicher, zeichnete er nach einer Änderung der Eckpunktzahl gar nichts (Figur ohne Kopf oder
+  unsichtbar). Für eine schon betroffene Sitzung: `BozoFigureBaker.ReloadGameMeshes()`.
 
 ### Der Figurenvorrat (`pool.json`)
 
