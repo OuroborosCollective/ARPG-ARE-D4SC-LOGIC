@@ -1,4 +1,6 @@
 using AreArpg.Core;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace AreArpg.UnityClient
@@ -6,6 +8,13 @@ namespace AreArpg.UnityClient
     public sealed partial class ArenaRuntime
     {
         private bool _hungerJournalOpen;
+        private bool _chroniclePageOpen;
+        private int _chroniclePage;
+        private CharacterProgression _chronicleCacheOwner;
+        private int _chronicleCacheEvents = -1;
+        private int _chronicleCacheAcquisitions = -1;
+        private string _chronicleCacheToken;
+        private IReadOnlyList<ChronicleEntry> _chronicleCache = Array.Empty<ChronicleEntry>();
         private int _pendingHungerAction = -1;
         private Transform _returnPassage;
 
@@ -17,6 +26,14 @@ namespace AreArpg.UnityClient
         /// <summary>One modal layout is shared by desktop drawing and physical Android touch routing.</summary>
         private static Rect HungerPanel(ArenaHudLayout layout)
         { return new Rect((layout.Width - 560f) * .5f, 50f, 560f, 350f); }
+
+        /// <summary>Bounded, touch-safe view toggle; the original quest panel remains intact.</summary>
+        public static Rect ChronicleTabRect(ArenaHudLayout layout)
+        { var p = HungerPanel(layout); return new Rect(p.x + p.width - 122f, p.y + 6f, 106f, 36f); }
+        public static Rect ChroniclePreviousRect(ArenaHudLayout layout)
+        { var p = HungerPanel(layout); return new Rect(p.x + 18f, p.yMax - 48f, 102f, 36f); }
+        public static Rect ChronicleNextRect(ArenaHudLayout layout)
+        { var p = HungerPanel(layout); return new Rect(p.xMax - 120f, p.yMax - 48f, 102f, 36f); }
 
         /// <summary>Lay out a bounded context action beneath the full objective and feedback text.</summary>
         private static Rect HungerActionRect(ArenaHudLayout layout, int index)
@@ -119,8 +136,15 @@ namespace AreArpg.UnityClient
                 { _hungerJournalOpen = !_hungerJournalOpen; consumed = true; }
                 else if (_hungerJournalOpen)
                 {
-                    for (int action = 0; action < actions.Length; action++)
-                        if (HungerActionRect(layout, action).Contains(point)) _pendingHungerAction = (int)actions[action];
+                    if (ChronicleTabRect(layout).Contains(point)) _chroniclePageOpen = !_chroniclePageOpen;
+                    else if (_chroniclePageOpen)
+                    {
+                        if (ChroniclePreviousRect(layout).Contains(point)) _chroniclePage++;
+                        if (ChronicleNextRect(layout).Contains(point)) _chroniclePage = Math.Max(0, _chroniclePage - 1);
+                    }
+                    else
+                        for (int action = 0; action < actions.Length; action++)
+                            if (HungerActionRect(layout, action).Contains(point)) _pendingHungerAction = (int)actions[action];
                     consumed = true;
                 }
             }
@@ -139,7 +163,14 @@ namespace AreArpg.UnityClient
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;
             if (!_hungerJournalOpen) return false;
             Rect panel = HungerPanel(layout);
+            if (_chroniclePageOpen)
+            {
+                DrawChroniclePage(layout, panel);
+                return true;
+            }
             GUI.Box(panel, _game.InJourney ? _game.ChapterName : _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : _game.InAschenzoll ? "ASCHENZOLL — DIE TRANSPORTSPUR" : (AuthoredHunger!=null?AuthoredHunger.title:"HUNGER HINTER DEN MAUERN"));
+            if (Application.isMobilePlatform) GUI.Box(ChronicleTabRect(layout), "CHRONIK");
+            else if (GUI.Button(ChronicleTabRect(layout), "CHRONIK")) _chroniclePageOpen = true;
             GUI.Label(new Rect(panel.x + 15, panel.y + 30, 530, 70), PresentedHungerObjective(), _smallStyle);
             GUI.Label(new Rect(panel.x + 15, panel.y + 105, 530, 30), "Proviant: " + _game.Progression.Social.Provisions +
                 "  |  Entscheidung: " + HungerChoiceLabel(_game.Progression.SupplyChoice), _smallStyle);
@@ -151,6 +182,84 @@ namespace AreArpg.UnityClient
                 else if (GUI.Button(HungerActionRect(layout, i), HungerActionLabel(actions[i]))) _pendingHungerAction = (int)actions[i];
             }
             return true;
+        }
+
+        private IReadOnlyList<ChronicleEntry> CachedPlayerChronicle()
+        {
+            var owner = _game.Progression;
+            var archive = owner.Social.Forge?.Archive;
+            int events = archive?.Events.Count ?? 0, acquisitions = archive?.Acquisitions.Count ?? 0;
+            owner.TryGetSection("chronicle.v1", out string refs);
+            if (_chronicleCacheOwner != owner || _chronicleCacheEvents != events ||
+                _chronicleCacheAcquisitions != acquisitions ||
+                !string.Equals(_chronicleCacheToken, refs, StringComparison.Ordinal))
+            {
+                _chronicleCache = LivingChronicle.VisibleToPlayer(owner);
+                _chronicleCacheOwner = owner;
+                _chronicleCacheEvents = events;
+                _chronicleCacheAcquisitions = acquisitions;
+                _chronicleCacheToken = refs;
+            }
+            return _chronicleCache;
+        }
+
+        private static string ChronicleStatement(ChronicleEntry entry)
+        {
+            string text;
+            switch (entry.TextKey)
+            {
+                case "chronicle.camp.theft": text = "Eine Ration aus Maras Lager genommen."; break;
+                case "chronicle.camp.donation": text = "Eine echte Ration an Maras Lager gegeben."; break;
+                case "chronicle.camp.decision.stolen": text = "Der Weg des Diebstahls wurde festgelegt."; break;
+                case "chronicle.camp.decision.replaced": text = "Das Lager ist wieder versorgt."; break;
+                case "chronicle.story.hearilyan": text = "Ilyans Geschichte angehoert."; break;
+                case "chronicle.story.inspecttrail": text = "Die Spur am Weg untersucht."; break;
+                case "chronicle.story.inspectshelter": text = "Das Lager untersucht."; break;
+                case "chronicle.story.reveal": text = "Eine Entscheidung offengelegt."; break;
+                case "chronicle.story.protect": text = "Ilyan das Schweigen versprochen."; break;
+                case "chronicle.story.replace": text = "Die Ersatzversorgung beschlossen."; break;
+                default: text = "Eine eigene Entscheidung festgehalten."; break;
+            }
+            if (entry.Origin == ChronicleOrigin.Performed) return "Selbst erlebt: " + text;
+            string origin = entry.KnowledgeOrigin == AshenCrypt.MemoryForge.KnowledgeOrigin.Reported ?
+                "Nur berichtet von " : "Von einem Augenzeugen gehoert: ";
+            return origin + entry.SourceNpcId + ": " + text;
+        }
+
+        private void DrawChroniclePage(ArenaHudLayout layout, Rect panel)
+        {
+            GUI.Box(panel, "ASCHENCHRONIK - NUR BELEGTE ERLEBNISSE");
+            if (Application.isMobilePlatform) GUI.Box(ChronicleTabRect(layout), "SPUREN");
+            else if (GUI.Button(ChronicleTabRect(layout), "SPUREN")) _chroniclePageOpen = false;
+            var entries = CachedPlayerChronicle();
+            int pages = Math.Max(1, (entries.Count + 3) / 4);
+            _chroniclePage = Math.Min(_chroniclePage, pages - 1);
+            if (entries.Count == 0)
+                GUI.Label(new Rect(panel.x + 16f, panel.y + 65f, 524f, 75f),
+                    "Noch keine selbst erlebte Tat und keine persoenlich gehoerte Aussage.", _smallStyle);
+            for (int i = 0; i < 4; i++)
+            {
+                int index = entries.Count - 1 - _chroniclePage * 4 - i;
+                if (index < 0) break;
+                var entry = entries[index];
+                GUI.Label(new Rect(panel.x + 16f, panel.y + 53f + i * 61f, 526f, 60f),
+                    "Tick " + entry.Tick + " / #" + entry.EventId + ": " +
+                    ChronicleStatement(entry), _smallStyle);
+            }
+            if (Application.isMobilePlatform)
+            {
+                GUI.Box(ChroniclePreviousRect(layout), "AELTER");
+                GUI.Box(ChronicleNextRect(layout), "NEUER");
+            }
+            else
+            {
+                if (GUI.Button(ChroniclePreviousRect(layout), "AELTER"))
+                    _chroniclePage = Math.Min(pages - 1, _chroniclePage + 1);
+                if (GUI.Button(ChronicleNextRect(layout), "NEUER"))
+                    _chroniclePage = Math.Max(0, _chroniclePage - 1);
+            }
+            GUI.Label(new Rect(panel.center.x - 65f, panel.yMax - 45f, 130f, 38f),
+                "Seite " + (_chroniclePage + 1) + "/" + pages, _smallStyle);
         }
 
         /// <summary>Translate only the persisted branch, without inventing offscreen social knowledge.</summary>
