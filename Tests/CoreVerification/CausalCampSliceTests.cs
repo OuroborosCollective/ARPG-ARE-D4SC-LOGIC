@@ -110,8 +110,9 @@ internal static class CausalCampSliceTests
               loaded.Social.Forge.Archive.Events.Single(e => e.Id == final.Id).CauseEventId == donations[1].Id,
             "slice-refill-final-save-reload-parent");
         Near(world, SocialLedger.MaraNpcId);
+        string postSetup = progress.SaveString();
         check(!world.DonateCampRation().Accepted && !world.TakeCampRation().Accepted &&
-              progress.SaveString() == saved && !world.CampDecisionOpen,
+              progress.SaveString() == postSetup && !world.CampDecisionOpen,
             "slice-refill-after-decision-resource-and-event-immutable");
     }
 
