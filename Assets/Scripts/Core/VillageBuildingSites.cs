@@ -445,7 +445,8 @@ namespace AreArpg.Core
             if (!Progression.Crafting.TakeForVillage(good, count)) { result.Text = "Davon hast du nicht genug bei dir. Nichts wurde übergeben."; return result; }
             if (place == VillagePlace.SickRoom) Progression.Houses.NoteOrsel();
             Progression.Houses.Deliver(place, need, count);
-            RememberVillageGift(good, count);
+            // The village remembers the help where it has a memory; a character without one still builds.
+            if (Progression.Social.Forge != null) RememberVillageGift(good, count);
             result.Accepted = true;
             result.Text = Progression.Houses.Stage(place) == BuildStage.Raising ? VillageBuildRules.Thanks(place) :
                 count.ToString(CultureInfo.InvariantCulture) + " × " + VillageBuildRules.GoodName(good) + " übergeben. " +

@@ -53,20 +53,25 @@ namespace AreArpg.UnityClient
         {
             _siteViews.Clear();
             _sitePanelOpen = false; _pendingSiteGift = -1;
+            // First every house that does not stand is taken out of the picture, then what those houses did for it is
+            // undone, and only then the lots are put on the ground: no lot and no asker stands on the height of a
+            // porch that is not there, and the camera does not pull in for walls that are not there.
             bool hidden = false;
+            var lots = new List<VillagePlace>();
             for (int i = 1; i <= VillagePlaceLayout.PlaceCount; i++)
             {
                 var place = (VillagePlace)i;
                 if (_game.Progression.Houses.Built(place)) continue;
                 hidden |= HideHouse(place);
-                _siteViews.Add(BuildSite(place));
+                lots.Add(place);
             }
-            if (!hidden) return;
-            // Whatever the hidden houses did for the picture is undone: no step up to a porch that is not there,
-            // and the camera does not pull in for walls that are not there.
-            foreach (Transform part in _chapterScenery)
-                if (part != null && part.name == AschengrenzeArt.BackdropLabel) CollectWalkSurfaces(part);
-            RefreshCameraOccluders();
+            if (hidden)
+            {
+                foreach (Transform part in _chapterScenery)
+                    if (part != null && part.name == AschengrenzeArt.BackdropLabel) CollectWalkSurfaces(part);
+                RefreshCameraOccluders();
+            }
+            foreach (VillagePlace place in lots) _siteViews.Add(BuildSite(place));
         }
 
         /// <summary>Take a house out of the picture: everything of the village's scenery that stands on its ground.</summary>

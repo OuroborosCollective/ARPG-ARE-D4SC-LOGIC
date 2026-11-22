@@ -149,6 +149,16 @@ internal static class VillageBuildingSiteTests
         check(back.WalkingIntoHouse == smithy && back.TryEnterPlace() && back.InsidePlace == smithy, "the-finished-smithy-can-be-entered");
         check(CharacterProgression.TryLoad(kept.SaveString(), out var built) && built.Houses.Built(smithy) && built.SaveString() == kept.SaveString(), "the-finished-house-is-saved");
 
+        // A character whose village has no NPC memory yet can still help to build: nothing is taken and then lost.
+        var plain = CharacterProgression.CreateEntryProfile(); plain.EnterVillage();
+        var bare = new ArenaSimulation(74, plain, BigInteger.One, LootCatalog.Version1);
+        VillagePlaceTests.Walk(bare, VillageBuildRules.AskerXmm(smithy) + 900, VillageBuildRules.AskerZmm(smithy) + 500);
+        plain.Crafting.AddMaterial(MaterialKind.Holz, 5);
+        bool handed = false; string trouble = "";
+        try { handed = bare.GiveToSite(VillageGood.Wood).Accepted; } catch (Exception e) { trouble = e.GetType().Name; }
+        check(plain.Social.Forge == null && handed && plain.Houses.Delivered(smithy, 0) == 5 && plain.Crafting.MaterialCount(MaterialKind.Holz) == 0,
+            "a-hand-over-works-without-npc-memory " + trouble);
+
         // A villager the player has turned against takes nothing.
         var hostile = Village(72);
         VillagePlaceTests.Walk(hostile, VillageBuildRules.AskerXmm(smithy) + 900, VillageBuildRules.AskerZmm(smithy) + 500);

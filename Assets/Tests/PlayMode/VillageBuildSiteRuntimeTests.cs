@@ -85,6 +85,7 @@ namespace AreArpg.PlayMode.Tests
             foreach (VillagePlace place in Houses)
             {
                 Assert.IsNotNull(Find(ArenaRuntime.BuildSitePrefix + place), "The lot of " + place + " is staked out");
+                Assert.Less(Mathf.Abs(Find(ArenaRuntime.BuildSitePrefix + place).transform.position.y), 0.06f, "The lot of " + place + " lies on the ground, not on the porch of a house that is not there");
                 Assert.IsNull(Find(ArenaRuntime.HouseSignPrefix + place), "A lot has no sign");
                 Assert.IsEmpty(DrawnOnTheGroundOf(place), "No house stands on the lot of " + place);
                 foreach (VillageGood good in ArenaRuntime.VillageSiteModel.Goods) Assert.AreEqual(0, ShownPieces(place, good), "Nothing lies at the lot of " + place);
@@ -95,6 +96,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNull(Find(ArenaRuntime.SiteAskerPrefix + VillagePlace.SickRoom), "Orsel has not come yet");
             var asker = new Vector3(VillageBuildRules.AskerXmm(smithy) / 1000f, smith.transform.position.y, VillageBuildRules.AskerZmm(smithy) / 1000f);
             Assert.Less(Vector3.Distance(smith.transform.position, asker), 0.2f, "He stands where the rules have him");
+            Assert.Less(Mathf.Abs(smith.transform.position.y - 1f), 0.06f, "He stands on the ground");
             Assert.IsNull(_runtime.VillageSiteHint, "Away from the lots nothing is offered");
             Assert.IsNull(_runtime.VillageDoorHint);
 
