@@ -129,12 +129,20 @@ namespace AshenCrypt.MemoryForge
                     archive.Get(known.Knower) == null)
                     throw new InvalidOperationException("Unbound knowledge provenance");
                 string knowledge = "knowledge:" + Number(known.Sequence);
-                string npc = "npc:" + known.Knower;
                 Node(knowledge, "canonical-acquisition", known.Checksum);
-                Node(npc, "known-by-npc", ContractText.Hash(npc));
                 Edge(EventId(ev.Id), knowledge,
                      "learned-" + known.Origin.ToString().ToLowerInvariant(), known.Checksum);
-                Edge(knowledge, npc, "known-by", known.Checksum);
+                // Acquisitions are immutable history; the NPC's current knowledge is
+                // the latest admitted entry. Old rumors and refutations cannot prove
+                // that the NPC still knows the alleged event as a current belief.
+                var current = archive.Get(known.Knower).Knowledge(ev.Id);
+                if (current != null && current.Sequence == known.Sequence &&
+                    current.Origin != KnowledgeOrigin.Refuted)
+                {
+                    string npc = "npc:" + known.Knower;
+                    Node(npc, "known-by-npc", ContractText.Hash(npc));
+                    Edge(knowledge, npc, "known-by", known.Checksum);
+                }
             }
 
             var canonicalNodes = nodes.Values.ToArray();
