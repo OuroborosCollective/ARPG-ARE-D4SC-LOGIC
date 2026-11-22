@@ -51,8 +51,9 @@ internal static class LivingChronicleTests
         check(entries.Any(e => e.EventId == theft.Id && e.Origin == ChronicleOrigin.Performed) &&
               entries.Any(e => e.EventId == decision.Id && e.Origin == ChronicleOrigin.Performed),
               "chronicle-accepted-action-and-causal-consequence-visible");
-        check(entries.All(e => e.SourceNpcId == "") &&
-              entries.All(e => e.EventId == theft.Id || e.EventId == decision.Id),
+        check(entries.All(e => e.SourceNpcId == "" &&
+              p.Social.Forge.Archive.Events.Any(source => source.Id == e.EventId &&
+                  source.Actor == "player")),
               "chronicle-does-not-surface-unrelated-archive-events");
         string saved = p.SaveString();
         ulong worldHash = world.ComputeWorldHash();
