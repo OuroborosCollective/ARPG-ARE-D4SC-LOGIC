@@ -420,11 +420,13 @@ namespace AreArpg.EditorTools
                     if (variant || recipe.parts) unused.Add(GameMeshPath(recipe.id));
                     if (variant || !recipe.parts) { unused.Add(PartPath(recipe.id, FigureComposer.BodyPart)); unused.Add(PartPath(recipe.id, FigureComposer.HeadPart)); }
                     AssetDatabase.SaveAssets();
+                    ReloadRewritten();
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
                 catch (Exception e)
                 {
                     if (snapshot != null) snapshot.Restore();
+                    ReloadRewritten(); // the restored files count, not what this attempt left in memory
                     if (fromBake)
                     {
                         string backup = Path.Combine("Library/BozoCharacters/Backup", id);
@@ -472,17 +474,48 @@ namespace AreArpg.EditorTools
             return SaveMesh(BuildGameMesh(recipe), GameMeshPath(recipe.id));
         }
 
+        /// <summary>
+        /// Meshes rewritten in place during this run. The editor keeps drawing the old data of such a mesh: once its
+        /// vertex count changed, figures using it showed no body or no head at all. Each one is therefore unloaded as
+        /// soon as it is saved, and its next use reads the file.
+        /// </summary>
+        static readonly List<Mesh> Rewritten = new List<Mesh>();
+
         /// <summary>Store a game mesh, keeping the identity of an existing asset, without a second copy for scripts.</summary>
         static Mesh SaveMesh(Mesh mesh, string path)
         {
             var saved = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             if (saved == null) { AssetDatabase.CreateAsset(mesh, path); saved = mesh; }
-            else { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); } // keep the asset identity
+            else { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); Rewritten.Add(saved); } // keep the asset identity
             var serialized = new SerializedObject(saved);
             serialized.FindProperty("m_IsReadable").boolValue = false;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(saved);
             return saved;
+        }
+
+        /// <summary>Unload the meshes rewritten in place (after saving them): every later use loads them from their file.</summary>
+        static void ReloadRewritten()
+        {
+            foreach (Mesh mesh in Rewritten) if (mesh != null) Resources.UnloadAsset(mesh);
+            Rewritten.Clear();
+        }
+
+        /// <summary>
+        /// Unload every game mesh of the baked figures, so the editor draws what their files hold. For a session that
+        /// rewrote meshes before the baker unloaded them itself.
+        /// </summary>
+        public static int ReloadGameMeshes()
+        {
+            int count = 0;
+            foreach (string guid in AssetDatabase.FindAssets("t:Mesh", new[] { BakeFolder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.Contains("_Game")) continue;
+                foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                    if (asset is Mesh) { Resources.UnloadAsset(asset); count++; }
+            }
+            return count;
         }
 
         static string GameMeshPath(string id) { return BakeFolder + "/" + id + "/" + id + "_GameMesh.asset"; }
