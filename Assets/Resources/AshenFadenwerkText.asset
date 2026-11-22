@@ -37,3 +37,28 @@ MonoBehaviour:
   - "Der Core pr\xFCft und verbraucht die tats\xE4chlich fehlenden Rationen."
   - Im Verletztenlager fehlt ein Patient.
   sourceHash: b91d1544189be71ca137375b9cf53365be6fbc8f7b96bd09318b8cda3ae32978
+  chronicleKeys:
+  - "chronicle.camp.theft"
+  - "chronicle.camp.donation"
+  - "chronicle.camp.decision.stolen"
+  - "chronicle.camp.decision.replaced"
+  - "chronicle.story.hearilyan"
+  - "chronicle.story.inspecttrail"
+  - "chronicle.story.inspectshelter"
+  - "chronicle.story.reveal"
+  - "chronicle.story.protect"
+  - "chronicle.story.replace"
+  - "chronicle.story.inspectbeds"
+  chronicleTexts:
+  - "Du hast eine Ration aus Maras Lager genommen."
+  - "Du hast Mara eine echte Ration gebracht."
+  - "Die Wahl ist gefallen: Der Vorrat wurde gestohlen."
+  - "Das Lager wurde nach der letzten Spende vollstaendig aufgefuellt."
+  - "Du hast Ilyans vertrauliche Geschichte gehoert."
+  - "Du hast den Verband und die Spur am Wegzeichen untersucht."
+  - "Du hast Verbandszeug und Essensreste im Lager untersucht."
+  - "Du hast Mara von Ilyans Versorgung erzaehlt."
+  - "Du hast Ilyan dein Schweigen zugesagt."
+  - "Du hast die Ersatzversorgung beschlossen."
+  - "Du hast die Verletztenbetten untersucht."
+  chronicleSourceHash: d099ce6305697ea7dc9d0dfcda1ddc115f35ce56196a6fc25c3c545463166fe6
