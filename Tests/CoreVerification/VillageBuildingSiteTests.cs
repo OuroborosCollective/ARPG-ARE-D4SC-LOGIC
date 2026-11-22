@@ -23,7 +23,9 @@ internal static class VillageBuildingSiteTests
     private static ArenaSimulation Village(ulong seed)
     {
         var p = CharacterProgression.CreateEntryProfile(); p.EnterVillage(); p.Social.EnableForge();
-        return new ArenaSimulation(seed, p, BigInteger.One, LootCatalog.Version1);
+        var world = new ArenaSimulation(seed, p, BigInteger.One, LootCatalog.Version1);
+        if (!world.CompleteArrivalScene()) throw new InvalidOperationException("Village building test must complete first arrival");
+        return world;
     }
 
     private static void Rules(Action<bool, string> check)
