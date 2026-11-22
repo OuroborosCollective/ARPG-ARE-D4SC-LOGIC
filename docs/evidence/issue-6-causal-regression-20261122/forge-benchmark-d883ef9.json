@@ -1,0 +1,189 @@
+{
+  "sourceSha": "d883ef9c1cf30d8eed2ae32b9a15547e4993347a",
+  "runtime": ".NET 8.0.21",
+  "os": "Ubuntu 22.04.5 LTS",
+  "architecture": "X64",
+  "processorCount": 8,
+  "hostLoadAverage": {
+    "before": "4.14 4.71 4.93 3/2112 744333",
+    "after": "4.37 4.75 4.94 2/2110 744466"
+  },
+  "archiveEvents": 1000,
+  "archiveTokenBytes": 376242,
+  "actualVillageNpcs": 3,
+  "measurement": "Managed host measurements from an external harness; batch-mean and per-tick percentiles, not device frame-time evidence",
+  "results": [
+    {
+      "name": "utility-guard-without-formatting",
+      "operations": 4000,
+      "meanMicroseconds": 0.31513749999999996,
+      "p50BatchMeanMicroseconds": 0.33159999999999995,
+      "p95BatchMeanMicroseconds": 0.4646,
+      "allocatedBytesPerOperation": 480
+    },
+    {
+      "name": "utility-guard-with-decision-trace",
+      "operations": 4000,
+      "meanMicroseconds": 2.7941025,
+      "p50BatchMeanMicroseconds": 2.92962,
+      "p95BatchMeanMicroseconds": 4.36904,
+      "allocatedBytesPerOperation": 8216
+    },
+    {
+      "name": "memory-recall-64-from-1000-events",
+      "operations": 2000,
+      "meanMicroseconds": 26.041736999999994,
+      "p50BatchMeanMicroseconds": 25.96458,
+      "p95BatchMeanMicroseconds": 30.235239999999997,
+      "allocatedBytesPerOperation": 7080
+    },
+    {
+      "name": "archive-save-1000-events",
+      "operations": 100,
+      "meanMicroseconds": 2159.7587699999995,
+      "p50BatchMeanMicroseconds": 2054.5371999999998,
+      "p95BatchMeanMicroseconds": 3511.9957999999997,
+      "allocatedBytesPerOperation": 3557756.88
+    },
+    {
+      "name": "archive-load-1000-events",
+      "operations": 100,
+      "meanMicroseconds": 12603.75414,
+      "p50BatchMeanMicroseconds": 12568.5824,
+      "p95BatchMeanMicroseconds": 14516.8166,
+      "allocatedBytesPerOperation": 10699497.28
+    },
+    {
+      "name": "actual-core-village-tick-3-npcs",
+      "operations": 4000,
+      "meanMicroseconds": 0.9575177499999997,
+      "p50BatchMeanMicroseconds": 0.8555200000000001,
+      "p95BatchMeanMicroseconds": 1.23401,
+      "allocatedBytesPerOperation": 2483.756
+    },
+    {
+      "name": "actual-core-village-save",
+      "operations": 300,
+      "meanMicroseconds": 30.04036,
+      "p50BatchMeanMicroseconds": 29.359199999999998,
+      "p95BatchMeanMicroseconds": 45.7823,
+      "allocatedBytesPerOperation": 70025.38666666667
+    }
+  ],
+  "causalVillage": {
+    "name": "causal-village-3-npcs",
+    "seed": 6107,
+    "ticks": 10000,
+    "simulatedSeconds": 1000,
+    "villageNpcs": 3,
+    "cpuMilliseconds": 10,
+    "wallMilliseconds": 17.67547,
+    "tickMicroseconds": {
+      "p50": 0.94,
+      "p95": 2.12,
+      "p99": 2.91,
+      "max": 2116.796,
+      "maxAtTick": 99,
+      "mean": 1.4319441
+    },
+    "allocatedBytes": 19884312,
+    "allocatedBytesPerTick": 1988.4312,
+    "events": 5,
+    "acquisitions": 4,
+    "reportedAcquisitions": 1,
+    "saveBytes": 5071,
+    "archiveTokenBytes": 3202,
+    "worldHash": "D610B87E4889B342",
+    "archiveChecksum": "f254e8d3d992b9637e30e86fd3510b5f9a968446ec7b275e73109419d450a084",
+    "saveReload": {
+      "loads": true,
+      "sameSaveBytes": true,
+      "sameArchiveToken": true
+    },
+    "memory": {
+      "managedHeapBytes": 10384816,
+      "workingSetBytes": 77295616,
+      "peakWorkingSetBytes": 81289216
+    }
+  },
+  "forgeEvaluator": [
+    {
+      "name": "forge-evaluator-10-minds",
+      "minds": 10,
+      "memoriesPerMind": 16,
+      "events": 160,
+      "acquisitions": 160,
+      "note": "evaluator and recall over archive minds; not world NPCs",
+      "sweep": {
+        "name": "forge-evaluator-10-minds-sweep",
+        "operations": 40,
+        "meanMicroseconds": 34.990024999999996,
+        "p50BatchMeanMicroseconds": 34.71,
+        "p95BatchMeanMicroseconds": 36.82,
+        "allocatedBytesPerOperation": 28920
+      },
+      "perMindMicroseconds": 3.4990024999999996,
+      "archiveTokenBytes": 64318,
+      "saveMilliseconds": 0.605685,
+      "loadMilliseconds": 2.82035,
+      "reloadSameToken": true,
+      "memory": {
+        "managedHeapBytes": 4041328,
+        "workingSetBytes": 77066240,
+        "peakWorkingSetBytes": 81289216
+      }
+    },
+    {
+      "name": "forge-evaluator-100-minds",
+      "minds": 100,
+      "memoriesPerMind": 16,
+      "events": 1600,
+      "acquisitions": 1600,
+      "note": "evaluator and recall over archive minds; not world NPCs",
+      "sweep": {
+        "name": "forge-evaluator-100-minds-sweep",
+        "operations": 40,
+        "meanMicroseconds": 400.415875,
+        "p50BatchMeanMicroseconds": 394.122,
+        "p95BatchMeanMicroseconds": 423.672,
+        "allocatedBytesPerOperation": 289200
+      },
+      "perMindMicroseconds": 4.00415875,
+      "archiveTokenBytes": 642358,
+      "saveMilliseconds": 5.799292,
+      "loadMilliseconds": 27.330302,
+      "reloadSameToken": true,
+      "memory": {
+        "managedHeapBytes": 19529912,
+        "workingSetBytes": 86007808,
+        "peakWorkingSetBytes": 86007808
+      }
+    },
+    {
+      "name": "forge-evaluator-1000-minds",
+      "minds": 1000,
+      "memoriesPerMind": 16,
+      "events": 16000,
+      "acquisitions": 16000,
+      "note": "evaluator and recall over archive minds; not world NPCs",
+      "sweep": {
+        "name": "forge-evaluator-1000-minds-sweep",
+        "operations": 20,
+        "meanMicroseconds": 5714.521500000001,
+        "p50BatchMeanMicroseconds": 5849.303,
+        "p95BatchMeanMicroseconds": 9066.088,
+        "allocatedBytesPerOperation": 2892000
+      },
+      "perMindMicroseconds": 5.714521500000001,
+      "archiveTokenBytes": 6422758,
+      "saveMilliseconds": 53.03798,
+      "loadMilliseconds": 281.387378,
+      "reloadSameToken": true,
+      "memory": {
+        "managedHeapBytes": 138267464,
+        "workingSetBytes": 198356992,
+        "peakWorkingSetBytes": 215715840
+      }
+    }
+  ]
+}
