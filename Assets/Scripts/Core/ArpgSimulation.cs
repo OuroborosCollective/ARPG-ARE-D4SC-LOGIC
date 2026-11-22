@@ -416,6 +416,9 @@ namespace AreArpg.Core
         {
             var result = new SocialResult();
             if (GameOver || action < NpcAction.Greet || action > NpcAction.Rob) return result;
+            // The authored first-arrival scene has sole input authority until its
+            // one-time Core receipt exists; presentation gating is not sufficient.
+            if (ArrivalScenePending) { result.Text = ListenFirst; return result; }
             NpcAgent npc = Npcs.Find(n => n.Id == id);
             if (npc == null || npc.InteractionCooldownTicks > 0 ||
                 DistanceSquared(PlayerXmm, PlayerZmm, npc.Xmm, npc.Zmm) > FixedMath.Square(NpcInteractionRadiusMm)) return result;

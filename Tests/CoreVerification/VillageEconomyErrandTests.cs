@@ -239,6 +239,7 @@ internal static class VillageEconomyErrandTests
         profile.EnterVillage();
         profile.Social.EnableForge();
         var world = new ArenaSimulation(77, profile, 1, LootCatalog.Version1);
+        check(world.CompleteArrivalScene(), "the-guard-fixture-completes-arrival-before-the-fight");
         world.CompleteMainQuest();
         for (int i = 0; i < 40; i++) world.Step();
         var e = profile.Economy;

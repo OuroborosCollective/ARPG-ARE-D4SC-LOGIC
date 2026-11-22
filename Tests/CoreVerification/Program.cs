@@ -36,6 +36,7 @@ internal static class Program
             NpcCalmTests.Run(Require);
             ArrivalSceneTests.Run(Require);
             CampDecisionTests.Run(Require);
+            CausalCampSliceTests.Run(Require);
             CausalKnowledgeGraphTests.Run(Require);
             SupplyTheftTests.Run(Require);
             LootAffixTests.Run(Require);
