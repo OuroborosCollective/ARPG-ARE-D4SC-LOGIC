@@ -75,3 +75,14 @@ Completing adoption does not close the gameplay defect.
 Observed benefit: explicit original reproduction, shared-clip regression and distinct
 evidence boundaries. No comparable before/after development-time baseline exists;
 no percentage speedup is measured.
+
+
+## Bounded engineering-skill extension (2026-11-22)
+
+The pinned Matt Pocock v1.3.2 workflow readback is described in
+[the engineering-skill gate contract](agents/engineering-skills-v132.md).
+It extends Director `route_work.py` with advisory skill-file and SHA checks.
+Spec Kit still owns the change contract, SPD keeps ticket-graph planning,
+the existing Unity Director performs actual tests and readback. No tool
+dispatch, model invocation, duplicate authority, optional skipped-test PASS
+or new Unity package is enabled by the Skill gate.

@@ -48,6 +48,7 @@ asset-intake-receipts/
 __pycache__/
 *.pyc
 /Tools/spec-workflow-catalog.json
+/Tools/engineering-skill-catalog.json
 # Standalone .NET verification outputs
 Tests/**/bin/
 Tests/**/obj/
