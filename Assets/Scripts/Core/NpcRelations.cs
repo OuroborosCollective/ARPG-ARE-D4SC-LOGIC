@@ -15,6 +15,12 @@ namespace AreArpg.Core
         public int SpeakerId = -1;
         public SpeechLine Speech, FollowupSpeech;
         public string Text = "";
+        // Read-only projection metadata for an accepted and witnessed Core conversation.
+        // The Unity client resolves the text key exclusively through checksummed Fadenwerk.
+        public string ChronicleTextKey = "";
+        public string ChronicleSpeakerId = "";
+        public AshenCrypt.MemoryForge.KnowledgeOrigin ChronicleKnowledgeOrigin;
+        public ulong ChronicleEventId;
     }
 
     /// <summary>One NPC's local memory of this single-player character; no global shared reputation.</summary>

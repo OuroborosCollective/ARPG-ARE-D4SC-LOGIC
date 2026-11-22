@@ -20,6 +20,44 @@ namespace AreArpg.EditMode.Tests
             try { Assert.AreEqual(AshenFadenwerkText.ResourceName,compiled.name); Assert.IsTrue(compiled.Valid); Assert.AreEqual(Resources.Load<AshenFadenwerkText>(AshenFadenwerkText.ResourceName).sourceHash,compiled.sourceHash); }
             finally { UnityEngine.Object.DestroyImmediate(compiled); }
         }
+        [Test] public void LivingChronicleKeysArePublishedFromValidFadenwerkDialogues()
+        {
+            var published = Resources.Load<AshenFadenwerkText>(AshenFadenwerkText.ResourceName);
+            Assert.IsNotNull(published);
+            Assert.IsTrue(published.Valid);
+            Assert.IsTrue(published.ChronicleValid, "Published Chronicle must carry a valid independent content hash");
+            var db = AssetDatabase.LoadAssetAtPath<ScriptableObject>(DbPath);
+            var editor = Type.GetType("AshenFadenwerkEditor, Assembly-CSharp-Editor", true);
+            var compiled = (AshenFadenwerkText)editor.GetMethod("Compile").Invoke(null, new object[] { db });
+            try
+            {
+                Assert.IsTrue(compiled.ChronicleValid);
+                CollectionAssert.AreEqual(compiled.chronicleKeys, published.chronicleKeys);
+                CollectionAssert.AreEqual(compiled.chronicleTexts, published.chronicleTexts);
+                Assert.AreEqual(compiled.chronicleSourceHash, published.chronicleSourceHash);
+                foreach (string key in AreArpg.Core.ChronicleFadenwerkBinding.Keys)
+                {
+                    Assert.IsNotNull(AreArpg.Core.ChronicleFadenwerkBinding.DialogueId(key));
+                    Assert.IsNotEmpty(published.ChronicleTextFor(key));
+                }
+                Assert.IsNull(published.ChronicleTextFor("chronicle.unknown"));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(compiled); }
+        }
+        [Test] public void TamperedChronicleFadenwerkTextFailsClosed()
+        {
+            var published = Resources.Load<AshenFadenwerkText>(AshenFadenwerkText.ResourceName);
+            var altered = UnityEngine.Object.Instantiate(published);
+            try
+            {
+                altered.chronicleTexts[0] = "new text without authoring receipt";
+                Assert.IsFalse(altered.ChronicleValid);
+                Assert.IsFalse(altered.Valid);
+                Assert.IsNull(altered.ChronicleTextFor("chronicle.camp.theft"));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(altered); }
+        }
+
         [Test] public void TamperedPublishedTextIsRejected()
         {
             var p=UnityEngine.Object.Instantiate(Resources.Load<AshenFadenwerkText>(AshenFadenwerkText.ResourceName));

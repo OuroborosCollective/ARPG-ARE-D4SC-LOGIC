@@ -608,7 +608,8 @@ namespace AreArpg.Core
         private void StepVillageEconomy()
         {
             Progression.Economy.Advance(Progression, this);
-            if (Progression.Economy.Started) StepVillageContacts();
+            // Camp witnesses must be able to speak even before optional village jobs unlock.
+            StepVillageContacts();
         }
 
         private void MixEconomy(ref ulong h)

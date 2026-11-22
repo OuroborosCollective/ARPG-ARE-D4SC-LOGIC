@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using AshenCrypt.MemoryForge;
 
 namespace AreArpg.Core
@@ -322,6 +323,19 @@ namespace AreArpg.Core
                 archive.Report(teller.Id, listener.Id, news.Event.Id, tick);
         }
 
+        /// <summary>Only an actual admitted first-hand Forge memory travels at an actual safe Core meeting.</summary>
+        private static void TellCampNews(MemoryArchive archive, NpcMind teller, NpcMind listener, ulong tick)
+        {
+            if (teller == null || listener == null || teller == listener) return;
+            var known = teller.Relevant(tick).Where(k =>
+                k.IsFact && k.Event.Actor == "player" &&
+                (k.Event.Context == "camp.theft" || k.Event.Context == "camp.donation") &&
+                teller.Cognition.Recall(k.Event.Id, tick) != null)
+                .OrderByDescending(k => k.Event.Id).FirstOrDefault();
+            if (known != null && listener.Knowledge(known.Event.Id) == null)
+                archive.Report(teller.Id, listener.Id, known.Event.Id, tick);
+        }
+
         private void StepVillageContacts()
         {
             var forge = Progression.Social.Forge;
@@ -332,7 +346,10 @@ namespace AreArpg.Core
                 foreach (var teller in Npcs)
                     if (teller != listener && CanConverse(teller) &&
                         InVillageContact(teller.Xmm, teller.Zmm, listener.Xmm, listener.Zmm))
+                    {
                         TellSupplyNews(forge.Archive, teller.Mind, listener.Mind, forge.ProcessedTicks);
+                        TellCampNews(forge.Archive, teller.Mind, listener.Mind, forge.ProcessedTicks);
+                    }
                 foreach (var neighbor in Progression.Economy.Residents)
                     if (!neighbor.Walking && neighbor.Work == VillageWork.None && SeenInVillage(neighbor, out var spot) &&
                         InVillageContact(VillageEconomyLayout.VillageXmm(spot), VillageEconomyLayout.VillageZmm(spot), listener.Xmm, listener.Zmm))
@@ -340,6 +357,8 @@ namespace AreArpg.Core
                         var neighborMind = forge.Archive.Get(neighbor.Identity);
                         TellSupplyNews(forge.Archive, neighborMind, listener.Mind, forge.ProcessedTicks);
                         TellSupplyNews(forge.Archive, listener.Mind, neighborMind, forge.ProcessedTicks);
+                        TellCampNews(forge.Archive, neighborMind, listener.Mind, forge.ProcessedTicks);
+                        TellCampNews(forge.Archive, listener.Mind, neighborMind, forge.ProcessedTicks);
                     }
             }
             // Two free residents at the same Core workplace share their own witnessed news even
@@ -358,6 +377,8 @@ namespace AreArpg.Core
                     var rightMind = forge.Archive.Get(right.Identity);
                     TellSupplyNews(forge.Archive, leftMind, rightMind, forge.ProcessedTicks);
                     TellSupplyNews(forge.Archive, rightMind, leftMind, forge.ProcessedTicks);
+                    TellCampNews(forge.Archive, leftMind, rightMind, forge.ProcessedTicks);
+                    TellCampNews(forge.Archive, rightMind, leftMind, forge.ProcessedTicks);
                 }
             }
         }

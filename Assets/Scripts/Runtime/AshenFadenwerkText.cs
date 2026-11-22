@@ -16,6 +16,54 @@ namespace AreArpg.UnityClient
         public string[] labels;
         public string[] responses;
         public string sourceHash;
+        // Additional read-only journal authoring; original Hunger.v1 hash is unchanged.
+        public string[] chronicleKeys;
+        public string[] chronicleTexts;
+        public string chronicleSourceHash;
+
+        public string ChronicleContentHash()
+        {
+            if (chronicleKeys == null || chronicleTexts == null) return "";
+            var b = new StringBuilder();
+            Action<string> add = s =>
+            {
+                s = s ?? "";
+                b.Append(s.Length.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(':').Append(s);
+            };
+            add(ChronicleFadenwerkBinding.Contract);
+            for (int i = 0; i < chronicleKeys.Length && i < chronicleTexts.Length; i++)
+            {
+                add(chronicleKeys[i]);
+                add(chronicleTexts[i]);
+            }
+            using (var h = SHA256.Create())
+                return BitConverter.ToString(h.ComputeHash(Encoding.UTF8.GetBytes(b.ToString())))
+                    .Replace("-", "").ToLowerInvariant();
+        }
+
+        public bool ChronicleValid
+        {
+            get
+            {
+                var required = ChronicleFadenwerkBinding.Keys;
+                if (chronicleKeys == null || chronicleTexts == null ||
+                    chronicleKeys.Length != required.Length || chronicleTexts.Length != required.Length)
+                    return false;
+                for (int i = 0; i < required.Length; i++)
+                    if (chronicleKeys[i] != required[i] ||
+                        string.IsNullOrWhiteSpace(chronicleTexts[i]) || chronicleTexts[i].Length > 2000)
+                        return false;
+                return chronicleSourceHash == ChronicleContentHash();
+            }
+        }
+
+        public string ChronicleTextFor(string textKey)
+        {
+            if (!ChronicleValid || ChronicleFadenwerkBinding.DialogueId(textKey) == null) return null;
+            int i = Array.IndexOf(chronicleKeys, textKey);
+            return i < 0 ? null : chronicleTexts[i];
+        }
+
         public string ContentHash()
         {
             var b=new StringBuilder();
@@ -25,7 +73,10 @@ namespace AreArpg.UnityClient
             using(var h=SHA256.Create())return BitConverter.ToString(h.ComputeHash(Encoding.UTF8.GetBytes(b.ToString()))).Replace("-","").ToLowerInvariant();
         }
         public bool Valid { get { return contract==AuthoredHungerBinding.Contract && !string.IsNullOrWhiteSpace(title) &&
-            ValidTexts(objectives,5) && ValidTexts(labels,7) && ValidTexts(responses,7) && sourceHash==ContentHash(); } }
+            ValidTexts(objectives,5) && ValidTexts(labels,7) && ValidTexts(responses,7) &&
+            sourceHash==ContentHash() &&
+            ((chronicleKeys==null && chronicleTexts==null && string.IsNullOrEmpty(chronicleSourceHash))
+              || ChronicleValid); } }
         static bool ValidTexts(string[] a,int count) { if(a==null||a.Length!=count)return false;foreach(var s in a)if(string.IsNullOrWhiteSpace(s)||s.Length>2000)return false;return true; }
     }
     public sealed partial class ArenaRuntime
@@ -43,6 +94,19 @@ namespace AreArpg.UnityClient
         public string AuthoredHungerHash { get { var p=AuthoredHunger; return p!=null?p.sourceHash:""; } }
         private string PresentedHungerObjective()
         { var p=AuthoredHunger; int stage=AuthoredHungerBinding.TextStage(_game.Progression); return p!=null&&stage>=0?p.objectives[stage]:_game.HungerObjective; }
+        private string PresentedNpcResult(SocialResult result)
+        {
+            if (result == null) return "";
+            if (string.IsNullOrEmpty(result.ChronicleTextKey)) return result.Text;
+            // The dialogue may only be selected after the Core has supplied
+            // an accepted source event, NPC identity and exact KnowledgeOrigin.
+            string statement = AuthoredHunger?.ChronicleTextFor(result.ChronicleTextKey);
+            if (string.IsNullOrEmpty(statement)) return result.Text + " Chroniktext nicht freigegeben.";
+            string provenance = result.ChronicleKnowledgeOrigin == AshenCrypt.MemoryForge.KnowledgeOrigin.Reported
+                ? "Mir wurde erzaehlt: " : "Ich war dabei. ";
+            return result.Text + " " + provenance + statement;
+        }
+
         private string PresentedStoryResult(HungerAction action, SocialResult result)
         {
             var p=AuthoredHunger;

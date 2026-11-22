@@ -105,7 +105,36 @@ public static class AshenFadenwerkEditor
         }
         string title=Text(q.title,"Titel",100);
         var result=ScriptableObject.CreateInstance<AshenFadenwerkText>();
-        result.name=AshenFadenwerkText.ResourceName;result.title=title;result.objectives=objectives;result.labels=labels;result.responses=responses;result.sourceHash=result.ContentHash();return result;
+        result.name=AshenFadenwerkText.ResourceName;result.title=title;result.objectives=objectives;result.labels=labels;result.responses=responses;
+        // The Living Chronicle is text-only. Each Fadenwerk dialogue is a single
+        // terminal node with no reward, quest, flag or client-side action authority.
+        var keys = ChronicleFadenwerkBinding.Keys;
+        var chronicleTexts = new string[keys.Length];
+        for (int i = 0; i < keys.Length; i++)
+        {
+            string authoredId = ChronicleFadenwerkBinding.DialogueId(keys[i]);
+            var authored = db.dialogues.Where(x => x != null && x.id == authoredId).ToArray();
+            if (authored.Length != 1 || authored[0].startNodeId != "line" ||
+                authored[0].nodes == null || authored[0].nodes.Count != 1)
+                throw new InvalidOperationException("Chronikdialog fehlt oder hat eine unzulaessige Struktur: " + authoredId);
+            var line = authored[0].nodes[0];
+            var choice = line?.choices != null && line.choices.Count == 1 ? line.choices[0] : null;
+            if (line == null || line.id != "line" || choice == null ||
+                choice.action != "end" || !string.IsNullOrEmpty(choice.actionParam) ||
+                !string.IsNullOrEmpty(choice.nextNodeId) ||
+                !string.IsNullOrEmpty(choice.requiresFlag) ||
+                !string.IsNullOrEmpty(choice.conditionQuestId) ||
+                !string.IsNullOrEmpty(choice.conditionState))
+                throw new InvalidOperationException("Chronikdialog darf keine frei erfundene Spielwirkung besitzen: " + authoredId);
+            chronicleTexts[i] = Text(line.text, "Chroniktext");
+        }
+        result.chronicleKeys = (string[])keys.Clone();
+        result.chronicleTexts = chronicleTexts;
+        result.chronicleSourceHash = result.ChronicleContentHash();
+        result.sourceHash=result.ContentHash();
+        if (!result.Valid || !result.ChronicleValid)
+            throw new InvalidOperationException("Publizierte Chronik-Texte sind nicht pruefsummengebunden");
+        return result;
     }
     public static void Publish()
     {
