@@ -11,7 +11,7 @@ The game shows exactly as many Stock parts as the village really owns of that go
 stock of its own. The goods are named as in the game's rules (VillageGood).
 
   WorkWoodyard    stump and stacking frame; wood (12), axes (2)
-  WorkBench       carpenter's bench; wooden frames (2), bows (2), a broken axe (1), metal (2), thorn berries (2)
+  WorkBench       carpenter's bench; wooden frames (2), bows (2), thorn berries (2)
   WorkGameRack    pole on forked posts; game (4)
   WorkDryingRack  three hanging frames; hides (3)
   WorkKitchen     fire ring, tripod, pot and a low table; rations (4), water (4), the fire
@@ -41,8 +41,16 @@ PALETTE = [
     ("feather", (0.52, 0.50, 0.47)), ("string", (0.86, 0.82, 0.72)), ("char", (0.09, 0.08, 0.08)), ("cloth", (0.60, 0.55, 0.45)),
     ("berry", (0.56, 0.10, 0.15)), ("water", (0.20, 0.31, 0.38)), ("stew", (0.50, 0.36, 0.22)),
     ("flame", (1.00, 0.52, 0.12)), ("flame_core", (1.00, 0.84, 0.42)), ("ember", (0.82, 0.22, 0.06)),
+    # Added for the rooms of the village houses and the field (village_place_rooms.py). New colours go to the end:
+    # the place of a colour in this list is its cell in the palette picture, and older models keep their cells.
+    ("plaster", (0.60, 0.55, 0.47)), ("plaster_dark", (0.44, 0.40, 0.35)), ("timber", (0.22, 0.16, 0.11)), ("floor", (0.37, 0.28, 0.20)),
+    ("floor_dark", (0.24, 0.18, 0.13)), ("linen", (0.76, 0.72, 0.64)), ("blanket", (0.34, 0.38, 0.44)), ("skin", (0.78, 0.60, 0.48)),
+    ("straw", (0.74, 0.63, 0.36)), ("sack", (0.56, 0.48, 0.36)), ("soil", (0.19, 0.15, 0.12)), ("sprout", (0.38, 0.52, 0.26)),
+    ("wheat", (0.82, 0.67, 0.30)), ("herb", (0.34, 0.45, 0.29)), ("leather", (0.42, 0.27, 0.18)), ("bandage", (0.88, 0.85, 0.78)),
+    ("ore", (0.37, 0.30, 0.27)), ("ingot", (0.50, 0.51, 0.55)), ("coal", (0.07, 0.07, 0.08)), ("glass", (0.42, 0.52, 0.52)),
+    ("copper", (0.62, 0.37, 0.22)), ("compost", (0.26, 0.20, 0.13)), ("hot", (1.00, 0.45, 0.10)),
 ]
-GLOWING = ("flame", "flame_core", "ember")
+GLOWING = ("flame", "flame_core", "ember", "hot")
 CELLS = 8
 NAMES = [name for name, _ in PALETTE]
 TRIANGLE_BUDGET = 3500
@@ -256,19 +264,7 @@ def workbench():
     p.cyl(0.006, 1.22, (0.35, 0.01, 0.925), "string", rot=(0.0, math.radians(90), 0.0), sides=4)
     parts.append(p.finish())
 
-    # A broken axe waits for metal: the head with the stump of its helve, and the piece that split off.
-    p = Part("Stock_BrokenAxe_0", 220)
-    p.box((0.20, 0.13, 0.035), (-0.44, 0.10, 0.923), "iron", rot=(0.0, 0.0, math.radians(8)))
-    p.box((0.30, 0.045, 0.035), (-0.20, 0.13, 0.923), "wood_light", rot=(0.0, 0.0, math.radians(8)))
-    p.box((0.34, 0.045, 0.035), (0.14, 0.24, 0.923), "wood_light", rot=(0.0, 0.0, math.radians(-22)))
-    p.box((0.03, 0.05, 0.037), (-0.045, 0.152, 0.923), "cut", rot=(0.0, 0.0, math.radians(8)))
-    parts.append(p.finish())
-
-    # Metal bars and bowls of thorn berries along the front edge.
-    for k in range(2):
-        p = Part("Stock_Metal_%d" % k, 230 + k)
-        p.box((0.22, 0.075, 0.05), (-0.42 + k * 0.03, -0.27 + k * 0.095, 0.93), "iron", rot=(0.0, 0.0, math.radians(4 - k * 9)), taper=0.85)
-        parts.append(p.finish())
+    # Bowls of thorn berries along the front edge. Metal and a broken axe lie in the smithy (village_place_rooms.py).
     for k in range(2):
         p = Part("Stock_ThornBerry_%d" % k, 240 + k)
         x, y = -0.14 + k * 0.21, -0.25
@@ -567,4 +563,5 @@ def main():
         preview(groups, os.path.join(folder, "preview.png"))
 
 
-main()
+if __name__ == "__main__":
+    main()

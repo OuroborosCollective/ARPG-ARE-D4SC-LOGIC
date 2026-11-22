@@ -32,6 +32,8 @@ namespace AreArpg.UnityClient
         public sealed class VillageWorkplace
         {
             public readonly VillageSpot Spot;
+            /// <summary>The house whose whole room this model is, or none for a workplace out in the village.</summary>
+            public readonly VillagePlace House;
             public readonly string Key;
             /// <summary>Covered ground in the model's own frame (x to the side, z towards the worker), in metres.</summary>
             public readonly Vector2 Centre, Size;
@@ -46,22 +48,31 @@ namespace AreArpg.UnityClient
                 Goods = new VillageGood[stock.Length / 2]; Units = new int[stock.Length / 2];
                 for (int i = 0; i < Goods.Length; i++) { Goods[i] = (VillageGood)stock[i * 2]; Units[i] = stock[i * 2 + 1]; }
             }
+
+            /// <summary>A whole room as one model. Its ground is the room of the Core's layout, its front the door.</summary>
+            public VillageWorkplace(VillagePlace house, string key, bool fire, params int[] stock)
+                : this(VillageSpot.Home, key, 0f, 0f, VillagePlaceLayout.HalfWidthMm(house) / 500f, VillagePlaceLayout.HalfDepthMm(house) / 500f, 2.8f, fire, stock)
+            {
+                House = house;
+            }
         }
 
         /// <summary>
         /// The workplaces built for the village (Tools/Art/blender/village_work_props.py). The store is Mara's
-        /// existing camp; home and gate are places, not props.
+        /// existing camp; home and gate are places, not props. Metal and the broken axe lie in the smithy, so the
+        /// bench no longer shows them. The field (Tools/Art/blender/village_place_rooms.py) lies north of its place.
         /// </summary>
         public static readonly VillageWorkplace[] VillageWorkplaces =
         {
             new VillageWorkplace(VillageSpot.Woodyard, "WorkWoodyard", 0.75f, -0.02f, 3.0f, 1.35f, 1.0f, false, (int)VillageGood.Wood, 12, (int)VillageGood.Axe, 2),
             new VillageWorkplace(VillageSpot.Workbench, "WorkBench", -0.05f, 0.05f, 2.4f, 0.85f, 0.95f, false, (int)VillageGood.WoodFrame, 2, (int)VillageGood.Bow, 2,
-                (int)VillageGood.BrokenAxe, 1, (int)VillageGood.Metal, 2, (int)VillageGood.ThornBerry, 2),
+                (int)VillageGood.ThornBerry, 2),
             new VillageWorkplace(VillageSpot.Kitchen, "WorkKitchen", -0.55f, -0.03f, 2.66f, 1.5f, 1.8f, true, (int)VillageGood.Ration, 4, (int)VillageGood.Water, 4),
             new VillageWorkplace(VillageSpot.GameRack, "WorkGameRack", 0f, 0f, 2.2f, 0.35f, 1.9f, false, (int)VillageGood.Game, 4),
             new VillageWorkplace(VillageSpot.DryingRack, "WorkDryingRack", 0f, 0f, 3.6f, 0.9f, 1.95f, false, (int)VillageGood.Hide, 3),
             new VillageWorkplace(VillageSpot.Well, "WorkWell", -0.08f, 0f, 2.2f, 1.6f, 2.45f, false),
             new VillageWorkplace(VillageSpot.Board, "WorkBoard", 0f, 0f, 1.8f, 0.6f, 2.3f, false),
+            new VillageWorkplace(VillageSpot.Field, "WorkField", 0.8f, -2.0f, 8.8f, 5.2f, 0.7f, false, (int)VillageGood.Compost, 3),
         };
 
         private sealed class StockDisplay
@@ -78,8 +89,8 @@ namespace AreArpg.UnityClient
             public bool Visible;
             /// <summary>The figure is on the way to a place where it leaves the picture (gate or house door).</summary>
             public bool Leaving;
-            /// <summary>Out of the picture through the gate (true) or into the house (false): it comes back the same way.</summary>
-            public bool Outside;
+            /// <summary>Where the figure left the picture: the gate, the home or a house it works in. It comes back the same way.</summary>
+            public VillageSpot Door = VillageSpot.Home;
             public bool HasTarget;
             public VillageSpot Target;
             /// <summary>Place among the residents at the same spot, so two never stand in each other.</summary>
@@ -90,6 +101,10 @@ namespace AreArpg.UnityClient
         }
 
         private Transform _villageWork, _villageResidents, _cookingFire;
+        /// <summary>The room the village presentation was built for; none while it shows the village itself.</summary>
+        private VillagePlace _shownPlace;
+        private readonly Transform[] _fieldCrops = new Transform[3];
+        private readonly List<Transform> _roomPatients = new List<Transform>();
         private readonly List<StockDisplay> _villageStock = new List<StockDisplay>();
         private readonly List<ResidentView> _residentViews = new List<ResidentView>();
         private readonly VillageWalkGrid _villageWalk = new VillageWalkGrid();
@@ -101,6 +116,18 @@ namespace AreArpg.UnityClient
 
         private static Vector2 Stand(VillageSpot spot) { return new Vector2(VillageEconomyLayout.StandXmm(spot) / 1000f, VillageEconomyLayout.StandZmm(spot) / 1000f); }
         private static Vector2 Place(VillageSpot spot) { return new Vector2(VillageEconomyLayout.PlaceXmm(spot) / 1000f, VillageEconomyLayout.PlaceZmm(spot) / 1000f); }
+
+        /// <summary>
+        /// Where the n-th resident bound for a spot is seen out in the village: at the place itself, or, for a place
+        /// inside a house, in front of that house's door, where the figure goes out of the picture.
+        /// </summary>
+        private static Vector2 VillageStand(VillageSpot spot, int slot)
+        {
+            VillagePlace house = VillageEconomyLayout.HouseOf(spot);
+            if (house == VillagePlace.None) return Stand(spot, slot);
+            Vector2 door = new Vector2(VillagePlaceLayout.DoorXmm(house), VillagePlaceLayout.DoorZmm(house)) / 1000f;
+            return door + new Vector2(VillagePlaceLayout.DoorOutX(house), VillagePlaceLayout.DoorOutZ(house)) * 0.75f;
+        }
 
         /// <summary>Where the n-th resident at a spot stands: the first at the stand point, the others beside it.</summary>
         private static Vector2 Stand(VillageSpot spot, int slot)
@@ -120,8 +147,17 @@ namespace AreArpg.UnityClient
             // Not chapter scenery: racks, tripod and board are low and open, and the camera must not pull in
             // for them as it does for houses and trees. Both roots are removed here on every rebuild.
             _villageWork = new GameObject(VillageWorkRoot).transform;
+            _shownPlace = _game.InsidePlace;
+            if (_shownPlace != VillagePlace.None)
+            {
+                // Inside a house: its room with everything in it. The room stands whether or not anybody works yet.
+                BuildVillageRoom(_shownPlace);
+                UpdateVillageEconomy(0f);
+                return;
+            }
             foreach (VillageWorkplace workplace in VillageWorkplaces)
                 if (workplace.Spot == VillageSpot.Board) BuildWorkplace(workplace);
+            BuildHouseSigns();
             _villageNeedPending = true;
             UpdateVillageEconomy(0f);
         }
@@ -129,6 +165,7 @@ namespace AreArpg.UnityClient
         private void OpenVillageWorkplaces()
         {
             _villageResidents = new GameObject(VillageResidentsRoot).transform;
+            if (_shownPlace != VillagePlace.None) return;
             foreach (VillageWorkplace workplace in VillageWorkplaces)
                 if (workplace.Spot != VillageSpot.Board) BuildWorkplace(workplace);
             BuildVillageWalkGrid();
@@ -143,6 +180,9 @@ namespace AreArpg.UnityClient
                 Destroy(_villageResidents.gameObject);
             }
             _villageWork = _villageResidents = _cookingFire = null;
+            _shownPlace = VillagePlace.None;
+            Array.Clear(_fieldCrops, 0, _fieldCrops.Length);
+            _roomPatients.Clear();
             _villageStock.Clear();
             _residentViews.Clear();
             SetVillageBoardOpen(false);
@@ -167,13 +207,27 @@ namespace AreArpg.UnityClient
             bool art = prefab != null && PassiveArtVisuals.TryBindPrefab(host, prefab);
             if (!art)
             {
+                if (workplace.Spot == VillageSpot.Field) BuildFieldBlockout(host, workplace);
+                else
+                {
                 // No private art: a plain block of the same footprint, with one small cube per unit of stock.
                 Transform block = Shape(PrimitiveType.Cube, "Platzhalter_" + workplace.Key, Vector3.zero,
                     new Vector3(workplace.Size.x, Mathf.Min(workplace.Height, 1f), workplace.Size.y), new Color(0.40f, 0.29f, 0.19f));
                 block.SetParent(host, false);
                 block.localPosition = new Vector3(workplace.Centre.x, Mathf.Min(workplace.Height, 1f) * 0.5f, workplace.Centre.y);
                 block.localRotation = Quaternion.identity;
+                }
             }
+            BindWorkplaceStock(host, workplace, art);
+            if (workplace.Spot == VillageSpot.Field) FindFieldCrops(host);
+        }
+
+        /// <summary>
+        /// Find (or, without art, make) the parts that stand for the stock of a workplace or a room, and its fire.
+        /// A stock part that no good of this place claims stays hidden: nothing is shown that nobody counts.
+        /// </summary>
+        private void BindWorkplaceStock(Transform host, VillageWorkplace workplace, bool art)
+        {
             int slot = 0, slots = 0;
             foreach (int units in workplace.Units) slots += units;
             for (int g = 0; g < workplace.Goods.Length; g++)
@@ -204,6 +258,10 @@ namespace AreArpg.UnityClient
                 foreach (Transform unit in display.Units) unit.gameObject.SetActive(false);
                 _villageStock.Add(display);
             }
+            if (art)
+                foreach (Transform part in host.GetComponentsInChildren<Transform>(true))
+                    if (part.name.StartsWith(StockPrefix, StringComparison.Ordinal) && part.gameObject.activeSelf &&
+                        Array.IndexOf(workplace.Goods, StockGood(part.name)) < 0) part.gameObject.SetActive(false);
             if (!workplace.Fire) return;
             if (art)
             {
@@ -219,6 +277,14 @@ namespace AreArpg.UnityClient
             if (_cookingFire != null) _cookingFire.gameObject.SetActive(false);
         }
 
+        /// <summary>The good a stock part stands for, from its name "Stock_&lt;Good&gt;_&lt;n&gt;"; -1 for an unknown name.</summary>
+        private static VillageGood StockGood(string part)
+        {
+            int end = part.IndexOf('_', StockPrefix.Length);
+            string name = end < 0 ? part.Substring(StockPrefix.Length) : part.Substring(StockPrefix.Length, end - StockPrefix.Length);
+            return Enum.TryParse(name, out VillageGood good) && Enum.IsDefined(typeof(VillageGood), good) ? good : (VillageGood)(-1);
+        }
+
         private static Color StockColour(VillageGood good)
         {
             switch (good)
@@ -228,6 +294,12 @@ namespace AreArpg.UnityClient
                 case VillageGood.Game: case VillageGood.Hide: return new Color(0.50f, 0.36f, 0.24f);
                 case VillageGood.Water: return new Color(0.20f, 0.31f, 0.38f);
                 case VillageGood.ThornBerry: return new Color(0.56f, 0.10f, 0.15f);
+                case VillageGood.Ore: case VillageGood.Stone: return new Color(0.37f, 0.30f, 0.27f);
+                case VillageGood.Fitting: return new Color(0.34f, 0.35f, 0.38f);
+                case VillageGood.Grain: case VillageGood.SeedGrain: case VillageGood.Straw: return new Color(0.74f, 0.63f, 0.36f);
+                case VillageGood.Flour: case VillageGood.Bandage: return new Color(0.86f, 0.83f, 0.76f);
+                case VillageGood.Herb: return new Color(0.34f, 0.45f, 0.29f);
+                case VillageGood.Leather: case VillageGood.Compost: return new Color(0.36f, 0.25f, 0.17f);
                 default: return new Color(0.60f, 0.55f, 0.45f);
             }
         }
@@ -258,7 +330,7 @@ namespace AreArpg.UnityClient
             if (_game == null) return;
             VillageEconomyState economy = _game.Progression.Economy;
             bool wanted = _game.IsVillage;
-            if (wanted != (_villageWork != null))
+            if (wanted != (_villageWork != null) || (wanted && _shownPlace != _game.InsidePlace))
             {
                 if (wanted) BuildVillageEconomy();
                 else ClearVillageEconomy();
@@ -274,11 +346,24 @@ namespace AreArpg.UnityClient
                 for (int i = 0; i < display.Units.Length; i++)
                     if (display.Units[i] != null && display.Units[i].gameObject.activeSelf != i < count) display.Units[i].gameObject.SetActive(i < count);
             }
-            bool cooking = false;
+            // The fire burns where somebody is at it: out in the village the cooking fire, in a room its forge or hearth.
+            bool cooking = false; int lying = 0;
             foreach (VillageResidentState resident in economy.Residents)
-                cooking |= !resident.Walking && resident.Site == VillageSite.Village && resident.Activity == VillageActivity.Working &&
-                    VillageEconomyLayout.SpotFor(resident.Work) == VillageSpot.Kitchen;
+            {
+                VillageSpot at;
+                if (!VillageEconomyLayout.Seen(resident, out at) || resident.Walking) continue;
+                if (_shownPlace == VillagePlace.None)
+                    cooking |= resident.Activity == VillageActivity.Working && at == VillageSpot.Kitchen;
+                else if (VillageEconomyLayout.HouseOf(at) == _shownPlace)
+                {
+                    cooking = true;
+                    if (resident.Activity == VillageActivity.Recovering) lying++;
+                }
+            }
             if (_cookingFire != null && _cookingFire.gameObject.activeSelf != cooking) _cookingFire.gameObject.SetActive(cooking);
+            for (int i = 0; i < _roomPatients.Count; i++)
+                if (_roomPatients[i] != null && _roomPatients[i].gameObject.activeSelf != i < lying) _roomPatients[i].gameObject.SetActive(i < lying);
+            UpdateFieldCrops(economy);
 
             if (_villageNeedPending && seconds > 0f)
             {
@@ -290,7 +375,11 @@ namespace AreArpg.UnityClient
             Array.Clear(_villageSpotUse, 0, _villageSpotUse.Length);
             for (int i = _residentViews.Count; i < economy.Residents.Count; i++) _residentViews.Add(CreateResidentView(economy.Residents[i]));
             Array.Clear(_villageSpotUse, 0, _villageSpotUse.Length);
-            for (int i = 0; i < _residentViews.Count && i < economy.Residents.Count; i++) StepResidentView(_residentViews[i], economy.Residents[i], seconds);
+            for (int i = 0; i < _residentViews.Count && i < economy.Residents.Count; i++)
+            {
+                if (_shownPlace == VillagePlace.None) StepResidentView(_residentViews[i], economy.Residents[i], seconds);
+                else StepRoomResident(_residentViews[i], economy.Residents[i], seconds);
+            }
         }
 
         private ResidentView CreateResidentView(VillageResidentState resident)
@@ -311,11 +400,25 @@ namespace AreArpg.UnityClient
             RegisterActorMotion(view.Visual);
             // A game that starts or loads with the village already at work shows everybody in place at once.
             VillageSpot spot;
-            view.Visible = VillageEconomyLayout.Seen(resident, out spot);
-            view.Outside = resident.Walking || resident.Site != VillageSite.Village;
-            if (!view.Visible) spot = view.Outside ? VillageSpot.Gate : VillageSpot.Home;
+            bool seen = VillageEconomyLayout.Seen(resident, out spot);
+            if (_shownPlace != VillagePlace.None)
+            {
+                // Inside a room: whoever stands at work here is at their place; everybody else is not in this room.
+                view.Visible = seen && VillageEconomyLayout.HouseOf(spot) == _shownPlace && resident.Activity != VillageActivity.Recovering;
+                view.Slot = view.Visible ? _villageSpotUse[(int)spot]++ : 0;
+                view.At = view.Visible ? Stand(spot, view.Slot) : RoomDoorInside(_shownPlace);
+                view.Target = spot; view.HasTarget = view.Visible;
+                PlaceResident(view, Vector2.zero);
+                if (view.Visible) FaceWorkplace(view, spot);
+                view.Visual.gameObject.SetActive(view.Visible);
+                return view;
+            }
+            // Out in the village a resident is seen at the places under the open sky; in a house, behind its door.
+            view.Visible = seen && VillageEconomyLayout.HouseOf(spot) == VillagePlace.None;
+            if (!seen) spot = resident.Walking || resident.Site != VillageSite.Village ? VillageSpot.Gate : VillageSpot.Home;
+            view.Door = spot;
             view.Slot = _villageSpotUse[(int)spot]++;
-            view.At = Stand(spot, view.Slot);
+            view.At = VillageStand(spot, view.Slot);
             view.Target = spot; view.HasTarget = view.Visible;
             PlaceResident(view, Vector2.zero);
             if (view.Visible) FaceWorkplace(view, spot);
@@ -345,16 +448,19 @@ namespace AreArpg.UnityClient
         {
             VillageSpot spot;
             bool seen = VillageEconomyLayout.Seen(resident, out spot);
-            if (!seen)
+            // At work or in care inside a house the resident is behind its door: the figure walks there and is gone.
+            bool indoors = seen && VillageEconomyLayout.HouseOf(spot) != VillagePlace.None;
+            if (!seen || indoors)
             {
-                if (!view.Visible) return;
                 // Indoors to sleep, otherwise out through the gate.
-                spot = resident.Site == VillageSite.Village && !resident.Walking ? VillageSpot.Home : VillageSpot.Gate;
+                if (!seen) spot = resident.Site == VillageSite.Village && !resident.Walking ? VillageSpot.Home : VillageSpot.Gate;
+                if (!view.Visible) { view.Door = spot; return; }
+                seen = false;
             }
             else if (!view.Visible)
             {
-                // Back in the picture the way the figure left it: through the gate, or out of the house.
-                view.At = Stand(view.Outside ? VillageSpot.Gate : VillageSpot.Home);
+                // Back in the picture the way the figure left it: through the gate, or out of a house.
+                view.At = VillageStand(view.Door, 0);
                 view.Visible = true; view.HasTarget = false;
                 view.Visual.gameObject.SetActive(true);
             }
@@ -368,7 +474,7 @@ namespace AreArpg.UnityClient
             if (!view.HasTarget || view.Target != spot || view.Slot != slot || view.Leaving == seen)
             {
                 view.Target = spot; view.Slot = slot; view.HasTarget = true; view.Leaving = !seen;
-                _villageWalk.Find(view.At, Stand(spot, slot), view.Path);
+                _villageWalk.Find(view.At, VillageStand(spot, slot), view.Path);
             }
             Vector2 before = view.At;
             float budget = resident.Walking && resident.Activity == VillageActivity.Resting ? 0f : ResidentPace * Mathf.Max(0f, seconds);
@@ -385,7 +491,7 @@ namespace AreArpg.UnityClient
             if (view.Leaving)
             {
                 view.Visible = false; view.HasTarget = false; view.Leaving = false;
-                view.Outside = spot == VillageSpot.Gate;
+                view.Door = spot;
                 view.Visual.gameObject.SetActive(false);
             }
             else FaceWorkplace(view, spot);

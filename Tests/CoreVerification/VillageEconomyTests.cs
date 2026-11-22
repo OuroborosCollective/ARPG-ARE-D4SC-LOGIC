@@ -813,10 +813,20 @@ internal static class VillageEconomyTests
         {
             var spot = (VillageSpot)a;
             long sx = VillageEconomyLayout.StandXmm(spot), sz = VillageEconomyLayout.StandZmm(spot), px = VillageEconomyLayout.PlaceXmm(spot), pz = VillageEconomyLayout.PlaceZmm(spot);
+            VillagePlace house = VillageEconomyLayout.HouseOf(spot);
+            if (house != VillagePlace.None)
+            {
+                // A place of work inside a house: the worker stands free in the room, the workplace is a piece of its furniture,
+                // and in the village the worker is seen at the door.
+                standable &= VillagePlaceLayout.CanStandInRoom(house, sx, sz) && !VillagePlaceLayout.CanStandInRoom(house, px, pz);
+                inside &= VillagePlaceLayout.RoomAt(sx, sz) == house && VillagePlaceLayout.RoomAt(px, pz) == house;
+                sx = VillageEconomyLayout.VillageXmm(spot); sz = VillageEconomyLayout.VillageZmm(spot); px = sx; pz = sz;
+            }
             standable &= EntryWorldLayout.CanStand(sx, sz);
             // A workplace may stand close to a wall, but never inside a building.
             for (int building = 0; building < EntryWorldLayout.BuildingCount; building++) standable &= !EntryWorldLayout.Building(building).Contains(px, pz, 0);
             inside &= Math.Abs(sx) <= 25000 && Math.Abs(sz) <= 25000 && Math.Abs(px) <= 25000 && Math.Abs(pz) <= 25000;
+            sx = VillageEconomyLayout.StandXmm(spot); sz = VillageEconomyLayout.StandZmm(spot); px = VillageEconomyLayout.PlaceXmm(spot); pz = VillageEconomyLayout.PlaceZmm(spot);
             long reach = (sx - px) * (sx - px) + (sz - pz) * (sz - pz);
             near &= reach <= 2000L * 2000L;
             for (int b = a + 1; b < VillageEconomyLayout.SpotCount; b++)

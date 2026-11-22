@@ -19,6 +19,8 @@ namespace AreArpg.UnityClient
         public static string BuildAreaKey(ArenaSimulation game, bool entryProfile)
         {
             if (game == null || !entryProfile || game.InJourney) return null;
+            // The rooms of the village houses are no building sites (yet): inside one nothing of the village plan is placed.
+            if (game.InsidePlace != VillagePlace.None) return null;
             if (game.InWoodlandRegion) return game.InForest ? "wald" : game.Progression.EntryAct == 9 ? "baerenhoehle" : "aschenzoll";
             if (game.InDungeon) return null;
             switch (game.Progression.EntryAct)
