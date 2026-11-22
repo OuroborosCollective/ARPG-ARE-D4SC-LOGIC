@@ -40,4 +40,29 @@ namespace AreArpg.Core
             return p.HungerStage>=4 ? "completed" : p.HungerStage==0 ? "available" : "active";
         }
     }
+
+    /// <summary>Read-only Fadenwerk text keys for existing canonical Core outcomes.</summary>
+    public static class ChronicleFadenwerkBinding
+    {
+        public const string Contract = "AshenCrypt.Fadenwerk.LivingChronicle.v1";
+        public static readonly string[] Keys =
+        {
+            "chronicle.camp.theft",
+            "chronicle.camp.donation",
+            "chronicle.camp.decision.stolen",
+            "chronicle.camp.decision.replaced",
+            "chronicle.story.hearilyan",
+            "chronicle.story.inspecttrail",
+            "chronicle.story.inspectshelter",
+            "chronicle.story.reveal",
+            "chronicle.story.protect",
+            "chronicle.story.replace",
+            "chronicle.story.inspectbeds"
+        };
+        public static string DialogueId(string textKey)
+        {
+            if (textKey == null || System.Array.IndexOf(Keys, textKey) < 0) return null;
+            return "ashen." + textKey;
+        }
+    }
 }
