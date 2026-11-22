@@ -31,7 +31,8 @@ Software-Renderer (keine GPU).
 | Anzeige ändert den Kern nicht (Welt-Hash und Spielstand gleich) | PlayMode, derselbe Test | bestanden |
 | Bauplatz-Modell trägt die Stapel und passt auf den Grund eines Hauses; Fenster passt auf den kleinsten Bildschirm | EditMode `VillageBuildSitePresentationTests` | bestanden |
 
-Vier Review-Punkte zum Umzug von Orsel wurden erst mit einem fehlschlagenden Kern-Test nachgestellt und dann behoben.
+Fünf Review-Punkte (vier zum Umzug von Orsel, einer zur Abgabe ohne NPC-Gedächtnis) wurden erst mit einem
+fehlschlagenden Kern-Test nachgestellt und dann behoben.
 
 Nebenbefund: Das Werkzeug, das die Figuren erzeugt, konnte seit dem 20.11. keine Figur mehr erzeugen, weil es im
 Play-Modus Assets neu serialisierte. Es veröffentlicht jetzt im Edit-Modus; die Figuren des Schmieds und Orsels sind
@@ -41,13 +42,14 @@ damit entstanden.
 
 | Lauf | Ergebnis |
 |---|---|
-| Core-Prüfung (Bauplätze zusammen mit #109) | 22.634 Prüfungen bestanden |
+| Core-Prüfung (Bauplätze zusammen mit #109) | 22.635 Prüfungen bestanden |
 | Preflight, Unity-Vertrag, Director, Fadenwerk-Gateway | 54 bestanden, Vertrag PASS, 59 bestanden, 5 bestanden |
 | EditMode, gesamter Bestand | 242 von 246 bestanden, 0 fehlgeschlagen, 4 übersprungen (brauchen eigene Testdaten) |
 | PlayMode, gesamter Bestand | 200 von 202 bestanden, 0 fehlgeschlagen, 2 übersprungen (Prüfbilder nur auf Anforderung) |
 
-Die Gesamtläufe liefen vor den letzten beiden Korrekturen an den Kernregeln (Umzug von Orsel). Danach liefen die
-Core-Prüfung vollständig und die drei Dorf-Spieltests einzeln erneut: bestanden.
+Die Gesamtläufe liefen vor den letzten Korrekturen aus dem Review (Kernregeln zum Umzug von Orsel, Abgabe ohne
+NPC-Gedächtnis, Reihenfolge beim Aufstellen der Bauplätze). Danach liefen die Core-Prüfung vollständig und die
+Dorf-Spieltests einzeln erneut: bestanden.
 
 ## Nicht geprüft
 
