@@ -81,5 +81,57 @@ namespace AreArpg.EditMode.Tests
                 Directory.Delete(outside, true);
             }
         }
+
+        [Test]
+        public void AfterASignedBuildNoKeyPasswordStaysInTheGeneratedGradleFiles()
+        {
+            string folder = Path.Combine(Path.GetTempPath(), "ashen-gradle-test-" + Guid.NewGuid().ToString("N"));
+            string launcher = Path.Combine(folder, "launcher");
+            Directory.CreateDirectory(launcher);
+            try
+            {
+                // The shape Unity generates: both passwords as plain text in the launcher's build file.
+                File.WriteAllText(Path.Combine(launcher, "build.gradle"),
+                    "signingConfigs { release { storeFile file('/outside/upload.p12')\n storePassword 'Store-Secret-1'\n keyAlias 'upload'\n keyPassword 'Key-Secret-2' } }");
+                File.WriteAllText(Path.Combine(folder, "gradle.properties"), "unity.keyPassword=Key-Secret-2\n");
+                MethodInfo clean = Tools().GetMethod("RemoveKeyPasswords", BindingFlags.NonPublic | BindingFlags.Static);
+                object[] secrets = { folder, new[] { "Store-Secret-1", "Key-Secret-2" } };
+                Assert.AreEqual(2, (int)clean.Invoke(null, secrets), "both Gradle files held a password");
+                string gradle = File.ReadAllText(Path.Combine(launcher, "build.gradle"));
+                string properties = File.ReadAllText(Path.Combine(folder, "gradle.properties"));
+                StringAssert.DoesNotContain("Secret", gradle + properties);
+                StringAssert.Contains("storePassword ''", gradle, "the build file keeps its shape");
+                StringAssert.Contains("keyAlias 'upload'", gradle, "only the passwords are removed");
+                Assert.AreEqual(0, (int)clean.Invoke(null, secrets), "a second pass finds nothing");
+                Assert.AreEqual(0, (int)clean.Invoke(null, new object[] { Path.Combine(folder, "missing"), new[] { "x" } }), "no Gradle project, nothing to do");
+            }
+            finally
+            {
+                Directory.Delete(folder, true);
+            }
+        }
+
+        [Test]
+        public void TheBundleSizeWarningOnlyAppearsAboveThreeGigabytes()
+        {
+            var settings = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset");
+            Assert.IsNotEmpty(settings);
+            var serialized = new UnityEditor.SerializedObject(settings[0]);
+            Assert.IsNotNull(serialized.FindProperty("AndroidAppBundleSizeToValidate"), "Unity keeps the bundle size warning in the player settings");
+            int before = serialized.FindProperty("AndroidAppBundleSizeToValidate").intValue;
+            try
+            {
+                int raised = (int)Tools().GetMethod("RaiseBundleSizeWarning", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, null);
+                Assert.AreEqual(Math.Max(before, 3072), raised, "the owner accepts bundles up to 3 GB");
+                serialized.Update();
+                Assert.AreEqual(raised, serialized.FindProperty("AndroidAppBundleSizeToValidate").intValue);
+            }
+            finally
+            {
+                serialized.Update();
+                serialized.FindProperty("AndroidAppBundleSizeToValidate").intValue = before;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
     }
 }

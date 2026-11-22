@@ -58,6 +58,29 @@ namespace AreArpg.EditorTools
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
+            RaiseBundleSizeWarning();
+        }
+
+        /// <summary>
+        /// Above this size Unity stops a bundle build with a modal question. The owner accepts bundles up to 3 GB
+        /// (2026-11-22); the game's data travels in an install-time asset pack, so the base module stays small.
+        /// </summary>
+        public const int BundleSizeWarningMegabytes = 3072;
+
+        /// <summary>Unity 6.6 keeps this threshold internal, so it is raised through the serialized player settings.</summary>
+        internal static int RaiseBundleSizeWarning()
+        {
+            UnityEngine.Object[] settings = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset");
+            if (settings == null || settings.Length == 0) return -1;
+            var serialized = new SerializedObject(settings[0]);
+            SerializedProperty size = serialized.FindProperty("AndroidAppBundleSizeToValidate");
+            if (size == null) return -1;
+            if (size.intValue < BundleSizeWarningMegabytes)
+            {
+                size.intValue = BundleSizeWarningMegabytes;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+            return size.intValue;
         }
 
         public const string PlayPackageName = "com.ouroboroscollective.areashencrypt";
@@ -138,7 +161,33 @@ namespace AreArpg.EditorTools
                 PlayerSettings.Android.bundleVersionCode = versionCode;
                 EditorUserBuildSettings.buildAppBundle = bundle;
                 PlayerSettings.Android.splitApplicationBinary = split;
+                RemoveKeyPasswords(GradleProject, signing.storePassword, signing.keyPassword);
             }
+        }
+
+        /// <summary>Where Unity 6.6 generates the Gradle project of a player build.</summary>
+        private const string GradleProject = "Library/Bee/Android/Prj";
+
+        /// <summary>
+        /// Unity writes the key passwords as plain text into the generated Gradle build files. After a signed build they
+        /// are removed again, whether the build succeeded or not; returns how many files were cleaned. Gradle's own script
+        /// cache in the build user's home lies outside the project and is cleaned by the release procedure.
+        /// </summary>
+        internal static int RemoveKeyPasswords(string folder, params string[] secrets)
+        {
+            if (!Directory.Exists(folder)) return 0;
+            int cleaned = 0;
+            foreach (string pattern in new[] { "*.gradle", "*.properties", "*.kts" })
+                foreach (string file in Directory.EnumerateFiles(folder, pattern, SearchOption.AllDirectories))
+                {
+                    string text = File.ReadAllText(file), scrubbed = text;
+                    foreach (string secret in secrets)
+                        if (!string.IsNullOrEmpty(secret)) scrubbed = scrubbed.Replace(secret, "");
+                    if (scrubbed == text) continue;
+                    File.WriteAllText(file, scrubbed);
+                    cleaned++;
+                }
+            return cleaned;
         }
 
         // Fail closed: an emitted APK path alone does not prove that a build succeeded.
