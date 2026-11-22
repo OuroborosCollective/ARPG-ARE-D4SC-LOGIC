@@ -72,7 +72,7 @@ public static class CausalRegressionTests
             if (!decision || cause == 0 || cause >= ev.Id) return false;
             var parent = events[(int)cause - 1];
             bool stolen = ev.Context == "camp.decision.stolen";
-            if (parent.Id != cause || parent.CauseEventId.HasValue || parent.Tick > ev.Tick || parent.Actor != ev.Actor ||
+            if (parent.Id != cause || parent.CauseEventId.HasValue || parent.Tick != ev.Tick || parent.Actor != ev.Actor ||
                 parent.Target != ev.Target || parent.Kind != (stolen ? MemoryKind.Theft : MemoryKind.Help) ||
                 parent.Context != (stolen ? "camp.theft" : "camp.donation")) return false;
         }
@@ -84,14 +84,16 @@ public static class CausalRegressionTests
         var theft = Village(6101, out var thief);
         Near(thief, SocialLedger.MaraNpcId);
         check(thief.TakeCampRation().Accepted && theft.CampDecisionMade, "causal-parent-valid-theft-decides");
-        check(CausesAreSound(theft.Social.Forge.Archive), "causal-parent-valid-theft");
+        var taken = theft.Social.Forge.Archive.Events.Single(e => e.Context == "camp.theft");
+        var stolen = theft.Social.Forge.Archive.Events.Single(e => e.Context == "camp.decision.stolen");
+        check(CausesAreSound(theft.Social.Forge.Archive) && stolen.CauseEventId == taken.Id && stolen.Tick == taken.Tick, "causal-parent-valid-theft");
 
         var gift = Village(6102, out var giver);
         DecideByDonation(giver, check, "causal-parent-valid");
         var archive = gift.Social.Forge.Archive;
         var donations = archive.Events.Where(e => e.Context == "camp.donation").ToArray();
         var decision = archive.Events.Single(e => e.Context == "camp.decision.replaced");
-        check(CausesAreSound(archive) && donations.Length == 2 && decision.CauseEventId == donations[1].Id,
+        check(CausesAreSound(archive) && donations.Length == 2 && decision.CauseEventId == donations[1].Id && decision.Tick == donations[1].Tick,
               "causal-parent-valid-donation-names-the-final-transaction");
 
         string saved = gift.SaveString();
@@ -261,10 +263,13 @@ public static class CausalRegressionTests
         check(again.DonateCampRation().Accepted && loaded.CampDecisionMade, "causal-single-transaction-final-donation-decides");
         Near(again, SocialLedger.MaraNpcId);
         string save = loaded.SaveString(); ulong hash = again.ComputeWorldHash(); int events = loaded.Social.Forge.Archive.Events.Count;
-        bool donateRefused = !again.DonateCampRation().Accepted;
-        bool stealRefused = !again.TakeCampRation().Accepted;
-        check(donateRefused && stealRefused && loaded.SaveString() == save && again.ComputeWorldHash() == hash &&
-              loaded.Social.Forge.Archive.Events.Count == events, "causal-single-transaction-refused-actions-change-nothing");
+        Func<bool> unchanged = () => loaded.SaveString() == save && again.ComputeWorldHash() == hash && loaded.Social.Forge.Archive.Events.Count == events;
+        // Each refusal is compared with the state before it, so two refusals cannot hide a change by undoing each other.
+        bool donationRefused = !again.DonateCampRation().Accepted && unchanged();
+        check(donationRefused, "causal-single-transaction-refused-donation-changes-nothing");
+        bool theftRefused = !again.TakeCampRation().Accepted && unchanged();
+        check(theftRefused, "causal-single-transaction-refused-theft-changes-nothing");
+        check(donationRefused && theftRefused, "causal-single-transaction-refused-actions-change-nothing");
     }
 
     // ------------------------------------------------------------------ 4. causal-migration-current
@@ -357,7 +362,19 @@ public static class CausalRegressionTests
                         !CharacterProgression.TryLoad(Signed("AC13" + body.Substring(3)), out _) &&
                         CharacterProgression.TryLoad(Signed(body), out _);
         check(reserved, "causal-migration-reserved-ac6-ac13-refused");
-        check(all && reserved && saves.Count >= 20, "causal-migration-current");
+
+        // Exactly one current save for every format the game still writes; historical inputs do not count here.
+        string[] expected = { "AC5", "AC7", "AC8", "AC9", "AC10", "AC11", "AC12", "AC14", "AC15", "AC16", "AC17", "AC18", "AC19", "AC20", "AC21", "AC22" };
+        var current = saves.Where(s => s.Key.EndsWith("-current", StringComparison.Ordinal))
+            .Select(s => new { Format = s.Key.Substring(0, s.Key.Length - "-current".Length), Token = s.Value }).ToArray();
+        var found = current.Select(c => c.Format).ToArray();
+        string problems = string.Join("-", expected.Except(found).Select(f => "missing-" + f)
+            .Concat(found.GroupBy(f => f).Where(g => g.Count() > 1).Select(g => "duplicate-" + g.Key))
+            .Concat(found.Except(expected).Select(f => "unexpected-" + f))
+            .Concat(current.Where(c => !c.Token.StartsWith(c.Format + "|", StringComparison.Ordinal)).Select(c => "wrong-prefix-" + c.Format)));
+        bool formats = problems.Length == 0;
+        check(formats, "causal-migration-current-formats" + (formats ? "" : "-" + problems));
+        check(all && reserved && formats, "causal-migration-current");
     }
 
     /// <summary>Historical archives were written before causes existed; a cause, where present, must be sound.</summary>
@@ -453,10 +470,14 @@ public static class CausalRegressionTests
         check(heard != null && heard.Origin == KnowledgeOrigin.Reported && heard.Source == "mara", "causal-reported-knowledge-at-a-meeting");
         check(archive.Events.Count == events && p.Social.Provisions == provisions && p.Social.CampProvisions == camp,
               "causal-reported-knowledge-no-second-mutation");
-        bool refused;
-        try { refused = !archive.Learn("dorn", donation.Id, KnowledgeOrigin.Reported, "ilyan", 0); }
-        catch (ArgumentException) { refused = true; }
-        check(refused && archive.Get("dorn").Knowledge(donation.Id) == null, "causal-reported-knowledge-cannot-be-claimed-without-a-source");
+        // The archive itself refuses to pass hearsay on: Ilyan can recall the donation but only heard of it, so his
+        // report to Dorn is refused and writes nothing, whatever the village code would ask for.
+        ulong now = p.Social.Forge.ProcessedTicks;
+        int acquisitions = archive.Acquisitions.Count;
+        bool recalls = archive.Get("ilyan").Cognition.Recall(donation.Id, now) != null;
+        bool relayed = archive.Report("ilyan", "dorn", donation.Id, now);
+        check(recalls && !relayed && archive.Acquisitions.Count == acquisitions && archive.Get("dorn").Knowledge(donation.Id) == null,
+              "causal-reported-knowledge-hearsay-is-not-relayed");
 
         // Everybody together for a long while: nobody learns an event twice, hearsay is never passed on again, Ilyan
         // never turns into an eyewitness, and the archive does not grow without end.
