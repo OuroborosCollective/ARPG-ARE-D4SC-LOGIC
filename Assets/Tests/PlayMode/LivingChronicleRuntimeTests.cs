@@ -49,7 +49,16 @@ namespace AreArpg.PlayMode.Tests
             ilyan.InteractionCooldownTicks = 0;
             var conversation = world.InteractNpc(0, NpcAction.Greet);
             Assert.IsTrue(conversation.Accepted);
-            StringAssert.Contains("Mir wurde erzaehlt:", conversation.Text);
+            Assert.AreEqual("chronicle.camp.donation", conversation.ChronicleTextKey);
+            Assert.AreEqual("ilyan", conversation.ChronicleSpeakerId);
+            Assert.AreEqual(KnowledgeOrigin.Reported, conversation.ChronicleKnowledgeOrigin);
+            Assert.AreEqual(action.Id, conversation.ChronicleEventId);
+            var presented = typeof(ArenaRuntime).GetMethod("PresentedNpcResult",
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.IsNotNull(presented);
+            var text = (string)presented.Invoke(_runtime, new object[] { conversation });
+            StringAssert.Contains("Mir wurde erzaehlt:", text);
+            StringAssert.Contains("Du hast Mara eine echte Ration gebracht.", text);
             Assert.IsTrue(LivingChronicle.VisibleToPlayer(world.Progression).Any(e =>
                 e.EventId == action.Id && e.Origin == ChronicleOrigin.Heard &&
                 e.SourceNpcId == "ilyan" && e.KnowledgeOrigin == KnowledgeOrigin.Reported));
