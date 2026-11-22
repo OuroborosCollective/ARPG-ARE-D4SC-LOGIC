@@ -3090,7 +3090,7 @@
   {
    "id": "kaempferin",
    "group": "krieger",
-   "role": "Kämpferin: Stahlharnisch, Beinschienen, Panzerhandschuhe, Kesselhut, Zopf",
+   "role": "Kämpferin: Stahlharnisch, Beinschienen, Panzerhandschuhe, Kesselhut, Pferdeschwanz",
    "base": "Fantasy/Ranger",
    "height": 1.8,
    "head": "Head_Stern",
@@ -3103,7 +3103,7 @@
     "Shoulders_StrongShoulders",
     "Hat_KettleHelmet",
     "HairFront_ProperPart",
-    "HairBack_NobleBraid"
+    "HairBack_DolphinTail"
    ],
    "body": [
     {
@@ -3241,7 +3241,7 @@
     "Feet_ForestLongBoots",
     "Gloves_RusticGloves",
     "HairFront_FreeTussle",
-    "HairBack_TotalCurls"
+    "HairBack_LooseLong"
    ],
    "body": [
     {
