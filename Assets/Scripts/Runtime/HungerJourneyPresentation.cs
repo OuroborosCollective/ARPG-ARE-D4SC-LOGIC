@@ -25,6 +25,16 @@ namespace AreArpg.UnityClient
         /// <summary>Expose actions relevant to the current chapter; the Core independently enforces distance and state.</summary>
         private HungerAction[] HungerActions()
         {
+            var story = StoryActions();
+            if (!_game.CanClaimRegionalRelic) return story;
+            var actions = new HungerAction[story.Length + 1];
+            System.Array.Copy(story, actions, story.Length);
+            actions[story.Length] = HungerAction.ClaimRegionalRelic;
+            return actions;
+        }
+
+        private HungerAction[] StoryActions()
+        {
             var p = _game.Progression;
             if (_game.InJourney) return JourneyActions();
             if (_game.InDungeon) return DungeonActions();
@@ -48,6 +58,8 @@ namespace AreArpg.UnityClient
             if(authored!=null && ((int)action>=0 && (int)action<=2 || action==HungerAction.InspectBeds)) return authored.labels[(int)action];
             switch (action)
             {
+                case HungerAction.ClaimRegionalRelic:
+                    return _game.TryGetClaimableRegionalRelic(out var relic) ? RegionalRelics.Name(relic) + " mitnehmen" : "Fundstück mitnehmen";
                 case HungerAction.HearIlyan: return "BEI ILYAN: Nach seinem Geheimnis fragen";
                 case HungerAction.InspectTrail: return "AM WEGZEICHEN: Verband und Spuren untersuchen";
                 case HungerAction.InspectShelter: return "IM LAGER: Verbandszeug und Essensreste untersuchen";

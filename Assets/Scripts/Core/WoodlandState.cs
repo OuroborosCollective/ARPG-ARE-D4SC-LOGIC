@@ -44,16 +44,20 @@ namespace AreArpg.Core
         private static string Numbers(params object[] values) => string.Join(",",values.Select(v=>Convert.ToString(v,CultureInfo.InvariantCulture)));
         internal string Token()
         {
-            return string.Join(";",new[] {"1",Seed.ToString(CultureInfo.InvariantCulture),Run.ToString(CultureInfo.InvariantCulture),Tick.ToString(CultureInfo.InvariantCulture),NeedsNewRun?"1":"0",HasRun?"1":"0",ReachedAschenzoll?"1":"0",((int)Choice).ToString(CultureInfo.InvariantCulture),CubsInspected?"1":"0",CubsReported?"1":"0",ProtectionOrganized?"1":"0",ArmorCrafted?"1":"0",
+            var pendingShoulder = Loot.Find(l => l.HasFieldPauldron);
+            return string.Join(";",new[] {pendingShoulder == null ? "1" : "2",Seed.ToString(CultureInfo.InvariantCulture),Run.ToString(CultureInfo.InvariantCulture),Tick.ToString(CultureInfo.InvariantCulture),NeedsNewRun?"1":"0",HasRun?"1":"0",ReachedAschenzoll?"1":"0",((int)Choice).ToString(CultureInfo.InvariantCulture),CubsInspected?"1":"0",CubsReported?"1":"0",ProtectionOrganized?"1":"0",ArmorCrafted?"1":"0",
                 Numbers(SavedAct,SavedX,SavedZ,SavedHealth,SavedResource,SavedCooldowns[0],SavedCooldowns[1],SavedCooldowns[2],SavedCooldowns[3],Rng0,Rng1),
                 string.Join("/",Monsters.Select(m=>Numbers(m.Xmm,m.Zmm,m.Health,m.AttackCooldownTicks,m.LootGranted?1:0))),
-                string.Join("/",Loot.Select(l=>Numbers(l.Id,l.Xmm,l.Zmm,l.WeaponBonus)+","+(l.Item==null?"-":l.Item.Token()))),OpenChests.ToString(CultureInfo.InvariantCulture)});
+                string.Join("/",Loot.Select(l=>Numbers(l.Id,l.Xmm,l.Zmm,l.WeaponBonus)+","+(l.Item==null?"-":l.Item.Token()))),OpenChests.ToString(CultureInfo.InvariantCulture)}) +
+                (pendingShoulder == null ? "" : ";" + pendingShoulder.Id.ToString(CultureInfo.InvariantCulture));
         }
         private static bool N(string s,long min,long max,out long v) => long.TryParse(s,NumberStyles.AllowLeadingSign,CultureInfo.InvariantCulture,out v)&&v>=min&&v<=max&&v.ToString(CultureInfo.InvariantCulture)==s;
         private static bool U(string s,out ulong v) => ulong.TryParse(s,NumberStyles.None,CultureInfo.InvariantCulture,out v)&&v.ToString(CultureInfo.InvariantCulture)==s;
         internal static bool TryRead(string token,int act,BigInteger kills,IEnumerable<LootItem> collected,IEnumerable<LootState> dungeonLoot,out WoodlandState state)
         {
-            state=null; var f=token.Split(';'); if(f.Length!=16||f[0]!="1"||!U(f[1],out var seed)||!U(f[3],out var tick)||
+            state=null; var f=token.Split(';');
+            bool hasShoulder = f.Length == 17 && f[0] == "2";
+            if((!hasShoulder && (f.Length!=16||f[0]!="1"))||!U(f[1],out var seed)||!U(f[3],out var tick)||
                 !BigInteger.TryParse(f[2],NumberStyles.None,CultureInfo.InvariantCulture,out var run)||run<1||run.ToString(CultureInfo.InvariantCulture)!=f[2]) return false;
             for(int i=4;i<=11;i++) if(!N(f[i],0,i==7?2:1,out _)) return false;
             var w=new WoodlandState(seed) { Active=true,Run=run,Tick=tick,NeedsNewRun=f[4]=="1",HasRun=f[5]=="1",ReachedAschenzoll=f[6]=="1",Choice=(CubChoice)int.Parse(f[7],CultureInfo.InvariantCulture),CubsInspected=f[8]=="1",CubsReported=f[9]=="1",ProtectionOrganized=f[10]=="1",ArmorCrafted=f[11]=="1" };
@@ -87,6 +91,15 @@ namespace AreArpg.Core
                     w.Layout.Chest(chest,out var cx,out var cz);if(x!=cx||z!=cz)return false;
                 }
                 w.Loot.Add(new LootState {Id=(int)id,Xmm=x,Zmm=z,WeaponBonus=(int)bonus,Item=item});
+            }
+            if (hasShoulder)
+            {
+                if (!N(f[16], WoodlandLayout.FirstMonsterId, WoodlandLayout.FirstMonsterId + w.Layout.MonsterCount - 1, out var id))
+                    return false;
+                var drop = w.Loot.Find(l => l.Id == id);
+                if (drop?.Item == null || w.Layout.Monster((int)id - WoodlandLayout.FirstMonsterId).Kind != 1)
+                    return false;
+                drop.HasFieldPauldron = true;
             }
             if(!w.HasRun&&(w.OpenChests!=0||w.Loot.Count!=0||w.Monsters.Where((m,i)=>m.Health!=m.MaxHealth||m.Xmm!=w.Layout.Monster(i).Xmm||m.Zmm!=w.Layout.Monster(i).Zmm||m.AttackCooldownTicks!=0).Any()))return false;
             state=w;return true;

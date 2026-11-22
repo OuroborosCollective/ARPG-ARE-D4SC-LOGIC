@@ -1,0 +1,5 @@
+interface:
+  display_name: "Npc Architect"
+  short_description: "NPC-/Begleiter-Verhalten mit BT, GOAP, Utility AI, Memory und sicheren Fallbacks modellieren."
+policy:
+  allow_implicit_invocation: true

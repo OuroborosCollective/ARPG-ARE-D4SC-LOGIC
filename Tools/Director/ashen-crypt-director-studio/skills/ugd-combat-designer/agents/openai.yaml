@@ -1,0 +1,5 @@
+interface:
+  display_name: "Combat Designer"
+  short_description: "ARPG-Nahkampf, Bosse, Loot, Skills und Learning-by-Doing im kanonischen Core entwickeln."
+policy:
+  allow_implicit_invocation: true

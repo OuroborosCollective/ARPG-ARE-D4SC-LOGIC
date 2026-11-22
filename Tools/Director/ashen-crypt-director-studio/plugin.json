@@ -1,0 +1,31 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "author": {
+    "name": "Thomas Markgraf"
+  },
+  "description": "Ein klar benannter ChatGPT/Codex-Director fuer Ashen Crypt: Game Design, Unity-6-Workflows, Determinismus, echte VPS-/Editor-Evidence und Android-Abnahme ohne parallele Authority.",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "capabilities": [
+          "Unity-6-Projektkoordination",
+          "Core- und Replay-Verifikation",
+          "NPC/Quest/World Design",
+          "Android QA/Release-Gates",
+          "Asset- und Plugin-Integrationspruefung"
+        ],
+        "category": "Developer Tools",
+        "composerIcon": "./assets/logo.svg",
+        "defaultPrompt": "Nutze Ashen Crypt Director Studio fuer unseren naechsten belegbaren Unity-6-Entwicklungsschritt.",
+        "developerName": "Thomas Markgraf",
+        "displayName": "Ashen Crypt Director Studio",
+        "logo": "./assets/logo.svg",
+        "longDescription": "Ein eindeutig benanntes ChatGPT-Orchestrierungsplugin fuer den bereits vorhandenen Ashen-Crypt-Unity-6-Director auf dem VPS. Enthaelt 13 fokussierte Skills, integriert keine zweite Unity-Bridge und fuehrt Aktionen nur ueber tatsaechlich verbundene GitHub-/Sovott-v2-Werkzeuge aus. Lokale Design- und QA-Anweisungen sind keine Runtime-Belege.",
+        "shortDescription": "Unity 6 ARPG Director"
+      }
+    }
+  },
+  "homepage": "https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC",
+  "name": "ashen-crypt-director-studio",
+  "version": "1.3.1"
+}

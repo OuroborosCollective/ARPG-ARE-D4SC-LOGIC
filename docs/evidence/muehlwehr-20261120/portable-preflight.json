@@ -1,0 +1,19 @@
+{
+  "baselineTree": "41b25ee52997b77664617b39e16e6dc160ebd165",
+  "changedFiles": 247,
+  "excludedLabToolFiles": 4,
+  "exitCode": 0,
+  "failedTests": [],
+  "missingMonoImporter": [],
+  "originalFiles": 247,
+  "privateOnlyDerived": 14,
+  "privateSlotsInPublic": [],
+  "scopeSha256": "4d68b4830d71ebfaea71c831d4a72f74a851bf963bbde5e64b59fb6f6fe5bd1e",
+  "scriptSha256": "bb732dcd78d3519071dc282bcfb4434a5fed99a440da611b052d3c223eb29627",
+  "sourceReadback": true,
+  "succeededTests": 54,
+  "testStderrSha256": "ef91289c27ef5eb1c8334518836831e1fb2987f09f5ea79b5d3b2d08f43f7b13",
+  "testStdoutSha256": "5ae3d7431a6644554f99c7f92c8ceb1f66fb365063b719d50296d79a6fea20ec",
+  "totalTests": 54,
+  "tree": "39076d4ce7c0ac2f55509837c0de5d4be6d58e2b"
+}

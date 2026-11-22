@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "muehle",
-  "revision": 2,
+  "revision": 3,
   "pieces": [
     {
       "id": "b0001",
@@ -106,6 +106,38 @@
       "z": -12.49,
       "rot": 308,
       "scale": 0.88
+    },
+    {
+      "id": "b0201",
+      "key": "StoneOutcrop",
+      "x": 5.38,
+      "z": 7.12,
+      "rot": 119,
+      "scale": 0.67
+    },
+    {
+      "id": "b0202",
+      "key": "StoneOutcrop",
+      "x": 5.84,
+      "z": 8.06,
+      "rot": 63,
+      "scale": 0.39
+    },
+    {
+      "id": "b0203",
+      "key": "EmberSedge",
+      "x": 4.66,
+      "z": 8.42,
+      "rot": 131,
+      "scale": 0.68
+    },
+    {
+      "id": "b0204",
+      "key": "AshPine",
+      "x": 12.8,
+      "z": 15.4,
+      "rot": 204,
+      "scale": 0.87
     }
   ]
 }

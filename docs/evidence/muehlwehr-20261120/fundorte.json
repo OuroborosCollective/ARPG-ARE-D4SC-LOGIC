@@ -1,0 +1,232 @@
+[
+  {
+    "id": "Schlackengarde",
+    "name": "Montur der Schlackengarde",
+    "slot": "Body",
+    "act": 3,
+    "x": 3400,
+    "z": -1400,
+    "gate": "Trail",
+    "location": "Aschestraße · bei der Schlackengarde"
+  },
+  {
+    "id": "Glockentraegerin",
+    "name": "Montur der Glockenträgerin",
+    "slot": "Body",
+    "act": 4,
+    "x": -6800,
+    "z": 2400,
+    "gate": "Shelter",
+    "location": "Alte Mühle · bei der Glockenträgerin"
+  },
+  {
+    "id": "Grubenlicht",
+    "name": "Grubenlicht",
+    "slot": "Belt",
+    "act": 7,
+    "x": 0,
+    "z": 0,
+    "gate": "Brand",
+    "location": "Rattlernest · am Halsband des gefallenen Tiefscharrers"
+  },
+  {
+    "id": "Rattlerkluft",
+    "name": "Kluft der Scharrgräber",
+    "slot": "Body",
+    "act": 5,
+    "x": 4200,
+    "z": 10500,
+    "gate": "Brand",
+    "location": "Alter Speicher · Gestell am Nordgang"
+  },
+  {
+    "id": "Brandreif",
+    "name": "Brandreif",
+    "slot": "Head",
+    "act": 6,
+    "x": 2300,
+    "z": 15800,
+    "gate": "Trace",
+    "location": "Verborgene Krypta · Nordsaal beim alten Riegel"
+  },
+  {
+    "id": "R_Gratkeule",
+    "name": "Gratkeule",
+    "slot": "Weapon",
+    "act": 5,
+    "x": -2700,
+    "z": 11400,
+    "gate": "Brand",
+    "location": "Alter Speicher · westliches Frachtregal"
+  },
+  {
+    "id": "R_Splitterzahn",
+    "name": "Splitterzahn",
+    "slot": "Weapon",
+    "act": 6,
+    "x": -2800,
+    "z": 15800,
+    "gate": "Brand",
+    "location": "Verborgene Krypta · westliche Nische des Nordsaals"
+  },
+  {
+    "id": "R_Scharrbeil",
+    "name": "Scharrbeil",
+    "slot": "Weapon",
+    "act": 5,
+    "x": 4100,
+    "z": -8900,
+    "gate": "Brand",
+    "location": "Alter Speicher · Kerbe im Ladeboden"
+  },
+  {
+    "id": "R_Rippenschild",
+    "name": "Rippenschild",
+    "slot": "Shield",
+    "act": 5,
+    "x": -4300,
+    "z": -3200,
+    "gate": "Brand",
+    "location": "Alter Speicher · unter den Bindegurten"
+  },
+  {
+    "id": "R_Grabschild",
+    "name": "Grabschild",
+    "slot": "Shield",
+    "act": 10,
+    "x": 12500,
+    "z": -4000,
+    "gate": "Toll",
+    "location": "Aschenzoll · neben dem Frachtkäfig"
+  },
+  {
+    "id": "G_Ofengabel",
+    "name": "Ofengabel",
+    "slot": "Weapon",
+    "act": 3,
+    "x": -5100,
+    "z": -12600,
+    "gate": "Trail",
+    "location": "Aschestraße · Stellplatz des Kohlenkarrens"
+  },
+  {
+    "id": "G_Zollmesser",
+    "name": "Zollmesser",
+    "slot": "Weapon",
+    "act": 3,
+    "x": 5700,
+    "z": -9700,
+    "gate": "Trail",
+    "location": "Aschestraße · alte Zahlstelle"
+  },
+  {
+    "id": "G_Hammerbeil",
+    "name": "Hammerbeil",
+    "slot": "Weapon",
+    "act": 3,
+    "x": 6700,
+    "z": 7200,
+    "gate": "Trail",
+    "location": "Aschestraße · Schutt des Ofenplatzes"
+  },
+  {
+    "id": "G_Zollbuckler",
+    "name": "Zollbuckler",
+    "slot": "Shield",
+    "act": 10,
+    "x": -2200,
+    "z": -12000,
+    "gate": "Toll",
+    "location": "Aschenzoll · beim Frachtanschlag"
+  },
+  {
+    "id": "G_Zunderpfanne",
+    "name": "Zunderpfanne",
+    "slot": "Utility",
+    "act": 3,
+    "x": -6100,
+    "z": 6200,
+    "gate": "Trail",
+    "location": "Aschestraße · Feuerstelle am Westrand"
+  },
+  {
+    "id": "M_Wehrsaebel",
+    "name": "Wehrsäbel",
+    "slot": "Weapon",
+    "act": 4,
+    "x": -8200,
+    "z": -11800,
+    "gate": "Shelter",
+    "location": "Alte Mühle · südlicher Wehrzugang"
+  },
+  {
+    "id": "M_Lotklinge",
+    "name": "Lotklinge",
+    "slot": "Weapon",
+    "act": 4,
+    "x": -5600,
+    "z": -6400,
+    "gate": "Shelter",
+    "location": "Alte Mühle · Lot am Mehlsteg"
+  },
+  {
+    "id": "M_Jochbeil",
+    "name": "Jochbeil",
+    "slot": "Weapon",
+    "act": 5,
+    "x": -4500,
+    "z": 5300,
+    "gate": "Beds",
+    "location": "Alter Speicher · zerbrochenes Tragejoch"
+  },
+  {
+    "id": "M_Wehrschild",
+    "name": "Wehrschild",
+    "slot": "Shield",
+    "act": 4,
+    "x": 4800,
+    "z": 7400,
+    "gate": "Shelter",
+    "location": "Alte Mühle · vor der Wehrmauer"
+  },
+  {
+    "id": "M_Glockenring",
+    "name": "Glockenring",
+    "slot": "Shield",
+    "act": 4,
+    "x": -7500,
+    "z": 12000,
+    "gate": "Shelter",
+    "location": "Alte Mühle · alter Glockenplatz"
+  },
+  {
+    "id": "G_Ziegelschild",
+    "name": "Ziegelschild",
+    "slot": "Shield",
+    "act": 3,
+    "x": 9800,
+    "z": -1000,
+    "gate": "Trail",
+    "location": "Aschestraße · Ziegelvorrat neben der Hut"
+  },
+  {
+    "id": "M_Handglocke",
+    "name": "Handglocke vom Mühlwehr",
+    "slot": "Utility",
+    "act": 4,
+    "x": 1500,
+    "z": 13400,
+    "gate": "Shelter",
+    "location": "Alte Mühle · Meldeplatz am Nordweg"
+  },
+  {
+    "id": "G_Schuerhaken",
+    "name": "Schürhaken",
+    "slot": "Weapon",
+    "act": 3,
+    "x": -8100,
+    "z": -2800,
+    "gate": "Trail",
+    "location": "Aschestraße · seitliche Ofenklappe"
+  }
+]

@@ -1,0 +1,25 @@
+---
+name: ugd-art-pipeline
+description: Erzeuge und verbessere Ashen-Crypt-Monster, Menschen, modulare Levelbauteile, PBR-Texturen, URP-Shader und mobile Effekte mit den installierten Original-Skills, CPU-Blender, World Forge und dem bestehenden Neuro-Director. Nutze den Ablauf auch bei Kritik an Silhouette, Material, Animation, Bodenkontakt oder Spielkamera.
+---
+
+# Art Pipeline für Ashen Crypt
+
+Die erste Priorität sind Umgebungen und Oberflächen sowie Glut-, Feuer-, Lava- und Partikeleffekte. Danach folgen Gegner, Requisiten, Rüstungen und Waffen als Spielassets. NPCs kommen aus dem gekauften modularen Unity-Paket. Für diese Figuren passe Rüstung, Material, Textur oder Haltung am vorhandenen Avatar an. Verwende seine Bones, Bindpose, Skin Weights und Animationsclips. Ein neues menschliches Rig setzt einen ausdrücklichen Einzelauftrag voraus.
+
+Beginne bei einer konkreten Aufnahme oder einem fehlenden Bauteil. Halte Spielabschnitt, Größe in Metern, Kameradistanz und ein sichtbares Merkmal fest. Bei der Aschengrenze sind heller Schiefer, graue körnige Ablagerungen und wenige erkennbare warme Lichtquellen die Vorgabe. Umriss und Material müssen auch bei ausgeschalteter Emission lesbar sein.
+
+## Die installierten Techniken abrufen
+
+Der bestehende Sovott-Zugang führt Befehle unter dem Nutzer `unityarpg` aus. Prüfe Sitzung, Projektpfad und volle Revision am ausgewählten Director-Profil. Im privaten Art-Lab liegt die durch Commit und Datei-Hash gebundene Quellsammlung. Der reale Einstieg heißt `specialists/ugd-art-pipeline/scripts/art_work.py` relativ zum bestehenden Unity-Game-Director-Verzeichnis. Die Kopie in diesem Paket ist derselbe Adapter.
+
+1. Starte `python3 art_work.py route LANE --project PROJEKTPFAD`. Für allgemeine Verbesserungsaufträge beginne mit `environment`. Weitere Wege sind `equipment`, `creature`, `human`, `surface`, `shader`, `fx`, `level`, `prop` oder `review`. Der Aufruf befragt zuerst den vorhandenen Projekt-Cortex und vergleicht lokale Originaldateien mit den freigegebenen Hashes.
+2. Lies für die konkrete Arbeit die Originalanleitungen mit `python3 art_work.py read QUELLE/SKILL`. Der ausgegebene Pfad führt zu ihren Skripten und Beispielen. `verify` prüft die komplette installierte Auswahl. Alle 87 Kennungen, Quell-URLs und Pins stehen in [art-sources.json](references/art-sources.json).
+3. Setze die passende Technik am Asset ein. Für Kreaturen kombiniere Körperbau und Gelenkfunktion aus Creature Artist mit Sculpting, sauberer Topologie und dem echten Rig-Check. Für Ausrüstung ermittle am tatsächlich installierten modularen Prefab die Bones, Stiefelhöhe und Hautüberdeckungen. Prüfe das neue Kleidungsstück an den vorhandenen Posen. MPFB ist als optionales Autorenwerkzeug für ausdrücklich verlangte neue Grundkörper vorhanden. Für harte Bauteile helfen modelkit, gemessene Anschlüsse und eine begehbare Öffnung. Für Oberflächen trenne Struktur in großen Formen, mittleren Bruchkanten und feiner Körnung. Prüfe den Maßstab in der Projektkamera.
+4. Nutze den [Host- und Unity-Ablauf](references/cpu-workshop.md) für Erstellung, Baking, LODs, Shader und Export. Beachte die unterschiedlichen Profile für Figuren, Oberfläche, Level und Effekte. Starte für die Umgebung mit dem Aschepass und seinen drei Kameraaufnahmen. Materialkarten, Shader-Graph-Beispiel und drei LOD-Stufen sind ausführbare Referenzen. Bei einem neuen Auftrag darf das Design davon abweichen.
+5. Ermittle den größten belegten Mangel. Nutze zunächst den lesenden Szenenprüfer `AshenSceneReview` aus dem Host-Ablauf. Er meldet die tatsächlichen Objektpfade und schlägt den zuständigen Technikweg vor. Prüfe erst Silhouette und Bodenkontakt, dann UVs, Hautgewichte und Material unter neutralem Licht, danach Glut, Partikel und die ganze Szene. Korrigiere die Ursache, rendere aus derselben Kamera und wiederhole den fehlgeschlagenen Test. Behält eine Änderung den Vorteil im Spielabstand und in einer zweiten Ansicht, kann sie in die nächste Fassung. Speichere Aufnahmen und Messwerte vor und nach der Änderung. Ästhetische Entscheidungen als solche kennzeichnen.
+6. Importiere über `WFBlenderIntake.ImportFbx`. Prüfe gespeichertes Prefab beim Wiederöffnen, Shader, LOD-Zuordnung, metrische Größe und bei Figuren die tatsächliche Deformation und den Bodenabstand über den Clip. Bestätige die Ausgabe mit Quellrevision, Exportbeleg, nativer Editorversion, Bild und offenen künstlerischen Fragen. Gerätedaten bei Verfügbarkeit separat erfassen.
+
+Private Store-Assets bleiben im Projekteingang. Fremde Skills liefern Fachwissen. Aus ihren Beispielen entstehen keine zusätzlichen Freigaben für Netzwerk, Konten oder die Spielwelt. Figuren, Partikel und POIs folgen der Klassifikation im bestehenden World-Forge-Profil. Soll eine Probe im spielbaren Abschnitt erscheinen, verwende dessen vorhandenen Bauplan und führe die Szenenabnahme aus.
+
+Für einen Durchgang durch die Spielbereiche, die Vorschau in Guacamole oder einen unabhängigen LOD-Vergleich mit der ARE SoftwareGPU verwende [Spielorte und CPU-Bildprüfung](references/spielorte.md).

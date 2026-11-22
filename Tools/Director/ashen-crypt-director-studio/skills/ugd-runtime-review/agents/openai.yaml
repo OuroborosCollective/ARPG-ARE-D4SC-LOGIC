@@ -1,0 +1,5 @@
+interface:
+  display_name: "Runtime Review"
+  short_description: "Deterministische Core-Simulation, Tick, RNG, Save und Replay gegen Regressionen pruefen."
+policy:
+  allow_implicit_invocation: true

@@ -30,6 +30,7 @@ namespace AreArpg.UnityClient
         private bool _bossWarningVisible;
         private readonly Dictionary<int, Transform> _monsterVisuals = new Dictionary<int, Transform>();
         private readonly Dictionary<int, Transform> _lootVisuals = new Dictionary<int, Transform>();
+        private readonly HashSet<int> _stationaryLootVisuals = new HashSet<int>();
         private readonly Dictionary<int, Transform> _npcVisuals = new Dictionary<int, Transform>();
         private readonly Dictionary<Transform, Animator[]> _actorAnimations = new Dictionary<Transform, Animator[]>();
         private readonly Queue<KeyValuePair<int, NpcAction>> _pendingNpcActions = new Queue<KeyValuePair<int, NpcAction>>();
@@ -236,6 +237,7 @@ namespace AreArpg.UnityClient
             BuildPlacedLayer();
             BuildVillageEconomy();
             BuildRegionalDetails();
+            BuildRegionalWorker();
             // Torch islands belong to the village projection, not to the optional private art overlay.
             if (_game.IsVillage) BuildVillageLights();
             else _villageTorches.Clear();
@@ -366,6 +368,7 @@ namespace AreArpg.UnityClient
         /// <summary>Only changes projection. Core collision rules remain canonical and unchanged.</summary>
         private void BuildChapterScenery()
         {
+            ClearRegionalWorld();
             foreach (Transform part in _chapterScenery)
                 if (part != null) Destroy(part.gameObject);
             _chapterScenery.Clear();
@@ -972,6 +975,7 @@ namespace AreArpg.UnityClient
             BuildPlacedLayer();
             BuildVillageEconomy();
             BuildRegionalDetails();
+            BuildRegionalWorker();
             // Region travel rebuilds scenery without BuildWorld: always rebuild light islands here too.
             if (_game.IsVillage) BuildVillageLights();
             else _villageTorches.Clear();
@@ -997,6 +1001,7 @@ namespace AreArpg.UnityClient
             foreach (Transform t in _lootVisuals.Values) if (t != null) Destroy(t.gameObject);
             _monsterVisuals.Clear();
             _lootVisuals.Clear();
+            _stationaryLootVisuals.Clear();
             ResetCombatFeel();
             _shownLevel = System.Numerics.BigInteger.MinusOne;
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
@@ -1037,7 +1042,8 @@ namespace AreArpg.UnityClient
                 {
                     var action = (HungerAction)_pendingHungerAction;
                     var boundId = AuthoredHungerBinding.ActionId(action);
-                    var story = boundId != null ? AuthoredHungerBinding.Execute(_game, boundId) : _game.ActOnHunger(action);
+                    var story = action == HungerAction.ClaimRegionalRelic ? TakeRegionalRelic() :
+                        boundId != null ? AuthoredHungerBinding.Execute(_game, boundId) : _game.ActOnHunger(action);
                     _pendingHungerAction = -1;
                     _message = PresentedStoryResult(action, story);
                     _atmosphere.AcceptedSpeech(story);
@@ -1094,8 +1100,21 @@ namespace AreArpg.UnityClient
                 }
                 if (_pendingPickup)
                 {
+                    bool hadFieldPauldron = _game.Progression.Equipment.FieldPauldronOwned;
                     bool pickedUp = _game.TryCollectLoot();
                     _message = pickedUp ? "Beute aufgenommen. Neue Waffen kannst du im Inventar vergleichen und ausrüsten." : "Keine Beute in Reichweite.";
+                    if (!hadFieldPauldron && _game.Progression.Equipment.FieldPauldronOwned)
+                    {
+                        _message = "Feldschulter der Heilerin geborgen. Du kannst sie in der Tasche anlegen.";
+                        _selectedItem = _game.Progression.Items.Count;
+                        _inventoryPage = _selectedItem / InventoryPageSize;
+                    }
+                    if (!pickedUp && _game.CanClaimRegionalRelic)
+                    {
+                        var regional = TakeRegionalRelic();
+                        pickedUp = regional.Accepted;
+                        _message = regional.Text;
+                    }
                     if (pickedUp) SaveCharacter();
                     _pendingPickup = false;
                 }
@@ -1129,6 +1148,7 @@ namespace AreArpg.UnityClient
             RefreshPostProcessing();
             AnimateVillageLights();
             AnimateDungeonLights();
+            UpdateRegionalSources();
             UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
@@ -1225,7 +1245,11 @@ namespace AreArpg.UnityClient
                     Vector3.one * 0.55f, new Color(0.97f, 0.76f, 0.18f), 0.8f);
                 var equipment=_game.Progression.Equipment.ForItem(item.Item);
                 float floor = GroundHeight(item.Xmm * .001f, item.Zmm * .001f);
-                if(equipment!=null&&PassiveArtVisuals.TryBindGrounded(drop,equipment.Definition.VisualKey,floor))
+                if (item.HasFieldPauldron && TryGroundFieldPauldron(drop, floor))
+                {
+                    _stationaryLootVisuals.Add(item.Id);
+                }
+                else if(equipment!=null&&PassiveArtVisuals.TryBindGrounded(drop,equipment.Definition.VisualKey,floor))
                 {
                     var art=drop.GetChild(drop.childCount-1);var rs=art.GetComponentsInChildren<Renderer>();var bounds=rs[0].bounds;foreach(var r in rs)bounds.Encapsulate(r.bounds);
                     art.position+=Vector3.up*(floor+.15f-bounds.min.y);
@@ -1234,6 +1258,7 @@ namespace AreArpg.UnityClient
                 {
                     // A generic carried bundle represents the existing receipt, regardless of its upgrade value.
                     drop.GetChild(drop.childCount - 1).name = "GroundedBag";
+                    _stationaryLootVisuals.Add(item.Id);
                 }
                 _lootVisuals.Add(item.Id,drop);
             }
@@ -1247,9 +1272,13 @@ namespace AreArpg.UnityClient
                     if (entry.Value != null) Destroy(entry.Value.gameObject);
                     removed.Add(entry.Key);
                 }
-                else if (entry.Value != null && entry.Value.Find("GroundedBag") == null) entry.Value.Rotate(Vector3.up, 90f * Time.deltaTime);
+                else if (entry.Value != null && !_stationaryLootVisuals.Contains(entry.Key)) entry.Value.Rotate(Vector3.up, 90f * Time.deltaTime);
             }
-            foreach (int id in removed) _lootVisuals.Remove(id);
+            foreach (int id in removed)
+            {
+                _lootVisuals.Remove(id);
+                _stationaryLootVisuals.Remove(id);
+            }
         }
 
         /// <summary>Describe a donation control appropriately on touch or keyboard devices.</summary>

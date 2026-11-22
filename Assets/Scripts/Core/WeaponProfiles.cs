@@ -57,6 +57,9 @@ namespace AreArpg.Core
         private static readonly WeaponProfile Staff = new WeaponProfile("Stab", 11000, 1500, 9700, ruinFocusBp: StaffRuinFocusBp);
         private static readonly WeaponProfile Shield = new WeaponProfile("Schild", 0, 0, 10000);
 
+        private static readonly WeaponProfile Haft = new WeaponProfile("Gratkeule", 11750, 450, 9400);
+        private static readonly WeaponProfile Fork = new WeaponProfile("Ofengabel", 10500, 700, 9700);
+
         public static WeaponProfile For(WeaponDefinition definition)
         {
             if (definition == null) return Unarmed;
@@ -68,7 +71,9 @@ namespace AreArpg.Core
                 case WeaponFamily.Bow: return Bow;
                 case WeaponFamily.Staff: return Staff;
                 case WeaponFamily.Shield: return Shield;
-                default: return Sword; // Mace and spear are not droppable yet.
+                case WeaponFamily.Mace: return Haft;
+                case WeaponFamily.Spear: return Fork;
+                default: return Sword;
             }
         }
 
@@ -89,7 +94,7 @@ namespace AreArpg.Core
             get
             {
                 var weapon = Equipment.Weapon;
-                return weapon == null ? 10000 : WeaponProfiles.For(weapon.Definition).Accuracy(WeaponMastery.Level(weapon.Definition.Family));
+                return weapon == null ? 10000 : WeaponProfiles.For(weapon.Definition).Accuracy(WeaponMastery.Level(weapon.Definition.TrainingFamily));
             }
         }
 

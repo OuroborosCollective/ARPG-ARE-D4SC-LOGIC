@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ashen Crypt Art Pipeline"
+  short_description: "Monster, Figuren, PBR und Levelmodule auf der CPU bauen."
+policy:
+  allow_implicit_invocation: true
