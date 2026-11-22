@@ -410,6 +410,10 @@ namespace AreArpg.EditorTools
                     Avatar avatar = GameAvatar(recipe);
                     foreach (string key in recipe.keys ?? new string[0]) Save(recipe, mesh, material, avatar, Visuals + key + ".prefab", key, true);
                     foreach (string key in recipe.sources ?? new string[0]) Save(recipe, mesh, material, avatar, SourceFolder + "/" + key + ".prefab", key, false);
+                    // A figure that has become a colour variant leaves the mesh it once had behind. It goes only now,
+                    // after every visual of the figure points at the shared mesh: until then the old visual is whole.
+                    if (!string.IsNullOrEmpty(recipe.sameShapeAs) && AssetDatabase.LoadAssetAtPath<Mesh>(GameMeshPath(recipe.id)) != null)
+                        AssetDatabase.DeleteAsset(GameMeshPath(recipe.id));
                     AssetDatabase.SaveAssets();
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
@@ -473,7 +477,6 @@ namespace AreArpg.EditorTools
                 if (difference != null) throw new InvalidOperationException(recipe.id + " hat nicht die Form von " + model.id + ": " + difference);
             }
             finally { Object.DestroyImmediate(own); Object.DestroyImmediate(basis); }
-            if (AssetDatabase.LoadAssetAtPath<Mesh>(GameMeshPath(recipe.id)) != null) AssetDatabase.DeleteAsset(GameMeshPath(recipe.id));
             return shared;
         }
 
