@@ -269,7 +269,7 @@
     },
     {
       "id": "guard_a", "role": "Dorfwache: wachsam und fest; dunkelroter Waffenrock mit Stahlplatten, Soldatenhelm, Schulterplatten, Lederhandschuhe, kurzer dunkler Bart",
-      "base": "Fantasy/Hero", "height": 1.92, "texture": 512, "motion": "m", "keys": ["Guard0"],
+      "base": "Fantasy/Hero", "height": 1.92, "texture": 512, "motion": "m", "keys": ["Guard0"], "parts": true,
       "body": [{"id": "Muscle", "value": 55}, {"id": "Weight", "value": 25}],
       "face": [{"id": "Muscle", "value": 45}, {"id": "Stern", "value": 55}, {"id": "Squareness", "value": 40}],
       "remove": ["Neck", "HairFront"],
@@ -290,7 +290,7 @@
     },
     {
       "id": "guard_b", "role": "Dorfwache, zweite Farbe: blaugrauer Waffenrock mit Stahlplatten, Soldatenhelm, Schulterplatten, brauner Bart",
-      "base": "Fantasy/Hero", "height": 1.92, "texture": 512, "motion": "m", "keys": ["Guard1"], "sameShapeAs": "guard_a",
+      "base": "Fantasy/Hero", "height": 1.92, "texture": 512, "motion": "m", "keys": ["Guard1"], "parts": true, "sameShapeAs": "guard_a",
       "body": [{"id": "Muscle", "value": 55}, {"id": "Weight", "value": 25}],
       "face": [{"id": "Muscle", "value": 45}, {"id": "Stern", "value": 55}, {"id": "Squareness", "value": 40}],
       "remove": ["Neck", "HairFront"],
@@ -311,7 +311,7 @@
     },
     {
       "id": "fighter_plate", "role": "Bergwache in Vollplatte: schwer gerüstet für die Pässe; kantiger Plattenharnisch, Beinschienen, Panzerhandschuhe, Helm mit dunkelrotem Busch",
-      "base": "Fantasy/Hero", "height": 2.0, "texture": 512, "motion": "m", "keys": ["Fighter0"],
+      "base": "Fantasy/Hero", "height": 2.0, "texture": 512, "motion": "m", "keys": ["Fighter0"], "parts": true,
       "body": [{"id": "Muscle", "value": 75}, {"id": "Weight", "value": 30}],
       "face": [{"id": "Muscle", "value": 60}, {"id": "Stern", "value": 70}, {"id": "Squareness", "value": 55}],
       "remove": ["Neck", "HairFront"],
@@ -331,7 +331,7 @@
     },
     {
       "id": "fighter_steel", "role": "Gepanzerter Kämpfer: geschwärzter Stahlharnisch über Kettenzeug, Stahlhelm mit Nackenschutz, kräftige Schulterstücke, gestutzter Bart",
-      "base": "Fantasy/Hero", "height": 1.96, "texture": 512, "motion": "m", "keys": ["Fighter1"],
+      "base": "Fantasy/Hero", "height": 1.96, "texture": 512, "motion": "m", "keys": ["Fighter1"], "parts": true,
       "body": [{"id": "Muscle", "value": 65}, {"id": "Weight", "value": 30}],
       "face": [{"id": "Muscle", "value": 50}, {"id": "Stern", "value": 60}],
       "remove": ["Neck", "HairFront"],
@@ -352,7 +352,7 @@
     },
     {
       "id": "messenger", "role": "Bote: leicht und schnell zu Fuß; staubiger Reiseumhang mit Kapuze, schlichte Tunika, enge Reisehose, hohe Stiefel, Lederhandschuhe",
-      "base": "Fantasy/Hero", "height": 1.84, "texture": 512, "motion": "m", "keys": ["Messenger0"],
+      "base": "Fantasy/Hero", "height": 1.84, "texture": 512, "motion": "m", "keys": ["Messenger0"], "parts": true,
       "body": [{"id": "Muscle", "value": 15}, {"id": "Weight", "value": 5}],
       "face": [{"id": "Muscle", "value": 5}, {"id": "Sharpness", "value": 45}],
       "remove": ["Shoulders", "Hat", "LowerFace"],
@@ -372,7 +372,7 @@
     },
     {
       "id": "tailor", "role": "Schneiderin: sorgfältig und gepflegt; cremefarbene Bluse mit pflaumenfarbenem Mieder, langer dunkler Rock, feine Schuhe, streng gebundenes Haar",
-      "base": "Fantasy/Ranger", "height": 1.74, "texture": 512, "motion": "f", "keys": ["Tailor0"],
+      "base": "Fantasy/Ranger", "height": 1.74, "texture": 512, "motion": "f", "keys": ["Tailor0"], "parts": true,
       "body": [{"id": "Chest", "value": 40}, {"id": "Weight", "value": 15}],
       "face": [{"id": "EarsElf", "value": 0}, {"id": "NoseTiltUp", "value": 10}],
       "remove": ["Gloves", "Hat", "Neck", "Shoulders", "MakeUpEyes", "MakeUpCheeks"],
@@ -390,7 +390,7 @@
     },
     {
       "id": "forester_a", "role": "Förster: kennt Wald und Wild; moosgrüne Weste mit Lederbrust, Kapuze, lange Waldstiefel, grobe Handschuhe, gebundener Bart",
-      "base": "Fantasy/Hero", "height": 1.9, "texture": 512, "motion": "m", "keys": ["Forester0"],
+      "base": "Fantasy/Hero", "height": 1.9, "texture": 512, "motion": "m", "keys": ["Forester0"], "parts": true,
       "body": [{"id": "Muscle", "value": 35}, {"id": "Weight", "value": 15}],
       "face": [{"id": "Stern", "value": 25}, {"id": "Sharpness", "value": 30}],
       "remove": ["Shoulders", "Neck", "HairFront"],
@@ -410,7 +410,7 @@
     },
     {
       "id": "forester_b", "role": "Förster, zweite Farbe: erdbraune Weste mit Lederbrust, Kapuze, lange Waldstiefel, gebundener Bart",
-      "base": "Fantasy/Hero", "height": 1.9, "texture": 512, "motion": "m", "keys": ["Forester1"], "sameShapeAs": "forester_a",
+      "base": "Fantasy/Hero", "height": 1.9, "texture": 512, "motion": "m", "keys": ["Forester1"], "parts": true, "sameShapeAs": "forester_a",
       "body": [{"id": "Muscle", "value": 35}, {"id": "Weight", "value": 15}],
       "face": [{"id": "Stern", "value": 25}, {"id": "Sharpness", "value": 30}],
       "remove": ["Shoulders", "Neck", "HairFront"],
@@ -430,7 +430,7 @@
     },
     {
       "id": "baker", "role": "Bäckerin: kräftig und mehlbestäubt; helle Leinenbluse mit hellbraunem Mieder, erdfarbener Rock mit weißer Schürze, blonder Zopf",
-      "base": "Fantasy/Ranger", "height": 1.78, "texture": 512, "motion": "f", "keys": ["Baker0"],
+      "base": "Fantasy/Ranger", "height": 1.78, "texture": 512, "motion": "f", "keys": ["Baker0"], "parts": true,
       "body": [{"id": "Chest", "value": 50}, {"id": "Weight", "value": 45}],
       "face": [{"id": "EarsElf", "value": 0}, {"id": "Weight", "value": 30}],
       "remove": ["Gloves", "Hat", "Neck", "Shoulders", "MakeUpEyes", "MakeUpCheeks"],
@@ -448,7 +448,7 @@
     },
     {
       "id": "doctor", "role": "Arzt: ernst und gelehrt; langer dunkler Mantel über hellem Hemd, dunkle Robe, Handschuhe, ergrautes zurückgebundenes Haar, gepflegter grauer Bart",
-      "base": "Fantasy/Hero", "height": 1.86, "texture": 512, "motion": "m", "keys": ["Doctor0"],
+      "base": "Fantasy/Hero", "height": 1.86, "texture": 512, "motion": "m", "keys": ["Doctor0"], "parts": true,
       "body": [{"id": "Muscle", "value": 5}, {"id": "Weight", "value": 20}],
       "face": [{"id": "Muscle", "value": 0}, {"id": "Stern", "value": 40}],
       "remove": ["Neck", "Hat", "Shoulders"],
