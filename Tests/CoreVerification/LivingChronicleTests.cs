@@ -51,8 +51,11 @@ internal static class LivingChronicleTests
         var theft = p.Social.Forge.Archive.Events.Single(e => e.Context == "camp.theft");
         var decision = p.Social.Forge.Archive.Events.Single(e => e.Context == "camp.decision.stolen");
         var entries = LivingChronicle.VisibleToPlayer(p);
-        check(entries.Any(e => e.EventId == theft.Id && e.Origin == ChronicleOrigin.Performed) &&
-              entries.Any(e => e.EventId == decision.Id && e.Origin == ChronicleOrigin.Performed),
+        check(entries.Any(e => e.EventId == theft.Id && e.Origin == ChronicleOrigin.Performed &&
+                  e.RegionId == RegionNetwork.Aschengrenze && e.AcceptedTick == theft.Tick &&
+                  e.ConfirmedByPlayer) &&
+              entries.Any(e => e.EventId == decision.Id && e.Origin == ChronicleOrigin.Performed &&
+                  e.RegionId == RegionNetwork.Aschengrenze),
               "chronicle-accepted-action-and-causal-consequence-visible");
         check(entries.All(e => e.SourceNpcId == "" &&
               p.Social.Forge.Archive.Events.Any(source => source.Id == e.EventId &&
