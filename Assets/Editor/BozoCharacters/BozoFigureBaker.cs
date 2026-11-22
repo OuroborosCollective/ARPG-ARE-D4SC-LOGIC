@@ -461,22 +461,23 @@ namespace AreArpg.EditorTools
         static string GameMeshPath(string id) { return BakeFolder + "/" + id + "/" + id + "_GameMesh.asset"; }
 
         /// <summary>
-        /// A colour variant has no mesh of its own. Its bake is held against the bake of its model figure, vertex by
-        /// vertex: only if both are the same shape the variant takes the model's mesh. A variant whose parts or
-        /// sliders drifted from its model is refused instead of being shown with the wrong body.
+        /// A colour variant has no mesh of its own. Its bake is held, vertex by vertex, against the very mesh it is
+        /// going to draw: the saved mesh of its model figure, not a fresh build of the model's bake, which may be
+        /// newer than what was saved. Only if both are the same shape the variant takes that mesh. A variant whose
+        /// parts or sliders drifted from its model is refused instead of being shown with the wrong body.
         /// </summary>
         static Mesh SharedGameMesh(BozoFigureRecipes.Figure recipe)
         {
             var model = BozoFigureRecipes.Load().First(f => f.id == recipe.sameShapeAs);
             var shared = AssetDatabase.LoadAssetAtPath<Mesh>(GameMeshPath(model.id));
             if (shared == null) throw new InvalidOperationException("Grundfigur zuerst erzeugen: " + model.id + " (für " + recipe.id + ").");
-            Mesh own = BuildGameMesh(recipe), basis = BuildGameMesh(model);
+            Mesh own = BuildGameMesh(recipe);
             try
             {
-                string difference = MeshDifference(own, basis);
+                string difference = MeshDifference(own, shared);
                 if (difference != null) throw new InvalidOperationException(recipe.id + " hat nicht die Form von " + model.id + ": " + difference);
             }
-            finally { Object.DestroyImmediate(own); Object.DestroyImmediate(basis); }
+            finally { Object.DestroyImmediate(own); }
             return shared;
         }
 
