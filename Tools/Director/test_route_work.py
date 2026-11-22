@@ -53,5 +53,51 @@ class RouteWorkTests(unittest.TestCase):
         self.assertEqual(['discovery', 'evidence'], phases)
 
 
+    def test_engineering_skill_router_is_advisory_and_checks_catalog(self):
+        result = plan('NPC bug reparieren')
+        self.assertIn('engineering_skills', result)
+        route = result['engineering_skills']
+        self.assertTrue(route['advisory_only'])
+        self.assertEqual('NONE', route['execution'])
+        self.assertIn('diagnosing-bugs', route['selected'])
+        self.assertNotIn('chief-of-staff', route['selected'])
+        # With a pinned host catalog installed this is UPSTREAM_PIN_MATCH;
+        # without one, fail closed. Neither state claims runtime execution.
+        self.assertIn(route['skills']['diagnosing-bugs'],
+                      ('UPSTREAM_PIN_MATCH', 'NOT_VERIFIED', 'MISSING', 'CHANGED',
+                       'LOCAL_BYTES_MATCH_OTHER_REVISION'))
+        self.assertEqual('d1478fcb140db0b93c0c8df17bcfd311844749d0', route['pin'])
+
+
+    def test_blank_task_refused_without_crashing(self):
+        for task in ('', ' ', '\t\n'):
+            result = plan(task)
+            self.assertTrue(result['advisory_only'])
+            self.assertEqual('REFUSED', result['engineering_skills']['status'])
+            self.assertEqual('TASK_REQUIRED', result['engineering_skills']['reason'])
+            self.assertEqual([], result['engineering_skills']['selected'])
+            self.assertEqual('NONE', result['engineering_skills']['execution'])
+
+    def test_empty_cli_task_reports_refusal_not_traceback(self):
+        import subprocess, sys
+        from pathlib import Path
+        script = Path(__file__).with_name('route_work.py')
+        run = subprocess.run([sys.executable, str(script), ''], capture_output=True,
+                             encoding='utf-8', check=False)
+        self.assertEqual(0, run.returncode, run.stderr)
+        self.assertNotIn('Traceback', run.stderr)
+        import json
+        self.assertEqual('REFUSED', json.loads(run.stdout)['engineering_skills']['status'])
+
+    def test_private_engineering_catalog_is_gitignored(self):
+        import subprocess
+        from pathlib import Path
+        root = Path(__file__).resolve().parents[2]
+        run = subprocess.run(['git', '-C', str(root), 'check-ignore', '-q',
+                              'Tools/engineering-skill-catalog.json'],
+                             capture_output=True, text=True, check=False)
+        self.assertEqual(0, run.returncode, run.stderr)
+
+
 if __name__ == '__main__':
     unittest.main()
