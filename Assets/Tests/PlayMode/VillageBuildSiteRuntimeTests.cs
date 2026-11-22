@@ -23,8 +23,13 @@ namespace AreArpg.PlayMode.Tests
         /// <summary>Put the picture of the village up again from the Core, as an arrival does.</summary>
         private void RebuildVillagePicture()
         {
-            foreach (string build in new[] { "BuildChapterScenery", "BuildPlacedLayer", "BuildVillageEconomy" })
-                typeof(ArenaRuntime).GetMethod(build, Flags, null, Type.EmptyTypes, null).Invoke(_runtime, null);
+            foreach (string build in new[] { "BuildChapterScenery", "BuildPlacedLayer", "BuildVillageEconomy", "BuildVillageLights" })
+            {
+                MethodInfo method = typeof(ArenaRuntime).GetMethod(build, Flags);
+                Assert.IsNotNull(method, build);
+                // Optional parameters take their defaults, as in the game's own calls.
+                method.Invoke(_runtime, method.GetParameters().Select(p => p.DefaultValue).ToArray());
+            }
         }
 
         /// <summary>Houses that stand without the way there: for tests that are about the houses, not about how they were built.</summary>
