@@ -116,9 +116,9 @@ namespace AreArpg.Core
         /// Called from an already accepted, range-gated Core greeting only.
         /// Never invokes Archive.Report, advances a tick or creates a new memory event.
         /// </summary>
-        internal static string HearAtRealGreeting(CharacterProgression p, NpcMind npc)
+        internal static KnownMemory HearAtRealGreeting(CharacterProgression p, NpcMind npc)
         {
-            if (p == null || npc == null || p.Social.Forge == null) return "";
+            if (p == null || npc == null || p.Social.Forge == null) return null;
             var archive = p.Social.Forge.Archive;
             ulong tick = p.Social.Forge.ProcessedTicks;
             var known = npc.Relevant(tick).Where(k => News(k.Event) &&
@@ -126,18 +126,16 @@ namespace AreArpg.Core
                 npc.Cognition.Recall(k.Event.Id, tick) != null)
                 .OrderByDescending(k => k.Event.Id).FirstOrDefault();
             if (known == null || npc.Knowledge(known.Event.Id)?.Sequence != known.Sequence)
-                return "";
+                return null;
             if (!Decode(p, out var heard)) throw new InvalidOperationException("Invalid checked chronicle references");
             if (!heard.Any(x => x.EventId == known.Event.Id) && heard.Count < MaxHeard)
             {
                 heard.Add(new Hearing(known.Event.Id, known.Sequence, npc.Id));
                 p.SetSection(SaveSection, Encode(heard));
             }
-            string statement = known.Event.Context == "camp.theft" ?
-                "Du hast eine Ration aus Maras Lager genommen." :
-                "Du hast Maras Lager Proviant gebracht.";
-            return known.Origin == KnowledgeOrigin.Reported ?
-                "Mir wurde erzaehlt: " + statement : "Ich war dabei. " + statement;
+            // No unreviewed Core text. Unity resolves the whitelisted key
+            // using the signed Fadenwerk publication only.
+            return known;
         }
 
         /// <summary>All visible entries are references to actual canonical events, bounded and tick-sorted.</summary>
