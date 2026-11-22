@@ -66,6 +66,36 @@ namespace AshenCrypt.MemoryForge.Tests
         }
 
         [Test]
+        public void RefutedOrSupersededRumorCannotAppearAsCurrentKnowledge()
+        {
+            var archive = new MemoryArchive();
+            archive.Spawn("mara", "merchant", ForgeDefaults.CreateRegistry());
+            var claim = archive.Append(MemoryKind.SemanticClaim, "player", "mara", 8,
+                3000, false, "camp.allegation", new RelationshipChange());
+            Assert.IsTrue(archive.Learn("mara", claim.Id, KnowledgeOrigin.Suspected, "mara", 8));
+            var suspected = CausalKnowledgeGraph.Build(archive, DeclaredSourceRevision);
+            Assert.IsTrue(suspected.HasEdge("knowledge:1", "npc:mara", "known-by"));
+
+            Assert.IsTrue(archive.Learn("mara", claim.Id, KnowledgeOrigin.Refuted, "mara", 9));
+            string saved = archive.Save();
+            var refuted = CausalKnowledgeGraph.Build(archive, DeclaredSourceRevision);
+            Assert.IsTrue(refuted.HasNode("knowledge:1"));
+            Assert.IsTrue(refuted.HasNode("knowledge:2"));
+            Assert.IsFalse(refuted.HasEdge("knowledge:1", "npc:mara", "known-by"));
+            Assert.IsFalse(refuted.HasEdge("knowledge:2", "npc:mara", "known-by"));
+            Assert.IsEmpty(refuted.Why("event:" + claim.Id, "npc:mara"));
+            Assert.AreEqual(saved, archive.Save());
+
+            Assert.IsTrue(archive.Learn("mara", claim.Id, KnowledgeOrigin.Self, "mara", 10));
+            var confirmed = CausalKnowledgeGraph.Build(archive, DeclaredSourceRevision);
+            Assert.IsFalse(confirmed.HasEdge("knowledge:1", "npc:mara", "known-by"));
+            Assert.IsFalse(confirmed.HasEdge("knowledge:2", "npc:mara", "known-by"));
+            Assert.IsTrue(confirmed.HasEdge("knowledge:3", "npc:mara", "known-by"));
+            CollectionAssert.AreEqual(new[] { "event:" + claim.Id, "knowledge:3", "npc:mara" },
+                confirmed.Why("event:" + claim.Id, "npc:mara"));
+        }
+
+        [Test]
         public void MissingEvidenceAndUnboundRevisionAreRejected()
         {
             var archive = new MemoryArchive();
