@@ -392,6 +392,8 @@ namespace AreArpg.EditorTools
         static void FinalizeFigures(string[] ids, bool fromBake)
         {
             var recipes = BozoFigureRecipes.Load();
+            // A colour variant uses the mesh of its model figure: the models come first.
+            ids = ids.OrderBy(id => string.IsNullOrEmpty(recipes.First(f => f.id == id).sameShapeAs) ? 0 : 1).ToArray();
             foreach (string id in ids)
             {
                 var recipe = recipes.First(f => f.id == id);
@@ -408,6 +410,10 @@ namespace AreArpg.EditorTools
                     Avatar avatar = GameAvatar(recipe);
                     foreach (string key in recipe.keys ?? new string[0]) Save(recipe, mesh, material, avatar, Visuals + key + ".prefab", key, true);
                     foreach (string key in recipe.sources ?? new string[0]) Save(recipe, mesh, material, avatar, SourceFolder + "/" + key + ".prefab", key, false);
+                    // A figure that has become a colour variant leaves the mesh it once had behind. It goes only now,
+                    // after every visual of the figure points at the shared mesh: until then the old visual is whole.
+                    if (!string.IsNullOrEmpty(recipe.sameShapeAs) && AssetDatabase.LoadAssetAtPath<Mesh>(GameMeshPath(recipe.id)) != null)
+                        AssetDatabase.DeleteAsset(GameMeshPath(recipe.id));
                     AssetDatabase.SaveAssets();
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
@@ -438,6 +444,60 @@ namespace AreArpg.EditorTools
         /// also stored without a second copy for scripts. The full mesh stays next to it for later use.
         /// </summary>
         static Mesh GameMesh(BozoFigureRecipes.Figure recipe)
+        {
+            if (!string.IsNullOrEmpty(recipe.sameShapeAs)) return SharedGameMesh(recipe);
+            Mesh mesh = BuildGameMesh(recipe);
+            string path = GameMeshPath(recipe.id);
+            var saved = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (saved == null) { AssetDatabase.CreateAsset(mesh, path); saved = mesh; }
+            else { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); } // keep the asset identity
+            var serialized = new SerializedObject(saved);
+            serialized.FindProperty("m_IsReadable").boolValue = false;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(saved);
+            return saved;
+        }
+
+        static string GameMeshPath(string id) { return BakeFolder + "/" + id + "/" + id + "_GameMesh.asset"; }
+
+        /// <summary>
+        /// A colour variant has no mesh of its own. Its bake is held, vertex by vertex, against the very mesh it is
+        /// going to draw: the saved mesh of its model figure, not a fresh build of the model's bake, which may be
+        /// newer than what was saved. Only if both are the same shape the variant takes that mesh. A variant whose
+        /// parts or sliders drifted from its model is refused instead of being shown with the wrong body.
+        /// </summary>
+        static Mesh SharedGameMesh(BozoFigureRecipes.Figure recipe)
+        {
+            var model = BozoFigureRecipes.Load().First(f => f.id == recipe.sameShapeAs);
+            var shared = AssetDatabase.LoadAssetAtPath<Mesh>(GameMeshPath(model.id));
+            if (shared == null) throw new InvalidOperationException("Grundfigur zuerst erzeugen: " + model.id + " (für " + recipe.id + ").");
+            Mesh own = BuildGameMesh(recipe);
+            try
+            {
+                string difference = MeshDifference(own, shared);
+                if (difference != null) throw new InvalidOperationException(recipe.id + " hat nicht die Form von " + model.id + ": " + difference);
+            }
+            finally { Object.DestroyImmediate(own); }
+            return shared;
+        }
+
+        static string MeshDifference(Mesh a, Mesh b)
+        {
+            if (a.vertexCount != b.vertexCount) return "Anzahl der Eckpunkte " + a.vertexCount + " statt " + b.vertexCount;
+            int[] ta = a.triangles, tb = b.triangles;
+            if (ta.Length != tb.Length) return "Anzahl der Dreiecke";
+            for (int i = 0; i < ta.Length; i++) if (ta[i] != tb[i]) return "Dreiecke";
+            Vector3[] va = a.vertices, vb = b.vertices;
+            for (int i = 0; i < va.Length; i++) if ((va[i] - vb[i]).sqrMagnitude > 1e-8f) return "Lage der Eckpunkte";
+            Vector2[] ua = a.uv, ub = b.uv;
+            if (ua.Length != ub.Length) return "Texturkoordinaten";
+            for (int i = 0; i < ua.Length; i++) if ((ua[i] - ub[i]).sqrMagnitude > 1e-10f) return "Texturkoordinaten";
+            if (a.bindposes.Length != b.bindposes.Length) return "Knochen";
+            return null;
+        }
+
+        /// <summary>The game mesh of a figure in memory, built from its bake; not saved.</summary>
+        static Mesh BuildGameMesh(BozoFigureRecipes.Figure recipe)
         {
             var source = AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(recipe.id));
             if (source == null) throw new InvalidOperationException("Gebackene Figur fehlt: " + recipe.id);
@@ -480,15 +540,7 @@ namespace AreArpg.EditorTools
                 mesh.tangents = tangents;
             }
             mesh.RecalculateBounds();
-            string path = BakeFolder + "/" + recipe.id + "/" + recipe.id + "_GameMesh.asset";
-            var saved = AssetDatabase.LoadAssetAtPath<Mesh>(path);
-            if (saved == null) { AssetDatabase.CreateAsset(mesh, path); saved = mesh; }
-            else { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); } // keep the asset identity
-            var serialized = new SerializedObject(saved);
-            serialized.FindProperty("m_IsReadable").boolValue = false;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            EditorUtility.SetDirty(saved);
-            return saved;
+            return mesh;
         }
 
         static void AddDeltas(Vector3[] vertices, Vector3[] normals, Vector4[] tangents, Vector3[] moved, Vector3[] turned, Vector3[] leaned, float amount)

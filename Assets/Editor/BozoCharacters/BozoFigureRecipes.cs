@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -52,6 +53,12 @@ namespace AreArpg.EditorTools
             public string[] remove = new string[0];
             public Outfit[] outfits = new Outfit[0];
             public string[] skin = new string[0];
+            /// <summary>
+            /// Id of another figure with the same preset, the same parts and the same body and face shapes. This
+            /// figure differs from it in colours only and uses its mesh: a second colour of a figure costs one small
+            /// texture and no second model.
+            /// </summary>
+            public string sameShapeAs = "";
         }
         [Serializable] sealed class File { public string schema = ""; public string pack = ""; public float light; public Figure[] figures = new Figure[0]; }
 
@@ -111,6 +118,22 @@ namespace AreArpg.EditorTools
             return file.figures;
         }
 
+        /// <summary>What two recipes differ in apart from colours, role, height and names; null when they share a shape.</summary>
+        public static string ShapeDifference(Figure a, Figure b)
+        {
+            if (a.@base != b.@base) return "base";
+            Func<Shape[], string> shapes = list => string.Join(",", (list ?? new Shape[0]).Where(s => s != null)
+                .OrderBy(s => s.id, StringComparer.Ordinal).Select(s => s.id + "=" + s.value.ToString("R", System.Globalization.CultureInfo.InvariantCulture)));
+            if (shapes(a.body) != shapes(b.body)) return "body";
+            if (shapes(a.face) != shapes(b.face)) return "face";
+            Func<string[], string> slots = list => string.Join(",", (list ?? new string[0]).OrderBy(s => s, StringComparer.Ordinal));
+            if (slots(a.remove) != slots(b.remove)) return "remove";
+            Func<Outfit[], string> parts = list => string.Join(",", (list ?? new Outfit[0]).Where(o => o != null)
+                .OrderBy(o => o.slot, StringComparer.Ordinal).Select(o => o.slot + "=" + o.id));
+            if (parts(a.outfits) != parts(b.outfits)) return "outfits";
+            return null;
+        }
+
         /// <summary>Null when valid, else the first defect.</summary>
         public static string Validate(Figure[] figures)
         {
@@ -158,6 +181,15 @@ namespace AreArpg.EditorTools
                 }
                 foreach (string c in f.skin ?? new string[0])
                     if (c != "" && !Hex.IsMatch(c ?? "")) return f.id + ": skin colour '" + c + "' is not #rrggbb.";
+            }
+            foreach (Figure f in figures)
+            {
+                if (string.IsNullOrEmpty(f.sameShapeAs)) continue;
+                Figure model = Array.Find(figures, other => other.id == f.sameShapeAs);
+                if (model == null || model == f) return f.id + ": sameShapeAs names no other figure.";
+                if (!string.IsNullOrEmpty(model.sameShapeAs)) return f.id + ": sameShapeAs must name a figure with a mesh of its own.";
+                string difference = ShapeDifference(f, model);
+                if (difference != null) return f.id + ": differs from " + model.id + " in more than colours (" + difference + ").";
             }
             var produced = new HashSet<string>();
             var sources = new HashSet<string>();

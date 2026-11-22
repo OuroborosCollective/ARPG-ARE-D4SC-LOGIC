@@ -60,6 +60,32 @@ namespace AreArpg.EditMode.Tests
             + "\"sources\":[\"HeroSource\",\"PatientSource0\",\"PatientSource1\",\"PatientSource2\"],"
             + "\"outfits\":[{\"slot\":\"Top\",\"id\":\"Top_RusticTunic\",\"colors\":[\"#6f6c5c\"]}]}]}";
 
+        /// <summary>
+        /// A second colour of a figure shares the mesh of its model figure. That is only right when both are the same
+        /// shape, so a recipe may name a model only if it matches it in everything but colours.
+        /// </summary>
+        [Test]
+        public void AColourVariantMustMatchItsModelInEverythingButColour()
+        {
+            const string tail = "]}";
+            Assert.IsTrue(Probe.EndsWith(tail));
+            Func<string, string> with = second => Probe.Substring(0, Probe.Length - tail.Length) + "," + second + tail;
+            const string twin = "{\"id\":\"probe_b\",\"role\":\"Probe, zweite Farbe\",\"base\":\"Fantasy/Hero\",\"height\":1.8,\"texture\":512,\"motion\":\"m\","
+                + "\"keys\":[\"ProbeB\"],\"sameShapeAs\":\"probe\",\"outfits\":[{\"slot\":\"Top\",\"id\":\"Top_RusticTunic\",\"colors\":[\"#445566\"]}]}";
+            Assert.IsNull(Defect(with(twin)), "Another colour, another height and another name are a variant");
+            StringAssert.Contains("names no other figure", Defect(with(twin.Replace("\"sameShapeAs\":\"probe\"", "\"sameShapeAs\":\"nobody\""))));
+            StringAssert.Contains("names no other figure", Defect(with(twin.Replace("\"sameShapeAs\":\"probe\"", "\"sameShapeAs\":\"probe_b\""))));
+            StringAssert.Contains("(outfits)", Defect(with(twin.Replace("Top_RusticTunic", "Top_VillagerTunic"))));
+            StringAssert.Contains("(outfits)", Defect(with(twin.Replace("\"outfits\":[", "\"outfits\":[{\"slot\":\"Hat\",\"id\":\"Hat_RusticHood\",\"colors\":[]},"))));
+            StringAssert.Contains("(body)", Defect(with(twin.Replace("\"keys\":[\"ProbeB\"]", "\"keys\":[\"ProbeB\"],\"body\":[{\"id\":\"Muscle\",\"value\":40}]"))));
+            StringAssert.Contains("(face)", Defect(with(twin.Replace("\"keys\":[\"ProbeB\"]", "\"keys\":[\"ProbeB\"],\"face\":[{\"id\":\"Stern\",\"value\":10}]"))));
+            StringAssert.Contains("(remove)", Defect(with(twin.Replace("\"keys\":[\"ProbeB\"]", "\"keys\":[\"ProbeB\"],\"remove\":[\"Neck\"]"))));
+            StringAssert.Contains("(base)", Defect(with(twin.Replace("Fantasy/Hero", "Fantasy/Ranger"))));
+            // No chains: a variant names a figure that has a mesh of its own.
+            string third = twin.Replace("probe_b", "probe_c").Replace("ProbeB", "ProbeC").Replace("\"sameShapeAs\":\"probe\"", "\"sameShapeAs\":\"probe_b\"");
+            StringAssert.Contains("mesh of its own", Defect(with(twin + "," + third)));
+        }
+
         [Test]
         public void BrokenRecipesAreRejected()
         {
