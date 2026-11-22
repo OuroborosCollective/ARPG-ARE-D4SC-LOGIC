@@ -10,6 +10,7 @@ internal static class NpcForgeIntegrationTests
     {
         var p=CharacterProgression.CreateEntryProfile();p.EnterVillage();p.Social.EnableForge();
         var world=new ArenaSimulation(71,p,BigInteger.One,LootCatalog.Version1);
+        check(world.CompleteArrivalScene(),"forge-help-needs-real-arrival-scene-first");
         var ilyan=world.Npcs.First(n=>n.Id==0);
         // Explicit contact fixture; the real accepted transaction and simulation are under test.
         ilyan.Xmm=world.PlayerXmm+1000;ilyan.Zmm=world.PlayerZmm;

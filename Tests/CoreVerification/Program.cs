@@ -36,6 +36,7 @@ internal static class Program
             NpcCalmTests.Run(Require);
             ArrivalSceneTests.Run(Require);
             CampDecisionTests.Run(Require);
+            CausalCampSliceTests.Run(Require);
             CausalKnowledgeGraphTests.Run(Require);
             LivingChronicleTests.Run(Require);
             SupplyTheftTests.Run(Require);
@@ -59,6 +60,7 @@ internal static class Program
             CompanionForgeTests.Run(Require);
             AschenzollTests.Run(Require);
             ForgePolicyTests.Run(Require);
+            CausalPolicyTests.Run(Require);
             ForgePopulationTests.Run(Require);
             JourneyPilotTests.Run(Require);
             WorldSkyClockTests.Run(Require);

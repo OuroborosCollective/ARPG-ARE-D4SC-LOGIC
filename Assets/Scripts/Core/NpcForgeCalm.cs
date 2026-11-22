@@ -122,10 +122,26 @@ namespace AreArpg.Core
         {
             get
             {
-                if (Mind != null && Mind.RelationshipTo("player").Hostility >= FleeHostility) return NpcDisposition.Hostile;
+                if (Mind != null && Mind.RelationshipTo("player").Hostility >= FleeHostility && HasDirectHostileKnowledge(Mind)) return NpcDisposition.Hostile;
                 NpcDisposition legacy = Memory.Disposition(Personality);
                 return legacy == NpcDisposition.Hostile && Mind != null && CalmedSinceHarm(Mind) ? NpcDisposition.Wary : legacy;
             }
+        }
+
+        /// <summary>
+        /// A relationship sum may include reported or suspected harm. Only a personal
+        /// or witnessed hostile act can authorize combat against the player; the
+        /// archive remains the sole source of this provenance.
+        /// </summary>
+        internal static bool HasDirectHostileKnowledge(NpcMind mind)
+        {
+            if (mind == null) return false;
+            foreach (var known in mind.Known)
+                if (known.IsFact && known.Event.Actor == "player" &&
+                    (known.Event.Kind == MemoryKind.Assault || known.Event.Kind == MemoryKind.Theft) &&
+                    known.Event.Impact[RelationshipAxis.Hostility] > 0)
+                    return true;
+            return false;
         }
 
         internal static bool CalmedSinceHarm(NpcMind mind)

@@ -22,6 +22,7 @@ internal static class VillageEconomyCommunityTests
         profile.EnterVillage();
         profile.Social.EnableForge();
         var world = new ArenaSimulation(77, profile, 1, LootCatalog.Version1);
+        if (!world.CompleteArrivalScene()) throw new InvalidOperationException("Village economy contact fixture requires completed first arrival");
         for (int i = 0; i < newResidents; i++) world.CompleteMainQuest();
         for (int i = 0; i < 10; i++) world.Step();
         return world;

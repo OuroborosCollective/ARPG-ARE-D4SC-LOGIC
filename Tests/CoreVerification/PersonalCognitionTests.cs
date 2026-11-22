@@ -92,7 +92,9 @@ internal static class PersonalCognitionTests
     private static ArenaSimulation Village()
     {
         var p=CharacterProgression.CreateEntryProfile();p.EnterVillage();p.Social.EnableForge();
-        return new ArenaSimulation(71,p,BigInteger.One,LootCatalog.Version1);
+        var world = new ArenaSimulation(71,p,BigInteger.One,LootCatalog.Version1);
+        if (!world.CompleteArrivalScene()) throw new InvalidOperationException("Personal cognition fixture must finish the fixed arrival");
+        return world;
     }
     private static void LiveNeedsAndDecisions(Action<bool,string> check)
     {
