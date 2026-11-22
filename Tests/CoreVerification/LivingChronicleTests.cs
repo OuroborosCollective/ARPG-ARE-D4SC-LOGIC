@@ -228,6 +228,9 @@ internal static class LivingChronicleTests
     private static void NoOmniscientOrLaunderedRumors(Action<bool, string> check)
     {
         var p = Village(9903, out var world);
+        // Since the first-arrival gate (#122) nobody in the village talks before the scene: the greetings below must
+        // be refused or accepted for the chronicle's reasons, not because the scene is still pending.
+        check(world.CompleteArrivalScene(), "chronicle-hidden-claims-fixture-completes-arrival");
         var archive = p.Social.Forge.Archive;
         var hidden = archive.Append(MemoryKind.SemanticClaim, "dorn", "mara", 0, 2000, false,
                                     "npc.secret", new RelationshipChange());
