@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using AshenCrypt.MemoryForge;
 
 namespace AreArpg.Core
