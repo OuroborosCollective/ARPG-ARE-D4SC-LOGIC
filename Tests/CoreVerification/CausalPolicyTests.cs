@@ -84,7 +84,7 @@ internal static class CausalPolicyTests
         if (direct)
         {
             if (!forge.Archive.Perceive("dorn", assault.Id, KnowledgeOrigin.Witnessed,
-                    forge.ProcessedTicks, null, 3333))
+                    forge.ProcessedTicks, null, 3000))
                 throw new InvalidOperationException("Direct acquisition rejected");
         }
         else
