@@ -129,5 +129,170 @@ MonoBehaviour:
         requiresFlag: 
         conditionQuestId: 
         conditionState: 
+  - id: ashen.chronicle.camp.theft
+    title: "Aschenchronik - chronicle.camp.theft"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast eine Ration aus Maras Lager genommen."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.camp.donation
+    title: "Aschenchronik - chronicle.camp.donation"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast Mara eine echte Ration gebracht."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.camp.decision.stolen
+    title: "Aschenchronik - chronicle.camp.decision.stolen"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Die Wahl ist gefallen: Der Vorrat wurde gestohlen."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.camp.decision.replaced
+    title: "Aschenchronik - chronicle.camp.decision.replaced"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Das Lager wurde nach der letzten Spende vollstaendig aufgefuellt."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.story.hearilyan
+    title: "Aschenchronik - chronicle.story.hearilyan"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast Ilyans vertrauliche Geschichte gehoert."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.story.inspecttrail
+    title: "Aschenchronik - chronicle.story.inspecttrail"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast den Verband und die Spur am Wegzeichen untersucht."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.story.inspectshelter
+    title: "Aschenchronik - chronicle.story.inspectshelter"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast Verbandszeug und Essensreste im Lager untersucht."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.story.reveal
+    title: "Aschenchronik - chronicle.story.reveal"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast Mara von Ilyans Versorgung erzaehlt."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.story.protect
+    title: "Aschenchronik - chronicle.story.protect"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast Ilyan dein Schweigen zugesagt."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.story.replace
+    title: "Aschenchronik - chronicle.story.replace"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast die Ersatzversorgung beschlossen."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
+  - id: ashen.chronicle.story.inspectbeds
+    title: "Aschenchronik - chronicle.story.inspectbeds"
+    startNodeId: line
+    nodes:
+    - id: line
+      speaker: 
+      text: "Du hast die Verletztenbetten untersucht."
+      choices:
+      - text: Weiter
+        nextNodeId: 
+        action: end
+        actionParam: 
+        requiresFlag: 
+        conditionQuestId: 
+        conditionState: 
   kits: []
   items: []
