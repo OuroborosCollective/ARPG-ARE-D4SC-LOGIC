@@ -15,6 +15,7 @@
     <Compile Include="../../Assets/Scripts/Core/AuthoredHungerBinding.cs" Link="AuthoredHungerBinding.cs" />
     <Compile Include="../../Assets/AshenCrypt/MemoryForge/Core/**/*.cs" LinkBase="MemoryForge" />
     <Compile Include="../../Assets/Scripts/Core/NpcForge*.cs" LinkBase="Core" />
+    <Compile Include="../../Assets/Scripts/Core/Chronicle*.cs" LinkBase="Core" />
     <Compile Include="../../Assets/Scripts/Core/ArpgSimulation.cs" Link="ArpgSimulation.cs" />
     <Compile Include="../../Assets/Scripts/Core/WorldSkyClock.cs" Link="WorldSkyClock.cs" />
     <Compile Include="../../Assets/Scripts/Core/CharacterProgression.cs" Link="CharacterProgression.cs" />
