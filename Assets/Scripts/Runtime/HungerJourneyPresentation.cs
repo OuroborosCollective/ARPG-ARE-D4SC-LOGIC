@@ -203,23 +203,12 @@ namespace AreArpg.UnityClient
             return _chronicleCache;
         }
 
-        private static string ChronicleStatement(ChronicleEntry entry)
+        private string ChronicleStatement(ChronicleEntry entry)
         {
-            string text;
-            switch (entry.TextKey)
-            {
-                case "chronicle.camp.theft": text = "Eine Ration aus Maras Lager genommen."; break;
-                case "chronicle.camp.donation": text = "Eine echte Ration an Maras Lager gegeben."; break;
-                case "chronicle.camp.decision.stolen": text = "Der Weg des Diebstahls wurde festgelegt."; break;
-                case "chronicle.camp.decision.replaced": text = "Das Lager ist wieder versorgt."; break;
-                case "chronicle.story.hearilyan": text = "Ilyans Geschichte angehoert."; break;
-                case "chronicle.story.inspecttrail": text = "Die Spur am Weg untersucht."; break;
-                case "chronicle.story.inspectshelter": text = "Das Lager untersucht."; break;
-                case "chronicle.story.reveal": text = "Eine Entscheidung offengelegt."; break;
-                case "chronicle.story.protect": text = "Ilyan das Schweigen versprochen."; break;
-                case "chronicle.story.replace": text = "Die Ersatzversorgung beschlossen."; break;
-                default: text = "Eine eigene Entscheidung festgehalten."; break;
-            }
+            // The authored Fadenwerk text is a separately checksummed, terminal
+            // dialogue; a missing or invalid published key must fail closed.
+            var text = AuthoredHunger?.ChronicleTextFor(entry.TextKey);
+            if (string.IsNullOrEmpty(text)) return "Chroniktext nicht freigegeben.";
             if (entry.Origin == ChronicleOrigin.Performed) return "Selbst erlebt: " + text;
             string origin = entry.KnowledgeOrigin == AshenCrypt.MemoryForge.KnowledgeOrigin.Reported ?
                 "Nur berichtet von " : "Von einem Augenzeugen gehoert: ";
