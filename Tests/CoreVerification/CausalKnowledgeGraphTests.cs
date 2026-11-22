@@ -79,6 +79,35 @@ internal static class CausalKnowledgeGraphTests
         check(withKnowledge.Digest != withoutKnowledge.Digest && forged.Save() == forgeSave,
               "knowledge-graph-knowledge-changes-index-not-save");
 
+        // A replaced or refuted acquisition remains historical but is NOT current NPC knowledge.
+        var belief = new MemoryArchive();
+        belief.Spawn("mara", "merchant", ForgeDefaults.CreateRegistry());
+        var alleged = belief.Append(MemoryKind.SemanticClaim, "player", "mara", 8, 2000, false,
+                                    "camp.allegation", new RelationshipChange());
+        check(belief.Learn("mara", alleged.Id, KnowledgeOrigin.Suspected, "mara", 8),
+              "knowledge-graph-suspected-acquisition-accepted");
+        var suspicion = CausalKnowledgeGraph.Build(belief, SourceRevision);
+        check(suspicion.HasEdge("knowledge:1", "npc:mara", "known-by") &&
+              suspicion.HasEdge("event:" + alleged.Id, "knowledge:1", "learned-suspected"),
+              "knowledge-graph-suspected-remains-labelled-not-fact");
+        check(belief.Learn("mara", alleged.Id, KnowledgeOrigin.Refuted, "mara", 9),
+              "knowledge-graph-refutation-accepted");
+        var refuted = CausalKnowledgeGraph.Build(belief, SourceRevision);
+        check(refuted.HasNode("knowledge:1") && refuted.HasNode("knowledge:2") &&
+              !refuted.HasEdge("knowledge:1", "npc:mara", "known-by") &&
+              !refuted.HasEdge("knowledge:2", "npc:mara", "known-by") &&
+              refuted.Why("event:" + alleged.Id, "npc:mara").Count == 0,
+              "knowledge-graph-refutation-cannot-pretend-current-knowledge");
+        check(belief.Learn("mara", alleged.Id, KnowledgeOrigin.Self, "mara", 10),
+              "knowledge-graph-fact-after-refutation-accepted");
+        var confirmed = CausalKnowledgeGraph.Build(belief, SourceRevision);
+        check(!confirmed.HasEdge("knowledge:1", "npc:mara", "known-by") &&
+              !confirmed.HasEdge("knowledge:2", "npc:mara", "known-by") &&
+              confirmed.HasEdge("knowledge:3", "npc:mara", "known-by") &&
+              confirmed.Why("event:" + alleged.Id, "npc:mara")
+                       .SequenceEqual(new[] { "event:" + alleged.Id, "knowledge:3", "npc:mara" }),
+              "knowledge-graph-only-current-confirmed-acquisition-is-active");
+
         bool refused = false;
         try { CausalKnowledgeGraph.Build(forged, "unbound-revision"); }
         catch (ArgumentException) { refused = true; }
