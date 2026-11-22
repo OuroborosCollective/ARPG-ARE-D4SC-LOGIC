@@ -30,6 +30,8 @@ namespace AreArpg.UnityClient
             public VillagePlace Place;
             public Transform Host, Asker;
             public readonly Transform[][] Piles = new Transform[VillageBuildRules.NeedCount][];
+            /// <summary>Pile parts of materials this house does not ask for: never shown at this lot.</summary>
+            public readonly List<Transform> Unused = new List<Transform>();
         }
 
         private readonly List<SiteView> _siteViews = new List<SiteView>();
@@ -115,9 +117,9 @@ namespace AreArpg.UnityClient
                 units.Sort((a, b) => string.CompareOrdinal(a.name, b.name));
                 foreach (Transform unit in units) unit.gameObject.SetActive(false);
                 int need = VillageBuildRules.NeedFor(place, VillageSiteModel.Goods[g]);
-                if (need < 0) continue;
-                int count = Mathf.Min(units.Count, VillageBuildRules.NeedAt(place, need).Count);
-                view.Piles[need] = units.GetRange(0, count).ToArray();
+                if (need < 0) { view.Unused.AddRange(units); continue; }
+                // The whole pile is kept: pieces beyond what this house needs can never be delivered and so stay hidden.
+                view.Piles[need] = units.ToArray();
             }
             for (int need = 0; need < VillageBuildRules.NeedCount; need++) if (view.Piles[need] == null) view.Piles[need] = new Transform[0];
             UpdateSite(view);
@@ -160,6 +162,7 @@ namespace AreArpg.UnityClient
                 for (int i = 0; i < pile.Length; i++)
                     if (pile[i] != null && pile[i].gameObject.activeSelf != i < delivered) pile[i].gameObject.SetActive(i < delivered);
             }
+            foreach (Transform unit in view.Unused) if (unit != null && unit.gameObject.activeSelf) unit.gameObject.SetActive(false);
             bool asking = _game.SiteOffered(view.Place);
             if (asking && view.Asker == null) view.Asker = BuildSiteAsker(view.Place);
             if (view.Asker == null) return;
