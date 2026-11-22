@@ -94,6 +94,19 @@ namespace AreArpg.UnityClient
         public string AuthoredHungerHash { get { var p=AuthoredHunger; return p!=null?p.sourceHash:""; } }
         private string PresentedHungerObjective()
         { var p=AuthoredHunger; int stage=AuthoredHungerBinding.TextStage(_game.Progression); return p!=null&&stage>=0?p.objectives[stage]:_game.HungerObjective; }
+        private string PresentedNpcResult(SocialResult result)
+        {
+            if (result == null) return "";
+            if (string.IsNullOrEmpty(result.ChronicleTextKey)) return result.Text;
+            // The dialogue may only be selected after the Core has supplied
+            // an accepted source event, NPC identity and exact KnowledgeOrigin.
+            string statement = AuthoredHunger?.ChronicleTextFor(result.ChronicleTextKey);
+            if (string.IsNullOrEmpty(statement)) return result.Text + " Chroniktext nicht freigegeben.";
+            string provenance = result.ChronicleKnowledgeOrigin == AshenCrypt.MemoryForge.KnowledgeOrigin.Reported
+                ? "Mir wurde erzaehlt: " : "Ich war dabei. ";
+            return result.Text + " " + provenance + statement;
+        }
+
         private string PresentedStoryResult(HungerAction action, SocialResult result)
         {
             var p=AuthoredHunger;
