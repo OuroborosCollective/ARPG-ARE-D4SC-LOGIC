@@ -129,13 +129,15 @@ namespace AreArpg.Core
             // Orsel tends the sick at the old mill once her own quest is done; before that the hurt rest at home.
             bool care = p.Village.OrselTeachesUnlocked;
             bool atMill = r.Site == VillageSite.Mill && !r.Walking;
-            // Once the sick room stands Orsel tends the hurt there: nobody has to walk to the mill any more.
-            bool atCare = atMill || inVillage && care && CareInVillage;
+            // Once the sick room stands Orsel tends the hurt there. The mill is no place of care any more: whoever
+            // still gets there finds her gone and turns home.
+            bool careAtMill = atMill && !CareInVillage;
+            bool atCare = careAtMill || inVillage && care && CareInVillage;
             VillageWork plan;
             // A patient stays in Orsel's care until whole. Care does not heal the starving, though, and an errand
             // bars the way home to eat: a starving resident at the mill does what the errand still allows and
             // otherwise goes home, where Mara may have rations again.
-            if (atMill && care && r.Health < VillageEconomyRules.MaxHealth)
+            if (careAtMill && care && r.Health < VillageEconomyRules.MaxHealth)
                 plan = r.Hunger >= VillageEconomyRules.MaxNeed ? AwayAssignment(r, night) : VillageWork.None;
             else if (!r.CanWork) plan = inVillage ? (!atCare && care && (food || r.Hunger < VillageEconomyRules.EatHunger) ? VillageWork.SeekCare : VillageWork.None) : VillageWork.GoHome;
             else plan = Plan(p, r, night, campLimit, care);
@@ -189,7 +191,7 @@ namespace AreArpg.Core
                     if (atCare && care && r.Hunger < VillageEconomyRules.MaxNeed) Care(forge, r, tick);
                     // Rest heals, but not on an empty stomach.
                     else if (tick % VillageEconomyRules.RestHealTicks == 0 && r.Health < VillageEconomyRules.MaxHealth && r.Hunger < VillageEconomyRules.MaxNeed) r.Health++;
-                    r.Activity = !r.CanWork || atMill ? VillageActivity.Recovering : night && inVillage ? VillageActivity.Sleeping : VillageActivity.Resting;
+                    r.Activity = !r.CanWork || careAtMill ? VillageActivity.Recovering : night && inVillage ? VillageActivity.Sleeping : VillageActivity.Resting;
                     effect = fatigue - r.Fatigue + r.Health - health;
                     break;
                 case ForgeAction.Travel:

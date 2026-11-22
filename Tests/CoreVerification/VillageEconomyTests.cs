@@ -678,6 +678,30 @@ internal static class VillageEconomyTests
         for (int t = 0; t < 600; t += 10) { Pass(moving, 10); neverBack &= patient.Site == VillageSite.Village && !patient.Walking; }
         check(neverBack && patient.Health > before, "a-patient-who-moved-is-cared-for-in-the-village");
 
+        // Somebody hurt who was still on the road to the mill when Orsel moved finds nobody there: they turn
+        // round and are cared for in the sick room. The mill is no place of care any more.
+        var onTheRoad = MillVillage(1);
+        var road = Scene.Of(onTheRoad);
+        road.Resident(0)[3] = 500;
+        road.Commons[(int)VillageGood.Herb] = 2;
+        road.Into(onTheRoad);
+        var walker = onTheRoad.Economy.Residents[0];
+        int setOut = PassUntil(onTheRoad, 1000, () => walker.Walking && walker.Destination == VillageSite.Mill);
+        onTheRoad.Houses.NoteOrsel();
+        onTheRoad.Houses.Deliver(VillagePlace.SickRoom, 0, 8); onTheRoad.Houses.Deliver(VillagePlace.SickRoom, 1, 4);
+        onTheRoad.TravelHunger(3, false); onTheRoad.TravelHunger(2, true);
+        bool stillWalking = setOut >= 0 && walker.Walking && walker.Destination == VillageSite.Mill;
+        int atTheMill = PassUntil(onTheRoad, 1000, () => walker.Site == VillageSite.Mill && !walker.Walking);
+        int healthAtTheMill = walker.Health;
+        int turned = PassUntil(onTheRoad, 200, () => walker.Walking && walker.Destination == VillageSite.Village);
+        bool notTendedThere = walker.Health <= healthAtTheMill + 1;
+        int backHome = PassUntil(onTheRoad, 1000, () => walker.Site == VillageSite.Village && !walker.Walking);
+        int healthAtHome = walker.Health;
+        Pass(onTheRoad, 600);
+        check(stillWalking && atTheMill >= 0 && turned >= 0 && notTendedThere && backHome >= 0 && walker.Site == VillageSite.Village && walker.Health > healthAtHome &&
+            onTheRoad.Economy.Audit().Count == 0,
+            "after-orsels-move-the-mill-is-no-place-of-care (set out " + setOut + ", at the mill " + atTheMill + ", turned " + turned + ", home " + backHome + ")");
+
         // Herbs that were on their way to the mill when Orsel moved are not left on an empty shelf: they come home.
         var late = MillVillage(1);
         var errand = Scene.Of(late);
