@@ -1,0 +1,5 @@
+interface:
+  display_name: "Editor Authoring"
+  short_description: "Editor-Szenen, Prefabs, Terrain und Unity-6-Komponenten kontrolliert bearbeiten."
+policy:
+  allow_implicit_invocation: true

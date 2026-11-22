@@ -32,9 +32,9 @@ namespace AreArpg.UnityClient
             get
             {
                 var r = _game.Progression.Rattler;
-                return r.Creature.IsDead ? "MAULWURFRATTLER BESIEGT\n" + (r.BrandExamined ?
+                return r.Creature.IsDead ? "TIEFSCHARRER BESIEGT\n" + (r.BrandExamined ?
                     "Das Brandmal ist bekannt. Sichere deine Beute." : "Untersuche seinen Hals unter SPUREN.") :
-                    "MAULWURFRATTLER  " + r.Creature.Health + "/" + r.Creature.MaxHealth +
+                    "TIEFSCHARRER  " + r.Creature.Health + "/" + r.Creature.MaxHealth +
                     "\nBlind: Laerm / naher Geruch. Zum Ausweichen SCHLEICHEN AUS!";
             }
         }
@@ -85,7 +85,8 @@ namespace AreArpg.UnityClient
             if (_rattler == null)
             {
                 _rattler = Shape(PrimitiveType.Capsule, "ARE_MaulwurfRattler", Vector3.zero, Vector3.one, new Color(.40f, .32f, .28f));
-                PassiveArtVisuals.TryBindGrounded(_rattler, "CryptRattler", 0);
+                if (PassiveArtVisuals.TryBindGrounded(_rattler, "CryptRattler", 0) && !TiefscharrerProjection.Attach(_rattler))
+                    MountRattlerSensoryRing(_rattler);
                 _rattlerAnimator = _rattler.GetComponentInChildren<Animator>();
                 if (_rattlerAnimator != null) _rattlerAnimator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
                 _rattlerWarning = Shape(PrimitiveType.Cylinder, "ARE_Rattler_Strike_Warning", Vector3.zero,

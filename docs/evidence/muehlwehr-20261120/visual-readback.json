@@ -1,0 +1,347 @@
+{
+  "xmlSha256": "b8ae0f0524a7f8f7e0155b51e75435ac9bf5cf9f33fcc3a482596088ab48ca70",
+  "nativeStarted": "2026-11-20 20:28:37Z",
+  "testRunResult": "Passed",
+  "tests": {
+    "AshWardensAndMillRingerAppearWearAndPersistThroughTheRoad": {
+      "result": "Passed",
+      "duration": "21.694065",
+      "message": null
+    },
+    "FieldHealerKnightDropFitsThroughMotionAndFreshSave": {
+      "result": "Passed",
+      "duration": "7.464511",
+      "message": null
+    },
+    "RattlerDenUsesBlindCombatAndPersistsTheRoyalBrand": {
+      "result": "Passed",
+      "duration": "5.164850",
+      "message": null
+    },
+    "RattlerPrivateAssetBindsBoneAnimationAndBrand": {
+      "result": "Passed",
+      "duration": "0.102467",
+      "message": null
+    },
+    "RegionalArsenalModelsAndLiveHandsMatchTheCatalog": {
+      "result": "Passed",
+      "duration": "2.033687",
+      "message": null
+    },
+    "TiefscharrerKeepsHisBrandAndDropsAnEquipableGrubenlicht": {
+      "result": "Passed",
+      "duration": "13.167071",
+      "message": null
+    }
+  },
+  "fixedViewReadbacks": {
+    "Feldheilerin-Glockentraegerin-Werkansicht": {
+      "on": "bde7f3c1b11b9d1bbe4f1e314a3d3d8582c2b2d6da82cfdbde3336c04130c830",
+      "off": "7ad23b5b7f8605c4f7e8b5af902ee6cacfcc5a6e769d24fb6f52bf84f9a0e86b",
+      "changed": 31549,
+      "repeat": 0,
+      "triangles": 35626,
+      "bounds": {
+        "x": 0.7372379302978516,
+        "y": 1.4439704418182373,
+        "z": 0.7389264106750488
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die alte Muehle"
+    },
+    "Feldheilerin-Grubenlicht-Spielkamera": {
+      "on": "026f1489486c9ba962309732c9a8653c8187e037a75471e6dc0a20e3ef9a77ea",
+      "off": "0f5ad69a893b77dade1e7c53296bbee9424636819e7d24fa423e9521ad7e1c52",
+      "changed": 3739,
+      "repeat": 0,
+      "triangles": 63942,
+      "bounds": {
+        "x": 0.21161270141601562,
+        "y": 0.3952336311340332,
+        "z": 0.19957494735717773
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Das Rattlernest"
+    },
+    "Feldheilerin-Scharrgraeberkluft-Werkansicht": {
+      "on": "21bfd430028a34db3c9193aaa86e7c8f6a031dcedcb5c23c68bcf04881d500cc",
+      "off": "b6544ac7e76081952eeee993b64e7f5e3559a79aeeb97e735597041cba2fd81a",
+      "changed": 24989,
+      "repeat": 0,
+      "triangles": 12306,
+      "bounds": {
+        "x": 0.5804824829101562,
+        "y": 1.495023488998413,
+        "z": 0.6053848266601562
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Der alte Speicher"
+    },
+    "Feldheilerin-Schlackengarde-Werkansicht": {
+      "on": "31f33fc055fde7aa106dc864ac742ccf4bfca2f03bbd59da3f5c924b36242eb6",
+      "off": "285b26249cc8d01f2a5f2f61a1118ce98c540142b1bda24b8436c7b4c674996c",
+      "changed": 40509,
+      "repeat": 0,
+      "triangles": 34525,
+      "bounds": {
+        "x": 0.6866421699523926,
+        "y": 1.5201945304870605,
+        "z": 0.6734156608581543
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die Aschestrasse"
+    },
+    "Glockentraegerin-Brustsitz-Werkansicht": {
+      "on": "3c6238bef2c00251127103df510d6aa33b01751b9735e73d78b0461b229b43cd",
+      "off": "e6b32ecd3840fabc5a7ca092b2d122915d2f3875d0dafe4a744ac9257fa974c0",
+      "changed": 139743,
+      "repeat": 0,
+      "triangles": 8084,
+      "bounds": {
+        "x": 0.5011359453201294,
+        "y": 0.42303532361984253,
+        "z": 0.5247665047645569
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die alte Muehle"
+    },
+    "Glockentraegerin-Detail-Werkansicht": {
+      "on": "52f3e5964ce57bea3e90e1f0e1a2fee5e647ef1c0435961e5c79781bdb105b1f",
+      "off": "356ee1d1a9f3cff55af6f5462430d2f69a5592557e493406020a6ac1a2d66eeb",
+      "changed": 206580,
+      "repeat": 0,
+      "triangles": 9729,
+      "bounds": {
+        "x": 0.5011358261108398,
+        "y": 0.5710978507995605,
+        "z": 0.5247663259506226
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die alte Muehle"
+    },
+    "Glockentraegerin-Spielkamera": {
+      "on": "405afcb7376e74973547ccaab470cdde48a307a81d500f56dff68ed2fb67c52a",
+      "off": "d6b85219a4eabaad74ddef554759a00b8d029fc7b2e71d462eae9f9c2e4b7cc3",
+      "changed": 2276,
+      "repeat": 0,
+      "triangles": 39253,
+      "bounds": {
+        "x": 0.8222408294677734,
+        "y": 1.4435057640075684,
+        "z": 0.7537021636962891
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die alte Muehle"
+    },
+    "Glockentraegerin-Werkansicht": {
+      "on": "83c0c21718f3d5d6c1947bb4fda806e9fad6b1d027c78946324bd49dcc6106a4",
+      "off": "cfe687385e63a4771061f691eae07cb7bf09596d2d64a44bca74e8bc696b5879",
+      "changed": 48405,
+      "repeat": 0,
+      "triangles": 39253,
+      "bounds": {
+        "x": 0.6983880996704102,
+        "y": 1.4293241500854492,
+        "z": 0.7654561996459961
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die alte Muehle"
+    },
+    "Grubenlicht-Werkansicht": {
+      "on": "64bae541aa24fe1bb30aaddb1bb90f182cfdd3b1a22109e3925aa9764daa007d",
+      "off": "d9e876fad541dfd0fa3689de442351a8c796a7709534dc507eca50c81e0448f0",
+      "changed": 78701,
+      "repeat": 0,
+      "triangles": 63942,
+      "bounds": {
+        "x": 0.21161270141601562,
+        "y": 0.3952336311340332,
+        "z": 0.19957494735717773
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Das Rattlernest"
+    },
+    "Scharrgraeber-und-Brandreif-Werkansicht": {
+      "on": "93a77119dd88af1f402f8fe4cd7b7582c27a50da8f5dfc9b8565e9b15f1cd3c3",
+      "off": "481625aa80d59d842441f2ebfc870cca2d40756ae3514fdfd6b2e29ae5744f71",
+      "changed": 28216,
+      "repeat": 0,
+      "triangles": 78618,
+      "bounds": {
+        "x": 0.6311550140380859,
+        "y": 1.4874401092529297,
+        "z": 0.7606353759765625
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Der alte Speicher"
+    },
+    "Schlackengarde-Brustsitz-Werkansicht": {
+      "on": "71f927c26246c52f5fcd0c401959bc5f054b9f42eb73f143f7a7fe01438eb46a",
+      "off": "c4aaefb922e578d12dca1458be2c7ae7743ecc8c17f34182a2e27c4d98d158fd",
+      "changed": 138697,
+      "repeat": 0,
+      "triangles": 13001,
+      "bounds": {
+        "x": 0.5137985348701477,
+        "y": 0.44139987230300903,
+        "z": 0.4076821208000183
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die Aschestrasse"
+    },
+    "Schlackengarde-Detail-Werkansicht": {
+      "on": "ed8771e8226a996417453be4f7ded427964b9c2fa3f57a6279239cc199873d94",
+      "off": "98b50fb0dbd1fbf0534f44f8a87fc2c4176ac75d0aa04e8dc678fe3b93c64a8e",
+      "changed": 188461,
+      "repeat": 0,
+      "triangles": 17831,
+      "bounds": {
+        "x": 0.5137984752655029,
+        "y": 0.7100110054016113,
+        "z": 0.4076821804046631
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die Aschestrasse"
+    },
+    "Schlackengarde-Helmkuppe-Werkansicht": {
+      "on": "36570897621f6f676d91ce10576cc89f12ab0392018706ca554f5249b5a01996",
+      "off": "79a4de7c5ca2734f3708a4be5624d502b5d3c8e70c4d1b23d647e21d939f587c",
+      "changed": 147200,
+      "repeat": 0,
+      "triangles": 4830,
+      "bounds": {
+        "x": 0.4067622423171997,
+        "y": 0.3719179332256317,
+        "z": 0.3662167191505432
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die Aschestrasse"
+    },
+    "Schlackengarde-Spielkamera": {
+      "on": "76efbd2fb09429b3d39bd1beaaf6076fea37e16bdf63f86cfe168ad66b3c4f8d",
+      "off": "fd1df28785886919379c85ffc5a3e9ae8dcfe514638524e0a1bf955a055e5450",
+      "changed": 2424,
+      "repeat": 0,
+      "triangles": 38557,
+      "bounds": {
+        "x": 0.5919017791748047,
+        "y": 1.5524184703826904,
+        "z": 1.3987743854522705
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die Aschestrasse"
+    },
+    "Schlackengarde-Werkansicht": {
+      "on": "7dcec04864cb7530bc3877633916148616e8f0279fbc3d1c6a7ee2109106b3d6",
+      "off": "08f3bd9ed62ec283201aa17837abf37b08b75336c9ed34c753d5e958c676564b",
+      "changed": 71158,
+      "repeat": 0,
+      "triangles": 38557,
+      "bounds": {
+        "x": 0.5857887268066406,
+        "y": 1.5578944683074951,
+        "z": 0.8785712718963623
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die Aschestrasse"
+    },
+    "Tiefscharrer-Profil-Spielkamera": {
+      "on": "be6c6cd2f79cdfd378641f006a4354d0f8a2eb9b8b3697bc7adada97efe36fc9",
+      "off": "16dfa44f52906c162dd83428fa011449619425115f5237a95c1e958342104667",
+      "changed": 64718,
+      "repeat": 0,
+      "triangles": 99243,
+      "bounds": {
+        "x": 3.683993101119995,
+        "y": 2.571152448654175,
+        "z": 4.593003273010254
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Das Rattlernest"
+    },
+    "Tiefscharrer-Schulterbrand-Werkansicht": {
+      "on": "2919620de7d95b8d46c0def7756f610f5c46993bf9a885f053ca3230f2a565ad",
+      "off": "8af3effa6d7f2c4a3dfd56cde3de1215aca0db0305dde3eb2f947de285f02cbd",
+      "changed": 16514,
+      "repeat": 0,
+      "triangles": 7,
+      "bounds": {
+        "x": 0.06436759233474731,
+        "y": 0.15242232382297516,
+        "z": 0.24116083979606628
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Das Rattlernest"
+    },
+    "Tiefscharrer-Spielkamera": {
+      "on": "92b4021c1c518ffaf86ec8ad3c09e644e2d1c0306ed31c3d62590ac718d484ea",
+      "off": "9f6ef9e8312506424822fcede4d5284c01eef4637f43c18148e15c05306cb596",
+      "changed": 15389,
+      "repeat": 0,
+      "triangles": 99243,
+      "bounds": {
+        "x": 3.683993101119995,
+        "y": 2.571152448654175,
+        "z": 4.593003273010254
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Das Rattlernest"
+    },
+    "Tiefscharrer-Tastlappen-Werkansicht": {
+      "on": "f070bad2e34212115bba39d696bb8671768a321bcede7b98391ee563196a3b3c",
+      "off": "4d1e0db2083b2eb727ea1f880ac3e90edcb26e0d7ff311f09549f9e3a69d4d06",
+      "changed": 96115,
+      "repeat": 0,
+      "triangles": 97584,
+      "bounds": {
+        "x": 3.683993101119995,
+        "y": 2.571152448654175,
+        "z": 4.593003273010254
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Das Rattlernest"
+    },
+    "Tiefscharrer-Tastnase-Werkansicht": {
+      "on": "0ccd3115e8713d9b1e01e396e4744d939ce9014520f70acb3f0f22f14c8e0a24",
+      "off": "274639df2dda5c27cad2c3168f2f539806ef2736eb77a2bc0aacb8c7541644e6",
+      "changed": 416563,
+      "repeat": 0,
+      "triangles": 99243,
+      "bounds": {
+        "x": 3.683993101119995,
+        "y": 2.571152448654175,
+        "z": 4.593003273010254
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Das Rattlernest"
+    },
+    "Tiefscharrer-Werkansicht": {
+      "on": "bad74c9b895a26dfa1ad89f1e2b5af2a9a936b8f6eb0b4fd5fb4189433a2dc31",
+      "off": "3824f6580305b4934da9b33a09bb9bda26bbafdd0bbb05d822deccdab7e0f72d",
+      "changed": 200602,
+      "repeat": 0,
+      "triangles": 99243,
+      "bounds": {
+        "x": 3.683993101119995,
+        "y": 2.571152448654175,
+        "z": 4.593003273010254
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Das Rattlernest"
+    },
+    "Zollmesser-und-Ziegelschild-Werkansicht": {
+      "on": "18b367813a6ce1247b5f10dd0bc7da73cfb90cef69a3402f4a1f04b1695e4a54",
+      "off": "7ea1baa3058e0b66713d995b3708de3cec54e63612e00dcbade621cbeac976bd",
+      "changed": 16714,
+      "repeat": 0,
+      "triangles": 3902,
+      "bounds": {
+        "x": 0.7045688629150391,
+        "y": 0.5546808242797852,
+        "z": 0.7685404419898987
+      },
+      "device": "llvmpipe (LLVM 15.0.7, 256 bits)",
+      "chapter": "Die Aschestrasse"
+    }
+  }
+}

@@ -28,6 +28,9 @@ namespace AreArpg.UnityClient
         {
             if(_hero==null||_weaponHost==null)return;
             var gear=_game.Progression.Equipment;var weapon=gear.Weapon;var shield=gear.Shield;
+            bool refreshWardrobe = RefreshRegionalWear(gear);
+            UpdateFieldPauldron(gear.FieldPauldronEquipped);
+            if (refreshWardrobe) MountRegionalWear(gear);
             string id=weapon?.Definition.Id??"starter",off=shield?.Definition.Id??"none";
             if(_shownWeapon!=id)
             {
@@ -55,7 +58,8 @@ namespace AreArpg.UnityClient
                 t.gameObject.AddComponent<MeshFilter>().sharedMesh=mesh;var renderer=t.gameObject.AddComponent<MeshRenderer>();renderer.material=new Material(Shader.Find("Universal Render Pipeline/Lit")??Shader.Find("Standard")){color=new Color(.25f,.15f,.08f)};
                 var owner=t.gameObject.AddComponent<WoodlandMeshOwner>();owner.Mesh=mesh;owner.Material=renderer.sharedMaterial;_peltMantle=t;
             }
-            if(_peltMantle!=null)_peltMantle.gameObject.SetActive(_game.Progression.Woodland.ArmorCrafted);
+            if(_peltMantle!=null)_peltMantle.gameObject.SetActive(_game.Progression.Woodland.ArmorCrafted &&
+                gear.WornRegionalRelic(RegionalRelicSlot.Body) == RegionalRelic.None);
         }
         private void ConfigureWeaponAnimation(WeaponItem weapon)
         {

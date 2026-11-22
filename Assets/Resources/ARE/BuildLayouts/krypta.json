@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "krypta",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -34,6 +34,22 @@
       "z": 18,
       "rot": 76,
       "scale": 1.25
+    },
+    {
+      "id": "b0201",
+      "key": "RibPillar",
+      "x": -4.6,
+      "z": -11.8,
+      "rot": 33,
+      "scale": 0.82
+    },
+    {
+      "id": "b0202",
+      "key": "Brazier",
+      "x": 4.3,
+      "z": -12.4,
+      "rot": 17,
+      "scale": 0.76
     }
   ]
 }

@@ -1,0 +1,5 @@
+interface:
+  display_name: "Integration Curator"
+  short_description: "Neue Unity-Pakete, Plugins, Skills und MCP-Server ohne Duplikate kuratieren."
+policy:
+  allow_implicit_invocation: true

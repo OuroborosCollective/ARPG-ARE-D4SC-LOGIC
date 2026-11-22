@@ -1,0 +1,682 @@
+{
+  "schema": 1,
+  "sources": {
+    "arjun": {
+      "repository": "https://github.com/arjun988/blender-skills",
+      "commit": "904f095d8f36a6e72adaebb08d07f884a074743d",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "el4": {
+      "repository": "https://github.com/EL4CTEO/blender-skills",
+      "commit": "9e7e04a603c125a0d17447ab97112fa70a865067",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "rob": {
+      "repository": "https://github.com/RobLe3/cc-blender-skill",
+      "commit": "a2634b588e80265e796aa53f8ab178d75105c2af",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "scenario": {
+      "repository": "https://github.com/scenario-labs/skills",
+      "commit": "76cbc0b314b8baeea180bb2193f6ee44a415b49b",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "atelier": {
+      "repository": "https://github.com/luminary19/atelier",
+      "commit": "c16c3429a5e161906b812db2972b7e7289021e7e",
+      "licenseFiles": []
+    },
+    "modeler": {
+      "repository": "https://github.com/calebrisc/blender-modeler",
+      "commit": "c8f245982108e2627972768d4311cbe172b58137",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "unity": {
+      "repository": "https://github.com/Unity-Technologies/skills",
+      "commit": "8974588c0d76745c7eb9bee530b4053451bfc1aa",
+      "licenseFiles": [
+        "LICENSE.md"
+      ]
+    },
+    "openai": {
+      "repository": "https://github.com/openai/plugins",
+      "commit": "981b02c0c44058b595f3b4180002c3ae3c806d40",
+      "licenseFiles": []
+    },
+    "ecc": {
+      "repository": "https://github.com/affaan-m/ECC",
+      "commit": "4adeee6732a12d1540f49a4d50a38ce8c97f9a53",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "mpfb": {
+      "repository": "https://github.com/makehumancommunity/mpfb2",
+      "commit": "9de0707fdc88438d7c53a1a2ac7937d9221e2431",
+      "licenseFiles": [
+        "LICENSE.ASSETS.md",
+        "LICENSE.CODE.md",
+        "LICENSE.md"
+      ]
+    },
+    "charmorph": {
+      "repository": "https://github.com/Upliner/CharMorph",
+      "commit": "ec5e13dcd5a7330b35fa7474b3abd2f406d77bd2",
+      "licenseFiles": [
+        "license.txt"
+      ]
+    },
+    "dcc": {
+      "repository": "https://github.com/dcc-mcp/dcc-mcp-blender",
+      "commit": "5a9d7d489ebf0d6af5c5e3166453eeee5a7fce66",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "baker": {
+      "repository": "https://github.com/sanjaya3d/Mat-Baker",
+      "commit": "fde4a9a67fb4e74c637d7da332a0f0aa784b114f",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "texutil": {
+      "repository": "https://github.com/Szhlopp/TexUtil",
+      "commit": "9a80bb8413fd2f2cd28840b5f6d3d9f570427069",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "workbench": {
+      "repository": "https://github.com/hoklims/material-workbench",
+      "commit": "0f4400a0d9884f270db41b3e8985cc0f9a51826a",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "matmaker": {
+      "repository": "https://github.com/RodZill4/material-maker",
+      "commit": "7d6daae3c74c09720afe4138ce09699ab3591ce1",
+      "licenseFiles": [
+        "LICENSE.md"
+      ]
+    },
+    "materialx": {
+      "repository": "https://github.com/AcademySoftwareFoundation/MaterialX",
+      "commit": "076047bfe680cc1cb1f756f8e0d469031b931eff",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "vfx": {
+      "repository": "https://github.com/innogames/IG-VFX-Unity-Mobile-Toolkit",
+      "commit": "6e9e80ae08f94c77943420d48fc50e863ffce8c4",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "embers": {
+      "repository": "https://github.com/llamacademy/shader-graph-embers",
+      "commit": "6195c57347a816f76b4a7fdd32d2dbf91e626a30",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "flying": {
+      "repository": "https://github.com/robcupisz/flying-embers",
+      "commit": "e7d578f55342982d0a8180a1d1042932de01b39b",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    },
+    "matpilot": {
+      "repository": "https://github.com/SS-360/materialpilot",
+      "commit": "e3721eadd042e077f3aa7d472ad83c5594c7ea5b",
+      "licenseFiles": [
+        "LICENSE"
+      ]
+    }
+  },
+  "skills": {
+    "arjun/blender-director": {
+      "source": "arjun",
+      "file": ".claude/skills/blender-director/SKILL.md",
+      "sha256": "ba10ae3243590f94fb114b6cb1e476f8f0510f0a99de100e8c14651d081bc008"
+    },
+    "arjun/character-archetypes": {
+      "source": "arjun",
+      "file": ".claude/skills/character-archetypes/SKILL.md",
+      "sha256": "8a105e03c2b67e6d129cc72016640b0ba0e2cafd36bc8560b1d1c993bebf57d4"
+    },
+    "arjun/character-artist": {
+      "source": "arjun",
+      "file": ".claude/skills/character-artist/SKILL.md",
+      "sha256": "bf51f1a2be3e8804b83a7ef97278e37308870aaff81c7aa2a3e012ff8c837054"
+    },
+    "arjun/creature-artist": {
+      "source": "arjun",
+      "file": ".claude/skills/creature-artist/SKILL.md",
+      "sha256": "06176b12ab1b84fcfc0bc0d15952ff744948496908461a947da42c6f5ec3a0c7"
+    },
+    "arjun/environment-artist": {
+      "source": "arjun",
+      "file": ".claude/skills/environment-artist/SKILL.md",
+      "sha256": "989c55a26e5db78bf719bfbbe0ba00e0fb1319a4816bce07c08a11472b2cd321"
+    },
+    "arjun/vegetation-artist": {
+      "source": "arjun",
+      "file": ".claude/skills/vegetation-artist/SKILL.md",
+      "sha256": "3b1f43f0f456b95f5c00f1372f64db75f34967c581b02068d80ee6ef63d476ec"
+    },
+    "arjun/prop-artist": {
+      "source": "arjun",
+      "file": ".claude/skills/prop-artist/SKILL.md",
+      "sha256": "f8db44db9707474893cf265592242148cbe7b4a597eed1f017c25131fb2b91ff"
+    },
+    "arjun/body-horror-style": {
+      "source": "arjun",
+      "file": ".claude/skills/body-horror-style/SKILL.md",
+      "sha256": "a4fb0440ef386441a98eaafdae5b80e9488eae2ec7e8490036fbedfde05317d3"
+    },
+    "arjun/dark-gritty-mood": {
+      "source": "arjun",
+      "file": ".claude/skills/dark-gritty-mood/SKILL.md",
+      "sha256": "30de630a0278f4b0e8690bca0858f127448cfbb4b3884d45b54853f2a5f9c53e"
+    },
+    "arjun/folk-horror-style": {
+      "source": "arjun",
+      "file": ".claude/skills/folk-horror-style/SKILL.md",
+      "sha256": "2244503d14789a67ef575110b5021532903649ee057b3d6b41d78cd93bce9987"
+    },
+    "arjun/horror-style": {
+      "source": "arjun",
+      "file": ".claude/skills/horror-style/SKILL.md",
+      "sha256": "ba007d86309da1569e30972f04d67ff2f2ed405b3c6d6a806642c0180ecae847"
+    },
+    "arjun/genre-soulslike": {
+      "source": "arjun",
+      "file": ".claude/skills/genre-soulslike/SKILL.md",
+      "sha256": "5aed9670100a27af1873f29eef7f0438d41c23b46711bac26d5399ca006352c4"
+    },
+    "arjun/biome-worlds": {
+      "source": "arjun",
+      "file": ".claude/skills/biome-worlds/SKILL.md",
+      "sha256": "3989f679d289b1d4455fe9b40804a6351d61587caf893c90f04e25469a799423"
+    },
+    "arjun/fantasy-worlds": {
+      "source": "arjun",
+      "file": ".claude/skills/fantasy-worlds/SKILL.md",
+      "sha256": "6586b1353684f32be7a5aee74e7e0746b67d706d155e05395c69622b22412887"
+    },
+    "arjun/realistic-style": {
+      "source": "arjun",
+      "file": ".claude/skills/realistic-style/SKILL.md",
+      "sha256": "1e61757ec4f9fed5502e7a2c145bf1a8b01da3a6e0988b32c042d1eeeab1b491"
+    },
+    "arjun/set-dressing": {
+      "source": "arjun",
+      "file": ".claude/skills/set-dressing/SKILL.md",
+      "sha256": "c35d19573a97282de73f1fe1e1ab9e447d279052a98db76c8faec8a3cd3fbd6b"
+    },
+    "arjun/scene-assembly": {
+      "source": "arjun",
+      "file": ".claude/skills/scene-assembly/SKILL.md",
+      "sha256": "9aad0ebdeac897304989b9a06efdaa566a76962ef9409e6e4076474dec23e34f"
+    },
+    "arjun/hard-surface": {
+      "source": "arjun",
+      "file": ".claude/skills/hard-surface/SKILL.md",
+      "sha256": "353ea5be095fd3cc9d3b4651a23087e3b20b43eb8a0759f99c227031ae96cb37"
+    },
+    "arjun/procedural-modeling": {
+      "source": "arjun",
+      "file": ".claude/skills/procedural-modeling/SKILL.md",
+      "sha256": "143556702f08e2bcab1d61dc38c0ee953bf90835483ebbaf1058c9e8c2364e03"
+    },
+    "arjun/sculpting": {
+      "source": "arjun",
+      "file": ".claude/skills/sculpting/SKILL.md",
+      "sha256": "fa84c5b530fe66ab335c6c766ffb10e49152b05b45adfbe316b0de306e3a98a0"
+    },
+    "arjun/retopology": {
+      "source": "arjun",
+      "file": ".claude/skills/retopology/SKILL.md",
+      "sha256": "cbb994cb58dae09252fada1304f1de9f01a4eff1faec6dac5120427d10fff083"
+    },
+    "arjun/rigging": {
+      "source": "arjun",
+      "file": ".claude/skills/rigging/SKILL.md",
+      "sha256": "a5469b3a46f46e659b17e0afd0fb0b1c41751e60246205af785d1dc316a32f9a"
+    },
+    "arjun/uv-workflow": {
+      "source": "arjun",
+      "file": ".claude/skills/uv-workflow/SKILL.md",
+      "sha256": "1e55a08843199640cc9d6a957ff40f96d077c00d74d6e1d95b81da8adceaba8b"
+    },
+    "arjun/texture-workflow": {
+      "source": "arjun",
+      "file": ".claude/skills/texture-workflow/SKILL.md",
+      "sha256": "9f8b86bc7fb7350d3195c7a641fa6fc33e6350fbf1364ed55330ff8b04249a9b"
+    },
+    "arjun/materials": {
+      "source": "arjun",
+      "file": ".claude/skills/materials/SKILL.md",
+      "sha256": "fc86c8f2e292791a3bc4f238ae0f2120c52d61b393ef922c55860dd2b78e43b6"
+    },
+    "arjun/vfx-fx": {
+      "source": "arjun",
+      "file": ".claude/skills/vfx-fx/SKILL.md",
+      "sha256": "4ea783380362cab44aa635f5cc967e46d6b1bf74061341a576aa4f37b3c72b0c"
+    },
+    "arjun/lod-pipeline": {
+      "source": "arjun",
+      "file": ".claude/skills/lod-pipeline/SKILL.md",
+      "sha256": "8025238b3ef5238e9d5304d8014645df2889e0fc09aa5d86de5fea57eafd5b0e"
+    },
+    "arjun/collision-proxy": {
+      "source": "arjun",
+      "file": ".claude/skills/collision-proxy/SKILL.md",
+      "sha256": "35c3b05ea2b31591cfe9c480730e2963887d7dcc88c80eb891d0c4abdc820af6"
+    },
+    "arjun/unity-export": {
+      "source": "arjun",
+      "file": ".claude/skills/unity-export/SKILL.md",
+      "sha256": "a3d58deb6512e979a4a3cdcfeafde97c6bfb5c743975025bd58279a73bcb452a"
+    },
+    "arjun/qa-review": {
+      "source": "arjun",
+      "file": ".claude/skills/qa-review/SKILL.md",
+      "sha256": "14bd366e4c7831973d67e74580ebfeafb1749ce1530ef64ba900d097ac38fce0"
+    },
+    "arjun/camera-cinematography": {
+      "source": "arjun",
+      "file": ".claude/skills/camera-cinematography/SKILL.md",
+      "sha256": "0838fe51a882af69b47d598b09ef3c921852e498a394d35b793d607826e43ece"
+    },
+    "arjun/cloth-sim": {
+      "source": "arjun",
+      "file": ".claude/skills/cloth-sim/SKILL.md",
+      "sha256": "adc458f300a734c647ff3d4f83ea8c06fbb73859f0be89693d7057848175ea22"
+    },
+    "arjun/hair-groom": {
+      "source": "arjun",
+      "file": ".claude/skills/hair-groom/SKILL.md",
+      "sha256": "e812c1c8a205515a811dbbd405e2529250bacee7726e8efa222bbd5b58400476"
+    },
+    "arjun/lookdev": {
+      "source": "arjun",
+      "file": ".claude/skills/lookdev/SKILL.md",
+      "sha256": "7eb0de0bebf2c3235f46272f93aafc66c72b10493e0e84d42a5cb7c79395e6ce"
+    },
+    "el4/blender-addon-development": {
+      "source": "el4",
+      "file": "skills/blender-addon-development/SKILL.md",
+      "sha256": "a403767c213489b6c0c37b1e94acd44e3f26c006da33dfc966d26bbb644a7388"
+    },
+    "el4/blender-animation": {
+      "source": "el4",
+      "file": "skills/blender-animation/SKILL.md",
+      "sha256": "f2ec65cdf89f36dbf4066223a68e29990d031f1f9bc3a99ec72f14b51c0861d5"
+    },
+    "el4/blender-asset-qa": {
+      "source": "el4",
+      "file": "skills/blender-asset-qa/SKILL.md",
+      "sha256": "968e4435eeba040f0952cc335c8e9e7182e1d7008aa4295f202ddb836fa49ec9"
+    },
+    "el4/blender-character-rigging": {
+      "source": "el4",
+      "file": "skills/blender-character-rigging/SKILL.md",
+      "sha256": "c10ccac932b023af9c3252e2a46b0bb9c8bb2cd706ecfcad0ae3ac8eba0a1a3d"
+    },
+    "el4/blender-clothing": {
+      "source": "el4",
+      "file": "skills/blender-clothing/SKILL.md",
+      "sha256": "90d6d9704addb022b3f002eeec74c737ecf76d077c84a86b20d5d87ba411c85f"
+    },
+    "el4/blender-core": {
+      "source": "el4",
+      "file": "skills/blender-core/SKILL.md",
+      "sha256": "85c6161bf7a8e648735bd04957caba76f5e9c7b8506b38afd8496cc795563789"
+    },
+    "el4/blender-environment-kits": {
+      "source": "el4",
+      "file": "skills/blender-environment-kits/SKILL.md",
+      "sha256": "11dbeb81d04722bee6413b796546da87761c7460299ab2fb8ae1027e35ec510a"
+    },
+    "el4/blender-export-pipelines": {
+      "source": "el4",
+      "file": "skills/blender-export-pipelines/SKILL.md",
+      "sha256": "300f2f9d0632744ea73ce68eccd2fbdb485febef0d1743a773b34d2f13080c16"
+    },
+    "el4/blender-facial-shapekeys": {
+      "source": "el4",
+      "file": "skills/blender-facial-shapekeys/SKILL.md",
+      "sha256": "8d86473487e06ddc97a745baa794573a2cc36319c28a426079fd328e0c35b7ea"
+    },
+    "el4/blender-game-optimization": {
+      "source": "el4",
+      "file": "skills/blender-game-optimization/SKILL.md",
+      "sha256": "15c900a72556e1a638c95ff78e03021601affa315d710bbdb55429247ffd9b96"
+    },
+    "el4/blender-geometry-nodes": {
+      "source": "el4",
+      "file": "skills/blender-geometry-nodes/SKILL.md",
+      "sha256": "64cf885688c36a25ae00d8cf7bed2a0ae4c1641f46a16f5904856fbd67818b06"
+    },
+    "el4/blender-hair-grooming": {
+      "source": "el4",
+      "file": "skills/blender-hair-grooming/SKILL.md",
+      "sha256": "4708ab11848b8f3a7fbf2ec887174d0db2a1756a2db718dee831c6e7236569a9"
+    },
+    "el4/blender-hardsurface-modeling": {
+      "source": "el4",
+      "file": "skills/blender-hardsurface-modeling/SKILL.md",
+      "sha256": "558d18dc0641975d45f80f48c9371c2c0bef1f3c087a2da38cd2738a9659498f"
+    },
+    "el4/blender-lighting-lookdev": {
+      "source": "el4",
+      "file": "skills/blender-lighting-lookdev/SKILL.md",
+      "sha256": "adce74e508559230cd078bf658374a66ed1faa8a975eccfa196ea6d5a59e1e54"
+    },
+    "el4/blender-pbr-materials": {
+      "source": "el4",
+      "file": "skills/blender-pbr-materials/SKILL.md",
+      "sha256": "6c02bc13dc33e71d816dc6b498bf38312ed7e17aa2bfcc57446a45efc7c1f318"
+    },
+    "el4/blender-pipeline-automation": {
+      "source": "el4",
+      "file": "skills/blender-pipeline-automation/SKILL.md",
+      "sha256": "1b59d80395ebb270347c64f3e148f873a782c2ff68c64e2239720517c15e8abb"
+    },
+    "el4/blender-rendering": {
+      "source": "el4",
+      "file": "skills/blender-rendering/SKILL.md",
+      "sha256": "0c1a3b2c9537868dda84d981f26060eeeb159d26769c6344f608641ac6fc1b6f"
+    },
+    "el4/blender-retopology-uv": {
+      "source": "el4",
+      "file": "skills/blender-retopology-uv/SKILL.md",
+      "sha256": "54c4ff16de9873c819ff4ab60dee3b10a2e0bf2c29301a1b2ff1575b5abd7e06"
+    },
+    "el4/blender-scene-setup": {
+      "source": "el4",
+      "file": "skills/blender-scene-setup/SKILL.md",
+      "sha256": "fbfc9b4fb42fd3434d4112700eeda86049908cd65e5f9d939f043e5358d69a25"
+    },
+    "el4/blender-sculpting": {
+      "source": "el4",
+      "file": "skills/blender-sculpting/SKILL.md",
+      "sha256": "cc5fe10def24140f78a0911b5338c87c489cf38fe6c735385c64330705e1c738"
+    },
+    "el4/blender-simulation": {
+      "source": "el4",
+      "file": "skills/blender-simulation/SKILL.md",
+      "sha256": "b4c80843a7bbc5e6e31266837f16cab973ed7d4cab45d204d8a7dedb9114f5ce"
+    },
+    "el4/blender-stylized-npr": {
+      "source": "el4",
+      "file": "skills/blender-stylized-npr/SKILL.md",
+      "sha256": "78042e1fbfc1e095767e6c84657668c6e051014ab544d595e12016451e8746dd"
+    },
+    "el4/blender-texture-baking": {
+      "source": "el4",
+      "file": "skills/blender-texture-baking/SKILL.md",
+      "sha256": "bf94f8054b6a9483214d2ceb3e160e44d2593b51154c553defa190272431ccb4"
+    },
+    "el4/blender-texturing": {
+      "source": "el4",
+      "file": "skills/blender-texturing/SKILL.md",
+      "sha256": "d1df25354626165849dbaa8905715192318f6044bcdb82381aa4355d602e655d"
+    },
+    "el4/blender-time-of-day": {
+      "source": "el4",
+      "file": "skills/blender-time-of-day/SKILL.md",
+      "sha256": "f85d1ca60f764cdab11845679fda5cb22190ea1353bf09a03256fb8b8ca6d7f9"
+    },
+    "el4/blender-video-editing": {
+      "source": "el4",
+      "file": "skills/blender-video-editing/SKILL.md",
+      "sha256": "aa8c6d53e47b17666383f91497ba1564b5b2537dbca71880619c9ff81e0b82b4"
+    },
+    "el4/blender-weather-fx": {
+      "source": "el4",
+      "file": "skills/blender-weather-fx/SKILL.md",
+      "sha256": "7fa1633e5cfa5f183a6d5a451f9b021a305c53e5d14071708a503ecdac687dc7"
+    },
+    "el4/blender-workflow-recipes": {
+      "source": "el4",
+      "file": "skills/blender-workflow-recipes/SKILL.md",
+      "sha256": "94de00b0a0a7284cd9d997924478be5cc7a8c7e4d26cbdac56adc86634d15324"
+    },
+    "rob/blender-modeling": {
+      "source": "rob",
+      "file": "plugin/skills/blender-modeling/SKILL.md",
+      "sha256": "5ff43df5f31ef9189b23a9ddb074e58ecef49ef3723d150113e6eb0d66f95000"
+    },
+    "rob/blender-materials": {
+      "source": "rob",
+      "file": "plugin/skills/blender-materials/SKILL.md",
+      "sha256": "25839f9707b2239e9d45a9e3c8b2d38fddd88515ea81464306062e5524bed1b5"
+    },
+    "rob/blender-uv-texturing": {
+      "source": "rob",
+      "file": "plugin/skills/blender-uv-texturing/SKILL.md",
+      "sha256": "67c68827cb04c52bc7354fcf3b0bda717e192343def25998cdb64cbf1534cd1d"
+    },
+    "rob/animation-quality-gate": {
+      "source": "rob",
+      "file": "plugin/skills/animation-quality-gate/SKILL.md",
+      "sha256": "86ffc68b672743e68a4be2f0341788aca937eac38016241a599ccb0f01c202c7"
+    },
+    "rob/atlas-uv-fitting": {
+      "source": "rob",
+      "file": "plugin/skills/atlas-uv-fitting/SKILL.md",
+      "sha256": "4fdf1d52c4112ae27c8442f5e80b2d24059da8e90af3384559b301fd4ebeeb7c"
+    },
+    "rob/closed-surface-uv-coverage": {
+      "source": "rob",
+      "file": "plugin/skills/closed-surface-uv-coverage/SKILL.md",
+      "sha256": "5a22881aba8d36ea40ffb8ae46c8fa6f41fcbf54f849d346975bc8f4d60d097f"
+    },
+    "rob/multiview-fit-loop": {
+      "source": "rob",
+      "file": "plugin/skills/multiview-fit-loop/SKILL.md",
+      "sha256": "2880fbb6d24c995f681fc125e7032c0643a175be1e59f3a51db966304383ff9c"
+    },
+    "rob/quality-refinement-autoloop": {
+      "source": "rob",
+      "file": "plugin/skills/quality-refinement-autoloop/SKILL.md",
+      "sha256": "092ebc5546c05c9048e3edbb9c0b19835f9a4a01281e2b49e240717cc773a9c7"
+    },
+    "rob/reference-look-calibration": {
+      "source": "rob",
+      "file": "plugin/skills/reference-look-calibration/SKILL.md",
+      "sha256": "131e80e3d927f3a9e6295f75bfef249317680752c2254e3a3e3fb34c223a5b44"
+    },
+    "rob/text-to-blender": {
+      "source": "rob",
+      "file": "plugin/skills/text-to-blender/SKILL.md",
+      "sha256": "be8b2f7726e217bf78e65a77dff99a983aa86823ece22c52b71048bae2e2289e"
+    },
+    "scenario/scenario-blender-sculpting": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-sculpting/SKILL.md",
+      "sha256": "7ac5f27f2ddd320f38f9d47993eedaa8f0e5988b0004ef64ea7d1e188bbdb699"
+    },
+    "scenario/scenario-blender-blockout": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-blockout/SKILL.md",
+      "sha256": "12c8f87cd41e9f6239faa43cdb44b9fbdde16e2e5facba44d768f80e10e0213d"
+    },
+    "scenario/scenario-blender-geometry-nodes": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-geometry-nodes/SKILL.md",
+      "sha256": "2cac914718e24041734a15fa54b0cb1bd2d5a3e9a19570fd6ac34dc507722b7e"
+    },
+    "scenario/scenario-blender-hard-surface": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-hard-surface/SKILL.md",
+      "sha256": "2bfcc5fbab235b0aa6f94d73d9c01521b0143c89a5dc7ba994fa49ee0f3d2510"
+    },
+    "scenario/scenario-blender-retopology": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-retopology/SKILL.md",
+      "sha256": "2578f4de892cd107df8aefa8892ccf1b348a1720a6ae2e9798b6ae0120362f08"
+    },
+    "scenario/scenario-blender-rigging": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-rigging/SKILL.md",
+      "sha256": "21f40e2bd29e110f0a8ae32204f74a866e292431b5769e002783b3a1ac13e3c6"
+    },
+    "scenario/scenario-blender-texturing-shading": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-texturing-shading/SKILL.md",
+      "sha256": "a178cdb8cee1e0406d0eacd577aa9fcc3bce5766abcf8fba274f55b8c4aebe3a"
+    },
+    "scenario/scenario-blender-uv-baking": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-uv-baking/SKILL.md",
+      "sha256": "46896959cd9220989eae6ec253c19c8733d5dd587011ccda7f75ddd11a288a61"
+    },
+    "scenario/scenario-blender-lighting-rendering": {
+      "source": "scenario",
+      "file": "skills/dcc/blender/scenario-blender-lighting-rendering/SKILL.md",
+      "sha256": "2d428bcf7d7af12be58a680dc670fb965335b742bb7fa69fc560870a7a45403a"
+    },
+    "unity/shader-graph-create-custom-node": {
+      "source": "unity",
+      "file": "skills/shader-graph-create-custom-node/SKILL.md",
+      "sha256": "b4bee613aa5bbfa6f56e4ef9172dfc40e38e3b299889619c1ad681e1e1e93d17"
+    },
+    "unity/craft-game-floors": {
+      "source": "unity",
+      "file": "skills/craft-game-floors/SKILL.md",
+      "sha256": "f59d574624263376dab62f8876fdfd997e53da193de2c9efa2261524d59c4cca"
+    },
+    "modeler/blender-modeler": {
+      "source": "modeler",
+      "file": "SKILL.md",
+      "sha256": "f89a216a48f132bda5ffba95d61d338ae47d4699602dbceb8b86af0c43dd2ac3"
+    },
+    "openai/web-3d-asset-pipeline": {
+      "source": "openai",
+      "file": "plugins/game-studio/skills/web-3d-asset-pipeline/SKILL.md",
+      "sha256": "22f39ea4eaabd9e9771a90957ed7f3a52c6837ee37b054962675c689ba8ef630"
+    },
+    "ecc/blender-motion-state-inspection": {
+      "source": "ecc",
+      "file": "skills/blender-motion-state-inspection/SKILL.md",
+      "sha256": "85f6ad9b0a54de1e4f6ff93ae0d681da25ffcdfe1fc67b9e3261fe1b6da11ee5"
+    },
+    "atelier/forge-texture": {
+      "source": "atelier",
+      "file": "skills/forge-texture/SKILL.md",
+      "sha256": "f8360124c2b2ca76210803a85fffa9de490359f1ffa7f7d501f6e5aa91c28a4a"
+    }
+  },
+  "routes": {
+    "creature": {
+      "neuralQuery": "rigging animation modellimport",
+      "skills": [
+        "arjun/creature-artist",
+        "el4/blender-sculpting",
+        "el4/blender-character-rigging",
+        "ecc/blender-motion-state-inspection",
+        "modeler/blender-modeler"
+      ]
+    },
+    "human": {
+      "neuralQuery": "rigging animation modellimport",
+      "skills": [
+        "el4/blender-clothing",
+        "rob/atlas-uv-fitting",
+        "ecc/blender-motion-state-inspection",
+        "rob/animation-quality-gate"
+      ]
+    },
+    "environment": {
+      "neuralQuery": "weltdesign textur partikel",
+      "skills": [
+        "arjun/environment-artist",
+        "el4/blender-texturing",
+        "unity/shader-graph-create-custom-node",
+        "arjun/vfx-fx",
+        "rob/reference-look-calibration"
+      ]
+    },
+    "equipment": {
+      "neuralQuery": "modellimport textur animation",
+      "skills": [
+        "arjun/prop-artist",
+        "el4/blender-hardsurface-modeling",
+        "el4/blender-clothing",
+        "rob/atlas-uv-fitting",
+        "ecc/blender-motion-state-inspection"
+      ]
+    },
+    "surface": {
+      "neuralQuery": "pbr material atlas",
+      "skills": [
+        "el4/blender-pbr-materials",
+        "atelier/forge-texture",
+        "el4/blender-texture-baking",
+        "rob/atlas-uv-fitting"
+      ]
+    },
+    "shader": {
+      "neuralQuery": "shader graph urp",
+      "skills": [
+        "unity/shader-graph-create-custom-node",
+        "el4/blender-pbr-materials",
+        "rob/reference-look-calibration"
+      ]
+    },
+    "fx": {
+      "neuralQuery": "vfx partikel",
+      "skills": [
+        "arjun/vfx-fx",
+        "el4/blender-weather-fx",
+        "scenario/scenario-blender-lighting-rendering"
+      ]
+    },
+    "level": {
+      "neuralQuery": "weltdesign terrain dungeon",
+      "skills": [
+        "el4/blender-environment-kits",
+        "arjun/set-dressing",
+        "unity/craft-game-floors",
+        "arjun/genre-soulslike",
+        "modeler/blender-modeler"
+      ]
+    },
+    "prop": {
+      "neuralQuery": "asset fbx lod",
+      "skills": [
+        "modeler/blender-modeler",
+        "arjun/prop-artist",
+        "el4/blender-retopology-uv",
+        "openai/web-3d-asset-pipeline"
+      ]
+    },
+    "review": {
+      "neuralQuery": "lod modellimport textur",
+      "skills": [
+        "rob/quality-refinement-autoloop",
+        "el4/blender-asset-qa",
+        "rob/multiview-fit-loop",
+        "el4/blender-game-optimization",
+        "ecc/blender-motion-state-inspection"
+      ]
+    }
+  }
+}

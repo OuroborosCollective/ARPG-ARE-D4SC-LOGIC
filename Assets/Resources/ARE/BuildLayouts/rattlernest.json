@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "rattlernest",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -50,6 +50,22 @@
       "z": -8.6,
       "rot": 0,
       "scale": 1
+    },
+    {
+      "id": "b0201",
+      "key": "ShaleLedge",
+      "x": -12.9,
+      "z": -5.2,
+      "rot": 32,
+      "scale": 0.87
+    },
+    {
+      "id": "b0202",
+      "key": "StoneOutcrop",
+      "x": -10.7,
+      "z": -6.1,
+      "rot": 149,
+      "scale": 0.58
     }
   ]
 }

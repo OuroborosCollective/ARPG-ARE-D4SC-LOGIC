@@ -447,7 +447,7 @@ namespace AreArpg.UnityClient
                 _hudSkillFace[i].color = affordable ? Color.white : new Color(0.55f, 0.55f, 0.65f, 1f);
             }
 
-            bool lootNear = false;
+            bool lootNear = _game.CanClaimRegionalRelic;
             foreach (var loot in _game.GroundLoot)
             {
                 long dx = loot.Xmm - _game.PlayerXmm, dz = loot.Zmm - _game.PlayerZmm;

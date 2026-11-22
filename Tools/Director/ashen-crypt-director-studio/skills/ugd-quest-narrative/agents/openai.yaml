@@ -1,0 +1,5 @@
+interface:
+  display_name: "Quest Narrative"
+  short_description: "Ashen-Crypt-Story, Dialoge, Fadenwerk/Ink, Quests und Rewards integrieren."
+policy:
+  allow_implicit_invocation: true

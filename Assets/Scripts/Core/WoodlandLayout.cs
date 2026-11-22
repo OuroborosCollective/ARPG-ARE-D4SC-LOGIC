@@ -6,6 +6,7 @@ namespace AreArpg.Core
     /// <summary>Revision 1: fixed story entrances, connected seeded paths and clearings. Millimetres.</summary>
     public sealed class WoodlandLayout
     {
+        internal const int FirstMonsterId = 200, MonstersPerRun = 16;
         public const int CellMm = 4000, HalfWidth = 10, HalfLength = 13;
         private readonly bool[,] _floor = new bool[21,27];
         private readonly List<(int x,int z)> _clearings = new List<(int,int)>();
@@ -22,13 +23,13 @@ namespace AreArpg.Core
             Join(0,3,rng);
             for(int i=3;i<10;i++) Join(i,i+1,rng);
             Join(10,1,rng); Join(2,6,rng); Join(4,7,rng); Join(5,8,rng);
-            _spawns=new MonsterState[16];
+            _spawns=new MonsterState[MonstersPerRun];
             for(int i=0;i<_spawns.Length;i++)
             {
                 var c=_clearings[3+i/2]; int kind=rng.Next64()%3==0?1:0;
                 long x=c.x*CellMm+(i%2==0?-1200:1200), z=c.z*CellMm;
                 int hp=kind==0?380:640;
-                _spawns[i]=new MonsterState { Id=200+i,Kind=kind,Xmm=x,Zmm=z,PreviousXmm=x,PreviousZmm=z,Health=hp,MaxHealth=hp };
+                _spawns[i]=new MonsterState { Id=FirstMonsterId+i,Kind=kind,Xmm=x,Zmm=z,PreviousXmm=x,PreviousZmm=z,Health=hp,MaxHealth=hp };
             }
             int mask=0;
             for(int i=0;i<4;i++)

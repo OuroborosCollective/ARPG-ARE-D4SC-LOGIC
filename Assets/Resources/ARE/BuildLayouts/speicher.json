@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "speicher",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -50,6 +50,22 @@
       "z": 19,
       "rot": 8,
       "scale": 0.74
+    },
+    {
+      "id": "b0201",
+      "key": "GrainBay",
+      "x": 8.25,
+      "z": -6.4,
+      "rot": 277,
+      "scale": 0.82
+    },
+    {
+      "id": "b0202",
+      "key": "StoneOutcrop",
+      "x": 4.94,
+      "z": 17.1,
+      "rot": 124,
+      "scale": 0.36
     }
   ]
 }

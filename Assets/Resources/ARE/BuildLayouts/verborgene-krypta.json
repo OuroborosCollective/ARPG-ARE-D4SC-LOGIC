@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "verborgene-krypta",
-  "revision": 1,
+  "revision": 2,
   "pieces": [
     {
       "id": "b0001",
@@ -50,6 +50,22 @@
       "z": 13.6,
       "rot": 52,
       "scale": 0.78
+    },
+    {
+      "id": "b0201",
+      "key": "RibPillar",
+      "x": -3.15,
+      "z": 18.48,
+      "rot": 12,
+      "scale": 0.84
+    },
+    {
+      "id": "b0202",
+      "key": "BloodcapBank",
+      "x": -3.5,
+      "z": 17.88,
+      "rot": 231,
+      "scale": 0.73
     }
   ]
 }

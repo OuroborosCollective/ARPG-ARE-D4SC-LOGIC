@@ -1,0 +1,5 @@
+interface:
+  display_name: "Ashen Crypt Director Studio"
+  short_description: "Nutze bei Ashen Crypt, Unity 6 Game Director, Android-ARPG, VPS-Unity-Kontrolle oder Integration"
+policy:
+  allow_implicit_invocation: true

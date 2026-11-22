@@ -25,6 +25,8 @@ namespace AreArpg.UnityClient
         private RectTransform _menuRoot;
         private int _selectedItem;
         private int _inventoryPage;
+        private const int InventoryColumns = 6, InventoryRows = 5;
+        private const int InventoryPageSize = InventoryColumns * InventoryRows;
         private Vector2 _menuScreenSize;
         private Rect _menuSafeArea;
         private bool _menuCredits;
@@ -334,21 +336,24 @@ namespace AreArpg.UnityClient
         {
             var p = _game.Progression;
             var items = p.Items;
+            var regional = OwnedRegionalRelics();
+            int regionalStart = items.Count + (p.Equipment.FieldPauldronOwned ? 1 : 0);
+            int itemCount = regionalStart + regional.Count;
             float detailW = Mathf.Round(size.x * 0.34f);
             float gridW = size.x - detailW - 14f;
-            const int cols = 6, rows = 5;
+            const int cols = InventoryColumns, rows = InventoryRows;
             float cell = Mathf.Floor(Mathf.Min((gridW - (cols - 1) * 8f) / cols, (size.y - 80f - (rows - 1) * 8f) / rows));
 
             var purse = AshenUiTheme.Label("Purse", body, 14, AshenUiTheme.Parchment, TextAnchor.MiddleLeft, FontStyle.Bold);
             AshenUiTheme.Place(purse.rectTransform, new Rect(0f, 0f, gridW, 28f));
             purse.text = "<color=#F2C14E>●</color> Münzen " + CoinDenominations.Format(p.Social.Coins) + "      <color=#C9A26B>■</color> Proviant " + p.Social.Provisions +
-                "      Gegenstände " + items.Count;
+                "      Gegenstände " + itemCount;
 
-            const int pageSize = cols * rows;
-            int pages = items.Count == 0 ? 1 : (items.Count - 1) / pageSize + 1;
+            const int pageSize = InventoryPageSize;
+            int pages = itemCount == 0 ? 1 : (itemCount - 1) / pageSize + 1;
             _inventoryPage = Mathf.Clamp(_inventoryPage, 0, pages - 1);
             int first = _inventoryPage * pageSize;
-            _selectedItem = items.Count == 0 ? -1 : Mathf.Clamp(_selectedItem, first, Mathf.Min(items.Count - 1, first + pageSize - 1));
+            _selectedItem = itemCount == 0 ? -1 : Mathf.Clamp(_selectedItem, first, Mathf.Min(itemCount - 1, first + pageSize - 1));
             var previous = AshenUiTheme.MenuButton("PreviousPage", body, new Rect(0, size.y - 32f, 90, 30), "ZURÜCK",
                 () => { _inventoryPage--; _selectedItem = _inventoryPage * pageSize; BuildMenu(); }, fontSize: 12);
             previous.interactable = _inventoryPage > 0;
@@ -364,15 +369,30 @@ namespace AreArpg.UnityClient
                 Rect r = new Rect((i % cols) * (cell + 8f), 36f + (i / cols) * (cell + 8f), cell, cell);
                 var s = AshenUiTheme.Image("Cell" + i, body, AshenUiTheme.Slot, Color.white);
                 AshenUiTheme.Place(s.rectTransform, r);
-                if (index >= items.Count) continue;
-                LootItem item = items[index];
-                Color rc = AshenUiTheme.RarityColor(item.Rarity);
+                if (index >= itemCount) continue;
+                bool shoulder = p.Equipment.FieldPauldronOwned && index == items.Count;
+                bool localRelic = index >= regionalStart;
+                LootItem item = index < items.Count ? items[index] : null;
+                Color rc = shoulder || localRelic ? AshenUiTheme.Bronze : AshenUiTheme.RarityColor(item.Rarity);
                 var glow = AshenUiTheme.Image("Rarity", s.transform, AshenUiTheme.Glow, new Color(rc.r, rc.g, rc.b, index == _selectedItem ? 0.55f : 0.28f));
                 AshenUiTheme.Stretch(glow.rectTransform, 3f);
-                var t = AshenUiTheme.Label("Glyph", s.transform, Mathf.RoundToInt(cell * 0.36f), rc, TextAnchor.MiddleCenter, FontStyle.Bold);
-                AshenUiTheme.Stretch(t.rectTransform); t.text = p.Equipment.ForItem(item)==null?"◆":p.Equipment.ForItem(item).Definition.Family==WeaponFamily.Shield?"◈":"⚔";
-                var v = AshenUiTheme.Label("Value", s.transform, 11, AshenUiTheme.Parchment, TextAnchor.LowerRight, FontStyle.Bold);
-                AshenUiTheme.Stretch(v.rectTransform, 5f); v.text = "+" + item.AffixValue;
+                if (localRelic) RegionalInventoryCell(s.transform, regional[index-regionalStart], cell);
+                else if (shoulder)
+                {
+                    var icon = AshenUiTheme.Node("FieldPauldronIcon", s.transform).gameObject.AddComponent<RawImage>();
+                    icon.raycastTarget = false;
+                    icon.texture = Resources.Load<Texture2D>(FieldPauldronFolder + "Feldschulter_Icon");
+                    AshenUiTheme.Stretch(icon.rectTransform, 3f);
+                }
+                else
+                {
+                    var gear = p.Equipment.ForItem(item);
+                    var t = AshenUiTheme.Label("Glyph", s.transform, Mathf.RoundToInt(cell * 0.36f), rc, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    AshenUiTheme.Stretch(t.rectTransform);
+                    t.text = gear == null ? "◆" : gear.Definition.Family == WeaponFamily.Shield ? "◈" : "⚔";
+                    var v = AshenUiTheme.Label("Value", s.transform, 11, AshenUiTheme.Parchment, TextAnchor.LowerRight, FontStyle.Bold);
+                    AshenUiTheme.Stretch(v.rectTransform, 5f); v.text = "+" + item.AffixValue;
+                }
                 var button = s.gameObject.AddComponent<Button>();
                 s.raycastTarget = true;
                 int pick = index;
@@ -383,7 +403,22 @@ namespace AreArpg.UnityClient
             var panel = AshenUiTheme.Frame("Detail", body, detail, "Gegenstand");
             var text = AshenUiTheme.Label("Text", panel.transform, 13, AshenUiTheme.Parchment, TextAnchor.UpperLeft);
             AshenUiTheme.Place(text.rectTransform, new Rect(16f, 36f, detailW - 32f, size.y - 52f));
-            if (items.Count == 0)
+            if (_selectedItem >= regionalStart && _selectedItem < itemCount)
+            {
+                RegionalInventoryDetail(panel.rectTransform, text, size, detailW, regional[_selectedItem-regionalStart]);
+                return;
+            }
+            if (p.Equipment.FieldPauldronOwned && _selectedItem == items.Count)
+            {
+                bool equipped = p.Equipment.FieldPauldronEquipped;
+                AshenUiTheme.Place(text.rectTransform, new Rect(16f, 36f, detailW - 32f, size.y - 92f));
+                text.text = "<size=18><b>Feldschulter der Heilerin</b></size>\nLinke Schulter · Gewandstück\n\n" +
+                    "Ruß sitzt in den Kerben der drei Stahlplatten. Eine Kante hat das Tragen der Verwundeten blank gerieben.\n\n" +
+                    (equipped ? "Angelegt" : "In der Tasche") + " · Keine Kampfboni\nGeborgen beim " + p.Equipment.FieldPauldronOrdinal + ". Sieg.";
+                AshenUiTheme.MenuButton("EquipFieldPauldron", panel.transform, new Rect(16, size.y - 48, detailW - 32, 34),
+                    equipped ? "ABLEGEN" : "ANLEGEN", ToggleFieldPauldron, fontSize: 13);
+            }
+            else if (itemCount == 0)
                 text.text = "Noch keine Beute.\n\nBesiege Gegner und hebe ihre Beute auf. Waffen kannst du hier vergleichen und ausrüsten.";
             else
             {

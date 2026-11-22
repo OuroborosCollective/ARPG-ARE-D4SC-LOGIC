@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "aschestrasse",
-  "revision": 2,
+  "revision": 3,
   "pieces": [
     {
       "id": "b0001",
@@ -122,6 +122,46 @@
       "z": 3.45,
       "rot": 78,
       "scale": 0.88
+    },
+    {
+      "id": "b0201",
+      "key": "ShaleLedge",
+      "x": -6.9,
+      "z": -14.75,
+      "rot": 24,
+      "scale": 0.72
+    },
+    {
+      "id": "b0202",
+      "key": "StoneOutcrop",
+      "x": -6.05,
+      "z": -16.45,
+      "rot": 108,
+      "scale": 0.48
+    },
+    {
+      "id": "b0203",
+      "key": "AshPine",
+      "x": -10.55,
+      "z": -8.3,
+      "rot": 74,
+      "scale": 0.88
+    },
+    {
+      "id": "b0204",
+      "key": "AshPine",
+      "x": -12.66,
+      "z": -4.95,
+      "rot": 157,
+      "scale": 1.04
+    },
+    {
+      "id": "b0205",
+      "key": "ShaleLedge",
+      "x": -9.2,
+      "z": -7.3,
+      "rot": 89,
+      "scale": 0.85
     }
   ]
 }

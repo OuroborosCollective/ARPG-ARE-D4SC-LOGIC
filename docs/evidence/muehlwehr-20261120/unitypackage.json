@@ -1,0 +1,462 @@
+{
+  "assets": 86,
+  "folders": 6,
+  "members": {
+    "Assets/Resources/ARE/Visuals/Werkarsenal": {
+      "guid": "204888797c2b966aa8fec3ddc08c0a9b",
+      "type": "folder"
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/G_Hammerbeil.prefab": {
+      "guid": "a1788b50405d2803495e9455a5c95099",
+      "sha256": "4f27cfcebf992f39b67d389a8e0df1aa270f6c829151d73db83c43b51e41fdd4",
+      "size": 3606
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/G_Ofengabel.prefab": {
+      "guid": "1736965c610cbb2cd9383be8f63526da",
+      "sha256": "c66178ed47e73e69592d8fb6fe4d7da393756c5b99927b6f3fe9dc29f4fdd1b4",
+      "size": 3603
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/G_Schuerhaken.prefab": {
+      "guid": "d9997f18b3c9888fdb3e8b3fa952c7d9",
+      "sha256": "4d351b0170acc756716d918dd1a898812f9ee01ce341082b288382a071051e8c",
+      "size": 3572
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/G_Ziegelschild.prefab": {
+      "guid": "bf14aa95cabaac3d1962b6abf1187d82",
+      "sha256": "25b200d6e012c6953c5e9fb27073a2049adadccc3959492b1504d8e82b7fc9a6",
+      "size": 3578
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/G_Zollbuckler.prefab": {
+      "guid": "96fa9aa647e03aa099a5e1fbb4f95996",
+      "sha256": "61e8d4fc994fa5922aea95d721cf46d2fecff169d9c910fd4ee2993f30a72621",
+      "size": 3606
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/G_Zollmesser.prefab": {
+      "guid": "e80d30b0016dd4f099ccd93851d91c9d",
+      "sha256": "d405ccf239dab3b2a9e9903a51788ca112a80d5dfe9d7d078d872a45dc1daf61",
+      "size": 3606
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/G_Zunderpfanne.prefab": {
+      "guid": "f6d26a1e6f26750ca801bc0d9afc9f0a",
+      "sha256": "06f680c2108c6a087a56f79bf58e181396ed39ff22875938ef6d30825ea034f9",
+      "size": 3610
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/M_Glockenring.prefab": {
+      "guid": "3a68db703a1e598bc9adb075a241e256",
+      "sha256": "7d3ba722c7ed04b4734c761bdc6272074fc0e0cdb0c7f4e2466b83985f482d28",
+      "size": 3608
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/M_Handglocke.prefab": {
+      "guid": "0ab74a813e6ea73eb84de753aae8c274",
+      "sha256": "186b7a82cd82d177439f93ff516b30336373f0ca7df7bb3de2ce6f9c5e1c80b3",
+      "size": 3572
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/M_Jochbeil.prefab": {
+      "guid": "6cd7f6464762b216da5825ea130ea2b7",
+      "sha256": "617c8d6a12d3ab4c500fb8bb56c35f81c24453d0d8f31786cb0b64331fc2d57f",
+      "size": 3599
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/M_Lotklinge.prefab": {
+      "guid": "99a2c8b12e1b9ef0dbc7947d5c961f35",
+      "sha256": "6f128cf0500185be2f34acce6f0d6b2fdff1219ac357a4bd3346e3857eddb024",
+      "size": 3603
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/M_Wehrsaebel.prefab": {
+      "guid": "ee70bba4235322f368de40f72251345c",
+      "sha256": "a909ca1d380526e57014d57d31ee8ea6a49602c162e9da783ee0f1e215b8a0fd",
+      "size": 3602
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/M_Wehrschild.prefab": {
+      "guid": "17f60415c8394f6fa8c9d8fada48bccc",
+      "sha256": "eaa05873f3f85e4bfc705652ce5db5cd1cabc44029fa4146f595873ceb5d498e",
+      "size": 3606
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Grabschild.prefab": {
+      "guid": "9289d010b64b75b728f4e1b2b3d80af7",
+      "sha256": "e1bebc54d0393cb760e2b743318e3d790fa3d77c9f39f24ddbfb537a9a11bcbb",
+      "size": 3606
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Gratharnisch.prefab": {
+      "guid": "25c01da5258abbf1db3f1ac6cc803c39",
+      "sha256": "4be94ea2983580fa2c2006e501d38719a1179658590ef7f1ac80165040eafcfc",
+      "size": 3606
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Gratkeule.prefab": {
+      "guid": "baa77c5fd2cbc554a847b6b6ec3dac20",
+      "sha256": "d35dfac47fd2981b63464bf565bf5ad10c56e05fe2eacdff7ef31f01f8483461",
+      "size": 3603
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Gratschiene_L.prefab": {
+      "guid": "0092be5e45dc669c88f3b75790647fc1",
+      "sha256": "1920175adf90d615a65f9c82b0b017e9777424b750c88ce99eecd1b0f8b1b821",
+      "size": 3610
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Gratschiene_R.prefab": {
+      "guid": "ebd55d6ab8c2a78538b3b395e91b14f1",
+      "sha256": "bb8a873e1afbca6275b7035a499638fbf4924bd6d2ac3aa2a3a835544a2bfebf",
+      "size": 3612
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Rippenschild.prefab": {
+      "guid": "260639aa3585529f6b216a84e12ac215",
+      "sha256": "112d9b4835bf8eb443ad54a2666a859e02345eb1d694cfebeeea0e5ebbf9a000",
+      "size": 3610
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Scharrbeil.prefab": {
+      "guid": "4d80a64c47b0b2ff89ae1ec3bb985ac3",
+      "sha256": "ce0e8a2eb2f6c5cc18cc62b5bb398e8cef23a56fe666cf4c588df2481471341c",
+      "size": 3606
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Scharrstulpe_L.prefab": {
+      "guid": "b2095f6740eb5d4bdaaac855ca7be377",
+      "sha256": "f582e1870eab5580f8737bbd312d3436f323d2383b85cff6cfca42d54e6ca3e7",
+      "size": 3611
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Scharrstulpe_R.prefab": {
+      "guid": "c18d328c9f40c8335987043f0ed190d6",
+      "sha256": "320a4fc87b184f9f8366925d20eb36cd543599ff3f1c4c0ab32be91a3706be6d",
+      "size": 3613
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Splitterzahn.prefab": {
+      "guid": "1bdbfebce775cd3ef8296fc6851f892c",
+      "sha256": "abd18a414b1c7aba457672babf3d68776965e03638bce778f8568dd542c0501d",
+      "size": 3605
+    },
+    "Assets/Resources/ARE/Visuals/Werkarsenal/R_Wangenmaske.prefab": {
+      "guid": "f021e9a061e39eb118a2eb7f410dc77f",
+      "sha256": "ce84017e8b3eabe6a78c1fc991b7d5cb7938d1f158da3338bcd6b15ff93b4e79",
+      "size": 3604
+    },
+    "Assets/Resources/AshenRelics": {
+      "guid": "2002fc3c99bedf8be89a2ea504c2f819",
+      "type": "folder"
+    },
+    "Assets/Resources/AshenRelics/Ascheton.mat": {
+      "guid": "6e0433e586bbd5c3fbceaaea216fa42f",
+      "sha256": "aaca0ae0d43b9616ace6ce5f6a89cd41404fe5a5dde777a6115ae6e51bca3638",
+      "size": 4070
+    },
+    "Assets/Resources/AshenRelics/Griffmessing.mat": {
+      "guid": "cd99f1dc7ebe0c0a0a68366e2433c3de",
+      "sha256": "b0259e94f4aa88b9f3892549151f9cd04cba6da517a9f9b37f2d228178123ad5",
+      "size": 3935
+    },
+    "Assets/Resources/AshenRelics/Grubenlicht.fbx": {
+      "guid": "341cafb26864c0c70983be3318ffeebd",
+      "sha256": "a6768c486495ea6b0a90a698cd48b25978beb2aef90c66709e65f3bec91c8427",
+      "size": 2339820
+    },
+    "Assets/Resources/AshenRelics/Grubenlicht_Icon.png": {
+      "guid": "2a14255c413ce1ba69d802b6af8fa407",
+      "sha256": "813feb626f02a23442780dd68fd10fc3c3dbdf458457da03f5eedd5506e50fba",
+      "size": 39444
+    },
+    "Assets/Resources/AshenRelics/Grubenlicht_Poren.png": {
+      "guid": "66dc3e62a4785c83ab710825c58fe3ef",
+      "sha256": "a79ead08b1c87744c0e220620556721294399430afb5e10cd142b4dc8f282975",
+      "size": 1658339
+    },
+    "Assets/Resources/AshenRelics/Grubenlicht_Ton.png": {
+      "guid": "0029e86cc42a562ddb44c0088f0b9f98",
+      "sha256": "77e295bc8a8a23f8b2cf60ea138a06e65a4542ba4ba1ef08d36a0699bca432a0",
+      "size": 1252403
+    },
+    "Assets/Resources/AshenRelics/Grubenlicht_World.prefab": {
+      "guid": "b379542ef24d180e8a026620954519e7",
+      "sha256": "ecc75d37f143196f4ce080a194c9770640714c9f821922806a83b7d2b3c9197e",
+      "size": 10906
+    },
+    "Assets/Resources/AshenRelics/Gruenspan.mat": {
+      "guid": "1c7f334c3e483e7219e79974abb2de0e",
+      "sha256": "8ddbc31b14f6628fa25dbd7e95bec78eda31a8d5e7cddfdeacd11c64a696f581",
+      "size": 3954
+    },
+    "Assets/Resources/AshenRelics/Hammereisen.mat": {
+      "guid": "bd8bee98ae437cb98b18a0149a93ee1c",
+      "sha256": "f932f9688b27a781ec7e51a4bde91fddb60bd1a4b207f4edcccbd31155fb4063",
+      "size": 3934
+    },
+    "Assets/Resources/AshenRelics/Kohledocht.mat": {
+      "guid": "51de3b2af39739a95a7c5fed48beab3e",
+      "sha256": "268c229044420f5dbf3a10872ee6b726f19d949dd7b7dbcf13b35404374345c0",
+      "size": 3931
+    },
+    "Assets/Resources/AshenRelics/Oelgarn.mat": {
+      "guid": "443bae30e3d921346abc51b45601efcd",
+      "sha256": "86b269985ad44a1172bc2df7bfd4d5868bb8c021cab5f948e9130f406d87ad40",
+      "size": 3925
+    },
+    "Assets/Resources/AshenRelics/Tastballenfalten.mat": {
+      "guid": "247922dac864c88e28b3987acbe7ee2f",
+      "sha256": "5df871d38e24042eaa952d32d6b4e04b9a9e7e65b66887a95c4283df7dcdff51",
+      "size": 3931
+    },
+    "Assets/Resources/AshenRelics/Tastballenhaut.mat": {
+      "guid": "394a554652f39c299afd8701db3d3229",
+      "sha256": "d0ca628919512ff361e4382551160f924fd496e677a60dbdcd3672b1ec3610ab",
+      "size": 3933
+    },
+    "Assets/Resources/AshenRelics/Tastkranz.fbx": {
+      "guid": "55d255b31bf9dd4cbb2061621780c226",
+      "sha256": "3223bd14467b05fabe8048e982070095faad55b75f9bf3c235b1c2868ce21f5b",
+      "size": 83212
+    },
+    "Assets/Resources/Equipment/AshWorks": {
+      "guid": "008f2472f99991a77b7ea35120040923",
+      "type": "folder"
+    },
+    "Assets/Resources/Equipment/AshWorks/Brandreif.fbx": {
+      "guid": "8ac322202188144b2b0c286703e02a6c",
+      "sha256": "fa0bb6485eb881018b955681b6c783d734878bceae4c8d732e27eb285efef70b",
+      "size": 110092
+    },
+    "Assets/Resources/Equipment/AshWorks/Brandreif_Fund.prefab": {
+      "guid": "5c0e5061c9742c2f9bfcce2238087808",
+      "sha256": "7afe5aae2c49b7f588b00738bc1eddc321428332b0cceb9e7dbd7956cf2de6f8",
+      "size": 3568
+    },
+    "Assets/Resources/Equipment/AshWorks/Brandreif_Icon.png": {
+      "guid": "03da675d49eafcd6f84782d04d82d2bd",
+      "sha256": "2bd8d3d5d8512aeb4b1ecbebe2603dd420f45cae4d92b389318c805594cf9f85",
+      "size": 82446
+    },
+    "Assets/Resources/Equipment/AshWorks/G_Schuerhaken_Icon.png": {
+      "guid": "79e24c25afe08a29c8203c4820209819",
+      "sha256": "eb88e8641554f18d5e67c5acc90dc96eebce2efa9a08acb9b8cff3f51e3d1aee",
+      "size": 34465
+    },
+    "Assets/Resources/Equipment/AshWorks/G_Ziegelschild_Icon.png": {
+      "guid": "2363a42ef5b274039ba9e0ca8640e457",
+      "sha256": "485aa18d0dfe76f182bf86853eb7a66500ad432a2900194a8e7fd079e88066a5",
+      "size": 75828
+    },
+    "Assets/Resources/Equipment/AshWorks/Glockentraegerin.fbx": {
+      "guid": "ca1025bbc53a9fba0a43935eb1bc0e75",
+      "sha256": "368afc20643ba6679a3344186673234caa5798251b5fe8c13105aeddf79fd4fd",
+      "size": 908908
+    },
+    "Assets/Resources/Equipment/AshWorks/Glockentraegerin_Fund.prefab": {
+      "guid": "c55e77eae532381308b3fb1c5f3e2a81",
+      "sha256": "892737ed87ff064a7b7f736e6114ad7d019b3c7e8ee60ca01f4d9ccea0a28e48",
+      "size": 3579
+    },
+    "Assets/Resources/Equipment/AshWorks/Glockentraegerin_Icon.png": {
+      "guid": "a2ff49c77a0511a11b9f3a63de45a476",
+      "sha256": "503eaf62c6d40dcd3bb41387a1a17a254806593810d4a7ee127b9e23735a768b",
+      "size": 99366
+    },
+    "Assets/Resources/Equipment/AshWorks/M_Handglocke_Icon.png": {
+      "guid": "5575606c911821fc09313171e983b721",
+      "sha256": "6c375f1e923e56a8fe07b9ff7dc7c622900b3ba8de7b458e6d98ac7492410671",
+      "size": 38710
+    },
+    "Assets/Resources/Equipment/AshWorks/Schlackengarde.fbx": {
+      "guid": "18a9cfcb1d178fc2e8f6bb5086eb3603",
+      "sha256": "6ae2c009248b1366c4740997e8b9fd48ce3f1c23cddaa0ec3d6c3c05181cf496",
+      "size": 950684
+    },
+    "Assets/Resources/Equipment/AshWorks/Schlackengarde_Fund.prefab": {
+      "guid": "42694067ee44a37ebad66535cd91ef1b",
+      "sha256": "cf08f0ac8b37959e363f0aaade9975ffe06c374850d209c8f295b3aeb6f4e028",
+      "size": 3577
+    },
+    "Assets/Resources/Equipment/AshWorks/Schlackengarde_Icon.png": {
+      "guid": "77203186d508a878dbc479959192a247",
+      "sha256": "41bc24ce4ba3698f12df7d3936d4ade7f7425ea9e6aa3a0ca291e2cb780cd36a",
+      "size": 74055
+    },
+    "Assets/Resources/Equipment/AshWorks/Werkstoff.mat": {
+      "guid": "dc4ac2005aa83830293287d716c24649",
+      "sha256": "fb372aa1ec423a5553690db8a4fa48b7493bb7e0b281ac03b7b3008d89ef02b2",
+      "size": 4148
+    },
+    "Assets/Resources/Equipment/AshWorks/Werkstoff_BaseColor.png": {
+      "guid": "15d9ad48ffd618756913094bc74a7d19",
+      "sha256": "e353db6b8178a1bca0d3e2a2a60948615a4f6a9af39917d0df5b300adf73e7c7",
+      "size": 884151
+    },
+    "Assets/Resources/Equipment/AshWorks/Werkstoff_MetalSmooth.png": {
+      "guid": "20397b1ce50f50d99aa7828a45fd0f48",
+      "sha256": "a21b87db5c0db373c74c381266d69b897cbaca21af89b567746d9bb5bc7907dc",
+      "size": 423256
+    },
+    "Assets/Resources/Equipment/AshWorks/Werkstoff_Normal.png": {
+      "guid": "b4362a9f12bf79b488b3780a33a5f82a",
+      "sha256": "9b0ad6e39ecb4b01e7073b19840d61cffdb5b44b88c34ddd2ef6d443f9c1a754",
+      "size": 2416859
+    },
+    "Assets/Resources/Equipment/Tiefscharrer": {
+      "guid": "a3387f8dec1804b2ebf451558c70cb2e",
+      "type": "folder"
+    },
+    "Assets/Resources/Equipment/Tiefscharrer/Tiefscharrer.fbx": {
+      "guid": "6f6a6368f090759a4afc4c653f004445",
+      "sha256": "460dd57424e94425aaa24c95ac9fe2d5bfac023f108eb856516610b7d542f679",
+      "size": 3905420
+    },
+    "Assets/Resources/Equipment/Tiefscharrer/Tiefscharrer_Atlas.mat": {
+      "guid": "21b20785556d767c8b1d7ead2ba30bba",
+      "sha256": "c4acef15ba9cc25ca18996154266aa056182017534fdb6da66d1d959314f2452",
+      "size": 4180
+    },
+    "Assets/Resources/Equipment/Tiefscharrer/Tiefscharrer_BaseColor.png": {
+      "guid": "b9d16776b0f78767f8721b6023cf6827",
+      "sha256": "566d8bcc2e653aef555972f13e169a90578a2a4ae8c9b3b73f459a9738d187cb",
+      "size": 5392442
+    },
+    "Assets/Resources/Equipment/Tiefscharrer/Tiefscharrer_MetalSmooth.png": {
+      "guid": "c3dabc5a9ae1ef016aeccff97c6dedad",
+      "sha256": "cc103e325ab9e1fb93402cb4c98681432d4249ac1afd25d86d39f015679381cb",
+      "size": 2248757
+    },
+    "Assets/Resources/Equipment/Tiefscharrer/Tiefscharrer_Normal.png": {
+      "guid": "de22482224b7f62c792199bbdc38dd79",
+      "sha256": "e90769e59d4a3f1ecc61936ee1e2d319146e9a9378a991ec6793aa0704b62d65",
+      "size": 7060376
+    },
+    "Assets/Resources/Equipment/Tiefscharrer/Tiefscharrer_World.prefab": {
+      "guid": "47c3aac5f0f1553588ac9f1a0aa2d34c",
+      "sha256": "bc00ff106fd927858c790bb64b6c130144cbed518245ca83c40119b4a6cbf8b0",
+      "size": 49986
+    },
+    "Assets/Resources/Equipment/Werkarsenal": {
+      "guid": "21dcdd84bd9776cb4aa41a52162d72df",
+      "type": "folder"
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons": {
+      "guid": "b797336ede6327db08b3472389a4009f",
+      "type": "folder"
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/G_Hammerbeil.png": {
+      "guid": "26c058481478c68a7b1075b3f88d8f0c",
+      "sha256": "68e468e1a3b45e2035330cd1a42a2792b2bfb93fe5f354f6c58d02574ea9121b",
+      "size": 37774
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/G_Ofengabel.png": {
+      "guid": "eea32bc66bee820adbb13f32ca389c52",
+      "sha256": "dfe5473951146a88c7516b1b1e065f9643485a5cf92a15c3e9ca64e9dcfe16f1",
+      "size": 32480
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/G_Zollbuckler.png": {
+      "guid": "1b8a158d350bbef30a86c74806f41cde",
+      "sha256": "ba359f04689ec3c565f26d3386113b93d46c331d950a8837fe6642982c9f7266",
+      "size": 83399
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/G_Zollmesser.png": {
+      "guid": "9466088b2203b8adbba75ddbe28988a5",
+      "sha256": "653d8d8ee684b6d1d317b90ec664e7116f0f4b81b4aad9da4ea5fc551824914f",
+      "size": 40897
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/G_Zunderpfanne.png": {
+      "guid": "81f0181ea29380262b79e147738394a6",
+      "sha256": "f9006ae86ee2273dc5b5f04c8f65361cd5035b9003b47ab7862a88976dff7893",
+      "size": 45686
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/M_Glockenring.png": {
+      "guid": "9a30953818bbbb0a3ad0e90274105330",
+      "sha256": "b099a578093550bdf3b84c82cfa80de7466f532e14e66496420607f87370d785",
+      "size": 67980
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/M_Jochbeil.png": {
+      "guid": "3ce0a3846f3d02534a13105ea7b259e4",
+      "sha256": "bfd064f31665297c6b419138eebbe582b589c74cdbe9d801f1f9f92123ece614",
+      "size": 36911
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/M_Lotklinge.png": {
+      "guid": "d787146d02ebdc5ecaf3da9089b048ee",
+      "sha256": "2a8fde4cbe66df4ce86dfd3d95ddaaacdbe55719ebbe18a1ab34b35568978c38",
+      "size": 34830
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/M_Wehrsaebel.png": {
+      "guid": "5a40bd330408f6bbe9c9b5bd6649d451",
+      "sha256": "4b72124325e702d6113c44cdc3acfdfdbf263b9199d44a197530623674aa77b6",
+      "size": 35667
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/M_Wehrschild.png": {
+      "guid": "644485efd46b2f931846c4e3a492bd74",
+      "sha256": "5ed74112ba74f1251c4da8e407ffffd1029d617feb97b8793bd1ff8884df6075",
+      "size": 69287
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Grabschild.png": {
+      "guid": "38f2d9b736eb177d0a6a24a8bdf5d441",
+      "sha256": "358eb2e656ca2cbde5b1464067073080bd4727a1220bb417d28928337804866c",
+      "size": 84862
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Gratharnisch.png": {
+      "guid": "6eb8e3684efb6ecdeb57e03434943cd3",
+      "sha256": "a8c04636a4c8f84a7895bc2ab9a473865301904bd578f83bd7ac782bc762b1c7",
+      "size": 91016
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Gratkeule.png": {
+      "guid": "6a490df472b1026a89f25b69cd5eb11b",
+      "sha256": "bd1a9ad6bea2ce9194bfa6d78245c277cc735f12c1c488d648e245e313bd8a81",
+      "size": 40478
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Gratschiene_L.png": {
+      "guid": "df225aa7da7fafcd58ec803ed72e35d8",
+      "sha256": "cb2a188557fc093de6eb3309fbe3656048e63e538140a05a2eb231095421319d",
+      "size": 63418
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Gratschiene_R.png": {
+      "guid": "0eb82bed4084ef5d89ac5207bee87726",
+      "sha256": "a81cb0b98649b693166c68601a9ab0ef40a66c3c858ac5c39f3cd3b2e109ad99",
+      "size": 63392
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Rippenschild.png": {
+      "guid": "ec4e0d828b7394f038d466152d198bf8",
+      "sha256": "34f81643b6c88ff7fcd621f31bcb346529115175e3f6d039c8d7bbddeb56e0ea",
+      "size": 69002
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Scharrbeil.png": {
+      "guid": "f72e1e02c25e35660b4b8350403854e4",
+      "sha256": "dcd85d0712f41ebad7de999197929bc059c2bb418bf62003bb4429c8987ddc92",
+      "size": 35831
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Scharrstulpe_L.png": {
+      "guid": "9a2689163319b1894bd20485bd8df7a3",
+      "sha256": "a514917ebf29489c6974fd296ebd5e5496e298c0b8a61f6a9d44315e4ad7b3d5",
+      "size": 68384
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Scharrstulpe_R.png": {
+      "guid": "71870589720f68cde8d44f58b24e9814",
+      "sha256": "19ee34d81211ed908b7b82c6e6949f0bc6d17383495cec5dba05b37f17d4d88b",
+      "size": 67999
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Splitterzahn.png": {
+      "guid": "dccb20a52687ee1bcadc756917bc1f89",
+      "sha256": "a5412541ddfd06d9ab2aaa80c29efc54916a2506ec66f9a726e3cc98bcd9dc21",
+      "size": 40654
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Icons/R_Wangenmaske.png": {
+      "guid": "678ea57d797b5b510a623ad3628cf1b2",
+      "sha256": "6a13c612dfed72f315d20b4c8eeeb6877134d525126dbc9cc3634e3e6d4936aa",
+      "size": 65017
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Werkarsenal.fbx": {
+      "guid": "a85243b56962a1cdb97a5c3f897d2b03",
+      "sha256": "62d99006d0f56dbbe6dcce8cc5467ef67f8428d4b73af7da05280da790e42b12",
+      "size": 1106940
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Werkarsenal_Atlas.mat": {
+      "guid": "68e20019395e19019aa83328a858aba8",
+      "sha256": "4cf939497baca8cf3d0230c280704dd11baf767dc10e5bc8518339de798aa9ae",
+      "size": 4156
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Werkarsenal_BaseColor.png": {
+      "guid": "17cb05acb3d1377c1b58259145f9affb",
+      "sha256": "f845742f6a88f527a5157027fff76ea40c33fee3d9e938e78cb66e0028b0c421",
+      "size": 1114846
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Werkarsenal_MetalSmooth.png": {
+      "guid": "eef0600f01e43cfa49b2332293018594",
+      "sha256": "14829b5ffa0f1110d75392a076b8ead74537612691f7d86027159e3f6fee9edc",
+      "size": 683470
+    },
+    "Assets/Resources/Equipment/Werkarsenal/Werkarsenal_Normal.png": {
+      "guid": "38f11e9816377ec32a497378565876e0",
+      "sha256": "a31b936b2cb0a40187746678375b08d5d0dc62867b03fad92015a49458f6fb57",
+      "size": 1927258
+    }
+  },
+  "nativeGzipSha256": "9812f77771894052bae8c2c3d0d5e06f1af7c3e137673eff2e4ee27814b10858",
+  "size": 36051187
+}

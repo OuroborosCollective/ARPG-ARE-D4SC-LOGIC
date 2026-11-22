@@ -1,0 +1,134 @@
+{
+  "branch": "art/aschepass-20261120",
+  "coreChecks": 21919,
+  "coreLogSha256": "3a619e357788b365ee743053b5809c61b77ea2e961e0f45d140bbea6da2796cb",
+  "feature": "MUEHLWEHR-001",
+  "native": {
+    "engineLogSha256": "9fc51f635b5af9b3243fb034aa74d335809e15d78fdf84a4093004b83b3b648c",
+    "frames": {
+      "final-views/Feldheilerin-Glockentraegerin-Werkansicht.json": "af74576a348a8bc52ee8ebf609447a87de18db5b860920b436cef11126b0697e",
+      "final-views/Feldheilerin-Grubenlicht-Spielkamera.json": "5779dab1856ffc941a603c14e384b00dc43b1a08cc623cac3aab1c76df84496e",
+      "final-views/Feldheilerin-Scharrgraeberkluft-Werkansicht.json": "6aae9a43587785bdb9754eb18ec171dcb3ddfef2e440cc987fcb0b373ef7adad",
+      "final-views/Feldheilerin-Schlackengarde-Werkansicht.json": "07f2c9d4b5ce8eb7384c5771dab53fbd68aeea2d94f502624071d5f1ffeda6b1",
+      "final-views/Glockentraegerin-Brustsitz-Werkansicht.json": "b5a0e1a8d068a511f8739877ffd06be206b07095f69544e199e9c1811fcad67c",
+      "final-views/Glockentraegerin-Detail-Werkansicht.json": "c644923852923db8fd876722a15896ccdf15e8f3bbcc61bb8c1b6d3a4301370d",
+      "final-views/Glockentraegerin-Passform.json": "960a176e8029dab2401a2be4538f2f8e58bb9eacbb0903496ca5bd8b00664ea4",
+      "final-views/Glockentraegerin-Spielkamera.json": "a6487c1c8dcfc90a60fb79963938f3b3b1ed60f1de546fa793ab28495c578784",
+      "final-views/Glockentraegerin-Werkansicht.json": "1ed6864fbb0217a5dc7f40e5021037549ca05a64269f05b55ea6034a98eefd16",
+      "final-views/Grubenlicht-Werkansicht.json": "155200f48f598333b099baa966e9fb2f2bc6cb959af29b78251c2130878f686c",
+      "final-views/Scharrgraeber-und-Brandreif-Werkansicht.json": "6798603a467e15dc83e719163ab91740ca3e767aa469daa4982973a7cf334300",
+      "final-views/Schlackengarde-Brustsitz-Werkansicht.json": "cad229c20716fd2e52946edacf5aefcce8ed465c4e825946eca067fc40a9331f",
+      "final-views/Schlackengarde-Detail-Werkansicht.json": "c4db0104a87754f58f23ec8aabe98c3d547def3fd28a1aa86119bd39511d8d9c",
+      "final-views/Schlackengarde-Helmkuppe-Werkansicht.json": "f0518208b150e68bc53446a294ef90221530de4de7156dacc2fd25b5d8bb66c1",
+      "final-views/Schlackengarde-Passform.json": "4ece86796b4a11a074249ef03cd0c3326ac63432aaae2a5dfa307940c12a78ce",
+      "final-views/Schlackengarde-Spielkamera.json": "2b7cbca5ccf747ed563b06ae09a351785e1a20443b0a56ee6fd5113134a1f528",
+      "final-views/Schlackengarde-Werkansicht.json": "a89ca81ee450ce5d22dedbd650140edec8d17774541fc8638d704068ac88c612",
+      "final-views/Tiefscharrer-Anatomie.json": "b11404b1f8edaea1314e257844d999fab3c4cdd24b8bad620b2ca6498b046a2e",
+      "final-views/Tiefscharrer-Profil-Spielkamera.json": "4c403d5cbfdd06ba0adb311c0734184d82a3de8758cc541d68fd5fb03a1e86b4",
+      "final-views/Tiefscharrer-Schulterbrand-Werkansicht.json": "96e993b76501ffe85ee5544dade8d3f2acd17470fbb7088c9fa20eaf8dfab15e",
+      "final-views/Tiefscharrer-Spielkamera.json": "5c13290f56dc6d28acf653b9b685f56d6c4590898753830b800aaa4e32299e54",
+      "final-views/Tiefscharrer-Tastlappen-Werkansicht.json": "b551567443b7a83bbc70860d4bdc906e650490ad3fa3279a9575d9c1d74f12c2",
+      "final-views/Tiefscharrer-Tastnase-Werkansicht.json": "18317324cab7ffc8ddbca2aaa00634b31a5fae494d629b5c4aeb0091d2a009f4",
+      "final-views/Tiefscharrer-Werkansicht.json": "79d4ca19fb7941d41b1777aac9bc388a4d6b2602e09c41c481d02bc79ffa5a56",
+      "final-views/Werkarsenal-Katalog.json": "aa0141886fc59e1e76d0c08b70a3d325e0d20fce382c16d83c8e3344a442a57c",
+      "final-views/Zollmesser-und-Ziegelschild-Werkansicht.json": "3d310a9bf8a3890d52ad2f2e9d0eb9602ed22d2d8e2346bbee2c189743a96f3a",
+      "final-views/rattlernest.json": "d87ca59b8d14890c2d2169685fdf1ba556729ad282919c08ad47bc337ca1a34d"
+    },
+    "rawXmlSha256": "b8ae0f0524a7f8f7e0155b51e75435ac9bf5cf9f33fcc3a482596088ab48ca70",
+    "screens": {
+      "final-plates/Aschenmonturen-Unity-Tablet.jpg": "568bf6eada847b65a68dbcbec40030bd7f5f6888f1af3ca4fb6eed8c55121f5b",
+      "final-plates/Aschenmonturen-Unity.jpg": "aeb087c62b2e9e0d6a3f8bb19a4ebee4d32be87b95933750496a28876622a51e",
+      "final-plates/Spielkamera-Nest-Kontrolle.jpg": "c6d98f9cedc6fed26be73f94e298fda61899c30d62ec1320849af19bed42d396",
+      "final-plates/Tiefscharrer-Grubenlicht-Unity-Tablet.jpg": "dc4b077f4cd3749486e56595895ad0c6be998b2543fa4a47c50cae836689c48d",
+      "final-plates/Tiefscharrer-Grubenlicht-Unity.jpg": "9ea3fd719611736fa2cebf7efbda1b6a96486af81296abfb7cb7d1da672a2385"
+    },
+    "tests": [
+      {
+        "duration": "21.694065",
+        "result": "Passed",
+        "test": "AshWardensAndMillRingerAppearWearAndPersistThroughTheRoad"
+      },
+      {
+        "duration": "7.464511",
+        "result": "Passed",
+        "test": "FieldHealerKnightDropFitsThroughMotionAndFreshSave"
+      },
+      {
+        "duration": "5.164850",
+        "result": "Passed",
+        "test": "RattlerDenUsesBlindCombatAndPersistsTheRoyalBrand"
+      },
+      {
+        "duration": "0.102467",
+        "result": "Passed",
+        "test": "RattlerPrivateAssetBindsBoneAnimationAndBrand"
+      },
+      {
+        "duration": "2.033687",
+        "result": "Passed",
+        "test": "RegionalArsenalModelsAndLiveHandsMatchTheCatalog"
+      },
+      {
+        "duration": "13.167071",
+        "result": "Passed",
+        "test": "TiefscharrerKeepsHisBrandAndDropsAnEquipableGrubenlicht"
+      }
+    ],
+    "unity": "6000.6.8f1"
+  },
+  "nativeExportSha256": "9812f77771894052bae8c2c3d0d5e06f1af7c3e137673eff2e4ee27814b10858",
+  "parent": "db21badcb979b8a045ff83d02b009c092f47a00a",
+  "portable": {
+    "baselineTree": "41b25ee52997b77664617b39e16e6dc160ebd165",
+    "changedFiles": 247,
+    "excludedLabToolFiles": 4,
+    "exitCode": 0,
+    "failedTests": [],
+    "missingMonoImporter": [],
+    "originalFiles": 247,
+    "privateOnlyDerived": 14,
+    "privateSlotsInPublic": [],
+    "scopeSha256": "4d68b4830d71ebfaea71c831d4a72f74a851bf963bbde5e64b59fb6f6fe5bd1e",
+    "scriptSha256": "bb732dcd78d3519071dc282bcfb4434a5fed99a440da611b052d3c223eb29627",
+    "sourceReadback": true,
+    "succeededTests": 54,
+    "testStderrSha256": "ef91289c27ef5eb1c8334518836831e1fb2987f09f5ea79b5d3b2d08f43f7b13",
+    "testStdoutSha256": "5ae3d7431a6644554f99c7f92c8ceb1f66fb365063b719d50296d79a6fea20ec",
+    "totalTests": 54,
+    "tree": "39076d4ce7c0ac2f55509837c0de5d4be6d58e2b"
+  },
+  "proofFiles": {
+    "core-route.txt": "58b7c3869a5b436281f11514f4f3792279a64d0322eefbe66c77cc0ac643a0ae",
+    "creature-anatomy.json": "b11404b1f8edaea1314e257844d999fab3c4cdd24b8bad620b2ca6498b046a2e",
+    "fundorte.json": "0a51d6610739331fb2a90799b99ca687ea6c14df8c589ef6e35ca78abc6ddbc4",
+    "playmode.xml": "b8ae0f0524a7f8f7e0155b51e75435ac9bf5cf9f33fcc3a482596088ab48ca70",
+    "portable-preflight.json": "f512d40e4cbdf83aa1aa51b1e9dca2ad8648863f8401d9ba5270bae9ef6e289d",
+    "unitypackage.json": "f5bfcb44252b83469c228a6616807149135ac889a91abdf0ed6551dad8f96a14",
+    "visual-readback.json": "b837178f529111b356dae5cb7115248c5b53a8e137c11297f1e131853a6fa9b9"
+  },
+  "release": {
+    "androidDeviceTest": false,
+    "publicDeployment": false,
+    "target": "private Unity workspace",
+    "wholePrivateCheckoutPreflight": "51/54, separately tracked baseline checks"
+  },
+  "route": {
+    "checks": 3357,
+    "file": "core-route.txt",
+    "historicalPrivateSaves": 7,
+    "itemLocations": 23,
+    "orderedLoadoutPairs": 529
+  },
+  "source": "cbe67fea8dc4f08bd03d3a9efbf483d91ae993e0",
+  "sourceBlendZip": "82b2e8335459a0caedf193823218b4b745399805fabfc6ea7cd88399d3608742",
+  "sourceFiles": 261,
+  "sourceManifestSha256": "d04a0b9ed5a68a4d063094719e7185ba0bc9982e7d77421bb96dac9a890df2c0",
+  "worldForge": {
+    "Brandreif": "3792dec0d5f4a0c9a28f685d0d129aa78834d930756085483e39344d833d9bf3",
+    "Glockentraegerin": "b4dcd8dfbba6cdda7c7aee76a13b27493844d48ca17a8c74e6d03976f2d35bbc",
+    "Grubenlicht": "40e097c4e98531584472d13a2f9a0c2f20fac61d34615a14e32c19e7f727ccf7",
+    "Schlackengarde": "5234ecb9688fd3121bd2b3f0ccb5d2a41aa16136e3c2150eb0f52e3872585270",
+    "Tiefscharrer": "4d3d27f27767b6ba431cbe3ccc69521e4640bd0f9c9c41264b670d622c511e76",
+    "Werkarsenal": "3b6358a741d19eaf3913732ea3904d763e3c1ac64b6068135178b0d03862f82b"
+  }
+}

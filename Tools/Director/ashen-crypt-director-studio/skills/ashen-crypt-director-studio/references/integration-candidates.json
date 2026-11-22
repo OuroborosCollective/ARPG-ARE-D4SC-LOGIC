@@ -1,0 +1,196 @@
+{
+  "schema": "ugd.integration-candidates.v1",
+  "date": "2026-11-16",
+  "evidence": "Evaluation candidates, not installed runtime proof",
+  "entries": [
+    {
+      "id": "unity-official-skills",
+      "url": "https://github.com/Unity-Technologies/skills",
+      "status": "routed-existing",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "game-dev-agent-skills",
+      "url": "https://github.com/gamedev-skills/awesome-gamedev-agent-skills",
+      "status": "routed-existing",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-behavior",
+      "url": "https://docs.unity3d.com/6000.0/Documentation/Manual/com.unity.behavior.html",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "crashkonijn-goap",
+      "url": "https://github.com/crashkonijn/GOAP",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "inkle-ink",
+      "url": "https://github.com/inkle/ink-unity-integration",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-gltfast",
+      "url": "https://github.com/Unity-Technologies/com.unity.cloud.gltfast",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "coplay-unity-mcp",
+      "url": "https://github.com/CoplayDev/unity-mcp",
+      "status": "alternative-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "ivan-unity-mcp",
+      "url": "https://github.com/IvanMurzak/Unity-MCP",
+      "status": "alternative-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-graphics-testing",
+      "url": "https://github.com/needle-mirror/com.unity.testframework.graphics",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-performance-testing",
+      "url": "https://github.com/needle-mirror/com.unity.test-framework.performance",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "alttester",
+      "url": "https://github.com/alttester/AltTester-Unity-SDK",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "game-ci",
+      "url": "https://game.ci/docs/github/test-runner/",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-ml-agents",
+      "url": "https://github.com/Unity-Technologies/ml-agents",
+      "status": "research-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-localization",
+      "url": "https://docs.unity3d.com/Packages/com.unity.localization@latest",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-addressables",
+      "url": "https://docs.unity3d.com/Packages/com.unity.addressables@latest",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-navigation",
+      "url": "https://docs.unity3d.com/Packages/com.unity.ai.navigation@latest",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-cinemachine",
+      "url": "https://docs.unity3d.com/Packages/com.unity.cinemachine@latest",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-input-system",
+      "url": "https://docs.unity3d.com/Packages/com.unity.inputsystem@latest",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "sentry-unity",
+      "url": "https://github.com/getsentry/sentry-unity",
+      "status": "evaluate",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "backtrace-unity",
+      "url": "https://github.com/backtrace-labs/backtrace-unity",
+      "status": "alternative-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "unity-usd-toolkit",
+      "url": "https://github.com/Unity-Technologies/com.unity.usd-toolkit",
+      "status": "authoring-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "houdini-engine",
+      "url": "https://www.sidefx.com/docs/houdini/unity/",
+      "status": "authoring-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "wfc",
+      "url": "https://github.com/SardineFish/WFC-Demo",
+      "status": "research-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "organica-wild",
+      "url": "https://github.com/OrganicaWild/OrganicaWild",
+      "status": "research-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "zloybest-unity-mcp",
+      "url": "https://github.com/zloybest/UnityMCP",
+      "status": "research-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "anklebreaker-unity-mcp",
+      "url": "https://github.com/AnkleBreaker-Studio/unity-mcp-server",
+      "status": "research-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    },
+    {
+      "id": "besty-unity-skills",
+      "url": "https://github.com/Besty0728/Unity-Skills",
+      "status": "research-only",
+      "unity_6_compatibility": "UNVERIFIED",
+      "license_at_commit": "UNVERIFIED"
+    }
+  ]
+}

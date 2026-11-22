@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "area": "wald",
-  "revision": 2,
+  "revision": 3,
   "pieces": [
     {
       "id": "b0001",
@@ -98,6 +98,30 @@
       "z": -27.3,
       "rot": 328,
       "scale": 0.88
+    },
+    {
+      "id": "b0201",
+      "key": "BloodcapBank",
+      "x": -5.38,
+      "z": -41.93,
+      "rot": 88,
+      "scale": 0.9
+    },
+    {
+      "id": "b0202",
+      "key": "StoneOutcrop",
+      "x": -6.0,
+      "z": -41.33,
+      "rot": 78,
+      "scale": 0.58
+    },
+    {
+      "id": "b0203",
+      "key": "ShaleLedge",
+      "x": -8.45,
+      "z": -39.88,
+      "rot": 209,
+      "scale": 0.68
     }
   ]
 }

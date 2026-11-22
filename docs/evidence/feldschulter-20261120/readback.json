@@ -1,0 +1,101 @@
+{
+  "sourceRevision": "ff1d1ce4331f69ef5646f236e7b7960292c4ea0a",
+  "baseRevision": "c600181d42da666c4ac0aa6ade4489ef4903e24a",
+  "portableTree": "41b25ee52997b77664617b39e16e6dc160ebd165",
+  "workshop": "private Unity art lab",
+  "worldForgeJob": "81192a97e4f2d33836ae378429d19917c14db7560451562ba3d555582c143998",
+  "coreAssertions": 21574,
+  "unity": {
+    "renderer": "Unity 6000.6.8f1 / llvmpipe (LLVM 15.0.7, 256 bits)",
+    "nativeXmlSha256": "940fd1b170c9060f436e05168c6595f5eaa5620751251070788dee519e571bb4",
+    "results": [
+      [
+        "AschepassLandmarksFollowTheRealChapterJourney",
+        "Passed"
+      ],
+      [
+        "EveryOwnedWeaponBindsAndInventoryChangesTheActualHandModel",
+        "Passed"
+      ],
+      [
+        "FieldHealerKnightDropFitsThroughMotionAndFreshSave",
+        "Passed"
+      ],
+      [
+        "FieldHealerShoulderFitUsesThePurchasedHumanoid",
+        "Passed"
+      ],
+      [
+        "FieldHealerShoulderRequiresAnImportedThreeLevelModel",
+        "Passed"
+      ],
+      [
+        "TargetFacingHoldsWhileRunningDuringTheAction",
+        "Passed"
+      ],
+      [
+        "ValuesTabShowsShieldBlockBowAccuracyAndWeaponProfile",
+        "Passed"
+      ],
+      [
+        "CanonicalKillProjectsAndPersistsVersionedLoot",
+        "Passed"
+      ]
+    ],
+    "observations": [
+      "source loot.1,0000000A11CE2026,1,6,2,1,1 ordinal 1 fullHP 650 ticks 6",
+      "left source triangles removed 668 original vertices 15828",
+      "Idle EntryIdle pixels 105151 socket -0.04450,0.05736,-0.02710 centreFromJoint 0.0788",
+      "Move EntryMove pixels 66589 socket -0.06383,0.03414,-0.02534 centreFromJoint 0.0780",
+      "Melee EntryStrike pixels 103796 socket -0.05309,0.05157,-0.01900 centreFromJoint 0.0754",
+      "arm rotation degrees 34.34 / persisted equipped + unequipped"
+    ]
+  },
+  "package": {
+    "byteLength": 4400568,
+    "folders": [
+      "Assets/Resources/Equipment/Feldschulter"
+    ],
+    "matchedOriginalPayloads": {
+      "Assets/Resources/Equipment/Feldschulter/Feldschulter.fbx": "db85fd6b0c788f4ae8e8593b47731dfa92cc59a392670c7a875b4aa2c6ec2006",
+      "Assets/Resources/Equipment/Feldschulter/Feldschulter_Atlas.mat": "82e4081a692ac06bf6edbbb1020b9836d1bc1fe31b2f4c9d6aaa543ecc346ebc",
+      "Assets/Resources/Equipment/Feldschulter/Feldschulter_BaseColor.png": "f81d914d98a33dcae7069f961fb44c619fc59827d322d46b28dbb7c251a485ed",
+      "Assets/Resources/Equipment/Feldschulter/Feldschulter_Icon.png": "c043a810a9e7f3b35a7239f7713d6a745323ef063bfc14e03899f855baf75145",
+      "Assets/Resources/Equipment/Feldschulter/Feldschulter_MetalSmooth.png": "fb3ea7a3f8ead6d7fdd0ec9af66f4e52c3ae0010e60fed00ad5f40f5c743df0d",
+      "Assets/Resources/Equipment/Feldschulter/Feldschulter_Normal.png": "18a5fe607f75f03686d6c47afa6ceae4e9f37c91b2650e093ef73dd45ec9f462",
+      "Assets/Resources/Equipment/Feldschulter/Feldschulter_Wearable.prefab": "72bd7d60b23963c4a3357e790dde5026c114843afaf0d492ce6f470c7111139d"
+    },
+    "privateMeshIncluded": false,
+    "unitypackageSha256": "5197cf54ec101c2447b9f44150b765779bd92def9fef49a167150df769fe6264"
+  },
+  "images": {
+    "Feldschulter-Anprobe.jpg": "087262397c8eec867265561adcab767d3e8c0fcada322ea72dc90d6db25022fc",
+    "Feldschulter-Bewegung.jpg": "fdb5bb31dd579c93e154b4b9904e7098d851e8c1dbb50d4db225bf8872317a0e"
+  },
+  "lifecycle": {
+    "mobile_analyze": {
+      "id": "EVD-f0f6c855125ca872",
+      "result": "failed",
+      "sha256": "83b3581bde1e33bd35d416b1f96ea311ade5ecce23141bc59a90b5061056f7e4"
+    },
+    "sdlc_validate": {
+      "id": "EVD-c030e32611ded68f",
+      "result": "passed",
+      "sha256": "440a64830d5c86fbe8f449734acb870fdb3ac55807cac39f3181cd3efc1728e4"
+    },
+    "sdlc_typecheck": {
+      "id": "EVD-e408204d760daa11",
+      "result": "passed",
+      "sha256": "bf3ce620aa0eb0557a5093072caa25e87e9d0b75d7bec1d7bb9c98f696bfc426"
+    },
+    "sdlc_test": {
+      "id": "EVD-63a6dc018798e119",
+      "result": "passed",
+      "sha256": "8113ada584e5bafbc777ad939efeb71d8be8073414ed339a520210563c11ad59"
+    }
+  },
+  "limits": [
+    "Private release guard remains blocked (BLK-734d72d40712).",
+    "No physical device run for this round."
+  ]
+}

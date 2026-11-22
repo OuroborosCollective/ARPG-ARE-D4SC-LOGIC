@@ -1,0 +1,5 @@
+interface:
+  display_name: "Governance"
+  short_description: "Aenderungen und Release-Freigaben am Unity-Projekt mit SHA-Bindung, Dry-Run und Rueckbaupruefung"
+policy:
+  allow_implicit_invocation: true
