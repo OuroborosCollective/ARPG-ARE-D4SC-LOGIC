@@ -14,6 +14,9 @@ namespace AreArpg.Core
     {
         public ulong EventId { get; }
         public ulong Tick { get; }
+        public ulong AcceptedTick => Tick;
+        public string RegionId { get; }
+        public bool ConfirmedByPlayer => Origin == ChronicleOrigin.Performed;
         public string TextKey { get; }
         public ChronicleOrigin Origin { get; }
         public string SourceNpcId { get; }
@@ -25,6 +28,9 @@ namespace AreArpg.Core
                                 ulong sequence = 0)
         {
             EventId = ev.Id; Tick = ev.Tick; TextKey = key; Origin = origin;
+            RegionId = key.StartsWith("chronicle.camp.", StringComparison.Ordinal) ||
+                       key == "chronicle.story.hearilyan"
+                ? RegionNetwork.Aschengrenze : "";
             SourceNpcId = speaker; KnowledgeOrigin = sourceOrigin; KnowledgeSequence = sequence;
         }
     }
