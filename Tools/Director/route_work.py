@@ -33,7 +33,11 @@ def plan(task,available=(),project=None):
  catalog_path = Path(__file__).resolve().parents[1] / 'engineering-skill-catalog.json'
  if not catalog_path.is_file():
   catalog_path = Path.home() / '.local/share/unity-game-director/engineering-skill-catalog.json'
- result['engineering_skills'] = engineering_skill_plan(task, catalog_path)
+ try:
+  result['engineering_skills'] = engineering_skill_plan(task, catalog_path)
+ except ValueError as exc:
+  result['engineering_skills'] = {'status':'REFUSED','reason':str(exc),
+                                  'selected':[],'execution':'NONE','advisory_only':True}
  catalog = Path(__file__).resolve().parents[1] / 'official-unity-catalog.json'
  if catalog.exists(): result['official_unity'] = official_route(task, catalog, 'git')
  community = Path(__file__).resolve().parents[1] / 'gamedev-catalog.json'
