@@ -334,3 +334,11 @@ Unity 6000.6.8f1 im Live-Editor mit installiertem Paket, Testläufe über die Un
 - [Figurensystem, Vorrat und Bewohner](../../BOZO_CHARACTERS.md)
 - [GitHub-Core-Lauf zu PR 117](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45009814555)
 - [GitHub-Core-Lauf zu PR 120](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45029333784)
+
+
+## Issue #4 · Kausale Utility-Policies · 2026-11-22
+
+- Ausgangs-`main` `8f0cd525d52ec0a1924af6f93bb635250208cc47`; erster testgebundener SHA `a1927734dab84e787b7d007438f66701cfb4bc59`, Produktionsfix `112e6ad36f93fd35236b857ffdd2f283dbac34f5`, PR #121. Ursache: ein berichtetes Gewalt-Ereignis konnte allein über die aggregierte Feindseligkeit `Attack` erlauben; der wirklich ausgeführte RED-CI-Job 137330476799 schlug bei `policy-indirect-no-hostile-attack` fehl.
+- Nur Core-Entscheidungsgrenzen `NpcForgeCalm.cs` / `NpcForgeBehavior.cs` und echte `CausalPolicyTests.cs` verändert: direkte Erinnerung (`Self/Witnessed`) erforderlich, um berichtete Feindseligkeit zu gewaltsamer Bedrohung hochzustufen. Vorhandener Forge-Entscheider, LegalMask, Save und 100-ms-Tick unverändert.
+- GREEN-CI-Job 137330772444 auf `112e6ad36f93fd35236b857ffdd2f283dbac34f5`: 22.668 Core-Assertions, 54 Preflights, 76 Director/Skill-Tests und 5 Gateway-Tests; 10.000 Simulationsticks wiederholt. [RED](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45062225471) · [GREEN](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45062322997) · [ausführliche Abnahme](../issue-4-causal-policy-20261122/acceptance.md).
+- Grenzen: GitHub Unity-PlayMode-Workflow wurde übersprungen; kein nativer Unity-/APK-/Gerätetest in dieser Runde. Das Owner-DOCX wurde aus dieser Verbindung nicht editiert; dieses repositorygebundene Handoff ist der bewusste, als solcher gekennzeichnete Nachtrag, kein Ersatzbeleg für DOCX-Writeback.
