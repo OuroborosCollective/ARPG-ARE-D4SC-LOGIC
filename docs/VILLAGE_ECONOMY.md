@@ -66,8 +66,9 @@ Krankenstube, Schmiede und Feldscheune stehen nicht von Anfang an. Jedes dieser 
 - Mit dem letzten Stück sagt die Person: „Vielen Dank. Ich mache mich an die Arbeit. Komm später wieder.“ Das Haus
   erscheint **nicht** vor den Augen des Spielers. Es steht, wenn der Spieler das nächste Mal ins Dorf kommt.
 - Orsel zieht mit ihren Kranken von der alten Mühle ins Dorf. Steht die Krankenstube, pflegt sie dort: Verletzte
-  Bewohner müssen nicht mehr zur Mühle laufen, und die Heilkräuter kommen von der Kräuterstange der Krankenstube.
-  Was noch auf ihrem Regal an der Mühle lag, bringt sie mit.
+  Bewohner müssen nicht mehr zur Mühle laufen. Heilkräuter, Verbände und Wasser kommen aus dem Dorfvorrat. Wer bei
+  ihr an der Mühle lag, liegt jetzt in der Krankenstube; was auf ihrem Regal lag, bringt sie mit. Kräuter, die gerade
+  zur Mühle unterwegs waren, kommen wieder mit nach Hause.
 - Solange ein Haus fehlt, läuft seine Arbeit wie bisher im Freien: Schmiedearbeit an der Werkbank, Verletzte ruhen zu
   Hause oder gehen zu Orsel an die Mühle. Im fertigen Haus dauert die Arbeit nur zwei Drittel der Zeit (Schmiede:
   Axt richten, Erz schmelzen, Beschläge schmieden; Scheune: säen, ernten, Boden und Kompost; Krankenstube: Verbände).
