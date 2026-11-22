@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AreArpg.UnityClient;
 using Bozo.ModularCharacters;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -148,6 +149,7 @@ namespace AreArpg.EditorTools
 
                 int outfits = system.GetOutfits().Count(o => o != null);
                 if (outfits < recipe.outfits.Length) throw new InvalidOperationException("Nur " + outfits + " Teile geladen (Rezept nennt " + recipe.outfits.Length + ").");
+                if (recipe.parts) RecordParts(recipe.id, system);
                 system.prefabName = recipe.id;
                 system.cleanScriptsAfterPrefab = true;
                 await system.SaveCharacterToPrefab();
@@ -394,6 +396,8 @@ namespace AreArpg.EditorTools
             var recipes = BozoFigureRecipes.Load();
             // A colour variant uses the mesh of its model figure: the models come first.
             ids = ids.OrderBy(id => string.IsNullOrEmpty(recipes.First(f => f.id == id).sameShapeAs) ? 0 : 1).ToArray();
+            var unused = new List<string>();
+            var rebuilt = new List<string>();
             foreach (string id in ids)
             {
                 var recipe = recipes.First(f => f.id == id);
@@ -405,21 +409,26 @@ namespace AreArpg.EditorTools
                     snapshot = new AssetSnapshot(new[] { BakeFolder + "/" + id, BakeFolder + "/Animation", SourceFolder }
                         .Concat((recipe.keys ?? new string[0]).Select(key => Visuals + key + ".prefab")));
                     EnsureFolder(SourceFolder);
-                    Mesh mesh = GameMesh(recipe);
+                    Mesh[] parts = recipe.parts ? GameParts(recipe) : null;
+                    Mesh mesh = recipe.parts ? null : GameMesh(recipe);
                     Material material = GameMaterial(recipe);
-                    Avatar avatar = GameAvatar(recipe);
-                    foreach (string key in recipe.keys ?? new string[0]) Save(recipe, mesh, material, avatar, Visuals + key + ".prefab", key, true);
-                    foreach (string key in recipe.sources ?? new string[0]) Save(recipe, mesh, material, avatar, SourceFolder + "/" + key + ".prefab", key, false);
-                    // A figure that has become a colour variant leaves the mesh it once had behind. It goes only now,
-                    // after every visual of the figure points at the shared mesh: until then the old visual is whole.
-                    if (!string.IsNullOrEmpty(recipe.sameShapeAs) && AssetDatabase.LoadAssetAtPath<Mesh>(GameMeshPath(recipe.id)) != null)
-                        AssetDatabase.DeleteAsset(GameMeshPath(recipe.id));
+                    Avatar avatar = GameAvatar(recipe, recipes);
+                    foreach (string key in recipe.keys ?? new string[0]) Save(recipe, mesh, parts, material, avatar, Visuals + key + ".prefab", key, true);
+                    foreach (string key in recipe.sources ?? new string[0]) Save(recipe, mesh, parts, material, avatar, SourceFolder + "/" + key + ".prefab", key, false);
+                    // Meshes the figure no longer uses: a colour variant keeps none of its own, a figure in two parts no
+                    // mesh in one piece, a figure in one piece no parts. They go after the whole run (see below).
+                    bool variant = !string.IsNullOrEmpty(recipe.sameShapeAs);
+                    if (variant || recipe.parts) unused.Add(GameMeshPath(recipe.id));
+                    if (variant || !recipe.parts) { unused.Add(PartPath(recipe.id, FigureComposer.BodyPart)); unused.Add(PartPath(recipe.id, FigureComposer.HeadPart)); }
                     AssetDatabase.SaveAssets();
+                    ReloadRewritten();
+                    rebuilt.Add(id);
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
                 catch (Exception e)
                 {
                     if (snapshot != null) snapshot.Restore();
+                    ReloadRewritten(); // the restored files count, not what this attempt left in memory
                     if (fromBake)
                     {
                         string backup = Path.Combine("Library/BozoCharacters/Backup", id);
@@ -433,8 +442,31 @@ namespace AreArpg.EditorTools
                     Report(id + "\tVISUALS_FAILED\t" + e.Message.Replace('\n', ' '));
                 }
             }
+            // Only now, and only what no visual draws any more: a colour variant that was not part of this run, or
+            // whose own rebuild failed, may still draw the mesh its model just stopped using.
+            var drawn = new HashSet<string>(AssetDatabase.FindAssets("t:Prefab", new[] { Visuals.TrimEnd('/'), SourceFolder })
+                .Select(AssetDatabase.GUIDToAssetPath).SelectMany(path => AssetDatabase.GetDependencies(path, false)));
+            foreach (string path in unused.Distinct())
+                if (!drawn.Contains(path) && AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
             AssetDatabase.SaveAssets();
+            WriteFolkIndex(rebuilt);
             Report("DONE");
+        }
+
+        /// <summary>
+        /// The game's list of the pool figures baked here (FolkIndex), next to their visuals. A figure's line comes from
+        /// the recipe of a successful rebuild; a figure whose rebuild failed keeps the line of the visual that was
+        /// restored. Without arguments it only drops lines of visuals that are gone and adds missing ones.
+        /// </summary>
+        public static void WriteFolkIndex(IEnumerable<string> rebuiltIds = null)
+        {
+            if (!File.Exists(BozoFigurePool.PoolPath)) return;
+            string path = BozoFigurePool.IndexPath;
+            string before = File.Exists(path) ? File.ReadAllText(path) : "";
+            string text = BozoFigurePool.UpdateIndex(before, rebuiltIds, key => File.Exists(Visuals + key + ".prefab"));
+            if (text == before) return;
+            File.WriteAllText(path, text);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
         }
 
         /// <summary>
@@ -446,11 +478,22 @@ namespace AreArpg.EditorTools
         static Mesh GameMesh(BozoFigureRecipes.Figure recipe)
         {
             if (!string.IsNullOrEmpty(recipe.sameShapeAs)) return SharedGameMesh(recipe);
-            Mesh mesh = BuildGameMesh(recipe);
-            string path = GameMeshPath(recipe.id);
+            return SaveMesh(BuildGameMesh(recipe), GameMeshPath(recipe.id));
+        }
+
+        /// <summary>
+        /// Meshes rewritten in place during this run. The editor keeps drawing the old data of such a mesh: once its
+        /// vertex count changed, figures using it showed no body or no head at all. Each one is therefore unloaded as
+        /// soon as it is saved, and its next use reads the file.
+        /// </summary>
+        static readonly List<Mesh> Rewritten = new List<Mesh>();
+
+        /// <summary>Store a game mesh, keeping the identity of an existing asset, without a second copy for scripts.</summary>
+        static Mesh SaveMesh(Mesh mesh, string path)
+        {
             var saved = AssetDatabase.LoadAssetAtPath<Mesh>(path);
             if (saved == null) { AssetDatabase.CreateAsset(mesh, path); saved = mesh; }
-            else { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); } // keep the asset identity
+            else { EditorUtility.CopySerialized(mesh, saved); Object.DestroyImmediate(mesh); Rewritten.Add(saved); } // keep the asset identity
             var serialized = new SerializedObject(saved);
             serialized.FindProperty("m_IsReadable").boolValue = false;
             serialized.ApplyModifiedPropertiesWithoutUndo();
@@ -458,7 +501,172 @@ namespace AreArpg.EditorTools
             return saved;
         }
 
+        /// <summary>Unload the meshes rewritten in place (after saving them): every later use loads them from their file.</summary>
+        static void ReloadRewritten()
+        {
+            foreach (Mesh mesh in Rewritten) if (mesh != null) Resources.UnloadAsset(mesh);
+            Rewritten.Clear();
+        }
+
+        /// <summary>
+        /// Unload every game mesh of the baked figures, so the editor draws what their files hold. For a session that
+        /// rewrote meshes before the baker unloaded them itself.
+        /// </summary>
+        public static int ReloadGameMeshes()
+        {
+            int count = 0;
+            foreach (string guid in AssetDatabase.FindAssets("t:Mesh", new[] { BakeFolder }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                if (!path.Contains("_Game")) continue;
+                foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                    if (asset is Mesh) { Resources.UnloadAsset(asset); count++; }
+            }
+            return count;
+        }
+
         static string GameMeshPath(string id) { return BakeFolder + "/" + id + "/" + id + "_GameMesh.asset"; }
+        static string PartPath(string id, string part) { return BakeFolder + "/" + id + "/" + id + "_Game" + part + ".asset"; }
+        static string PartsRecordPath(string id) { return Path.Combine(Directory.GetCurrentDirectory(), "Library/BozoCharacters/Parts/" + id + ".txt"); }
+
+        /// <summary>
+        /// The pack merges a figure by putting the mesh of every outfit after the previous one (BoZoCharacterOptimizer):
+        /// each outfit is one unbroken run of vertices. Right after loading, the outfits the merge used are the ones it
+        /// switched off. Their types and vertex counts are written down in merge order, and they must add up to the
+        /// merged mesh, or the figure cannot be split.
+        /// </summary>
+        static void RecordParts(string id, OutfitSystem system)
+        {
+            var lines = new List<string>();
+            int total = 0;
+            foreach (Outfit item in system.GetOutfits())
+            {
+                if (item == null || !item.mergeMesh || item.gameObject.activeSelf || (item.Type != null && system.hiddenTypes.ContainsKey(item.Type))) continue;
+                string type = item.Type != null ? item.Type.name : "";
+                if (BozoFigureRecipes.IsHeadSlot(type) == null) throw new InvalidOperationException(id + ": Teiletyp '" + type + "' ist weder Kopf noch Körper zugeordnet.");
+                foreach (SkinnedMeshRenderer renderer in item.skinnedRenderers)
+                {
+                    if (renderer == null || renderer.sharedMesh == null) continue;
+                    if (renderer.gameObject != item.gameObject && !renderer.gameObject.activeSelf) continue;
+                    lines.Add(type + "\t" + renderer.sharedMesh.vertexCount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    total += renderer.sharedMesh.vertexCount;
+                }
+            }
+            SkinnedMeshRenderer merged = system.GetCharacterBody();
+            int count = merged != null && merged.sharedMesh != null ? merged.sharedMesh.vertexCount : -1;
+            if (total != count) throw new InvalidOperationException(id + ": die Teile ergeben " + total + " Eckpunkte, das zusammengefügte Modell hat " + count + ".");
+            Directory.CreateDirectory(Path.GetDirectoryName(PartsRecordPath(id)));
+            File.WriteAllLines(PartsRecordPath(id), lines);
+        }
+
+        /// <summary>For every vertex of the merged figure: does it belong to the head? From the record of the bake.</summary>
+        static bool[] HeadVertices(string id, int vertexCount)
+        {
+            if (!File.Exists(PartsRecordPath(id))) throw new InvalidOperationException(id + ": keine Aufzeichnung der Teile; die Figur muss mit \"parts\" neu erzeugt werden.");
+            var head = new bool[vertexCount];
+            int at = 0;
+            foreach (string line in File.ReadAllLines(PartsRecordPath(id)))
+            {
+                string[] f = line.Split('\t');
+                bool? isHead = f.Length == 2 ? BozoFigureRecipes.IsHeadSlot(f[0]) : null;
+                if (isHead == null || !int.TryParse(f[1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int count) ||
+                    count <= 0 || at + count > vertexCount)
+                    throw new InvalidOperationException(id + ": Aufzeichnung der Teile passt nicht zum Modell.");
+                for (int v = at; v < at + count; v++) head[v] = isHead.Value;
+                at += count;
+            }
+            if (at != vertexCount) throw new InvalidOperationException(id + ": die Teile ergeben " + at + " Eckpunkte, das Modell hat " + vertexCount + ".");
+            return head;
+        }
+
+        /// <summary>Body and head of a figure built in two parts, split from its game mesh along the outfits.</summary>
+        static Mesh[] GameParts(BozoFigureRecipes.Figure recipe)
+        {
+            if (!string.IsNullOrEmpty(recipe.sameShapeAs)) return SharedGameParts(recipe);
+            Mesh full = BuildGameMesh(recipe);
+            try
+            {
+                bool[] head = HeadVertices(recipe.id, full.vertexCount);
+                return new[]
+                {
+                    SaveMesh(PartOf(full, head, false, recipe.id + "_Game" + FigureComposer.BodyPart), PartPath(recipe.id, FigureComposer.BodyPart)),
+                    SaveMesh(PartOf(full, head, true, recipe.id + "_Game" + FigureComposer.HeadPart), PartPath(recipe.id, FigureComposer.HeadPart)),
+                };
+            }
+            finally { Object.DestroyImmediate(full); }
+        }
+
+        /// <summary>A colour variant in two parts uses both parts of its model, once its own split matches them.</summary>
+        static Mesh[] SharedGameParts(BozoFigureRecipes.Figure recipe)
+        {
+            var model = BozoFigureRecipes.Load().First(f => f.id == recipe.sameShapeAs);
+            var shared = new[] { AssetDatabase.LoadAssetAtPath<Mesh>(PartPath(model.id, FigureComposer.BodyPart)), AssetDatabase.LoadAssetAtPath<Mesh>(PartPath(model.id, FigureComposer.HeadPart)) };
+            if (shared[0] == null || shared[1] == null) throw new InvalidOperationException("Grundfigur zuerst erzeugen: " + model.id + " (für " + recipe.id + ").");
+            Mesh full = BuildGameMesh(recipe);
+            try
+            {
+                bool[] head = HeadVertices(recipe.id, full.vertexCount);
+                for (int p = 0; p < 2; p++)
+                {
+                    Mesh own = PartOf(full, head, p == 1, "probe");
+                    try
+                    {
+                        string difference = MeshDifference(own, shared[p]);
+                        if (difference != null) throw new InvalidOperationException(recipe.id + " hat nicht die Form von " + model.id + " (" + (p == 1 ? "Kopf" : "Körper") + "): " + difference);
+                    }
+                    finally { Object.DestroyImmediate(own); }
+                }
+            }
+            finally { Object.DestroyImmediate(full); }
+            return shared;
+        }
+
+        /// <summary>
+        /// The triangles of one side of the neck with only the vertices they use. Every outfit is one run of vertices,
+        /// so no triangle may join head and body; one that does means the record does not fit the figure.
+        /// </summary>
+        static Mesh PartOf(Mesh full, bool[] headVertex, bool wantHead, string name)
+        {
+            int[] triangles = full.triangles;
+            var kept = new List<int>(triangles.Length);
+            for (int t = 0; t < triangles.Length; t += 3)
+            {
+                bool a = headVertex[triangles[t]], b = headVertex[triangles[t + 1]], c = headVertex[triangles[t + 2]];
+                if (a != b || b != c) throw new InvalidOperationException(name + ": ein Dreieck verbindet Kopf und Körper.");
+                if (a == wantHead) { kept.Add(triangles[t]); kept.Add(triangles[t + 1]); kept.Add(triangles[t + 2]); }
+            }
+            if (kept.Count == 0) throw new InvalidOperationException(name + ": dieser Teil der Figur ist leer.");
+            var newIndex = new int[full.vertexCount];
+            for (int v = 0; v < newIndex.Length; v++) newIndex[v] = -1;
+            var order = new List<int>();
+            foreach (int v in kept) if (newIndex[v] < 0) { newIndex[v] = order.Count; order.Add(v); }
+            var part = new Mesh { name = name };
+            if (order.Count > 65535) part.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            Vector3[] vertices = full.vertices, normals = full.normals;
+            Vector4[] tangents = full.tangents;
+            Color[] colors = full.colors;
+            BoneWeight[] weights = full.boneWeights;
+            part.vertices = order.Select(v => vertices[v]).ToArray();
+            if (normals.Length == vertices.Length) part.normals = order.Select(v => normals[v]).ToArray();
+            if (tangents.Length == vertices.Length) part.tangents = order.Select(v => tangents[v]).ToArray();
+            if (colors.Length == vertices.Length) part.colors = order.Select(v => colors[v]).ToArray();
+            for (int channel = 0; channel < 4; channel++)
+            {
+                var uvs = new List<Vector4>();
+                full.GetUVs(channel, uvs);
+                if (uvs.Count != vertices.Length) continue;
+                int dimension = full.GetVertexAttributeDimension((UnityEngine.Rendering.VertexAttribute)((int)UnityEngine.Rendering.VertexAttribute.TexCoord0 + channel));
+                var picked = order.Select(v => uvs[v]).ToList();
+                if (dimension <= 2) part.SetUVs(channel, picked.Select(u => new Vector2(u.x, u.y)).ToList());
+                else if (dimension == 3) part.SetUVs(channel, picked.Select(u => new Vector3(u.x, u.y, u.z)).ToList());
+                else part.SetUVs(channel, picked);
+            }
+            if (weights.Length == vertices.Length) part.boneWeights = order.Select(v => weights[v]).ToArray();
+            part.bindposes = full.bindposes;
+            part.triangles = kept.Select(v => newIndex[v]).ToArray();
+            part.RecalculateBounds();
+            return part;
+        }
 
         /// <summary>
         /// A colour variant has no mesh of its own. Its bake is held, vertex by vertex, against the very mesh it is
@@ -579,7 +787,7 @@ namespace AreArpg.EditorTools
                 string normalPath = folder + recipe.id + "_GameNormal.png";
                 if (Outdated(AssetDatabase.GetAssetPath(packed), normalPath, "normal"))
                     WriteNormalMap(AssetDatabase.GetAssetPath(packed), normalPath, recipe.texture);
-                material.SetTexture("_Normal", AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath));
+                material.SetTexture("_Normal", AssetDatabase.LoadAssetAtPath<Texture2D>(SharedNormal(recipe, normalPath)));
             }
             Texture colours = baked.HasProperty("_Diffuse") ? baked.GetTexture("_Diffuse") : null;
             float light = BozoFigureRecipes.LoadLight();
@@ -593,6 +801,19 @@ namespace AreArpg.EditorTools
             }
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        /// <summary>
+        /// A colour variant wears its model's parts in the same places, so its normal atlas is normally the model's,
+        /// byte for byte. It then draws the model's texture: the game carries one normal atlas per model instead of
+        /// one per look. Its own copy stays in the private folder, where nothing of the game refers to it.
+        /// </summary>
+        static string SharedNormal(BozoFigureRecipes.Figure recipe, string ownPath)
+        {
+            if (string.IsNullOrEmpty(recipe.sameShapeAs)) return ownPath;
+            string modelPath = BakeFolder + "/" + recipe.sameShapeAs + "/" + recipe.sameShapeAs + "_GameNormal.png";
+            if (!File.Exists(modelPath) || !File.Exists(ownPath) || AssetDatabase.LoadAssetAtPath<Texture2D>(modelPath) == null) return ownPath;
+            return File.ReadAllBytes(modelPath).SequenceEqual(File.ReadAllBytes(ownPath)) ? modelPath : ownPath;
         }
 
         /// <summary>A derived texture is rebuilt when the baked source is newer or it was made with other settings.</summary>
@@ -679,10 +900,18 @@ namespace AreArpg.EditorTools
         /// hand missed its grip by four centimetres. Each reshaped figure gets its own avatar: the pack's description
         /// with the bone scales of the baked figure.
         /// </summary>
-        static Avatar GameAvatar(BozoFigureRecipes.Figure recipe)
+        static Avatar GameAvatar(BozoFigureRecipes.Figure recipe, BozoFigureRecipes.Figure[] recipes)
         {
             var source = AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(recipe.id));
             if (source == null) throw new InvalidOperationException("Gebackene Figur fehlt: " + recipe.id);
+            // A colour variant has its model's preset and body sliders (checked with the recipes), so its bones carry
+            // the same scales: it uses the avatar its model's visual uses now instead of bringing a copy of it into the
+            // game. That is the pack's own avatar when the model's bones are not reshaped any more.
+            if (!string.IsNullOrEmpty(recipe.sameShapeAs))
+            {
+                Avatar shared = VisualAvatar(recipes.FirstOrDefault(f => f.id == recipe.sameShapeAs));
+                if (shared != null) return shared;
+            }
             GameObject figure = Object.Instantiate(source);
             try
             {
@@ -717,6 +946,18 @@ namespace AreArpg.EditorTools
             finally { Object.DestroyImmediate(figure); }
         }
 
+        /// <summary>The avatar a figure's game visual uses now (models are rebuilt before their variants), or null.</summary>
+        static Avatar VisualAvatar(BozoFigureRecipes.Figure figure)
+        {
+            foreach (string key in figure != null ? figure.keys ?? new string[0] : new string[0])
+            {
+                var visual = AssetDatabase.LoadAssetAtPath<GameObject>(Visuals + key + ".prefab");
+                Animator animator = visual != null ? visual.GetComponentInChildren<Animator>(true) : null;
+                if (animator != null && animator.avatar != null && animator.avatar.isValid && animator.avatar.isHuman) return animator.avatar;
+            }
+            return null;
+        }
+
         /// <summary>
         /// A recipe key names a file among all game visuals. It may create a new visual, renew a figure or replace
         /// one of the former human figures, but never overwrite other art (monsters, weapons, worlds) by mistake.
@@ -725,12 +966,15 @@ namespace AreArpg.EditorTools
         {
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(Visuals + key + ".prefab");
             if (existing == null || Array.IndexOf(BozoFigureRecipes.RequiredKeys, key) >= 0) return true;
+            // Every visual this tool saves holds the pack's figure under this name; it stays a figure even while the
+            // mesh it drew is gone (a model figure was rebuilt in two parts before its colour variants).
+            if (existing.GetComponentsInChildren<Transform>(true).Any(t => t.name.StartsWith("BozoFigure_", StringComparison.Ordinal))) return true;
             SkinnedMeshRenderer[] skins = existing.GetComponentsInChildren<SkinnedMeshRenderer>(true);
             return skins.Length > 0 && skins.All(s => s.sharedMesh != null &&
                 AssetDatabase.GetAssetPath(s.sharedMesh).StartsWith(BakeFolder + "/", StringComparison.Ordinal));
         }
 
-        static void Save(BozoFigureRecipes.Figure recipe, Mesh mesh, Material material, Avatar avatar, string path, string key, bool gameVisual)
+        static void Save(BozoFigureRecipes.Figure recipe, Mesh mesh, Mesh[] parts, Material material, Avatar avatar, string path, string key, bool gameVisual)
         {
             if (gameVisual && !MayWrite(key))
                 throw new InvalidOperationException("Visual " + key + " ist keine Figur dieses Systems und wird nicht überschrieben.");
@@ -746,10 +990,24 @@ namespace AreArpg.EditorTools
                 art.name = "BozoFigure_" + recipe.id;
                 art.transform.localPosition = Vector3.zero; art.transform.localRotation = Quaternion.identity;
                 MakePassive(art);
-                foreach (SkinnedMeshRenderer skin in art.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                SkinnedMeshRenderer[] skins = art.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+                if (parts == null)
+                    foreach (SkinnedMeshRenderer skin in skins)
+                    {
+                        skin.sharedMesh = mesh;
+                        skin.sharedMaterial = material;
+                    }
+                else
                 {
-                    skin.sharedMesh = mesh;
-                    skin.sharedMaterial = material;
+                    // Two renderers on the one skeleton: the body, and the head that another figure's head can replace.
+                    if (skins.Length != 1) throw new InvalidOperationException("Erwartet genau ein zusammengefügtes Mesh: " + recipe.id);
+                    SkinnedMeshRenderer body = skins[0];
+                    var headObject = Object.Instantiate(body.gameObject, body.transform.parent, false);
+                    body.name = FigureComposer.BodyPart; headObject.name = FigureComposer.HeadPart;
+                    SkinnedMeshRenderer head = headObject.GetComponent<SkinnedMeshRenderer>();
+                    body.sharedMesh = parts[0]; head.sharedMesh = parts[1];
+                    body.sharedMaterial = material; head.sharedMaterial = material;
+                    head.bones = body.bones; head.rootBone = body.rootBone; head.localBounds = body.localBounds;
                 }
                 var animators = art.GetComponentsInChildren<Animator>(true);
                 if (animators.Length == 1) animators[0].avatar = avatar;

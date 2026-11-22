@@ -49,6 +49,7 @@ bleiben, wie sie sind.
 | `keys` | Spielvisuals unter `Resources/ARE/Visuals/<Key>.prefab` |
 | `sources` | Private Quellfiguren für andere Werkzeuge (Held, liegende Patienten), nicht in `Resources` |
 | `sameShapeAs` | Nur für Farbvarianten: `id` der Grundfigur mit denselben Teilen und Formen. Die Variante bekommt kein eigenes Modell, sondern nutzt das der Grundfigur mit eigener Textur |
+| `parts` | Figur in zwei Teilen (Körper und Kopf), damit Köpfe getauscht werden können; siehe unten |
 
 `BozoFigureRecipes` prüft die Rezepte (auch ohne installiertes Paket): gültige Schlüssel, Höhen, Farben, keine
 doppelten Visuals, und dass jede vom Spiel gebundene Menschenfigur ein Rezept hat. Abgelehnt werden auch Werte, die
@@ -92,8 +93,79 @@ Eckpunkt. Eine Farbvariante nennt deshalb mit `sameShapeAs` ihre Grundfigur und 
 - Die Rezeptprüfung lehnt eine Variante ab, die sich in mehr als Farben, Rolle, Höhe und Namen unterscheidet.
 - Beim Erzeugen wird der Bake der Variante mit dem der Grundfigur verglichen. Weichen sie ab, bleibt die bisherige
   Figur unverändert, statt mit falschem Körper zu erscheinen.
-- Kopf und Körper lassen sich bisher nicht tauschen. Gemessen ist, dass sie sich am Hals sauber trennen ließen: Bei
-  drei geprüften Figuren liegen dort 50 Dreiecke in einem vier Zentimeter hohen Band. Gebaut ist das noch nicht.
+
+### Köpfe tauschen: Figuren in zwei Teilen
+
+Eine Figur mit `"parts": true` wird in zwei Teilen gebaut: **Körper** und **Kopf**, zwei Renderer auf demselben
+Skelett mit demselben Material. `FigureComposer.TryPutHead(körper, kopfFigur)` setzt den Kopf einer anderen solchen
+Figur auf den Körper: Der Kopf behält sein Modell und seine Farben und hängt an den Knochen des Körpers, sitzt also auf
+dessen Hals und folgt dessen Bewegung. Aus 10 Körpern und 10 Köpfen werden so 100 Figuren, ohne ein einziges Modell mehr.
+
+- **Wo getrennt wird:** Das Paket fügt eine Figur zusammen, indem es die Modelle aller Kleidungsstücke hintereinander
+  hängt (`BoZoCharacterOptimizer`). Beim Erzeugen schreibt das Werkzeug diese Abschnitte mit Typ und Länge auf
+  (`Library/BozoCharacters/Parts/<id>.txt`) und trennt danach genau dort: Kopf, Augen, Brauen, Haare, Bart, Hut und
+  Gesichtsteile zum Kopf, alles andere zum Körper. Ein Kleidungstyp, der keiner Seite zugeordnet ist, wird abgelehnt.
+  An den Knochengewichten allein ließ sich das nicht entscheiden: Kapuzen und Helmkragen liegen halb am Kopf.
+- **Mitgebrachte Knochen:** Haare, Federbüsche oder Kapuzen haben eigene Knochen unter dem Kopf. Fehlen sie dem
+  Körper, kopiert `TryPutHead` sie unter denselben Knochen. Gesucht wird nur im Skelett; das Paket legt daneben leere
+  Helfer mit gleichen Namen ab (`MagicaClothSupport/FrontHair`).
+- **Geht etwas nicht,** bleibt der eigene Kopf des Körpers, und es wird nichts halb angelegt.
+- **Gut zusammen passen** Köpfe und Körper derselben Vorlage (`base`) und derselben Hautfarbe; die Hautfarbe steckt in
+  den Farben jedes Teils. Der Tausch selbst prüft das nicht.
+- Geprüft wird für jedes Paar gleicher Vorlage: Der Kopf bleibt am Kopfknochen und reicht nicht weiter hinunter als
+  auf seiner eigenen Figur (ein langer Bart darf bis zum Gürtel hängen), am Hals entsteht kein Loch (der Kopf reicht so
+  weit in den Kragen wie der eigene Kopf des Körpers), und er dreht sich als Ganzes mit dem Kopfknochen.
+- Ein überschriebenes Modell entlädt das Werkzeug nach dem Speichern, damit der Editor es neu aus der Datei liest:
+  Behielt er das alte im Speicher, zeichnete er nach einer Änderung der Eckpunktzahl gar nichts (Figur ohne Kopf oder
+  unsichtbar). Für eine schon betroffene Sitzung: `BozoFigureBaker.ReloadGameMeshes()`.
+
+### Der Figurenvorrat (`pool.json`)
+
+Owner-Vorgabe 2026-11-22: rund 200 fertige Menschen für Bewohner und Rollen, vom Knecht bis zur Bergwache in
+Vollplatte. `Assets/Editor/BozoCharacters/pool.json` beschreibt jede **Art** von Mensch einmal (Vorlage, getragene
+Teile, Körper- und Gesicht) und dazu mehrere **Aussehen** (Hautton, Haarfarbe, Augenfarbe, Farbpalette der Kleidung).
+`BozoFigurePool` macht daraus gewöhnliche Rezepte; `BozoFigureRecipes.Load()` liefert sie zusammen mit `figures.json`
+und prüft beide gemeinsam.
+
+- **30 Arten × 6 Aussehen = 180 Figuren**, Ids `folk_<art>_<n>`, Visuals `Folk<Art><n>` (z. B. `FolkBauer0`). Das
+  erste Aussehen einer Art ist ihr Modell, die übrigen fünf sind Farbvarianten (`sameShapeAs`). Im Spiel stecken also
+  30 Modelle; jede weitere Figur bringt nur ihre Farbtextur mit, die Normal-Textur übernimmt sie vom Modell, wenn sie
+  Byte für Byte gleich ist.
+- **Gruppen:** `arbeit` (Bauer, Knecht, Holzfäller, Förster, Jäger, Bergmann, die Alten – Männer und Frauen),
+  `handwerk` (Bäcker, Schmied, Arzt, Händler, Bote, Schneider, Heilerin …), `wache` (Dorfwache, Torwache, Wächterin),
+  `krieger` (Kettensoldat, gepanzerte Kämpfer, Bergwache in Vollplatte).
+- **Farben über Rollen:** Jedes Teil nennt für jeden Farbkanal eine Rolle (`cloth`, `leather`, `metal`, `boots`,
+  `sole` …); die Palette eines Aussehens gibt jeder Rolle eine Farbe. `hair`, `hair_light`, `hair_dark` kommen aus der
+  Haarfarbe, `#rrggbb` steht für eine feste Farbe. Kopf und Körper tragen die Farben des Hauttons.
+- **Was nicht getragen wird, fällt weg:** Alle Plätze in `wearable`, die eine Art nicht belegt, werden aus der Vorlage
+  entfernt; so bleibt kein Teil der Vorlage (Schal, Schulterplatten, Stacheln im Haar) zurück. Die Vorlage für Frauen
+  bekommt menschliche Ohren und kein Augen-Make-up (`bases`).
+- **Die Prüfung lehnt ab,** was nicht zu bauen ist: unbekannte Teile, Paletten, Haut-, Haar- oder Augenfarben, zwei
+  gleiche Aussehen, eine Art ohne Oberteil, Hose oder Schuhe, ein Teil ohne Farbrollen – und zwei Aussehen einer Art
+  mit gleicher Haut-, Haar- und Augenfarbe: Ihre Köpfe sähen gleich aus, getauscht würde dann nichts.
+- **Nach dem Backen** schreibt das Werkzeug `Assets/Resources/ARE/Visuals/FolkIndex.txt`: je gebackener Pool-Figur
+  Visual, Art, Gruppe, Bewegungssatz (m/f) und Hautton. Eine Zeile beschreibt das Visual, wie es gebaut wurde: Sie kommt
+  nur bei einem erfolgreichen Neubau aus dem aktuellen Vorrat; scheitert ein Neubau oder wird eine Figur nicht neu
+  gebaut, bleibt ihre Zeile, wie sie war (auch wenn `pool.json` inzwischen anderes sagt). Die Datei liegt bei den
+  privaten Visuals und wird wie sie nicht eingecheckt.
+
+### Bewohner tragen Figuren aus dem Vorrat
+
+`FolkFigures` liest `FolkIndex` und gibt jedem Bewohner des Dorfs eine Figur der Gruppe `arbeit`, festgelegt durch
+seine Nummer ab dem ersten Zugezogenen (`ArenaRuntime.ResidentNumber`) – jedes Mal dieselbe, auf jedem Gerät, ohne
+Spielstand oder Core zu berühren:
+
+- Die Figuren werden Art für Art ausgeteilt: In jeder Runde kommt jede Art einmal dran (die Arten in fester, gemischter
+  Reihenfolge), jede mit einem anderen ihrer Aussehen. Die ersten Bewohner unterscheiden sich so in Art, Haut und
+  Farben, und jede der 72 Arbeiter-Figuren kommt einmal, bevor sich eine wiederholt. (Eine reine Prüfsummen-Reihenfolge
+  gab zuerst sechs Försterinnen hintereinander: Namen, die sich nur in der letzten Ziffer unterscheiden, lagen bei
+  FNV-1a nebeneinander.)
+- Ab der zweiten Runde kommen dieselben Körper wieder, aber mit dem Kopf der nächsten Figur gleichen Bewegungssatzes
+  und gleichen Hauttons (`FigureComposer`). Aus den 72 Arbeiter-Figuren (je Bewegungssatz und Hautton 14 Männer oder
+  10 Frauen) werden so 888 verschiedene Menschen.
+- Ohne gebackenen Vorrat (andere Workspaces, CI) tragen Bewohner wie bisher eine der drei Dorf-Figuren.
+- Die Datei wird streng gelesen: Ein Visual muss mit `Folk` beginnen und darf nur Buchstaben und Ziffern enthalten,
+  fehlerhafte Zeilen werden übersprungen.
 
 ## Bauen
 
@@ -167,6 +239,16 @@ immer auch den Helden neu bauen (Schritt 4), weil er aus `HeroSource` entsteht.
 
 - `Assets/Tests/EditMode/BozoFigureRecipeTests.cs`: Rezepte gültig, jede Figur mit Rolle, fehlerhafte Rezepte werden
   abgelehnt. Läuft überall.
+- `Assets/Tests/EditMode/BozoFigurePoolTests.cs`: Der Vorrat ergibt je Art ein Modell mit Farbvarianten, alle in zwei
+  Teilen; jedes getragene Teil bekommt seine Farben, alles Nichtgetragene fällt weg; Wachen, Kämpfer, Boten,
+  Schneider und Förster sind dabei; fehlerhafte Vorräte werden abgelehnt; `FolkIndex` nennt nur Gebackenes. Läuft überall.
+- `Assets/Tests/EditMode/FolkFiguresTests.cs`: Der Index wird streng gelesen (keine Pfade, keine fremden Visuals);
+  die ersten Bewohner tragen je eine eigene Figur, Art für Art ausgeteilt, spätere dieselben Körper mit Köpfen gleichen
+  Bewegungssatzes und gleicher Haut. Läuft überall.
+- `Assets/Tests/EditMode/FigureComposerTests.cs`: Kopftausch für jedes Paar von Modellen gleicher Vorlage (Varianten
+  zeichnen die Modelle ihres Modells).
+- `ResidentsWearFiguresOfThePool` (PlayMode): Bewohner tragen Pool-Figuren, in der ersten Runde jeder eine eigene; der
+  Kopftausch einer späteren Runde funktioniert im laufenden Spiel. Ohne gebackenen Vorrat übersprungen.
 - `Assets/Tests/EditMode/BozoFigureVisualTests.cs`: Jede gebackene Figur wird vom Spiel als passives Visual
   angenommen, behält ihr eigenes Material, hat ein Mesh ohne Blend Shapes, eine als Normal-Textur importierte
   Normal-Textur mit nach außen zeigenden Normalen, einen Avatar, der die skalierten Knochen kennt, humanoides Rig mit

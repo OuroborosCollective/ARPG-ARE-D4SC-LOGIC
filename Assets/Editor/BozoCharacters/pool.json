@@ -1,0 +1,3298 @@
+{
+ "schema": "ashen.bozo-pool.v1",
+ "texture": 512,
+ "eyesPart": "Eyes_BasicIris",
+ "browsPart": "EyeBrows_StylizedBasicBrows",
+ "wearable": [
+  "Top",
+  "Bottom",
+  "Feet",
+  "Gloves",
+  "Neck",
+  "Shoulders",
+  "Hat",
+  "HairFront",
+  "HairBack",
+  "LowerFace"
+ ],
+ "groups": [
+  "arbeit",
+  "handwerk",
+  "wache",
+  "krieger"
+ ],
+ "bases": [
+  {
+   "id": "Fantasy/Hero",
+   "motion": "m",
+   "face": [],
+   "remove": []
+  },
+  {
+   "id": "Fantasy/Ranger",
+   "motion": "f",
+   "face": [
+    {
+     "id": "EarsElf",
+     "value": 0
+    }
+   ],
+   "remove": [
+    "MakeUpEyes",
+    "MakeUpCheeks"
+   ]
+  }
+ ],
+ "roles": [
+  "cloth",
+  "cloth_dark",
+  "cloth2",
+  "cloth2_dark",
+  "linen",
+  "linen_dark",
+  "pants",
+  "pants_dark",
+  "leather",
+  "leather_dark",
+  "boots",
+  "boots_light",
+  "boots_dark",
+  "sole",
+  "metal",
+  "metal_light",
+  "metal_dark",
+  "metal_darker",
+  "trim",
+  "fur",
+  "plume",
+  "black"
+ ],
+ "palettes": [
+  {
+   "id": "erde",
+   "hex": [
+    "#7a6046",
+    "#5e4a36",
+    "#8a7a5a",
+    "#6a5c44",
+    "#c4b99c",
+    "#a39a84",
+    "#5a5347",
+    "#4a443a",
+    "#5e4636",
+    "#3e3026",
+    "#4a382a",
+    "#6a5240",
+    "#33271e",
+    "#2a221c",
+    "#737a80",
+    "#8a9096",
+    "#4a5056",
+    "#343a42",
+    "#8a7040",
+    "#6a5a48",
+    "#5c2b28",
+    "#000000"
+   ]
+  },
+  {
+   "id": "wald",
+   "hex": [
+    "#4e5a40",
+    "#3c4632",
+    "#5a6648",
+    "#46503a",
+    "#c4b99c",
+    "#a39a84",
+    "#4a4a3c",
+    "#3a3a2e",
+    "#5e4636",
+    "#3e3026",
+    "#4a382a",
+    "#6a5240",
+    "#33271e",
+    "#2a221c",
+    "#737a80",
+    "#8a9096",
+    "#4a5056",
+    "#343a42",
+    "#7a6a3a",
+    "#6a5a48",
+    "#5c2b28",
+    "#000000"
+   ]
+  },
+  {
+   "id": "asche",
+   "hex": [
+    "#6a6862",
+    "#514f4a",
+    "#7e7b74",
+    "#5e5c56",
+    "#bdb8ac",
+    "#9c978c",
+    "#4a4844",
+    "#3a3835",
+    "#4e443a",
+    "#35302a",
+    "#4a382a",
+    "#6a5240",
+    "#33271e",
+    "#2a221c",
+    "#737a80",
+    "#8a9096",
+    "#4a5056",
+    "#343a42",
+    "#7a7468",
+    "#6a5a48",
+    "#5c2b28",
+    "#000000"
+   ]
+  },
+  {
+   "id": "rost",
+   "hex": [
+    "#7a4632",
+    "#5c3424",
+    "#8a5a3e",
+    "#6a442e",
+    "#c8b89a",
+    "#a39a84",
+    "#5a4a3c",
+    "#463a2e",
+    "#5a3e2a",
+    "#3e3026",
+    "#4a382a",
+    "#6a5240",
+    "#33271e",
+    "#2a221c",
+    "#6a6660",
+    "#8a9096",
+    "#4a4640",
+    "#34302c",
+    "#9a6a3a",
+    "#6a5a48",
+    "#5c2b28",
+    "#000000"
+   ]
+  },
+  {
+   "id": "taube",
+   "hex": [
+    "#4e5a66",
+    "#3c4650",
+    "#6a7480",
+    "#505a64",
+    "#c4c2b8",
+    "#a2a096",
+    "#44464a",
+    "#36383c",
+    "#4e4236",
+    "#3e3026",
+    "#4a382a",
+    "#6a5240",
+    "#33271e",
+    "#2a221c",
+    "#737a80",
+    "#8a9096",
+    "#4a5056",
+    "#343a42",
+    "#8a8a7a",
+    "#6a5a48",
+    "#5c2b28",
+    "#000000"
+   ]
+  },
+  {
+   "id": "wein",
+   "hex": [
+    "#5e3036",
+    "#462428",
+    "#6e4448",
+    "#54343a",
+    "#cbbfae",
+    "#a39a84",
+    "#3e383a",
+    "#302b2c",
+    "#4a3630",
+    "#3e3026",
+    "#4a382a",
+    "#6a5240",
+    "#33271e",
+    "#2a221c",
+    "#737a80",
+    "#8a9096",
+    "#4a5056",
+    "#343a42",
+    "#8a7040",
+    "#6a5a48",
+    "#6a2a2c",
+    "#000000"
+   ]
+  },
+  {
+   "id": "lehm",
+   "hex": [
+    "#8a7a5e",
+    "#6e604a",
+    "#9a8a6a",
+    "#7a6c52",
+    "#d4ccb8",
+    "#b0a892",
+    "#6a604e",
+    "#544c3e",
+    "#6a5038",
+    "#3e3026",
+    "#4a382a",
+    "#6a5240",
+    "#33271e",
+    "#2a221c",
+    "#737a80",
+    "#8a9096",
+    "#4a5056",
+    "#343a42",
+    "#8a7a50",
+    "#6a5a48",
+    "#5c2b28",
+    "#000000"
+   ]
+  },
+  {
+   "id": "nacht",
+   "hex": [
+    "#343a44",
+    "#262b33",
+    "#454b55",
+    "#333840",
+    "#b8b4aa",
+    "#96928a",
+    "#2e3034",
+    "#242528",
+    "#3a2e26",
+    "#2a221c",
+    "#4a382a",
+    "#6a5240",
+    "#33271e",
+    "#2a221c",
+    "#5e646a",
+    "#8a9096",
+    "#3e4248",
+    "#343a42",
+    "#6a6a70",
+    "#6a5a48",
+    "#5c2b28",
+    "#000000"
+   ]
+  }
+ ],
+ "tones": [
+  {
+   "id": "hell",
+   "head": [
+    "#d3a084",
+    "#7a2a1c",
+    "#e2b49a",
+    "#efeee9",
+    "#6a3a30",
+    "#8a3a34"
+   ],
+   "body": [
+    "#d3a084",
+    "#7a2a1c",
+    "#e2b49a"
+   ]
+  },
+  {
+   "id": "mittel",
+   "head": [
+    "#b5846a",
+    "#5a1410",
+    "#cb9a80",
+    "#ecebe6",
+    "#6a3a30",
+    "#6a2018"
+   ],
+   "body": [
+    "#b5846a",
+    "#5a1410",
+    "#cb9a80"
+   ]
+  },
+  {
+   "id": "dunkel",
+   "head": [
+    "#7e563f",
+    "#3e100c",
+    "#946850",
+    "#e6e4de",
+    "#4a2a22",
+    "#5a1a14"
+   ],
+   "body": [
+    "#7e563f",
+    "#3e100c",
+    "#946850"
+   ]
+  }
+ ],
+ "hair": [
+  {
+   "id": "schwarz",
+   "hex": [
+    "#1e1a18",
+    "#2e2824",
+    "#141110"
+   ]
+  },
+  {
+   "id": "dunkelbraun",
+   "hex": [
+    "#3a2a20",
+    "#55402e",
+    "#2a1e16"
+   ]
+  },
+  {
+   "id": "braun",
+   "hex": [
+    "#5a4030",
+    "#7a5a40",
+    "#44301f"
+   ]
+  },
+  {
+   "id": "rotbraun",
+   "hex": [
+    "#6a3420",
+    "#8a4a2c",
+    "#4e2616"
+   ]
+  },
+  {
+   "id": "blond",
+   "hex": [
+    "#9a7a4e",
+    "#b4945e",
+    "#7a5e3a"
+   ]
+  },
+  {
+   "id": "grau",
+   "hex": [
+    "#8a8680",
+    "#a6a29c",
+    "#6e6a64"
+   ]
+  }
+ ],
+ "eyes": [
+  {
+   "id": "braun",
+   "hex": [
+    "#0a0a0a",
+    "#22180f",
+    "#4a3423"
+   ]
+  },
+  {
+   "id": "grau",
+   "hex": [
+    "#0a0a0a",
+    "#2a3036",
+    "#6a7880"
+   ]
+  },
+  {
+   "id": "gruen",
+   "hex": [
+    "#0a0a0a",
+    "#2a3028",
+    "#6a7a62"
+   ]
+  },
+  {
+   "id": "blau",
+   "hex": [
+    "#0a0a0a",
+    "#1e2a38",
+    "#4a6a8a"
+   ]
+  }
+ ],
+ "parts": [
+  {
+   "slot": "Top",
+   "id": "Top_VillagerTunic",
+   "roles": [
+    "cloth",
+    "cloth_dark",
+    "linen",
+    "leather",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_RusticTunic",
+   "roles": [
+    "cloth",
+    "leather",
+    "metal",
+    "cloth_dark",
+    "cloth_dark",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_RusticCorset",
+   "roles": [
+    "linen",
+    "cloth",
+    "leather",
+    "linen_dark",
+    "leather",
+    "leather_dark",
+    "linen",
+    "black",
+    "black"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_RangerVest",
+   "roles": [
+    "cloth",
+    "cloth_dark",
+    "leather",
+    "linen",
+    "cloth",
+    "leather_dark",
+    "leather_dark",
+    "metal",
+    "leather"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_VanguardCoat",
+   "roles": [
+    "cloth",
+    "metal",
+    "leather_dark",
+    "leather",
+    "metal",
+    "leather_dark",
+    "linen_dark",
+    "metal",
+    "leather"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_SteelArmor",
+   "roles": [
+    "metal",
+    "metal",
+    "metal",
+    "metal_light",
+    "metal_darker",
+    "leather",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_SharpArmor",
+   "roles": [
+    "metal",
+    "metal_dark",
+    "metal_darker",
+    "metal_light",
+    "metal",
+    "trim"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_DevoutCoat",
+   "roles": [
+    "cloth",
+    "cloth_dark",
+    "linen",
+    "leather",
+    "leather_dark",
+    "linen",
+    "cloth2",
+    "cloth2_dark",
+    "cloth_dark"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_MeditativeVest",
+   "roles": [
+    "cloth",
+    "cloth_dark",
+    "cloth_dark",
+    "linen",
+    "linen_dark",
+    "linen_dark",
+    "cloth2",
+    "leather",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Top",
+   "id": "Top_WitchBlouse",
+   "roles": [
+    "linen",
+    "linen_dark",
+    "linen",
+    "cloth",
+    "leather_dark",
+    "linen"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_VillagerLongPants",
+   "roles": [
+    "pants",
+    "pants_dark",
+    "pants_dark",
+    "leather",
+    "leather",
+    "linen_dark",
+    "linen_dark"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_VillagerSlacks",
+   "roles": [
+    "pants",
+    "pants_dark"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_TightTravelPants",
+   "roles": [
+    "pants",
+    "pants_dark",
+    "pants_dark",
+    "leather_dark",
+    "leather"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_TatteredPants",
+   "roles": [
+    "pants",
+    "leather",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_ApronSkirt",
+   "roles": [
+    "cloth2",
+    "linen",
+    "linen"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_RusticSkirt",
+   "roles": [
+    "cloth_dark",
+    "cloth_dark",
+    "leather",
+    "leather",
+    "metal",
+    "cloth",
+    "cloth"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_MeditativeSkirt",
+   "roles": [
+    "cloth",
+    "cloth_dark",
+    "leather",
+    "leather",
+    "cloth_dark"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_DevoutPants",
+   "roles": [
+    "pants_dark",
+    "leather",
+    "leather_dark",
+    "cloth",
+    "cloth_dark",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_SteelGreaves",
+   "roles": [
+    "pants_dark",
+    "leather",
+    "metal",
+    "leather_dark",
+    "pants_dark"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_SharpGreaves",
+   "roles": [
+    "pants_dark",
+    "pants_dark",
+    "metal",
+    "leather",
+    "leather_dark",
+    "metal",
+    "metal",
+    "metal_dark"
+   ]
+  },
+  {
+   "slot": "Bottom",
+   "id": "Bottom_GarterSlacks",
+   "roles": [
+    "pants",
+    "pants_dark",
+    "leather",
+    "leather_dark",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_VillagerBoots",
+   "roles": [
+    "boots",
+    "boots_dark",
+    "metal",
+    "sole"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_CuffedBoots",
+   "roles": [
+    "boots",
+    "boots_light",
+    "leather_dark",
+    "boots_dark",
+    "boots",
+    "sole"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_ForestLongBoots",
+   "roles": [
+    "boots",
+    "boots_dark",
+    "leather_dark",
+    "boots_light",
+    "sole"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_FencingBoots",
+   "roles": [
+    "boots",
+    "boots_dark",
+    "sole",
+    "boots_light"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_PointedShoes",
+   "roles": [
+    "boots",
+    "boots_light",
+    "sole",
+    "boots",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_TiedBoots",
+   "roles": [
+    "boots",
+    "sole",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_TravelSandal",
+   "roles": [
+    "boots",
+    "sole",
+    "boots_light"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_SteelSabatons",
+   "roles": [
+    "metal",
+    "sole",
+    "leather"
+   ]
+  },
+  {
+   "slot": "Feet",
+   "id": "Feet_SharpBoots",
+   "roles": [
+    "metal",
+    "sole",
+    "metal_dark"
+   ]
+  },
+  {
+   "slot": "Gloves",
+   "id": "Gloves_LeatherGloves",
+   "roles": [
+    "leather",
+    "leather_dark",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "Gloves",
+   "id": "Gloves_RusticGloves",
+   "roles": [
+    "leather",
+    "leather_dark",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Gloves",
+   "id": "Gloves_LeatherArmbands",
+   "roles": [
+    "leather",
+    "leather_dark",
+    "metal"
+   ]
+  },
+  {
+   "slot": "Gloves",
+   "id": "Gloves_CuffedGloves",
+   "roles": [
+    "leather",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "Gloves",
+   "id": "Gloves_ClothHandwraps",
+   "roles": [
+    "linen_dark"
+   ]
+  },
+  {
+   "slot": "Gloves",
+   "id": "Gloves_SteelGauntlets",
+   "roles": [
+    "leather",
+    "metal",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "Gloves",
+   "id": "Gloves_SharpGauntlets",
+   "roles": [
+    "metal",
+    "metal_dark",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "Shoulders",
+   "id": "Shoulders_HomelyShawl",
+   "roles": [
+    "cloth2",
+    "cloth2_dark",
+    "cloth2_dark"
+   ]
+  },
+  {
+   "slot": "Shoulders",
+   "id": "Shoulders_DevoutShawl",
+   "roles": [
+    "cloth2",
+    "trim",
+    "trim"
+   ]
+  },
+  {
+   "slot": "Shoulders",
+   "id": "Shoulders_SolidShoulders",
+   "roles": [
+    "metal",
+    "leather"
+   ]
+  },
+  {
+   "slot": "Shoulders",
+   "id": "Shoulders_StrongShoulders",
+   "roles": [
+    "metal",
+    "leather"
+   ]
+  },
+  {
+   "slot": "Shoulders",
+   "id": "Shoulders_SoldiersPauldrons",
+   "roles": [
+    "metal"
+   ]
+  },
+  {
+   "slot": "Shoulders",
+   "id": "Shoulder_SharpPauldrons",
+   "roles": [
+    "metal",
+    "metal_dark"
+   ]
+  },
+  {
+   "slot": "Neck",
+   "id": "Neck_HoodedCape",
+   "roles": [
+    "cloth2",
+    "cloth2_dark"
+   ]
+  },
+  {
+   "slot": "Hat",
+   "id": "Hat_RusticHood",
+   "roles": [
+    "cloth2",
+    "cloth2_dark"
+   ]
+  },
+  {
+   "slot": "Hat",
+   "id": "Hat_KettleHelmet",
+   "roles": [
+    "metal",
+    "metal_dark",
+    "metal_dark"
+   ]
+  },
+  {
+   "slot": "Hat",
+   "id": "Hat_SolidersHelm",
+   "roles": [
+    "metal",
+    "metal_dark",
+    "metal_darker"
+   ]
+  },
+  {
+   "slot": "Hat",
+   "id": "Hat_SteelHelmet",
+   "roles": [
+    "metal",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "Hat",
+   "id": "Hat_ChainHelmet",
+   "roles": [
+    "metal",
+    "metal_dark",
+    "metal_dark",
+    "metal_light"
+   ]
+  },
+  {
+   "slot": "Hat",
+   "id": "Hat_StrudyHelmet",
+   "roles": [
+    "metal",
+    "metal_dark",
+    "metal_dark",
+    "leather"
+   ]
+  },
+  {
+   "slot": "Hat",
+   "id": "Hat_SharpHelmet",
+   "roles": [
+    "metal",
+    "metal_dark",
+    "metal_darker",
+    "plume"
+   ]
+  },
+  {
+   "slot": "HairFront",
+   "id": "HairFront_TightCurls",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "HairFront",
+   "id": "HairFront_UnkeptLoose",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "HairFront",
+   "id": "HairFront_TuffCuff",
+   "roles": [
+    "hair",
+    "hair_light",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "HairFront",
+   "id": "HairFront_ScholarPart",
+   "roles": [
+    "hair",
+    "hair_light",
+    "hair"
+   ]
+  },
+  {
+   "slot": "HairFront",
+   "id": "HairFront_FreeTussle",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "HairFront",
+   "id": "HairFront_HeroCut",
+   "roles": [
+    "hair"
+   ]
+  },
+  {
+   "slot": "HairFront",
+   "id": "HairFront_PureCut",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "HairFront",
+   "id": "HairFront_ProperPart",
+   "roles": [
+    "hair",
+    "hair_light",
+    "hair"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_ProperUndercut",
+   "roles": [
+    "hair",
+    "hair_light",
+    "hair_dark"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_ShortShag",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_ShortChoppy",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_SchalorTail",
+   "roles": [
+    "hair",
+    "hair_light",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_WarriorWolfTail",
+   "roles": [
+    "hair",
+    "hair_light",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_DolphinTail",
+   "roles": [
+    "hair",
+    "hair_light",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_NobleBraid",
+   "roles": [
+    "hair",
+    "hair_light",
+    "hair_dark"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_LooseLong",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_ElvishLong",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "HairBack",
+   "id": "HairBack_TotalCurls",
+   "roles": [
+    "hair"
+   ]
+  },
+  {
+   "slot": "LowerFace",
+   "id": "LowerFace_SquareBeard",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "LowerFace",
+   "id": "LowerFace_WizzendBeard",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  },
+  {
+   "slot": "LowerFace",
+   "id": "LowerFace_TiedBeard",
+   "roles": [
+    "hair",
+    "hair_light",
+    "leather_dark"
+   ]
+  },
+  {
+   "slot": "LowerFace",
+   "id": "LowerFace_CommandingBeard",
+   "roles": [
+    "hair",
+    "hair_light"
+   ]
+  }
+ ],
+ "kinds": [
+  {
+   "id": "bauer",
+   "group": "arbeit",
+   "role": "Bauer: braune Tunika über Leinenhemd, lange Hose mit Beinwickeln, Stiefel",
+   "base": "Fantasy/Hero",
+   "height": 1.86,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_VillagerTunic",
+    "Bottom_VillagerLongPants",
+    "Feet_VillagerBoots",
+    "HairFront_TightCurls",
+    "HairBack_ProperUndercut"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 20
+    },
+    {
+     "id": "Weight",
+     "value": 20
+    }
+   ],
+   "face": [
+    {
+     "id": "Muscle",
+     "value": 10
+    },
+    {
+     "id": "NoseWidth",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "knecht",
+   "group": "arbeit",
+   "role": "Knecht: grobe Tunika, lange Hose mit Beinwickeln, geschnürte Stiefel, umwickelte Hände, Backenbart",
+   "base": "Fantasy/Hero",
+   "height": 1.84,
+   "head": "Head_SharpHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RusticTunic",
+    "Bottom_VillagerLongPants",
+    "Feet_TiedBoots",
+    "Gloves_ClothHandwraps",
+    "LowerFace_CommandingBeard",
+    "HairFront_UnkeptLoose",
+    "HairBack_ShortShag"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 30
+    },
+    {
+     "id": "Weight",
+     "value": 5
+    }
+   ],
+   "face": [
+    {
+     "id": "Sharpness",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "holzfaeller",
+   "group": "arbeit",
+   "role": "Holzfäller: kräftig, grobe Tunika, lange Hose, feste Stiefel, Arbeitshandschuhe, kantiger Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.92,
+   "head": "Head_Stern",
+   "bodyPart": "Body_StrongBody",
+   "wear": [
+    "Top_RusticTunic",
+    "Bottom_VillagerLongPants",
+    "Feet_CuffedBoots",
+    "Gloves_RusticGloves",
+    "LowerFace_SquareBeard",
+    "HairBack_ShortChoppy"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 60
+    },
+    {
+     "id": "Weight",
+     "value": 30
+    }
+   ],
+   "face": [
+    {
+     "id": "Muscle",
+     "value": 45
+    },
+    {
+     "id": "Stern",
+     "value": 50
+    },
+    {
+     "id": "Squareness",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "alter",
+   "group": "arbeit",
+   "role": "Alter Dorfbewohner: Tunika, schlichte Hose, Schultertuch, langer grauer Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.8,
+   "head": "Head_Stern",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_VillagerTunic",
+    "Bottom_VillagerSlacks",
+    "Feet_PointedShoes",
+    "Shoulders_HomelyShawl",
+    "LowerFace_WizzendBeard",
+    "HairBack_SchalorTail"
+   ],
+   "body": [
+    {
+     "id": "Weight",
+     "value": 35
+    },
+    {
+     "id": "Belly",
+     "value": 30
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 35
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "grau",
+     "palette": "erde",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "grau",
+     "palette": "asche",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "grau",
+     "palette": "taube",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "grau",
+     "palette": "wald",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "rost",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "baecker",
+   "group": "handwerk",
+   "role": "Bäcker: rundlich, Weste über hellem Hemd, schlichte Hose, gebundener Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.84,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_MeditativeVest",
+    "Bottom_VillagerSlacks",
+    "Feet_VillagerBoots",
+    "LowerFace_TiedBeard",
+    "HairFront_TuffCuff",
+    "HairBack_ShortShag"
+   ],
+   "body": [
+    {
+     "id": "Weight",
+     "value": 50
+    },
+    {
+     "id": "Belly",
+     "value": 45
+    }
+   ],
+   "face": [
+    {
+     "id": "Weight",
+     "value": 30
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "schmied",
+   "group": "handwerk",
+   "role": "Schmied: sehr kräftig, Lederweste, lange Hose, Lederstulpen, kantiger Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.95,
+   "head": "Head_Stern",
+   "bodyPart": "Body_StrongBody",
+   "wear": [
+    "Top_RangerVest",
+    "Bottom_VillagerLongPants",
+    "Feet_CuffedBoots",
+    "Gloves_LeatherArmbands",
+    "LowerFace_SquareBeard",
+    "HairBack_ShortChoppy"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 75
+    },
+    {
+     "id": "Weight",
+     "value": 30
+    }
+   ],
+   "face": [
+    {
+     "id": "Muscle",
+     "value": 50
+    },
+    {
+     "id": "Stern",
+     "value": 55
+    },
+    {
+     "id": "Squareness",
+     "value": 45
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "arzt",
+   "group": "handwerk",
+   "role": "Arzt: langer Mantel über hellem Hemd, Robe, Handschuhe, kurzer gepflegter Vollbart",
+   "base": "Fantasy/Hero",
+   "height": 1.86,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_DevoutCoat",
+    "Bottom_DevoutPants",
+    "Feet_PointedShoes",
+    "Gloves_CuffedGloves",
+    "LowerFace_SquareBeard",
+    "HairFront_ScholarPart",
+    "HairBack_SchalorTail"
+   ],
+   "body": [
+    {
+     "id": "Weight",
+     "value": 15
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "nacht",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "taube",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "lehm",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "wald",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "erde",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "haendler",
+   "group": "handwerk",
+   "role": "Händler: wohlgenährt, Weste, Robe, Schulterumhang, Handschuhe, gebundener Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.84,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_MeditativeVest",
+    "Bottom_DevoutPants",
+    "Feet_PointedShoes",
+    "Shoulders_DevoutShawl",
+    "Gloves_CuffedGloves",
+    "LowerFace_TiedBeard",
+    "HairFront_ScholarPart",
+    "HairBack_SchalorTail"
+   ],
+   "body": [
+    {
+     "id": "Weight",
+     "value": 60
+    },
+    {
+     "id": "Belly",
+     "value": 55
+    }
+   ],
+   "face": [
+    {
+     "id": "Weight",
+     "value": 50
+    },
+    {
+     "id": "MouthWide",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "nacht",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "taube",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "lehm",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "wald",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "erde",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "jaeger",
+   "group": "arbeit",
+   "role": "Jäger: Lederweste, enge Hose, Waldstiefel, Armschienen, Kapuze, gebundener Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.9,
+   "head": "Head_SharpHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RangerVest",
+    "Bottom_TightTravelPants",
+    "Feet_ForestLongBoots",
+    "Gloves_LeatherArmbands",
+    "Hat_RusticHood",
+    "LowerFace_TiedBeard",
+    "HairFront_TuffCuff",
+    "HairBack_WarriorWolfTail"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 35
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 30
+    },
+    {
+     "id": "Sharpness",
+     "value": 60
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "foerster",
+   "group": "arbeit",
+   "role": "Förster: Weste mit Lederbrust, enge Hose, Waldstiefel, Handschuhe, gebundener Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.9,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RangerVest",
+    "Bottom_TightTravelPants",
+    "Feet_ForestLongBoots",
+    "Gloves_RusticGloves",
+    "LowerFace_TiedBeard",
+    "HairFront_FreeTussle",
+    "HairBack_ShortShag"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 30
+    },
+    {
+     "id": "Weight",
+     "value": 10
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 25
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "bote",
+   "group": "handwerk",
+   "role": "Bote: leicht und schnell, Reiseumhang mit Kapuze, Tunika, enge Hose, hohe Stiefel",
+   "base": "Fantasy/Hero",
+   "height": 1.84,
+   "head": "Head_SharpHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RusticTunic",
+    "Bottom_TightTravelPants",
+    "Feet_FencingBoots",
+    "Neck_HoodedCape",
+    "Gloves_LeatherGloves",
+    "HairFront_HeroCut",
+    "HairBack_ShortShag"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 15
+    },
+    {
+     "id": "Weight",
+     "value": 5
+    }
+   ],
+   "face": [
+    {
+     "id": "Sharpness",
+     "value": 45
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "schneider",
+   "group": "handwerk",
+   "role": "Schneider: schmale Weste, Hose mit Strumpfbändern, feine Schuhe, Backenbart",
+   "base": "Fantasy/Hero",
+   "height": 1.82,
+   "head": "Head_SharpHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_MeditativeVest",
+    "Bottom_GarterSlacks",
+    "Feet_PointedShoes",
+    "LowerFace_CommandingBeard",
+    "HairFront_ScholarPart",
+    "HairBack_ProperUndercut"
+   ],
+   "body": [
+    {
+     "id": "Weight",
+     "value": 10
+    }
+   ],
+   "face": [
+    {
+     "id": "Sharpness",
+     "value": 30
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "nacht",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "taube",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "lehm",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "wald",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "erde",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "wache",
+   "group": "wache",
+   "role": "Dorfwache: Waffenrock mit Stahlplatten, Soldatenhelm, Schulterplatten, Lederhandschuhe",
+   "base": "Fantasy/Hero",
+   "height": 1.92,
+   "head": "Head_Stern",
+   "bodyPart": "Body_StrongBody",
+   "wear": [
+    "Top_VanguardCoat",
+    "Bottom_TightTravelPants",
+    "Feet_CuffedBoots",
+    "Gloves_LeatherGloves",
+    "Shoulders_SolidShoulders",
+    "Hat_SolidersHelm",
+    "LowerFace_SquareBeard",
+    "HairBack_ShortChoppy"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 55
+    },
+    {
+     "id": "Weight",
+     "value": 25
+    }
+   ],
+   "face": [
+    {
+     "id": "Muscle",
+     "value": 45
+    },
+    {
+     "id": "Stern",
+     "value": 55
+    },
+    {
+     "id": "Squareness",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "rost",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "braun",
+     "palette": "nacht",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "erde",
+     "eyes": "braun"
+    }
+   ]
+  },
+  {
+   "id": "torwache",
+   "group": "wache",
+   "role": "Torwache: Waffenrock, Kesselhut, kräftige Schulterstücke, gebundener Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.9,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_VanguardCoat",
+    "Bottom_TightTravelPants",
+    "Feet_CuffedBoots",
+    "Gloves_LeatherGloves",
+    "Shoulders_StrongShoulders",
+    "Hat_KettleHelmet",
+    "LowerFace_TiedBeard",
+    "HairFront_TuffCuff",
+    "HairBack_ShortShag"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 45
+    },
+    {
+     "id": "Weight",
+     "value": 20
+    }
+   ],
+   "face": [
+    {
+     "id": "Muscle",
+     "value": 30
+    },
+    {
+     "id": "Stern",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "rost",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "braun",
+     "palette": "nacht",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "erde",
+     "eyes": "braun"
+    }
+   ]
+  },
+  {
+   "id": "kettensoldat",
+   "group": "krieger",
+   "role": "Soldat: Stahlharnisch, Kettenhaube, Soldatenschulterplatten, Panzerhandschuhe",
+   "base": "Fantasy/Hero",
+   "height": 1.92,
+   "head": "Head_Stern",
+   "bodyPart": "Body_StrongBody",
+   "wear": [
+    "Top_SteelArmor",
+    "Bottom_TightTravelPants",
+    "Feet_CuffedBoots",
+    "Gloves_SteelGauntlets",
+    "Shoulders_SoldiersPauldrons",
+    "Hat_ChainHelmet",
+    "LowerFace_SquareBeard",
+    "HairBack_ShortChoppy"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 60
+    },
+    {
+     "id": "Weight",
+     "value": 25
+    }
+   ],
+   "face": [
+    {
+     "id": "Muscle",
+     "value": 50
+    },
+    {
+     "id": "Stern",
+     "value": 60
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "rost",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "braun",
+     "palette": "nacht",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "erde",
+     "eyes": "braun"
+    }
+   ]
+  },
+  {
+   "id": "kaempfer",
+   "group": "krieger",
+   "role": "Gepanzerter Kämpfer: Stahlharnisch, Beinschienen, Stahlhelm mit Nackenschutz",
+   "base": "Fantasy/Hero",
+   "height": 1.96,
+   "head": "Head_Stern",
+   "bodyPart": "Body_StrongBody",
+   "wear": [
+    "Top_SteelArmor",
+    "Bottom_SteelGreaves",
+    "Feet_SteelSabatons",
+    "Gloves_SteelGauntlets",
+    "Shoulders_StrongShoulders",
+    "Hat_SteelHelmet",
+    "LowerFace_CommandingBeard",
+    "HairBack_ShortChoppy"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 65
+    },
+    {
+     "id": "Weight",
+     "value": 30
+    }
+   ],
+   "face": [
+    {
+     "id": "Muscle",
+     "value": 50
+    },
+    {
+     "id": "Stern",
+     "value": 60
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "rost",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "braun",
+     "palette": "nacht",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "erde",
+     "eyes": "braun"
+    }
+   ]
+  },
+  {
+   "id": "bergwache",
+   "group": "krieger",
+   "role": "Bergwache in Vollplatte: kantiger Plattenharnisch, Beinschienen, Helm mit Busch",
+   "base": "Fantasy/Hero",
+   "height": 2.0,
+   "head": "Head_Stern",
+   "bodyPart": "Body_StrongBody",
+   "wear": [
+    "Top_SharpArmor",
+    "Bottom_SharpGreaves",
+    "Feet_SharpBoots",
+    "Gloves_SharpGauntlets",
+    "Shoulder_SharpPauldrons",
+    "Hat_SharpHelmet",
+    "HairBack_ShortChoppy"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 75
+    },
+    {
+     "id": "Weight",
+     "value": 30
+    }
+   ],
+   "face": [
+    {
+     "id": "Muscle",
+     "value": 60
+    },
+    {
+     "id": "Stern",
+     "value": 70
+    },
+    {
+     "id": "Squareness",
+     "value": 55
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "rost",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "braun",
+     "palette": "nacht",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "erde",
+     "eyes": "braun"
+    }
+   ]
+  },
+  {
+   "id": "bergmann",
+   "group": "arbeit",
+   "role": "Bergmann: grobe Tunika, enge Hose, Stiefel, Handschuhe, kurzes Haar, gebundener Bart",
+   "base": "Fantasy/Hero",
+   "height": 1.86,
+   "head": "Head_Stern",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RusticTunic",
+    "Bottom_TightTravelPants",
+    "Feet_VillagerBoots",
+    "Gloves_RusticGloves",
+    "LowerFace_TiedBeard",
+    "HairFront_HeroCut",
+    "HairBack_ShortShag"
+   ],
+   "body": [
+    {
+     "id": "Muscle",
+     "value": 50
+    },
+    {
+     "id": "Weight",
+     "value": 20
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 45
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "baeuerin",
+   "group": "arbeit",
+   "role": "Bäuerin: Leinenbluse mit Mieder, Rock, Sandalen",
+   "base": "Fantasy/Ranger",
+   "height": 1.76,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RusticCorset",
+    "Bottom_RusticSkirt",
+    "Feet_TravelSandal",
+    "HairFront_PureCut",
+    "HairBack_DolphinTail"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 50
+    }
+   ],
+   "face": [
+    {
+     "id": "NoseTiltUp",
+     "value": 20
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "magd",
+   "group": "arbeit",
+   "role": "Magd: Tunika über Leinenhemd, schlichte Hose, Stiefel, Zopf",
+   "base": "Fantasy/Ranger",
+   "height": 1.74,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_VillagerTunic",
+    "Bottom_VillagerSlacks",
+    "Feet_VillagerBoots",
+    "HairFront_ProperPart",
+    "HairBack_NobleBraid"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 40
+    }
+   ],
+   "face": [
+    {
+     "id": "RaiseBrows",
+     "value": 10
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "baeckerin",
+   "group": "handwerk",
+   "role": "Bäckerin: Bluse mit Mieder, Rock mit Schürze, Stiefel, Zopf",
+   "base": "Fantasy/Ranger",
+   "height": 1.76,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RusticCorset",
+    "Bottom_ApronSkirt",
+    "Feet_VillagerBoots",
+    "HairFront_ProperPart",
+    "HairBack_NobleBraid"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 50
+    },
+    {
+     "id": "Weight",
+     "value": 45
+    }
+   ],
+   "face": [
+    {
+     "id": "Weight",
+     "value": 30
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "schneiderin",
+   "group": "handwerk",
+   "role": "Schneiderin: Bluse mit Mieder, langer Rock, feine Schuhe, gebundenes Haar",
+   "base": "Fantasy/Ranger",
+   "height": 1.74,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_WitchBlouse",
+    "Bottom_MeditativeSkirt",
+    "Feet_PointedShoes",
+    "HairFront_ScholarPart",
+    "HairBack_SchalorTail"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 40
+    },
+    {
+     "id": "Weight",
+     "value": 15
+    }
+   ],
+   "face": [
+    {
+     "id": "NoseTiltUp",
+     "value": 10
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "nacht",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "taube",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "lehm",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "wald",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "erde",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "heilerin",
+   "group": "handwerk",
+   "role": "Heilerin: Bluse mit Mieder, Rock mit Schürze, Schultertuch, Zopf",
+   "base": "Fantasy/Ranger",
+   "height": 1.76,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RusticCorset",
+    "Bottom_ApronSkirt",
+    "Feet_VillagerBoots",
+    "Shoulders_HomelyShawl",
+    "HairFront_ProperPart",
+    "HairBack_NobleBraid"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 35
+    },
+    {
+     "id": "Weight",
+     "value": 30
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 35
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "nacht",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "taube",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "lehm",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "wald",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "erde",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "alte",
+   "group": "arbeit",
+   "role": "Alte Dorfbewohnerin: Tunika, Rock, Schultertuch, ergrautes gebundenes Haar",
+   "base": "Fantasy/Ranger",
+   "height": 1.7,
+   "head": "Head_Stern",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_VillagerTunic",
+    "Bottom_RusticSkirt",
+    "Feet_PointedShoes",
+    "Shoulders_HomelyShawl",
+    "HairFront_ScholarPart",
+    "HairBack_SchalorTail"
+   ],
+   "body": [
+    {
+     "id": "Weight",
+     "value": 35
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 35
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "grau",
+     "palette": "erde",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "grau",
+     "palette": "asche",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "grau",
+     "palette": "taube",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "grau",
+     "palette": "wald",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "rost",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "jaegerin",
+   "group": "arbeit",
+   "role": "Jägerin: Lederweste, enge Hose, Waldstiefel, Armschienen, Kapuze",
+   "base": "Fantasy/Ranger",
+   "height": 1.78,
+   "head": "Head_SharpHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RangerVest",
+    "Bottom_TightTravelPants",
+    "Feet_ForestLongBoots",
+    "Gloves_LeatherArmbands",
+    "Hat_RusticHood",
+    "HairFront_UnkeptLoose",
+    "HairBack_LooseLong"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 35
+    }
+   ],
+   "face": [
+    {
+     "id": "Sharpness",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "botin",
+   "group": "handwerk",
+   "role": "Botin: Reiseumhang mit Kapuze, Tunika, enge Hose, hohe Stiefel",
+   "base": "Fantasy/Ranger",
+   "height": 1.74,
+   "head": "Head_SharpHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RusticTunic",
+    "Bottom_TightTravelPants",
+    "Feet_FencingBoots",
+    "Neck_HoodedCape",
+    "Gloves_LeatherGloves",
+    "HairFront_PureCut",
+    "HairBack_DolphinTail"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 35
+    }
+   ],
+   "face": [
+    {
+     "id": "Sharpness",
+     "value": 30
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "waechterin",
+   "group": "wache",
+   "role": "Wächterin: Waffenrock mit Stahlplatten, Soldatenhelm, Schulterplatten",
+   "base": "Fantasy/Ranger",
+   "height": 1.8,
+   "head": "Head_SharpHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_VanguardCoat",
+    "Bottom_TightTravelPants",
+    "Feet_CuffedBoots",
+    "Gloves_LeatherGloves",
+    "Shoulders_SolidShoulders",
+    "Hat_SolidersHelm",
+    "HairBack_LooseLong"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 40
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 40
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "rost",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "braun",
+     "palette": "nacht",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "erde",
+     "eyes": "braun"
+    }
+   ]
+  },
+  {
+   "id": "kaempferin",
+   "group": "krieger",
+   "role": "Kämpferin: Stahlharnisch, Beinschienen, Panzerhandschuhe, Kesselhut, Pferdeschwanz",
+   "base": "Fantasy/Ranger",
+   "height": 1.8,
+   "head": "Head_Stern",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_SteelArmor",
+    "Bottom_SteelGreaves",
+    "Feet_SteelSabatons",
+    "Gloves_SteelGauntlets",
+    "Shoulders_StrongShoulders",
+    "Hat_KettleHelmet",
+    "HairFront_ProperPart",
+    "HairBack_DolphinTail"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 40
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 50
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "rost",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "braun",
+     "palette": "nacht",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "erde",
+     "eyes": "braun"
+    }
+   ]
+  },
+  {
+   "id": "haendlerin",
+   "group": "handwerk",
+   "role": "Händlerin: Weste, langer Rock, Schulterumhang, feine Schuhe",
+   "base": "Fantasy/Ranger",
+   "height": 1.76,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_MeditativeVest",
+    "Bottom_MeditativeSkirt",
+    "Feet_PointedShoes",
+    "Shoulders_DevoutShawl",
+    "HairFront_ScholarPart",
+    "HairBack_ElvishLong"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 45
+    },
+    {
+     "id": "Weight",
+     "value": 25
+    }
+   ],
+   "face": [
+    {
+     "id": "MouthWide",
+     "value": 20
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "dunkelbraun",
+     "palette": "wein",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "nacht",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "taube",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "lehm",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "wald",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "grau",
+     "palette": "erde",
+     "eyes": "grau"
+    }
+   ]
+  },
+  {
+   "id": "foersterin",
+   "group": "arbeit",
+   "role": "Försterin: Weste mit Lederbrust, enge Hose, Waldstiefel, Handschuhe",
+   "base": "Fantasy/Ranger",
+   "height": 1.76,
+   "head": "Head_BasicHead",
+   "bodyPart": "Body_BasicBody",
+   "wear": [
+    "Top_RangerVest",
+    "Bottom_TightTravelPants",
+    "Feet_ForestLongBoots",
+    "Gloves_RusticGloves",
+    "HairFront_FreeTussle",
+    "HairBack_LooseLong"
+   ],
+   "body": [
+    {
+     "id": "Chest",
+     "value": 35
+    }
+   ],
+   "face": [
+    {
+     "id": "Stern",
+     "value": 20
+    }
+   ],
+   "looks": [
+    {
+     "tone": "hell",
+     "hair": "braun",
+     "palette": "erde",
+     "eyes": "braun"
+    },
+    {
+     "tone": "mittel",
+     "hair": "schwarz",
+     "palette": "wald",
+     "eyes": "braun"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "schwarz",
+     "palette": "lehm",
+     "eyes": "braun"
+    },
+    {
+     "tone": "hell",
+     "hair": "blond",
+     "palette": "asche",
+     "eyes": "blau"
+    },
+    {
+     "tone": "mittel",
+     "hair": "rotbraun",
+     "palette": "rost",
+     "eyes": "gruen"
+    },
+    {
+     "tone": "dunkel",
+     "hair": "dunkelbraun",
+     "palette": "taube",
+     "eyes": "grau"
+    }
+   ]
+  }
+ ]
+}

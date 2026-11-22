@@ -81,9 +81,33 @@ namespace AreArpg.EditMode.Tests
             StringAssert.Contains("(face)", Defect(with(twin.Replace("\"keys\":[\"ProbeB\"]", "\"keys\":[\"ProbeB\"],\"face\":[{\"id\":\"Stern\",\"value\":10}]"))));
             StringAssert.Contains("(remove)", Defect(with(twin.Replace("\"keys\":[\"ProbeB\"]", "\"keys\":[\"ProbeB\"],\"remove\":[\"Neck\"]"))));
             StringAssert.Contains("(base)", Defect(with(twin.Replace("Fantasy/Hero", "Fantasy/Ranger"))));
+            StringAssert.Contains("(parts)", Defect(with(twin.Replace("\"sameShapeAs\":\"probe\"", "\"sameShapeAs\":\"probe\",\"parts\":true"))));
             // No chains: a variant names a figure that has a mesh of its own.
             string third = twin.Replace("probe_b", "probe_c").Replace("ProbeB", "ProbeC").Replace("\"sameShapeAs\":\"probe\"", "\"sameShapeAs\":\"probe_b\"");
             StringAssert.Contains("mesh of its own", Defect(with(twin + "," + third)));
+        }
+
+        /// <summary>A figure built in two parts sorts every outfit type of the pack to the head or the body, and no type to both.</summary>
+        [Test]
+        public void EveryOutfitTypeBelongsToTheHeadOrTheBody()
+        {
+            Type recipes = null;
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) recipes = recipes ?? assembly.GetType("AreArpg.EditorTools.BozoFigureRecipes");
+            MethodInfo isHead = recipes.GetMethod("IsHeadSlot", BindingFlags.Public | BindingFlags.Static);
+            Func<string, bool?> side = type => (bool?)isHead.Invoke(null, new object[] { type });
+            foreach (string head in new[] { "Head", "HairFront", "HairBack", "Hat", "Eyes", "EyeBrows", "LowerFace", "UpperFace", "Ears", "Teeth" })
+                Assert.AreEqual(true, side(head), head + " belongs to the head");
+            foreach (string body in new[] { "Body", "Top", "Bottom", "Feet", "Gloves", "Shoulders", "Neck", "Leggings", "UnderUpper", "UnderLower" })
+                Assert.AreEqual(false, side(body), body + " belongs to the body");
+            Assert.IsNull(side("SomethingNew"), "A type nobody sorted is not guessed");
+            // Every type the installed pack defines is sorted.
+            string folder = "Assets/BoZo_StylizedModularCharacters/OutfitTypes";
+            if (!System.IO.Directory.Exists(folder)) return;
+            foreach (string file in System.IO.Directory.GetFiles(folder, "*.asset"))
+            {
+                string type = System.IO.Path.GetFileNameWithoutExtension(file);
+                Assert.IsNotNull(side(type), "The pack's outfit type " + type + " is sorted to the head or the body");
+            }
         }
 
         [Test]

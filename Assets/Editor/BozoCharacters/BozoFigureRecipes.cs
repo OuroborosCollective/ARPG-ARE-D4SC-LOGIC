@@ -59,6 +59,27 @@ namespace AreArpg.EditorTools
             /// texture and no second model.
             /// </summary>
             public string sameShapeAs = "";
+            /// <summary>
+            /// Built as two parts, body and head (see FigureComposer), so that the head of another figure can be put
+            /// on this body and this head on other bodies. The visual then has two renderers on one skeleton.
+            /// </summary>
+            public bool parts;
+        }
+
+        // The pack's outfit types (Assets/BoZo_StylizedModularCharacters/OutfitTypes): what belongs to the head when a
+        // figure is built in two parts. A type in neither list is refused, so that a new type of the pack is sorted
+        // deliberately instead of landing on the wrong side of the neck.
+        static readonly string[] HeadSlots = { "Ears", "EyeBrows", "EyeLashes", "EyeShine", "Eyes", "FaceDetails", "FaceTexture", "HairBack", "HairFront",
+            "Hat", "Head", "HeadAcc", "HeadDetail", "HeadType", "Iris", "LowerFace", "MakeUpCheeks", "MakeUpEyes", "MakeUpLips", "Pupil", "Teeth", "UpperFace" };
+        static readonly string[] BodySlots = { "Body", "BodyType", "Bottom", "Feet", "Gloves", "Leggings", "Neck", "Overall", "Shoulders", "Socks", "Top",
+            "UnderLower", "UnderUpper", "Waist" };
+
+        /// <summary>True for an outfit type that belongs to the head, false for the body, null for a type nobody sorted.</summary>
+        public static bool? IsHeadSlot(string type)
+        {
+            if (Array.IndexOf(HeadSlots, type) >= 0) return true;
+            if (Array.IndexOf(BodySlots, type) >= 0) return false;
+            return null;
         }
         [Serializable] sealed class File { public string schema = ""; public string pack = ""; public float light; public Figure[] figures = new Figure[0]; }
 
@@ -72,9 +93,16 @@ namespace AreArpg.EditorTools
         public const string BakeFolder = "Assets/PrivateArt/BozoCharacters";
         public static string BakedPath(string id) { return BakeFolder + "/" + id + "/" + id + ".prefab"; }
 
+        /// <summary>The figures of figures.json and of the figure pool (BozoFigurePool), checked together.</summary>
         public static Figure[] Load()
         {
-            return Parse(System.IO.File.ReadAllText(RecipePath));
+            Figure[] figures = Parse(System.IO.File.ReadAllText(RecipePath));
+            Figure[] pool = BozoFigurePool.Load();
+            if (pool.Length == 0) return figures;
+            Figure[] all = figures.Concat(pool).ToArray();
+            string error = Validate(all);
+            if (error != null) throw new FormatException(error);
+            return all;
         }
 
         /// <summary>
@@ -128,6 +156,7 @@ namespace AreArpg.EditorTools
             if (shapes(a.face) != shapes(b.face)) return "face";
             Func<string[], string> slots = list => string.Join(",", (list ?? new string[0]).OrderBy(s => s, StringComparer.Ordinal));
             if (slots(a.remove) != slots(b.remove)) return "remove";
+            if (a.parts != b.parts) return "parts";
             Func<Outfit[], string> parts = list => string.Join(",", (list ?? new Outfit[0]).Where(o => o != null)
                 .OrderBy(o => o.slot, StringComparer.Ordinal).Select(o => o.slot + "=" + o.id));
             if (parts(a.outfits) != parts(b.outfits)) return "outfits";

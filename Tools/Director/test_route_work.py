@@ -90,12 +90,27 @@ class RouteWorkTests(unittest.TestCase):
         self.assertEqual('REFUSED', json.loads(run.stdout)['engineering_skills']['status'])
 
     def test_private_engineering_catalog_is_gitignored(self):
+        import shutil
         import subprocess
+        import tempfile
         from pathlib import Path
         root = Path(__file__).resolve().parents[2]
-        run = subprocess.run(['git', '-C', str(root), 'check-ignore', '-q',
-                              'Tools/engineering-skill-catalog.json'],
-                             capture_output=True, text=True, check=False)
+        catalog = 'Tools/engineering-skill-catalog.json'
+        if (root / '.git').exists():
+            run = subprocess.run(['git', '-C', str(root), 'check-ignore', '-q', catalog],
+                                 capture_output=True, text=True, check=False)
+        elif not (root / '.gitignore').is_file():
+            # The Neuro Director's pinned snapshot exports Tools/Director, docs/ARCHITECTURE.md, .specify and
+            # .agents only: there is no repository ignore rule to judge. CI and every checkout still check it.
+            self.skipTest('needs the repository root with its .gitignore')
+        else:
+            # An exported source tree with the repository root but without .git: git's own matcher judges
+            # the repository's .gitignore in an empty scratch repository instead.
+            with tempfile.TemporaryDirectory() as scratch:
+                subprocess.run(['git', 'init', '-q', scratch], capture_output=True, text=True, check=True)
+                shutil.copyfile(root / '.gitignore', Path(scratch) / '.gitignore')
+                run = subprocess.run(['git', '-C', scratch, 'check-ignore', '-q', catalog],
+                                     capture_output=True, text=True, check=False)
         self.assertEqual(0, run.returncode, run.stderr)
 
 
