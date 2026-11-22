@@ -20,7 +20,7 @@ namespace AreArpg.Core
         {
             if(npc.Mind==null)return false;
             var memory=npc.Memory;var relation=npc.Mind.RelationshipTo("player");
-            bool hostile=oldHostile||relation.Hostility>=NpcAgent.FleeHostility;
+            bool hostile=oldHostile||(relation.Hostility>=NpcAgent.FleeHostility&&NpcAgent.HasDirectHostileKnowledge(npc.Mind));
             bool visible=distance<FixedMath.Square(14000)&&CombatSight(npc.Xmm,npc.Zmm,PlayerXmm,PlayerZmm);
             bool danger=hostile&&visible;
             bool atFood=DistanceSquared(npc.Xmm,npc.Zmm,CampXmm,CampZmm)<=FixedMath.Square(500);
