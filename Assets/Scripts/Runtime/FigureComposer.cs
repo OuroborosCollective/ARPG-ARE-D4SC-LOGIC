@@ -40,9 +40,16 @@ namespace AreArpg.UnityClient
             SkinnedMeshRenderer donor = headFigure != null ? Part(headFigure.transform, HeadPart) : null;
             if (target == null || torso == null || donor == null || donor.sharedMesh == null) return false;
             Transform bodyArt = ArtRoot(torso.transform, body), donorArt = ArtRoot(donor.transform, headFigure.transform);
+            // Only the skeleton counts: the pack keeps empty helpers with bone names beside it (MagicaClothSupport/FrontHair),
+            // and a hair bound to such a helper would hang in the air.
             var byName = new Dictionary<string, Transform>();
-            foreach (Transform bone in bodyArt.GetComponentsInChildren<Transform>(true))
+            Transform rootBone = torso.rootBone != null ? torso.rootBone : bodyArt;
+            foreach (Transform bone in rootBone.GetComponentsInChildren<Transform>(true))
                 if (!byName.ContainsKey(bone.name)) byName.Add(bone.name, bone);
+            foreach (Transform bone in torso.bones)
+                if (bone != null && !byName.ContainsKey(bone.name)) byName.Add(bone.name, bone);
+            for (Transform up = rootBone.parent; up != null && up != bodyArt; up = up.parent)
+                if (!byName.ContainsKey(up.name)) byName.Add(up.name, up);
             Transform[] source = donor.bones;
             var mapped = new Transform[source.Length];
             var made = new List<Transform>();
