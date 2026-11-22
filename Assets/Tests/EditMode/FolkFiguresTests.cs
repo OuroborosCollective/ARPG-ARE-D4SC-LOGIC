@@ -58,6 +58,30 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
+        public void FiguresAreDealtKindByKindSoTheFirstResidentsDiffer()
+        {
+            // Four kinds with six looks each, named as the pool names them: keys that differ only in their last digit.
+            string[] kinds = { "foersterin", "holzfaeller", "magd", "bauer" };
+            string[] skins = { "hell", "mittel", "dunkel" };
+            string index = string.Concat(kinds.SelectMany(kind => Enumerable.Range(0, 6).Select(n =>
+                "Folk" + char.ToUpperInvariant(kind[0]) + kind.Substring(1) + n + "\t" + kind + "\tarbeit\t" + (kind == "magd" || kind == "foersterin" ? "f" : "m") + "\t" + skins[n % 3] + "\n")));
+            List<FolkFigures.Entry> entries = FolkFigures.Parse(index);
+            Assert.AreEqual(24, entries.Count);
+            var dealt = new List<FolkFigures.Entry>();
+            for (int number = 0; number < 24; number++)
+            {
+                FolkFigures.Look look;
+                Assert.IsTrue(FolkFigures.TryLook(entries, FolkFigures.Workers, number, out look));
+                dealt.Add(entries.Single(e => e.Key == look.Body));
+            }
+            for (int round = 0; round < 6; round++)
+                CollectionAssert.AreEquivalent(kinds, dealt.Skip(round * 4).Take(4).Select(e => e.Kind), "round " + round + " brings every kind once");
+            CollectionAssert.AllItemsAreUnique(dealt.Take(4).Select(e => e.Skin).Take(3), "the first residents do not share one skin");
+            CollectionAssert.AllItemsAreUnique(dealt.Select(e => e.Key), "every look comes once before any comes again");
+            CollectionAssert.AreEqual(dealt.Select(e => e.Key), FolkFigures.DealingOrder(entries, FolkFigures.Workers).Select(e => e.Key));
+        }
+
+        [Test]
         public void LaterResidentsWearTheSameBodiesWithOtherHeadsOfTheirMotionSetAndSkin()
         {
             List<FolkFigures.Entry> entries = FolkFigures.Parse(Index);

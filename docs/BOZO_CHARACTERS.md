@@ -155,8 +155,11 @@ und prüft beide gemeinsam.
 seine Nummer ab dem ersten Zugezogenen (`ArenaRuntime.ResidentNumber`) – jedes Mal dieselbe, auf jedem Gerät, ohne
 Spielstand oder Core zu berühren:
 
-- Die Figuren der Gruppe stehen in einer festen, gemischten Reihenfolge. In der ersten Runde bekommt jeder Bewohner
-  eine eigene Figur.
+- Die Figuren werden Art für Art ausgeteilt: In jeder Runde kommt jede Art einmal dran (die Arten in fester, gemischter
+  Reihenfolge), jede mit einem anderen ihrer Aussehen. Die ersten Bewohner unterscheiden sich so in Art, Haut und
+  Farben, und jede der 72 Arbeiter-Figuren kommt einmal, bevor sich eine wiederholt. (Eine reine Prüfsummen-Reihenfolge
+  gab zuerst sechs Försterinnen hintereinander: Namen, die sich nur in der letzten Ziffer unterscheiden, lagen bei
+  FNV-1a nebeneinander.)
 - Ab der zweiten Runde kommen dieselben Körper wieder, aber mit dem Kopf der nächsten Figur gleichen Bewegungssatzes
   und gleichen Hauttons (`FigureComposer`). Aus den 72 Arbeiter-Figuren (je Bewegungssatz und Hautton 14 Männer oder
   10 Frauen) werden so 888 verschiedene Menschen.
@@ -240,8 +243,8 @@ immer auch den Helden neu bauen (Schritt 4), weil er aus `HeroSource` entsteht.
   Teilen; jedes getragene Teil bekommt seine Farben, alles Nichtgetragene fällt weg; Wachen, Kämpfer, Boten,
   Schneider und Förster sind dabei; fehlerhafte Vorräte werden abgelehnt; `FolkIndex` nennt nur Gebackenes. Läuft überall.
 - `Assets/Tests/EditMode/FolkFiguresTests.cs`: Der Index wird streng gelesen (keine Pfade, keine fremden Visuals);
-  die ersten Bewohner tragen je eine eigene Figur, spätere dieselben Körper mit Köpfen gleichen Bewegungssatzes und
-  gleicher Haut. Läuft überall.
+  die ersten Bewohner tragen je eine eigene Figur, Art für Art ausgeteilt, spätere dieselben Körper mit Köpfen gleichen
+  Bewegungssatzes und gleicher Haut. Läuft überall.
 - `Assets/Tests/EditMode/FigureComposerTests.cs`: Kopftausch für jedes Paar von Modellen gleicher Vorlage (Varianten
   zeichnen die Modelle ihres Modells).
 - `ResidentsWearFiguresOfThePool` (PlayMode): Bewohner tragen Pool-Figuren, in der ersten Runde jeder eine eigene; der
