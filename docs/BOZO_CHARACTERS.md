@@ -49,6 +49,7 @@ bleiben, wie sie sind.
 | `keys` | Spielvisuals unter `Resources/ARE/Visuals/<Key>.prefab` |
 | `sources` | Private Quellfiguren für andere Werkzeuge (Held, liegende Patienten), nicht in `Resources` |
 | `sameShapeAs` | Nur für Farbvarianten: `id` der Grundfigur mit denselben Teilen und Formen. Die Variante bekommt kein eigenes Modell, sondern nutzt das der Grundfigur mit eigener Textur |
+| `parts` | Figur in zwei Teilen (Körper und Kopf), damit Köpfe getauscht werden können; siehe unten |
 
 `BozoFigureRecipes` prüft die Rezepte (auch ohne installiertes Paket): gültige Schlüssel, Höhen, Farben, keine
 doppelten Visuals, und dass jede vom Spiel gebundene Menschenfigur ein Rezept hat. Abgelehnt werden auch Werte, die
@@ -92,8 +93,27 @@ Eckpunkt. Eine Farbvariante nennt deshalb mit `sameShapeAs` ihre Grundfigur und 
 - Die Rezeptprüfung lehnt eine Variante ab, die sich in mehr als Farben, Rolle, Höhe und Namen unterscheidet.
 - Beim Erzeugen wird der Bake der Variante mit dem der Grundfigur verglichen. Weichen sie ab, bleibt die bisherige
   Figur unverändert, statt mit falschem Körper zu erscheinen.
-- Kopf und Körper lassen sich bisher nicht tauschen. Gemessen ist, dass sie sich am Hals sauber trennen ließen: Bei
-  drei geprüften Figuren liegen dort 50 Dreiecke in einem vier Zentimeter hohen Band. Gebaut ist das noch nicht.
+
+### Köpfe tauschen: Figuren in zwei Teilen
+
+Eine Figur mit `"parts": true` wird in zwei Teilen gebaut: **Körper** und **Kopf**, zwei Renderer auf demselben
+Skelett mit demselben Material. `FigureComposer.TryPutHead(körper, kopfFigur)` setzt den Kopf einer anderen solchen
+Figur auf den Körper: Der Kopf behält sein Modell und seine Farben und hängt an den Knochen des Körpers, sitzt also auf
+dessen Hals und folgt dessen Bewegung. Aus 10 Körpern und 10 Köpfen werden so 100 Figuren, ohne ein einziges Modell mehr.
+
+- **Wo getrennt wird:** Das Paket fügt eine Figur zusammen, indem es die Modelle aller Kleidungsstücke hintereinander
+  hängt (`BoZoCharacterOptimizer`). Beim Erzeugen schreibt das Werkzeug diese Abschnitte mit Typ und Länge auf
+  (`Library/BozoCharacters/Parts/<id>.txt`) und trennt danach genau dort: Kopf, Augen, Brauen, Haare, Bart, Hut und
+  Gesichtsteile zum Kopf, alles andere zum Körper. Ein Kleidungstyp, der keiner Seite zugeordnet ist, wird abgelehnt.
+  An den Knochengewichten allein ließ sich das nicht entscheiden: Kapuzen und Helmkragen liegen halb am Kopf.
+- **Mitgebrachte Knochen:** Haare, Federbüsche oder Kapuzen haben eigene Knochen unter dem Kopf. Fehlen sie dem
+  Körper, kopiert `TryPutHead` sie unter denselben Knochen. Gesucht wird nur im Skelett; das Paket legt daneben leere
+  Helfer mit gleichen Namen ab (`MagicaClothSupport/FrontHair`).
+- **Geht etwas nicht,** bleibt der eigene Kopf des Körpers, und es wird nichts halb angelegt.
+- **Gut zusammen passen** Köpfe und Körper derselben Vorlage (`base`) und derselben Hautfarbe; die Hautfarbe steckt in
+  den Farben jedes Teils. Der Tausch selbst prüft das nicht.
+- Geprüft wird für jedes Paar gleicher Vorlage: Der Kopf bleibt am Kopfknochen, am Hals entsteht kein Loch (der Kopf
+  reicht so weit in den Kragen wie der eigene Kopf des Körpers), und er dreht sich als Ganzes mit dem Kopfknochen.
 
 ## Bauen
 
