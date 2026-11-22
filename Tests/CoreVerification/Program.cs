@@ -58,6 +58,7 @@ internal static class Program
             CompanionForgeTests.Run(Require);
             AschenzollTests.Run(Require);
             ForgePolicyTests.Run(Require);
+            CausalPolicyTests.Run(Require);
             ForgePopulationTests.Run(Require);
             JourneyPilotTests.Run(Require);
             WorldSkyClockTests.Run(Require);
