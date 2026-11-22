@@ -877,6 +877,9 @@ namespace AreArpg.EditorTools
         {
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(Visuals + key + ".prefab");
             if (existing == null || Array.IndexOf(BozoFigureRecipes.RequiredKeys, key) >= 0) return true;
+            // Every visual this tool saves holds the pack's figure under this name; it stays a figure even while the
+            // mesh it drew is gone (a model figure was rebuilt in two parts before its colour variants).
+            if (existing.GetComponentsInChildren<Transform>(true).Any(t => t.name.StartsWith("BozoFigure_", StringComparison.Ordinal))) return true;
             SkinnedMeshRenderer[] skins = existing.GetComponentsInChildren<SkinnedMeshRenderer>(true);
             return skins.Length > 0 && skins.All(s => s.sharedMesh != null &&
                 AssetDatabase.GetAssetPath(s.sharedMesh).StartsWith(BakeFolder + "/", StringComparison.Ordinal));

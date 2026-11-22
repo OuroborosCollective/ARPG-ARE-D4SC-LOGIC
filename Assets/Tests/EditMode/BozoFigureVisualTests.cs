@@ -163,16 +163,23 @@ namespace AreArpg.EditMode.Tests
                 {
                     Assert.IsTrue(PassiveArtVisuals.TryBindGroundedPrefab(host.transform, prefab, 0f), key + " must pass the game's passive-art check");
                     SkinnedMeshRenderer[] skins = host.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-                    Assert.AreEqual(1, skins.Length, key + ": one merged mesh");
+                    // One merged mesh, or a figure in two parts (body and head) on the same skeleton with the same material.
+                    bool twoParts = FigureComposer.IsComposite(prefab);
+                    Assert.AreEqual(twoParts ? 2 : 1, skins.Length, key + (twoParts ? ": body and head" : ": one merged mesh"));
                     SkinnedMeshRenderer skin = skins[0];
-                    Assert.AreEqual(1, skin.sharedMaterials.Length, key + ": one material");
-                    Assert.IsTrue(skin.sharedMaterial != null && skin.sharedMaterial.shader.isSupported, key + ": the material must render");
-                    StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(skin.sharedMaterial), key + ": the game keeps the figure's own material");
-                    StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(skin.sharedMesh), key);
-                    Assert.AreEqual(0, skin.sharedMesh.blendShapeCount, key + ": the sliders are baked into the game mesh");
-                    AssertReadableNormalMap(key, skin.sharedMaterial);
                     long triangles = 0;
-                    for (int part = 0; part < skin.sharedMesh.subMeshCount; part++) triangles += skin.sharedMesh.GetIndexCount(part) / 3;
+                    foreach (SkinnedMeshRenderer each in skins)
+                    {
+                        Assert.AreEqual(1, each.sharedMaterials.Length, key + ": one material");
+                        Assert.AreSame(skin.sharedMaterial, each.sharedMaterial, key + ": body and head share the figure's material");
+                        Assert.IsTrue(each.sharedMaterial != null && each.sharedMaterial.shader.isSupported, key + ": the material must render");
+                        StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(each.sharedMaterial), key + ": the game keeps the figure's own material");
+                        StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(each.sharedMesh), key);
+                        Assert.AreEqual(0, each.sharedMesh.blendShapeCount, key + ": the sliders are baked into the game mesh");
+                        CollectionAssert.AreEqual(skin.bones, each.bones, key + ": one skeleton");
+                        for (int part = 0; part < each.sharedMesh.subMeshCount; part++) triangles += each.sharedMesh.GetIndexCount(part) / 3;
+                    }
+                    AssertReadableNormalMap(key, skin.sharedMaterial);
                     Assert.Less(triangles, 32000, key + ": triangle budget of one figure");
 
                     Animator animator = host.GetComponentInChildren<Animator>(true);
@@ -185,13 +192,16 @@ namespace AreArpg.EditMode.Tests
                     Assert.IsTrue(Array.Exists(controller.parameters, p => p.name == "MoveMagnitude" && p.type == AnimatorControllerParameterType.Float),
                         key + ": walks on the game's MoveMagnitude signal");
 
-                    skin.BakeMesh(posed); // world-sized: the scale of all parents is baked into the vertices
-                    Matrix4x4 toWorld = Matrix4x4.TRS(skin.transform.position, skin.transform.rotation, Vector3.one);
                     float low = float.MaxValue, high = float.MinValue;
-                    foreach (Vector3 vertex in posed.vertices)
+                    foreach (SkinnedMeshRenderer each in skins)
                     {
-                        float y = toWorld.MultiplyPoint3x4(vertex).y;
-                        low = Mathf.Min(low, y); high = Mathf.Max(high, y);
+                        each.BakeMesh(posed); // world-sized: the scale of all parents is baked into the vertices
+                        Matrix4x4 toWorld = Matrix4x4.TRS(each.transform.position, each.transform.rotation, Vector3.one);
+                        foreach (Vector3 vertex in posed.vertices)
+                        {
+                            float y = toWorld.MultiplyPoint3x4(vertex).y;
+                            low = Mathf.Min(low, y); high = Mathf.Max(high, y);
+                        }
                     }
                     Assert.AreEqual(0f, low, .02f, key + " stands on its visible feet");
                     Assert.AreEqual(figure.Value, high - low, figure.Value * .02f, key + " has the height of its role");
