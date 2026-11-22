@@ -110,8 +110,16 @@ namespace AreArpg.EditorTools
 
         private static bool InsideProject(string path)
         {
-            string project = Path.GetFullPath(Directory.GetCurrentDirectory()).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            return Path.GetFullPath(path).StartsWith(project, StringComparison.Ordinal);
+            // Windows and macOS file systems ignore case by default, so a differently written path is still the project.
+            bool ignoreCase = Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.OSXEditor;
+            return InsideFolder(path, Directory.GetCurrentDirectory(), ignoreCase);
+        }
+
+        /// <summary>Whether a path lies in the folder; the trailing separator keeps sibling folders with the same prefix outside.</summary>
+        internal static bool InsideFolder(string path, string folder, bool ignoreCase)
+        {
+            string root = Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            return Path.GetFullPath(path).StartsWith(root, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
 
         /// <summary>Minutes since 2026-01-01 UTC: every bundle built later carries a higher version code, as Google Play requires.</summary>

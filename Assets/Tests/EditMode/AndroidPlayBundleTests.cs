@@ -83,6 +83,19 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
+        public void APathIntoTheProjectIsRecognisedWhereTheFileSystemIgnoresCase()
+        {
+            MethodInfo inside = Tools().GetMethod("InsideFolder", BindingFlags.NonPublic | BindingFlags.Static);
+            Func<string, string, bool, bool> check = (path, folder, ignoreCase) => (bool)inside.Invoke(null, new object[] { path, folder, ignoreCase });
+            string project = Path.Combine(Path.GetTempPath(), "AreProject");
+            string otherCase = Path.Combine(project.ToUpperInvariant(), "signing.json");
+            Assert.IsTrue(check(otherCase, project, true), "Windows and macOS: another spelling of the project path is still the project");
+            Assert.IsFalse(check(otherCase, project, false), "Linux: another spelling is another folder");
+            Assert.IsTrue(check(Path.Combine(project, "Temp", "signing.json"), project, false));
+            Assert.IsFalse(check(Path.Combine(project + "Sibling", "signing.json"), project, true), "a sibling folder with the same prefix stays outside");
+        }
+
+        [Test]
         public void AfterASignedBuildNoKeyPasswordStaysInTheGeneratedGradleFiles()
         {
             string folder = Path.Combine(Path.GetTempPath(), "ashen-gradle-test-" + Guid.NewGuid().ToString("N"));
