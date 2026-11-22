@@ -114,7 +114,8 @@ namespace AreArpg.EditMode.Tests
                         List<Vector3> posed = Posed(head);
                         float far = posed.Max(v => (v - headBone.position).magnitude);
                         Assert.Less(far, .5f, pair + ": the head stays at the head bone (farthest point " + far.ToString("F2") + " m)");
-                        Assert.Greater(posed.Min(v => v.y), pelvis.position.y + .5f, pair + ": nothing of the head drops below the shoulders");
+                        // A helmet's neck guard reaches down to the collar; nothing of a head belongs lower than the chest.
+                        Assert.Greater(posed.Min(v => v.y), pelvis.position.y + .25f, pair + ": nothing of the head drops below the chest");
                         float gap = NeckGap(posed, Posed(body));
                         Assert.LessOrEqual(gap, ownGap + .02f, pair + ": the neck closes as well as with the body's own head (" + (gap * 1000f).ToString("F0") + " mm, own " + (ownGap * 1000f).ToString("F0") + " mm)");
 
