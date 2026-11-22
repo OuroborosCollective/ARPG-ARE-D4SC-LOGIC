@@ -12,6 +12,8 @@ internal static class LivingChronicleTests
         RejectedAndAcceptedCampActions(check);
         RealMeetingAndPlayerKnowledge(check);
         NoOmniscientOrLaunderedRumors(check);
+        TenThousandTickIndependentReplayWithTwoColdLoads(check);
+        RejectCorruptedChronicleReferences(check);
     }
 
     private static CharacterProgression Village(ulong seed, out ArenaSimulation world)
@@ -106,6 +108,53 @@ internal static class LivingChronicleTests
               LivingChronicle.VisibleToPlayer(restored).Any(e => e.EventId == donation.Id &&
                   e.Origin == ChronicleOrigin.Heard && e.SourceNpcId == "ilyan"),
               "chronicle-heard-reference-survives-checked-save");
+    }
+
+    /// <summary>Two genuine independently stepped Core instances, no test doubles or clock overrides.</summary>
+    private static void TenThousandTickIndependentReplayWithTwoColdLoads(Action<bool, string> check)
+    {
+        var first = Village(9988, out var a);
+        var second = Village(9988, out var b);
+        a.CompleteArrivalScene(); b.CompleteArrivalScene();
+        Near(a, SocialLedger.MaraNpcId);
+        Near(b, SocialLedger.MaraNpcId);
+        check(a.DonateCampRation().Accepted && b.DonateCampRation().Accepted,
+              "chronicle-replay-initial-real-action");
+        for (int tick = 0; tick < 10000; tick++)
+        {
+            a.Step();
+            b.Step();
+            if (tick % 97 == 0)
+                check(a.ComputeWorldHash() == b.ComputeWorldHash() &&
+                      first.SaveString() == second.SaveString(),
+                      "chronicle-replay-10000-ticks-" + tick);
+            if (tick == 2999 || tick == 6999)
+            {
+                string saveA = first.SaveString(), saveB = second.SaveString();
+                check(saveA == saveB && CharacterProgression.TryLoad(saveA, out var restoredA) &&
+                      CharacterProgression.TryLoad(saveB, out var restoredB) &&
+                      restoredA.SaveString() == saveA && restoredB.SaveString() == saveB,
+                      "chronicle-real-cold-reload-checkpoint-" + tick);
+                check(LivingChronicle.VisibleToPlayer(restoredA).Select(e => e.TextKey).SequenceEqual(
+                      LivingChronicle.VisibleToPlayer(restoredB).Select(e => e.TextKey)),
+                      "chronicle-real-cold-reload-knowledge-" + tick);
+                first = restoredA;
+                second = restoredB;
+                a = new ArenaSimulation(9988, first, BigInteger.One, LootCatalog.Version1);
+                b = new ArenaSimulation(9988, second, BigInteger.One, LootCatalog.Version1);
+            }
+        }
+        check(first.SaveString() == second.SaveString() && a.ComputeWorldHash() == b.ComputeWorldHash(),
+              "chronicle-two-actual-replay-worlds-remain-identical");
+    }
+
+    private static void RejectCorruptedChronicleReferences(Action<bool, string> check)
+    {
+        var p = Village(9989, out var world);
+        p.SetSection("chronicle.v1", "1|999,1,mara");
+        string inconsistent = p.SaveString();
+        check(!CharacterProgression.TryLoad(inconsistent, out _),
+              "chronicle-checksummed-forged-reference-fails-closed");
     }
 
     private static void NoOmniscientOrLaunderedRumors(Action<bool, string> check)
