@@ -1055,7 +1055,7 @@ namespace AreArpg.UnityClient
                     KeyValuePair<int, NpcAction> request = _pendingNpcActions.Dequeue();
                     SocialResult result = _game.InteractNpc(request.Key, request.Value);
                     _atmosphere.AcceptedSpeech(result);
-                    if (!string.IsNullOrEmpty(result.Text)) _message = result.Text;
+                    if (!string.IsNullOrEmpty(result.Text)) _message = PresentedNpcResult(result);
                     if (result.Accepted) SaveCharacter();
                     if (_storageFault) break;
                 }
