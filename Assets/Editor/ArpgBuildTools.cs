@@ -100,7 +100,8 @@ namespace AreArpg.EditorTools
         /// <summary>
         /// Signed Android App Bundle for a Google Play testing track (owner decision 2026-11-22). The game's assets go into
         /// an install-time asset pack (split application binary), so the base module stays under Play's size limit. The
-        /// upload key is set for this build only and removed from the project settings afterwards.
+        /// upload key and the version code are set for this build only; afterwards the project settings are as before
+        /// and hold no password.
         /// </summary>
         [MenuItem("ARE ARPG/3. Build Signed App Bundle for Google Play")]
         public static void BuildAndroidAppBundle()
@@ -110,6 +111,9 @@ namespace AreArpg.EditorTools
             PrepareEntryScene();
             ApplyAndroidPlayerSettings();
             bool bundle = EditorUserBuildSettings.buildAppBundle, split = PlayerSettings.Android.splitApplicationBinary;
+            bool customKey = PlayerSettings.Android.useCustomKeystore;
+            string keystore = PlayerSettings.Android.keystoreName, alias = PlayerSettings.Android.keyaliasName;
+            int versionCode = PlayerSettings.Android.bundleVersionCode;
             try
             {
                 PlayerSettings.Android.useCustomKeystore = true;
@@ -128,9 +132,10 @@ namespace AreArpg.EditorTools
             {
                 PlayerSettings.Android.keystorePass = "";
                 PlayerSettings.Android.keyaliasPass = "";
-                PlayerSettings.Android.keystoreName = "";
-                PlayerSettings.Android.keyaliasName = "";
-                PlayerSettings.Android.useCustomKeystore = false;
+                PlayerSettings.Android.keystoreName = keystore;
+                PlayerSettings.Android.keyaliasName = alias;
+                PlayerSettings.Android.useCustomKeystore = customKey;
+                PlayerSettings.Android.bundleVersionCode = versionCode;
                 EditorUserBuildSettings.buildAppBundle = bundle;
                 PlayerSettings.Android.splitApplicationBinary = split;
             }
