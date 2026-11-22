@@ -33,6 +33,9 @@ internal static class Program
 
     private static double Percentile(double[] sorted, double q) => sorted[Math.Min(sorted.Length - 1, (int)Math.Floor(q * sorted.Length))];
 
+    /// <summary>The host's 1/5/15-minute load average (Linux), so timings taken on a shared machine can be judged.</summary>
+    private static string HostLoad() => System.IO.File.Exists("/proc/loadavg") ? System.IO.File.ReadAllText("/proc/loadavg").Trim() : "unavailable";
+
     private static object Memory()
     {
         using var process = Process.GetCurrentProcess();
@@ -137,12 +140,14 @@ internal static class Program
         var p = CharacterProgression.CreateEntryProfile(); p.EnterVillage(); p.Social.EnableForge(); var world = new ArenaSimulation(71, p, BigInteger.One, LootCatalog.Version1);
         results.Add(Measure("actual-core-village-tick-3-npcs", 40, 100, world.Step));
         results.Add(Measure("actual-core-village-save", 30, 10, () => p.SaveString()));
+        string loadBefore = HostLoad();
         var causal = CausalVillage(6107, 10000);
         var minds = new[] { 10, 100, 1000 }.Select(n => Minds(n, ForgeDefaults.CreateRegistry(), n >= 1000 ? 20 : 40)).ToArray();
         Console.WriteLine(JsonSerializer.Serialize(new
         {
             sourceSha = sha, runtime = RuntimeInformation.FrameworkDescription, os = RuntimeInformation.OSDescription,
             architecture = RuntimeInformation.ProcessArchitecture.ToString(), processorCount = Environment.ProcessorCount,
+            hostLoadAverage = new { before = loadBefore, after = HostLoad() },
             archiveEvents = archive.Events.Count, archiveTokenBytes = System.Text.Encoding.UTF8.GetByteCount(saved), actualVillageNpcs = world.Npcs.Count,
             measurement = "Managed host measurements from an external harness; batch-mean and per-tick percentiles, not device frame-time evidence",
             results, causalVillage = causal, forgeEvaluator = minds
