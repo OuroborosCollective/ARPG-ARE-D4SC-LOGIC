@@ -53,5 +53,21 @@ class RouteWorkTests(unittest.TestCase):
         self.assertEqual(['discovery', 'evidence'], phases)
 
 
+    def test_engineering_skill_router_is_advisory_and_checks_catalog(self):
+        result = plan('NPC bug reparieren')
+        self.assertIn('engineering_skills', result)
+        route = result['engineering_skills']
+        self.assertTrue(route['advisory_only'])
+        self.assertEqual('NONE', route['execution'])
+        self.assertIn('diagnosing-bugs', route['selected'])
+        self.assertNotIn('chief-of-staff', route['selected'])
+        # With a pinned host catalog installed this is UPSTREAM_PIN_MATCH;
+        # without one, fail closed. Neither state claims runtime execution.
+        self.assertIn(route['skills']['diagnosing-bugs'],
+                      ('UPSTREAM_PIN_MATCH', 'NOT_VERIFIED', 'MISSING', 'CHANGED',
+                       'LOCAL_BYTES_MATCH_OTHER_REVISION'))
+        self.assertEqual('d1478fcb140db0b93c0c8df17bcfd311844749d0', route['pin'])
+
+
 if __name__ == '__main__':
     unittest.main()

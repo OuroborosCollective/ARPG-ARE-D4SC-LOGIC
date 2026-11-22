@@ -6,6 +6,7 @@ from official_unity import route as official_route
 from game_dev import route as gamedev_route
 from spec_workflow import route as spec_route
 from neural_cortex import route as neural_route
+from engineering_skill_gates import task_plan as engineering_skill_plan
 PHASES=(
  ('discovery',('project','status','continue','repo','revision','memory'),('GitHub','Sovott v2','Unity Game Director')),
  ('research',('research','study','docs','api','paper','skill'),('official Unity docs','Exa or web','omgskills')),
@@ -29,6 +30,10 @@ def plan(task,available=(),project=None):
   if phase not in chosen:continue
   out.append({'phase':phase,'candidate_tools':[{'name':t,'availability':('AVAILABLE' if t in inventory else 'NOT_VERIFIED')} for t in tools]})
  result = {'schema':'ugd.route.v1','task':task,'advisory_only':True,'phases':out}
+ catalog_path = Path(__file__).resolve().parents[1] / 'engineering-skill-catalog.json'
+ if not catalog_path.is_file():
+  catalog_path = Path.home() / '.local/share/unity-game-director/engineering-skill-catalog.json'
+ result['engineering_skills'] = engineering_skill_plan(task, catalog_path)
  catalog = Path(__file__).resolve().parents[1] / 'official-unity-catalog.json'
  if catalog.exists(): result['official_unity'] = official_route(task, catalog, 'git')
  community = Path(__file__).resolve().parents[1] / 'gamedev-catalog.json'

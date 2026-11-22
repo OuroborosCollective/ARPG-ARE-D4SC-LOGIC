@@ -10,6 +10,8 @@
 - No `DateTime.Now`, `UnityEngine.Random`, `Time.deltaTime`, `string.GetHashCode()` or nondeterministic iteration in authoritative core logic. Unity rendering may use delta time for interpolation only.
 - For requested spec-driven work, read `docs/SPEC_DIRECTOR_WORKFLOW.md`. Spec Kit owns the change contract, SPD plans/reviews, and the existing Director executes checks. These workflows retain the rules above and existing user decisions; upstream optional-testing defaults do not apply to bug repairs. Ask the owner about unresolved story/gameplay choices, not already authorized technical phase transitions.
 
+- For new or updated engineering Skills, read `docs/agents/engineering-skills-v132.md` and the pinned local `SKILL.md` bytes; route only through the existing Director and keep source/catalog/runtime evidence distinct.
+
 <!-- codex-sdlc:start -->
 # codex-sdlc
 
