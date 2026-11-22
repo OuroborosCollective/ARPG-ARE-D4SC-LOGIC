@@ -22,6 +22,14 @@ bleiben, wie sie sind.
 | `merchant` | Händler: weinroter Umhang mit Goldsaum, lange Robe, Schärpe | `Merchant0` |
 | `smith` | Der Schmied: kräftig, dunkle Lederweste, Lederstulpen, kurzer dunkler Bart | `Smith0` |
 | `orsel` | Orsel, die Heilerin: Leinenbluse, salbeigrünes Mieder, helle Schürze, moosgrünes Tuch, ergrauter Zopf | `Orsel0` |
+| `guard_a`, `guard_b` | Dorfwache in zwei Farben: Waffenrock mit Stahlplatten, Soldatenhelm, Schulterplatten | `Guard0`, `Guard1` |
+| `fighter_plate` | Bergwache in Vollplatte: kantiger Plattenharnisch, Helm mit dunkelrotem Busch | `Fighter0` |
+| `fighter_steel` | Gepanzerter Kämpfer: geschwärzter Stahlharnisch, Stahlhelm mit Nackenschutz | `Fighter1` |
+| `messenger` | Bote: Reiseumhang mit Kapuze, schlichte Tunika, hohe Stiefel | `Messenger0` |
+| `tailor` | Schneiderin: cremefarbene Bluse, pflaumenfarbenes Mieder, langer Rock | `Tailor0` |
+| `forester_a`, `forester_b` | Förster in zwei Farben: Weste mit Lederbrust, Kapuze, lange Waldstiefel | `Forester0`, `Forester1` |
+| `baker` | Bäckerin: helle Bluse, hellbraunes Mieder, weiße Schürze, blonder Zopf | `Baker0` |
+| `doctor` | Arzt: langer dunkler Mantel, Handschuhe, ergrautes Haar | `Doctor0` |
 
 `Villager0–2` stehen für die Bewohner der Dorfwirtschaft. An den Bauplätzen der Dorfhäuser stehen `Smith0` (Schmiede),
 `Villager0` (der Bauer, Feldscheune) und `Orsel0` (Krankenstube). `Merchant0` ist für einen Händler-Stand vorbereitet.
@@ -40,6 +48,7 @@ bleiben, wie sie sind.
 | `height`, `texture`, `motion` | Sichtbare Höhe in Metern, Kantenlänge des Texturatlas (512/1024/2048), Bewegungssatz `m`/`f` |
 | `keys` | Spielvisuals unter `Resources/ARE/Visuals/<Key>.prefab` |
 | `sources` | Private Quellfiguren für andere Werkzeuge (Held, liegende Patienten), nicht in `Resources` |
+| `sameShapeAs` | Nur für Farbvarianten: `id` der Grundfigur mit denselben Teilen und Formen. Die Variante bekommt kein eigenes Modell, sondern nutzt das der Grundfigur mit eigener Textur |
 
 `BozoFigureRecipes` prüft die Rezepte (auch ohne installiertes Paket): gültige Schlüssel, Höhen, Farben, keine
 doppelten Visuals, und dass jede vom Spiel gebundene Menschenfigur ein Rezept hat. Abgelehnt werden auch Werte, die
@@ -70,6 +79,21 @@ Bottom/Bottom_RusticSkirt [Base|Pockets|Straps]
 
 Hier ist Farbe 7 der eigentliche Rock. Vor jedem neuen Rezept den Bericht lesen und alle Farben mit Fläche setzen.
 Die Farbliste eines Teils endet an der ersten Lücke; deshalb immer alle Farben bis zur letzten benutzten angeben.
+
+### Farbvarianten teilen sich ein Modell
+
+Wachen, Kämpfer, Boten, Schneider, Förster, Bäcker und Arzt sind für spätere Bewohner und Rollen vorbereitet; das Spiel
+bindet sie, sobald eine Stelle sie braucht.
+
+Das Modell einer Figur ist ihr größter Teil (13 000 bis 16 000 Eckpunkte, rund 3 MB), die Farbtextur ist klein. Zwei
+Figuren mit denselben Teilen und denselben Körper- und Gesichtsformen ergeben beim Backen dasselbe Modell, Eckpunkt für
+Eckpunkt. Eine Farbvariante nennt deshalb mit `sameShapeAs` ihre Grundfigur und nutzt deren Modell.
+
+- Die Rezeptprüfung lehnt eine Variante ab, die sich in mehr als Farben, Rolle, Höhe und Namen unterscheidet.
+- Beim Erzeugen wird der Bake der Variante mit dem der Grundfigur verglichen. Weichen sie ab, bleibt die bisherige
+  Figur unverändert, statt mit falschem Körper zu erscheinen.
+- Kopf und Körper lassen sich bisher nicht tauschen. Gemessen ist, dass sie sich am Hals sauber trennen ließen: Bei
+  drei geprüften Figuren liegen dort 50 Dreiecke in einem vier Zentimeter hohen Band. Gebaut ist das noch nicht.
 
 ## Bauen
 

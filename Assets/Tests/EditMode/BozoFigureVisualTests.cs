@@ -95,6 +95,36 @@ namespace AreArpg.EditMode.Tests
             return result;
         }
 
+        /// <summary>
+        /// A colour variant brings no second model into the game: its visual draws the mesh of its model figure with
+        /// a material of its own.
+        /// </summary>
+        [Test]
+        public void AColourVariantDrawsTheMeshOfItsModelWithItsOwnMaterial()
+        {
+            Type recipes = Recipes();
+            var all = (Array)recipes.GetMethod("Load", BindingFlags.Public | BindingFlags.Static).Invoke(null, null);
+            int variants = 0;
+            foreach (object figure in all)
+            {
+                string model = Field<string>(figure, "sameShapeAs");
+                if (string.IsNullOrEmpty(model)) continue;
+                object modelFigure = null;
+                foreach (object other in all) if (Field<string>(other, "id") == model) modelFigure = other;
+                Assert.IsNotNull(modelFigure, Field<string>(figure, "id") + " names a model that is no figure");
+                string key = Field<string[]>(figure, "keys")[0], modelKey = Field<string[]>(modelFigure, "keys")[0];
+                GameObject visual = Resources.Load<GameObject>("ARE/Visuals/" + key), modelVisual = Resources.Load<GameObject>("ARE/Visuals/" + modelKey);
+                if (visual == null || modelVisual == null) continue;
+                SkinnedMeshRenderer skin = visual.GetComponentInChildren<SkinnedMeshRenderer>(true), modelSkin = modelVisual.GetComponentInChildren<SkinnedMeshRenderer>(true);
+                Assert.AreSame(modelSkin.sharedMesh, skin.sharedMesh, key + " draws the mesh of " + modelKey);
+                Assert.AreNotSame(modelSkin.sharedMaterial, skin.sharedMaterial, key + " has colours of its own");
+                Assert.IsNull(AssetDatabase.LoadAssetAtPath<Mesh>(Baked + Field<string>(figure, "id") + "/" + Field<string>(figure, "id") + "_GameMesh.asset"),
+                    key + " keeps no second copy of the mesh");
+                variants++;
+            }
+            if (variants == 0) Assert.Ignore(NotInstalled);
+        }
+
         [Test]
         public void AVisualWithoutABakedFigureStaysWithItsPreviousBuilder()
         {
