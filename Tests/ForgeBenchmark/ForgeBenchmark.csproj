@@ -3,5 +3,6 @@
   <ItemGroup>
     <Compile Include="../../Assets/Scripts/Core/**/*.cs" LinkBase="Core" />
     <Compile Include="../../Assets/AshenCrypt/MemoryForge/Core/**/*.cs" LinkBase="MemoryForge" />
+    <Compile Include="../../Assets/AshenCrypt/WorldForge/Core/*.cs" LinkBase="WorldForge" />
   </ItemGroup>
 </Project>
