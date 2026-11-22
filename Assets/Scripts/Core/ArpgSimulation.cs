@@ -428,6 +428,11 @@ namespace AreArpg.Core
                     npc.Memory.Record(action, 0); result.Text = npc.Greeting();
                     string rumor = Progression.Social.RoadRumor(id); if (rumor.Length > 0) result.Text += " " + rumor;
                     string supplyNews = VillageSupplyNews(id); if (supplyNews.Length > 0) result.Text += " " + supplyNews;
+                    // This greeting was range/cooldown/health validated by the existing Core owner.
+                    // Record only a reference to what this NPC actually knows and just said;
+                    // never infer knowledge for the player from the global event archive.
+                    string campNews = LivingChronicle.HearAtRealGreeting(Progression, npc.Mind);
+                    if (campNews.Length != 0) result.Text += " " + campNews;
                     break;
                 case NpcAction.Help:
                     if (!Progression.Social.Help(id)) { result.Text = "Kein Bedarf oder kein Proviant."; return result; }
