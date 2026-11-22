@@ -431,8 +431,14 @@ namespace AreArpg.Core
                     // This greeting was range/cooldown/health validated by the existing Core owner.
                     // Record only a reference to what this NPC actually knows and just said;
                     // never infer knowledge for the player from the global event archive.
-                    string campNews = LivingChronicle.HearAtRealGreeting(Progression, npc.Mind);
-                    if (campNews.Length != 0) result.Text += " " + campNews;
+                    var campReceipt = LivingChronicle.HearAtRealGreeting(Progression, npc.Mind);
+                    if (campReceipt != null)
+                    {
+                        result.ChronicleTextKey = "chronicle." + campReceipt.Event.Context;
+                        result.ChronicleSpeakerId = npc.Mind.Id;
+                        result.ChronicleKnowledgeOrigin = campReceipt.Origin;
+                        result.ChronicleEventId = campReceipt.Event.Id;
+                    }
                     break;
                 case NpcAction.Help:
                     if (!Progression.Social.Help(id)) { result.Text = "Kein Bedarf oder kein Proviant."; return result; }
