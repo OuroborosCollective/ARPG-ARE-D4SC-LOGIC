@@ -53,13 +53,17 @@ namespace AreArpg.EditMode.Tests
             finally { UnityEngine.Object.DestroyImmediate(mesh); }
         }
 
-        /// <summary>How far the lowest band of a head lies from the nearest point of a body: the 90th percentile, in metres.</summary>
-        static float NeckGap(List<Vector3> head, List<Vector3> body)
+        /// <summary>
+        /// A hole at the neck opens where the head ends above the body. Around the neck (within nine centimetres of the
+        /// neck bone, seen from above) this is how far the lowest point of the head lies above the highest point of the
+        /// body below the head bone: negative where the neck reaches down into the collar, as it should.
+        /// </summary>
+        static float NeckOpening(List<Vector3> head, List<Vector3> body, Transform neck, Transform headBone)
         {
-            float low = head.Min(v => v.y);
-            var near = body.Where(v => v.y > low - .12f && v.y < low + .15f).ToList();
-            var gaps = head.Where(v => v.y < low + .03f).Select(v => Mathf.Sqrt(near.Min(b => (b - v).sqrMagnitude))).OrderBy(g => g).ToList();
-            return gaps[gaps.Count * 9 / 10];
+            Func<Vector3, bool> nearNeck = v => new Vector2(v.x - neck.position.x, v.z - neck.position.z).magnitude < .09f;
+            float headLow = head.Where(nearNeck).Min(v => v.y);
+            float bodyTop = body.Where(v => nearNeck(v) && v.y < headBone.position.y).Max(v => v.y);
+            return headLow - bodyTop;
         }
 
         [Test]
@@ -89,8 +93,12 @@ namespace AreArpg.EditMode.Tests
                 GameObject bodyPrefab = Resources.Load<GameObject>("ARE/Visuals/" + bodyFigure.Key);
                 // How the body's own head sits on it: the measure every other head is held against.
                 var own = UnityEngine.Object.Instantiate(bodyPrefab);
-                float ownGap;
-                try { ownGap = NeckGap(Posed(FigureComposer.Part(own.transform, FigureComposer.HeadPart)), Posed(FigureComposer.Part(own.transform, FigureComposer.BodyPart))); }
+                float ownOpening;
+                try
+                {
+                    ownOpening = NeckOpening(Posed(FigureComposer.Part(own.transform, FigureComposer.HeadPart)), Posed(FigureComposer.Part(own.transform, FigureComposer.BodyPart)),
+                        Bone(own.transform, "neck_01"), Bone(own.transform, "head"));
+                }
                 finally { UnityEngine.Object.DestroyImmediate(own); }
                 foreach (var headFigure in figures)
                 {
@@ -116,8 +124,9 @@ namespace AreArpg.EditMode.Tests
                         Assert.Less(far, .5f, pair + ": the head stays at the head bone (farthest point " + far.ToString("F2") + " m)");
                         // A helmet's neck guard reaches down to the collar; nothing of a head belongs lower than the chest.
                         Assert.Greater(posed.Min(v => v.y), pelvis.position.y + .25f, pair + ": nothing of the head drops below the chest");
-                        float gap = NeckGap(posed, Posed(body));
-                        Assert.LessOrEqual(gap, ownGap + .02f, pair + ": the neck closes as well as with the body's own head (" + (gap * 1000f).ToString("F0") + " mm, own " + (ownGap * 1000f).ToString("F0") + " mm)");
+                        float opening = NeckOpening(posed, Posed(body), Bone(instance.transform, "neck_01"), headBone);
+                        Assert.LessOrEqual(opening, Mathf.Max(ownOpening, 0f) + .015f, pair + ": no hole opens at the neck (head ends " + (opening * 1000f).ToString("F0") +
+                            " mm above the body, its own head " + (ownOpening * 1000f).ToString("F0") + " mm)");
 
                         // Turn the body's head: the head turns with it as one piece.
                         Vector3 before = headBone.InverseTransformPoint(posed.Aggregate(Vector3.zero, (a, v) => a + v) / posed.Count);
