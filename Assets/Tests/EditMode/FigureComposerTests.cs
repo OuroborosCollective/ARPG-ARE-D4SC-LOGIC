@@ -16,7 +16,10 @@ namespace AreArpg.EditMode.Tests
     {
         const string NotInstalled = "Requires the purchased BoZo pack with figures baked in two parts (private, never in the repository)";
 
-        /// <summary>Game visual key and base preset of every figure the recipes build in two parts.</summary>
+        /// <summary>
+        /// Game visual key and base preset of every model figure the recipes build in two parts. A colour variant
+        /// draws the body and head meshes of its model, so the models stand for every figure of the pool.
+        /// </summary>
         static List<KeyValuePair<string, string>> TwoPartFigures()
         {
             Type recipes = null;
@@ -26,7 +29,7 @@ namespace AreArpg.EditMode.Tests
             foreach (object figure in (Array)recipes.GetMethod("Load", BindingFlags.Public | BindingFlags.Static).Invoke(null, null))
             {
                 Type type = figure.GetType();
-                if (!(bool)type.GetField("parts").GetValue(figure)) continue;
+                if (!(bool)type.GetField("parts").GetValue(figure) || !string.IsNullOrEmpty((string)type.GetField("sameShapeAs").GetValue(figure))) continue;
                 string key = ((string[])type.GetField("keys").GetValue(figure))[0];
                 if (Resources.Load<GameObject>("ARE/Visuals/" + key) != null) result.Add(new KeyValuePair<string, string>(key, (string)type.GetField("base").GetValue(figure)));
             }

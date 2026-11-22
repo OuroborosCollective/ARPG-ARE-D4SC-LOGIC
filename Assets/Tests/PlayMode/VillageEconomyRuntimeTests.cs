@@ -282,6 +282,43 @@ namespace AreArpg.PlayMode.Tests
             return things;
         }
 
+        /// <summary>
+        /// Residents wear figures of the pool (owner direction 2026-11-22): the first ones each their own figure, later
+        /// ones the same bodies with the head of another figure of their motion set and skin.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator ResidentsWearFiguresOfThePool()
+        {
+            if (FolkFigures.Installed.Count(e => e.Group == FolkFigures.Workers) < 2) Assert.Ignore("No figure pool is baked in this workspace (private art).");
+            StartVillageWork();
+            yield return RunFrames(1);
+            var worn = new HashSet<string>();
+            foreach (VillageResidentState resident in Economy.Residents)
+            {
+                FolkFigures.Look look;
+                Assert.IsTrue(FolkFigures.TryLook(FolkFigures.Installed, FolkFigures.Workers, resident.Ordinal, out look));
+                Transform art = Figure(resident).transform.Find("Art_" + look.Body);
+                Assert.IsNotNull(art, "Resident " + resident.Ordinal + " wears " + look.Body);
+                Assert.IsNotNull(FigureComposer.Part(art, FigureComposer.HeadPart), look.Body + " is built in two parts");
+                Assert.IsTrue(worn.Add(look.Body), "In the first round no two residents share a figure");
+            }
+
+            // A later resident with the same body wears another head: the same call, played out on the first figure.
+            VillageResidentState first = Economy.Residents[0];
+            FolkFigures.Look own, later;
+            FolkFigures.TryLook(FolkFigures.Installed, FolkFigures.Workers, first.Ordinal, out own);
+            int workers = FolkFigures.Installed.Count(e => e.Group == FolkFigures.Workers);
+            Assert.IsTrue(FolkFigures.TryLook(FolkFigures.Installed, FolkFigures.Workers, first.Ordinal + workers, out later));
+            Assert.AreEqual(own.Body, later.Body, "One round later the same body comes again");
+            if (later.OwnHead) Assert.Ignore("Only one figure of this motion set and skin is baked: no head to swap.");
+            Transform figure = Figure(first).transform.Find("Art_" + own.Body);
+            Assert.IsTrue(FolkFigures.PutHead(figure, later), "The head of " + later.Head + " goes on " + own.Body);
+            Mesh donor = FigureComposer.Part(Resources.Load<GameObject>(FolkFigures.VisualRoot + later.Head).transform, FigureComposer.HeadPart).sharedMesh;
+            Assert.AreSame(donor, FigureComposer.Part(figure, FigureComposer.HeadPart).sharedMesh);
+            yield return RunFrames(2);
+            Assert.IsTrue(FigureComposer.Part(figure, FigureComposer.HeadPart).enabled);
+        }
+
         /// <summary>The workplaces were put where the village has room: nothing else stands in them or where their worker stands.</summary>
         [UnityTest]
         public IEnumerator WorkplacesStandOnFreeGround()

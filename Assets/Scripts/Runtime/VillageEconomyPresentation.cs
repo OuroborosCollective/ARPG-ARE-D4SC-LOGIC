@@ -394,7 +394,14 @@ namespace AreArpg.UnityClient
             Color colour = figure == 0 ? new Color(0.62f, 0.46f, 0.32f) : figure == 1 ? new Color(0.50f, 0.36f, 0.30f) : new Color(0.40f, 0.44f, 0.34f);
             view.Visual = Shape(PrimitiveType.Capsule, ResidentPrefix + resident.Ordinal, new Vector3(0f, 1f, 0f), new Vector3(0.8f, 1f, 0.8f), colour);
             view.Visual.SetParent(_villageResidents, true);
-            PassiveArtVisuals.TryBindGrounded(view.Visual, "Villager" + figure, 0f);
+            // A resident wears a figure of the pool (body, and from the second round on the head of another figure);
+            // without baked pool figures, one of the three village figures.
+            FolkFigures.Look look;
+            if (FolkFigures.TryLook(FolkFigures.Installed, FolkFigures.Workers, resident.Ordinal, out look) &&
+                PassiveArtVisuals.TryBindGrounded(view.Visual, look.Body, 0f))
+                FolkFigures.PutHead(view.Visual.GetChild(view.Visual.childCount - 1), look);
+            else
+                PassiveArtVisuals.TryBindGrounded(view.Visual, "Villager" + figure, 0f);
             var shared = _entryProfile ? Resources.Load<RuntimeAnimatorController>("ARE/Visuals/EntryMelee") : null;
             foreach (Animator animator in view.Visual.GetComponentsInChildren<Animator>(true))
             {

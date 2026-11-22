@@ -445,7 +445,19 @@ namespace AreArpg.EditorTools
             foreach (string path in unused.Distinct())
                 if (!drawn.Contains(path) && AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
             AssetDatabase.SaveAssets();
+            WriteFolkIndex();
             Report("DONE");
+        }
+
+        /// <summary>The game's list of the pool figures baked here (BozoFigurePool.IndexText), next to their visuals.</summary>
+        public static void WriteFolkIndex()
+        {
+            string text = BozoFigurePool.IndexText(key => File.Exists(Visuals + key + ".prefab"));
+            if (text == "") return;
+            string path = BozoFigurePool.IndexPath;
+            if (File.Exists(path) && File.ReadAllText(path) == text) return;
+            File.WriteAllText(path, text);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceSynchronousImport);
         }
 
         /// <summary>
@@ -735,7 +747,7 @@ namespace AreArpg.EditorTools
                 string normalPath = folder + recipe.id + "_GameNormal.png";
                 if (Outdated(AssetDatabase.GetAssetPath(packed), normalPath, "normal"))
                     WriteNormalMap(AssetDatabase.GetAssetPath(packed), normalPath, recipe.texture);
-                material.SetTexture("_Normal", AssetDatabase.LoadAssetAtPath<Texture2D>(normalPath));
+                material.SetTexture("_Normal", AssetDatabase.LoadAssetAtPath<Texture2D>(SharedNormal(recipe, normalPath)));
             }
             Texture colours = baked.HasProperty("_Diffuse") ? baked.GetTexture("_Diffuse") : null;
             float light = BozoFigureRecipes.LoadLight();
@@ -749,6 +761,19 @@ namespace AreArpg.EditorTools
             }
             EditorUtility.SetDirty(material);
             return material;
+        }
+
+        /// <summary>
+        /// A colour variant wears its model's parts in the same places, so its normal atlas is normally the model's,
+        /// byte for byte. It then draws the model's texture: the game carries one normal atlas per model instead of
+        /// one per look. Its own copy stays in the private folder, where nothing of the game refers to it.
+        /// </summary>
+        static string SharedNormal(BozoFigureRecipes.Figure recipe, string ownPath)
+        {
+            if (string.IsNullOrEmpty(recipe.sameShapeAs)) return ownPath;
+            string modelPath = BakeFolder + "/" + recipe.sameShapeAs + "/" + recipe.sameShapeAs + "_GameNormal.png";
+            if (!File.Exists(modelPath) || !File.Exists(ownPath) || AssetDatabase.LoadAssetAtPath<Texture2D>(modelPath) == null) return ownPath;
+            return File.ReadAllBytes(modelPath).SequenceEqual(File.ReadAllBytes(ownPath)) ? modelPath : ownPath;
         }
 
         /// <summary>A derived texture is rebuilt when the baked source is newer or it was made with other settings.</summary>
@@ -839,6 +864,13 @@ namespace AreArpg.EditorTools
         {
             var source = AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(recipe.id));
             if (source == null) throw new InvalidOperationException("Gebackene Figur fehlt: " + recipe.id);
+            // A colour variant has its model's preset and body sliders (checked with the recipes), so its bones carry
+            // the same scales: it uses the model's avatar instead of bringing a copy of it into the game.
+            if (!string.IsNullOrEmpty(recipe.sameShapeAs))
+            {
+                var shared = AssetDatabase.LoadAssetAtPath<Avatar>(BakeFolder + "/" + recipe.sameShapeAs + "/" + recipe.sameShapeAs + "_GameAvatar.asset");
+                if (shared != null && shared.isValid && shared.isHuman) return shared;
+            }
             GameObject figure = Object.Instantiate(source);
             try
             {
