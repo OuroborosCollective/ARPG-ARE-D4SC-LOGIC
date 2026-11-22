@@ -131,8 +131,10 @@ internal static class LivingChronicleTests
             if (tick == 2999 || tick == 6999)
             {
                 string saveA = first.SaveString(), saveB = second.SaveString();
-                check(saveA == saveB && CharacterProgression.TryLoad(saveA, out var restoredA) &&
-                      CharacterProgression.TryLoad(saveB, out var restoredB) &&
+                CharacterProgression restoredA, restoredB;
+                bool loadedA = CharacterProgression.TryLoad(saveA, out restoredA);
+                bool loadedB = CharacterProgression.TryLoad(saveB, out restoredB);
+                check(saveA == saveB && loadedA && loadedB &&
                       restoredA.SaveString() == saveA && restoredB.SaveString() == saveB,
                       "chronicle-real-cold-reload-checkpoint-" + tick);
                 check(LivingChronicle.VisibleToPlayer(restoredA).Select(e => e.TextKey).SequenceEqual(
