@@ -11,6 +11,7 @@ internal static class NpcCalmTests
     {
         var p=CharacterProgression.CreateEntryProfile();p.EnterVillage();p.Social.EnableForge();
         var world=new ArenaSimulation(91,p,BigInteger.One,LootCatalog.Version1);
+        check(world.CompleteArrivalScene(),"calm-first-profile-completes-fixed-arrival-before-combat");
         var ilyan=world.Npcs.First(n=>n.Id==0);
         ilyan.Xmm=world.PlayerXmm+1000;ilyan.Zmm=world.PlayerZmm;
         check(world.InteractNpc(0,NpcAction.Attack).Accepted,"calm-real-attack-accepted");
@@ -60,6 +61,7 @@ internal static class NpcCalmTests
         // A greeting eases a fresh grudge without erasing it.
         var g=CharacterProgression.CreateEntryProfile();g.EnterVillage();g.Social.EnableForge();
         var greet=new ArenaSimulation(93,g,BigInteger.One,LootCatalog.Version1);
+        check(greet.CompleteArrivalScene(),"calm-greeting-profile-completes-fixed-arrival-before-combat");
         var near=greet.Npcs.First(n=>n.Id==0);
         near.Xmm=greet.PlayerXmm+1000;near.Zmm=greet.PlayerZmm;
         greet.InteractNpc(0,NpcAction.Attack);
