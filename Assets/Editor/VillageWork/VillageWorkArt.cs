@@ -38,10 +38,10 @@ namespace AreArpg.EditorTools
         /// <summary>How strongly the fire shines; the glow picture is black everywhere else.</summary>
         public const float FireGlow = 2.6f;
 
-        /// <summary>Everything this tool builds: the workplaces, the field, the rooms of the houses and the signs at their doors.</summary>
+        /// <summary>Everything this tool builds: the workplaces, the field, the rooms of the houses, the lot and the signs at the doors.</summary>
         public static ArenaRuntime.VillageWorkplace[] Models()
         {
-            return ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms)
+            return ArenaRuntime.VillageWorkplaces.Concat(ArenaRuntime.VillageRooms).Concat(new[] { ArenaRuntime.VillageSiteModel })
                 .Concat(ArenaRuntime.HouseSignKeys.Select(key => new ArenaRuntime.VillageWorkplace(VillageSpot.Home, key, 0f, 0f, 1f, 0.2f, 2.6f, false))).ToArray();
         }
 
@@ -57,7 +57,7 @@ namespace AreArpg.EditorTools
         {
             if (!Installed)
                 throw new InvalidOperationException("Werkplatz-Modelle fehlen in " + Source +
-                    ". Zuerst Tools/Art/blender/village_work_props.py und village_place_rooms.py dorthin ausführen.");
+                    ". Zuerst Tools/Art/blender/village_work_props.py, village_place_rooms.py und village_build_site.py dorthin ausführen.");
             Build(Models());
         }
 
