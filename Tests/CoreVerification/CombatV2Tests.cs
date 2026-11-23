@@ -12,6 +12,7 @@ public static class CombatV2Tests
     {
         LegacyWorldsKeepInstantCombat(check);
         StrikeLandsOnItsImpactTickOnce(check);
+        ImpactsDoNotRepeatAfterDefeat(check);
         WeaponArchetypesSetTheTiming(check);
         HeavyStrikeAndRuinCostFocusAndStamina(check);
         StaminaRefillsAfterFiveRestingTicks(check);
@@ -86,6 +87,20 @@ public static class CombatV2Tests
         check(target.Health == afterImpact && w.ActionKind == CombatActionKind.None && w.Impacts.Count == 0,
             "combat-v2-exactly-one-impact-then-idle-after-six-ticks");
         check(w.ActivateSkill(0).Activated, "combat-v2-next-strike-after-recovery");
+    }
+
+    /// <summary>A tick after defeat reports no landed strike again: the presentation reads Impacts after every tick (PR #130 review).</summary>
+    private static void ImpactsDoNotRepeatAfterDefeat(Action<bool, string> check)
+    {
+        var w = V2World(7, out _);
+        Target(w, 1500);
+        w.ActivateSkill(0);
+        w.Step(); w.Step(); w.Step();
+        check(w.Impacts.Count == 1, "combat-v2-impact-reported-on-its-tick");
+        w.ReceiveBlowFrom(1000000, w.PlayerXmm + 1000, w.PlayerZmm);
+        check(w.GameOver, "combat-v2-defeat-fixture");
+        w.Step();
+        check(w.Impacts.Count == 0, "combat-v2-no-impact-repeated-after-defeat");
     }
 
     private static void WeaponArchetypesSetTheTiming(Action<bool, string> check)

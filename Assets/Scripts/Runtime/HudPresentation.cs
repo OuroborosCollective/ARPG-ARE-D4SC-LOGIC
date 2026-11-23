@@ -108,10 +108,10 @@ namespace AreArpg.UnityClient
             fault.text = "SPIELSTAND-PRÜFUNG FEHLGESCHLAGEN\nDein Charakter wurde nicht überschrieben.\nStelle einen gültigen Spielstand wieder her.";
         }
 
-        private static Image FilledBar(string name, Transform parent, Color color)
+        private static Image FilledBar(string name, Transform parent, Color color, float inset = 2f)
         {
             var fill = AshenUiTheme.Image(name, parent, AshenUiTheme.Bar, color, false);
-            AshenUiTheme.Stretch(fill.rectTransform, 2f);
+            AshenUiTheme.Stretch(fill.rectTransform, inset);
             fill.type = Image.Type.Filled; fill.fillMethod = Image.FillMethod.Horizontal; fill.fillOrigin = 0;
             return fill;
         }
@@ -146,7 +146,8 @@ namespace AreArpg.UnityClient
             var sBack = AshenUiTheme.Image("StaminaBack", g, AshenUiTheme.Bar, new Color(0.04f, 0.08f, 0.03f, 0.95f));
             AshenUiTheme.Place(sBack.rectTransform, l.StaminaBarRect);
             _hudStaminaBack = sBack.gameObject;
-            _hudStaminaFill = FilledBar("StaminaFill", sBack.transform, new Color(0.62f, 0.78f, 0.30f, 1f));
+            // The stamina bar is only 4 units high: a 2-unit inset on every side would leave a fill of no height.
+            _hudStaminaFill = FilledBar("StaminaFill", sBack.transform, new Color(0.62f, 0.78f, 0.30f, 1f), 0.75f);
         }
 
         private void BuildQuestTracker(Transform g, ArenaHudLayout l)

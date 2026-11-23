@@ -606,6 +606,8 @@ namespace AreArpg.Core
         public void Step()
         {
             CurrentTick++;
+            // What one tick decided is read by the presentation after it; a tick after defeat must not repeat it.
+            Impacts.Clear();
             if (Progression.Crafting.ActiveRegenTicks > 0 && PlayerHealth > 0)
                 PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + Progression.Crafting.RegenPerTick);
             Progression.Crafting.AdvanceTick();

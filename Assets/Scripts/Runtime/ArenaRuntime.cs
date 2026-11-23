@@ -40,6 +40,8 @@ namespace AreArpg.UnityClient
         private bool _pendingPickup;
         // Combat v2 (issue #127): dodge and flask are queued like skills; SCHUTZ is held by a finger, a mouse or key 3.
         private bool _pendingDodge, _pendingFlask, _guardMouse;
+        /// <summary>Practice ranks before a combat-v2 tick: a hit trains on its impact tick, inside the step.</summary>
+        private readonly System.Numerics.BigInteger[] _practiceBefore = new System.Numerics.BigInteger[SkillCatalog.Count];
         private int _guardFinger = -1;
         private long _moveWorldX, _moveWorldZ;
         private bool _pendingCampDonation;
@@ -100,7 +102,8 @@ namespace AreArpg.UnityClient
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
             if (combatMoved)
             {
-                _message = "Neues Kampfgefühl: SCHUTZ halten blockt, AUSWEICHEN rollt dich weg, TRANK heilt nach kurzem Ansetzen. Freies Heilen gibt es nicht mehr.";
+                _message = "Neues Kampfgefühl: SCHUTZ halten blockt, AUSWEICHEN rollt dich weg, TRANK heilt nach kurzem Ansetzen. Freies Heilen gibt es nicht mehr; " +
+                    "deine bisherige Schutz-Übung bleibt erhalten und zählt jetzt als Heilkunst.";
                 SaveCharacter();
             }
             BuildWorld();
@@ -733,14 +736,13 @@ namespace AreArpg.UnityClient
         private static float HudScreenWidth { get { return HudScreenOverride.HasValue ? HudScreenOverride.Value.x : Screen.width; } }
         private static float HudScreenHeight { get { return HudScreenOverride.HasValue ? HudScreenOverride.Value.y : Screen.height; } }
 
-        private static ArenaHudLayout CurrentHudLayout()
+        private ArenaHudLayout CurrentHudLayout()
         {
-            if (HudScreenOverride.HasValue)
-            {
-                Vector2 s = HudScreenOverride.Value;
-                return new ArenaHudLayout(s.x, s.y, new Rect(0f, 0f, s.x, s.y));
-            }
-            return new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
+            Vector2? s = HudScreenOverride;
+            var layout = s.HasValue ? new ArenaHudLayout(s.Value.x, s.Value.y, new Rect(0f, 0f, s.Value.x, s.Value.y)) :
+                new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
+            layout.CombatRingShown = _game != null && _game.CombatV2;
+            return layout;
         }
 
         private void QueueNpcAction(NpcAction action)
@@ -1172,6 +1174,7 @@ namespace AreArpg.UnityClient
                 long oldX = _game.PlayerXmm, oldZ = _game.PlayerZmm; int oldHealth = _game.PlayerHealth;
                 int potionsBefore = _game.Progression.Crafting.PotionCount(PotionType.Heal), blockedBefore = _game.BlockedAttacks;
                 bool guardBefore = _game.GuardRaised;
+                for (int slot = 0; slot < _practiceBefore.Length; slot++) _practiceBefore[slot] = _game.Progression.PracticeLevel(slot);
                 _game.Step();
                 if (_game.CombatV2) PresentCombatTick(oldHealth, potionsBefore, blockedBefore, guardBefore);
                 _atmosphere.ObserveTick(_game, oldX, oldZ, oldHealth);

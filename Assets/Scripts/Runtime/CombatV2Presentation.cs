@@ -16,7 +16,11 @@ namespace AreArpg.UnityClient
                 _atmosphere.Impact(impact, _game);
                 PresentImpact(impact, impact.Slot);
                 _message = impact.Message;
-                if (impact.Kills > 0 || impact.WeaponLevelUps > 0) SaveCharacter();
+                // The practice rank grows on the impact tick; a rank gained without a kill is saved too.
+                bool learned = impact.Slot >= 0 && impact.Slot < _practiceBefore.Length &&
+                    _game.Progression.PracticeLevel(impact.Slot) > _practiceBefore[impact.Slot];
+                if (learned) _message += " / Durch Uebung gewachsen: Rang " + _game.Progression.PracticeLevel(impact.Slot);
+                if (impact.Kills > 0 || impact.WeaponLevelUps > 0 || learned) SaveCharacter();
             }
             if (_game.Progression.Crafting.PotionCount(PotionType.Heal) < potionsBefore)
             {

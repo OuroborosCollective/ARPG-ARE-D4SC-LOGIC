@@ -203,6 +203,8 @@ namespace AreArpg.UnityClient
 
         /// <summary>Combat v2 (issue #127): dodge on an outer ring left of the skill arc, the flask above it. Both stay clear of
         /// the stick, the skill buttons, the NPC choices and the camera controls on phone and tablet canvases.</summary>
+        /// <summary>The ring takes touches only while it is shown (combat v2); hidden, it neither swallows taps nor blocks camera gestures.</summary>
+        public bool CombatRingShown { get; set; }
         public Rect DodgeRect { get { return OuterRing(160f); } }
         public Rect FlaskRect { get { return OuterRing(115f); } }
         private Rect OuterRing(float degrees)
@@ -312,8 +314,8 @@ namespace AreArpg.UnityClient
                 if (SkillRect(i).Contains(point))
                     return (ArenaHudControl)((int)ArenaHudControl.Skill0 + i);
 
-            if (DodgeRect.Contains(point)) return ArenaHudControl.Dodge;
-            if (FlaskRect.Contains(point)) return ArenaHudControl.Flask;
+            if (CombatRingShown && DodgeRect.Contains(point)) return ArenaHudControl.Dodge;
+            if (CombatRingShown && FlaskRect.Contains(point)) return ArenaHudControl.Flask;
             if (PickupRect.Contains(point)) return ArenaHudControl.Pickup;
             if (MoveRect.Contains(point)) return ArenaHudControl.Move;
             return ArenaHudControl.None;
