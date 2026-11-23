@@ -11,7 +11,7 @@
 `ArpgBuildTools.BuildAndroidAppBundle`, menu **ARE ARPG/3. Build Signed App Bundle for Google Play**:
 
 - The upload key and its passwords come only from the signing file named by `ARE_ANDROID_SIGNING`. The file and the key must lie outside the project, so neither can be committed; missing or incomplete data refuses the build.
-- Version code = minutes since 2026-01-01 UTC, so every later bundle carries a higher one.
+- Version code = seconds since 2026-01-01 UTC, so every later bundle carries a higher one, also when two builds start in the same minute (changed after review; the two bundles below were built while it still counted minutes, and every code counted in seconds is higher).
 - App Bundle with split application binary: the game data travels in the install-time asset pack `UnityDataAssetPack`, the base module stays small.
 - Unity's internal bundle size warning is raised to 3,072 MB; above 200 MB it used to stop the build with a modal question.
 - Afterwards the key fields, the version code and the bundle flags are as before, and both passwords are removed from the generated Gradle project (Unity writes them there as plain text), whether the build succeeded or not.
@@ -38,7 +38,7 @@ First signed bundle (built before the size and cleanup fixes; the build stopped 
 - Player settings read back after the build: no custom key, empty key name, alias and passwords, version code 1, bundle and split flags off
 - Key password search (only paths and counts printed): editor log 0 files; generated Gradle project 1 file (`launcher/build.gradle`, both passwords) and Gradle's compiled-script cache in the build user's home 3 files. All four were cleaned; a second search found 0. The build method now cleans the Gradle project itself; the home cache is cleaned by a private post-build tool outside the repository.
 
-EditMode `AndroidPlayBundleTests` in the live editor: 5/5 passed, 0 skipped (rising version codes, signing file only from outside the project, project path recognised in any case where the file system ignores case, password removal from Gradle files, 3 GB size warning); Unity XML SHA-256 `f58bc0820a18d7bfec325a451d8ddab54dae6253ac70445f589e83a36f77079a`. Static Unity/Android contract preflight and the 54 preflight tests pass.
+EditMode `AndroidPlayBundleTests` in the live editor on the final code: 5/5 passed, 0 skipped (rising version codes also within one minute, signing file only from outside the project, project path recognised in any case where the file system ignores case, password removal from Gradle files, 3 GB size warning); Unity XML SHA-256 `67c924bbd653ab43346253557183a49c531398309f0ee7be35f95be0e1e9699e`. Static Unity/Android contract preflight and the 54 preflight tests pass.
 
 ## Not verified
 
