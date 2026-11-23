@@ -135,7 +135,9 @@ namespace AreArpg.PlayMode.Tests
             yield return player.Frame();
             var before = player.Game;
             var p = before.Progression;
-            int act = p.EntryAct, stage = p.HungerStage, items = p.Items.Count;
+            int act = p.EntryAct, stage = p.HungerStage;
+            var items = new ulong[p.Items.Count];
+            for (int i = 0; i < items.Length; i++) items[i] = p.Items[i].StableHash;
             var provisions = p.Social.Provisions;
             var choice = p.SupplyChoice;
             bool rescued = p.Road.Rescued, thanked = p.Road.FavorClaimed;
@@ -153,7 +155,9 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(act, q.EntryAct, passage + ": reopened in the same area");
             Assert.AreEqual(stage, q.HungerStage, passage + ": the story stage survives");
             Assert.AreEqual(choice, q.SupplyChoice, passage + ": the supply decision survives");
-            Assert.AreEqual(items, q.Items.Count, passage + ": the carried items survive");
+            var carried = new ulong[q.Items.Count];
+            for (int i = 0; i < carried.Length; i++) carried[i] = q.Items[i].StableHash;
+            CollectionAssert.AreEqual(items, carried, passage + ": the same carried items survive, in the same order");
             Assert.AreEqual(provisions, q.Social.Provisions, passage + ": the rations survive");
             Assert.AreEqual(rescued, q.Road.Rescued, passage + ": the hunter's fate survives");
             Assert.AreEqual(thanked, q.Road.FavorClaimed, passage + ": the hunter's thanks survive");
