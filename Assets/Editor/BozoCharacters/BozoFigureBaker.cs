@@ -65,7 +65,7 @@ namespace AreArpg.EditorTools
             EnsureFolder(StagingFolder);
             settings._prefabFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(StagingFolder);
             EditorUtility.SetDirty(settings); AssetDatabase.SaveAssetIfDirty(settings);
-            foreach (string id in ids) AssetDatabase.DeleteAsset(StagingFolder + "/" + id);
+            foreach (string id in ids) { AssetDatabase.DeleteAsset(StagingFolder + "/" + id); if (File.Exists(StagedPartsRecordPath(id))) File.Delete(StagedPartsRecordPath(id)); }
             Directory.CreateDirectory(Path.GetDirectoryName(ReportPath));
             File.WriteAllText(ReportPath, "");
             SessionState.SetString(ReturnSceneKey, JsonUtility.ToJson(new SceneSetupState { scenes = EditorSceneManager.GetSceneManagerSetup() }));
@@ -373,7 +373,7 @@ namespace AreArpg.EditorTools
             var published = new List<string>();
             foreach (string id in baked)
             {
-                try { PublishBake(id); published.Add(id); }
+                try { PublishBake(id); PromotePartsRecord(id); published.Add(id); }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
@@ -529,6 +529,19 @@ namespace AreArpg.EditorTools
         static string GameMeshPath(string id) { return BakeFolder + "/" + id + "/" + id + "_GameMesh.asset"; }
         static string PartPath(string id, string part) { return BakeFolder + "/" + id + "/" + id + "_Game" + part + ".asset"; }
         static string PartsRecordPath(string id) { return Path.Combine(Directory.GetCurrentDirectory(), "Library/BozoCharacters/Parts/" + id + ".txt"); }
+        static string StagedPartsRecordPath(string id) { return PartsRecordPath(id) + ".staged"; }
+
+        /// <summary>
+        /// A bake writes its parts record next to the figure's record; only a published bake takes it over. A bake that
+        /// fails or cannot be published leaves the record that belongs to the figure still in use (review on #133).
+        /// </summary>
+        static void PromotePartsRecord(string id)
+        {
+            string staged = StagedPartsRecordPath(id);
+            if (!File.Exists(staged)) return;
+            File.Copy(staged, PartsRecordPath(id), true);
+            File.Delete(staged);
+        }
 
         /// <summary>
         /// The pack merges a figure by putting the mesh of every outfit after the previous one (BoZoCharacterOptimizer):
@@ -557,7 +570,7 @@ namespace AreArpg.EditorTools
             int count = merged != null && merged.sharedMesh != null ? merged.sharedMesh.vertexCount : -1;
             if (total != count) throw new InvalidOperationException(id + ": die Teile ergeben " + total + " Eckpunkte, das zusammengefügte Modell hat " + count + ".");
             Directory.CreateDirectory(Path.GetDirectoryName(PartsRecordPath(id)));
-            File.WriteAllLines(PartsRecordPath(id), lines);
+            File.WriteAllLines(StagedPartsRecordPath(id), lines);
         }
 
         /// <summary>For every vertex of the merged figure: does it belong to the head? From the record of the bake.</summary>
@@ -818,7 +831,8 @@ namespace AreArpg.EditorTools
             }
             Texture colours = baked.HasProperty("_Diffuse") ? baked.GetTexture("_Diffuse") : null;
             float light = BozoFigureRecipes.LoadLight();
-            if (colours != null && light < 1f)
+            // With a fabric the colours are rewritten even without a lift (a curve of exponent 1 keeps the brightness).
+            if (colours != null && (light < 1f || HasFabric(recipe)))
             {
                 string colourPath = folder + recipe.id + "_GameColours.png";
                 string stamp = "light=" + light.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + FabricStamp(recipe);
@@ -903,8 +917,20 @@ namespace AreArpg.EditorTools
         {
             if (!HasFabric(recipe)) return "";
             // "v3": skin that outfits carry or let through stays free of fabric; older derived textures are rebuilt.
-            return ";fabric=v3," + string.Join(",", recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)).Select(o =>
-                o.slot + ":" + o.fabric + ":" + o.fabricStrength.ToString("0.###", Invariant) + ":" + o.fabricScale.ToString("0.###", Invariant)));
+            var used = recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)).ToList();
+            // The maps' content is part of the stamp: a regenerated map under the same name rebuilds both atlases.
+            return ";fabric=v3," + string.Join(",", used.Select(o =>
+                o.slot + ":" + o.fabric + ":" + o.fabricStrength.ToString("0.###", Invariant) + ":" + o.fabricScale.ToString("0.###", Invariant))) +
+                ";maps=" + string.Join(",", used.Select(o => o.fabric).Distinct().OrderBy(n => n, StringComparer.Ordinal).Select(n => n + ":" + FileFingerprint(FabricPath(n))));
+        }
+
+        /// <summary>FNV-1a over a file's bytes, as hex; "missing" for an absent file (the bake then reports it).</summary>
+        static string FileFingerprint(string path)
+        {
+            if (!File.Exists(path)) return "missing";
+            ulong h = 14695981039346656037UL;
+            unchecked { foreach (byte b in File.ReadAllBytes(path)) { h ^= b; h *= 1099511628211UL; } }
+            return h.ToString("x16", Invariant);
         }
 
         sealed class FabricLayer { public bool[] Mask; public float[] Height; public int Size; public float Strength, Scale; }
