@@ -78,6 +78,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.Greater(w.ActivateSkill(0).Hits, 0);
             typeof(ArenaRuntime).GetMethod("InstallNewRun", Flags).Invoke(_runtime, new object[] { w, "Jäger gerettet" });
             MoveStory(2000, 9000); yield return null;
+            TickOnce(); yield return null; // one real runtime tick builds the road figures
 
             var hunter = Find("ARE_Road_Hunter");
             Assert.IsNotNull(hunter, "The rescued hunter stands on the road");
