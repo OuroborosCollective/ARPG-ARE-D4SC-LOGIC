@@ -744,11 +744,15 @@ namespace AreArpg.PlayMode.Tests
                 animator.Play("Idle", 0, 0f); animator.Update(0f);
             }
             bool arrow = false, warning = false;
-            for (int tick = 0; tick < 600 && !Game.GameOver && !Game.Progression.Road.Bear.IsDead; tick++)
+            for (int tick = 0; tick < 1500 && !Game.GameOver && !Game.Progression.Road.Bear.IsDead; tick++)
             {
                 var h = Game.Progression.Road; var bear = h.Bear;
                 if (bear.BossWindupTicks > 0 && h.StrikePlayer)
-                    Game.SetMoveInput(Game.PlayerXmm >= h.StrikeX ? 10000 : -10000, 0);
+                {
+                    long away = Game.PlayerXmm >= h.StrikeX ? 10000 : -10000;
+                    Game.SetMoveInput(away, 0);
+                    if (Game.CombatV2) Game.StartDodge(away, 0); // combat v2: roll out of the red swipe
+                }
                 else
                 {
                     long dx = bear.Xmm - Game.PlayerXmm, dz = bear.Zmm - Game.PlayerZmm;
@@ -756,7 +760,7 @@ namespace AreArpg.PlayMode.Tests
                         dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dz) * 10000 : 0);
                 }
                 Game.ActivateSkill(0); Game.ActivateSkill(1); Game.ActivateSkill(3);
-                if (Game.PlayerHealth < 1000) Game.ActivateSkill(2);
+                if (Game.PlayerHealth < 1000 && !Game.CombatV2) Game.ActivateSkill(2);
                 Game.Step(); typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
                 typeof(ArenaRuntime).GetMethod("UpdatePresentation", Flags).Invoke(_runtime, new object[] { 1f });
                 if (!warning && h.Bear.BossWindupTicks > 0)
