@@ -406,3 +406,12 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: Gerätetest, Ton, Bildrate, die Entscheidungen Offenlegen/Schweigen und alles hinter der Mühle sind nicht Teil des Laufs.
 - Nächste Schritte: Orsels Lehren im Spiel erreichbar machen (Owner-Entscheidung nötig), Aschestraße und Mühlenumgebung aus dem Rohbau, eigene Abmischung.
 - [Technische Abnahme](../player-journey-run-20261123/acceptance.md)
+
+## 23. November 2026 · Kampf v2 Fundament und Rüstung (Core), Issue #127
+
+- Owner-Entscheidungen: erst der Spielerkern aus #127, dann Orsels voller Lehrgang nach dem Heilkunst-Entwurf, dann Gegner/Bosse, dann 52 Waffenprofile; freie Heilung auf Knopf 2 entfällt; Rüstung aus Handwerk und Belohnung; Schutz 0/15/30/45 %, Heilwirkung 100/75/50/25 %.
+- Neu im Core, nur für Charaktere mit Kampfversion 2: Aktionen mit Ausholen/Treffer/Erholung, Ausdauer, Ausweichen, gehaltener Schutz, Trank mit Wirk-Tick, Ausholen der Nahkampfgegner, Rüstungsplätze und -werte mit eigenem Spielstand-Abschnitt.
+- Evidence: `Tests/CoreVerification` ALL PASS 22.994 (64 neu), Unity 6000.6.8f1 kompiliert im Live-Editor (Unity-CLI, kein Director-Job), geprüfter Inhalt `5a2b7020ac9a0a7f5d78acb1c51fa8eea1b1a24d`.
+- Grenzen: im Spiel noch nicht sichtbar; weitere Gegnerphasen, Waffenprofile, Kombos, Haltung und Balance offen.
+- Nächster Schritt: Touch-Steuerung (Ausweichen, Schutz halten, Trank, Ausdauerbalken), neue Spiele und alte Spielstände auf Kampfversion 2, Testspieler mit Ausweichen.
+- [Technische Abnahme](../combat-v2-foundation-20261123/acceptance.md)

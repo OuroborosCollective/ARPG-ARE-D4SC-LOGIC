@@ -75,9 +75,15 @@ namespace AreArpg.Core
             return next;
         }
         /// <summary>An enemy attack: the shield trains on it and may block it completely; armour reduces what gets through.</summary>
-        private void ReceiveDamage(int amount)
+        private void ReceiveDamage(int amount) { ReceiveHit(amount, false, 0, 0); }
+
+        /// <summary>A blow on the player. Combat v2 lets a dodge or a raised guard facing the source decide first; the legacy
+        /// rules keep the shield's passive block chance.</summary>
+        private void ReceiveHit(int amount, bool hasSource, long fromX, long fromZ)
         {
             IncomingAttacks++;
+            int afterGuard = GuardOrDodge(amount, hasSource, fromX, fromZ);
+            if (afterGuard >= 0) { if (afterGuard > 0) ApplyProtectedDamage(afterGuard); return; }
             if (Progression.Equipment.Shield != null)
             {
                 Progression.RecordShieldPractice(amount);
@@ -94,11 +100,19 @@ namespace AreArpg.Core
 
         private void ApplyProtectedDamage(int amount)
         {
-            int protection=Math.Min(6000,(Progression.Woodland.ArmorCrafted?1000:0)+Progression.Crafting.DefenseBonusBp+Progression.Village.BuffetDefenseBp+Progression.Equipment.Bonus(WeaponAffix.Ward)+(Progression.Equipment.Shield?.Definition.BasePower??0)); PlayerHealth=Math.Max(0,PlayerHealth-Math.Max(1,amount*(10000-protection)/10000));
+            int protection=Math.Min(6000,Progression.Armor.ProtectionBp+(Progression.Woodland.ArmorCrafted?1000:0)+Progression.Crafting.DefenseBonusBp+Progression.Village.BuffetDefenseBp+Progression.Equipment.Bonus(WeaponAffix.Ward)+(Progression.Equipment.Shield?.Definition.BasePower??0)); PlayerHealth=Math.Max(0,PlayerHealth-Math.Max(1,amount*(10000-protection)/10000));
         }
 
         /// <summary>Drink the highest available potion of a type; a heal potion raises the actual player health.</summary>
         public bool DrinkPotion(PotionType type)
+        {
+            if (GameOver) return false;
+            // Combat v2: lifting the flask takes five ticks; the potion works and is used up only on the effect tick.
+            if (CombatV2) return StartDrink(type);
+            return DrinkNow(type);
+        }
+
+        private bool DrinkNow(PotionType type)
         {
             if (GameOver) return false;
             var crafting = Progression.Crafting;
