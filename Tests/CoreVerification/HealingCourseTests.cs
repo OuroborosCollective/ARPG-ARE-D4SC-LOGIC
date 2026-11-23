@@ -25,6 +25,7 @@ public static class HealingCourseTests
         TheCourseSurvivesTheSaveAndRejectsTampering(check);
         TheHealerStaffIsNeverLoot(check);
         SameInputsGiveTheSameWorld(check);
+        OrselTeachesInTheVillageOnceSheHasMoved(check);
     }
 
     /// <summary>The mill after the camp was examined: stage 3, act 4, combat v2, creatures far away.</summary>
@@ -255,6 +256,31 @@ public static class HealingCourseTests
         check(RegionalRelics.GrantedOnly(RegionalRelic.M_Heilerstab) && !w.TryGetRegionalRelicSource(RegionalRelic.M_Heilerstab, out _, out _), "healing-staff-not-lying-in-the-world");
         ToOrsel(w);
         check(!w.ActOnHunger(HungerAction.ClaimRegionalRelic).Accepted || !w.Progression.Equipment.OwnsRegionalRelic(RegionalRelic.M_Heilerstab), "healing-staff-not-claimable");
+    }
+
+    /// <summary>A player who passed the mill without the lesson finds Orsel in front of the finished sick room.</summary>
+    private static void OrselTeachesInTheVillageOnceSheHasMoved(Action<bool, string> check)
+    {
+        var p = CharacterProgression.CreateEntryProfile();
+        p.UseCombatV2();
+        for (int i = 0; i < 3; i++) p.DiscoverHungerClue();
+        p.ChooseHungerSupply(HungerChoice.Protect);
+        p.TravelHunger(4, false);
+        p.DiscoverHungerClue();
+        if (!p.Village.UnlockOrselTeaches(p)) throw new Exception("Mill quest fixture");
+        p.Houses.Complete(VillagePlace.SickRoom);
+        p.TravelHunger(2, false);
+        p.Social.EnableForge();
+        var w = Calm(new ArenaSimulation(123, p, BigInteger.One, LootCatalog.Version1));
+        if (w.ArrivalScenePending) w.CompleteArrivalScene();
+        long x = VillageBuildRules.AskerXmm(VillagePlace.SickRoom), z = VillageBuildRules.AskerZmm(VillagePlace.SickRoom);
+        check(!w.SiteOffered(VillagePlace.SickRoom) && w.TryGetOrselTeachingSpot(out long sx, out long sz) && sx == x && sz == z,
+            "healing-village-spot-before-the-sick-room");
+        VillagePlaceTests.Walk(w, x + 900, z + 500);
+        check(w.OrselInReach && w.HelpOrsel(HealingCoursePath.Supplies).Accepted && w.LearnWundschluss().Accepted &&
+            w.Progression.Equipment.IsRegionalRelicEquipped(RegionalRelic.M_Heilerstab), "healing-village-lesson");
+        var back = Reload(w);
+        check(back.Progression.Healing.Learned && back.Progression.Equipment.OwnsRegionalRelic(RegionalRelic.M_Heilerstab), "healing-village-lesson-saved");
     }
 
     private static void SameInputsGiveTheSameWorld(Action<bool, string> check)

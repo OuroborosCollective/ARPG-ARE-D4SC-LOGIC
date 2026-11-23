@@ -223,15 +223,16 @@ namespace AreArpg.Core
         { return !GameOver && !InJourney && !InWoodlandRegion && !InDungeon && Progression.EntryAct == act; }
 
         /// <summary>
-        /// Where Orsel teaches: at the old mill while she lives there, in front of the sick room's lot once she has
-        /// moved to the village, so a player who passed the mill without the lesson can still learn it.
+        /// Where Orsel teaches: at the old mill while she lives there; once she has moved to the village, in front of the
+        /// sick room as soon as it stands, so a player who passed the mill without the lesson can still learn it. While
+        /// she still asks for the sick room's lot, that talk has the place to itself.
         /// </summary>
         public bool TryGetOrselTeachingSpot(out long x, out long z)
         {
             x = z = 0;
             if (Progression.Houses.OrselInVillage)
             {
-                if (!InMillOrVillage(2)) return false;
+                if (!InMillOrVillage(2) || SiteOffered(VillagePlace.SickRoom)) return false;
                 x = VillageBuildRules.AskerXmm(VillagePlace.SickRoom); z = VillageBuildRules.AskerZmm(VillagePlace.SickRoom);
                 return true;
             }
