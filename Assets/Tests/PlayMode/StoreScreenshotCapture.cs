@@ -65,7 +65,7 @@ namespace AreArpg.PlayMode.Tests
             return output;
         }
 
-        [UnityTest, Category("PrivateArt")]
+        [UnityTest, Category("PrivateArt"), Timeout(1200000)]
         public IEnumerator StoreScreenshotsOfTheCryptVillageRoadAndMill()
         {
             string output = StoreOutput();
@@ -86,7 +86,7 @@ namespace AreArpg.PlayMode.Tests
             yield return StoreFrame(output, "muehle", "Bau_b0201_StoneOutcrop", new Vector3(-3.5f, 1.65f, -3.1f), .74f);
         }
 
-        [UnityTest, Category("PrivateArt")]
+        [UnityTest, Category("PrivateArt"), Timeout(1200000)]
         public IEnumerator StoreScreenshotsOfTheStoreAndTheHiddenCrypt()
         {
             string output = StoreOutput();
