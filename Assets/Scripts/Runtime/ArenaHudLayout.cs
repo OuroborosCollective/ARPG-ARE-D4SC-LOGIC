@@ -227,9 +227,10 @@ namespace AreArpg.UnityClient
             return new Rect(LeftColumnWidth + 20f + mastery * 124f, Height - 250f, 116f, 50f);
         }
 
+        /// <summary>The dialogue card ends 340 units before the right edge: the combat-v2 ring (dodge) stays free beside it.</summary>
         public Rect NpcPanelRect
         {
-            get { return new Rect(230f, Height - 190f, Mathf.Max(300f, Width - 490f), 178f); }
+            get { return new Rect(230f, Height - 190f, Mathf.Max(300f, Width - 570f), 178f); }
         }
 
         /// <summary>Place one of four NPC choices in a 2x2 grid in the dialogue card.</summary>
