@@ -65,7 +65,8 @@ namespace AreArpg.PlayMode.Tests
         private static void CheckWorkshopCatalog()
         {
             var catalog=new ArsenalAssetList();var all=RegionalRelics.All;
-            Assert.AreEqual(23,all.Count);
+            // 23 pieces lie in the world; Orsel's staff (M_Heilerstab) is handed over and borrows a staff model.
+            Assert.AreEqual(24,all.Count);
             foreach(var id in all)
             {
                 var prefab=AuthoredRelicSource(id);Assert.IsNotNull(prefab,"Missing native fund prefab "+id);

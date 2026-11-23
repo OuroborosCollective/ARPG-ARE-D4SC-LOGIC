@@ -79,6 +79,8 @@ namespace AreArpg.UnityClient
                 case RegionalRelic.Brandreif: path = Workshop + "Brandreif_Fund"; break;
                 case RegionalRelic.Grubenlicht: path = LampPrefab; break;
                 case RegionalRelic.Rattlerkluft: path = Arsenal + "R_Wangenmaske"; break;
+                // Orsel's staff has no model of its own yet; it borrows the one its hand definition names.
+                case RegionalRelic.M_Heilerstab: path = "ARE/Visuals/" + RegionalRelics.HandDefinition(id).VisualKey; break;
                 default: path = Arsenal + id; break;
             }
             return Resources.Load<GameObject>(path);
