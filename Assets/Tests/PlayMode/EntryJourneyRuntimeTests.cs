@@ -759,9 +759,14 @@ namespace AreArpg.PlayMode.Tests
                     Game.SetMoveInput(dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dx) * 10000 : 0,
                         dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dz) * 10000 : 0);
                 }
-                // Combat v2 commits to each swing: strike only when it ends before the bear's next red swipe can start.
-                if (!Game.CombatV2 || (bear.BossWindupTicks == 0 && bear.AttackCooldownTicks >= 8))
-                { Game.ActivateSkill(0); Game.ActivateSkill(1); Game.ActivateSkill(3); }
+                // Combat v2 commits to each swing: keep the bear busy with short swings, never start one into its red
+                // swipe, and cast Ruin only when its long windup ends before the bear can strike again.
+                if (!Game.CombatV2) { Game.ActivateSkill(0); Game.ActivateSkill(1); Game.ActivateSkill(3); }
+                else if (!(bear.BossWindupTicks > 0 && h.StrikePlayer))
+                {
+                    if (bear.AttackCooldownTicks > CombatV2Rules.Ruin.Startup) Game.ActivateSkill(3);
+                    Game.ActivateSkill(1); Game.ActivateSkill(0);
+                }
                 if (Game.PlayerHealth < 1000 && !Game.CombatV2) Game.ActivateSkill(2);
                 Game.Step(); typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
                 typeof(ArenaRuntime).GetMethod("UpdatePresentation", Flags).Invoke(_runtime, new object[] { 1f });
