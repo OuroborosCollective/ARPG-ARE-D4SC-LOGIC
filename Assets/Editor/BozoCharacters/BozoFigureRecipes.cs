@@ -30,7 +30,21 @@ namespace AreArpg.EditorTools
         public static readonly string[] BuiltByOtherTools = { "EntryCombatHero", "EntryHero", "MillPatient0", "MillPatient1", "MillPatient2" };
 
         [Serializable] public sealed class Shape { public string id = ""; public float value; }
-        [Serializable] public sealed class Outfit { public string slot = ""; public string id = ""; public string[] colors = new string[0]; }
+        [Serializable]
+        public sealed class Outfit
+        {
+            public string slot = ""; public string id = ""; public string[] colors = new string[0];
+            /// <summary>
+            /// Own fabric over the part (owner 2026-11-23, e.g. "AC_LinenCoarse": coarse heavy linen), a height map in
+            /// Tools/Art/fabric (make_fabric.py): the bake lays its weave into the part's colours and its relief into the
+            /// normal map, on this part's pixels only. Empty: none.
+            /// </summary>
+            public string fabric = "";
+            /// <summary>How strongly the weave shows, 0..1.</summary>
+            public float fabricStrength = 0.6f;
+            /// <summary>How often the fabric repeats across the figure's texture atlas.</summary>
+            public float fabricScale = 4f;
+        }
         [Serializable]
         public sealed class Figure
         {
