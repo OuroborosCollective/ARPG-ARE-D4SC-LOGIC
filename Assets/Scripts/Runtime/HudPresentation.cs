@@ -473,7 +473,8 @@ namespace AreArpg.UnityClient
                 int cd = _game.Cooldowns[i];
                 _hudSkillCooldown[i].fillAmount = cd > 0 ? Mathf.Clamp01(cd / (float)def.CooldownTicks) : 0f;
                 _hudSkillTimer[i].text = cd > 0 ? Mathf.CeilToInt(cd * ArenaSimulation.TickMs / 1000f).ToString() : "";
-                _hudSkillRank[i].text = "R" + p.PracticeLevel(i);
+                // Combat v2: SCHUTZ guards; the kept healing practice is not a guard rank.
+                _hudSkillRank[i].text = combatV2 && i == 2 ? "" : "R" + p.PracticeLevel(i);
                 bool affordable = _game.Resource >= def.FocusCost;
                 _hudSkillFace[i].color = affordable ? Color.white : new Color(0.55f, 0.55f, 0.65f, 1f);
             }
