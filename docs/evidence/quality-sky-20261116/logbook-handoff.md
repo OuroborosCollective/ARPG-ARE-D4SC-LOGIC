@@ -378,3 +378,12 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Unity 6000.6.8f1, Unity-CLI-Lauf im Live-Editor (kein Director-Job): `AndroidPlayBundleTests` 5/5; statische Unity/Android-Prüfung und 54 Preflight-Tests grün. CodeRabbit-Hinweis zur Groß-/Kleinschreibung von Pfaden unter Windows/macOS umgesetzt.
 - Offen (Owner): App in der Play Console anlegen und das AAB in eine Testspur hochladen; Gerätetest.
 - [Technische Abnahme](../play-app-bundle-20261122/acceptance.md)
+
+
+## 23. November 2026 · Update-Hinweis, Play-Store-Eintrag · PR 125
+
+- Update-Hinweis beim Spielstart über Google Play In-App Updates: Prüfung einmal pro Start, Fenster im Menüstil, Googles Vollbild-Update auf Wunsch; Gradle-Schritt bindet die Bibliothek ein und schlägt laut fehl, wenn das nicht geht. Nachweis im signierten Paket 28170992 (SHA-256 `34712b90…`).
+- Play-Store-Eintrag (außerhalb des Repos, über das Dienstkonto): Texte auf Deutsch und Englisch, App-Symbol und Vorstellungsgrafik aus einer Nahaufnahme der Glutschale bzw. dem Gruft-Tor, 6 Bildschirmfotos aus der echten Spielreise; Datenschutzerklärung unter arelogic.space; Pflichtangaben hat der Owner in der Play Console eingetragen.
+- Dienstkonto `play-upload@ashen-crypt-play-108d3c.iam.gserviceaccount.com` mit Rechten nur für Testspuren; die App ist noch ein Entwurf bei Google, darum darf die Schnittstelle nur Entwürfe anlegen. Das Paket liegt als Entwurf im geschlossenen Test, deine Versionshinweise unverändert plus englische Übersetzung.
+- Offen (Owner): Tester eintragen und den ersten Release in der Play Console zur Prüfung senden; Produktion verlangt bei neuen Konten 14 Tage geschlossenen Test mit mindestens 12 Testern. Update-Ablauf auf einem Gerät UNVERIFIED.
+- [Technische Abnahme](../play-update-prompt-20261123/acceptance.md)
