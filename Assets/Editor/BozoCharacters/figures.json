@@ -4,7 +4,7 @@
   "light": 0.6,
   "figures": [
     {
-      "id": "ilyan", "role": "Ilyan, der Pfadleser, in der Dark-Fantasy-Fassung (Owner 2026-11-23: junge Gesichter, eigene Stoffe): junger, hagerer Wanderer, verarmt, vorsichtig und hungrig; aschgrauer Kapuzenumhang aus grobem Leinen bis zu den Knöcheln, rußbraune Leinentunika mit Ledergurt, knielange Leinenhosen über nackten Schienbeinen, Schnürstiefel, Leinenwickel an den Händen, ungekämmtes dunkles Haar. Stofffarben sind für die Aufhellung des Bakers (Exponent 0.6) abgedunkelt.",
+      "id": "ilyan", "role": "Ilyan, der Pfadleser, in der Dark-Fantasy-Fassung (Owner 2026-11-23: junge Gesichter, eigene Stoffe): junger, hagerer Wanderer, verarmt, vorsichtig und hungrig; aschgrauer Kapuzenumhang aus grobem Leinen bis zu den Knöcheln, rußbraune Leinentunika mit Ledergurt, knielange Leinenhosen über nackten Schienbeinen, Schnürstiefel, Leinenwickel an den Händen, dunkles Haar mit Seitenscheitel. Stofffarben sind für die Aufhellung des Bakers (Exponent 0.6) abgedunkelt.",
       "base": "Fantasy/Hero", "height": 1.88, "texture": 1024, "motion": "m", "keys": ["EntryNpc0", "Npc0"], "expressions": true,
       "body": [{"id": "Muscle", "value": 20}, {"id": "Weight", "value": 0}],
       "face": [{"id": "Muscle", "value": 20}, {"id": "Squareness", "value": 30}, {"id": "Sharpness", "value": 50}],
@@ -19,7 +19,7 @@
         {"slot": "Bottom", "id": "Bottom_VillagerSlacks", "colors": ["#161412", "#0f0c0a", "#110d0a"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.6, "fabricScale": 4},
         {"slot": "Feet", "id": "Feet_TiedBoots", "colors": ["#16100d", "#070605", "#201a15"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
         {"slot": "Gloves", "id": "Gloves_ClothHandwraps", "colors": ["#5c554a"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.7, "fabricScale": 6},
-        {"slot": "HairFront", "id": "HairFront_UnkeptLoose", "colors": ["#0d0a08", "#181310"]},
+        {"slot": "HairFront", "id": "HairFront_ScholarPart", "colors": ["#0d0a08", "#181310", "#0d0a08"]},
         {"slot": "HairBack", "id": "HairBack_ShortShag", "colors": ["#0d0a08", "#181310"]}
       ]
     },
