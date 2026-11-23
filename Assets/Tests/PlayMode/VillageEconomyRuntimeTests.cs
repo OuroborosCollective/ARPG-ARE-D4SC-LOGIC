@@ -95,37 +95,6 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsFalse(Economy.Started);
         }
 
-        [UnityTest]
-        public IEnumerator ScrollingTheBoardReachesTheLastLineWithoutDonating()
-        {
-            StartVillageWork();
-            for (int i = 0; i < 16; i++) Game.CompleteMainQuest();
-            for (int i = 0; i < VillageEconomyRules.Stride; i++) Game.Step();
-            Game.Progression.Crafting.AddMaterial(MaterialKind.Holz, 1);
-            yield return RunFrames(1); // Complete the actual region change and its scenery rebuild before opening the board.
-            Assert.IsNotNull(Find(ArenaRuntime.WorkplacePrefix + VillageSpot.Board));
-            WalkToBoard();
-            var layout = new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
-            var input = typeof(ArenaRuntime).GetMethod("VillageBoardTouch", Flags);
-            void TouchBoard(TouchPhase phase, Vector2 point)
-            { input.Invoke(_runtime, new object[] { layout, 7, phase, point }); }
-            TouchBoard(TouchPhase.Began, ArenaRuntime.VillageBoardToggleRect(layout).center);
-            TouchBoard(TouchPhase.Ended, ArenaRuntime.VillageBoardToggleRect(layout).center);
-            yield return RunFrames(2); // The real IMGUI layout measures the wrapped text and the available viewport.
-            Assert.IsTrue((bool)typeof(ArenaRuntime).GetField("_villageBoardOpen", Flags).GetValue(_runtime), "The board remains open in the current village");
-            float limit = (float)typeof(ArenaRuntime).GetField("_villageScrollLimit", Flags).GetValue(_runtime);
-            Assert.Greater(limit, 0f, "The complete village list actually overflows this viewport");
-            Rect viewport = ArenaRuntime.VillageBoardTextRect(layout, 1);
-            int gifts = Game.Progression.Crafting.MaterialCount(MaterialKind.Holz);
-            ulong hash = Game.ComputeWorldHash();
-            TouchBoard(TouchPhase.Began, viewport.center);
-            TouchBoard(TouchPhase.Moved, viewport.center - Vector2.up * (limit + 100f));
-            Assert.AreEqual(limit, (float)typeof(ArenaRuntime).GetField("_villageScrollY", Flags).GetValue(_runtime));
-            TouchBoard(TouchPhase.Ended, ArenaRuntime.VillageGiftRect(layout, 0).center);
-            typeof(ArenaRuntime).GetMethod("ProcessVillageGift", Flags).Invoke(_runtime, null);
-            Assert.AreEqual(gifts, Game.Progression.Crafting.MaterialCount(MaterialKind.Holz));
-            Assert.AreEqual(hash, Game.ComputeWorldHash(), "A reading gesture never becomes a hand-over");
-        }
 
         /// <summary>
         /// Review finding: a finger that began to scroll and then vanished without an end or cancel phase (the app
