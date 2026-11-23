@@ -902,8 +902,8 @@ namespace AreArpg.EditorTools
         static string FabricStamp(BozoFigureRecipes.Figure recipe)
         {
             if (!HasFabric(recipe)) return "";
-            // "v2": skin pieces of outfits stay free of fabric; older derived textures are rebuilt.
-            return ";fabric=v2," + string.Join(",", recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)).Select(o =>
+            // "v3": skin that outfits carry or let through stays free of fabric; older derived textures are rebuilt.
+            return ";fabric=v3," + string.Join(",", recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)).Select(o =>
                 o.slot + ":" + o.fabric + ":" + o.fabricStrength.ToString("0.###", Invariant) + ":" + o.fabricScale.ToString("0.###", Invariant)));
         }
 
@@ -934,7 +934,9 @@ namespace AreArpg.EditorTools
             var layers = new List<FabricLayer>();
             var source = AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(recipe.id));
             if (source == null) throw new InvalidOperationException("Gebackene Figur fehlt: " + recipe.id);
-            Mesh mesh = source.GetComponentsInChildren<SkinnedMeshRenderer>(true).First(r => r.sharedMesh != null).sharedMesh;
+            SkinnedMeshRenderer body = source.GetComponentsInChildren<SkinnedMeshRenderer>(true).First(r => r.sharedMesh != null);
+            Mesh mesh = body.sharedMesh;
+            bool[] skinColoured = SkinTexels(recipe, body.sharedMaterial, width, height);
             Vector2[] uv = mesh.uv;
             int[] triangles = mesh.triangles;
             var ranges = PartRanges(recipe.id, mesh.vertexCount);
@@ -966,7 +968,7 @@ namespace AreArpg.EditorTools
                         FillTriangle(mask, width, height, uv[a], uv[b], uv[c]);
                 }
                 mask = Grow(mask, width, height, 2);
-                for (int i = 0; i < mask.Length; i++) if (skin[i]) mask[i] = false;
+                for (int i = 0; i < mask.Length; i++) if (skin[i] || skinColoured[i]) mask[i] = false;
                 string path = FabricPath(outfit.fabric);
                 if (!File.Exists(path)) throw new InvalidOperationException("Stoff fehlt: " + path);
                 var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
@@ -999,6 +1001,50 @@ namespace AreArpg.EditorTools
                     float w2 = (ax - px) * (by - py) - (bx - px) * (ay - py);
                     if (area > 0f ? (w0 >= 0f && w1 >= 0f && w2 >= 0f) : (w0 <= 0f && w1 <= 0f && w2 <= 0f)) mask[y * width + x] = true;
                 }
+        }
+
+        /// <summary>
+        /// Skin that a tight outfit lets through. Such outfits share the body's atlas layout and are painted over the
+        /// body's skin, so where they are open (a cut-out, a bare shoulder) their own triangles carry skin. Those pixels
+        /// are told apart by colour: the hue and saturation of the recipe's skin tones (tone, shade, highlight of body and
+        /// head), at least half as bright as the brightest tone. Cloth colours are pre-darkened for the lift and stay below.
+        /// </summary>
+        static bool[] SkinTexels(BozoFigureRecipes.Figure recipe, Material baked, int width, int height)
+        {
+            var result = new bool[width * height];
+            var tones = new List<Vector3>();
+            foreach (var outfit in recipe.outfits.Where(o => o.slot == "Body" || o.slot == "Head"))
+                foreach (string hex in outfit.colors.Take(3))
+                    if (ColorUtility.TryParseHtmlString(hex, out Color c)) { Color.RGBToHSV(c, out float h, out float sat, out float v); tones.Add(new Vector3(h, sat, v)); }
+            Texture atlas = baked != null && baked.HasProperty("_Diffuse") ? baked.GetTexture("_Diffuse") : null;
+            if (tones.Count == 0 || atlas == null) return result;
+            float centre = tones[0].x, low = 0f, high = 0f, satLow = 1f, satHigh = 0f, bright = 0f;
+            foreach (Vector3 tone in tones)
+            {
+                float offset = Mathf.Repeat(tone.x - centre + .5f, 1f) - .5f;
+                low = Mathf.Min(low, offset); high = Mathf.Max(high, offset);
+                satLow = Mathf.Min(satLow, tone.y); satHigh = Mathf.Max(satHigh, tone.y);
+                bright = Mathf.Max(bright, tone.z);
+            }
+            const float hueMargin = 8f / 360f, satMargin = .12f;
+            var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            try
+            {
+                if (!texture.LoadImage(File.ReadAllBytes(AssetDatabase.GetAssetPath(atlas)))) throw new IOException("Unlesbare Farbtextur: " + AssetDatabase.GetAssetPath(atlas));
+                Color32[] pixels = texture.GetPixels32();
+                int w = texture.width, h = texture.height;
+                for (int y = 0; y < height; y++)
+                    for (int x = 0; x < width; x++)
+                    {
+                        Color32 p = pixels[Mathf.Min(h - 1, y * h / height) * w + Mathf.Min(w - 1, x * w / width)];
+                        Color.RGBToHSV(p, out float hue, out float sat, out float value);
+                        float offset = Mathf.Repeat(hue - centre + .5f, 1f) - .5f;
+                        result[y * width + x] = value >= .5f * bright && offset >= low - hueMargin && offset <= high + hueMargin &&
+                            sat >= satLow - satMargin && sat <= satHigh + satMargin;
+                    }
+            }
+            finally { Object.DestroyImmediate(texture); }
+            return result;
         }
 
         /// <summary>Whether an atlas point lies on a marked pixel.</summary>
