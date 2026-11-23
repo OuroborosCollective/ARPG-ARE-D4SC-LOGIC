@@ -759,7 +759,9 @@ namespace AreArpg.PlayMode.Tests
                     Game.SetMoveInput(dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dx) * 10000 : 0,
                         dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dz) * 10000 : 0);
                 }
-                Game.ActivateSkill(0); Game.ActivateSkill(1); Game.ActivateSkill(3);
+                // Combat v2 commits to each swing: strike only when it ends before the bear's next red swipe can start.
+                if (!Game.CombatV2 || (bear.BossWindupTicks == 0 && bear.AttackCooldownTicks >= 8))
+                { Game.ActivateSkill(0); Game.ActivateSkill(1); Game.ActivateSkill(3); }
                 if (Game.PlayerHealth < 1000 && !Game.CombatV2) Game.ActivateSkill(2);
                 Game.Step(); typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
                 typeof(ArenaRuntime).GetMethod("UpdatePresentation", Flags).Invoke(_runtime, new object[] { 1f });
