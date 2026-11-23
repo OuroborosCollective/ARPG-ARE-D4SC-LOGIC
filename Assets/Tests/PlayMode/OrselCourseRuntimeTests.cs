@@ -97,7 +97,35 @@ namespace AreArpg.PlayMode.Tests
                 ArenaRuntime.HudScreenOverride = hud;
                 Time.captureDeltaTime = 0f;
             }
-            yield return Capture("orsel-course-mill.png");
+            yield return null;
+            SaveReviewFrame("orsel-course-mill.png");
+        }
+
+        /// <summary>For the owner's review: the frame the game camera sees, written to the project's Temp folder.</summary>
+        private static void SaveReviewFrame(string name)
+        {
+            var camera = Camera.main;
+            if (camera == null) return;
+            var target = new RenderTexture(960, 540, 24);
+            var previous = camera.targetTexture;
+            var image = new Texture2D(960, 540, TextureFormat.RGB24, false);
+            try
+            {
+                camera.targetTexture = target;
+                camera.Render();
+                RenderTexture.active = target;
+                image.ReadPixels(new Rect(0, 0, 960, 540), 0, 0);
+                image.Apply();
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(Application.dataPath, "..", "Temp", name), image.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture = previous;
+                RenderTexture.active = null;
+                target.Release();
+                Object.Destroy(target);
+                Object.Destroy(image);
+            }
         }
     }
 }
