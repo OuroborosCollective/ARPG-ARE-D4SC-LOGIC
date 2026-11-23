@@ -27,6 +27,8 @@ Unity 6000.6.8f1, Unity CLI runs in the live editor (not a Director job), branch
 - `APlayerFinishesTheMillChapterWithStickAndTapsAlone` **Passed** in 210 s: 972 frames (97 s of game time), 0 defeats, 70 taps (5 on story buttons), 8 restarts of the app.
 - The first run, at full picture size, completed the whole chapter. It failed only at the final restart in the middle of the mill, because the test wrongly expected the old standing position; the game resumes at the checkpoint. The check now expects the checkpoint.
 - `PlayerDeviceTests` 2/2 (EditMode): a scripted device stands in for Unity's input until it is removed; every runtime file that reads input does so through `PlayerDevice`.
+- Full suites on the tested revision: EditMode 254 passed, 0 failed, 28 ignored; PlayMode 206 tests, 178 passed, 0 failed, 28 ignored (31.6 min).
+- After review the restart check compares every carried item by identity instead of counting them (CodeRabbit). The player run passed again on that final head in 192 s.
 
 Trail of the passing run (frame · Core tick of the current area):
 
