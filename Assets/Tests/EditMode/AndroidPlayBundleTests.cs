@@ -34,8 +34,10 @@ namespace AreArpg.EditMode.Tests
         public void EveryLaterBundleCarriesAHigherVersionCode()
         {
             var start = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            Assert.AreEqual(1, VersionCode(start.AddMinutes(1)));
-            Assert.Less(VersionCode(new DateTime(2026, 11, 22, 21, 0, 0, DateTimeKind.Utc)), VersionCode(new DateTime(2026, 11, 22, 21, 1, 0, DateTimeKind.Utc)));
+            Assert.AreEqual(1, VersionCode(start.AddSeconds(1)));
+            Assert.Less(VersionCode(new DateTime(2026, 11, 22, 21, 0, 5, DateTimeKind.Utc)), VersionCode(new DateTime(2026, 11, 22, 21, 0, 45, DateTimeKind.Utc)),
+                "two builds started in the same minute still get different, rising codes");
+            Assert.Greater(VersionCode(new DateTime(2026, 11, 23, 1, 0, 0, DateTimeKind.Utc)), 469396, "every new code is above the first two minute-based bundles");
             Assert.Less(VersionCode(new DateTime(2080, 1, 1, 0, 0, 0, DateTimeKind.Utc)), 2100000000, "Google Play's largest version code is far away");
         }
 

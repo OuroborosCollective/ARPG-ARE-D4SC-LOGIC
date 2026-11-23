@@ -122,10 +122,14 @@ namespace AreArpg.EditorTools
             return Path.GetFullPath(path).StartsWith(root, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         }
 
-        /// <summary>Minutes since 2026-01-01 UTC: every bundle built later carries a higher version code, as Google Play requires.</summary>
+        /// <summary>
+        /// Seconds since 2026-01-01 UTC: every bundle built later carries a higher version code, as Google Play requires,
+        /// also when two builds start in the same minute. Play's largest code (2,100,000,000) is only reached in 2092. The
+        /// first two bundles counted minutes (469318, 469396); every code counted in seconds is higher than those.
+        /// </summary>
         public static int PlayVersionCode(DateTime utcNow)
         {
-            return checked((int)Math.Floor((utcNow - new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMinutes));
+            return checked((int)Math.Floor((utcNow - new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalSeconds));
         }
 
         /// <summary>
