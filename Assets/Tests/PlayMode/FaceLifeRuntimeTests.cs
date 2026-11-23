@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using AreArpg.Core;
 using AreArpg.UnityClient;
 using NUnit.Framework;
@@ -55,6 +56,45 @@ namespace AreArpg.PlayMode.Tests
                     open = Mathf.Max(open, dorn.GetBlendShapeWeight(mouth));
                 }
                 Assert.Greater(open, 10f, "Dorn's mouth moves while he speaks");
+            }
+            finally
+            {
+                _runtime.enabled = false;
+                Time.captureDeltaTime = before;
+            }
+        }
+
+        /// <summary>The rescued hunter moves his mouth while his recorded thanks (speaker 3) are heard (review on #133).</summary>
+        [UnityTest, Timeout(300000)]
+        public IEnumerator RescuedHunterMovesHisMouthWhileHisThanksAreHeard()
+        {
+            _runtime.enabled = false;
+            var p = CharacterProgression.CreateEntryProfile();
+            typeof(CharacterProgression).GetMethod("EnterVillage", Flags).Invoke(p, null);
+            typeof(CharacterProgression).GetMethod("DiscoverHungerClue", Flags).Invoke(p, null);
+            typeof(CharacterProgression).GetMethod("TravelHunger", Flags).Invoke(p, new object[] { 3, false }); p.Social.EnableForge(); p.Equipment.Enable(p);
+            var w = new ArenaSimulation(73, p, 1, LootCatalog.Version1);
+            DungeonFixtureSet(p.Road, "Started", true); p.Road.Bear.Xmm = w.PlayerXmm + 1000; p.Road.Bear.Zmm = w.PlayerZmm; p.Road.Bear.Health = 1;
+            Assert.Greater(w.ActivateSkill(0).Hits, 0);
+            typeof(ArenaRuntime).GetMethod("InstallNewRun", Flags).Invoke(_runtime, new object[] { w, "Jäger gerettet" });
+            MoveStory(2000, 9000); yield return null;
+
+            var hunter = Find("ARE_Road_Hunter");
+            Assert.IsNotNull(hunter, "The rescued hunter stands on the road");
+            var face = hunter.GetComponentsInChildren<SkinnedMeshRenderer>().FirstOrDefault(s => s.sharedMesh != null && s.sharedMesh.GetBlendShapeIndex("Expression_Eyes_UpperClosed_L") >= 0);
+            Assert.IsNotNull(face, "The hunter keeps a living face");
+            int mouth = face.sharedMesh.GetBlendShapeIndex("Expression_Mouth_Oh_L");
+            var atmosphere = (AshenAtmosphere)typeof(ArenaRuntime).GetField("_atmosphere", Flags).GetValue(_runtime);
+            atmosphere.AcceptedSpeech(new SocialResult { Accepted = true, SpeakerId = 3, Speech = SpeechLine.HunterThanks });
+            float before = Time.captureDeltaTime;
+            try
+            {
+                Time.captureDeltaTime = 0.1f;
+                _runtime.enabled = true;
+                float open = 0f;
+                for (int frame = 0; frame < 15 && open <= 10f; frame++) { yield return null; open = Mathf.Max(open, face.GetBlendShapeWeight(mouth)); }
+                Assert.IsNotEmpty(atmosphere.Subtitle, "His thanks are still heard");
+                Assert.Greater(open, 10f, "His mouth moves while he thanks the player");
             }
             finally
             {

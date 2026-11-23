@@ -97,6 +97,8 @@ namespace AreArpg.UnityClient
         {
             if (_atmosphere == null || string.IsNullOrEmpty(_atmosphere.Subtitle)) return null;
             int speaker = _atmosphere.SpeakerId;
+            // Speaker 3 is the hunter (as for the camera): on the ash road, or at the player's side once he follows.
+            if (speaker == 3) return _companionVisual != null && _companionVisual.gameObject.activeInHierarchy ? _companionVisual : _roadHunter;
             return speaker >= 0 && _npcVisuals.TryGetValue(speaker, out var visual) ? visual : null;
         }
 
