@@ -40,6 +40,7 @@ internal static class Program
             CausalKnowledgeGraphTests.Run(Require);
             CausalRegressionTests.Run(Require);
             CombatV2Tests.Run(Require);
+            HealingCourseTests.Run(Require);
             LivingChronicleTests.Run(Require);
             SupplyTheftTests.Run(Require);
             LootAffixTests.Run(Require);

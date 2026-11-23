@@ -186,7 +186,10 @@ namespace AreArpg.Core
                 // The mill quest is now complete; Orsel trusts the player, teaches her craft and the village grows.
                 Progression.Village.UnlockOrselTeaches(Progression);
                 CompleteMainQuest();
-                result.Text = "Eine Lagerstatt ist leer. Die anderen berichten von weiteren Vermissten. Verband und Schleifspuren weisen zum alten Speicher. Orsel nickt dir zu: Sie bringt dir Erste Hilfe, einen Heilspruch und ein Mahl bei.";
+                // Orsel's healing course opens already after the camp; this only promises what the game holds.
+                result.Text = "Eine Lagerstatt ist leer. Die anderen berichten von weiteren Vermissten. Verband und Schleifspuren weisen zum alten Speicher. " +
+                    "Orsel nickt dir zu: Ab jetzt nimmt sie auch Verletzte aus dem Dorf auf." +
+                    (Progression.Healing.Learned ? "" : " Ihre Heilkunst zeigt sie dir, wenn du ihr hilfst.");
             }
             else return result;
             if (contact != null)

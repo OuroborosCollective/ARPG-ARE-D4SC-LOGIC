@@ -145,6 +145,12 @@ internal static class RegionalRelicTests
             var src=RegionalRelics.Get(id);
             p.TravelHunger(src.Act,false);
             var world=new ArenaSimulation(123,p,1,LootCatalog.Version1);
+            if (RegionalRelics.GrantedOnly(id))
+            {
+                // Handed over by a person, never lying in the world (Orsel's staff: HealingCourseTests).
+                require(!world.TryGetRegionalRelicSource(id,out _,out _),"regional-granted-piece-has-no-world-source-"+id);
+                continue;
+            }
             require(!seen.Contains(id) && world.TryGetRegionalRelicSource(id,out _,out _),"regional-walkable-authored-source-"+id);
             seen.Add(id);
             // Start at a close, walkable point for testing every individual source. Normal protagonist input must claim it.

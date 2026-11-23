@@ -12,17 +12,18 @@ namespace AreArpg.Core
     {
         public readonly string Id,Name,ModelStem;
         public readonly WeaponFamily Family, TrainingFamily;
-        private readonly string _visualFolder;
+        private readonly string _visualFolder, _visualKey;
         public readonly int BasePower,StrikeCooldown;
         public readonly long RangeMm;
         public readonly bool TwoHanded;
         public string FamilyName => new[]{"Schwert","Dolch","Axt","Keule","Stab","Bogen","Speer","Schild"}[(int)Family];
-        public string VisualKey => _visualFolder + Id;
+        /// <summary>The model shown for it; a piece without its own model may borrow an existing one.</summary>
+        public string VisualKey => _visualKey ?? _visualFolder + Id;
         internal WeaponDefinition(string id,string name,string model,WeaponFamily family,int power,int cooldown,long range,bool twoHanded=false,
-            WeaponFamily? trainingFamily=null, string visualFolder="Weapons/")
+            WeaponFamily? trainingFamily=null, string visualFolder="Weapons/", string visualKey=null)
         {
             Id=id; Name=name; ModelStem=model; Family=family; BasePower=power; StrikeCooldown=cooldown;
-            RangeMm=range; TwoHanded=twoHanded; TrainingFamily=trainingFamily??family; _visualFolder=visualFolder;
+            RangeMm=range; TwoHanded=twoHanded; TrainingFamily=trainingFamily??family; _visualFolder=visualFolder; _visualKey=visualKey;
         }
     }
     /// <summary>Immutable equipment projection of a verified kill receipt. Catalog revision is pinned by AC16.</summary>

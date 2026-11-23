@@ -39,9 +39,9 @@ namespace AreArpg.UnityClient
         private RectTransform _hudStickBase, _hudStickKnob, _hudMinimapDots, _hudHeroMarker, _hudNorth;
         private Image _hudPickupGlow;
         // Combat v2 (issue #127): stamina bar, dodge and flask buttons; hidden for legacy combat.
-        private Image _hudStaminaFill, _hudDodgeFace;
-        private GameObject _hudStaminaBack, _hudDodge, _hudFlask;
-        private Text _hudFlaskText;
+        private Image _hudStaminaFill, _hudDodgeFace, _hudHealFace;
+        private GameObject _hudStaminaBack, _hudDodge, _hudFlask, _hudHeal;
+        private Text _hudFlaskText, _hudHealText;
         private readonly List<Image> _hudDots = new List<Image>();
 
         /// <summary>Ensure exactly one EventSystem so menu buttons work with mouse and touch.</summary>
@@ -324,6 +324,12 @@ namespace AreArpg.UnityClient
             _hudFlask = flask.gameObject;
             _hudFlaskText = AshenUiTheme.Label("Label", flask.transform, 10, AshenUiTheme.Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
             AshenUiTheme.Stretch(_hudFlaskText.rectTransform, 2f);
+            // Wundschluss appears once Orsel has taught it; it shows the cooldown and dims while it cannot start.
+            var heal = AshenUiTheme.Image("Heal", g, AshenUiTheme.RoundButton, Color.white);
+            AshenUiTheme.Place(heal.rectTransform, l.HealRect);
+            _hudHeal = heal.gameObject; _hudHealFace = heal;
+            _hudHealText = AshenUiTheme.Label("Label", heal.transform, 10, AshenUiTheme.Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
+            AshenUiTheme.Stretch(_hudHealText.rectTransform, 2f);
         }
 
         private void BuildMastery(Transform g, ArenaHudLayout l)
@@ -421,6 +427,15 @@ namespace AreArpg.UnityClient
             if (_hudStaminaBack.activeSelf != combatV2) _hudStaminaBack.SetActive(combatV2);
             if (_hudDodge.activeSelf != combatV2) _hudDodge.SetActive(combatV2);
             if (_hudFlask.activeSelf != combatV2) _hudFlask.SetActive(combatV2);
+            bool healShown = combatV2 && p.Healing.Learned;
+            if (_hudHeal.activeSelf != healShown) _hudHeal.SetActive(healShown);
+            if (healShown)
+            {
+                int cooldown = p.Healing.CooldownTicks;
+                string label = Application.isMobilePlatform ? "WUND-\nSCHLUSS" : "WUND-\nSCHLUSS\n(X)";
+                _hudHealText.text = cooldown > 0 ? label + "\n" + Mathf.CeilToInt(cooldown / 10f) + " s" : label;
+                _hudHealFace.color = _game.CanCastWundschluss || _game.ActionKind == CombatActionKind.Cast ? Color.white : new Color(0.55f, 0.55f, 0.65f, 1f);
+            }
             if (combatV2)
             {
                 _hudStaminaFill.fillAmount = Mathf.Clamp01(_game.Stamina / (float)CombatV2Rules.StaminaMax);

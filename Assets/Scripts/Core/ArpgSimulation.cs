@@ -608,11 +608,13 @@ namespace AreArpg.Core
             CurrentTick++;
             // What one tick decided is read by the presentation after it; a tick after defeat must not repeat it.
             Impacts.Clear();
+            Heals.Clear();
             if (Progression.Crafting.ActiveRegenTicks > 0 && PlayerHealth > 0)
                 PlayerHealth = Math.Min(MaxPlayerHealth, PlayerHealth + Progression.Crafting.RegenPerTick);
             Progression.Crafting.AdvanceTick();
             Progression.CompanionRecovery.AdvanceTick(Progression.Companion);
             Progression.Village.AdvanceTick();
+            Progression.Healing.AdvanceTick();
             var forge = Progression.Social.Forge;
             if (forge != null)
             {
@@ -935,6 +937,7 @@ namespace AreArpg.Core
             MixEconomy(ref h);
             MixHouses(ref h);
             MixCombatV2(ref h); // armor and combat v2 only when present: legacy worlds keep their golden hashes
+            MixHealing(ref h); // Orsel's course only when present
             return h;
         }
 
