@@ -134,7 +134,7 @@ namespace AreArpg.PlayMode.Tests
             float chosenCameraDistance = cameraRig.Distance;
             // Test-only arrangement; each kill/drop/pickup still uses the actual Core implementation.
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Assert.AreEqual(3, Game.ActivateSkill(3).Kills);
+            Assert.AreEqual(3, Resolve(3).Kills);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             Game.SetMoveInput(0, 10000);
             for (int tick = 0; tick < 50 && !Game.AtWorldPassage; tick++) Game.Step();
@@ -313,6 +313,25 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
         }
 
+        /// <summary>
+        /// Use a skill. Under combat v2 (issue #127) the hit lands on the action's impact tick, so the Core runs on until
+        /// the action is over; the impact result is returned (the windup result when nothing landed).
+        /// </summary>
+        private SkillResult Resolve(int slot) { return ResolveOn(Game, slot); }
+
+        internal static SkillResult ResolveOn(ArenaSimulation world, int slot)
+        {
+            var start = world.ActivateSkill(slot);
+            if (!world.CombatV2 || !start.Activated) return start;
+            SkillResult impact = null;
+            for (int tick = 0; tick < 40 && world.ActionKind != CombatActionKind.None; tick++)
+            {
+                world.Step();
+                if (world.Impacts.Count > 0) impact = world.Impacts[0];
+            }
+            return impact ?? start;
+        }
+
         /// <summary>Exercise the real input queue on a scheduled tick without wall-clock waiting.</summary>
         private void TickOnce()
         {
@@ -404,7 +423,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3);
+            Resolve(3);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
@@ -685,7 +704,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            Resolve(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
             yield return StoryAction(HungerAction.HearIlyan);

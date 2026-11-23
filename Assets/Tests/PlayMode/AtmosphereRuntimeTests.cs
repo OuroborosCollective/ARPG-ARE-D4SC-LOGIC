@@ -18,7 +18,7 @@ namespace AreArpg.PlayMode.Tests
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             Assert.IsTrue(audio.HasMedia, "The reviewed audio library must actually be imported.");
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3);
+            Resolve(3);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var rejected = Game.ActOnHunger(HungerAction.HearIlyan);
@@ -88,7 +88,7 @@ namespace AreArpg.PlayMode.Tests
                 Assert.Ignore("Requires the reviewed private audio overlay; native acceptance must run with evidence enabled.");
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            Resolve(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             for (int i = 0; i < 2; i++)
@@ -109,7 +109,7 @@ namespace AreArpg.PlayMode.Tests
                 Assert.Ignore("Requires the reviewed private audio overlay; native acceptance must run with evidence enabled.");
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            Resolve(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
@@ -152,7 +152,7 @@ namespace AreArpg.PlayMode.Tests
                 // Play/Pause and aging still run through Unity; do not manually Simulate particles.
                 main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
                 Game.Monsters[0].Xmm = Game.PlayerXmm + 1000; Game.Monsters[0].Zmm = Game.PlayerZmm;
-                var hit = Game.ActivateSkill(0); Assert.Greater(hit.Hits, 0); audio.Skill(hit, 0, Game);
+                var hit = Resolve(0); Assert.Greater(hit.Hits, 0); audio.Skill(hit, 0, Game);
                 yield return null;
                 var particles = new ParticleSystem.Particle[30]; Assert.Greater(sparks.GetParticles(particles), 0);
                 audio.Suspend(true); Assert.IsTrue(sparks.isPaused); float before = particles[0].remainingLifetime;

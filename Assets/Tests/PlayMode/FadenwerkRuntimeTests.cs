@@ -17,7 +17,7 @@ namespace AreArpg.PlayMode.Tests
             var text=Resources.Load<AshenFadenwerkText>(AshenFadenwerkText.ResourceName);
             Assert.IsNotNull(text);Assert.IsTrue(text.Valid);
             foreach(var enemy in Game.Monsters){enemy.Xmm=Game.PlayerXmm+1000;enemy.Zmm=Game.PlayerZmm;enemy.Health=1;}
-            Assert.AreEqual(3,Game.ActivateSkill(3).Kills);
+            Assert.AreEqual(3,Resolve(3).Kills);
             for(int i=0;i<3;i++)Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0,24000);TravelStory();yield return null;
             var pending=typeof(ArenaRuntime).GetField("_pendingHungerAction",Flags);

@@ -28,7 +28,9 @@ namespace AreArpg.UnityClient
         MenuCharacter,
         MenuInventory,
         MenuQuests,
-        MenuSettings
+        MenuSettings,
+        Dodge,
+        Flask
     }
 
     /// <summary>
@@ -199,6 +201,20 @@ namespace AreArpg.UnityClient
             return new Rect(s.x - 35f, s.y - 35f, 70f, 70f);
         }
 
+        /// <summary>Combat v2 (issue #127): dodge on an outer ring left of the skill arc, the flask above it. Both stay clear of
+        /// the stick, the skill buttons, the NPC choices and the camera controls on phone and tablet canvases.</summary>
+        public Rect DodgeRect { get { return OuterRing(160f); } }
+        public Rect FlaskRect { get { return OuterRing(115f); } }
+        private Rect OuterRing(float degrees)
+        {
+            float a = Mathf.Deg2Rad * degrees;
+            Vector2 c = AttackCenter + new Vector2(Mathf.Cos(a), -Mathf.Sin(a)) * 220f;
+            return new Rect(c.x - 35f, c.y - 35f, 70f, 70f);
+        }
+
+        /// <summary>Stamina sits as a thin bar between health and focus.</summary>
+        public Rect StaminaBarRect { get { return new Rect(112f, 69f, LeftColumnWidth - 112f, 4f); } }
+
         /// <summary>Loot pickup floats above the skill arc, clear of camera and minimap.</summary>
         public Rect PickupRect { get { return new Rect(Width - 110f, Mathf.Max(228f, Height - 318f), 62f, 60f); } }
 
@@ -295,6 +311,8 @@ namespace AreArpg.UnityClient
                 if (SkillRect(i).Contains(point))
                     return (ArenaHudControl)((int)ArenaHudControl.Skill0 + i);
 
+            if (DodgeRect.Contains(point)) return ArenaHudControl.Dodge;
+            if (FlaskRect.Contains(point)) return ArenaHudControl.Flask;
             if (PickupRect.Contains(point)) return ArenaHudControl.Pickup;
             if (MoveRect.Contains(point)) return ArenaHudControl.Move;
             return ArenaHudControl.None;

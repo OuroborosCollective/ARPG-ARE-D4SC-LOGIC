@@ -38,6 +38,10 @@ namespace AreArpg.UnityClient
         private Animator[] _heroMeleeAnimations = new Animator[0];
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
+        // Combat v2 (issue #127): dodge and flask are queued like skills; SCHUTZ is held by a finger, a mouse or key 3.
+        private bool _pendingDodge, _pendingFlask, _guardMouse;
+        private int _guardFinger = -1;
+        private long _moveWorldX, _moveWorldZ;
         private bool _pendingCampDonation;
         private bool _pendingTakeRation;
         /// <summary>Presentation-only confirmation window for the theft button; never saved or read by the Core.</summary>
@@ -72,6 +76,8 @@ namespace AreArpg.UnityClient
             try { _journeyMaps=LoadJourneyMaps(); }
             catch (Exception e) when(e is FormatException || e is ArgumentException) { Debug.LogError("Journey map validation failed: "+e.Message); }
             CharacterProgression saved;
+            bool hadSave = !string.IsNullOrEmpty(PlayerPrefs.GetString(CharacterSaveKey, "")) ||
+                !string.IsNullOrEmpty(PlayerPrefs.GetString(CharacterBackupKey, ""));
             if (!TryLoadCharacter(out saved))
             {
                 _storageFault = true;
@@ -79,6 +85,8 @@ namespace AreArpg.UnityClient
                 Debug.LogError("ARPG character save could not be validated; refusing to overwrite character progress.");
             }
             if(!_storageFault&&saved!=null)saved.Social.EnableForge();
+            // Combat v2 (issue #127, owner 2026-11-23): new games start with it; an older save moves over once, explicitly.
+            bool combatMoved = !_storageFault && saved != null && _entryProfile && saved.UseCombatV2() && hadSave;
             _game = new ArenaSimulation(DemoSeed, saved,
                 saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1, _journeyMaps);
             if (!_storageFault) _game.Progression.Equipment.Enable(_game.Progression);
@@ -90,6 +98,11 @@ namespace AreArpg.UnityClient
             if (_game.Progression.EntryAct == 2)
                 _message = "AKT II: Folge dem Dorfweg. Ilyan hungert; Mara und Dorn erwarten dich.";
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
+            if (combatMoved)
+            {
+                _message = "Neues Kampfgefühl: SCHUTZ halten blockt, AUSWEICHEN rollt dich weg, TRANK heilt nach kurzem Ansetzen. Freies Heilen gibt es nicht mehr.";
+                SaveCharacter();
+            }
             BuildWorld();
             InitializeWorldSky();
             InitializePostProcessing();
@@ -770,6 +783,7 @@ namespace AreArpg.UnityClient
         private void PollInputs()
         {
             ArenaHudLayout layout = CurrentHudLayout();
+            if (_game.CombatV2) _game.SetGuard(false); // any panel or scene that takes the input lowers the guard
             if (_game.GameOver)
             {
                 ReleasePresentationTouches();
@@ -823,7 +837,7 @@ namespace AreArpg.UnityClient
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) z += 10000;
             if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) z -= 10000;
 
-            bool capturedFingerPresent = false;
+            bool capturedFingerPresent = false, guardFingerPresent = false;
             for (int i = 0; i < Input.touchCount; i++)
             {
                 Touch touch = Input.GetTouch(i);
@@ -840,6 +854,14 @@ namespace AreArpg.UnityClient
                     _cameraRig.ObserveTouch(touch.fingerId, touch.phase, guiPoint,
                         insideSafeArea && !layout.BlocksCameraGesture(guiPoint, false,
                             nearNpc, campOpen, hasMastery, canTakeRation, canDonate));
+
+                if (_game.CombatV2 && (touch.fingerId == _guardFinger || (control == ArenaHudControl.Skill2 && touch.phase == TouchPhase.Began)))
+                {
+                    // SCHUTZ is held, not tapped: this finger guards until it lifts.
+                    _guardFinger = touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled ? -1 : touch.fingerId;
+                    if (_guardFinger >= 0) guardFingerPresent = true;
+                    continue;
+                }
 
                 Vector2 direction;
                 if (_movementTouch.TryMove(touch.fingerId, touch.phase, guiPoint,
@@ -861,8 +883,11 @@ namespace AreArpg.UnityClient
             {
                 ArenaHudControl clicked = layout.HitTest(layout.ToGuiTouch(Input.mousePosition), false,
                     nearNpc, campOpen, hasMastery, canTakeRation, canDonate);
-                if (clicked != ArenaHudControl.Move) RouteHudControl(clicked);
+                if (_game.CombatV2 && clicked == ArenaHudControl.Skill2) _guardMouse = true;
+                else if (clicked != ArenaHudControl.Move) RouteHudControl(clicked);
             }
+            if (!Input.GetMouseButton(0)) _guardMouse = false;
+            if (!guardFingerPresent) _guardFinger = -1;
 
             // Release if the OS dropped the tracked finger without Ended/Canceled.
             if (_movementTouch.IsCaptured && !capturedFingerPresent) _movementTouch.Reset();
@@ -871,9 +896,16 @@ namespace AreArpg.UnityClient
 
             CameraRelativeMove(ref x, ref z);
             _game.SetMoveInput(x, z);
+            _moveWorldX = x; _moveWorldZ = z;
+            if (_game.CombatV2)
+            {
+                _game.SetGuard(_guardFinger >= 0 || _guardMouse || Input.GetKey(KeyCode.Alpha3));
+                if (Input.GetKeyDown(KeyCode.Space)) _pendingDodge = true;
+                if (Input.GetKeyDown(KeyCode.Q)) _pendingFlask = true;
+            }
             if (Input.GetKeyDown(KeyCode.Alpha1)) _pendingSkills.Enqueue(0);
             if (Input.GetKeyDown(KeyCode.Alpha2)) _pendingSkills.Enqueue(1);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) _pendingSkills.Enqueue(2);
+            if (Input.GetKeyDown(KeyCode.Alpha3) && !_game.CombatV2) _pendingSkills.Enqueue(2);
             if (Input.GetKeyDown(KeyCode.Alpha4)) _pendingSkills.Enqueue(3);
             if (Input.GetKeyDown(KeyCode.E)) _pendingPickup = true;
             if (Input.GetKeyDown(KeyCode.F5)) _pendingMastery.Enqueue(MasteryPath.Might);
@@ -912,6 +944,10 @@ namespace AreArpg.UnityClient
             }
             else if (control == ArenaHudControl.Pickup)
                 _pendingPickup = true;
+            else if (control == ArenaHudControl.Dodge && _game.CombatV2)
+                _pendingDodge = true;
+            else if (control == ArenaHudControl.Flask && _game.CombatV2)
+                _pendingFlask = true;
         }
 
         /// <summary>Shared button routing changes only the cosmetic camera; nothing enters the Core action queue.</summary>
@@ -984,6 +1020,7 @@ namespace AreArpg.UnityClient
             _pendingSkills.Clear();
             _pendingMastery.Clear();
             _pendingPickup = false;
+            _pendingDodge = false; _pendingFlask = false; _guardFinger = -1; _guardMouse = false;
             _pendingCampDonation = false;
             _pendingTakeRation = false;
             _pendingNpcActions.Clear();
@@ -1093,11 +1130,24 @@ namespace AreArpg.UnityClient
                     System.Numerics.BigInteger previousRank = _game.Progression.PracticeLevel(slot);
                     SkillResult outcome = _game.ActivateSkill(slot);
                     _atmosphere.Skill(outcome, slot, _game);
-                    PresentAbility(outcome, slot);
+                    // Combat v2: the swing starts now; its hit is presented on the impact tick below.
+                    if (_game.CombatV2) PresentActionStart(outcome, slot); else PresentAbility(outcome, slot);
                     _message = outcome.Message;
                     bool learned = _game.Progression.PracticeLevel(slot) > previousRank;
                     if (learned) _message += " / Durch Uebung gewachsen: Rang " + _game.Progression.PracticeLevel(slot);
                     if (outcome.Kills > 0 || learned || outcome.WeaponLevelUps > 0) SaveCharacter();
+                }
+                if (_pendingDodge)
+                {
+                    _pendingDodge = false;
+                    if (_game.StartDodge(_moveWorldX, _moveWorldZ)) PresentDodge();
+                    else _message = _game.Stamina < CombatV2Rules.Dodge.Stamina ? "Zu erschöpft zum Ausweichen." : "Erst die laufende Bewegung beenden.";
+                }
+                if (_pendingFlask)
+                {
+                    _pendingFlask = false;
+                    if (_game.DrinkPotion(PotionType.Heal)) _message = "Du setzt einen Heiltrank an …";
+                    else _message = _game.Progression.Crafting.PotionCount(PotionType.Heal) == 0 ? "Kein Heiltrank in der Tasche." : "Erst die laufende Bewegung beenden.";
                 }
                 if (_pendingPickup)
                 {
@@ -1120,7 +1170,10 @@ namespace AreArpg.UnityClient
                     _pendingPickup = false;
                 }
                 long oldX = _game.PlayerXmm, oldZ = _game.PlayerZmm; int oldHealth = _game.PlayerHealth;
+                int potionsBefore = _game.Progression.Crafting.PotionCount(PotionType.Heal), blockedBefore = _game.BlockedAttacks;
+                bool guardBefore = _game.GuardRaised;
                 _game.Step();
+                if (_game.CombatV2) PresentCombatTick(oldHealth, potionsBefore, blockedBefore, guardBefore);
                 _atmosphere.ObserveTick(_game, oldX, oldZ, oldHealth);
                 SaveWeaponLevelUps(); // a shield trains on incoming attacks inside the step
                 if ((_game.Progression.Road.Started || _game.Progression.Investigation.Active) && _game.CurrentTick % 10 == 0) SaveCharacter();

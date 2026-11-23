@@ -153,6 +153,13 @@ namespace AreArpg.UnityClient
             if (result.Hits > 0) { Effect("impact", Position(game), .8f); _sparks.transform.position = Position(game); _sparks.Emit(ReducedEffects ? 3 : 9); }
         }
 
+        /// <summary>Combat v2: the swing was heard at the windup; on the impact tick only the hit sounds.</summary>
+        public void Impact(SkillResult result, ArenaSimulation game)
+        {
+            if (!result.Activated || _suspended || result.Hits <= 0) return;
+            Effect("impact", Position(game), .8f); _sparks.transform.position = Position(game); _sparks.Emit(ReducedEffects ? 3 : 9);
+        }
+
         public void Effect(string key, Vector3 position, float volume)
         {
             if (_suspended) return; // Transient world effects are dropped while the app is inactive.

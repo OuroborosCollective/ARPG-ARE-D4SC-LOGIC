@@ -38,7 +38,15 @@ namespace AreArpg.UnityClient
         public bool IsPresentingDeath(int monsterId) { return _deathTime.ContainsKey(monsterId) && Time.time - _deathTime[monsterId] <= ToppleSeconds + SinkSeconds; }
 
         /// <summary>Called right after the Core executed an ability from the shared touch/keyboard queue.</summary>
+        /// <summary>Legacy combat: the accepted ability starts and lands in the same tick.</summary>
         private void PresentAbility(SkillResult outcome, int slot)
+        {
+            PresentActionStart(outcome, slot);
+            PresentImpact(outcome, slot);
+        }
+
+        /// <summary>The hero turns to the accepted target and starts the action's animation.</summary>
+        private void PresentActionStart(SkillResult outcome, int slot)
         {
             if (!_entryProfile || outcome == null || !outcome.Activated || _hero == null) return;
             if (outcome.HasTarget)
@@ -54,6 +62,12 @@ namespace AreArpg.UnityClient
             // One visible action per executed ability, even when two abilities resolve in the same tick.
             _heroActions.Enqueue(slot == 2 ? "Guard" : slot == 3 ? "Cast" : "Melee");
             PumpHeroActions();
+        }
+
+        /// <summary>What a landed ability shows: hit reactions, a short hit stop, camera shake and the spell's effects.</summary>
+        private void PresentImpact(SkillResult outcome, int slot)
+        {
+            if (!_entryProfile || outcome == null || !outcome.Activated || _hero == null) return;
             foreach (int id in outcome.HitMonsterIds)
             {
                 var visual = HitVisual(id);

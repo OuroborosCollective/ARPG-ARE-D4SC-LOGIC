@@ -38,6 +38,10 @@ namespace AreArpg.UnityClient
         private readonly Image[] _hudSkillFace = new Image[4];
         private RectTransform _hudStickBase, _hudStickKnob, _hudMinimapDots, _hudHeroMarker, _hudNorth;
         private Image _hudPickupGlow;
+        // Combat v2 (issue #127): stamina bar, dodge and flask buttons; hidden for legacy combat.
+        private Image _hudStaminaFill, _hudDodgeFace;
+        private GameObject _hudStaminaBack, _hudDodge, _hudFlask;
+        private Text _hudFlaskText;
         private readonly List<Image> _hudDots = new List<Image>();
 
         /// <summary>Ensure exactly one EventSystem so menu buttons work with mouse and touch.</summary>
@@ -138,6 +142,11 @@ namespace AreArpg.UnityClient
             _hudFocusFill = FilledBar("FocusFill", fBack.transform, AshenUiTheme.Focus);
             _hudFocusText = AshenUiTheme.Label("FocusText", g, 11, AshenUiTheme.Muted, TextAnchor.MiddleLeft);
             AshenUiTheme.Place(_hudFocusText.rectTransform, new Rect(112f, 87f, l.StatusPanelRect.width - 104f, 16f));
+
+            var sBack = AshenUiTheme.Image("StaminaBack", g, AshenUiTheme.Bar, new Color(0.04f, 0.08f, 0.03f, 0.95f));
+            AshenUiTheme.Place(sBack.rectTransform, l.StaminaBarRect);
+            _hudStaminaBack = sBack.gameObject;
+            _hudStaminaFill = FilledBar("StaminaFill", sBack.transform, new Color(0.62f, 0.78f, 0.30f, 1f));
         }
 
         private void BuildQuestTracker(Transform g, ArenaHudLayout l)
@@ -303,6 +312,17 @@ namespace AreArpg.UnityClient
             AshenUiTheme.Stretch(_hudPickupGlow.rectTransform, -12f);
             var pt = AshenUiTheme.Label("Label", pick.transform, 10, AshenUiTheme.Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
             AshenUiTheme.Stretch(pt.rectTransform, 2f); pt.text = Application.isMobilePlatform ? "AUF-\nHEBEN" : "AUF-\nHEBEN (E)";
+
+            var dodge = AshenUiTheme.Image("Dodge", g, AshenUiTheme.RoundButton, Color.white);
+            AshenUiTheme.Place(dodge.rectTransform, l.DodgeRect);
+            _hudDodge = dodge.gameObject; _hudDodgeFace = dodge;
+            var dl = AshenUiTheme.Label("Label", dodge.transform, 10, AshenUiTheme.Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
+            AshenUiTheme.Stretch(dl.rectTransform, 2f); dl.text = Application.isMobilePlatform ? "AUS-\nWEICHEN" : "AUS-\nWEICHEN\n(LEER)";
+            var flask = AshenUiTheme.Image("Flask", g, AshenUiTheme.RoundButton, Color.white);
+            AshenUiTheme.Place(flask.rectTransform, l.FlaskRect);
+            _hudFlask = flask.gameObject;
+            _hudFlaskText = AshenUiTheme.Label("Label", flask.transform, 10, AshenUiTheme.Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
+            AshenUiTheme.Stretch(_hudFlaskText.rectTransform, 2f);
         }
 
         private void BuildMastery(Transform g, ArenaHudLayout l)
@@ -396,6 +416,16 @@ namespace AreArpg.UnityClient
             _hudHealthText.text = _game.PlayerHealth + " / " + _game.MaxPlayerHealth;
             _hudFocusFill.fillAmount = Mathf.Clamp01(_game.Resource / 100f);
             _hudFocusText.text = "Fokus " + _game.Resource + "/100   ·   Waffe +" + _game.WeaponBonus;
+            bool combatV2 = _game.CombatV2;
+            if (_hudStaminaBack.activeSelf != combatV2) _hudStaminaBack.SetActive(combatV2);
+            if (_hudDodge.activeSelf != combatV2) _hudDodge.SetActive(combatV2);
+            if (_hudFlask.activeSelf != combatV2) _hudFlask.SetActive(combatV2);
+            if (combatV2)
+            {
+                _hudStaminaFill.fillAmount = Mathf.Clamp01(_game.Stamina / (float)CombatV2Rules.StaminaMax);
+                _hudDodgeFace.color = _game.Stamina >= CombatV2Rules.Dodge.Stamina ? Color.white : new Color(0.55f, 0.55f, 0.65f, 1f);
+                _hudFlaskText.text = (Application.isMobilePlatform ? "TRANK\n" : "TRANK (Q)\n") + p.Crafting.PotionCount(PotionType.Heal);
+            }
             _hudXpFill.fillAmount = ExperienceFraction(p);
             string objective = ObjectiveText(_game);
             _hudObjective.text = objective;

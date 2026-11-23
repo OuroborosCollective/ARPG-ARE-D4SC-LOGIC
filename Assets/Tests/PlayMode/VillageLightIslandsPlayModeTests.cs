@@ -15,7 +15,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             foreach (var monster in Game.Monsters) { monster.Xmm = 1000; monster.Zmm = 0; monster.Health = 1; }
-            Game.ActivateSkill(3);
+            Resolve(3);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000);
             TravelStory();

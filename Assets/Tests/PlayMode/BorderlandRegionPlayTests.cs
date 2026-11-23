@@ -55,7 +55,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             foreach (var e in Game.Monsters) { e.Xmm = 1000; e.Zmm = 0; e.Health = 1; }
-            Game.ActivateSkill(3);
+            Resolve(3);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory(); yield return null;
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
@@ -200,7 +200,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3);
+            Resolve(3);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory(); yield return null;
             var village = Find("ARE_BuildLayer_aschengrenze");
