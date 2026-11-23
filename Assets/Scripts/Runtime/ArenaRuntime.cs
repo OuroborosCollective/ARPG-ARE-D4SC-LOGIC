@@ -739,10 +739,9 @@ namespace AreArpg.UnityClient
         private ArenaHudLayout CurrentHudLayout()
         {
             Vector2? s = HudScreenOverride;
-            var layout = s.HasValue ? new ArenaHudLayout(s.Value.x, s.Value.y, new Rect(0f, 0f, s.Value.x, s.Value.y)) :
-                new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea);
-            layout.CombatRingShown = _game != null && _game.CombatV2;
-            return layout;
+            bool ring = _game != null && _game.CombatV2;
+            return s.HasValue ? new ArenaHudLayout(s.Value.x, s.Value.y, new Rect(0f, 0f, s.Value.x, s.Value.y), ring) :
+                new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea, ring);
         }
 
         private void QueueNpcAction(NpcAction action)

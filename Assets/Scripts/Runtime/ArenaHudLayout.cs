@@ -97,8 +97,9 @@ namespace AreArpg.UnityClient
         public float Height { get; }
 
         /// <summary>Map the physical safe area into one logical canvas shared by drawing and touch hit testing.</summary>
-        public ArenaHudLayout(float screenWidth, float screenHeight, Rect safeArea)
+        public ArenaHudLayout(float screenWidth, float screenHeight, Rect safeArea, bool combatRingShown = false)
         {
+            CombatRingShown = combatRingShown;
             float w = Mathf.Max(screenWidth, 1f);
             _screenHeight = Mathf.Max(screenHeight, 1f);
             float left = Mathf.Clamp(safeArea.xMin, 0f, w);
@@ -204,7 +205,7 @@ namespace AreArpg.UnityClient
         /// <summary>Combat v2 (issue #127): dodge on an outer ring left of the skill arc, the flask above it. Both stay clear of
         /// the stick, the skill buttons, the NPC choices and the camera controls on phone and tablet canvases.</summary>
         /// <summary>The ring takes touches only while it is shown (combat v2); hidden, it neither swallows taps nor blocks camera gestures.</summary>
-        public bool CombatRingShown { get; set; }
+        public bool CombatRingShown { get; }
         public Rect DodgeRect { get { return OuterRing(160f); } }
         public Rect FlaskRect { get { return OuterRing(115f); } }
         private Rect OuterRing(float degrees)
