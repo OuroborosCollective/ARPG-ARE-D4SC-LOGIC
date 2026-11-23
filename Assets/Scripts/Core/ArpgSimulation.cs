@@ -877,7 +877,7 @@ namespace AreArpg.Core
         /// <summary>Collect reachable drops through the canonical progression owner, preserving legacy rewards.</summary>
         public bool TryCollectLoot()
         {
-            LastSupply = null;
+            LastSupply = null; LastLoot = null;
             if (GameOver) return false;
             for (int i = 0; i < GroundLoot.Count; i++)
             {
@@ -886,6 +886,7 @@ namespace AreArpg.Core
                 if (item.Item != null)
                 {
                     if (!Progression.CollectItem(item.Item)) return false;
+                    LastLoot = item.Item;
                     if (item.HasFieldPauldron) Progression.Equipment.CollectFieldPauldron(item.Item);
                 }
                 else Progression.AddWeaponUpgrade(item.WeaponBonus);

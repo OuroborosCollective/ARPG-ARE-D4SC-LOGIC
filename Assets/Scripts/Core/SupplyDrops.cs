@@ -186,6 +186,9 @@ namespace AreArpg.Core
         /// <summary>The bag the last <see cref="TryCollectLoot"/> took, or null; presentation only.</summary>
         public SupplyBag LastSupply { get; private set; }
 
+        /// <summary>The weapon receipt the last <see cref="TryCollectLoot"/> took, or null; presentation only.</summary>
+        public LootItem LastLoot { get; private set; }
+
         private bool LootRevisionTwo { get { return _lootCatalog != null && _lootCatalog.Revision >= 2; } }
 
         /// <summary>

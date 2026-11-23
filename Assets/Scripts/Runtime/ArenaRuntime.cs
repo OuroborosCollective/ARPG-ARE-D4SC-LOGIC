@@ -90,7 +90,7 @@ namespace AreArpg.UnityClient
             // Combat v2 (issue #127, owner 2026-11-23): new games start with it; an older save moves over once, explicitly.
             bool combatMoved = !_storageFault && saved != null && _entryProfile && saved.UseCombatV2() && hadSave;
             _game = new ArenaSimulation(DemoSeed, saved,
-                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version1, _journeyMaps);
+                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version2, _journeyMaps);
             if (!_storageFault) _game.Progression.Equipment.Enable(_game.Progression);
             _savedWeaponLevels = WeaponLevelSum(_game.Progression);
             if (_game.IsVillage)
@@ -980,7 +980,7 @@ namespace AreArpg.UnityClient
             }
             SaveCharacter();
             if (_storageFault) return;
-            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version1, _journeyMaps),
+            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version2, _journeyMaps),
                 "Crypt restarted - character progression retained.");
         }
 
@@ -989,7 +989,7 @@ namespace AreArpg.UnityClient
         {
             if (_storageFault || (_game.Progression.EntryAct < 2 && !_game.CryptCleared) || !_game.AtAnyPassage)
                 return;
-            if (_game.GroundLoot.Count != 0)
+            if (_game.LootOnGround)
             {
                 _message = "Deine Beute liegt noch hier. Sichere sie vor dem Durchgang.";
                 return;
@@ -1047,6 +1047,7 @@ namespace AreArpg.UnityClient
             foreach (Transform t in _lootVisuals.Values) if (t != null) Destroy(t.gameObject);
             _monsterVisuals.Clear();
             _lootVisuals.Clear();
+            ClearSupplyVisuals();
             _stationaryLootVisuals.Clear();
             ResetCombatFeel();
             _shownLevel = System.Numerics.BigInteger.MinusOne;
@@ -1170,7 +1171,7 @@ namespace AreArpg.UnityClient
                 {
                     bool hadFieldPauldron = _game.Progression.Equipment.FieldPauldronOwned;
                     bool pickedUp = _game.TryCollectLoot();
-                    _message = pickedUp ? "Beute aufgenommen. Neue Waffen kannst du im Inventar vergleichen und ausrüsten." : "Keine Beute in Reichweite.";
+                    _message = pickedUp ? PickupMessage() : "Keine Beute in Reichweite.";
                     if (!hadFieldPauldron && _game.Progression.Equipment.FieldPauldronOwned)
                     {
                         _message = "Feldschulter der Heilerin geborgen. Du kannst sie in der Tasche anlegen.";
@@ -1258,11 +1259,11 @@ namespace AreArpg.UnityClient
             UpdateWoodlandPresentation();
             UpdateEquipmentPresentation();
             if (_worldPassage != null)
-                _worldPassage.gameObject.SetActive((_game.Progression.EntryAct >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && _game.GroundLoot.Count == 0);
+                _worldPassage.gameObject.SetActive((_game.Progression.EntryAct >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && !_game.LootOnGround);
             if (_game.Progression.EntryAct < 2 && _game.CryptCleared && !_passageAnnounced)
             {
                 _passageAnnounced = true;
-                _message = _game.GroundLoot.Count == 0 ? "Ein Luftzug streicht durch den Nordbogen. Folge dem Weg." :
+                _message = !_game.LootOnGround ? "Ein Luftzug streicht durch den Nordbogen. Folge dem Weg." :
                     "Die Krypta wird still. Sichere deine Beute; der Nordbogen fuehrt weiter.";
             }
             if (_hero != null)
@@ -1311,12 +1312,13 @@ namespace AreArpg.UnityClient
                     ApplyHitReaction(enemy.Id, visual);
                 }
             }
+            UpdateLootPresentation();
             foreach (LootState item in _game.GroundLoot)
             {
                 if (_lootVisuals.ContainsKey(item.Id)) continue;
                 var drop=Shape(PrimitiveType.Sphere, "Loot_" + item.Id,
                     new Vector3(item.Xmm / 1000f, 0.55f + GroundHeight(item.Xmm/1000f,item.Zmm/1000f), item.Zmm / 1000f),
-                    Vector3.one * 0.55f, new Color(0.97f, 0.76f, 0.18f), 0.8f);
+                    Vector3.one * 0.55f, item.Item != null ? AshenUiTheme.RarityColor(item.Item.Rarity) : new Color(0.97f, 0.76f, 0.18f), 0.8f);
                 var equipment=_game.Progression.Equipment.ForItem(item.Item);
                 float floor = GroundHeight(item.Xmm * .001f, item.Zmm * .001f);
                 if (item.HasFieldPauldron && TryGroundFieldPauldron(drop, floor))

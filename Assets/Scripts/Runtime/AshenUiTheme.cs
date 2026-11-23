@@ -24,6 +24,8 @@ namespace AreArpg.UnityClient
         public static readonly Color Danger = new Color(0.72f, 0.20f, 0.16f, 1f);
         public static readonly Color Magic = new Color(0.40f, 0.60f, 1f, 1f);
         public static readonly Color Rare = new Color(1f, 0.84f, 0.32f, 1f);
+        public static readonly Color Common = new Color(0.86f, 0.84f, 0.80f, 1f);
+        public static readonly Color Legendary = new Color(1f, 0.52f, 0.14f, 1f);
         public static readonly Color Shade = new Color(0f, 0f, 0f, 0.62f);
 
         private static readonly Dictionary<string, Sprite> Cache = new Dictionary<string, Sprite>();
@@ -57,7 +59,10 @@ namespace AreArpg.UnityClient
         public static Sprite Icon(string key) { return Resources.Load<Sprite>("ARE/UI/icon_" + key); }
 
         public static Color RarityColor(AreArpg.Core.ItemRarity rarity)
-        { return rarity == AreArpg.Core.ItemRarity.Rare ? Rare : Magic; }
+        {
+            return rarity == AreArpg.Core.ItemRarity.Legendary ? Legendary : rarity == AreArpg.Core.ItemRarity.Rare ? Rare :
+                rarity == AreArpg.Core.ItemRarity.Magic ? Magic : Common;
+        }
 
         private static Sprite Get(string key, System.Func<Sprite> build)
         {
