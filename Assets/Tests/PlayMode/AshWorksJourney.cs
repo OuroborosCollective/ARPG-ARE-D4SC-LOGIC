@@ -121,9 +121,10 @@ namespace AreArpg.PlayMode.Tests
                     if(ax==0&&az==0)az=-Move;
                     game.SetMoveInput(ax,az);game.StartDodge(ax,az);
                 }
-                else if(game.Stamina<CombatV2Rules.Dodge.Stamina+15||m.AttackCooldownTicks<6)
+                else if(game.Stamina<CombatV2Rules.Dodge.Stamina+15||(m.AttackCooldownTicks<6&&r.MemoryTicks>0))
                 {
-                    // No swing into a strike that can still come: hold about 2.6 m (outside its 2.1 m trigger) and breathe.
+                    // No swing into a strike that can still come (the blind Rattler strikes only what it heard or smelled):
+                    // hold about 2.6 m, outside its 2.1 m trigger, and breathe.
                     long away=distance<2600?-1:distance>3200?1:0;
                     game.SetMoveInput(away*Math.Sign(tx)*Move,away*Math.Sign(tz)*Move);
                 }
