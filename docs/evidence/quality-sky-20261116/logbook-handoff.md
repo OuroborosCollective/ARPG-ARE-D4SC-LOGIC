@@ -368,3 +368,13 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Unity 6000.6.8f1, Unity-CLI-Lauf im Live-Editor auf main `5d94f23` (kein Director-Job; der PR ändert nichts unter `Assets/`): EditMode 4/4 (XML `82b089c6…`), PlayMode 9/9 (XML `bb06894f…`), Protokollausschnitt ohne Fehler (`4e6a03bd…`).
 - APK (Auftrag A): 275.464.965 Byte, SHA-256 `1ced0ebf…`, debug-signiert, ARM64/IL2CPP, 16-KiB-ausgerichtet, targetSdk 36. Das sind 101 MB mehr als am 20.11. (174.366.707 Byte). Haupttreiber: die 180 Figuren des Vorrats (221 MB unkomprimierter Build-Inhalt, davon 171 MB Texturen mit 3 × 512² je Figur und 44,7 MB Meshes) sowie 37,7 MB Inference-Engine-Ressourcen, die nur der Live-Editor als Werkzeugpaket mitbringt (nicht im Repo-Paketstand). Physisches Gerät offen.
 - [Technische Abnahme](../issue-6-causal-regression-20261122/acceptance.md)
+
+
+## 23. November 2026 · Signiertes Google-Play-Paket · PR 124
+
+- Owner-Entscheidungen vom 22.11.: Beta-Updates über eine Google-Play-Testspur, eigener neuer Upload-Schlüssel für Ashen Crypt, Paketgröße bis 3 GB in Ordnung (keine Textur- oder Mesh-Verkleinerung).
+- Neuer Menüpunkt „ARE ARPG/3. Build Signed App Bundle for Google Play“: Schlüssel und Passwörter nur aus der Signierdatei, die `ARE_ANDROID_SIGNING` nennt (Datei und Schlüssel außerhalb des Projekts), Versionscode = Minuten seit 2026-01-01, Spieldaten im Install-time-Asset-Pack, Größenwarnung erst ab 3 GB, danach Projekteinstellungen wie vorher und keine Passwörter mehr im erzeugten Gradle-Projekt.
+- Zweites AAB ohne Handgriff gebaut: SHA-256 `c0d1deae…`, Versionscode 469396, `jarsigner` verifiziert mit dem Upload-Zertifikat, `bundletool validate` mit Grundmodul und `UnityDataAssetPack`, Download je Gerät ≈ 275 MB (Grundpaket 31 MB). Gradles Script-Cache im Benutzerordner hielt danach noch Passwort-Kopien; ein privates Werkzeug neben dem Schlüssel entfernt sie nach jedem signierten Bau (Nachsuche 0).
+- Unity 6000.6.8f1, Unity-CLI-Lauf im Live-Editor (kein Director-Job): `AndroidPlayBundleTests` 5/5; statische Unity/Android-Prüfung und 54 Preflight-Tests grün. CodeRabbit-Hinweis zur Groß-/Kleinschreibung von Pfaden unter Windows/macOS umgesetzt.
+- Offen (Owner): App in der Play Console anlegen und das AAB in eine Testspur hochladen; Gerätetest.
+- [Technische Abnahme](../play-app-bundle-20261122/acceptance.md)
