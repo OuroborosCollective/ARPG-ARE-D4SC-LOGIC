@@ -39,7 +39,7 @@ namespace AreArpg.UnityClient
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
         // Combat v2 (issue #127): dodge and flask are queued like skills; SCHUTZ is held by a finger, a mouse or key 3.
-        private bool _pendingDodge, _pendingFlask, _guardMouse;
+        private bool _pendingDodge, _pendingFlask, _pendingHeal, _guardMouse;
         /// <summary>Practice ranks before a combat-v2 tick: a hit trains on its impact tick, inside the step.</summary>
         private readonly System.Numerics.BigInteger[] _practiceBefore = new System.Numerics.BigInteger[SkillCatalog.Count];
         private int _guardFinger = -1;
@@ -103,7 +103,7 @@ namespace AreArpg.UnityClient
             if (combatMoved)
             {
                 _message = "Neues Kampfgefühl: SCHUTZ halten blockt, AUSWEICHEN rollt dich weg, TRANK heilt nach kurzem Ansetzen. Freies Heilen gibt es nicht mehr; " +
-                    "deine bisherige Schutz-Übung bleibt erhalten und zählt jetzt als Heilkunst.";
+                    "deine bisherige Schutz-Übung bleibt erhalten und zählt jetzt als Heilkunst, die Orsel an der Mühle lehrt.";
                 SaveCharacter();
             }
             BuildWorld();
@@ -739,9 +739,9 @@ namespace AreArpg.UnityClient
         private ArenaHudLayout CurrentHudLayout()
         {
             Vector2? s = HudScreenOverride;
-            bool ring = _game != null && _game.CombatV2;
-            return s.HasValue ? new ArenaHudLayout(s.Value.x, s.Value.y, new Rect(0f, 0f, s.Value.x, s.Value.y), ring) :
-                new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea, ring);
+            bool ring = _game != null && _game.CombatV2, heal = ring && _game.Progression.Healing.Learned;
+            return s.HasValue ? new ArenaHudLayout(s.Value.x, s.Value.y, new Rect(0f, 0f, s.Value.x, s.Value.y), ring, heal) :
+                new ArenaHudLayout(Screen.width, Screen.height, Screen.safeArea, ring, heal);
         }
 
         private void QueueNpcAction(NpcAction action)
@@ -810,11 +810,13 @@ namespace AreArpg.UnityClient
             if (PollArrivalScene()) return;
             if (_villageBoardOpen && PollVillageBoardInput(layout)) return;
             if (_sitePanelOpen && PollVillageSiteInput(layout)) return;
+            if (_orselPanelOpen && PollOrselInput(layout)) return;
             if (PollMenuInput()) return;
             if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollVillageBoardInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollVillageSiteInput(layout)) { ReleasePresentationTouches(); return; }
+            if (PollOrselInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollRattlerInput(layout)) { ReleasePresentationTouches(); return; }
             long x = 0, z = 0;
             bool nearNpc = _game.NearestNpc() != null;
@@ -903,6 +905,7 @@ namespace AreArpg.UnityClient
                 _game.SetGuard(_guardFinger >= 0 || _guardMouse || Input.GetKey(KeyCode.Alpha3));
                 if (Input.GetKeyDown(KeyCode.Space)) _pendingDodge = true;
                 if (Input.GetKeyDown(KeyCode.Q)) _pendingFlask = true;
+                if (Input.GetKeyDown(KeyCode.X) && _game.Progression.Healing.Learned) _pendingHeal = true;
             }
             if (Input.GetKeyDown(KeyCode.Alpha1)) _pendingSkills.Enqueue(0);
             if (Input.GetKeyDown(KeyCode.Alpha2)) _pendingSkills.Enqueue(1);
@@ -949,6 +952,8 @@ namespace AreArpg.UnityClient
                 _pendingDodge = true;
             else if (control == ArenaHudControl.Flask && _game.CombatV2)
                 _pendingFlask = true;
+            else if (control == ArenaHudControl.Heal && _game.CombatV2 && _game.Progression.Healing.Learned)
+                _pendingHeal = true;
         }
 
         /// <summary>Shared button routing changes only the cosmetic camera; nothing enters the Core action queue.</summary>
@@ -1021,7 +1026,8 @@ namespace AreArpg.UnityClient
             _pendingSkills.Clear();
             _pendingMastery.Clear();
             _pendingPickup = false;
-            _pendingDodge = false; _pendingFlask = false; _guardFinger = -1; _guardMouse = false;
+            _pendingDodge = false; _pendingFlask = false; _pendingHeal = false; _guardFinger = -1; _guardMouse = false;
+            ResetOrselPanel();
             _pendingCampDonation = false;
             _pendingTakeRation = false;
             _pendingNpcActions.Clear();
@@ -1069,6 +1075,8 @@ namespace AreArpg.UnityClient
                 ProcessVillageGift();
                 if (_storageFault) break;
                 ProcessVillageSiteGift();
+                if (_storageFault) break;
+                ProcessOrselChoice();
                 if (_storageFault) break;
                 if (_pendingHunterAction >= 0)
                 {
@@ -1150,6 +1158,13 @@ namespace AreArpg.UnityClient
                     if (_game.DrinkPotion(PotionType.Heal)) _message = "Du setzt einen Heiltrank an …";
                     else _message = _game.Progression.Crafting.PotionCount(PotionType.Heal) == 0 ? "Kein Heiltrank in der Tasche." : "Erst die laufende Bewegung beenden.";
                 }
+                if (_pendingHeal)
+                {
+                    _pendingHeal = false;
+                    HealResult cast = _game.CastWundschluss();
+                    _message = cast.Message;
+                    if (cast.Activated) PresentCastStart(cast);
+                }
                 if (_pendingPickup)
                 {
                     bool hadFieldPauldron = _game.Progression.Equipment.FieldPauldronOwned;
@@ -1205,6 +1220,7 @@ namespace AreArpg.UnityClient
             AnimateVillageLights();
             AnimateDungeonLights();
             UpdateRegionalSources();
+            UpdateOrselFigure();
             UpdateCombatFeel();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
@@ -1375,11 +1391,13 @@ namespace AreArpg.UnityClient
             {
                 if (_villageBoardOpen && DrawVillageBoard(layout)) return;
                 if (_sitePanelOpen && DrawVillageSite(layout)) return;
+                if (_orselPanelOpen && DrawOrselPanel(layout)) return;
                 DrawRoadHud(layout);
                 DrawRattlerHud(layout);
                 if (DrawHungerJournal(layout)) { DrawSpeechSubtitle(layout); return; }
                 if (DrawVillageBoard(layout)) return;
                 if (DrawVillageSite(layout)) return;
+                if (DrawOrselPanel(layout)) return;
                 DrawVillageDoorHint(layout);
                 DrawSpeechSubtitle(layout);
             }

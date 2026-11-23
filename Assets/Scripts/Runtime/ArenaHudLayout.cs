@@ -30,7 +30,8 @@ namespace AreArpg.UnityClient
         MenuQuests,
         MenuSettings,
         Dodge,
-        Flask
+        Flask,
+        Heal
     }
 
     /// <summary>
@@ -97,9 +98,9 @@ namespace AreArpg.UnityClient
         public float Height { get; }
 
         /// <summary>Map the physical safe area into one logical canvas shared by drawing and touch hit testing.</summary>
-        public ArenaHudLayout(float screenWidth, float screenHeight, Rect safeArea, bool combatRingShown = false)
+        public ArenaHudLayout(float screenWidth, float screenHeight, Rect safeArea, bool combatRingShown = false, bool healShown = false)
         {
-            CombatRingShown = combatRingShown;
+            CombatRingShown = combatRingShown; HealShown = healShown;
             float w = Mathf.Max(screenWidth, 1f);
             _screenHeight = Mathf.Max(screenHeight, 1f);
             float left = Mathf.Clamp(safeArea.xMin, 0f, w);
@@ -206,8 +207,12 @@ namespace AreArpg.UnityClient
         /// the stick, the skill buttons, the NPC choices and the camera controls on phone and tablet canvases.</summary>
         /// <summary>The ring takes touches only while it is shown (combat v2); hidden, it neither swallows taps nor blocks camera gestures.</summary>
         public bool CombatRingShown { get; }
+        /// <summary>WUNDSCHLUSS takes touches only once Orsel has taught it.</summary>
+        public bool HealShown { get; }
         public Rect DodgeRect { get { return OuterRing(160f); } }
         public Rect FlaskRect { get { return OuterRing(115f); } }
+        /// <summary>Wundschluss (Orsel's course) sits on the same ring left of the dodge, clear of the skill arc and the bottom edge.</summary>
+        public Rect HealRect { get { return OuterRing(185f); } }
         private Rect OuterRing(float degrees)
         {
             float a = Mathf.Deg2Rad * degrees;
@@ -317,6 +322,7 @@ namespace AreArpg.UnityClient
 
             if (CombatRingShown && DodgeRect.Contains(point)) return ArenaHudControl.Dodge;
             if (CombatRingShown && FlaskRect.Contains(point)) return ArenaHudControl.Flask;
+            if (HealShown && HealRect.Contains(point)) return ArenaHudControl.Heal;
             if (PickupRect.Contains(point)) return ArenaHudControl.Pickup;
             if (MoveRect.Contains(point)) return ArenaHudControl.Move;
             return ArenaHudControl.None;

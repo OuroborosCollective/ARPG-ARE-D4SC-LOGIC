@@ -216,7 +216,8 @@ namespace AreArpg.UnityClient
             AshenUiTheme.Place(dh.rectTransform, new Rect(16f, y, statsW - 32f, 20f)); dh.text = "DISZIPLINEN  ·  Lernen durch Tun";
             y += 22f;
             for (int i = 0; i < 4; i++)
-                row(SkillLabels[i].Substring(0, 1) + SkillLabels[i].Substring(1).ToLowerInvariant(),
+                // Under combat v2 the former guard practice is the healing mastery (owner 2026-11-23).
+                row(_game.CombatV2 && i == 2 ? "Heilkunst" : SkillLabels[i].Substring(0, 1) + SkillLabels[i].Substring(1).ToLowerInvariant(),
                     "Rang " + p.PracticeLevel(i) + "  ·  " + p.PracticeExperience(i) + " EP");
         }
 

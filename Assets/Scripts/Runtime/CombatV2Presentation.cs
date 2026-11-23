@@ -30,6 +30,41 @@ namespace AreArpg.UnityClient
             }
             if (_game.GuardRaised && !guardBefore) PresentGuardRaised();
             if (_game.BlockedAttacks > blockedBefore) PresentBlock();
+            foreach (var heal in _game.Heals)
+            {
+                _message = heal.Message;
+                if (heal.Amount > 0) PresentHeal(heal);
+                // Practice and closed wounds are kept; a landed heal is saved at once like a drunk flask.
+                if (heal.Amount > 0) SaveCharacter();
+            }
+        }
+
+        /// <summary>Wundschluss starts: the hero gathers the spell, a faint light marks whom it is for.</summary>
+        private void PresentCastStart(HealResult cast)
+        {
+            if (!_entryProfile || _hero == null) return;
+            EnsureCombatEffects();
+            if (_guardShimmer != null)
+            {
+                _guardShimmer.transform.position = _hero.position + Vector3.up * 1.4f;
+                _guardShimmer.Emit(_atmosphere != null && _atmosphere.ReducedEffects ? 4 : 12);
+                if (cast.Target != HealTargetKind.Self)
+                {
+                    _guardShimmer.transform.position = new Vector3(cast.TargetXmm / 1000f, .9f, cast.TargetZmm / 1000f);
+                    _guardShimmer.Emit(_atmosphere != null && _atmosphere.ReducedEffects ? 3 : 8);
+                }
+            }
+        }
+
+        /// <summary>Wundschluss lands: light gathers on the healed body.</summary>
+        private void PresentHeal(HealResult heal)
+        {
+            if (!_entryProfile) return;
+            EnsureCombatEffects();
+            if (_guardShimmer == null) return;
+            Vector3 at = heal.Target == HealTargetKind.Self && _hero != null ? _hero.position : new Vector3(heal.TargetXmm / 1000f, 0f, heal.TargetZmm / 1000f);
+            _guardShimmer.transform.position = at + Vector3.up * 1.1f;
+            _guardShimmer.Emit(_atmosphere != null && _atmosphere.ReducedEffects ? 10 : 30);
         }
 
         private void PresentGuardRaised()
