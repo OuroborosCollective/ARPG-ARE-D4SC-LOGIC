@@ -13,6 +13,26 @@ namespace AreArpg.PlayMode.Tests
     /// </summary>
     public sealed partial class EntryJourneyRuntimeTests
     {
+        /// <summary>Ilyan, Mara and Dorn stand in the camp with the expression shapes of their new bake and the mood of
+        /// their role: Ilyan sad, Mara smiling, Dorn grim.</summary>
+        [UnityTest, Timeout(300000)]
+        public IEnumerator CampFiguresWearTheMoodOfTheirRole()
+        {
+            yield return null;
+            var moods = new[] { ("ARE_NPC_0", "Expression_Brows_Sad_L", 45f), ("ARE_NPC_1", "Expression_Mouth_Happy_L", 18f), ("ARE_NPC_2", "Expression_Brow_Angry_L", 30f) };
+            foreach (var (figure, shape, weight) in moods)
+            {
+                var root = Find(figure);
+                Assert.IsNotNull(root, figure + " stands in the camp");
+                var skin = root.GetComponentInChildren<SkinnedMeshRenderer>();
+                Assert.IsNotNull(skin, figure + " is a bound figure");
+                Assert.GreaterOrEqual(skin.sharedMesh.GetBlendShapeIndex("Expression_Eyes_UpperClosed_L"), 0, figure + " keeps the shapes to blink");
+                int index = skin.sharedMesh.GetBlendShapeIndex(shape);
+                Assert.GreaterOrEqual(index, 0, figure + " has " + shape);
+                Assert.AreEqual(weight, skin.GetBlendShapeWeight(index), 0.01f, figure + " shows the mood of the role");
+            }
+        }
+
         [UnityTest, Timeout(900000)]
         public IEnumerator OrselBlinksKeepsHerMoodAndMovesHerLips()
         {

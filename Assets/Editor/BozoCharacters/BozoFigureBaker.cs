@@ -902,7 +902,8 @@ namespace AreArpg.EditorTools
         static string FabricStamp(BozoFigureRecipes.Figure recipe)
         {
             if (!HasFabric(recipe)) return "";
-            return ";fabric=" + string.Join(",", recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)).Select(o =>
+            // "v2": skin pieces of outfits stay free of fabric; older derived textures are rebuilt.
+            return ";fabric=v2," + string.Join(",", recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)).Select(o =>
                 o.slot + ":" + o.fabric + ":" + o.fabricStrength.ToString("0.###", Invariant) + ":" + o.fabricScale.ToString("0.###", Invariant)));
         }
 
@@ -937,6 +938,17 @@ namespace AreArpg.EditorTools
             Vector2[] uv = mesh.uv;
             int[] triangles = mesh.triangles;
             var ranges = PartRanges(recipe.id, mesh.vertexCount);
+            // Outfits bring their own skin pieces (a neckline, a bare shoulder) that borrow the body's atlas islands;
+            // whatever lies on the body's or the head's islands stays skin and never takes a fabric.
+            var skinVertex = new bool[mesh.vertexCount];
+            foreach (var run in ranges.Where(r => r.Key == "Body" || r.Key == "Head"))
+                for (int v = run.Value.x; v < run.Value.x + run.Value.y; v++) skinVertex[v] = true;
+            var skin = new bool[width * height];
+            for (int t = 0; t + 2 < triangles.Length; t += 3)
+            {
+                int a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
+                if (skinVertex[a] && skinVertex[b] && skinVertex[c]) FillTriangle(skin, width, height, uv[a], uv[b], uv[c]);
+            }
             foreach (var outfit in recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)))
             {
                 if (!(outfit.fabricStrength >= 0f && outfit.fabricStrength <= 1f) || !(outfit.fabricScale > 0f && outfit.fabricScale <= 64f))
@@ -950,9 +962,11 @@ namespace AreArpg.EditorTools
                 for (int t = 0; t + 2 < triangles.Length; t += 3)
                 {
                     int a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
-                    if (inside[a] && inside[b] && inside[c]) FillTriangle(mask, width, height, uv[a], uv[b], uv[c]);
+                    if (inside[a] && inside[b] && inside[c] && !OnMask(skin, width, height, (uv[a] + uv[b] + uv[c]) / 3f))
+                        FillTriangle(mask, width, height, uv[a], uv[b], uv[c]);
                 }
                 mask = Grow(mask, width, height, 2);
+                for (int i = 0; i < mask.Length; i++) if (skin[i]) mask[i] = false;
                 string path = FabricPath(outfit.fabric);
                 if (!File.Exists(path)) throw new InvalidOperationException("Stoff fehlt: " + path);
                 var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
@@ -985,6 +999,13 @@ namespace AreArpg.EditorTools
                     float w2 = (ax - px) * (by - py) - (bx - px) * (ay - py);
                     if (area > 0f ? (w0 >= 0f && w1 >= 0f && w2 >= 0f) : (w0 <= 0f && w1 <= 0f && w2 <= 0f)) mask[y * width + x] = true;
                 }
+        }
+
+        /// <summary>Whether an atlas point lies on a marked pixel.</summary>
+        static bool OnMask(bool[] mask, int width, int height, Vector2 uv)
+        {
+            int x = Mathf.FloorToInt(uv.x * width), y = Mathf.FloorToInt(uv.y * height);
+            return x >= 0 && y >= 0 && x < width && y < height && mask[y * width + x];
         }
 
         /// <summary>Widen a mask by some pixels, so the fabric also covers the seams the texture filter reaches.</summary>

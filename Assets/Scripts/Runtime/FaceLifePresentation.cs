@@ -34,6 +34,9 @@ namespace AreArpg.UnityClient
                     return new[] { Pair("Expression_Mouth_Happy_L", 18f), Pair("Expression_Mouth_Happy_R", 18f) };
                 case "ARE_NPC_2": // Dorn: the guard
                     return new[] { Pair("Expression_Brow_Angry_L", 30f), Pair("Expression_Brow_Angry_R", 30f), Pair("Expression_Brows_Lowered_L", 20f), Pair("Expression_Brows_Lowered_R", 20f) };
+                case "ARE_Road_Hunter": // the hunter on the ash road, later the companion: watchful
+                case "ARE_Companion_Hunter":
+                    return new[] { Pair("Expression_Brows_Lowered_L", 20f), Pair("Expression_Brows_Lowered_R", 20f) };
                 case "ARE_Orsel_Healer": // Orsel: gruff, caring in deed
                     return new[] { Pair("Expression_Brows_Lowered_L", 35f), Pair("Expression_Brows_Lowered_R", 35f), Pair("Expression_Brow_Angry_L", 10f), Pair("Expression_Brow_Angry_R", 10f) };
                 default:
