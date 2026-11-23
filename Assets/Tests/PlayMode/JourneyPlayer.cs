@@ -204,6 +204,9 @@ namespace AreArpg.PlayMode.Tests
                     if (ax == 0 && az == 0) { ax = g.PlayerXmm - target.Xmm; az = g.PlayerZmm - target.Zmm; long t = ax; ax = -az; az = t; }
                     if (ax == 0 && az == 0) ax = 1;
                     Steer(ax, az);
+                    // Combat v2: tap AUSWEICHEN while the stick points away; the game dodges along the stick.
+                    if (g.CombatV2 && g.ActionKind != CombatActionKind.Dodge && g.Stamina >= CombatV2Rules.Dodge.Stamina && !Phone.Busy)
+                        Phone.Tap(Layout, Layout.DodgeRect.center);
                     yield return Frame();
                     continue;
                 }
@@ -218,6 +221,9 @@ namespace AreArpg.PlayMode.Tests
                     Steer(next.x - g.PlayerXmm, next.y - g.PlayerZmm);
                 }
                 else Phone.Stick(Layout, null);
+                if (g.CombatV2 && g.ActionKind == CombatActionKind.None && !Phone.Busy &&
+                    g.PlayerHealth * 100 < g.MaxPlayerHealth * 45 && g.Progression.Crafting.PotionCount(PotionType.Heal) > 0)
+                    Phone.Tap(Layout, Layout.FlaskRect.center); // low on health: drink while the hands are free
                 int slot = ChooseSkill(g, distance, target);
                 if (slot >= 0 && !Phone.Busy) Phone.Tap(Layout, Layout.SkillRect(slot).center);
                 yield return Frame();
@@ -227,10 +233,14 @@ namespace AreArpg.PlayMode.Tests
         /// <summary>The button a player would press now: heal when low, otherwise the strongest ready attack in reach.</summary>
         private static int ChooseSkill(ArenaSimulation g, long distance, MonsterState target)
         {
-            if (g.PlayerHealth * 100 < g.MaxPlayerHealth * 45 && g.Cooldowns[2] == 0) return 2;
+            // Combat v2: a swing must end before the next one, slot 2 guards instead of healing, swings cost stamina, and
+            // Ruin's long windup is only started when it ends before the bear can strike again.
+            if (g.CombatV2 && (g.ActionKind != CombatActionKind.None || g.Stamina <= 0)) return -1;
+            if (!g.CombatV2 && g.PlayerHealth * 100 < g.MaxPlayerHealth * 45 && g.Cooldowns[2] == 0) return 2;
+            bool ruinSafe = !g.CombatV2 || target.Kind != 4 || target.AttackCooldownTicks > CombatV2Rules.Ruin.Startup;
             int near = 0;
             foreach (var m in g.Monsters) if (!m.IsDead && Distance2(m.Xmm, m.Zmm, g.PlayerXmm, g.PlayerZmm) <= 6000L * 6000L) near++;
-            if (g.Cooldowns[3] == 0 && distance <= 5500 && (near >= 2 || target.Kind == 4)) return 3;
+            if (g.Cooldowns[3] == 0 && ruinSafe && distance <= 5500 && (near >= 2 || target.Kind == 4)) return 3;
             if (g.Cooldowns[1] == 0 && g.Resource >= SkillCatalog.Get(1).FocusCost && distance <= 4000) return 1;
             if (g.Cooldowns[0] == 0 && distance <= 2900) return 0;
             return -1;
