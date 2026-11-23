@@ -44,6 +44,7 @@ internal static class Program
             LivingChronicleTests.Run(Require);
             SupplyTheftTests.Run(Require);
             LootAffixTests.Run(Require);
+            LootV2Tests.Run(Require);
             SkillContractTests.Run(Require);
             CombatStatsTests.Run(Require);
             PracticeRuleTests.Run(Require);
