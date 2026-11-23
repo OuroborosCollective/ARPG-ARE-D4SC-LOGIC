@@ -253,8 +253,9 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(CompanionStatus.Following,p.Companion.Status);
             var actor=Find("ARE_Companion_Hunter");Assert.IsNotNull(actor);Assert.IsNotEmpty(actor.GetComponentsInChildren<SkinnedMeshRenderer>());
             Assert.IsFalse(Find("ARE_Road_Hunter").activeSelf,"Recruitment must not leave a duplicate hunter behind");
-            var face=actor.GetComponentInChildren<SkinnedMeshRenderer>();int brows=face.sharedMesh.GetBlendShapeIndex("Expression_Brows_Lowered_L");
-            Assert.GreaterOrEqual(face.sharedMesh.GetBlendShapeIndex("Expression_Eyes_UpperClosed_L"),0,"The companion keeps a face that blinks");
+            // The bow in his hand may be skinned too; the face is the figure's own mesh.
+            var face=actor.GetComponentsInChildren<SkinnedMeshRenderer>().FirstOrDefault(s=>s.sharedMesh!=null&&s.sharedMesh.GetBlendShapeIndex("Expression_Eyes_UpperClosed_L")>=0);
+            Assert.IsNotNull(face,"The companion keeps a face that blinks");int brows=face.sharedMesh.GetBlendShapeIndex("Expression_Brows_Lowered_L");
             Assert.GreaterOrEqual(brows,0);Assert.AreEqual(20f,face.GetBlendShapeWeight(brows),.01f,"and the hunter's watchful mood");
             Assert.IsNotNull(actor.GetComponentsInChildren<Transform>().FirstOrDefault(t=>t.name=="CompanionWeapon_bow_newbie.1"));
             var animator=actor.GetComponentInChildren<Animator>();Assert.IsNotNull(animator);Assert.IsTrue(animator.isHuman);Assert.IsFalse(animator.applyRootMotion);
