@@ -253,6 +253,9 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(CompanionStatus.Following,p.Companion.Status);
             var actor=Find("ARE_Companion_Hunter");Assert.IsNotNull(actor);Assert.IsNotEmpty(actor.GetComponentsInChildren<SkinnedMeshRenderer>());
             Assert.IsFalse(Find("ARE_Road_Hunter").activeSelf,"Recruitment must not leave a duplicate hunter behind");
+            var face=actor.GetComponentInChildren<SkinnedMeshRenderer>();int brows=face.sharedMesh.GetBlendShapeIndex("Expression_Brows_Lowered_L");
+            Assert.GreaterOrEqual(face.sharedMesh.GetBlendShapeIndex("Expression_Eyes_UpperClosed_L"),0,"The companion keeps a face that blinks");
+            Assert.GreaterOrEqual(brows,0);Assert.AreEqual(20f,face.GetBlendShapeWeight(brows),.01f,"and the hunter's watchful mood");
             Assert.IsNotNull(actor.GetComponentsInChildren<Transform>().FirstOrDefault(t=>t.name=="CompanionWeapon_bow_newbie.1"));
             var animator=actor.GetComponentInChildren<Animator>();Assert.IsNotNull(animator);Assert.IsTrue(animator.isHuman);Assert.IsFalse(animator.applyRootMotion);
             Assert.IsTrue(animator.HasState(0,Animator.StringToHash("Move")));
