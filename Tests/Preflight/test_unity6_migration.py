@@ -35,7 +35,7 @@ class Unity6MigrationContract(unittest.TestCase):
         data = json.loads((ROOT / 'Packages/manifest.json').read_text())
         version = data['dependencies'].get('com.unity.pipeline')
         self.assertIsNotNone(version, 'Unity CLI Pipeline package required for MCP')
-        self.assertRegex(version, r'^0\.\d+\.\d+-exp\.\d+$')
+        self.assertEqual('1.0.0', version, 'Unity Pipeline must be pinned to the stable release')
 
 
 if __name__ == '__main__':
