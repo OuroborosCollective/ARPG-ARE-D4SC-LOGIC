@@ -16,13 +16,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires private native village art and real GameView capture");
             _runtime.enabled = false;
-            foreach (MonsterState monster in Game.Monsters)
-            {
-                monster.Xmm = 1000;
-                monster.Zmm = 0;
-                monster.Health = 1;
-            }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000);
             TravelStory();

@@ -333,7 +333,9 @@ namespace AreArpg.PlayMode.Tests
 
         /// <summary>
         /// Test fixture: the crypt's enemies stand next to the hero at one hit point and Ruin kills them; the three drops
-        /// must lie within reach. Under combat v2 the Core runs on to the Ruin's impact. A failure names the whole state.
+        /// must lie within reach. Under combat v2 the Ruin lands after its windup, and a ghoul at one hit point may choose
+        /// to flee meanwhile, so the enemies are put next to the hero again on the last windup tick: the impact comes at
+        /// the start of the next tick, before anyone moves. A failure names the whole state.
         /// </summary>
         private SkillResult ArrangeCryptKill()
         {
@@ -341,8 +343,18 @@ namespace AreArpg.PlayMode.Tests
             string before = "act " + g.Progression.EntryAct + ", v2 " + g.CombatV2 + ", action " + g.ActionKind + "/" + g.ActionTick +
                 ", stamina " + g.Stamina + ", cooldown " + g.Cooldowns[3] + ", player (" + g.PlayerXmm + ", " + g.PlayerZmm + "), hp " +
                 g.PlayerHealth + ", over " + g.GameOver + ", monsters " + g.Monsters.Count + ", loot " + g.GroundLoot.Count;
-            foreach (var enemy in g.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            var ruin = Resolve(3);
+            foreach (var enemy in g.Monsters) { enemy.Xmm = g.PlayerXmm + 1000; enemy.Zmm = g.PlayerZmm; enemy.Health = 1; }
+            SkillResult ruin = g.ActivateSkill(3);
+            if (g.CombatV2 && ruin.Activated)
+            {
+                for (int tick = 0; tick < 40 && g.ActionKind == CombatActionKind.Ruin && g.ActionTick < CombatV2Rules.Ruin.Startup; tick++) g.Step();
+                foreach (var enemy in g.Monsters) if (!enemy.IsDead) { enemy.Xmm = g.PlayerXmm + 1000; enemy.Zmm = g.PlayerZmm; }
+                for (int tick = 0; tick < 40 && g.ActionKind != CombatActionKind.None; tick++)
+                {
+                    g.Step();
+                    if (g.Impacts.Count > 0) ruin = g.Impacts[0];
+                }
+            }
             string after = "ruin '" + ruin.Message + "' kills " + ruin.Kills + ", player (" + Game.PlayerXmm + ", " + Game.PlayerZmm +
                 "), loot " + Game.GroundLoot.Count;
             foreach (var l in Game.GroundLoot) after += " (" + l.Xmm + "," + l.Zmm + ")";

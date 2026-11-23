@@ -15,13 +15,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private village overlay and real Unity camera");
             _runtime.enabled = false;
-            foreach (MonsterState monster in Game.Monsters)
-            {
-                monster.Xmm = 1000;
-                monster.Zmm = 0;
-                monster.Health = 1;
-            }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000);
             TravelStory();

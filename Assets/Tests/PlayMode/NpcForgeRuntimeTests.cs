@@ -117,8 +117,7 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator ExplicitVillageRestartRevivesPlayerWhileDeadSaveAndNpcHistoryRemainValid()
         {
             _runtime.enabled=false;
-            foreach(var enemy in Game.Monsters){enemy.Xmm=Game.PlayerXmm+1000;enemy.Zmm=Game.PlayerZmm;enemy.Health=1;}
-            Assert.AreEqual(3,Resolve(3).Kills);
+            Assert.AreEqual(3, ArrangeCryptKill().Kills);
             for(int i=0;i<3;i++)Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0,24000);TravelStory();yield return null;
             Assert.AreEqual(2,Game.Progression.EntryAct);
@@ -149,8 +148,7 @@ namespace AreArpg.PlayMode.Tests
             _runtime.enabled=false;
             Assert.IsNotNull(Game.Progression.Social.Forge,"Shipped runtime must enable the checked NPC contract");
             // The encounter fixture clears the established entry and uses its actual village transition.
-            foreach(var enemy in Game.Monsters){enemy.Xmm=Game.PlayerXmm+1000;enemy.Zmm=Game.PlayerZmm;enemy.Health=1;}
-            Assert.AreEqual(3,Resolve(3).Kills);
+            Assert.AreEqual(3, ArrangeCryptKill().Kills);
             for(int i=0;i<3;i++)Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0,24000);TravelStory();yield return null;
             Assert.AreEqual(2,Game.Progression.EntryAct);
