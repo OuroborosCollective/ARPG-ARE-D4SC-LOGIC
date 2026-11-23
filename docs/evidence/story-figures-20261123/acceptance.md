@@ -65,7 +65,8 @@ The part's pixels are the atlas texels its UV triangles cover, widened by 2 px. 
 The texture stamp names the fabric settings, the mask version (`fabric=v3`) and a fingerprint of each map's content,
 so older derived textures and textures from a regenerated map are rebuilt. With a fabric the colour atlas is rewritten
 even when the brightness lift is 1. A bake writes its parts record as a staged file; only a published bake takes it
-over, so a failed bake leaves the record of the figure still in use (review on #133).
+over, so a failed bake leaves the record of the figure still in use. The record it replaces is kept until the visuals
+are rebuilt: when that rebuild fails and the old bake comes back, its old record comes back too (review on #133).
 
 ### New looks
 
@@ -118,6 +119,7 @@ All Unity runs used Unity 6000.6.8f1 with the Unity CLI in the live editor, not 
 | PlayMode `RescuedHunterMovesHisMouthWhileHisThanksAreHeard` (new, review fix) | `9d4af45eaf3424f578ad98bb9472f67aeb371ffe` | PASS (17 s) |
 | Full EditMode suite | `9720e977ce6979d4dcf740956677d9cccb0eaf5d` | 254 PASS / 0 FAIL / 28 ignored |
 | Bake of Orsel with the staged parts record, EditMode `BozoFigure*`, PlayMode `OrselBlinksKeepsHerMoodAndMovesHerLips` (baker review fixes) | `6ffc6e1d01768988ec6a478b1e98200051849420` | record promoted, 20 / 20 PASS, PASS |
+| Bake of Orsel with the kept previous record, EditMode `BozoFigure*` (second baker review fix) | `cc9327e725a553703a04714606296b28f831b9c0` | record promoted and the previous one dropped, 20 / 20 PASS |
 
 The Core is unchanged, so `Tests/CoreVerification` was not run again.
 
