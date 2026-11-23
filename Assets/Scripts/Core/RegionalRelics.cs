@@ -11,7 +11,7 @@ namespace AreArpg.Core
         R_Gratkeule, R_Splitterzahn, R_Scharrbeil, R_Rippenschild, R_Grabschild,
         G_Ofengabel, G_Zollmesser, G_Hammerbeil, G_Zollbuckler, G_Zunderpfanne,
         M_Wehrsaebel, M_Lotklinge, M_Jochbeil, M_Wehrschild, M_Glockenring,
-        G_Ziegelschild, M_Handglocke, G_Schuerhaken
+        G_Ziegelschild, M_Handglocke, G_Schuerhaken, M_Heilerstab
     }
 
     public enum RegionalRelicSlot { Body, Belt, Weapon, Shield, Utility, Head }
@@ -29,16 +29,19 @@ namespace AreArpg.Core
             public readonly long X, Z;
             public readonly Unlock Required;
             public readonly WeaponDefinition Hand;
+            /// <summary>Handed over by a person (Orsel's staff after her lesson); it never lies in the world to be picked up.</summary>
+            public readonly bool Granted;
 
             public Source(RegionalRelic id, string name, RegionalRelicSlot slot, int act, long x, long z,
                 Unlock required, string location, WeaponFamily? family = null, int power = 0,
-                int cooldown = 0, long reach = 0, bool heavy = false, WeaponFamily? training = null)
+                int cooldown = 0, long reach = 0, bool heavy = false, WeaponFamily? training = null,
+                bool granted = false, string visualKey = null)
             {
                 Id = id; Name = name; Slot = slot; Act = act; X = x; Z = z;
-                Required = required; Location = location;
+                Required = required; Location = location; Granted = granted;
                 if (family.HasValue)
                     Hand = new WeaponDefinition(id.ToString(), name, id.ToString(), family.Value, power, cooldown,
-                        reach, heavy, training, "Werkarsenal/");
+                        reach, heavy, training, "Werkarsenal/", visualKey);
             }
             public bool HistoricalSource(CharacterProgression p)
             {
@@ -80,7 +83,12 @@ namespace AreArpg.Core
             new Source(RegionalRelic.M_Glockenring, "Glockenring", RegionalRelicSlot.Shield, 4,-7500,12000, Unlock.Shelter, "Alte Mühle · alter Glockenplatz", WeaponFamily.Shield,630,3,3100),
             new Source(RegionalRelic.G_Ziegelschild, "Ziegelschild", RegionalRelicSlot.Shield, 3,9800,-1000, Unlock.Trail, "Aschestraße · Ziegelvorrat neben der Hut", WeaponFamily.Shield,810,3,3100),
             new Source(RegionalRelic.M_Handglocke, "Handglocke vom Mühlwehr", RegionalRelicSlot.Utility, 4,1500,13400, Unlock.Shelter, "Alte Mühle · Meldeplatz am Nordweg"),
-            new Source(RegionalRelic.G_Schuerhaken, "Schürhaken", RegionalRelicSlot.Weapon, 3,-8100,-2800, Unlock.Trail, "Aschestraße · seitliche Ofenklappe", WeaponFamily.Axe,126,3,2950)
+            new Source(RegionalRelic.G_Schuerhaken, "Schürhaken", RegionalRelicSlot.Weapon, 3,-8100,-2800, Unlock.Trail, "Aschestraße · seitliche Ofenklappe", WeaponFamily.Axe,126,3,2950),
+            // Orsel's own one-handed staff, handed over with her lesson (owner 2026-11-23): one hand stays free for a
+            // shield, Wundschluss works at 80 %. It borrows the wanderer's staff model until it has its own.
+            new Source(RegionalRelic.M_Heilerstab, "Orsels Heilerstab", RegionalRelicSlot.Weapon, 4, HealingRules.OrselMillXmm, HealingRules.OrselMillZmm,
+                Unlock.Shelter, "Alte Mühle · von Orsel nach ihrer Unterweisung", WeaponFamily.Staff, 150, 7, 8000, false,
+                granted: true, visualKey: "Weapons/staff_newbie.1")
         };
 
         public static readonly IReadOnlyList<RegionalRelic> All = Array.AsReadOnly(Array.ConvertAll(
@@ -93,6 +101,8 @@ namespace AreArpg.Core
         public static string Location(RegionalRelic id) => Get(id).Location;
         public static RegionalRelicSlot Slot(RegionalRelic id) => Get(id).Slot;
         public static WeaponDefinition HandDefinition(RegionalRelic id) => Get(id).Hand;
+        /// <summary>A piece handed over by a person, never found in the world.</summary>
+        public static bool GrantedOnly(RegionalRelic id) => Get(id).Granted;
     }
 
     public sealed partial class WeaponEquipment
@@ -188,7 +198,7 @@ namespace AreArpg.Core
             x = z = 0;
             if (GameOver || InJourney || !RegionalRelics.Valid(id) || Progression.Equipment.OwnsRegionalRelic(id)) return false;
             var source = RegionalRelics.Get(id);
-            if (source.Act != Progression.EntryAct || !source.HistoricalSource(Progression)) return false;
+            if (source.Granted || source.Act != Progression.EntryAct || !source.HistoricalSource(Progression)) return false;
             if (id == RegionalRelic.Grubenlicht)
             {
                 var rattler = Progression.Rattler;

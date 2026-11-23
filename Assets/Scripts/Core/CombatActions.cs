@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AreArpg.Core
 {
-    public enum CombatActionKind { None = 0, Strike = 1, HeavyStrike = 2, Ruin = 3, Dodge = 4, Guard = 5, Drink = 6 }
+    public enum CombatActionKind { None = 0, Strike = 1, HeavyStrike = 2, Ruin = 3, Dodge = 4, Guard = 5, Drink = 6, Cast = 7 }
     public enum CombatPhase { Idle = 0, Windup = 1, Active = 2, Recovery = 3 }
 
     /// <summary>Ticks of one action: windup, active (the impact or the invulnerable dodge) and recovery, plus stamina.</summary>
@@ -174,8 +174,9 @@ namespace AreArpg.Core
         public bool StartDodge(long directionXbp, long directionZbp)
         {
             if (!CombatV2 || GameOver || Stamina < CombatV2Rules.Dodge.Stamina) return false;
-            // A dodge may cut an attack's recovery short, never its windup or impact.
-            if (ActionKind != CombatActionKind.None && !(IsAttack(ActionKind) && ActionPhase == CombatPhase.Recovery)) return false;
+            // A dodge may cut an attack's or a spell's recovery short, never its windup or impact.
+            if (ActionKind != CombatActionKind.None &&
+                !((IsAttack(ActionKind) || ActionKind == CombatActionKind.Cast) && ActionPhase == CombatPhase.Recovery)) return false;
             if (directionXbp == 0 && directionZbp == 0) { directionXbp = -FacingXbp; directionZbp = -FacingZbp; }
             long length = Math.Max(1, FixedMath.IntegerSqrt(FixedMath.Square(directionXbp) + FixedMath.Square(directionZbp)));
             _dodgeXbp = directionXbp * 10000 / length; _dodgeZbp = directionZbp * 10000 / length;
@@ -208,7 +209,11 @@ namespace AreArpg.Core
             ActionSequence++;
         }
 
-        private void EndAction() { ActionKind = CombatActionKind.None; ActionSlot = -1; ActionTick = 0; _guardReleased = false; }
+        private void EndAction()
+        {
+            ActionKind = CombatActionKind.None; ActionSlot = -1; ActionTick = 0; _guardReleased = false;
+            HealTarget = HealTargetKind.None; HealTargetIndex = -1;
+        }
 
         private void SpendStamina(int amount)
         {
@@ -227,6 +232,7 @@ namespace AreArpg.Core
         private void AdvanceCombatBeforeMove()
         {
             Impacts.Clear();
+            Heals.Clear();
             if (GameOver) { EndAction(); return; }
             if (ActionKind == CombatActionKind.None && GuardHeld && Stamina > 0)
                 BeginAction(CombatActionKind.Guard, new ActionTiming(CombatV2Rules.GuardRaiseTicks, 0, CombatV2Rules.GuardLowerTicks, 0), -1);
@@ -243,6 +249,7 @@ namespace AreArpg.Core
             {
                 if (IsAttack(ActionKind)) ResolveSkillImpact(ActionSlot);
                 else if (ActionKind == CombatActionKind.Drink) DrinkNow(_drinkType);
+                else if (ActionKind == CombatActionKind.Cast) ResolveWundschluss();
             }
         }
 
@@ -316,6 +323,8 @@ namespace AreArpg.Core
             }
             // A blow before the potion's effect tick spills it: nothing is drunk, nothing is used up.
             if (ActionKind == CombatActionKind.Drink && ActionTick <= _timing.Startup) EndAction();
+            // A blow before Wundschluss lands cuts it short: no heal, no cooldown, the focus is gone.
+            else if (ActionKind == CombatActionKind.Cast && ActionTick <= _timing.Startup && damage > 0) InterruptWundschluss();
             return damage;
         }
 

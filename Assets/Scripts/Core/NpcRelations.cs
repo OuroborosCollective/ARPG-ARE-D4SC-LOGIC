@@ -159,6 +159,23 @@ namespace AreArpg.Core
         }
 
         internal void ProvisionFromLoot() { Provisions++; }
+
+        /// <summary>Hand over rations (Orsel's course): all or nothing.</summary>
+        internal bool SpendProvisions(int count)
+        {
+            if (count <= 0 || Provisions < count) return false;
+            Provisions -= count;
+            return true;
+        }
+
+        /// <summary>Pay coins (Orsel's course): all or nothing.</summary>
+        internal bool SpendCoins(int count)
+        {
+            if (count <= 0 || Coins < count) return false;
+            Coins -= count;
+            return true;
+        }
+
         /// <summary>Direct theft from the supplier transfers one existing ration; no currency or quest reward is minted.</summary>
         internal bool TakeCampRation()
         {

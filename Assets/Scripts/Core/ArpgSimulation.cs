@@ -613,6 +613,7 @@ namespace AreArpg.Core
             Progression.Crafting.AdvanceTick();
             Progression.CompanionRecovery.AdvanceTick(Progression.Companion);
             Progression.Village.AdvanceTick();
+            Progression.Healing.AdvanceTick();
             var forge = Progression.Social.Forge;
             if (forge != null)
             {
@@ -935,6 +936,7 @@ namespace AreArpg.Core
             MixEconomy(ref h);
             MixHouses(ref h);
             MixCombatV2(ref h); // armor and combat v2 only when present: legacy worlds keep their golden hashes
+            MixHealing(ref h); // Orsel's course only when present
             return h;
         }
 
