@@ -106,6 +106,12 @@ namespace AreArpg.PlayMode.Tests
                     game.SetMoveInput(0,-Move);
                     if(game.CombatV2) game.StartDodge(0,-Move); // combat v2: roll back out of the announced strike
                 }
+                else if(game.CombatV2&&game.Stamina<CombatV2Rules.Dodge.Stamina+15)
+                {
+                    // Combat v2: keep enough stamina for the next roll; step back and breathe.
+                    long dx=game.PlayerXmm-m.Xmm,dz=game.PlayerZmm-m.Zmm;
+                    game.SetMoveInput(dx==0?0:Math.Sign(dx)*Move,dz==0?-Move:Math.Sign(dz)*Move);
+                }
                 else
                 {
                     long dx=m.Xmm-game.PlayerXmm,dz=m.Zmm-game.PlayerZmm;
