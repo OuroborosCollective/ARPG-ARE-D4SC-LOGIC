@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fabric height maps for the story figures (owner 2026-11-23: "grob mächtiges Leinen").
+"""Fabric height maps for the story figures (owner 2026-11-23: "grob mächtiges Leinen" and more textures).
 
 Writes tileable grey height maps (white = raised thread, black = gap between threads) that the BoZo figure baker lays
 over chosen outfit parts, as weave in the colours and as relief in the normal map. Deterministic: same seed, same file.
@@ -46,10 +46,33 @@ def linen(n=512, threads=40, seed=20261123):
     return np.clip(height, 0, 1)
 
 
+def leather(n=512, seed=20261124):
+    """Worn leather: a fine pebbled grain, softer large-scale dents, creases and scratches where it was used hard."""
+    rng = np.random.default_rng(seed)
+    grain = sum(smooth_noise(n, s, seed + i) / (1 + i) for i, s in enumerate((40, 64, 100)))
+    grain = (grain - grain.min()) / (grain.max() - grain.min())
+    pebbles = np.clip((grain - 0.30) / 0.5, 0, 1)
+    dents = smooth_noise(n, 10, seed + 7)
+    height = 0.55 * pebbles + 0.35 * dents + 0.10
+    y, x = np.mgrid[0:n, 0:n].astype(np.float64)
+    for _ in range(26):  # creases and scratches: thin wrapped lines that cut into the surface
+        x0, y0 = rng.random(2) * n
+        angle = rng.random() * np.pi
+        length, width = 20 + rng.random() * 140, 0.6 + rng.random() * 1.6
+        dx, dy = np.cos(angle), np.sin(angle)
+        rx = (x - x0 + n / 2) % n - n / 2
+        ry = (y - y0 + n / 2) % n - n / 2
+        along = rx * dx + ry * dy
+        across = np.abs(-rx * dy + ry * dx)
+        line = np.clip(1 - across / width, 0, 1) * (np.abs(along) < length / 2)
+        height -= 0.35 * line
+    return np.clip(height, 0, 1)
+
+
 def main():
     out = sys.argv[1] if len(sys.argv) > 1 else "."
-    h = linen()
-    Image.fromarray((h * 255 + 0.5).astype(np.uint8), "L").save(out.rstrip("/") + "/AC_LinenCoarse.png", optimize=True)
+    for name, make in (("AC_LinenCoarse", linen), ("AC_LeatherWorn", leather)):
+        Image.fromarray((make() * 255 + 0.5).astype(np.uint8), "L").save(out.rstrip("/") + "/" + name + ".png", optimize=True)
 
 
 if __name__ == "__main__":
