@@ -91,8 +91,9 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
             Assert.AreEqual(before + 1, p.TotalMightRank, "The + button spends one point on Might");
             string saved = p.SaveString();
-            Assert.IsTrue(saved.StartsWith("AC21|") && CharacterProgression.TryLoad(saved, out var loaded) && loaded.TotalMightRank == p.TotalMightRank,
-                "The spent weapon point survives save and load");
+            // Combat v2 adds its own save section, so the checkpoint may be the AC22 container around the AC21 chain.
+            Assert.IsTrue((saved.StartsWith("AC21|") || saved.StartsWith("AC22|")) && CharacterProgression.TryLoad(saved, out var loaded) &&
+                loaded.TotalMightRank == p.TotalMightRank, "The spent weapon point survives save and load");
             _runtime.CloseMenu();
         }
 
@@ -137,6 +138,8 @@ namespace AreArpg.PlayMode.Tests
             var rank = p.PracticeLevel(0);
             var queue = (Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills", Flags).GetValue(_runtime);
             queue.Enqueue(0); TickOnce();
+            // Combat v2: the swing lands on its impact tick, after the windup.
+            for (int i = 0; i < 12 && target.Health == 100000; i++) TickOnce();
             yield return null;
             Assert.Less(target.Health, 100000, "The sword hit lands");
             Assert.IsFalse(target.IsDead, "The hit does not kill");
@@ -160,16 +163,36 @@ namespace AreArpg.PlayMode.Tests
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 20000; enemy.Zmm = 20000; }
             attacker.AttackCooldownTicks = 0;
             int attacks = Game.IncomingAttacks;
-            for (int i = 0; i < 40 && Game.IncomingAttacks == attacks; i++)
+            // Combat v2: the shield trains only on blows it really takes, so SCHUTZ is held (key 3) toward the attacker,
+            // who stands in front of the hero (north, the starting facing).
+            if (Game.CombatV2) PlayerDevice.Scripted = new HeldGuardKey();
+            try
             {
-                attacker.Xmm = Game.PlayerXmm + 1000; attacker.Zmm = Game.PlayerZmm;
-                TickOnce();
+                for (int i = 0; i < 40 && Game.IncomingAttacks == attacks; i++)
+                {
+                    attacker.Xmm = Game.PlayerXmm + (Game.CombatV2 ? 0 : 1000); attacker.Zmm = Game.PlayerZmm + (Game.CombatV2 ? 1000 : 0);
+                    TickOnce();
+                }
             }
+            finally { PlayerDevice.Scripted = null; }
             yield return null;
             Assert.Greater(Game.IncomingAttacks, attacks, "The monster attack reaches the shield bearer");
             Assert.AreEqual(2, p.WeaponMastery.Level(WeaponFamily.Shield), "The attack trains the shield to level 2");
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0], ""), out var saved) &&
                           saved.WeaponMastery.Level(WeaponFamily.Shield) == 2, "The shield level-up is in the save slot at once");
+        }
+
+        /// <summary>A desktop keyboard holding key 3 (SCHUTZ) and nothing else.</summary>
+        private sealed class HeldGuardKey : IPlayerDevice
+        {
+            public bool GetKey(KeyCode key) { return key == KeyCode.Alpha3; }
+            public bool GetKeyDown(KeyCode key) { return false; }
+            public bool GetMouseButton(int button) { return false; }
+            public bool GetMouseButtonDown(int button) { return false; }
+            public Vector3 MousePosition { get { return Vector3.zero; } }
+            public Vector2 MouseScrollDelta { get { return Vector2.zero; } }
+            public int TouchCount { get { return 0; } }
+            public Touch GetTouch(int index) { return default(Touch); }
         }
 
         private static void BigIntegerSpend(CharacterProgression p)

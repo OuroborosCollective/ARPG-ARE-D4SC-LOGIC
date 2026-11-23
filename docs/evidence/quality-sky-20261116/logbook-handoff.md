@@ -415,3 +415,12 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: im Spiel noch nicht sichtbar; weitere Gegnerphasen, Waffenprofile, Kombos, Haltung und Balance offen.
 - Nächster Schritt: Touch-Steuerung (Ausweichen, Schutz halten, Trank, Ausdauerbalken), neue Spiele und alte Spielstände auf Kampfversion 2, Testspieler mit Ausweichen.
 - [Technische Abnahme](../combat-v2-foundation-20261123/acceptance.md)
+
+## 23. November 2026 · Kampf v2 im Spiel: Touch-Steuerung und Umschaltung, Issue #127
+
+- Neu im Spiel: Neue Spiele im Einstiegsprofil starten mit Kampfversion 2, alte Spielstände dieses Profils wechseln einmal beim Laden (das Legacy-Profil bleibt bei Version 1). SCHUTZ wird gehalten, AUSWEICHEN und TRANK sind neue Knöpfe auf einem äußeren Ring, ein Ausdauerbalken sitzt zwischen Leben und Fokus; Schwung, Treffer und Effekte folgen den Ticks des Core.
+- Gefunden und behoben: Ein Ghul mit einem Lebenspunkt darf während Ruins Ausholen fliehen (Test-Vorbereitung angepasst, 27 Fälle); AUSWEICHEN lag auf der NPC-Gesprächskarte (Karte schmaler, neuer HUD-Test auf sechs Bildformaten).
+- Evidence: volle PlayMode-Reihe auf `09790f9` 177 PASS / 1 FAIL / 28 ignoriert (Fehlschlag in `acdbed0` behoben, einzeln PASS), volle EditMode-Reihe auf `d8f4ecc` 254 PASS / 0 FAIL / 28 ignoriert, Spielerlauf unter Kampf v2 auf `d8f4ecc` PASS in 268 s.
+- Grenzen: Handgefühl auf dem Gerät, Animationen für Ausweichen und Trank, Gegnerphasen und Waffenprofile offen.
+- Nächster Schritt: Orsels Heilkunst-Lehrgang mit den Owner-Werten (2 Rationen, 12 Münzen oder 3 Aschenflieder; Wundschluss 180 LP, 15 Fokus, 8 s; Einhandstab 80 %; nach dem Lager, vor den Betten).
+- [Technische Abnahme](../combat-v2-touch-20261123/acceptance.md)

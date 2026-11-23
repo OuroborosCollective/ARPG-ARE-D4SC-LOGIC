@@ -15,8 +15,7 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator ArrivalSceneExplainsTheMissingRationsBeforeAnyChoice()
         {
             _runtime.enabled = false; UseDeviceFrameClock();
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStoryWithArrivalScene();
             Assert.IsTrue(Game.IsVillage && Game.ArrivalScenePending, "A first village arrival owes the player the scene");

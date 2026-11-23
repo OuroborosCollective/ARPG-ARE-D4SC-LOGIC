@@ -14,13 +14,7 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator VillageSkyProjectsCoreTicksWithoutWritingAnyRules()
         {
             _runtime.enabled = false;
-            foreach (var monster in Game.Monsters)
-            {
-                monster.Xmm = 1000;
-                monster.Zmm = 0;
-                monster.Health = 1;
-            }
-            Game.ActivateSkill(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++)
                 Assert.IsTrue(Game.TryCollectLoot(), "The ordinary crypt-to-village transition must remain playable");
             MoveStory(0, 24000);
@@ -85,11 +79,7 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator SkyRebindsAfterSameAreaRebuildAndKeepsInteriorLight()
         {
             _runtime.enabled = false;
-            foreach (var monster in Game.Monsters)
-            {
-                monster.Xmm = 1000; monster.Zmm = 0; monster.Health = 1;
-            }
-            Game.ActivateSkill(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             Assert.IsTrue(Game.IsVillage);
@@ -139,13 +129,7 @@ namespace AreArpg.PlayMode.Tests
             Color sunColorBefore = sun.color;
             float sunIntensityBefore = sun.intensity;
 
-            foreach (var monster in Game.Monsters)
-            {
-                monster.Xmm = 1000;
-                monster.Zmm = 0;
-                monster.Health = 1;
-            }
-            Game.ActivateSkill(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++)
                 Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000);

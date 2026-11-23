@@ -133,8 +133,7 @@ namespace AreArpg.PlayMode.Tests
             cameraRig.ZoomSteps(1f);
             float chosenCameraDistance = cameraRig.Distance;
             // Test-only arrangement; each kill/drop/pickup still uses the actual Core implementation.
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Assert.AreEqual(3, Game.ActivateSkill(3).Kills);
+            Assert.AreEqual(3, ArrangeCryptKill().Kills);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             Game.SetMoveInput(0, 10000);
             for (int tick = 0; tick < 50 && !Game.AtWorldPassage; tick++) Game.Step();
@@ -313,6 +312,62 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
         }
 
+        /// <summary>
+        /// Use a skill. Under combat v2 (issue #127) the hit lands on the action's impact tick, so the Core runs on until
+        /// the action is over; the impact result is returned (the windup result when nothing landed).
+        /// </summary>
+        private SkillResult Resolve(int slot) { return ResolveOn(Game, slot); }
+
+        internal static SkillResult ResolveOn(ArenaSimulation world, int slot)
+        {
+            var start = world.ActivateSkill(slot);
+            if (!world.CombatV2 || !start.Activated) return start;
+            SkillResult impact = null;
+            for (int tick = 0; tick < 40 && world.ActionKind != CombatActionKind.None; tick++)
+            {
+                world.Step();
+                if (world.Impacts.Count > 0) impact = world.Impacts[0];
+            }
+            return impact ?? start;
+        }
+
+        /// <summary>
+        /// Test fixture: the crypt's enemies stand next to the hero at one hit point and Ruin kills them; the three drops
+        /// must lie within reach. Under combat v2 the Ruin lands after its windup, and a ghoul at one hit point may choose
+        /// to flee meanwhile, so the enemies are put next to the hero again on the last windup tick: the impact comes at
+        /// the start of the next tick, before anyone moves. A failure names the whole state.
+        /// </summary>
+        private SkillResult ArrangeCryptKill()
+        {
+            var g = Game;
+            string before = "act " + g.Progression.EntryAct + ", v2 " + g.CombatV2 + ", action " + g.ActionKind + "/" + g.ActionTick +
+                ", stamina " + g.Stamina + ", cooldown " + g.Cooldowns[3] + ", player (" + g.PlayerXmm + ", " + g.PlayerZmm + "), hp " +
+                g.PlayerHealth + ", over " + g.GameOver + ", monsters " + g.Monsters.Count + ", loot " + g.GroundLoot.Count;
+            foreach (var enemy in g.Monsters) { enemy.Xmm = g.PlayerXmm + 1000; enemy.Zmm = g.PlayerZmm; enemy.Health = 1; }
+            SkillResult ruin = g.ActivateSkill(3);
+            if (g.CombatV2 && ruin.Activated)
+            {
+                for (int tick = 0; tick < 40 && g.ActionKind == CombatActionKind.Ruin && g.ActionTick < CombatV2Rules.Ruin.Startup; tick++) g.Step();
+                foreach (var enemy in g.Monsters) if (!enemy.IsDead) { enemy.Xmm = g.PlayerXmm + 1000; enemy.Zmm = g.PlayerZmm; }
+                for (int tick = 0; tick < 40 && g.ActionKind != CombatActionKind.None; tick++)
+                {
+                    g.Step();
+                    if (g.Impacts.Count > 0) ruin = g.Impacts[0];
+                }
+            }
+            string after = "ruin '" + ruin.Message + "' kills " + ruin.Kills + ", player (" + Game.PlayerXmm + ", " + Game.PlayerZmm +
+                "), loot " + Game.GroundLoot.Count;
+            foreach (var l in Game.GroundLoot) after += " (" + l.Xmm + "," + l.Zmm + ")";
+            Assert.AreEqual(3, Game.GroundLoot.Count, "crypt fixture: " + before + " -> " + after);
+            foreach (var l in Game.GroundLoot)
+            {
+                long dx = l.Xmm - Game.PlayerXmm, dz = l.Zmm - Game.PlayerZmm;
+                Assert.LessOrEqual(dx * dx + dz * dz, ArenaSimulation.PickupRadiusMm * ArenaSimulation.PickupRadiusMm,
+                    "crypt fixture drop out of reach: " + before + " -> " + after);
+            }
+            return ruin;
+        }
+
         /// <summary>Exercise the real input queue on a scheduled tick without wall-clock waiting.</summary>
         private void TickOnce()
         {
@@ -403,8 +458,7 @@ namespace AreArpg.PlayMode.Tests
         private IEnumerator CompleteSupplyJourney(bool patientArt = false)
         {
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
@@ -684,8 +738,7 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator HunterBearRescuePersistsAndProjectsReviewedAnimations()
         {
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Game.ActivateSkill(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
             yield return StoryAction(HungerAction.HearIlyan);
@@ -725,19 +778,30 @@ namespace AreArpg.PlayMode.Tests
                 animator.Play("Idle", 0, 0f); animator.Update(0f);
             }
             bool arrow = false, warning = false;
-            for (int tick = 0; tick < 600 && !Game.GameOver && !Game.Progression.Road.Bear.IsDead; tick++)
+            for (int tick = 0; tick < 1500 && !Game.GameOver && !Game.Progression.Road.Bear.IsDead; tick++)
             {
                 var h = Game.Progression.Road; var bear = h.Bear;
                 if (bear.BossWindupTicks > 0 && h.StrikePlayer)
-                    Game.SetMoveInput(Game.PlayerXmm >= h.StrikeX ? 10000 : -10000, 0);
+                {
+                    long away = Game.PlayerXmm >= h.StrikeX ? 10000 : -10000;
+                    Game.SetMoveInput(away, 0);
+                    if (Game.CombatV2) Game.StartDodge(away, 0); // combat v2: roll out of the red swipe
+                }
                 else
                 {
                     long dx = bear.Xmm - Game.PlayerXmm, dz = bear.Zmm - Game.PlayerZmm;
                     Game.SetMoveInput(dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dx) * 10000 : 0,
                         dx * dx + dz * dz > 2700L * 2700 ? System.Math.Sign(dz) * 10000 : 0);
                 }
-                Game.ActivateSkill(0); Game.ActivateSkill(1); Game.ActivateSkill(3);
-                if (Game.PlayerHealth < 1000) Game.ActivateSkill(2);
+                // Combat v2 commits to each swing: keep the bear busy with short swings, never start one into its red
+                // swipe, and cast Ruin only when its long windup ends before the bear can strike again.
+                if (!Game.CombatV2) { Game.ActivateSkill(0); Game.ActivateSkill(1); Game.ActivateSkill(3); }
+                else if (!(bear.BossWindupTicks > 0 && h.StrikePlayer))
+                {
+                    if (bear.AttackCooldownTicks > CombatV2Rules.Ruin.Startup) Game.ActivateSkill(3);
+                    Game.ActivateSkill(1); Game.ActivateSkill(0);
+                }
+                if (Game.PlayerHealth < 1000 && !Game.CombatV2) Game.ActivateSkill(2);
                 Game.Step(); typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
                 typeof(ArenaRuntime).GetMethod("UpdatePresentation", Flags).Invoke(_runtime, new object[] { 1f });
                 if (!warning && h.Bear.BossWindupTicks > 0)
@@ -747,7 +811,10 @@ namespace AreArpg.PlayMode.Tests
                 }
                 arrow |= h.ArrowFlash > 0;
             }
-            Assert.IsFalse(Game.GameOver); Assert.IsTrue(Game.Progression.Road.Rescued); Assert.IsTrue(arrow && warning);
+            var road = Game.Progression.Road;
+            string fight = "bear " + road.Bear.Health + "/" + road.Bear.MaxHealth + ", hunter " + road.HunterHealth + ", player " + Game.PlayerHealth +
+                ", player damage " + road.PlayerDamage + ", dodged " + Game.DodgedAttacks + ", tick " + Game.CurrentTick;
+            Assert.IsFalse(Game.GameOver, fight); Assert.IsTrue(road.Rescued, fight); Assert.IsTrue(arrow && warning, fight);
             typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
             var purse = Find("ARE_HunterPurse");
             Assert.IsNotNull(purse);
