@@ -45,14 +45,14 @@ namespace AreArpg.PlayMode.Tests
             try
             {
                 StoreRender(camera, System.IO.Path.Combine(output, area + "-spiel.png"));
+                // A missing anchor fails the capture instead of silently leaving out the staged view.
                 var layer = Find("ARE_BuildLayer_" + area);
-                var anchor = layer != null ? layer.transform.Find(key) : null;
-                if (anchor != null)
-                {
-                    Vector3 focus = anchor.position + Vector3.up * height;
-                    camera.transform.position = focus + eyeOffset; camera.transform.LookAt(focus); camera.fieldOfView = 53f;
-                    StoreRender(camera, System.IO.Path.Combine(output, area + "-szene.png"));
-                }
+                Assert.IsNotNull(layer, area + " build layer");
+                var anchor = layer.transform.Find(key);
+                Assert.IsNotNull(anchor, area + " anchor " + key);
+                Vector3 focus = anchor.position + Vector3.up * height;
+                camera.transform.position = focus + eyeOffset; camera.transform.LookAt(focus); camera.fieldOfView = 53f;
+                StoreRender(camera, System.IO.Path.Combine(output, area + "-szene.png"));
             }
             finally { camera.fieldOfView = fov; camera.transform.SetPositionAndRotation(position, rotation); }
         }
