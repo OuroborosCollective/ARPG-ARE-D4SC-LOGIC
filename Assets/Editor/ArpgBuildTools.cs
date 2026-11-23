@@ -73,12 +73,12 @@ namespace AreArpg.EditorTools
             var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AppIconPath);
             if (icon == null) return false;
 #if UNITY_ANDROID
-            foreach (var kind in new[] { UnityEditor.Android.AndroidPlatformIconKind.Legacy, UnityEditor.Android.AndroidPlatformIconKind.Round })
-            {
-                PlatformIcon[] icons = PlayerSettings.GetPlatformIcons(UnityEditor.Build.NamedBuildTarget.Android, kind);
-                foreach (PlatformIcon slot in icons) slot.SetTexture(icon);
-                PlayerSettings.SetPlatformIcons(UnityEditor.Build.NamedBuildTarget.Android, kind, icons);
-            }
+            // Unity 6.6 only builds adaptive icons: background (layer 0) and foreground (layer 1). The opaque icon fills
+            // both, so the launcher's mask and parallax always show the game's art; its motif sits in the central two thirds.
+            var kind = UnityEditor.Android.AndroidPlatformIconKind.Adaptive;
+            PlatformIcon[] icons = PlayerSettings.GetPlatformIcons(UnityEditor.Build.NamedBuildTarget.Android, kind);
+            foreach (PlatformIcon slot in icons) { slot.SetTexture(icon, 0); slot.SetTexture(icon, 1); }
+            PlayerSettings.SetPlatformIcons(UnityEditor.Build.NamedBuildTarget.Android, kind, icons);
             return true;
 #else
             return false;

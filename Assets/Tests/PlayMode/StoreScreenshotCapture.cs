@@ -26,7 +26,7 @@ namespace AreArpg.PlayMode.Tests
                 camera.targetTexture = target; camera.aspect = (float)width / height; camera.Render(); RenderTexture.active = target;
                 tex = new Texture2D(width, height, TextureFormat.RGB24, false);
                 tex.ReadPixels(new Rect(0, 0, width, height), 0, 0); tex.Apply();
-                File.WriteAllBytes(path, tex.EncodeToPNG());
+                System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
             }
             finally
             {
@@ -44,14 +44,14 @@ namespace AreArpg.PlayMode.Tests
             var position = camera.transform.position; var rotation = camera.transform.rotation; float fov = camera.fieldOfView;
             try
             {
-                StoreRender(camera, Path.Combine(output, area + "-spiel.png"));
+                StoreRender(camera, System.IO.Path.Combine(output, area + "-spiel.png"));
                 var layer = Find("ARE_BuildLayer_" + area);
                 var anchor = layer != null ? layer.transform.Find(key) : null;
                 if (anchor != null)
                 {
                     Vector3 focus = anchor.position + Vector3.up * height;
                     camera.transform.position = focus + eyeOffset; camera.transform.LookAt(focus); camera.fieldOfView = 53f;
-                    StoreRender(camera, Path.Combine(output, area + "-szene.png"));
+                    StoreRender(camera, System.IO.Path.Combine(output, area + "-szene.png"));
                 }
             }
             finally { camera.fieldOfView = fov; camera.transform.SetPositionAndRotation(position, rotation); }
@@ -61,7 +61,7 @@ namespace AreArpg.PlayMode.Tests
         {
             string output = Environment.GetEnvironmentVariable("ASHEN_STORE_OUTPUT");
             if (string.IsNullOrEmpty(output)) Assert.Ignore("Set ASHEN_STORE_OUTPUT to capture the Google Play screenshots.");
-            Directory.CreateDirectory(output);
+            System.IO.Directory.CreateDirectory(output);
             return output;
         }
 
