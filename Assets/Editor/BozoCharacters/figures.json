@@ -249,11 +249,11 @@
       ]
     },
     {
-      "id": "orsel", "role": "Orsel, die Feldheilerin der alten Mühle, in der Dark-Fantasy-Fassung (Owner 2026-11-23: junges Gesicht, Beine zeigen, sexy, grobes schweres Leinen): enges Lederkorsett über einer Bluse aus grobem Leinen, schräg geschnittener Rock aus Leinen, dunkle Overknee-Strümpfe und hohe Stiefel, dunkle Kapuze mit blutrotem Saum, Leinenwickel wie Verbände an den Händen, langes aschsilbernes Haar. Stofffarben sind so gewählt, dass sie nach der Aufhellung des Bakers (Exponent 0.6) gedeckt und dunkel erscheinen.",
+      "id": "orsel", "role": "Orsel, die Feldheilerin der alten Mühle, in der Dark-Fantasy-Fassung (Owner 2026-11-23: junges Gesicht, Beine zeigen, sexy, grobes schweres Leinen): enges Lederkorsett über einer Bluse aus grobem Leinen, schräg geschnittener Rock aus Leinen, nackte Beine über hohen Stiefeln, dunkle Kapuze mit blutrotem Saum, Leinenwickel wie Verbände an den Händen, langes aschsilbernes Haar. Stofffarben sind so gewählt, dass sie nach der Aufhellung des Bakers (Exponent 0.6) gedeckt und dunkel erscheinen.",
       "base": "Fantasy/Ranger", "height": 1.74, "texture": 1024, "motion": "f", "keys": ["Orsel0"], "expressions": true,
       "body": [{"id": "Chest", "value": 45}, {"id": "Weight", "value": 20}],
       "face": [{"id": "EarsElf", "value": 0}, {"id": "Stern", "value": 20}, {"id": "RaiseBrows", "value": 0}],
-      "remove": ["Shoulders", "Neck", "MakeUpEyes", "MakeUpCheeks"],
+      "remove": ["Shoulders", "Neck", "Socks", "MakeUpEyes", "MakeUpCheeks"],
       "outfits": [
         {"slot": "Head", "id": "Head_BasicHead", "colors": ["#cfa58c", "#74322a", "#dfb7a0", "#ecebe6", "#6a3a30", "#7e3a34"]},
         {"slot": "Body", "id": "Body_BasicBody", "colors": ["#cfa58c", "#74322a", "#dfb7a0"]},
@@ -263,7 +263,6 @@
         {"slot": "Top", "id": "Top_RusticCorset", "colors": ["#5c5141", "#160d09", "#0d0806", "#20160f", "#3f2d1e", "#0d0806"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.55, "fabricScale": 4},
         {"slot": "Gloves", "id": "Gloves_ClothHandwraps", "colors": ["#5c5141"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.7, "fabricScale": 6},
         {"slot": "Bottom", "id": "Bottom_RusticSkirt", "colors": ["#200b09", "#11100e", "#16100c", "#0d0906", "#2d1e13", "#16100c", "#16100c"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.6, "fabricScale": 4},
-        {"slot": "Socks", "id": "Socks_ThighHigh", "colors": ["#0a0808", "#0f0c0b"]},
         {"slot": "Feet", "id": "Feet_ForestLongBoots", "colors": ["#160f0b", "#0d0906", "#20160f", "#110c08", "#070504"]},
         {"slot": "HairFront", "id": "HairFront_DesolateHair", "colors": ["#a8a49c", "#7a766e"]},
         {"slot": "HairBack", "id": "HairBack_LooseLong", "colors": ["#a8a49c", "#7a766e", "#8e8a82"]}
