@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using AreArpg.Core;
 using UnityEngine;
+using Input = AreArpg.UnityClient.PlayerDevice;
 using UnityEngine.UI;
 using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
