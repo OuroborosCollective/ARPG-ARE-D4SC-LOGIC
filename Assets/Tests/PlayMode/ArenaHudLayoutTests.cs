@@ -97,6 +97,27 @@ namespace AreArpg.PlayMode.Tests
                     Disjoint(npc, layout.NpcActionRect(j), "NPC actions must be disjoint");
                 }
             }
+
+            // Combat v2 (issue #127): the outer ring stays on screen and clear of every other control.
+            Rect[] ring = { layout.DodgeRect, layout.FlaskRect };
+            string[] ringNames = { "dodge", "flask" };
+            for (int r = 0; r < ring.Length; r++)
+            {
+                Fits(ring[r], layout, ringNames[r]);
+                for (int i = 0; i < fixedPanels.Length; i++) Disjoint(ring[r], fixedPanels[i], ringNames[r] + "/" + fixedNames[i]);
+                for (int k = 0; k < 4; k++)
+                {
+                    Disjoint(ring[r], layout.SkillRect(k), ringNames[r] + "/skill " + k);
+                    Disjoint(ring[r], layout.NpcActionRect(k), ringNames[r] + "/NPC action " + k);
+                }
+                for (int m = 0; m < ArenaHudLayout.MenuCount; m++) Disjoint(ring[r], layout.MenuButtonRect(m), ringNames[r] + "/menu " + m);
+                for (int q = 0; q < 3; q++)
+                {
+                    Disjoint(ring[r], layout.MasteryRect(q), ringNames[r] + "/mastery " + q);
+                    Disjoint(ring[r], layout.CameraZoomRect(q), ringNames[r] + "/camera " + q);
+                }
+                for (int j = 0; j < r; j++) Disjoint(ring[r], ring[j], ringNames[r] + "/" + ringNames[j]);
+            }
         }
 
         /// <summary>Verify scaling in a compact editor Game View.</summary>
