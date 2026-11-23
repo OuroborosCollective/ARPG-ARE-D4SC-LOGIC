@@ -25,6 +25,7 @@ internal static class LootV2Tests
         BagsSurviveTheSaveAndRejectTampering(check);
         BagsKeepThePlayerInTheArea(check);
         TheKnightWithThePauldronAlwaysDrops(check);
+        GeneratedPlacesKeepTheirDropsInTheSave(check);
     }
 
     private static ArenaSimulation World(ulong seed = 123, CharacterProgression p = null, LootCatalog catalog = null)
@@ -262,6 +263,36 @@ internal static class LootV2Tests
         check(w.CryptCleared && w.GroundSupplies.Count >= 1 && w.TryAdvanceCrypt() == null, "loot2-a-bag-on-the-ground-keeps-the-player");
         while (w.GroundSupplies.Count != 0) check(w.TryCollectLoot(), "loot2-bags-are-taken");
         check(w.TryAdvanceCrypt() != null, "loot2-the-way-opens-once-everything-is-taken");
+    }
+
+    /// <summary>Kill everybody by arrangement and report whether the save with the drops on the ground loads unchanged.</summary>
+    private static bool DropsReload(ArenaSimulation w, JourneyMapCatalog maps, out int weapons, out int bags)
+    {
+        while (w.Monsters.Any(m => !m.IsDead)) Kill(w);
+        weapons = w.GroundLoot.Count(l => l.Item != null && l.Item.CatalogRevision == 2); bags = w.GroundSupplies.Count;
+        string save = w.Progression.SaveString();
+        return CharacterProgression.TryLoad(save, maps, out var loaded) && loaded.SaveString() == save && loaded.Supplies.Ground.Count == bags;
+    }
+
+    /// <summary>Crypt floors, the wood and the journey keep revision-2 weapons and bags in their saves; crypt floors count as depth.</summary>
+    private static void GeneratedPlacesKeepTheirDropsInTheSave(Action<bool, string> check)
+    {
+        var crypt = new ArenaSimulation(123, CryptDungeonTests.Enter().Progression, 1, LootCatalog.Version2);
+        check(DropsReload(crypt, null, out int weapons, out int bags) && weapons + bags > 0, "loot2-crypt-floor-drops-reload");
+        check(crypt.GroundLoot.Where(l => l.Item != null).All(l => l.Item.Token().Split(',')[2] == "1"), "loot2-first-crypt-floor-is-depth-one");
+        while (crypt.LootOnGround) if (!crypt.TryCollectLoot()) throw new Exception("crypt loot out of reach");
+        CryptDungeonTests.WalkFight(crypt, 0, 24000);
+        crypt = crypt.TryTraversePassage();
+        check(crypt != null && crypt.Progression.Dungeon.Depth == 2, "loot2-crypt-descends-once-everything-is-taken");
+        check(DropsReload(crypt, null, out weapons, out bags) && weapons > 0, "loot2-second-crypt-floor-drops-reload");
+        check(crypt.GroundLoot.Where(l => l.Item != null).All(l => l.Item.Token().Split(',')[2] == "2"), "loot2-crypt-floors-count-as-depth");
+
+        var wood = new ArenaSimulation(71, WoodlandTests.Enter().Progression, 1, LootCatalog.Version2);
+        check(DropsReload(wood, null, out weapons, out bags) && weapons + bags > 0, "loot2-wood-drops-reload");
+
+        var maps = JourneyPilotTests.Maps();
+        var journey = new ArenaSimulation(71, JourneyPilotTests.Enter(maps).Progression, 1, LootCatalog.Version2, maps);
+        check(DropsReload(journey, maps, out weapons, out bags) && weapons + bags > 0, "loot2-journey-drops-reload");
     }
 
     private static void TheKnightWithThePauldronAlwaysDrops(Action<bool, string> check)
