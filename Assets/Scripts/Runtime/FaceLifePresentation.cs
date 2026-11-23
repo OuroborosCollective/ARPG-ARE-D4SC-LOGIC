@@ -17,7 +17,7 @@ namespace AreArpg.UnityClient
         {
             public Transform Root;
             public SkinnedMeshRenderer Skin;
-            public int BlinkLeft = -1, BlinkRight = -1, MouthLeft = -1, MouthRight = -1;
+            public int[] Blink, Mouth; // each shape with its twins (a beard follows the mouth with shapes of its own)
             public float NextBlink, BlinkUntil, SpeakUntil;
         }
 
@@ -46,6 +46,25 @@ namespace AreArpg.UnityClient
 
         private static KeyValuePair<string, float> Pair(string shape, float weight) { return new KeyValuePair<string, float>(shape, weight); }
 
+        /// <summary>
+        /// The shapes of the merged mesh that answer to a name: the face's own and the twins that other parts bring
+        /// under the same name with a number (a beard's mouth shapes are called "…_1").
+        /// </summary>
+        private static int[] ShapesNamed(Mesh mesh, params string[] names)
+        {
+            var found = new List<int>();
+            for (int shape = 0; shape < mesh.blendShapeCount; shape++)
+            {
+                string name = mesh.GetBlendShapeName(shape);
+                foreach (string wanted in names)
+                {
+                    if (name == wanted || (name.Length > wanted.Length + 1 && name.StartsWith(wanted + "_", System.StringComparison.Ordinal) &&
+                        int.TryParse(name.Substring(wanted.Length + 1), out _))) { found.Add(shape); break; }
+                }
+            }
+            return found.ToArray();
+        }
+
         /// <summary>Find a figure's expression shapes once, when it enters the scene; set its mood.</summary>
         private void RegisterFace(Transform root)
         {
@@ -55,19 +74,14 @@ namespace AreArpg.UnityClient
             {
                 Mesh mesh = skin.sharedMesh;
                 if (mesh == null) continue;
-                int blink = mesh.GetBlendShapeIndex(BlinkShapeLeft);
-                if (blink < 0) continue;
+                if (mesh.GetBlendShapeIndex(BlinkShapeLeft) < 0) continue;
                 var face = new FaceRig
                 {
-                    Root = root, Skin = skin, BlinkLeft = blink, BlinkRight = mesh.GetBlendShapeIndex(BlinkShapeRight),
-                    MouthLeft = mesh.GetBlendShapeIndex(MouthShapeLeft), MouthRight = mesh.GetBlendShapeIndex(MouthShapeRight),
-                    NextBlink = Time.time + Random.Range(0.4f, 3.5f)
+                    Root = root, Skin = skin, Blink = ShapesNamed(mesh, BlinkShapeLeft, BlinkShapeRight),
+                    Mouth = ShapesNamed(mesh, MouthShapeLeft, MouthShapeRight), NextBlink = Time.time + Random.Range(0.4f, 3.5f)
                 };
                 foreach (var mood in FaceMood(root.name))
-                {
-                    int shape = mesh.GetBlendShapeIndex(mood.Key);
-                    if (shape >= 0) skin.SetBlendShapeWeight(shape, mood.Value);
-                }
+                    foreach (int shape in ShapesNamed(mesh, mood.Key)) skin.SetBlendShapeWeight(shape, mood.Value);
                 _faces.Add(face);
             }
         }
@@ -99,12 +113,10 @@ namespace AreArpg.UnityClient
                 if (!face.Skin.isVisible) continue;
                 if (now >= face.NextBlink) { face.BlinkUntil = now + 0.13f; face.NextBlink = now + Random.Range(2.4f, 6f); }
                 float blink = now < face.BlinkUntil ? 100f : 0f;
-                face.Skin.SetBlendShapeWeight(face.BlinkLeft, blink);
-                if (face.BlinkRight >= 0) face.Skin.SetBlendShapeWeight(face.BlinkRight, blink);
+                foreach (int shape in face.Blink) face.Skin.SetBlendShapeWeight(shape, blink);
                 bool talking = face.Root == speaking || now < face.SpeakUntil;
                 float mouth = talking ? (0.5f + 0.5f * Mathf.Sin(now * 17f) * Mathf.Sin(now * 5.3f + 1f)) * 65f : 0f;
-                if (face.MouthLeft >= 0) face.Skin.SetBlendShapeWeight(face.MouthLeft, mouth);
-                if (face.MouthRight >= 0) face.Skin.SetBlendShapeWeight(face.MouthRight, mouth);
+                foreach (int shape in face.Mouth) face.Skin.SetBlendShapeWeight(shape, mouth);
             }
         }
     }

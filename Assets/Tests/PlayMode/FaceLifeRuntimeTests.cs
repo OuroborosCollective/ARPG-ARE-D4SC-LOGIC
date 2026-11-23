@@ -36,6 +36,31 @@ namespace AreArpg.PlayMode.Tests
                 Assert.GreaterOrEqual(index, 0, figure + " has " + shape);
                 Assert.AreEqual(weight, skin.GetBlendShapeWeight(index), 0.01f, figure + " shows the mood of the role");
             }
+
+            // Dorn's beard brings mouth shapes of its own ("…_1"); when he speaks, beard and mouth open together.
+            var dorn = Find("ARE_NPC_2").GetComponentInChildren<SkinnedMeshRenderer>();
+            int mouth = dorn.sharedMesh.GetBlendShapeIndex("Expression_Mouth_Oh_L"), beard = dorn.sharedMesh.GetBlendShapeIndex("Expression_Mouth_Oh_L_1");
+            Assert.GreaterOrEqual(beard, 0, "Dorn's beard has its own mouth shape");
+            float before = Time.captureDeltaTime;
+            try
+            {
+                Time.captureDeltaTime = 0.1f;
+                _runtime.enabled = true;
+                typeof(ArenaRuntime).GetMethod("FaceSpeak", Flags).Invoke(_runtime, new object[] { Find("ARE_NPC_2").transform, 1.5f });
+                float open = 0f;
+                for (int frame = 0; frame < 10; frame++)
+                {
+                    yield return null;
+                    Assert.AreEqual(dorn.GetBlendShapeWeight(mouth), dorn.GetBlendShapeWeight(beard), 0.01f, "the beard follows the mouth");
+                    open = Mathf.Max(open, dorn.GetBlendShapeWeight(mouth));
+                }
+                Assert.Greater(open, 10f, "Dorn's mouth moves while he speaks");
+            }
+            finally
+            {
+                _runtime.enabled = false;
+                Time.captureDeltaTime = before;
+            }
         }
 
         [UnityTest, Timeout(900000)]
