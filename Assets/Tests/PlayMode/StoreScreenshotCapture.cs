@@ -72,8 +72,7 @@ namespace AreArpg.PlayMode.Tests
             _runtime.enabled = false;
             Assert.AreEqual(1, Game.Progression.EntryAct);
             yield return StoreFrame(output, "krypta", "Bau_b0202_Brazier", new Vector3(2.35f, 1.4f, -3.3f), .42f);
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int k = 0; k < 3; k++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             yield return StoreFrame(output, "aschengrenze", "Bau_b0202_BloodcapBank", new Vector3(-2.02f, 1.12f, -3.15f), .40f);

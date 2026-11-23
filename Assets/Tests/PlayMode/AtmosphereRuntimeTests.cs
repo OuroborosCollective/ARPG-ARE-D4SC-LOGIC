@@ -17,8 +17,7 @@ namespace AreArpg.PlayMode.Tests
             _runtime.enabled = false;
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             Assert.IsTrue(audio.HasMedia, "The reviewed audio library must actually be imported.");
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var rejected = Game.ActOnHunger(HungerAction.HearIlyan);
@@ -87,8 +86,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private audio overlay; native acceptance must run with evidence enabled.");
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             for (int i = 0; i < 2; i++)
@@ -108,8 +106,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private audio overlay; native acceptance must run with evidence enabled.");
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;

@@ -56,8 +56,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires private actor and village overlay");
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             Assert.IsTrue(Game.IsVillage);
@@ -90,8 +89,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires real private village and character overlay");
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             Assert.IsTrue(Game.IsVillage);
@@ -115,8 +113,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Needs the real private village and NPC prefabs");
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000);
             TravelStory();
@@ -142,8 +139,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private village and character overlay");
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             Assert.IsTrue(Game.IsVillage, "The report concerns the first village after the crypt");

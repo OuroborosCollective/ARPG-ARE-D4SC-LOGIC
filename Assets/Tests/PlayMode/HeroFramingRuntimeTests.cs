@@ -15,8 +15,7 @@ namespace AreArpg.PlayMode.Tests
         private void ReachQuietVillage()
         {
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory(); Game.SetMoveInput(0, 0); Game.Step(); ProjectCameraFrame();
         }
 

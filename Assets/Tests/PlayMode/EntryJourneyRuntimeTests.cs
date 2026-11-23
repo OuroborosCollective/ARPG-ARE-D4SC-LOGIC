@@ -133,8 +133,7 @@ namespace AreArpg.PlayMode.Tests
             cameraRig.ZoomSteps(1f);
             float chosenCameraDistance = cameraRig.Distance;
             // Test-only arrangement; each kill/drop/pickup still uses the actual Core implementation.
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Assert.AreEqual(3, Resolve(3).Kills);
+            Assert.AreEqual(3, ArrangeCryptKill().Kills);
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             Game.SetMoveInput(0, 10000);
             for (int tick = 0; tick < 50 && !Game.AtWorldPassage; tick++) Game.Step();
@@ -332,6 +331,31 @@ namespace AreArpg.PlayMode.Tests
             return impact ?? start;
         }
 
+        /// <summary>
+        /// Test fixture: the crypt's enemies stand next to the hero at one hit point and Ruin kills them; the three drops
+        /// must lie within reach. Under combat v2 the Core runs on to the Ruin's impact. A failure names the whole state.
+        /// </summary>
+        private SkillResult ArrangeCryptKill()
+        {
+            var g = Game;
+            string before = "act " + g.Progression.EntryAct + ", v2 " + g.CombatV2 + ", action " + g.ActionKind + "/" + g.ActionTick +
+                ", stamina " + g.Stamina + ", cooldown " + g.Cooldowns[3] + ", player (" + g.PlayerXmm + ", " + g.PlayerZmm + "), hp " +
+                g.PlayerHealth + ", over " + g.GameOver + ", monsters " + g.Monsters.Count + ", loot " + g.GroundLoot.Count;
+            foreach (var enemy in g.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
+            var ruin = Resolve(3);
+            string after = "ruin '" + ruin.Message + "' kills " + ruin.Kills + ", player (" + Game.PlayerXmm + ", " + Game.PlayerZmm +
+                "), loot " + Game.GroundLoot.Count;
+            foreach (var l in Game.GroundLoot) after += " (" + l.Xmm + "," + l.Zmm + ")";
+            Assert.AreEqual(3, Game.GroundLoot.Count, "crypt fixture: " + before + " -> " + after);
+            foreach (var l in Game.GroundLoot)
+            {
+                long dx = l.Xmm - Game.PlayerXmm, dz = l.Zmm - Game.PlayerZmm;
+                Assert.LessOrEqual(dx * dx + dz * dz, ArenaSimulation.PickupRadiusMm * ArenaSimulation.PickupRadiusMm,
+                    "crypt fixture drop out of reach: " + before + " -> " + after);
+            }
+            return ruin;
+        }
+
         /// <summary>Exercise the real input queue on a scheduled tick without wall-clock waiting.</summary>
         private void TickOnce()
         {
@@ -422,8 +446,7 @@ namespace AreArpg.PlayMode.Tests
         private IEnumerator CompleteSupplyJourney(bool patientArt = false)
         {
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
@@ -703,8 +726,7 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator HunterBearRescuePersistsAndProjectsReviewedAnimations()
         {
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
             yield return StoryAction(HungerAction.HearIlyan);

@@ -199,8 +199,7 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator RegionalSceneryTravelsWithTheRealVillageAndAshRoad()
         {
             _runtime.enabled = false;
-            foreach (var enemy in Game.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
-            Resolve(3);
+            ArrangeCryptKill();
             for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
             MoveStory(0, 24000); TravelStory(); yield return null;
             var village = Find("ARE_BuildLayer_aschengrenze");

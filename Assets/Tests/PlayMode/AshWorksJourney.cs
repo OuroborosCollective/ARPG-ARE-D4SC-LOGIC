@@ -99,15 +99,21 @@ namespace AreArpg.PlayMode.Tests
         {
             var m=game.Progression.Rattler.Creature;
             if(m.IsDead || game.GameOver) throw new InvalidOperationException("Expected the live Rattler.");
-            for(int i=0;i<600&&!game.GameOver&&!m.IsDead;i++)
+            for(int i=0;i<1500&&!game.GameOver&&!m.IsDead;i++)
             {
-                if(m.BossWindupTicks>0) game.SetMoveInput(0,-Move);
+                if(m.BossWindupTicks>0)
+                {
+                    game.SetMoveInput(0,-Move);
+                    if(game.CombatV2) game.StartDodge(0,-Move); // combat v2: roll back out of the announced strike
+                }
                 else
                 {
                     long dx=m.Xmm-game.PlayerXmm,dz=m.Zmm-game.PlayerZmm;
                     game.SetMoveInput(Math.Abs(dx)>1100?Math.Sign(dx)*Move:0,Math.Abs(dz)>1700?Math.Sign(dz)*Move:0);
-                    if(game.PlayerHealth<game.MaxPlayerHealth*2/3) game.ActivateSkill(2);
-                    game.ActivateSkill(3);game.ActivateSkill(1);game.ActivateSkill(0);
+                    if(!game.CombatV2&&game.PlayerHealth<game.MaxPlayerHealth*2/3) game.ActivateSkill(2);
+                    // Combat v2 commits to each swing: Ruin's long windup only when it ends before the next strike.
+                    if(!game.CombatV2||m.AttackCooldownTicks>CombatV2Rules.Ruin.Startup) game.ActivateSkill(3);
+                    game.ActivateSkill(1);game.ActivateSkill(0);
                 }
                 game.Step();
             }
