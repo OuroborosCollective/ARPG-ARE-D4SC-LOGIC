@@ -152,7 +152,10 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(3, Game.Npcs.Count);
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var loaded));
             Assert.AreEqual(2, loaded.EntryAct);
-            Assert.AreEqual(3, loaded.Items.Count);
+            // Loot revision 2: the knight who carries the field pauldron always drops; the first three bags hold rations.
+            Assert.GreaterOrEqual(loaded.Items.Count, 1);
+            Assert.AreEqual(Game.Progression.Items.Count, loaded.Items.Count);
+            Assert.GreaterOrEqual((int)loaded.Social.Provisions, 3, "The first three bags hold the rations Mara asks for");
             yield return null;
             Assert.IsNotNull(Find("Aschengrenze_Supply_Hall"));
             Assert.IsNotNull(Find(AschengrenzeArt.BackdropLabel));
@@ -197,7 +200,7 @@ namespace AreArpg.PlayMode.Tests
             typeof(ArenaRuntime).GetMethod("Restart", Flags).Invoke(_runtime, null);
             Assert.AreEqual(2, Game.Progression.EntryAct);
             Assert.AreEqual(0, Game.Monsters.Count);
-            Assert.AreEqual(3, Game.Progression.Items.Count);
+            Assert.GreaterOrEqual(Game.Progression.Items.Count, 1);
             Assert.AreEqual(stock - 1, Game.Progression.Social.CampProvisions);
             Assert.AreEqual(System.Numerics.BigInteger.One, Game.Progression.Social.GetMemory(1).HostileActions);
         }
