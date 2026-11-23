@@ -18,7 +18,7 @@ namespace AreArpg.PlayMode.Tests
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             Assert.IsTrue(audio.HasMedia, "The reviewed audio library must actually be imported.");
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             var rejected = Game.ActOnHunger(HungerAction.HearIlyan);
             audio.AcceptedSpeech(rejected); Assert.AreEqual(0, audio.SpeechCount);
@@ -86,7 +86,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private audio overlay; native acceptance must run with evidence enabled.");
             _runtime.enabled = false;
-            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             for (int i = 0; i < 2; i++)
@@ -106,7 +106,7 @@ namespace AreArpg.PlayMode.Tests
             if (string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
                 Assert.Ignore("Requires the reviewed private audio overlay; native acceptance must run with evidence enabled.");
             _runtime.enabled = false;
-            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             var audio = _runtime.GetComponentInChildren<AshenAtmosphere>();
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;

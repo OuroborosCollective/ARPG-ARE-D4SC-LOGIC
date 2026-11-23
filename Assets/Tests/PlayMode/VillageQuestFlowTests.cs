@@ -20,7 +20,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             Assert.IsTrue(Game.IsVillage && Game.CampDecisionOpen, "After the arrival scene Mara's rations wait for one decision");
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
@@ -87,7 +87,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
             MoveNear(ilyan.Xmm, ilyan.Zmm);

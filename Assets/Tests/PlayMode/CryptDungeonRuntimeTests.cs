@@ -106,6 +106,7 @@ namespace AreArpg.PlayMode.Tests
                     Assert.AreNotEqual(Quaternion.identity,Find("Dungeon_Chest_Lid_"+i).transform.localRotation);
                 }
                 while(Game.GroundLoot.Count>0) { var drop=Game.GroundLoot[0]; DungeonWalk(drop.Xmm,drop.Zmm); Game.TryCollectLoot(); }
+                while(Game.GroundSupplies.Count>0){var bag=Game.GroundSupplies[0];DungeonWalk(bag.Xmm,bag.Zmm);Game.TryCollectLoot();} // loot revision 2: bags too
                 if(depth==2)
                 {
                     DungeonWalk(0,15000); yield return StoryAction(HungerAction.InspectCryptTrace); yield return StoryAction(HungerAction.OpenInnerDoor);

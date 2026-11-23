@@ -15,8 +15,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++)
-                Assert.IsTrue(Game.TryCollectLoot(), "The ordinary crypt-to-village transition must remain playable");
+            CollectCryptLoot();
             MoveStory(0, 24000);
             TravelStory();
             Assert.IsTrue(Game.IsVillage, "The sky must appear only after entering the outdoor village");
@@ -80,7 +79,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             Assert.IsTrue(Game.IsVillage);
             var refresh = typeof(ArenaRuntime).GetMethod("RefreshWorldSky", Flags);
@@ -130,8 +129,7 @@ namespace AreArpg.PlayMode.Tests
             float sunIntensityBefore = sun.intensity;
 
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++)
-                Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000);
             TravelStory();
             Assert.IsTrue(Game.IsVillage);

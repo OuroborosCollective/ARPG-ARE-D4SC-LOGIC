@@ -24,6 +24,7 @@ namespace AreArpg.PlayMode.Tests
                 WoodlandWalk(-36000,0);
                 if(Game.GroundLoot.Count==0)break;
                 while(Game.GroundLoot.Count>0){var drop=Game.GroundLoot[0];WoodlandWalk(drop.Xmm,drop.Zmm);Game.TryCollectLoot();}
+                while(Game.GroundSupplies.Count>0){var bag=Game.GroundSupplies[0];WoodlandWalk(bag.Xmm,bag.Zmm);Game.TryCollectLoot();} // loot revision 2: bags too
             }
             Assert.AreEqual(0,Game.GroundLoot.Count,"All encounter loot secured before cave travel");
             Assert.AreEqual(9,Game.WoodlandPassage);
@@ -37,6 +38,7 @@ namespace AreArpg.PlayMode.Tests
             // The existing forest route is walked and fought; the actual travel adapter owns arrival and saving.
             WoodlandWalk(0,48000);
             while(Game.GroundLoot.Count>0){var loot=Game.GroundLoot[0];WoodlandWalk(loot.Xmm,loot.Zmm);Game.TryCollectLoot();}
+                while(Game.GroundSupplies.Count>0){var bag=Game.GroundSupplies[0];WoodlandWalk(bag.Xmm,bag.Zmm);Game.TryCollectLoot();} // loot revision 2: bags too
             WoodlandWalk(0,48000);TravelStory();yield return null;
             Assert.IsTrue(Game.InAschenzoll);
             Assert.That(Game.HungerObjective,Does.StartWith(Game.FreightObjective));

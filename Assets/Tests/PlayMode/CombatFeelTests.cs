@@ -225,7 +225,7 @@ namespace AreArpg.PlayMode.Tests
                 Assert.Ignore("Requires the reviewed private character and animation overlay");
             UseDeviceFrameClock();
             _runtime.enabled = false;
-            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
             yield return StoryAction(HungerAction.HearIlyan);

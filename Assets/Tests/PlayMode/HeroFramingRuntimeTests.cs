@@ -15,7 +15,7 @@ namespace AreArpg.PlayMode.Tests
         private void ReachQuietVillage()
         {
             _runtime.enabled = false;
-            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); CollectCryptLoot();
             MoveStory(0, 24000); TravelStory(); Game.SetMoveInput(0, 0); Game.Step(); ProjectCameraFrame();
         }
 

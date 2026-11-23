@@ -21,7 +21,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             Assert.IsTrue(Game.IsVillage, "The camp follows the crypt");
             yield return null;
@@ -109,7 +109,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
             ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;

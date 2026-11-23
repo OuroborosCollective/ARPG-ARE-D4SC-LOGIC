@@ -17,7 +17,7 @@ namespace AreArpg.PlayMode.Tests
                 Assert.Ignore("Requires private native village art and real GameView capture");
             _runtime.enabled = false;
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000);
             TravelStory();
             Assert.IsTrue(Game.IsVillage);
