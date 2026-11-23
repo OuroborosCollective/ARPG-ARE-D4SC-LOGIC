@@ -249,24 +249,24 @@
       ]
     },
     {
-      "id": "orsel", "role": "Orsel, die Feldheilerin der alten Mühle, in der Dark-Fantasy-Fassung (Owner 2026-11-23): schroff und fürsorglich; abgetragener aschgrauer Klerikermantel mit Wappenrock in getrocknetem Blutrot, dunkle Kapuze, zerschlissener Schal, verbandsartige Handwickel, ergrautes Haar mit Zopf, strenges verwittertes Gesicht",
+      "id": "orsel", "role": "Orsel, die Feldheilerin der alten Mühle, in der Dark-Fantasy-Fassung (Owner 2026-11-23): schroff und fürsorglich; abgetragener aschgrauer Klerikermantel mit Wappenrock in getrocknetem Blutrot, dunkle Kapuze, zerschlissener Schal, schmutzige Handwickel wie Verbände, langer dunkler Rock, ergrautes Haar mit Zopf, strenges verwittertes Gesicht. Farben sind so gewählt, dass sie nach der Aufhellung des Bakers (Exponent 0.6) gedeckt und dunkel erscheinen.",
       "base": "Fantasy/Ranger", "height": 1.74, "texture": 1024, "motion": "f", "keys": ["Orsel0"], "expressions": true,
       "body": [{"id": "Chest", "value": 30}, {"id": "Weight", "value": 38}],
-      "face": [{"id": "EarsElf", "value": 0}, {"id": "Stern", "value": 60}, {"id": "RaiseBrows", "value": 0}],
+      "face": [{"id": "EarsElf", "value": 0}, {"id": "Stern", "value": 85}, {"id": "RaiseBrows", "value": 0}],
       "remove": ["Shoulders", "MakeUpEyes", "MakeUpCheeks"],
       "outfits": [
-        {"slot": "Head", "id": "Head_Stern", "colors": ["#b88a74", "#5c2f28", "#cf9c86", "#e8e4dc", "#5c2f28", "#7a3a34"]},
-        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#b88a74", "#5c2f28", "#cf9c86"]},
-        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2a3028", "#5a6a58"]},
-        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#5e5a54"]},
-        {"slot": "Hat", "id": "Hat_RusticHood", "colors": ["#3a332c", "#5a2a24"]},
-        {"slot": "Neck", "id": "Neck_TatteredMuffler", "colors": ["#4a4a40"]},
-        {"slot": "Top", "id": "Top_DevoutCoat", "colors": ["#5b554d", "#3a3530", "#8f877a", "#3b2e24", "#6b5a44", "#7c7466", "#4a2e28", "#2e2622", "#6e5a4a"]},
-        {"slot": "Gloves", "id": "Gloves_ClothHandwraps", "colors": ["#a0968a"]},
-        {"slot": "Bottom", "id": "Bottom_RusticSkirt", "colors": ["#4a3a30", "#3e3a36", "#3b3029", "#2e2620", "#5a4636", "#3b3029", "#3a332d"]},
-        {"slot": "Feet", "id": "Feet_TiedBoots", "colors": ["#3a2e26", "#2a221c", "#5a4a3a"]},
-        {"slot": "HairFront", "id": "HairFront_DesolateHair", "colors": ["#7a756d", "#5e5a54"]},
-        {"slot": "HairBack", "id": "HairBack_NobleBraid", "colors": ["#7a756d", "#5e5a54", "#6a655d"]}
+        {"slot": "Head", "id": "Head_Stern", "colors": ["#9f6e57", "#2d0e09", "#b68369", "#d1c7b9", "#2d0e09", "#4b1612"]},
+        {"slot": "Body", "id": "Body_BasicBody", "colors": ["#9f6e57", "#2d0e09", "#b68369"]},
+        {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#010101", "#0d100c", "#2d3b2b"]},
+        {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#3f3932"]},
+        {"slot": "Hat", "id": "Hat_RusticHood", "colors": ["#0f0c0a", "#180d0a"]},
+        {"slot": "Neck", "id": "Neck_TatteredMuffler", "colors": ["#171813"]},
+        {"slot": "Top", "id": "Top_DevoutCoat", "colors": ["#201d19", "#0f0d0b", "#3f372d", "#160e09", "#2d2014", "#302b23", "#180a08", "#0b0605", "#20120c"]},
+        {"slot": "Gloves", "id": "Gloves_ClothHandwraps", "colors": ["#5c5141"]},
+        {"slot": "Bottom", "id": "Bottom_MeditativeSkirt", "colors": ["#16110e", "#201812", "#0f0b08"]},
+        {"slot": "Feet", "id": "Feet_TiedBoots", "colors": ["#160f0b", "#0d0906", "#2d2016"]},
+        {"slot": "HairFront", "id": "HairFront_DesolateHair", "colors": ["#5c564e", "#3b362f"]},
+        {"slot": "HairBack", "id": "HairBack_NobleBraid", "colors": ["#5c564e", "#3b362f", "#4b463e"]}
       ]
     },
     {
