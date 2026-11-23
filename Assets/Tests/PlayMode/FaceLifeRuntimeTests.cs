@@ -13,11 +13,16 @@ namespace AreArpg.PlayMode.Tests
     /// </summary>
     public sealed partial class EntryJourneyRuntimeTests
     {
-        /// <summary>Ilyan, Mara and Dorn stand in the camp with the expression shapes of their new bake and the mood of
-        /// their role: Ilyan sad, Mara smiling, Dorn grim.</summary>
+        /// <summary>Ilyan, Mara and Dorn stand in the camp after the crypt with the expression shapes of their new bake
+        /// and the mood of their role: Ilyan sad, Mara smiling, Dorn grim.</summary>
         [UnityTest, Timeout(300000)]
         public IEnumerator CampFiguresWearTheMoodOfTheirRole()
         {
+            _runtime.enabled = false;
+            ArrangeCryptKill();
+            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            MoveStory(0, 24000); TravelStory();
+            Assert.IsTrue(Game.IsVillage, "The camp follows the crypt");
             yield return null;
             var moods = new[] { ("ARE_NPC_0", "Expression_Brows_Sad_L", 45f), ("ARE_NPC_1", "Expression_Mouth_Happy_L", 18f), ("ARE_NPC_2", "Expression_Brow_Angry_L", 30f) };
             foreach (var (figure, shape, weight) in moods)
