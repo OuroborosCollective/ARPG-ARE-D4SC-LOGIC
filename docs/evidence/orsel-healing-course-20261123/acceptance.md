@@ -21,7 +21,8 @@ from health a cast really restores, and the equipment decides how well it works.
   be handed over (rations, coins or Aschenflieder leave the pack), otherwise nothing changes. Then the lesson:
   Wundschluss is learned, her staff is handed over and taken in hand, and her old robe is worn when the chest is free.
   If she has already moved to the village before the player took the lesson, she teaches in front of the sick room
-  once it stands (while she still asks for its lot, that talk keeps the place to itself).
+  once it stands and until the lesson is learned (while she still asks for its lot, that talk keeps the place to
+  itself). Her figure, the talk button and the touch input follow the same Core answer (review fix on #131).
 - **Wundschluss** (combat v2 only), button WUNDSCHLUSS on the outer ring left of AUSWEICHEN, key X on a desktop:
   - The button appears once the spell is learned and only then takes touches. It needs a staff in hand, 15 focus and
     somebody hurt within 4 m; otherwise it dims and the reason is shown when tapped. It shows the cooldown in seconds.
@@ -63,11 +64,11 @@ from health a cast really restores, and the equipment decides how well it works.
 
 Unity 6000.6.8f1, Unity CLI runs in the live editor (not a Director job); Core with Unity's bundled .NET SDK:
 
-- `Tests/CoreVerification` on `22bb7a7`: ALL PASS 23,067 deterministic assertions, 78 of them for the course.
+- `Tests/CoreVerification` on `2c7b129`: ALL PASS 23,068 deterministic assertions, 79 of them for the course.
 - Full PlayMode suite on code identical to `03fc2bb` (scripts and tests compared file by file): 179 passed, 0 failed,
   28 ignored.
 - On `22bb7a7` (adds only the village rule and its Core check): `OrselTeachesWundschlussAndThePlayerHealsAPatient`
-  passed in 38 s.
+  passed in 38 s; again on `2c7b129` (the village spot ends with the lesson) in 37 s.
 - Earlier on the same runtime code: HUD layout 12/12 (with WUNDSCHLUSS), camera rig 21/21, mobile UI 12/12, workshop
   catalog review 1/1, and the mill-chapter player run under combat v2 passed in 270 s (1421 frames, 0 defeats, 75 taps).
 - Full EditMode suite on `22bb7a7`: 254 passed, 0 failed, 28 ignored.
