@@ -34,6 +34,16 @@ older save moves over once, and the phone gets the controls the issue asks for.
   - The HUD layout test now keeps dodge and flask on screen and clear of every other control on six canvases
     (720×405, 960×540, 1007×601, 1334×750, 2400×1080, 2560×1600). It found the overlap with the dialogue card.
 
+## Review fixes (CodeRabbit and Gitar on #130)
+
+- A strike that landed in the tick of the player's defeat was reported again on every later tick (the Core returned
+  before clearing its per-tick list); every step now clears it first. New Core check `combat-v2-no-impact-repeated-after-defeat`.
+- A practice rank gained by a hit without a kill was saved only at the next save event; the impact tick now compares
+  the ranks and saves.
+- The stamina fill had no height (a 2-unit inset in a 4-unit bar); it keeps 2.5 units now.
+- The hidden ring no longer swallows taps or blocks camera gestures where it is not shown (legacy profile).
+- The switch message says that the former guard practice is kept and counts as healing mastery.
+
 ## Evidence
 
 Unity 6000.6.8f1, Unity CLI runs in the live editor (not a Director job):
@@ -48,6 +58,9 @@ Unity 6000.6.8f1, Unity CLI runs in the live editor (not a Director job):
   against the bear, the hunter survived; the app was reopened after each passage and the combat version survived every
   restart).
 - Bear rescue fixture under combat v2: passed (the player dodges and the hunter lives).
+- After the review fixes (`073c83f`): `Tests/CoreVerification` ALL PASS 22.997; in the live editor on the follow-up
+  branch that contains `073c83f` unchanged: HUD layout 12/12, camera rig 21/21, mobile UI 12/12, the weapon- and
+  shield-practice save tests 3/3.
 
 ## Not verified
 
