@@ -35,7 +35,8 @@ Faces come alive in `FaceLifePresentation` (presentation only; the Core knows no
 - Parts with mouth shapes of their own follow the face. Dorn's beard brings 17 mouth and jaw shapes named `…_1`; they
   move with his mouth when he speaks.
 - Faces off screen rest.
-- The road hunter and the companion now register their faces too, as the camp figures and Orsel already did.
+- The road hunter and the companion now register their faces too, as the camp figures and Orsel already did. Speaker 3
+  of the recorded lines is the hunter, as for the camera, so his mouth moves while his thanks are heard (review on #133).
 
 ### Own fabrics
 
@@ -111,6 +112,7 @@ All Unity runs used Unity 6000.6.8f1 with the Unity CLI in the live editor, not 
 | EditMode `BozoFigure*` | `f07ea76d108c06c8b61f03d118ed36939ff2ff86` | 20 / 20 PASS |
 | PlayMode `CampFiguresWearTheMoodOfTheirRole` (new), with Dorn's beard following his mouth | `9720e977ce6979d4dcf740956677d9cccb0eaf5d` | PASS (18 s) |
 | Full PlayMode suite | `9720e977ce6979d4dcf740956677d9cccb0eaf5d` | 181 PASS / 0 FAIL / 28 ignored |
+| PlayMode `RescuedHunterMovesHisMouthWhileHisThanksAreHeard` (new, review fix) | `9d4af45eaf3424f578ad98bb9472f67aeb371ffe` | PASS (17 s) |
 | Full EditMode suite | `9720e977ce6979d4dcf740956677d9cccb0eaf5d` | 254 PASS / 0 FAIL / 28 ignored |
 
 The Core is unchanged, so `Tests/CoreVerification` was not run again.
