@@ -99,8 +99,8 @@ namespace AreArpg.PlayMode.Tests
             }
 
             // Combat v2 (issue #127): the outer ring stays on screen and clear of every other control.
-            Rect[] ring = { layout.DodgeRect, layout.FlaskRect };
-            string[] ringNames = { "dodge", "flask" };
+            Rect[] ring = { layout.DodgeRect, layout.FlaskRect, layout.HealRect };
+            string[] ringNames = { "dodge", "flask", "Wundschluss" };
             for (int r = 0; r < ring.Length; r++)
             {
                 Fits(ring[r], layout, ringNames[r]);
