@@ -64,6 +64,11 @@ namespace AreArpg.EditorTools
             /// on this body and this head on other bodies. The visual then has two renderers on one skeleton.
             /// </summary>
             public bool parts;
+            /// <summary>
+            /// Keeps the face's expression shapes (blinking, mouth, brows) in the game mesh so the game can bring a story
+            /// figure to life; every other shape is baked flat. Residents of the pool leave it off and stay light.
+            /// </summary>
+            public bool expressions;
         }
 
         // The pack's outfit types (Assets/BoZo_StylizedModularCharacters/OutfitTypes): what belongs to the head when a

@@ -344,6 +344,7 @@ namespace AreArpg.UnityClient
                 _heroMeleeAnimations = melee.ToArray();
                 foreach (var animator in _heroMeleeAnimations) EntryWeaponGrip.TryAttach(animator);
             }
+            RegisterFace(root);
         }
 
         /// <summary>Project accepted Core displacement into animation and facing; root motion remains disabled.</summary>
@@ -1222,6 +1223,7 @@ namespace AreArpg.UnityClient
             UpdateRegionalSources();
             UpdateOrselFigure();
             UpdateCombatFeel();
+            UpdateFaceLife();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
                 Transform ration = _campRationVisuals[index];

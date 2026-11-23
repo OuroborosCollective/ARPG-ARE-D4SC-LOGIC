@@ -747,8 +747,33 @@ namespace AreArpg.EditorTools
                 }
                 mesh.tangents = tangents;
             }
+            if (recipe.expressions) KeepExpressions(full, skins[0], mesh);
             mesh.RecalculateBounds();
             return mesh;
+        }
+
+        /// <summary>Prefix of the pack's facial expression shapes (blink, mouth, brows) that the game drives.</summary>
+        public const string ExpressionPrefix = "Expression_";
+
+        /// <summary>
+        /// Put the face's expression shapes back on the flattened game mesh, frame by frame and unchanged: they move only
+        /// the face, on top of the baked look. A shape that was already set at bake time is part of the look and stays
+        /// baked flat.
+        /// </summary>
+        static void KeepExpressions(Mesh full, SkinnedMeshRenderer skin, Mesh mesh)
+        {
+            int count = full.vertexCount;
+            var moved = new Vector3[count]; var turned = new Vector3[count]; var leaned = new Vector3[count];
+            for (int shape = 0; shape < full.blendShapeCount; shape++)
+            {
+                string name = full.GetBlendShapeName(shape);
+                if (!name.StartsWith(ExpressionPrefix, StringComparison.Ordinal) || skin.GetBlendShapeWeight(shape) != 0f) continue;
+                for (int frame = 0; frame < full.GetBlendShapeFrameCount(shape); frame++)
+                {
+                    full.GetBlendShapeFrameVertices(shape, frame, moved, turned, leaned);
+                    mesh.AddBlendShapeFrame(name, full.GetBlendShapeFrameWeight(shape, frame), moved, turned, leaned);
+                }
+            }
         }
 
         static void AddDeltas(Vector3[] vertices, Vector3[] normals, Vector4[] tangents, Vector3[] moved, Vector3[] turned, Vector3[] leaned, float amount)
