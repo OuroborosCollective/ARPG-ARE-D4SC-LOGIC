@@ -56,7 +56,7 @@ namespace AreArpg.Core
         }
         private ArenaSimulation TraverseJourney()
         {
-            int passage=JourneyPassage;if(passage==0||GroundLoot.Count!=0||_journeyMaps==null)return null;
+            int passage=JourneyPassage;if(passage==0||LootOnGround||_journeyMaps==null)return null;
             if(passage==3&&!JourneyForwardOpen)return null;
             SaveJourneyPlayer();SaveWoodlandPlayer();
             if(!CharacterProgression.TryLoad(Progression.SaveString(),_journeyMaps,out var p))return null;
@@ -101,7 +101,7 @@ namespace AreArpg.Core
         }
         public string JourneyObjective=>InJourneyCave?
             "Seitenhöhle – Ebene "+Progression.Journey.Depth+"/"+Progression.Journey.FloorCount+". "+
-            (!Progression.Journey.Current.Cleared?"Erkunde die Kammern und besiege ihre Wächter. Truhen liegen in den Seitenkammern.":GroundLoot.Count>0?"Sichere deine Beute.":JourneyForwardOpen?"Im Norden führt der Abstieg tiefer. Der Rückweg liegt im Süden.":"Die tiefste Ebene ist frei. Kehre über die Aufgänge zum Wald zurück."):
+            (!Progression.Journey.Current.Cleared?"Erkunde die Kammern und besiege ihre Wächter. Truhen liegen in den Seitenkammern.":LootOnGround?"Sichere deine Beute.":JourneyForwardOpen?"Im Norden führt der Abstieg tiefer. Der Rückweg liegt im Süden.":"Die tiefste Ebene ist frei. Kehre über die Aufgänge zum Wald zurück."):
             "Folge dem Waldweg weiter nach Norden. Westlich der Rastlichtung liegt eine optionale Höhle mit vier Ebenen; im Osten wartet eine Schatzabzweigung. Erkunde die Rastlichtung und sichere deine Beute.";
     }
     public sealed partial class CharacterProgression

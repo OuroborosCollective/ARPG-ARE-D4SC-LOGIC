@@ -96,7 +96,7 @@ namespace AreArpg.Core
                         int kind=m==null?2:m.Kind;
                         if((m!=null && !m.IsDead) || bonus!=(kind==0?8:kind==1?17:34) || !LootItem.TryRead(receipt,out item)) return false;
                         var context=receipt.Split(',');
-                        if(context[1]!=seed.ToString("X16",CultureInfo.InvariantCulture) || context[2]!="1" || context[4]!=id.ToString(CultureInfo.InvariantCulture) || context[5]!=kind.ToString(CultureInfo.InvariantCulture)) return false;
+                        if(context[1]!=seed.ToString("X16",CultureInfo.InvariantCulture) || context[2]!=(context[0]=="2"?d.ToString(CultureInfo.InvariantCulture):"1") || context[4]!=id.ToString(CultureInfo.InvariantCulture) || context[5]!=kind.ToString(CultureInfo.InvariantCulture)) return false;
                     }
                     else
                     {

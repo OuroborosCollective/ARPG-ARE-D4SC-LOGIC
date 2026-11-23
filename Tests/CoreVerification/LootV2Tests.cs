@@ -174,11 +174,13 @@ internal static class LootV2Tests
         ArenaSimulation w = null;
         for (ulong seed = 1; seed <= 300; seed++) { w = World(seed); Kill(w, 0); if (w.GroundLoot.Count == 1) break; }
         check(w.GroundLoot.Count == 1 && w.GroundSupplies.Count == 1 && w.LootOnGround, "loot2-weapon-and-bag-from-one-kill");
-        check(w.TryCollectLoot() && w.Progression.Items.Count == 1 && w.Progression.Social.Provisions.IsZero && w.LastSupply == null,
-            "loot2-weapon-brings-no-ration");
-        check(w.TryCollectLoot() && w.LastSupply != null && w.Progression.Social.Provisions == 1 && !w.LootOnGround, "loot2-first-bag-brings-a-ration");
+        BigInteger rations = w.Progression.Social.Provisions;
+        check(w.TryCollectLoot() && w.Progression.Items.Count == 1 && w.LastSupply == null, "loot2-weapon-is-taken-first");
+        check(w.Progression.Social.Provisions == rations, "loot2-weapon-brings-no-ration");
+        check(w.TryCollectLoot() && w.LastSupply != null && w.Progression.Social.Provisions == rations + 1 && !w.LootOnGround, "loot2-first-bag-brings-a-ration");
         var old = World(5, null, LootCatalog.Version1); Kill(old, 0);
-        check(old.TryCollectLoot() && old.Progression.Social.Provisions == 1 && old.Progression.Social.Coins.IsZero, "loot2-revision-one-pickup-keeps-its-ration");
+        BigInteger before = old.Progression.Social.Provisions, purse = old.Progression.Social.Coins;
+        check(old.TryCollectLoot() && old.Progression.Social.Provisions == before + 1 && old.Progression.Social.Coins == purse, "loot2-revision-one-pickup-keeps-its-ration");
     }
 
     private static bool CoinRange(int kind, int low, int high)
@@ -230,8 +232,8 @@ internal static class LootV2Tests
         var w = World(); Kill(w, 0);
         while (w.GroundLoot.Count != 0) w.TryCollectLoot();
         string save = w.Progression.SaveString();
-        check(save.Contains("supplies=") && CharacterProgression.TryLoad(save, out var loaded) && loaded.SaveString() == save &&
-            loaded.Supplies.Ground.Count == 1, "loot2-bag-save-roundtrip");
+        bool read = CharacterProgression.TryLoad(save, out var loaded);
+        check(save.Contains("supplies=") && read && loaded.SaveString() == save && loaded.Supplies.Ground.Count == 1, "loot2-bag-save-roundtrip");
         var resumed = World(123, loaded);
         BigInteger coins = resumed.Progression.Social.Coins; int worth = resumed.GroundSupplies[0].Bag.Coins;
         check(resumed.GroundSupplies.Count == 1 && resumed.TryCollectLoot() && resumed.Progression.Social.Coins == coins + worth &&

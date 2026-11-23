@@ -65,7 +65,7 @@ namespace AreArpg.Core
         private ArenaSimulation TraverseHunger(bool backwards)
         {
             if (InDungeon) return TraverseDungeon(backwards);
-            if (GameOver || GroundLoot.Count != 0 || (backwards ? Progression.EntryAct < 3 : !HungerForwardOpen)) return null;
+            if (GameOver || LootOnGround || (backwards ? Progression.EntryAct < 3 : !HungerForwardOpen)) return null;
             if (!CharacterProgression.TryLoad(Progression.SaveString(), _journeyMaps, out var next)) return null;
             if (Progression.EntryAct == 5 && !backwards && next.Dungeon.Active && next.Dungeon.NeedsNewRun)
             {

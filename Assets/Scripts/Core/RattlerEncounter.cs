@@ -131,8 +131,14 @@ namespace AreArpg.Core
             m.LootGranted = true; m.BossWindupTicks = 0;
             if(playerCredit){result.Kills++;Kills++;Progression.RecordKill();Progression.EarnExperience(1200);}
             else Progression.RecordCompanionKill();
-            if (InDungeon) GroundLoot.Add(new LootState { Id=42,Xmm=m.Xmm,Zmm=m.Zmm,WeaponBonus=34,
-                Item=LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LootOrdinal) });
+            if (InDungeon)
+            {
+                // Under loot revision 2 the rattler drops like a boss: always a weapon and a full bag.
+                GroundLoot.Add(new LootState { Id=42,Xmm=m.Xmm,Zmm=m.Zmm,WeaponBonus=34,
+                    Item=LootRevisionTwo ? _lootCatalog.Generate(Progression.Dungeon.Seed,Progression.Dungeon.Depth,CurrentTick,42,2,Progression.LootOrdinal,LootCatalog.BossFlag)
+                        : LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LootOrdinal) });
+                if (LootRevisionTwo) DropSupply(Progression.Dungeon.Seed,Progression.Dungeon.Depth,42,2,LootCatalog.BossFlag,m.Xmm,m.Zmm);
+            }
             else Progression.AddWeaponUpgrade(12);
         }
 

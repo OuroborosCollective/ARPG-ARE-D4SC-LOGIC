@@ -227,6 +227,7 @@ namespace AreArpg.Core
             _journeyMaps = journeyMaps;
             CryptDepth = cryptDepth;
             Progression = progression ?? new CharacterProgression();
+            Progression.Supplies.EnterArea(SupplyArea);
             if (Progression.Journey.Active && journeyMaps?.Resolve(Progression.Journey.MapHash) == null)
                 throw new InvalidOperationException("Exact authored journey map unavailable");
             if (Progression.EntryAct > 0 && !cryptDepth.IsOne)
@@ -280,7 +281,7 @@ namespace AreArpg.Core
         public ArenaSimulation TryAdvanceCrypt()
         {
             if (Progression.EntryAct >= 2) return null; // Story travel uses adjacent, location-gated passages instead.
-            if (!CryptCleared || GroundLoot.Count != 0 ||
+            if (!CryptCleared || LootOnGround ||
                 CryptDepth != Progression.UnlockedCryptDepth) return null;
             CharacterProgression nextProgress;
             if (!CharacterProgression.TryLoad(Progression.SaveString(), _journeyMaps, out nextProgress)) return null;
@@ -793,17 +794,29 @@ namespace AreArpg.Core
                     Progression.EarnExperience(new System.Numerics.BigInteger(enemy.Kind >= 2 ? 1200 : (enemy.Kind == 1 ? 410 : 160)));
                 }
                 else Progression.RecordCompanionKill();
-                var drop = new LootState { Id = InJourney || InDungeon || InForest ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
-                    WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8),
-                    Item = InJourney ? LootCatalog.Version1.Generate(JourneySeed, InJourneyCave ? Progression.Journey.Depth : 1, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InForest ? LootCatalog.Version1.Generate(Progression.Woodland.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) : InDungeon ? LootCatalog.Version1.Generate(Progression.Dungeon.Seed, CryptDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) :
-                        _lootCatalog == null ? null : _lootCatalog.Generate(_runSeed, CryptDepth,
-                        CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal) };
+                // Generated places roll with their own seed. They used revision 1 whatever catalog the world was given;
+                // a revision-2 world now rolls everything with its catalog, and the crypt floors count as depth.
+                bool place = InJourney || InDungeon || InForest, second = LootRevisionTwo;
+                LootCatalog catalog = second ? _lootCatalog : place ? LootCatalog.Version1 : _lootCatalog;
+                ulong lootSeed = InJourney ? JourneySeed : InForest ? Progression.Woodland.Seed : InDungeon ? Progression.Dungeon.Seed : _runSeed;
+                System.Numerics.BigInteger lootDepth = InJourney ? (InJourneyCave ? Progression.Journey.Depth : 1) :
+                    InDungeon && second ? Progression.Dungeon.Depth : CryptDepth;
                 // The woodland lets a returning character find the same unique piece after leaving the entry crypt.
                 bool knightSource = !InJourney && enemy.Kind == 1 && enemy.Family == MonsterFamily.Legacy &&
                     (InForest || (Progression.EntryAct == 1 && enemy.Id == 2));
-                drop.HasFieldPauldron = knightSource && drop.Item != null && Progression.Equipment.Active &&
+                bool pauldron = knightSource && Progression.Equipment.Active &&
                     !Progression.Equipment.FieldPauldronOwned && !GroundLoot.Exists(l => l.HasFieldPauldron);
-                GroundLoot.Add(drop);
+                // The knight who carries the field pauldron always drops under revision 2: the piece rides on his drop.
+                int flags = second && pauldron ? LootCatalog.GuaranteedFlag : 0;
+                LootItem item = catalog == null ? null : catalog.Generate(lootSeed, lootDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal, flags);
+                if (!second || item != null)
+                {
+                    var drop = new LootState { Id = place ? enemy.Id : _nextLootId++, Xmm = enemy.Xmm, Zmm = enemy.Zmm,
+                        WeaponBonus = enemy.Kind >= 2 ? 34 : (enemy.Kind == 1 ? 17 : 8), Item = item };
+                    drop.HasFieldPauldron = pauldron && drop.Item != null;
+                    GroundLoot.Add(drop);
+                }
+                if (second) DropSupply(lootSeed, lootDepth, enemy.Id, enemy.Kind, flags, enemy.Xmm, enemy.Zmm);
             }
         }
 
@@ -864,6 +877,7 @@ namespace AreArpg.Core
         /// <summary>Collect reachable drops through the canonical progression owner, preserving legacy rewards.</summary>
         public bool TryCollectLoot()
         {
+            LastSupply = null;
             if (GameOver) return false;
             for (int i = 0; i < GroundLoot.Count; i++)
             {
@@ -879,7 +893,7 @@ namespace AreArpg.Core
                 SaveWoodlandPlayer();
                 return true;
             }
-            return false;
+            return TryCollectSupply();
         }
 
         // Stable FNV-1a over every field that currently affects future simulation outcomes.
@@ -938,6 +952,7 @@ namespace AreArpg.Core
             MixHouses(ref h);
             MixCombatV2(ref h); // armor and combat v2 only when present: legacy worlds keep their golden hashes
             MixHealing(ref h); // Orsel's course only when present
+            MixSupplies(ref h); // supply bags only while some lie on the ground
             return h;
         }
 

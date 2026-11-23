@@ -5,8 +5,11 @@ using System.Text;
 
 namespace AreArpg.Core
 {
-    /// <summary>Stable serialized rarity values; version 1 grants one upgrade affix at either rarity.</summary>
-    public enum ItemRarity { Magic = 1, Rare = 2 }
+    /// <summary>
+    /// Stable serialized tier values. Revision 1 knows only Magic and Rare; revision 2 adds Normal (white) below and
+    /// Legendary (orange) above them.
+    /// </summary>
+    public enum ItemRarity { Normal = 0, Magic = 1, Rare = 2, Legendary = 3 }
 
     /// <summary>An immutable weighted definition. Values are integer weapon points, never fixed-point raw units.</summary>
     public sealed class LootDropDefinition
@@ -80,13 +83,37 @@ namespace AreArpg.Core
     /// <summary>Immutable shipped catalog. Publishing changed definitions requires a new revision and loader.</summary>
     public sealed class LootCatalog
     {
-        public static LootCatalog Version1 { get; } = new LootCatalog();
-        public int Revision { get { return 1; } }
+        // The tables of revision 2 stand before the catalogs: static initializers run in the order they are written.
+        // Weapon chance in percent by loot kind: common, elite, champion. Bosses always drop.
+        private static readonly int[] DropChance = { 25, 45, 75 };
+        // White, blue and yellow in percent by tier: the surface first, one tier deeper per cave or crypt depth.
+        private static readonly int[][] TierWeights = { new[] { 65, 28, 7 }, new[] { 53, 34, 13 }, new[] { 42, 39, 19 }, new[] { 30, 45, 25 } };
+        // Coins in a bag by loot kind: common, elite, champion. A boss bag holds one silver.
+        private static readonly int[] CoinsLow = { 3, 8, 20 }, CoinsHigh = { 8, 20, 50 };
+
+        public static LootCatalog Version1 { get; } = new LootCatalog(1);
+        /// <summary>
+        /// Revision 2 (issue #48; owner decisions of 2026-11-15, -17 and -23): not every enemy drops a weapon, the tiers
+        /// white, blue, yellow and orange improve with depth and bosses, and supply bags are a drop of their own.
+        /// </summary>
+        public static LootCatalog Version2 { get; } = new LootCatalog(2);
+        public int Revision { get; }
         public ulong StableHash { get; }
         private readonly LootDropTable _table;
+
+        /// <summary>The drop falls whatever the chance says: the kill carries a story piece (the field pauldron).</summary>
+        internal const int GuaranteedFlag = 1;
+        /// <summary>The enemy counts as a boss although its loot kind is a champion's: the rattler.</summary>
+        internal const int BossFlag = 2;
+        public const int RattlerEnemyId = 42;
+        private const int BossMagic = 35, BossRare = 50;            // the remaining 15 % are legendary
+        private const int DeepTier = 3, DeepChampionLegendary = 2;  // deep champions: 2 % legendary, taken from yellow
+        private const int SupplyChance = 25, AlwaysSupplyKills = 3, RationOneIn = 3, BossCoins = 100;
+
         /// <summary>Freeze revision-one drop weights and the existing 8/17/34-point reward balance.</summary>
-        private LootCatalog()
+        private LootCatalog(int revision)
         {
+            Revision = revision;
             var entries = new LootDropDefinition[8];
             for (int kind = 0; kind < 4; kind++)
             {
@@ -97,7 +124,35 @@ namespace AreArpg.Core
                 entries[kind * 2 + 1] = new LootDropDefinition(prefix + ".rare", kind, id, ItemRarity.Rare, 25, points);
             }
             _table = new LootDropTable(entries);
-            StableHash = HashText("loot.v1;affix.weapon.upgrade.v1;" + _table.Token());
+            StableHash = revision == 1 ? HashText("loot.v1;affix.weapon.upgrade.v1;" + _table.Token()) : HashText(RulesToken());
+        }
+
+        /// <summary>Every number of revision 2 in one stable text: changing a number changes the catalog hash.</summary>
+        private static string RulesToken()
+        {
+            var tiers = new StringBuilder();
+            foreach (int[] tier in TierWeights) { if (tiers.Length != 0) tiers.Append('/'); tiers.Append(List(tier)); }
+            return "loot.v2;affix.weapon.upgrade.v1;points=8,17,34;drop=" + List(DropChance) + ";tiers=" + tiers + ";boss=" + List(BossMagic, BossRare) +
+                ";deep=" + List(DeepTier, DeepChampionLegendary) + ";supply=" + List(SupplyChance, AlwaysSupplyKills, RationOneIn, BossCoins) +
+                ";coins=" + List(CoinsLow) + "-" + List(CoinsHigh);
+        }
+
+        private static string List(params int[] values)
+        {
+            var b = new StringBuilder();
+            foreach (int value in values) { if (b.Length != 0) b.Append(','); b.Append(value.ToString(CultureInfo.InvariantCulture)); }
+            return b.ToString();
+        }
+
+        /// <summary>The tier of a place: 1 on the surface, one more per depth, at most 4.</summary>
+        public static int Tier(BigInteger depth) { return depth >= 4 ? 4 : depth < 1 ? 1 : (int)depth; }
+
+        private static bool IsBoss(int kind, int flags) { return kind >= 3 || (flags & BossFlag) != 0; }
+
+        private static void RequireKill(BigInteger depth, int enemyId, int kind, BigInteger killOrdinal, int flags)
+        {
+            if (depth < 1 || enemyId <= 0 || killOrdinal < 1 || kind < 0 || kind > 3 || flags < 0 || flags > (GuaranteedFlag | BossFlag))
+                throw new ArgumentException("Invalid kill identity");
         }
         /// <summary>Accept only nonempty lowercase ASCII identifiers with digits and dots.</summary>
         internal static bool ValidId(string value)
@@ -122,14 +177,56 @@ namespace AreArpg.Core
             do { value = (uint)(rng.Next64() >> 32); } while (value >= limit);
             return value % bound;
         }
-        /// <summary>Called only by the canonical kill path; kill ordinal remains unique across checkpoint restarts.</summary>
-        internal LootItem Generate(ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger killOrdinal)
+        /// <summary>
+        /// Called only by the canonical kill path; kill ordinal remains unique across checkpoint restarts. Revision 1
+        /// always returns a receipt and ignores the flags. Revision 2 returns null when the kill drops no weapon.
+        /// </summary>
+        internal LootItem Generate(ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger killOrdinal, int flags = 0)
         {
-            if (depth < 1 || enemyId <= 0 || killOrdinal < 1) throw new ArgumentException("Invalid kill identity");
+            if (Revision == 1)
+            {
+                if (depth < 1 || enemyId <= 0 || killOrdinal < 1) throw new ArgumentException("Invalid kill identity");
+                string legacy = LootItem.Context(Revision, seed, depth, tick, enemyId, kind, killOrdinal);
+                var legacyRng = new DeterministicRng(HashText(legacy) ^ StableHash);
+                var selected = _table.Select(kind, Roll(legacyRng, _table.TotalWeight(kind)));
+                return new LootItem(legacy, selected.ItemId, selected.Rarity, selected.WeaponPoints, killOrdinal);
+            }
+            RequireKill(depth, enemyId, kind, killOrdinal, flags);
             string context = LootItem.Context(Revision, seed, depth, tick, enemyId, kind, killOrdinal);
-            var rng = new DeterministicRng(HashText(context) ^ StableHash);
-            var selected = _table.Select(kind, Roll(rng, _table.TotalWeight(kind)));
-            return new LootItem(context, selected.ItemId, selected.Rarity, selected.WeaponPoints, killOrdinal);
+            var rng = new DeterministicRng(HashText(context + "," + flags.ToString(CultureInfo.InvariantCulture)) ^ StableHash);
+            bool boss = IsBoss(kind, flags);
+            if (!boss && (flags & GuaranteedFlag) == 0 && Roll(rng, 100) >= DropChance[kind]) return null;
+            uint roll = Roll(rng, 100);
+            ItemRarity rarity;
+            if (boss) rarity = roll < BossMagic ? ItemRarity.Magic : roll < BossMagic + BossRare ? ItemRarity.Rare : ItemRarity.Legendary;
+            else
+            {
+                int tier = Tier(depth);
+                int[] weights = TierWeights[tier - 1];
+                rarity = roll < weights[0] ? ItemRarity.Normal : roll < weights[0] + weights[1] ? ItemRarity.Magic : ItemRarity.Rare;
+                if (kind == 2 && tier >= DeepTier && roll >= 100 - DeepChampionLegendary) rarity = ItemRarity.Legendary;
+            }
+            // Item and points stay those of the enemy's kind, as in revision 1: the areas' saves check them.
+            var definition = _table.Select(kind, 0);
+            return new LootItem(context, definition.ItemId, rarity, definition.WeaponPoints, killOrdinal, Revision, flags);
+        }
+
+        /// <summary>
+        /// The supply bag of a kill, or null: revision 2 only. A bag falls from every fourth enemy, from every boss and
+        /// from a character's first three kills (so the camp's rations stay within reach of a new character). It holds
+        /// coins by the enemy's class; every third bag, every boss bag and the first three hold a ration.
+        /// </summary>
+        internal SupplyBag Supply(ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger killOrdinal, int flags = 0)
+        {
+            if (Revision < 2) return null;
+            RequireKill(depth, enemyId, kind, killOrdinal, flags);
+            string context = LootItem.Context(Revision, seed, depth, tick, enemyId, kind, killOrdinal);
+            var rng = new DeterministicRng(HashText("supply;" + context + "," + flags.ToString(CultureInfo.InvariantCulture)) ^ StableHash);
+            bool boss = IsBoss(kind, flags), always = boss || killOrdinal <= AlwaysSupplyKills;
+            if (!always && Roll(rng, 100) >= SupplyChance) return null;
+            int coins = boss ? BossCoins : CoinsLow[kind] + (int)Roll(rng, (uint)(CoinsHigh[kind] - CoinsLow[kind] + 1));
+            int rations = always || Roll(rng, RationOneIn) == 0 ? 1 : 0;
+            return new SupplyBag(context, flags, coins, rations, killOrdinal);
         }
     }
 }

@@ -42,12 +42,15 @@ namespace AreArpg.Core
             var rng=new DeterministicRng(receipt.StableHash ^ 0xE0111UL);
             Definition=WeaponCatalog.Get((int)(rng.Next64()%(ulong)WeaponCatalog.Count));Ordinal=receipt.KillOrdinal;Rarity=receipt.Rarity;
             Affix=(WeaponAffix)(rng.Next64()%4);Value=Roll(rng,Affix);
-            SecondAffix=(WeaponAffix)(((int)Affix+1+(int)(rng.Next64()%3))%4);SecondValue=Rarity==ItemRarity.Rare?Roll(rng,SecondAffix):0;
+            SecondAffix=(WeaponAffix)(((int)Affix+1+(int)(rng.Next64()%3))%4);SecondValue=Rarity>=ItemRarity.Rare?Roll(rng,SecondAffix):0;
+            // Loot revision 2: a white weapon has no affix, a legendary one rolls half again as high.
+            if(Rarity==ItemRarity.Normal)Value=0;
+            if(Rarity==ItemRarity.Legendary){Value=Value*3/2;SecondValue=SecondValue*3/2;}
         }
         private static int Roll(DeterministicRng rng,WeaponAffix affix) => affix==WeaponAffix.Power?200+(int)(rng.Next64()%601):affix==WeaponAffix.Haste?500+(int)(rng.Next64()%1001):affix==WeaponAffix.Ward?200+(int)(rng.Next64()%401):100+(int)(rng.Next64()%301);
         public int Bonus(WeaponAffix affix) => (Affix==affix?Value:0)+(SecondAffix==affix?SecondValue:0);
-        public string DisplayName => Ordinal.IsZero ? Definition.Name : Definition.Name+" "+new[]{"der Kraft","der Eile","der Wacht","des Zehrens"}[(int)Affix];
-        public string AffixDescription => Ordinal.IsZero ? string.Empty : Describe(Affix,Value)+(SecondValue>0?"\n"+Describe(SecondAffix,SecondValue):"");
+        public string DisplayName => Ordinal.IsZero||Value==0 ? Definition.Name : Definition.Name+" "+new[]{"der Kraft","der Eile","der Wacht","des Zehrens"}[(int)Affix];
+        public string AffixDescription => Ordinal.IsZero||Value==0 ? string.Empty : Describe(Affix,Value)+(SecondValue>0?"\n"+Describe(SecondAffix,SecondValue):"");
         private static string Describe(WeaponAffix a,int value) => new[]{"Schaden +","Abklingzeit −","Schadensminderung +","Lebensraub "}[(int)a]+(value/100m).ToString("0.##",CultureInfo.InvariantCulture)+" %";
     }
     public sealed partial class WeaponEquipment

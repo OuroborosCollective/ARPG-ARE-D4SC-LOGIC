@@ -54,7 +54,7 @@ namespace AreArpg.Core
         private ArenaSimulation TraverseWoodland()
         {
             int target=WoodlandPassage,from=Progression.EntryAct;
-            if(target==0||GameOver||GroundLoot.Count!=0)return null;
+            if(target==0||GameOver||LootOnGround)return null;
             SaveWoodlandPlayer();
             if(!CharacterProgression.TryLoad(Progression.SaveString(),_journeyMaps,out var p))return null;
             var w=p.Woodland;
