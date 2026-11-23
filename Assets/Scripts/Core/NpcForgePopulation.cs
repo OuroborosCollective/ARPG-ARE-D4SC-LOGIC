@@ -75,7 +75,7 @@ namespace AreArpg.Core
         private void ReceiveCreatureHit(MonsterState enemy, int amount, bool committed = false)
         {
             int prior = PlayerHealth;
-            ReceiveDamage(amount);
+            ReceiveHit(amount, true, enemy.Xmm, enemy.Zmm);
             LearnCreatureHit(enemy, prior - PlayerHealth, committed);
         }
         private bool ForgeCreatureMayAttack(MonsterState enemy,long targetX,long targetZ)

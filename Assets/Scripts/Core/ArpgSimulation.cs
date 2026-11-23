@@ -119,6 +119,8 @@ namespace AreArpg.Core
     public sealed class SkillResult
     {
         public bool Activated;
+        /// <summary>Skill slot of a combat-v2 impact (-1 for legacy results); presentation only.</summary>
+        public int Slot = -1;
         public int TotalDamage;
         public int Hits;
         public int Kills;
@@ -533,7 +535,7 @@ namespace AreArpg.Core
                         npc.Behavior = NpcBehavior.Attack;
                         if (distance > FixedMath.Square(1500)) MoveNpc(npc, PlayerXmm, PlayerZmm, 240);
                         else if (npc.AttackCooldownTicks == 0)
-                        { ReceiveDamage(40); npc.AttackCooldownTicks = 15; }
+                        { ReceiveHit(40, true, npc.Xmm, npc.Zmm); npc.AttackCooldownTicks = 15; }
                     }
                 }
                 else if (npc.Memory.Hunger >= 700)
@@ -625,7 +627,8 @@ namespace AreArpg.Core
             for (int i = 0; i < Cooldowns.Length; i++)
                 if (Cooldowns[i] > 0) Cooldowns[i]--;
             if (GameOver) { StepRoadEncounter(); SaveInvestigationPlayer(); SaveDungeonPlayer(); SaveWoodlandPlayer(); return; }
-            MovePlayer();
+            if (CombatV2) { AdvanceCombatBeforeMove(); MovePlayerV2(); }
+            else MovePlayer();
             StepFreight();
             CalmVillagers();
             StepNpcs();
@@ -644,6 +647,15 @@ namespace AreArpg.Core
                 EnsureCreatureMind(enemy);
                 if (enemy.AttackCooldownTicks > 0) enemy.AttackCooldownTicks--;
                 if (enemy.BossPulseCooldownTicks > 0) enemy.BossPulseCooldownTicks--;
+                if (CombatV2 && enemy.Role == MonsterRole.None && enemy.Kind != 3 && enemy.BossWindupTicks > 0)
+                {
+                    // Combat v2: a legacy melee swing was announced; it lands only if the player is still in reach.
+                    enemy.BossWindupTicks--;
+                    if (enemy.BossWindupTicks == 0 && CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm) &&
+                        DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(CombatV2Rules.EnemyImpactReachMm))
+                        ReceiveCreatureHit(enemy, enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40), committed: true);
+                    continue;
+                }
                 if (enemy.Role != MonsterRole.None && enemy.BossWindupTicks > 0)
                 {
                     // A running announcement always resolves, even if the player breaks line of sight, so a stale
@@ -699,6 +711,14 @@ namespace AreArpg.Core
                         continue;
                     }
                 }
+                else if (enemy.AttackCooldownTicks == 0 && CombatV2)
+                {
+                    // Combat v2 (issue #127 phase 4 start values): no unannounced blow; the swing winds up first and the
+                    // whole attack keeps the old rhythm (windup + impact + recovery).
+                    int windup = CombatV2Rules.EnemyWindupTicks(enemy.Role, enemy.Kind);
+                    enemy.BossWindupTicks = windup;
+                    enemy.AttackCooldownTicks = windup + 1 + CombatV2Rules.EnemyRecoveryTicks(enemy.Role, enemy.Kind);
+                }
                 else if (enemy.AttackCooldownTicks == 0)
                 {
                     int damage = enemy.Role != MonsterRole.None ? MonsterRoles.AttackDamage(enemy.Role) : (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40));
@@ -707,6 +727,7 @@ namespace AreArpg.Core
                     if (GameOver) break;
                 }
             }
+            if (CombatV2) AdvanceCombatAfterTick();
             SaveDungeonPlayer(); SaveWoodlandPlayer();
         }
 
@@ -788,6 +809,8 @@ namespace AreArpg.Core
             var result = new SkillResult();
             if (GameOver) { result.Message = "Defeated - restart (R)"; return result; }
             if (slot < 0 || slot >= SkillCatalog.Count) { result.Message = "Unknown ability"; return result; }
+            // Combat v2 starts a windup here; the hit lands on the action's impact tick inside Step.
+            if (CombatV2) return StartSkillAction(slot);
             var skill = SkillCatalog.Get(slot);
             if (Cooldowns[slot] > 0) { result.Message = "Ability cooling down"; return result; }
             if (Resource < skill.FocusCost) { result.Message = "Insufficient focus"; return result; }
@@ -809,6 +832,13 @@ namespace AreArpg.Core
             Resource = Math.Min(100, Resource - skill.FocusCost + skill.FocusGain);
             Cooldowns[slot] = AttackCooldown(slot);
             result.Activated = true;
+            ApplySkillHits(skill, slot, nearest, range, result);
+            return result;
+        }
+
+        /// <summary>Deal one skill's damage to its nearest target, or to everything in range for an area skill.</summary>
+        private void ApplySkillHits(SkillDefinition skill, int slot, MonsterState nearest, long range, SkillResult result)
+        {
             result.HasTarget = true; result.TargetXmm = nearest.Xmm; result.TargetZmm = nearest.Zmm;
             if (skill.Target == SkillTarget.Area)
             {
@@ -825,7 +855,6 @@ namespace AreArpg.Core
             if (result.WeaponLevelUps > 0 && result.TrainedFamily.HasValue)
                 result.Message += " · " + WeaponMasteryRules.SkillName(result.TrainedFamily.Value) + " Stufe " +
                     Progression.WeaponMastery.Level(result.TrainedFamily.Value);
-            return result;
         }
 
         /// <summary>Collect reachable drops through the canonical progression owner, preserving legacy rewards.</summary>
@@ -903,6 +932,7 @@ namespace AreArpg.Core
             }
             MixEconomy(ref h);
             MixHouses(ref h);
+            MixCombatV2(ref h); // armor and combat v2 only when present: legacy worlds keep their golden hashes
             return h;
         }
 

@@ -397,3 +397,12 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Owner persistent `Ashen_Crypt_Evidenz_Logbuch.docx` reference is `libfile_7d3d5793c0048191ac60b4e2d38937bf`, version noted as 1 in the owner host record; it is not visible/editable through the available Library surface, so it was NOT overwritten. This repository handoff and a private Cloud evidence addendum preserve the new round pending authorized document access.
 - Next: recheck final documentation commit, merge guards, exact-head CI and reviews. Merge only with passing gates, then independently read `main` and the PR. Issue #48 and Android/Tab A9 validation remain separate.
 
+
+## 23. November 2026 · Kampf v2 Fundament und Rüstung (Core), Issue #127
+
+- Owner-Entscheidungen: erst der Spielerkern aus #127, dann Orsels voller Lehrgang nach dem Heilkunst-Entwurf, dann Gegner/Bosse, dann 52 Waffenprofile; freie Heilung auf Knopf 2 entfällt; Rüstung aus Handwerk und Belohnung; Schutz 0/15/30/45 %, Heilwirkung 100/75/50/25 %.
+- Neu im Core, nur für Charaktere mit Kampfversion 2: Aktionen mit Ausholen/Treffer/Erholung, Ausdauer, Ausweichen, gehaltener Schutz, Trank mit Wirk-Tick, Ausholen der Nahkampfgegner, Rüstungsplätze und -werte mit eigenem Spielstand-Abschnitt.
+- Evidence: `Tests/CoreVerification` ALL PASS 22.994 (64 neu), Unity 6000.6.8f1 kompiliert im Live-Editor (Unity-CLI, kein Director-Job), geprüfter Inhalt `5a2b7020ac9a0a7f5d78acb1c51fa8eea1b1a24d`.
+- Grenzen: im Spiel noch nicht sichtbar; weitere Gegnerphasen, Waffenprofile, Kombos, Haltung und Balance offen.
+- Nächster Schritt: Touch-Steuerung (Ausweichen, Schutz halten, Trank, Ausdauerbalken), neue Spiele und alte Spielstände auf Kampfversion 2, Testspieler mit Ausweichen.
+- [Technische Abnahme](../combat-v2-foundation-20261123/acceptance.md)

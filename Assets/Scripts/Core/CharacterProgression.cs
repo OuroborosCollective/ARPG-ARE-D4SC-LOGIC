@@ -186,7 +186,7 @@ namespace AreArpg.Core
 
         public ulong StableHash { get { return HashText(WeaponMasteryPayload()); } }
         /// <summary>Write the legacy chain, wrapped in the AC22 section container only when a section exists.</summary>
-        public string SaveString() { SyncRegionSection(); SyncContentSection(); SyncCraftSection(); SyncCompanionRecoverySection(); SyncVillageSection(); SyncHousesSection(); SyncEconomySection(); return SectionContainer(WeaponMasteryPayload() + "|" + StableHash.ToString("X16", CultureInfo.InvariantCulture)); }
+        public string SaveString() { SyncRegionSection(); SyncContentSection(); SyncCraftSection(); SyncCompanionRecoverySection(); SyncVillageSection(); SyncHousesSection(); SyncEconomySection(); SyncArmorSection(); SyncCombatSection(); return SectionContainer(WeaponMasteryPayload() + "|" + StableHash.ToString("X16", CultureInfo.InvariantCulture)); }
 
         private static bool CanonicalNonNegative(string text, out BigInteger value)
         {
