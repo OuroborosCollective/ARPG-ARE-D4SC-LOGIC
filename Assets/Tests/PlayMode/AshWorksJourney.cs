@@ -118,7 +118,8 @@ namespace AreArpg.PlayMode.Tests
                 game.Step();
             }
             game.SetMoveInput(0,0);
-            if(game.GameOver || !m.IsDead) throw new InvalidOperationException("The Rattler fight did not finish normally.");
+            if(game.GameOver || !m.IsDead) throw new InvalidOperationException("The Rattler fight did not finish normally: rattler "+m.Health+"/"+m.MaxHealth+
+                ", player "+game.PlayerHealth+"/"+game.MaxPlayerHealth+", over "+game.GameOver+", dodged "+game.DodgedAttacks+", stamina "+game.Stamina+", tick "+game.CurrentTick+".");
         }
     }
 }
