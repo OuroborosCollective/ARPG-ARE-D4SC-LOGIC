@@ -1,5 +1,6 @@
 using AreArpg.Core;
 using UnityEngine;
+using Input = AreArpg.UnityClient.PlayerDevice;
 
 namespace AreArpg.UnityClient
 {

@@ -398,6 +398,15 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Next: recheck final documentation commit, merge guards, exact-head CI and reviews. Merge only with passing gates, then independently read `main` and the PR. Issue #48 and Android/Tab A9 validation remain separate.
 
 
+## 23. November 2026 · Spielerdurchlauf Krypta bis Mühle
+
+- Prüfung der eingefügten Qualitätsdiagnose gegen main `dac396ca3ecc816288e9948fda6783005d94497a`: NPC-Folgen (Issues #2–#6) und Begleiter sind umgesetzt; offen waren ein echter Spielerdurchlauf, Orsels Heilkunst im Spiel (Regeln im Core vorhanden, kein Knopf), die Aschestraße als Rohbau und eine eigene Abmischung.
+- Neu: `PlayerDevice` als einzige Eingabestelle der Laufzeit (zehn Dateien mit `Input`-Alias, Verhalten unverändert) und ein PlayMode-Lauf, der das Kapitel nur mit Steuerkreuz und Tipps auf sichtbare Knöpfe spielt und die App nach jedem Durchgang neu öffnet.
+- Unity 6000.6.8f1, Unity-CLI im Live-Editor (kein Director-Job), Revision `e85ec0854f1a7c3c064ca3371ac891c5df4e1758`: Lauf PASS in 210 s (972 Frames, 0 Niederlagen, 8 Neustarts), `PlayerDeviceTests` 2/2. Erster Lauf in voller Bildgröße: ganzes Kapitel geschafft, nur die letzte Prüfung (Neustart mitten im Gebiet) war im Test falsch erwartet.
+- Grenzen: Gerätetest, Ton, Bildrate, die Entscheidungen Offenlegen/Schweigen und alles hinter der Mühle sind nicht Teil des Laufs.
+- Nächste Schritte: Orsels Lehren im Spiel erreichbar machen (Owner-Entscheidung nötig), Aschestraße und Mühlenumgebung aus dem Rohbau, eigene Abmischung.
+- [Technische Abnahme](../player-journey-run-20261123/acceptance.md)
+
 ## 23. November 2026 · Kampf v2 Fundament und Rüstung (Core), Issue #127
 
 - Owner-Entscheidungen: erst der Spielerkern aus #127, dann Orsels voller Lehrgang nach dem Heilkunst-Entwurf, dann Gegner/Bosse, dann 52 Waffenprofile; freie Heilung auf Knopf 2 entfällt; Rüstung aus Handwerk und Belohnung; Schutz 0/15/30/45 %, Heilwirkung 100/75/50/25 %.

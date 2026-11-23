@@ -2,6 +2,7 @@ using AreArpg.Core;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Input = AreArpg.UnityClient.PlayerDevice;
 
 namespace AreArpg.UnityClient
 {
