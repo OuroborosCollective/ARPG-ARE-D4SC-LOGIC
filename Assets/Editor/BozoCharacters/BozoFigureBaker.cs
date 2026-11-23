@@ -65,7 +65,11 @@ namespace AreArpg.EditorTools
             EnsureFolder(StagingFolder);
             settings._prefabFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(StagingFolder);
             EditorUtility.SetDirty(settings); AssetDatabase.SaveAssetIfDirty(settings);
-            foreach (string id in ids) { AssetDatabase.DeleteAsset(StagingFolder + "/" + id); if (File.Exists(StagedPartsRecordPath(id))) File.Delete(StagedPartsRecordPath(id)); }
+            foreach (string id in ids)
+            {
+                AssetDatabase.DeleteAsset(StagingFolder + "/" + id);
+                foreach (string stale in new[] { StagedPartsRecordPath(id), PreviousPartsRecordPath(id) }) if (File.Exists(stale)) File.Delete(stale);
+            }
             Directory.CreateDirectory(Path.GetDirectoryName(ReportPath));
             File.WriteAllText(ReportPath, "");
             SessionState.SetString(ReturnSceneKey, JsonUtility.ToJson(new SceneSetupState { scenes = EditorSceneManager.GetSceneManagerSetup() }));
@@ -424,6 +428,7 @@ namespace AreArpg.EditorTools
                     AssetDatabase.SaveAssets();
                     ReloadRewritten();
                     rebuilt.Add(id);
+                    if (File.Exists(PreviousPartsRecordPath(id))) File.Delete(PreviousPartsRecordPath(id)); // the new record holds
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
                 catch (Exception e)
@@ -437,6 +442,7 @@ namespace AreArpg.EditorTools
                         if (Directory.Exists(target)) Directory.Delete(target, true);
                         if (File.Exists(backup + "/.existing")) CopyTree(backup + "/assets", target);
                         else if (File.Exists(target + ".meta")) File.Delete(target + ".meta");
+                        RestorePartsRecord(id);
                         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
                     }
                     Debug.LogException(e);
@@ -530,17 +536,32 @@ namespace AreArpg.EditorTools
         static string PartPath(string id, string part) { return BakeFolder + "/" + id + "/" + id + "_Game" + part + ".asset"; }
         static string PartsRecordPath(string id) { return Path.Combine(Directory.GetCurrentDirectory(), "Library/BozoCharacters/Parts/" + id + ".txt"); }
         static string StagedPartsRecordPath(string id) { return PartsRecordPath(id) + ".staged"; }
+        static string PreviousPartsRecordPath(string id) { return PartsRecordPath(id) + ".previous"; }
 
         /// <summary>
         /// A bake writes its parts record next to the figure's record; only a published bake takes it over. A bake that
-        /// fails or cannot be published leaves the record that belongs to the figure still in use (review on #133).
+        /// fails or cannot be published leaves the record that belongs to the figure still in use (review on #133). The
+        /// record it replaces is kept (empty when there was none) until the figure's visuals are rebuilt, because a
+        /// failed rebuild brings the old bake back and with it the old record (<see cref="RestorePartsRecord"/>).
         /// </summary>
         static void PromotePartsRecord(string id)
         {
-            string staged = StagedPartsRecordPath(id);
+            string staged = StagedPartsRecordPath(id), record = PartsRecordPath(id);
             if (!File.Exists(staged)) return;
-            File.Copy(staged, PartsRecordPath(id), true);
+            if (File.Exists(record)) File.Copy(record, PreviousPartsRecordPath(id), true);
+            else File.WriteAllText(PreviousPartsRecordPath(id), "");
+            File.Copy(staged, record, true);
             File.Delete(staged);
+        }
+
+        /// <summary>The visuals of a published bake failed and its old files came back: so does its old record.</summary>
+        static void RestorePartsRecord(string id)
+        {
+            string previous = PreviousPartsRecordPath(id), record = PartsRecordPath(id);
+            if (!File.Exists(previous)) return; // this bake took over no record
+            if (new FileInfo(previous).Length == 0) { if (File.Exists(record)) File.Delete(record); }
+            else File.Copy(previous, record, true);
+            File.Delete(previous);
         }
 
         /// <summary>
