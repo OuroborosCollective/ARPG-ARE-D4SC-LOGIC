@@ -82,6 +82,36 @@ A weapon receipt and a bag are both regenerated from the identity of their kill 
 - a receipt with a raised tier, with flags that do not fit the enemy, or for a kill that dropped nothing;
 - a fuller bag, the same bag twice, a bag of a kill the character never made, an unknown version or area.
 
+## Checks
+
+Unity 6000.6.8f1; the Unity runs used the Unity CLI in the live editor, not a Director job. Test first: the Core tests
+were committed red (`8de0b75`, the catalog and the bags did not exist) before the implementation turned them green
+(`983c591`).
+
+| Run | Code | Result |
+|---|---|---|
+| `Tests/CoreVerification` | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | ALL PASS, 23.139 checks (71 new for loot revision 2) |
+| Full EditMode suite | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | 254 PASS / 0 FAIL / 28 ignored |
+| Full PlayMode suite | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | 182 PASS / 0 FAIL / 28 ignored |
+| PlayMode `CanonicalKillProjectsAndPersistsVersionedLoot` (bag shown, glint within its limit, reduced effects, real pickup input, save, restart) | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | PASS |
+
+What the Core checks cover:
+
+- drop chances per enemy class and tier shares per depth, counted over thousands of generated kills;
+- legendary only from bosses and deep champions; the rattler as a boss;
+- the same kill always gives the same drop and the same world hash;
+- receipts of both revisions load; forged receipts and bags are rejected;
+- a kill without a drop still counts; a revision-1 world drops as before;
+- affixes by tier; rations only from bags; the bag table; a bag is taken once;
+- bags in the save, in crypt floors, the wood and the journey; bags keep the ways out closed;
+- the knight with the field pauldron always drops.
+
+The first full PlayMode run on the new contract failed 11 of 210 tests. All had one of three causes, and all pass now:
+
+- six called the generator by reflection with six arguments (the generator keeps that form);
+- four test players left the bags lying and could not leave the area;
+- one compared the game's world hash with a world on revision 1.
+
 ## Limits
 
 - Drop rates were checked by counting many generated kills, not by play time. How scarce weapons and rations feel over

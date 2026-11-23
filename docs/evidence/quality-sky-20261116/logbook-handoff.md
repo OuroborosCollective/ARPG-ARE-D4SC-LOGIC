@@ -443,3 +443,12 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Owner-Richtung vom selben Tag: Ziel ist ein realistischer, nebliger Dark-Fantasy-Look; diese Looks sind ein Zwischenstand. Reihenfolge: zuerst Issue #48 mit den jetzigen Paketen, danach der Designwechsel.
 - Nächste Schritte: offene Blöcke von #48 (Beute v2 mit Vorratsbeuteln, Kampfanimationen, Welt- und Figurenqualität, Audio, Android-Profiling).
 - [Technische Abnahme](../story-figures-20261123/acceptance.md)
+
+## 23. November 2026 · Beute v2 und Vorratsbeutel, Issue #48 Block 2
+
+- Owner-Werte: Waffenbeute „Mittel“ (25/45/75 %, Bosse immer; 65/28/7 bis 30/45/25; Bosse 35/50/15; tiefe Champions 2 % Orange), Vorratsbeutel von jedem vierten Gegner mit Münzen nach Gegnerklasse, jeder dritte mit Ration.
+- Neu im Spiel: Nicht mehr jeder Gegner lässt eine Waffe fallen. Waffen haben vier Stufen in Weiß, Blau, Gelb und Orange. Leuchtende Vorratsbeutel bringen Münzen und manchmal eine Ration. Wer etwas liegen lässt, kommt nicht aus dem Gebiet.
+- Evidence auf `758a66767800319b6ac32d2ee2ffb43f7eba7456`: `Tests/CoreVerification` ALL PASS 23.139 (71 neu), volle EditMode-Reihe 254 PASS / 0 FAIL / 28 ignored, volle PlayMode-Reihe 182 PASS / 0 FAIL / 28 ignored.
+- Grenzen: Raten nur gezählt, nicht erspielt; Rationen sind viel seltener (Begleiter beobachten); Münzmodelle aus der privaten Asset Registry nicht verwendet; kein Gerätetest.
+- Nächste Schritte: #48 Block 3 (echte Kampfanimationen aus dem vorhandenen Animationspaket: Abwehr, Zauber, Treffer, Tod, Ausweichen, Trank), danach Welt- und Figurenqualität, Audio, Android-Profiling.
+- [Technische Abnahme](../loot-v2-20261123/acceptance.md)
