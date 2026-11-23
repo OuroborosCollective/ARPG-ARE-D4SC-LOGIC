@@ -161,7 +161,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(KnowledgeOrigin.Self,mind.Known[0].Origin);Assert.AreEqual(2000,mind.RelationshipTo("player").Gratitude);
             Assert.AreEqual(ForgeAction.Observe,mind.DecisionState.Action);
             typeof(ArenaRuntime).GetMethod("SaveCharacter",Flags,null,System.Type.EmptyTypes,null).Invoke(_runtime,null);
-            string token=PlayerPrefs.GetString(_keys[0]);Assert.IsTrue(token.StartsWith("AC17|"));
+            // Combat v2 adds its own save section, which moves the save into the section container (AC22).
+            string token=PlayerPrefs.GetString(_keys[0]);Assert.IsTrue(token.StartsWith(Game.CombatV2?"AC22|":"AC17|"),token.Substring(0,5));
             Assert.IsTrue(CharacterProgression.TryLoad(token,out var loaded));
             string controller=mind.Controller.Hash;ulong episode=mind.Known[0].Event.Id;
             ulong hash=Game.ComputeWorldHash();
