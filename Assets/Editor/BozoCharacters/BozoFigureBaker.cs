@@ -65,7 +65,11 @@ namespace AreArpg.EditorTools
             EnsureFolder(StagingFolder);
             settings._prefabFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(StagingFolder);
             EditorUtility.SetDirty(settings); AssetDatabase.SaveAssetIfDirty(settings);
-            foreach (string id in ids) AssetDatabase.DeleteAsset(StagingFolder + "/" + id);
+            foreach (string id in ids)
+            {
+                AssetDatabase.DeleteAsset(StagingFolder + "/" + id);
+                foreach (string stale in new[] { StagedPartsRecordPath(id), PreviousPartsRecordPath(id) }) if (File.Exists(stale)) File.Delete(stale);
+            }
             Directory.CreateDirectory(Path.GetDirectoryName(ReportPath));
             File.WriteAllText(ReportPath, "");
             SessionState.SetString(ReturnSceneKey, JsonUtility.ToJson(new SceneSetupState { scenes = EditorSceneManager.GetSceneManagerSetup() }));
@@ -149,7 +153,8 @@ namespace AreArpg.EditorTools
 
                 int outfits = system.GetOutfits().Count(o => o != null);
                 if (outfits < recipe.outfits.Length) throw new InvalidOperationException("Nur " + outfits + " Teile geladen (Rezept nennt " + recipe.outfits.Length + ").");
-                if (recipe.parts) RecordParts(recipe.id, system);
+                // Split figures and figures with own fabrics need to know which run of vertices is which part.
+                if (recipe.parts || HasFabric(recipe)) RecordParts(recipe.id, system);
                 system.prefabName = recipe.id;
                 system.cleanScriptsAfterPrefab = true;
                 await system.SaveCharacterToPrefab();
@@ -372,7 +377,7 @@ namespace AreArpg.EditorTools
             var published = new List<string>();
             foreach (string id in baked)
             {
-                try { PublishBake(id); published.Add(id); }
+                try { PublishBake(id); PromotePartsRecord(id); published.Add(id); }
                 catch (Exception e)
                 {
                     Debug.LogException(e);
@@ -423,6 +428,7 @@ namespace AreArpg.EditorTools
                     AssetDatabase.SaveAssets();
                     ReloadRewritten();
                     rebuilt.Add(id);
+                    if (File.Exists(PreviousPartsRecordPath(id))) File.Delete(PreviousPartsRecordPath(id)); // the new record holds
                     Report(id + "\tVISUALS\t" + string.Join(",", (recipe.keys ?? new string[0]).Concat(recipe.sources ?? new string[0])));
                 }
                 catch (Exception e)
@@ -436,6 +442,7 @@ namespace AreArpg.EditorTools
                         if (Directory.Exists(target)) Directory.Delete(target, true);
                         if (File.Exists(backup + "/.existing")) CopyTree(backup + "/assets", target);
                         else if (File.Exists(target + ".meta")) File.Delete(target + ".meta");
+                        RestorePartsRecord(id);
                         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
                     }
                     Debug.LogException(e);
@@ -528,6 +535,34 @@ namespace AreArpg.EditorTools
         static string GameMeshPath(string id) { return BakeFolder + "/" + id + "/" + id + "_GameMesh.asset"; }
         static string PartPath(string id, string part) { return BakeFolder + "/" + id + "/" + id + "_Game" + part + ".asset"; }
         static string PartsRecordPath(string id) { return Path.Combine(Directory.GetCurrentDirectory(), "Library/BozoCharacters/Parts/" + id + ".txt"); }
+        static string StagedPartsRecordPath(string id) { return PartsRecordPath(id) + ".staged"; }
+        static string PreviousPartsRecordPath(string id) { return PartsRecordPath(id) + ".previous"; }
+
+        /// <summary>
+        /// A bake writes its parts record next to the figure's record; only a published bake takes it over. A bake that
+        /// fails or cannot be published leaves the record that belongs to the figure still in use (review on #133). The
+        /// record it replaces is kept (empty when there was none) until the figure's visuals are rebuilt, because a
+        /// failed rebuild brings the old bake back and with it the old record (<see cref="RestorePartsRecord"/>).
+        /// </summary>
+        static void PromotePartsRecord(string id)
+        {
+            string staged = StagedPartsRecordPath(id), record = PartsRecordPath(id);
+            if (!File.Exists(staged)) return;
+            if (File.Exists(record)) File.Copy(record, PreviousPartsRecordPath(id), true);
+            else File.WriteAllText(PreviousPartsRecordPath(id), "");
+            File.Copy(staged, record, true);
+            File.Delete(staged);
+        }
+
+        /// <summary>The visuals of a published bake failed and its old files came back: so does its old record.</summary>
+        static void RestorePartsRecord(string id)
+        {
+            string previous = PreviousPartsRecordPath(id), record = PartsRecordPath(id);
+            if (!File.Exists(previous)) return; // this bake took over no record
+            if (new FileInfo(previous).Length == 0) { if (File.Exists(record)) File.Delete(record); }
+            else File.Copy(previous, record, true);
+            File.Delete(previous);
+        }
 
         /// <summary>
         /// The pack merges a figure by putting the mesh of every outfit after the previous one (BoZoCharacterOptimizer):
@@ -556,7 +591,7 @@ namespace AreArpg.EditorTools
             int count = merged != null && merged.sharedMesh != null ? merged.sharedMesh.vertexCount : -1;
             if (total != count) throw new InvalidOperationException(id + ": die Teile ergeben " + total + " Eckpunkte, das zusammengefügte Modell hat " + count + ".");
             Directory.CreateDirectory(Path.GetDirectoryName(PartsRecordPath(id)));
-            File.WriteAllLines(PartsRecordPath(id), lines);
+            File.WriteAllLines(StagedPartsRecordPath(id), lines);
         }
 
         /// <summary>For every vertex of the merged figure: does it belong to the head? From the record of the bake.</summary>
@@ -747,8 +782,33 @@ namespace AreArpg.EditorTools
                 }
                 mesh.tangents = tangents;
             }
+            if (recipe.expressions) KeepExpressions(full, skins[0], mesh);
             mesh.RecalculateBounds();
             return mesh;
+        }
+
+        /// <summary>Prefix of the pack's facial expression shapes (blink, mouth, brows) that the game drives.</summary>
+        public const string ExpressionPrefix = "Expression_";
+
+        /// <summary>
+        /// Put the face's expression shapes back on the flattened game mesh, frame by frame and unchanged: they move only
+        /// the face, on top of the baked look. A shape that was already set at bake time is part of the look and stays
+        /// baked flat.
+        /// </summary>
+        static void KeepExpressions(Mesh full, SkinnedMeshRenderer skin, Mesh mesh)
+        {
+            int count = full.vertexCount;
+            var moved = new Vector3[count]; var turned = new Vector3[count]; var leaned = new Vector3[count];
+            for (int shape = 0; shape < full.blendShapeCount; shape++)
+            {
+                string name = full.GetBlendShapeName(shape);
+                if (!name.StartsWith(ExpressionPrefix, StringComparison.Ordinal) || skin.GetBlendShapeWeight(shape) != 0f) continue;
+                for (int frame = 0; frame < full.GetBlendShapeFrameCount(shape); frame++)
+                {
+                    full.GetBlendShapeFrameVertices(shape, frame, moved, turned, leaned);
+                    mesh.AddBlendShapeFrame(name, full.GetBlendShapeFrameWeight(shape, frame), moved, turned, leaned);
+                }
+            }
         }
 
         static void AddDeltas(Vector3[] vertices, Vector3[] normals, Vector4[] tangents, Vector3[] moved, Vector3[] turned, Vector3[] leaned, float amount)
@@ -785,18 +845,20 @@ namespace AreArpg.EditorTools
             if (packed != null)
             {
                 string normalPath = folder + recipe.id + "_GameNormal.png";
-                if (Outdated(AssetDatabase.GetAssetPath(packed), normalPath, "normal"))
-                    WriteNormalMap(AssetDatabase.GetAssetPath(packed), normalPath, recipe.texture);
+                string normalStamp = "normal" + FabricStamp(recipe);
+                if (Outdated(AssetDatabase.GetAssetPath(packed), normalPath, normalStamp))
+                    WriteNormalMap(AssetDatabase.GetAssetPath(packed), normalPath, recipe.texture, normalStamp, FabricRelief(recipe));
                 material.SetTexture("_Normal", AssetDatabase.LoadAssetAtPath<Texture2D>(SharedNormal(recipe, normalPath)));
             }
             Texture colours = baked.HasProperty("_Diffuse") ? baked.GetTexture("_Diffuse") : null;
             float light = BozoFigureRecipes.LoadLight();
-            if (colours != null && light < 1f)
+            // With a fabric the colours are rewritten even without a lift (a curve of exponent 1 keeps the brightness).
+            if (colours != null && (light < 1f || HasFabric(recipe)))
             {
                 string colourPath = folder + recipe.id + "_GameColours.png";
-                string stamp = "light=" + light.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+                string stamp = "light=" + light.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + FabricStamp(recipe);
                 if (Outdated(AssetDatabase.GetAssetPath(colours), colourPath, stamp))
-                    WriteLiftedColours(AssetDatabase.GetAssetPath(colours), colourPath, recipe.texture, light, stamp);
+                    WriteLiftedColours(AssetDatabase.GetAssetPath(colours), colourPath, recipe.texture, light, stamp, FabricWeave(recipe));
                 material.SetTexture("_Diffuse", AssetDatabase.LoadAssetAtPath<Texture2D>(colourPath));
             }
             EditorUtility.SetDirty(material);
@@ -829,7 +891,8 @@ namespace AreArpg.EditorTools
         /// saturation unchanged, transparency unchanged). The pack multiplies each colour with its painted shading;
         /// unlifted, the figures stand darker than the sunlit world around them.
         /// </summary>
-        static void WriteLiftedColours(string sourcePath, string targetPath, int size, float light, string stamp)
+        static void WriteLiftedColours(string sourcePath, string targetPath, int size, float light, string stamp,
+            Action<Color32[], int, int> post = null)
         {
             var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             try
@@ -848,6 +911,7 @@ namespace AreArpg.EditorTools
                     pixels[i] = new Color32((byte)Mathf.Min(255, Mathf.RoundToInt(p.r * gain)), (byte)Mathf.Min(255, Mathf.RoundToInt(p.g * gain)),
                         (byte)Mathf.Min(255, Mathf.RoundToInt(p.b * gain)), p.a);
                 }
+                post?.Invoke(pixels, texture.width, texture.height);
                 texture.SetPixels32(pixels);
                 File.WriteAllBytes(targetPath, texture.EncodeToPNG());
             }
@@ -863,7 +927,259 @@ namespace AreArpg.EditorTools
             importer.SaveAndReimport();
         }
 
-        static void WriteNormalMap(string packedPath, string normalPath, int size)
+        // ---------------------------------------------------------------- own fabrics (owner 2026-11-23)
+
+        static readonly System.Globalization.CultureInfo Invariant = System.Globalization.CultureInfo.InvariantCulture;
+
+        static bool HasFabric(BozoFigureRecipes.Figure recipe) { return recipe.outfits.Any(o => !string.IsNullOrEmpty(o.fabric)); }
+
+        /// <summary>The fabric settings as part of a texture's stamp: a changed fabric rebuilds the derived textures.</summary>
+        static string FabricStamp(BozoFigureRecipes.Figure recipe)
+        {
+            if (!HasFabric(recipe)) return "";
+            // "v3": skin that outfits carry or let through stays free of fabric; older derived textures are rebuilt.
+            var used = recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)).ToList();
+            // The maps' content is part of the stamp: a regenerated map under the same name rebuilds both atlases.
+            return ";fabric=v3," + string.Join(",", used.Select(o =>
+                o.slot + ":" + o.fabric + ":" + o.fabricStrength.ToString("0.###", Invariant) + ":" + o.fabricScale.ToString("0.###", Invariant))) +
+                ";maps=" + string.Join(",", used.Select(o => o.fabric).Distinct().OrderBy(n => n, StringComparer.Ordinal).Select(n => n + ":" + FileFingerprint(FabricPath(n))));
+        }
+
+        /// <summary>FNV-1a over a file's bytes, as hex; "missing" for an absent file (the bake then reports it).</summary>
+        static string FileFingerprint(string path)
+        {
+            if (!File.Exists(path)) return "missing";
+            ulong h = 14695981039346656037UL;
+            unchecked { foreach (byte b in File.ReadAllBytes(path)) { h ^= b; h *= 1099511628211UL; } }
+            return h.ToString("x16", Invariant);
+        }
+
+        sealed class FabricLayer { public bool[] Mask; public float[] Height; public int Size; public float Strength, Scale; }
+
+        static string FabricPath(string name) { return Path.Combine(Directory.GetCurrentDirectory(), "Tools/Art/fabric/" + name + ".png"); }
+
+        /// <summary>The runs of vertices of each part in the merged mesh, from the record of the bake (type, start, count).</summary>
+        static List<KeyValuePair<string, Vector2Int>> PartRanges(string id, int vertexCount)
+        {
+            if (!File.Exists(PartsRecordPath(id))) throw new InvalidOperationException(id + ": keine Aufzeichnung der Teile; die Figur muss neu erzeugt werden.");
+            var ranges = new List<KeyValuePair<string, Vector2Int>>();
+            int at = 0;
+            foreach (string line in File.ReadAllLines(PartsRecordPath(id)))
+            {
+                string[] field = line.Split('\t');
+                int count = int.Parse(field[1], Invariant);
+                ranges.Add(new KeyValuePair<string, Vector2Int>(field[0], new Vector2Int(at, count)));
+                at += count;
+            }
+            if (at != vertexCount) throw new InvalidOperationException(id + ": die Aufzeichnung der Teile passt nicht zum Modell.");
+            return ranges;
+        }
+
+        /// <summary>For every part with a fabric: the atlas pixels its UV triangles cover (with a seam margin) and the fabric.</summary>
+        static List<FabricLayer> FabricLayers(BozoFigureRecipes.Figure recipe, int width, int height)
+        {
+            var layers = new List<FabricLayer>();
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(BakedPath(recipe.id));
+            if (source == null) throw new InvalidOperationException("Gebackene Figur fehlt: " + recipe.id);
+            SkinnedMeshRenderer body = source.GetComponentsInChildren<SkinnedMeshRenderer>(true).First(r => r.sharedMesh != null);
+            Mesh mesh = body.sharedMesh;
+            bool[] skinColoured = SkinTexels(recipe, body.sharedMaterial, width, height);
+            Vector2[] uv = mesh.uv;
+            int[] triangles = mesh.triangles;
+            var ranges = PartRanges(recipe.id, mesh.vertexCount);
+            // Outfits bring their own skin pieces (a neckline, a bare shoulder) that borrow the body's atlas islands;
+            // whatever lies on the body's or the head's islands stays skin and never takes a fabric.
+            var skinVertex = new bool[mesh.vertexCount];
+            foreach (var run in ranges.Where(r => r.Key == "Body" || r.Key == "Head"))
+                for (int v = run.Value.x; v < run.Value.x + run.Value.y; v++) skinVertex[v] = true;
+            var skin = new bool[width * height];
+            for (int t = 0; t + 2 < triangles.Length; t += 3)
+            {
+                int a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
+                if (skinVertex[a] && skinVertex[b] && skinVertex[c]) FillTriangle(skin, width, height, uv[a], uv[b], uv[c]);
+            }
+            foreach (var outfit in recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)))
+            {
+                if (!(outfit.fabricStrength >= 0f && outfit.fabricStrength <= 1f) || !(outfit.fabricScale > 0f && outfit.fabricScale <= 64f))
+                    throw new InvalidOperationException(recipe.id + ": ungültige Stoffwerte für " + outfit.slot);
+                var inside = new bool[mesh.vertexCount];
+                bool any = false;
+                foreach (var run in ranges.Where(r => r.Key == outfit.slot))
+                    for (int v = run.Value.x; v < run.Value.x + run.Value.y; v++) { inside[v] = true; any = true; }
+                if (!any) throw new InvalidOperationException(recipe.id + ": das Teil " + outfit.slot + " fehlt in der Aufzeichnung.");
+                var mask = new bool[width * height];
+                for (int t = 0; t + 2 < triangles.Length; t += 3)
+                {
+                    int a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
+                    if (inside[a] && inside[b] && inside[c] && !OnMask(skin, width, height, (uv[a] + uv[b] + uv[c]) / 3f))
+                        FillTriangle(mask, width, height, uv[a], uv[b], uv[c]);
+                }
+                mask = Grow(mask, width, height, 2);
+                for (int i = 0; i < mask.Length; i++) if (skin[i] || skinColoured[i]) mask[i] = false;
+                string path = FabricPath(outfit.fabric);
+                if (!File.Exists(path)) throw new InvalidOperationException("Stoff fehlt: " + path);
+                var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
+                try
+                {
+                    if (!texture.LoadImage(File.ReadAllBytes(path)) || texture.width != texture.height) throw new IOException("Unlesbarer Stoff: " + path);
+                    Color32[] pixels = texture.GetPixels32();
+                    var heights = new float[pixels.Length];
+                    for (int i = 0; i < pixels.Length; i++) heights[i] = pixels[i].r / 255f;
+                    layers.Add(new FabricLayer { Mask = mask, Height = heights, Size = texture.width, Strength = outfit.fabricStrength, Scale = outfit.fabricScale });
+                }
+                finally { Object.DestroyImmediate(texture); }
+            }
+            return layers;
+        }
+
+        static void FillTriangle(bool[] mask, int width, int height, Vector2 a, Vector2 b, Vector2 c)
+        {
+            float ax = a.x * width, ay = a.y * height, bx = b.x * width, by = b.y * height, cx = c.x * width, cy = c.y * height;
+            float area = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay);
+            if (Mathf.Abs(area) < 1e-6f) return;
+            int minX = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(ax, Mathf.Min(bx, cx)))), maxX = Mathf.Min(width - 1, Mathf.CeilToInt(Mathf.Max(ax, Mathf.Max(bx, cx))));
+            int minY = Mathf.Max(0, Mathf.FloorToInt(Mathf.Min(ay, Mathf.Min(by, cy)))), maxY = Mathf.Min(height - 1, Mathf.CeilToInt(Mathf.Max(ay, Mathf.Max(by, cy))));
+            for (int y = minY; y <= maxY; y++)
+                for (int x = minX; x <= maxX; x++)
+                {
+                    float px = x + .5f, py = y + .5f;
+                    float w0 = (bx - px) * (cy - py) - (cx - px) * (by - py);
+                    float w1 = (cx - px) * (ay - py) - (ax - px) * (cy - py);
+                    float w2 = (ax - px) * (by - py) - (bx - px) * (ay - py);
+                    if (area > 0f ? (w0 >= 0f && w1 >= 0f && w2 >= 0f) : (w0 <= 0f && w1 <= 0f && w2 <= 0f)) mask[y * width + x] = true;
+                }
+        }
+
+        /// <summary>
+        /// Skin that a tight outfit lets through. Such outfits share the body's atlas layout and are painted over the
+        /// body's skin, so where they are open (a cut-out, a bare shoulder) their own triangles carry skin. Those pixels
+        /// are told apart by colour: the hue and saturation of the recipe's skin tones (tone, shade, highlight of body and
+        /// head), at least half as bright as the brightest tone. Cloth colours are pre-darkened for the lift and stay below.
+        /// </summary>
+        static bool[] SkinTexels(BozoFigureRecipes.Figure recipe, Material baked, int width, int height)
+        {
+            var result = new bool[width * height];
+            var tones = new List<Vector3>();
+            foreach (var outfit in recipe.outfits.Where(o => o.slot == "Body" || o.slot == "Head"))
+                foreach (string hex in outfit.colors.Take(3))
+                    if (ColorUtility.TryParseHtmlString(hex, out Color c)) { Color.RGBToHSV(c, out float h, out float sat, out float v); tones.Add(new Vector3(h, sat, v)); }
+            Texture atlas = baked != null && baked.HasProperty("_Diffuse") ? baked.GetTexture("_Diffuse") : null;
+            if (tones.Count == 0 || atlas == null) return result;
+            float centre = tones[0].x, low = 0f, high = 0f, satLow = 1f, satHigh = 0f, bright = 0f;
+            foreach (Vector3 tone in tones)
+            {
+                float offset = Mathf.Repeat(tone.x - centre + .5f, 1f) - .5f;
+                low = Mathf.Min(low, offset); high = Mathf.Max(high, offset);
+                satLow = Mathf.Min(satLow, tone.y); satHigh = Mathf.Max(satHigh, tone.y);
+                bright = Mathf.Max(bright, tone.z);
+            }
+            const float hueMargin = 8f / 360f, satMargin = .12f;
+            var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+            try
+            {
+                if (!texture.LoadImage(File.ReadAllBytes(AssetDatabase.GetAssetPath(atlas)))) throw new IOException("Unlesbare Farbtextur: " + AssetDatabase.GetAssetPath(atlas));
+                Color32[] pixels = texture.GetPixels32();
+                int w = texture.width, h = texture.height;
+                for (int y = 0; y < height; y++)
+                    for (int x = 0; x < width; x++)
+                    {
+                        Color32 p = pixels[Mathf.Min(h - 1, y * h / height) * w + Mathf.Min(w - 1, x * w / width)];
+                        Color.RGBToHSV(p, out float hue, out float sat, out float value);
+                        float offset = Mathf.Repeat(hue - centre + .5f, 1f) - .5f;
+                        result[y * width + x] = value >= .5f * bright && offset >= low - hueMargin && offset <= high + hueMargin &&
+                            sat >= satLow - satMargin && sat <= satHigh + satMargin;
+                    }
+            }
+            finally { Object.DestroyImmediate(texture); }
+            return result;
+        }
+
+        /// <summary>Whether an atlas point lies on a marked pixel.</summary>
+        static bool OnMask(bool[] mask, int width, int height, Vector2 uv)
+        {
+            int x = Mathf.FloorToInt(uv.x * width), y = Mathf.FloorToInt(uv.y * height);
+            return x >= 0 && y >= 0 && x < width && y < height && mask[y * width + x];
+        }
+
+        /// <summary>Widen a mask by some pixels, so the fabric also covers the seams the texture filter reaches.</summary>
+        static bool[] Grow(bool[] mask, int width, int height, int pixels)
+        {
+            for (int step = 0; step < pixels; step++)
+            {
+                var next = (bool[])mask.Clone();
+                for (int y = 0; y < height; y++)
+                    for (int x = 0; x < width; x++)
+                    {
+                        if (mask[y * width + x]) continue;
+                        if ((x > 0 && mask[y * width + x - 1]) || (x + 1 < width && mask[y * width + x + 1]) ||
+                            (y > 0 && mask[(y - 1) * width + x]) || (y + 1 < height && mask[(y + 1) * width + x])) next[y * width + x] = true;
+                    }
+                mask = next;
+            }
+            return mask;
+        }
+
+        /// <summary>The fabric's height at an atlas point, repeating, smoothly between its pixels.</summary>
+        static float FabricHeight(FabricLayer layer, float u, float v)
+        {
+            float fx = u * layer.Scale * layer.Size, fy = v * layer.Scale * layer.Size;
+            int x0 = Mathf.FloorToInt(fx), y0 = Mathf.FloorToInt(fy);
+            float tx = fx - x0, ty = fy - y0;
+            int n = layer.Size;
+            int ax = ((x0 % n) + n) % n, ay = ((y0 % n) + n) % n, bx = (ax + 1) % n, by = (ay + 1) % n;
+            float h00 = layer.Height[ay * n + ax], h10 = layer.Height[ay * n + bx], h01 = layer.Height[by * n + ax], h11 = layer.Height[by * n + bx];
+            return Mathf.Lerp(Mathf.Lerp(h00, h10, tx), Mathf.Lerp(h01, h11, tx), ty);
+        }
+
+        /// <summary>Weave in the colours: raised threads a little lighter, the gaps between them darker.</summary>
+        static Action<Color32[], int, int> FabricWeave(BozoFigureRecipes.Figure recipe)
+        {
+            if (!HasFabric(recipe)) return null;
+            return (pixels, width, height) =>
+            {
+                foreach (FabricLayer layer in FabricLayers(recipe, width, height))
+                    for (int y = 0; y < height; y++)
+                        for (int x = 0; x < width; x++)
+                        {
+                            int i = y * width + x;
+                            if (!layer.Mask[i]) continue;
+                            float gain = Mathf.Lerp(1f, .72f + .42f * FabricHeight(layer, (x + .5f) / width, (y + .5f) / height), layer.Strength);
+                            Color32 p = pixels[i];
+                            pixels[i] = new Color32((byte)Mathf.Clamp(Mathf.RoundToInt(p.r * gain), 0, 255), (byte)Mathf.Clamp(Mathf.RoundToInt(p.g * gain), 0, 255),
+                                (byte)Mathf.Clamp(Mathf.RoundToInt(p.b * gain), 0, 255), p.a);
+                        }
+            };
+        }
+
+        /// <summary>Weave as relief: the normal map leans with the fabric's slopes, so light picks out the threads.</summary>
+        static Action<Color32[], int, int> FabricRelief(BozoFigureRecipes.Figure recipe)
+        {
+            if (!HasFabric(recipe)) return null;
+            return (pixels, width, height) =>
+            {
+                foreach (FabricLayer layer in FabricLayers(recipe, width, height))
+                {
+                    float du = 1f / width, dv = 1f / height, k = 1.1f * layer.Strength;
+                    for (int y = 0; y < height; y++)
+                        for (int x = 0; x < width; x++)
+                        {
+                            int i = y * width + x;
+                            if (!layer.Mask[i]) continue;
+                            float u = (x + .5f) * du, v = (y + .5f) * dv;
+                            float sx = FabricHeight(layer, u + du, v) - FabricHeight(layer, u - du, v);
+                            float sy = FabricHeight(layer, u, v + dv) - FabricHeight(layer, u, v - dv);
+                            Color32 p = pixels[i];
+                            var n = new Vector3(p.r / 255f * 2f - 1f - sx * k, p.g / 255f * 2f - 1f - sy * k, p.b / 255f * 2f - 1f);
+                            if (n.z < .2f) n.z = .2f;
+                            n.Normalize();
+                            pixels[i] = new Color32((byte)Mathf.RoundToInt((n.x * .5f + .5f) * 255f), (byte)Mathf.RoundToInt((n.y * .5f + .5f) * 255f),
+                                (byte)Mathf.RoundToInt((n.z * .5f + .5f) * 255f), 255);
+                        }
+                }
+            };
+        }
+
+        static void WriteNormalMap(string packedPath, string normalPath, int size, string stamp = "normal", Action<Color32[], int, int> post = null)
         {
             var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
             try
@@ -881,6 +1197,7 @@ namespace AreArpg.EditorTools
                         float z = Mathf.Sqrt(Mathf.Clamp01(1f - x * x - y * y));
                         pixels[i] = new Color32(p.a, p.g, (byte)Mathf.RoundToInt((z * .5f + .5f) * 255f), 255);
                     }
+                post?.Invoke(pixels, texture.width, texture.height);
                 texture.SetPixels32(pixels);
                 File.WriteAllBytes(normalPath, texture.EncodeToPNG());
             }
@@ -890,7 +1207,7 @@ namespace AreArpg.EditorTools
             importer.textureType = TextureImporterType.NormalMap;
             importer.maxTextureSize = size;
             importer.mipmapEnabled = true;
-            importer.userData = "normal";
+            importer.userData = stamp;
             importer.SaveAndReimport();
         }
 

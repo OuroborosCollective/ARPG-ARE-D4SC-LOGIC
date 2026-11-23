@@ -71,6 +71,7 @@ namespace AreArpg.UnityClient
             {
                 _companionVisual=Shape(PrimitiveType.Capsule,"ARE_Companion_Hunter",Vector3.up,new Vector3(.8f,1,.8f),new Color(.27f,.45f,.25f));
                 PassiveArtVisuals.TryBindGrounded(_companionVisual,"RoadHunter",0);
+                RegisterFace(_companionVisual);
                 foreach(var part in _companionVisual.GetComponentsInChildren<Transform>(true))if(part.name=="HunterBow")part.gameObject.SetActive(false);
                 _companionAnimator=_companionVisual.GetComponentInChildren<Animator>();
                 if(_companionAnimator!=null){_companionAnimator.applyRootMotion=false;_companionAnimator.cullingMode=AnimatorCullingMode.AlwaysAnimate;_companionAnimator.runtimeAnimatorController=Resources.Load<RuntimeAnimatorController>("ARE/Visuals/EntryMelee");}

@@ -433,3 +433,13 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: keine gesprochenen Sätze für Orsel, ihr Stab leiht das Modell des Wanderstabs, Handgefühl und Fokus-Balance (Fokus nur durch Treffer) ungeprüft.
 - Nächste Schritte: Gegnerphasen und Bosse (#127 Phase 4), die Waffenprofile (Phase 2), Rüstung aus den Dorfwerkstätten, eigenes Stabmodell und Sprachaufnahmen für Orsel.
 - [Technische Abnahme](../orsel-healing-course-20261123/acceptance.md)
+
+## 23. November 2026 · Story-Figuren mit eigenem Look und lebenden Gesichtern
+
+- Owner-Wünsche: einzigartige, schöne Story-Figuren statt Standardfiguren; Dark-Souls-Look aus dem ganzen BoZo-Paket; junge Gesichter, Beine zeigen, sexy innerhalb von 16+; grobes Leinen und mehr Texturen; Orsel in Strumpfhalter-Shorts.
+- Neu im Spiel: Ilyan, Mara, Dorn, der Jäger und Orsel tragen eigene Looks mit grobem Leinen und abgenutztem Leder. Sie blinzeln, zeigen eine Miene ihrer Rolle und bewegen beim Sprechen den Mund; der Jäger als Begleiter ebenso.
+- Evidence: volle PlayMode-Reihe 181 PASS / 0 FAIL / 28 ignoriert, volle EditMode-Reihe 254 PASS / 0 FAIL / 28 ignoriert (beide auf `9720e977ce6979d4dcf740956677d9cccb0eaf5d`), Figurentests 20/20, Gesichtstests für Lager, Orsel, Begleiter und den Dank des Jägers PASS.
+- Grenzen: kein Lippensync zu echter Sprache, keine Narben oder Gesichtsdetails, der Held unverändert; die Hauterkennung der Stoffe arbeitet über die Farbe.
+- Owner-Richtung vom selben Tag: Ziel ist ein realistischer, nebliger Dark-Fantasy-Look; diese Looks sind ein Zwischenstand. Reihenfolge: zuerst Issue #48 mit den jetzigen Paketen, danach der Designwechsel.
+- Nächste Schritte: offene Blöcke von #48 (Beute v2 mit Vorratsbeuteln, Kampfanimationen, Welt- und Figurenqualität, Audio, Android-Profiling).
+- [Technische Abnahme](../story-figures-20261123/acceptance.md)

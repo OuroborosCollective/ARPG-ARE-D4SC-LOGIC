@@ -162,7 +162,7 @@ namespace AreArpg.UnityClient
             int choice = _pendingOrselChoice;
             _pendingOrselChoice = -1;
             SocialResult result = choice == OrselLessonChoice ? _game.LearnWundschluss() : _game.HelpOrsel((HealingCoursePath)choice);
-            if (!string.IsNullOrEmpty(result.Text)) { _orselReply = result.Text; _message = result.Text; }
+            if (!string.IsNullOrEmpty(result.Text)) { _orselReply = result.Text; _message = result.Text; FaceSpeak(_orselFigure, 2.6f); }
             if (result.Accepted) SaveCharacter();
         }
 
