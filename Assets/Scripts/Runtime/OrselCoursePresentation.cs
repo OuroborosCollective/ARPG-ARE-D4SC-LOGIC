@@ -22,8 +22,8 @@ namespace AreArpg.UnityClient
         // ---------------------------------------------------------------- her figure
 
         /// <summary>
-        /// Orsel stands where the Core says she teaches: always at the mill while she lives there; in the village only
-        /// while the lesson is still open and she is not already standing at the sick room's lot asking for it.
+        /// Orsel stands where the Core says she teaches: at the mill while she lives there; in the village in front of
+        /// the finished sick room until the lesson is learned. Figure, hint and input follow the same Core answer.
         /// </summary>
         private void UpdateOrselFigure()
         {
@@ -31,8 +31,7 @@ namespace AreArpg.UnityClient
             if (_orselFigure == null && !ReferenceEquals(_orselFigure, null)) { _actorAnimations.Remove(_orselFigure); _orselFigure = null; }
             CharacterProgression p = _game.Progression;
             bool mill = !p.Houses.OrselInVillage;
-            bool show = _game.TryGetOrselTeachingSpot(out long x, out long z) &&
-                (mill || (!p.Healing.Learned && !_game.SiteOffered(VillagePlace.SickRoom)));
+            bool show = _game.TryGetOrselTeachingSpot(out long x, out long z);
             if (!show)
             {
                 if (_orselFigure != null && _orselFigure.gameObject.activeSelf) _orselFigure.gameObject.SetActive(false);

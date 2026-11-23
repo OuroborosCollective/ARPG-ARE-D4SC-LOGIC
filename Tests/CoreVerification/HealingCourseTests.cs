@@ -279,6 +279,7 @@ public static class HealingCourseTests
         VillagePlaceTests.Walk(w, x + 900, z + 500);
         check(w.OrselInReach && w.HelpOrsel(HealingCoursePath.Supplies).Accepted && w.LearnWundschluss().Accepted &&
             w.Progression.Equipment.IsRegionalRelicEquipped(RegionalRelic.M_Heilerstab), "healing-village-lesson");
+        check(!w.OrselInReach && !w.TryGetOrselTeachingSpot(out _, out _), "healing-village-spot-gone-after-the-lesson");
         var back = Reload(w);
         check(back.Progression.Healing.Learned && back.Progression.Equipment.OwnsRegionalRelic(RegionalRelic.M_Heilerstab), "healing-village-lesson-saved");
     }
