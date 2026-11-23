@@ -59,6 +59,30 @@ namespace AreArpg.EditorTools
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
             RaiseBundleSizeWarning();
+            ApplyAppIcon();
+        }
+
+        /// <summary>
+        /// The launcher icon, rendered from the game's own (licensed) art. It lives with the private art, so a checkout
+        /// without that art keeps Unity's default icon.
+        /// </summary>
+        public const string AppIconPath = "Assets/PrivateArt/Branding/AshenCryptIcon.png";
+
+        internal static bool ApplyAppIcon()
+        {
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AppIconPath);
+            if (icon == null) return false;
+#if UNITY_ANDROID
+            foreach (var kind in new[] { UnityEditor.Android.AndroidPlatformIconKind.Legacy, UnityEditor.Android.AndroidPlatformIconKind.Round })
+            {
+                PlatformIcon[] icons = PlayerSettings.GetPlatformIcons(UnityEditor.Build.NamedBuildTarget.Android, kind);
+                foreach (PlatformIcon slot in icons) slot.SetTexture(icon);
+                PlayerSettings.SetPlatformIcons(UnityEditor.Build.NamedBuildTarget.Android, kind, icons);
+            }
+            return true;
+#else
+            return false;
+#endif
         }
 
         /// <summary>

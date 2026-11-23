@@ -126,6 +126,33 @@ namespace AreArpg.EditMode.Tests
             }
         }
 
+        [Test, Category("PrivateArt")]
+        public void TheLauncherIconComesFromTheGamesOwnArtWhenItIsPresent()
+        {
+            string path = (string)Tools().GetField("AppIconPath").GetValue(null);
+            var icon = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Texture2D>(path);
+            if (icon == null) Assert.Ignore("The launcher icon lives with the private art of the live workspace.");
+            Assert.AreEqual(512, icon.width); Assert.AreEqual(512, icon.height);
+#if UNITY_ANDROID
+            var kind = UnityEditor.Android.AndroidPlatformIconKind.Legacy;
+            var target = UnityEditor.Build.NamedBuildTarget.Android;
+            UnityEditor.PlatformIcon[] before = UnityEditor.PlayerSettings.GetPlatformIcons(target, kind);
+            var previous = Array.ConvertAll(before, slot => slot.GetTexture());
+            try
+            {
+                Assert.IsTrue((bool)Tools().GetMethod("ApplyAppIcon", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, null));
+                foreach (UnityEditor.PlatformIcon slot in UnityEditor.PlayerSettings.GetPlatformIcons(target, kind))
+                    Assert.AreSame(icon, slot.GetTexture(), "every launcher size uses the game's icon");
+            }
+            finally
+            {
+                UnityEditor.PlatformIcon[] restore = UnityEditor.PlayerSettings.GetPlatformIcons(target, kind);
+                for (int i = 0; i < restore.Length && i < previous.Length; i++) restore[i].SetTexture(previous[i]);
+                UnityEditor.PlayerSettings.SetPlatformIcons(target, kind, restore);
+            }
+#endif
+        }
+
         [Test]
         public void TheBundleSizeWarningOnlyAppearsAboveThreeGigabytes()
         {

@@ -119,6 +119,11 @@ namespace AreArpg.EditMode.Tests
             string other = unity.Replace("asset-delivery:2.3.0", "app-update:2.0.1");
             Assert.AreEqual(other, Add(other), "a library already declared in another version is left alone");
             Assert.IsNull(Add("android {\n}\n"), "no dependencies block: the build fails loudly instead of shipping without updates");
+            string commented = unity.Replace("    implementation 'com.google.android.play:asset-delivery:2.3.0'\n",
+                "    implementation 'com.google.android.play:asset-delivery:2.3.0'\n    // implementation 'com.google.android.play:app-update:2.1.0'\n");
+            Assert.AreEqual(1, Count(Add(commented), "\n    " + Line), "a commented-out line does not count as declared");
+            Assert.IsNull(Add("// implementation 'com.google.android.play:app-update:2.1.0'\nandroid {\n}\n"),
+                "a commented-out line without a dependencies block still fails the build");
             string crlf = Add(unity.Replace("\n", "\r\n"));
             Assert.AreEqual(1, Count(crlf, Line + "\r\n"));
             Assert.AreEqual(0, Count(crlf.Replace("\r\n", ""), "\n"), "Windows line endings stay consistent");

@@ -26,7 +26,9 @@ namespace AreArpg.EditorTools
         {
             if (buildGradle == null) return null;
             string library = coordinate.Substring(0, coordinate.LastIndexOf(':') + 1);
-            if (buildGradle.Contains("'" + library) || buildGradle.Contains("\"" + library)) return buildGradle;
+            // Only an active declaration counts; a commented-out line must not keep the library out of the build.
+            var declared = new Regex(@"^[ \t]*(?:implementation|api|compileOnly|runtimeOnly)[ \t]*\(?[ \t]*['""]" + Regex.Escape(library), RegexOptions.Multiline);
+            if (declared.IsMatch(buildGradle)) return buildGradle;
             Match block = TopLevelDependencies.Match(buildGradle);
             if (!block.Success) return null;
             string newline = buildGradle.Contains("\r\n") ? "\r\n" : "\n";
