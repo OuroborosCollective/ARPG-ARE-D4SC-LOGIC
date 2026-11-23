@@ -59,6 +59,30 @@ namespace AreArpg.EditorTools
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
             RaiseBundleSizeWarning();
+            ApplyAppIcon();
+        }
+
+        /// <summary>
+        /// The launcher icon, rendered from the game's own (licensed) art. It lives with the private art, so a checkout
+        /// without that art keeps Unity's default icon.
+        /// </summary>
+        public const string AppIconPath = "Assets/PrivateArt/Branding/AshenCryptIcon.png";
+
+        internal static bool ApplyAppIcon()
+        {
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(AppIconPath);
+            if (icon == null) return false;
+#if UNITY_ANDROID
+            // Unity 6.6 only builds adaptive icons: background (layer 0) and foreground (layer 1). The opaque icon fills
+            // both, so the launcher's mask and parallax always show the game's art; its motif sits in the central two thirds.
+            var kind = UnityEditor.Android.AndroidPlatformIconKind.Adaptive;
+            PlatformIcon[] icons = PlayerSettings.GetPlatformIcons(UnityEditor.Build.NamedBuildTarget.Android, kind);
+            foreach (PlatformIcon slot in icons) { slot.SetTexture(icon, 0); slot.SetTexture(icon, 1); }
+            PlayerSettings.SetPlatformIcons(UnityEditor.Build.NamedBuildTarget.Android, kind, icons);
+            return true;
+#else
+            return false;
+#endif
         }
 
         /// <summary>
