@@ -424,3 +424,12 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: Handgefühl auf dem Gerät, Animationen für Ausweichen und Trank, Gegnerphasen und Waffenprofile offen.
 - Nächster Schritt: Orsels Heilkunst-Lehrgang mit den Owner-Werten (2 Rationen, 12 Münzen oder 3 Aschenflieder; Wundschluss 180 LP, 15 Fokus, 8 s; Einhandstab 80 %; nach dem Lager, vor den Betten).
 - [Technische Abnahme](../combat-v2-touch-20261123/acceptance.md)
+
+## 23. November 2026 · Orsels Heilkunst-Lehrgang und Wundschluss, Issue #127 mit dem Heilkunst-Entwurf
+
+- Owner-Werte: 2 Rationen, 12 Münzen oder 3 Aschenflieder als Zugang; Wundschluss 180 LP plus Boni, 15 Fokus, 8 s Abklingzeit; Orsels Einhandstab 80 %, Beute-Stäbe 100 %; Lehre nach dem Lager, vor den Betten.
+- Neu im Spiel: Orsel steht westlich des Krankenunterstands an der Mühle (im Dorf vor der fertigen Krankenstube, falls sie schon umgezogen ist). Sie nimmt eine der drei Hilfen an, lehrt Wundschluss, gibt ihren Stab und ihre Robe. Der Knopf WUNDSCHLUSS heilt den anteilig am schwersten Verletzten (Spieler, Begleiter, Verletzte in den Betten), Rüstung senkt die Heilung, Übung zählt in der Heilkunst.
+- Evidence: `Tests/CoreVerification` ALL PASS 23.067 (78 neu), volle PlayMode-Reihe 179 PASS / 0 FAIL / 28 ignoriert, volle EditMode-Reihe 254 PASS / 0 FAIL / 28 ignoriert, Orsel-Spieltest mit echten Tipps PASS, Spielerlauf Mühlenkapitel PASS.
+- Grenzen: keine gesprochenen Sätze für Orsel, ihr Stab leiht das Modell des Wanderstabs, Handgefühl und Fokus-Balance (Fokus nur durch Treffer) ungeprüft.
+- Nächste Schritte: Gegnerphasen und Bosse (#127 Phase 4), die Waffenprofile (Phase 2), Rüstung aus den Dorfwerkstätten, eigenes Stabmodell und Sprachaufnahmen für Orsel.
+- [Technische Abnahme](../orsel-healing-course-20261123/acceptance.md)
