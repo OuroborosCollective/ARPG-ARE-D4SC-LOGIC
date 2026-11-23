@@ -772,7 +772,10 @@ namespace AreArpg.PlayMode.Tests
                 }
                 arrow |= h.ArrowFlash > 0;
             }
-            Assert.IsFalse(Game.GameOver); Assert.IsTrue(Game.Progression.Road.Rescued); Assert.IsTrue(arrow && warning);
+            var road = Game.Progression.Road;
+            string fight = "bear " + road.Bear.Health + "/" + road.Bear.MaxHealth + ", hunter " + road.HunterHealth + ", player " + Game.PlayerHealth +
+                ", player damage " + road.PlayerDamage + ", dodged " + Game.DodgedAttacks + ", tick " + Game.CurrentTick;
+            Assert.IsFalse(Game.GameOver, fight); Assert.IsTrue(road.Rescued, fight); Assert.IsTrue(arrow && warning, fight);
             typeof(ArenaRuntime).GetMethod("UpdateRoadPresentation", Flags).Invoke(_runtime, null);
             var purse = Find("ARE_HunterPurse");
             Assert.IsNotNull(purse);
