@@ -36,6 +36,12 @@ namespace AreArpg.PlayMode.Tests
                 Walk(game,item.Xmm,item.Zmm,750);
                 if (!game.TryCollectLoot()) throw new InvalidOperationException("Entry pickup failed.");
             }
+            while (game.GroundSupplies.Count!=0) // loot revision 2: the supply bags too
+            {
+                var bag=game.GroundSupplies.OrderBy(e=>Range2(game,e.Xmm,e.Zmm)).First();
+                Walk(game,bag.Xmm,bag.Zmm,750);
+                if (!game.TryCollectLoot()) throw new InvalidOperationException("Entry bag pickup failed.");
+            }
         }
 
         private static long Range2(ArenaSimulation game,long x,long z)

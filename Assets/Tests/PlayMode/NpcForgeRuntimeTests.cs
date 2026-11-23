@@ -167,7 +167,7 @@ namespace AreArpg.PlayMode.Tests
             string controller=mind.Controller.Hash;ulong episode=mind.Known[0].Event.Id;
             ulong hash=Game.ComputeWorldHash();
             ulong seed=(ulong)typeof(ArenaRuntime).GetField("DemoSeed",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic).GetRawConstantValue();
-            var resumed=new ArenaSimulation(seed,loaded,loaded.UnlockedCryptDepth,LootCatalog.Version1);
+            var resumed=new ArenaSimulation(seed,loaded,loaded.UnlockedCryptDepth,LootCatalog.Version2); // the catalog the game runs on
             Assert.AreEqual(hash,resumed.ComputeWorldHash());
             typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{resumed,"Ilyan erinnert sich"});
             for(int tick=0;tick<12;tick++)Game.Step();

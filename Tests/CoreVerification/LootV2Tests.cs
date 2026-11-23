@@ -50,7 +50,7 @@ internal static class LootV2Tests
         var count = new int[4]; int total = 0;
         for (int i = 1; i <= 6000; i++)
         {
-            var item = LootCatalog.Version2.Generate(91, depth, (ulong)i, flags != 0 ? LootCatalog.RattlerEnemyId : 7, kind, 5000 + i, flags);
+            var item = LootCatalog.Version2.GenerateFlagged(91, depth, (ulong)i, flags != 0 ? LootCatalog.RattlerEnemyId : 7, kind, 5000 + i, flags);
             if (item == null) continue;
             count[(int)item.Rarity]++; total++;
         }
@@ -72,8 +72,8 @@ internal static class LootV2Tests
             for (int i = 1; i <= 4000; i++) if (c.Generate(77, 1, (ulong)i, 5, kind, 1000 + i) != null) drops++;
             check(Math.Abs(drops / 40.0 - expected[kind]) < 3.0, "loot2-drop-rate-kind-" + kind);
         }
-        check(Enumerable.Range(1, 500).All(i => c.Generate(77, 1, 1, 5, 1, i, LootCatalog.GuaranteedFlag) != null), "loot2-guaranteed-drop-always-falls");
-        check(Enumerable.Range(1, 500).All(i => c.Generate(77, 3, 1, LootCatalog.RattlerEnemyId, 2, i, LootCatalog.BossFlag) != null), "loot2-rattler-always-drops");
+        check(Enumerable.Range(1, 500).All(i => c.GenerateFlagged(77, 1, 1, 5, 1, i, LootCatalog.GuaranteedFlag) != null), "loot2-guaranteed-drop-always-falls");
+        check(Enumerable.Range(1, 500).All(i => c.GenerateFlagged(77, 3, 1, LootCatalog.RattlerEnemyId, 2, i, LootCatalog.BossFlag) != null), "loot2-rattler-always-drops");
     }
 
     private static void TiersImproveWithDepthAndBosses(Action<bool, string> check)

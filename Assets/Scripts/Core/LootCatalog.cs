@@ -181,7 +181,13 @@ namespace AreArpg.Core
         /// Called only by the canonical kill path; kill ordinal remains unique across checkpoint restarts. Revision 1
         /// always returns a receipt and ignores the flags. Revision 2 returns null when the kill drops no weapon.
         /// </summary>
-        internal LootItem Generate(ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger killOrdinal, int flags = 0)
+        internal LootItem Generate(ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger killOrdinal)
+        {
+            return GenerateFlagged(seed, depth, tick, enemyId, kind, killOrdinal, 0);
+        }
+
+        /// <summary>As <see cref="Generate"/>, with what the kill path knows beyond the enemy's kind (revision 2).</summary>
+        internal LootItem GenerateFlagged(ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger killOrdinal, int flags)
         {
             if (Revision == 1)
             {

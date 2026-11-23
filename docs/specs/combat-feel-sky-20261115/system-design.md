@@ -40,7 +40,10 @@ Kein Darstellungscode schreibt Core-Zustand oder verzögert einen Tick. Rücksto
   - Der Rückstoß ist bewusst optisch (Owner-Entscheidung A), damit Balance und Spielstände unverändert bleiben.
   - Das Trefferstocken gilt nur für den Gegner. Der Core löst Treffer beim Auslösen auf, ein eingefrorener Held würde wie Verzögerung wirken.
 
-## Block 2 — Beute v2 (nächster Block, Owner-Entscheidung A)
+## Block 2 — Beute v2 (umgesetzt am 23.11.2026, Owner-Entscheidungen A und C)
+
+Abnahme: `docs/evidence/loot-v2-20261123/acceptance.md`. Der Entwurf von damals:
+
 
 - **Neue Katalog-Revision 2:** Stufen Normal (weiß), Magisch (blau), Selten (gelb) und Legendär (orange).
   - Es gibt eine Drop-Chance, nicht jeder Gegner lässt etwas fallen.

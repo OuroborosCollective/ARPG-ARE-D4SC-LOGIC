@@ -73,7 +73,7 @@ namespace AreArpg.Core
                 flags > (LootCatalog.GuaranteedFlag | LootCatalog.BossFlag) ||
                 ((flags & LootCatalog.GuaranteedFlag) != 0 && kind != 1) ||
                 ((flags & LootCatalog.BossFlag) != 0 && (kind != 2 || enemyId != LootCatalog.RattlerEnemyId)))) return false;
-            var generated = second ? LootCatalog.Version2.Generate(seed, depth, tick, enemyId, kind, ordinal, flags)
+            var generated = second ? LootCatalog.Version2.GenerateFlagged(seed, depth, tick, enemyId, kind, ordinal, flags)
                 : LootCatalog.Version1.Generate(seed, depth, tick, enemyId, kind, ordinal);
             // Replay the exact shipped definition: rejects unknown IDs, values, rarity and noncanonical numbers.
             if (generated == null || generated.Token() != token) return false;
