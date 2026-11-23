@@ -175,7 +175,12 @@ namespace AreArpg.EditMode.Tests
                         Assert.IsTrue(each.sharedMaterial != null && each.sharedMaterial.shader.isSupported, key + ": the material must render");
                         StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(each.sharedMaterial), key + ": the game keeps the figure's own material");
                         StringAssert.StartsWith(Baked, AssetDatabase.GetAssetPath(each.sharedMesh), key);
-                        Assert.AreEqual(0, each.sharedMesh.blendShapeCount, key + ": the sliders are baked into the game mesh");
+                        // The sliders are baked into the game mesh; only a story figure keeps the pack's expression shapes
+                        // (owner remark 2026-11-23), and then at least the ones it blinks with.
+                        for (int shape = 0; shape < each.sharedMesh.blendShapeCount; shape++)
+                            StringAssert.StartsWith("Expression_", each.sharedMesh.GetBlendShapeName(shape), key + ": the sliders are baked into the game mesh");
+                        if (each.sharedMesh.blendShapeCount > 0)
+                            Assert.GreaterOrEqual(each.sharedMesh.GetBlendShapeIndex("Expression_Eyes_UpperClosed_L"), 0, key + ": a living face can blink");
                         CollectionAssert.AreEqual(skin.bones, each.bones, key + ": one skeleton");
                         for (int part = 0; part < each.sharedMesh.subMeshCount; part++) triangles += each.sharedMesh.GetIndexCount(part) / 3;
                     }
