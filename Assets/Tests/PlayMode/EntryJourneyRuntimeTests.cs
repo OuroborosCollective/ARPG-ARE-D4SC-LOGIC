@@ -225,6 +225,8 @@ namespace AreArpg.PlayMode.Tests
             var target = Game.Monsters[0]; target.Xmm = Game.PlayerXmm + 1000; target.Zmm = Game.PlayerZmm; target.Health = 1000;
             queue.Enqueue(0);
             TickOnce();
+            // Combat v2 winds a strike up for a few ticks before it lands; the old combat hits in the first tick.
+            for (int tick = 0; tick < 8 && target.Health == 1000; tick++) TickOnce();
             Assert.Less(target.Health, 1000, "A real Core hit must precede the visual");
             ulong hash = Game.ComputeWorldHash();
             // The first evaluation consumes the trigger; a second advances the fixed-duration blend.
