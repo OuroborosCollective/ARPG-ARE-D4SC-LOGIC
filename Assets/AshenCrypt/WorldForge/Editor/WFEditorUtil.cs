@@ -76,21 +76,23 @@ namespace AshenCrypt.WorldForge.EditorTools
             EnsureFolder(folder);
             string path = folder + "/WF_Tree_" + SafeName(model.name) + ".prefab";
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (existing != null)
+            if (existing != null && WrapsModel(existing, model)) return existing;
+            if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(model, out string guid, out long localId))
             {
-                if (WrapsModel(existing, model)) return existing;
-                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(model, out string guid, out long localId))
-                    throw new ArgumentException("A colliding tree wrapper requires a saved prefab or model source.", nameof(model));
-                path = folder + "/WF_Tree_" + SafeName(model.name) + "_" + guid + "_"
+                string identityPath = folder + "/WF_Tree_" + SafeName(model.name) + "_" + guid + "_"
                     + localId.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".prefab";
-                existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                var identityWrapper = AssetDatabase.LoadAssetAtPath<GameObject>(identityPath);
+                // Keep an existing disambiguated wrapper even after the legacy path becomes free.
+                if (identityWrapper != null && WrapsModel(identityWrapper, model)) return identityWrapper;
                 if (existing != null)
                 {
-                    if (!WrapsModel(existing, model))
+                    path = identityPath;
+                    if (identityWrapper != null)
                         throw new InvalidOperationException("A different source already occupies the tree wrapper: " + path);
-                    return existing;
                 }
             }
+            else if (existing != null)
+                throw new ArgumentException("A colliding tree wrapper requires a saved prefab or model source.", nameof(model));
 
             if (File.Exists(path) || Directory.Exists(path) || File.Exists(path + ".meta"))
                 throw new InvalidOperationException("The tree wrapper destination is already occupied: " + path);

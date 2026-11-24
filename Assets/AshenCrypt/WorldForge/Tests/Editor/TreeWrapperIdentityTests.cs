@@ -82,6 +82,34 @@ namespace AshenCrypt.WorldForge.Tests
                 "An occupied destination must be refused before SaveAsPrefabAsset.");
         }
 
+        [TestCase("SharedTree", "SharedTree")]
+        [TestCase("Tree Elm", "Tree_Elm")]
+        public void IdentityWrapperIsReusedAfterLegacyWrapperIsDeleted(string firstName, string secondName)
+        {
+            GameObject first = Source("First", firstName, PrimitiveType.Cube);
+            GameObject second = Source("Second", secondName, PrimitiveType.Sphere);
+            string legacyPath = AssetDatabase.GetAssetPath(Wrap(first));
+            GameObject wrapper = Wrap(second);
+            string identityPath = AssetDatabase.GetAssetPath(wrapper);
+            string identityGuid = AssetDatabase.AssetPathToGUID(identityPath);
+            byte[] contents = File.ReadAllBytes(identityPath);
+            byte[] metadata = File.ReadAllBytes(identityPath + ".meta");
+            Assert.AreNotEqual(legacyPath, identityPath);
+            Assert.IsTrue(AssetDatabase.DeleteAsset(legacyPath));
+
+            GameObject reused = Wrap(second);
+
+            Assert.AreEqual(identityPath, AssetDatabase.GetAssetPath(reused),
+                "Removing the other source's wrapper must not change this source's existing wrapper path.");
+            Assert.AreEqual(identityGuid, AssetDatabase.AssetPathToGUID(identityPath),
+                "Repeating an import must preserve the existing identity wrapper's GUID.");
+            CollectionAssert.AreEqual(contents, File.ReadAllBytes(identityPath));
+            CollectionAssert.AreEqual(metadata, File.ReadAllBytes(identityPath + ".meta"));
+            Assert.AreEqual(second, PrefabUtility.GetCorrespondingObjectFromSource(
+                reused.transform.GetChild(0).gameObject));
+            Assert.IsFalse(File.Exists(legacyPath), "Reusing the wrapper must not create a duplicate at the free legacy path.");
+        }
+
         [Test]
         public void ForeignPrefabAtIdentityPathIsRefusedWithoutChangingBytesOrGuid()
         {

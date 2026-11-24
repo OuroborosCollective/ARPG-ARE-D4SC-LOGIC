@@ -490,3 +490,7 @@ The same six private AssetIntake fixture failures and three VillageRetexture fai
 Independent source/test review has zero open findings and independently parsed both final XMLs, but this is Draft readiness only. Persistent prefab/model asset roots at the canonical sample caller are covered; variants and child subassets remain unproven. Complete native/private-fixture and exact published-head Core/CI gates remain required before merge. No device, APK, game-frame or deployment success is asserted.
 
 The canonical owner DOCX reference was not visible through the connected file service on this round. Per this handoff's existing fallback, the complete round is retained in repository/private evidence; no unrelated document was created or overwritten. DOCX writeback is not claimed.
+
+### Review follow-up: retain the surviving source wrapper
+
+The repair checks for an existing wrapper with matching source identity even after the earlier legacy wrapper is deleted. It preserves the surviving wrapper's path, GUID and bytes, while retaining the occupied-target guard. Two new deletion regression cases failed before the repair; all nine targeted cases passed afterward with unchanged test code. The complete native acceptance gate and final published-head CI remain separate pending checks.
