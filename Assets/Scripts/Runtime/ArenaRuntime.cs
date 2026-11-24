@@ -1225,6 +1225,7 @@ namespace AreArpg.UnityClient
             UpdateOrselFigure();
             UpdateCombatFeel();
             UpdateFaceLife();
+            UpdateHeroClips();
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
                 Transform ration = _campRationVisuals[index];

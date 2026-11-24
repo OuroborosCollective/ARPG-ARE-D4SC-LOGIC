@@ -102,9 +102,12 @@ namespace AreArpg.UnityClient
             if (_heroActions.Count == 0 || Time.time - _heroActionAt < HeroActionSpacing) return;
             string trigger = _heroActions.Dequeue();
             _heroActionAt = Time.time;
+            if (trigger == "Cast" && !_game.CombatV2) SetHeroActionSpeed("EntryCast", 0); // the old ruin storm has no windup to span
             foreach (var animator in _heroMeleeAnimations)
             {
                 if (animator == null) continue;
+                // A controller with real clips holds the guard as long as the Core does (HeroClipPresentation).
+                if (trigger == "Guard" && HeldGuardRequested(animator)) continue;
                 string use = HasTrigger(animator, trigger) ? trigger : "Melee";
                 animator.ResetTrigger(use); animator.SetTrigger(use);
             }
