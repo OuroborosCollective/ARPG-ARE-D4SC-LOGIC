@@ -460,3 +460,33 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: keine echte Trinkbewegung im Paket (Buff-Geste als Ersatz), kein bildgenauer Abgleich von Zauber und Wirkung, nur Standbilder gesichtet, kein Gerätetest; Begleiter und Gegner unverändert.
 - Nächste Schritte: #48 Block 4 (Welt- und Figurenqualität), Block 5 (Audio/Stimmen), Block 6 (Android-Profiling auf dem Tab A9, braucht das Gerät des Owners).
 - [Technische Abnahme](../combat-clips-20261124/acceptance.md)
+
+## 2026-11-24 — WF-TREE-SOURCE-IDENTITY-20261124
+
+### Change and causal native evidence
+
+`WFEditorUtil.CreateTreeWrapper` previously reused the first wrapper with the same sanitized model name even when the actual prefab source differed. The wrapper now verifies its first nested prefab's immediate source, and uses the source GUID plus invariant local file ID when names collide. Correct existing legacy wrappers keep their path and GUID. A foreign prefab occupying the fallback is explicitly refused.
+
+Independent review found a second defect: `LoadAssetAtPath<GameObject>() == null` does not establish that a destination is free. A real Editor RED replaced two 48-byte raw files with 4428/4480 bytes of prefab data. The added file/directory/meta guard runs before root creation and `SaveAsPrefabAsset`. Negative tests check preserved content and .meta bytes before asserting the explicit exception type. No errors or assertions were globally suppressed.
+
+### Revisions and outcomes
+
+- Original public source blob: `84716dd958879b5a37e1a82ebb2fb5f30ba13a65` on public base `489a3120915a5fdcec4bae83dc1f9afac6a2aa22`.
+- Final source blob: `a475b469b3b27b2ffe32c0663682dcba85d83e7f`; SHA256 `a44e44cf53b13e3ea334f5ade4411edec42e829aa5f8e136850cedf1df891189`.
+- Final test SHA256: `0f217408de19f7881b62270bbc8360b5661d40ffe75d48e7c4d41d78ff657ede`.
+- Identity RED / GREEN: local `c98f014c676818ba147e2ee3343a9b2cd6221d17` / `da661d7e3d86adc8caad8c7158b71c5983fe24bd`; two target failures become two passes; nine other failures remain.
+- Occupancy RED: `3b9e16ec7f634ca2bd9be57a2dda22e892dbc02f`, job `20261124T170720Z-f5c65e823d00`; four new target failures, three target passes; full 228 passed / 13 failed / 55 skipped out of 296.
+- Final GREEN: executed local `53ddee458092f21cf5a564bbb4c232e460f3be0e`, tree `4289c3d3e08ee2055906de62eb2c45daba807d9b`, job `20261124T171135Z-6e1c21532bc2`, Unity `6000.6.8f1`; all seven target cases pass. Full suite: 232 passed / 9 failed / 55 skipped out of 296. Test bytes are identical between the occupancy RED and GREEN; only the three guard lines change.
+- Original final XML SHA256: `2c26655a390dbd4b4a53025bcdac304cda5242cb93f4dc1ae476f48974f00f84`.
+- Original final Director receipt SHA256: `9e2f642fd69185cd89c553fd12647cd15c4f62391e8149c5f8d5b08f6977a263`.
+- Compact private evidence SHA256: `78b7813ace9d4b5d3d1d42852c53247cb66bc21b02ac25c6011435111abc7b9d`; source/test-only patch SHA256 `3131b8aa4fb8e51706e5eaa116e88baa1aaef16116a090629df145d96a87ce51`.
+
+### Explicit boundaries and next gate
+
+These native runs executed in isolated local clones based on `b5b9fd37401a59c01603035fc30d508c9f65b52e`, with six deterministic fixture script-meta files. That local commit ancestry is not the public PR and must not be pushed. Only the listed source/test/meta bytes are transferred onto the actual public base. The public PR's full tree is not claimed to be the already executed native tree.
+
+The same six private AssetIntake fixture failures and three VillageRetexture failures remain in both occupancy runs. Both Director receipts correctly report `failed / TRACKED_WORKTREE_DIRTY` because Unity auto-serialized ProjectSettings. No Settings values, licensed private assets, generated passcodes or local fixture commits are included in this change. The final readback confirms the Editor exited, zero remaining owned test paths and no untracked game inputs.
+
+Independent source/test review has zero open findings and independently parsed both final XMLs, but this is Draft readiness only. Persistent prefab/model asset roots at the canonical sample caller are covered; variants and child subassets remain unproven. Complete native/private-fixture and exact published-head Core/CI gates remain required before merge. No device, APK, game-frame or deployment success is asserted.
+
+The canonical owner DOCX reference was not visible through the connected file service on this round. Per this handoff's existing fallback, the complete round is retained in repository/private evidence; no unrelated document was created or overwritten. DOCX writeback is not claimed.

@@ -68,7 +68,7 @@ namespace AshenCrypt.WorldForge.EditorTools
 
         /// <summary>
         /// Wraps a model in a prefab with a LODGroup on the root, which is what Unity terrain trees require.
-        /// Returns the existing wrapper if it is already there.
+        /// Reuses wrappers only for the same source; name collisions use the source GUID and local file ID.
         /// </summary>
         public static GameObject CreateTreeWrapper(GameObject model, string folder, float cullScreenHeight = 0.012f)
         {
@@ -76,7 +76,24 @@ namespace AshenCrypt.WorldForge.EditorTools
             EnsureFolder(folder);
             string path = folder + "/WF_Tree_" + SafeName(model.name) + ".prefab";
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (existing != null) return existing;
+            if (existing != null)
+            {
+                if (WrapsModel(existing, model)) return existing;
+                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(model, out string guid, out long localId))
+                    throw new ArgumentException("A colliding tree wrapper requires a saved prefab or model source.", nameof(model));
+                path = folder + "/WF_Tree_" + SafeName(model.name) + "_" + guid + "_"
+                    + localId.ToString(System.Globalization.CultureInfo.InvariantCulture) + ".prefab";
+                existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (existing != null)
+                {
+                    if (!WrapsModel(existing, model))
+                        throw new InvalidOperationException("A different source already occupies the tree wrapper: " + path);
+                    return existing;
+                }
+            }
+
+            if (File.Exists(path) || Directory.Exists(path) || File.Exists(path + ".meta"))
+                throw new InvalidOperationException("The tree wrapper destination is already occupied: " + path);
 
             var root = new GameObject("WF_Tree_" + model.name);
             try
@@ -96,6 +113,12 @@ namespace AshenCrypt.WorldForge.EditorTools
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+        }
+
+        private static bool WrapsModel(GameObject wrapper, GameObject model)
+        {
+            return wrapper.transform.childCount > 0
+                && PrefabUtility.GetCorrespondingObjectFromSource(wrapper.transform.GetChild(0).gameObject) == model;
         }
 
         public static bool IsValidTreePrototype(GameObject prefab, out string reason)
