@@ -29,8 +29,12 @@ namespace AreArpg.UnityClient
             foreach (Transform part in figure.GetComponentsInChildren<Transform>(true))
             {
                 if (part == null || !part.name.StartsWith(CarriedPrefix, System.StringComparison.Ordinal)) continue;
-                part.gameObject.SetActive(false); // gone in this very frame; the object itself goes at its end
-                Object.Destroy(part.gameObject);
+                if (Application.isPlaying)
+                {
+                    part.gameObject.SetActive(false); // gone in this very frame; the object itself goes at its end
+                    Object.Destroy(part.gameObject);
+                }
+                else Object.DestroyImmediate(part.gameObject); // an editor preview has no end of frame
             }
         }
 

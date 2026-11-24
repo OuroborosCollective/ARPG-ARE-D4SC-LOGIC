@@ -96,6 +96,76 @@ namespace AreArpg.EditMode.Tests
         }
 
         /// <summary>
+        /// What a recipe lets a figure carry hangs on the named bone of its game visual as plain meshes: nothing that
+        /// runs or collides, in a private material of its own, at the size the recipe asks for. A prop whose private
+        /// model is not installed is left out; every other one must be there.
+        /// </summary>
+        [Test]
+        public void WhatAFigureCarriesHangsOnItsBonesAsPassiveMeshes()
+        {
+            if (BakedFigures().Count == 0) Assert.Ignore(NotInstalled);
+            int carried = 0;
+            foreach (object figure in (Array)Recipes().GetMethod("Load", BindingFlags.Public | BindingFlags.Static).Invoke(null, null))
+            {
+                var props = Field<Array>(figure, "props");
+                if (props == null || props.Length == 0) continue;
+                foreach (string key in Field<string[]>(figure, "keys"))
+                {
+                    GameObject prefab = Resources.Load<GameObject>("ARE/Visuals/" + key);
+                    if (prefab == null) continue;
+                    var host = new GameObject("FigureHost");
+                    try
+                    {
+                        Assert.IsTrue(PassiveArtVisuals.TryBindGroundedPrefab(host.transform, prefab, 0f), key + " must still pass the game's passive-art check");
+                        Animator animator = host.GetComponentInChildren<Animator>(true);
+                        foreach (object prop in props)
+                        {
+                            string name = Field<string>(prop, "name"), where = key + ": " + name;
+                            Transform holder = null;
+                            foreach (Transform node in host.GetComponentsInChildren<Transform>(true))
+                                if (node.name == PassiveArtVisuals.CarriedPrefix + name) holder = node;
+                            if (AssetDatabase.LoadAssetAtPath<GameObject>(Field<string>(prop, "asset")) == null)
+                            {
+                                Assert.IsNull(holder, where + ": no model, no prop");
+                                continue;
+                            }
+                            Assert.IsNotNull(holder, where + " is in the recipe but not on the figure");
+                            var bone = (HumanBodyBones)Enum.Parse(typeof(HumanBodyBones), Field<string>(prop, "bone"));
+                            Assert.AreSame(animator.GetBoneTransform(bone), holder.parent, where + " hangs on its bone");
+                            foreach (Component component in holder.GetComponentsInChildren<Component>(true))
+                                Assert.IsTrue(component is Transform || component is MeshFilter || component is MeshRenderer, where + ": only plain meshes, found " + component.GetType().Name);
+                            MeshRenderer[] renderers = holder.GetComponentsInChildren<MeshRenderer>(true);
+                            Assert.Greater(renderers.Length, 0, where + " shows something");
+                            Bounds bounds = renderers[0].bounds;
+                            foreach (MeshRenderer renderer in renderers)
+                            {
+                                bounds.Encapsulate(renderer.bounds);
+                                Assert.IsNotNull(renderer.GetComponent<MeshFilter>().sharedMesh, where + ": mesh");
+                                foreach (Material material in renderer.sharedMaterials)
+                                {
+                                    Assert.IsTrue(material != null && material.shader.isSupported, where + ": the material must render");
+                                    StringAssert.StartsWith(Baked + "Props/", AssetDatabase.GetAssetPath(material), where + ": a worn copy of the pack's material, never the pack's own");
+                                }
+                            }
+                            float size = Field<float>(prop, "size");
+                            // The bounds are measured in the rest pose, where the prop sits as it was fitted; a turned box is a little larger.
+                            if (size > 0f) Assert.That(Mathf.Max(bounds.size.x, bounds.size.y, bounds.size.z), Is.InRange(size * .6f, size * 1.45f), where + ": size");
+                            Assert.Greater(bounds.min.y, 0.02f, where + " stays above the ground the figure stands on");
+                            carried++;
+                        }
+                        // A stand-in that borrows the body takes all of it off again.
+                        PassiveArtVisuals.DropCarried(host.transform);
+                        foreach (Transform node in host.GetComponentsInChildren<Transform>(true))
+                            StringAssert.DoesNotStartWith(PassiveArtVisuals.CarriedPrefix, node.name, key + ": dropped");
+                        Assert.AreEqual(FigureComposer.IsComposite(prefab) ? 2 : 1, host.GetComponentsInChildren<SkinnedMeshRenderer>(true).Length, key + ": the body stays");
+                    }
+                    finally { UnityEngine.Object.DestroyImmediate(host); }
+                }
+            }
+            if (carried == 0) Assert.Ignore("No built figure carries anything here (the private prop models are not installed)");
+        }
+
+        /// <summary>
         /// A colour variant brings no second model into the game: its visual draws the mesh of its model figure with
         /// a material of its own.
         /// </summary>
