@@ -17,6 +17,11 @@ namespace AreArpg.Editor
         {
             public string id, top;
             public string[] uniform, hair;
+            /// <summary>
+            /// Hair that stays visible under the work outfit but hangs far from the head (a long tail down the back): it
+            /// must not count as face or torso when the body is measured.
+            /// </summary>
+            public string[] loose = Array.Empty<string>();
         }
 
         // The module names are the equipped slots of BozoCharacters/figures.json. Only proved
@@ -31,7 +36,7 @@ namespace AreArpg.Editor
                 "Shoulders/Shoulders_SoldiersPauldrons", "Neck/Neck_HoodedCape" },
                 hair = new[] {"HairFront/HairFront_FreeTussle","HairBack/HairBack_ShortChoppy"} }, "EntryHero");
             RegionalVariant(new WardrobeSource { id = "mara", top="Top/Top_WitchBlouse", uniform = Array.Empty<string>(),
-                hair = Array.Empty<string>() }, "EntryNpc1");
+                hair = Array.Empty<string>(), loose = new[] {"HairFront/HairFront_ProperPart","HairBack/HairBack_DolphinTail"} }, "EntryNpc1");
             AssetDatabase.SaveAssets();
         }
 
@@ -107,7 +112,10 @@ namespace AreArpg.Editor
                         finally { Object.DestroyImmediate(left); }
                     }
                 }
-                MeasureRegionalFit(avatar, skin, shaped, indices, untrimmed, fit);
+                var unmeasured = new HashSet<int>(untrimmed);
+                foreach (string module in recipe.loose)
+                    MatchWardrobePart(module, targets, unmeasured, indices, points, skin.bones, input.boneWeights);
+                MeasureRegionalFit(avatar, skin, shaped, indices, unmeasured, fit);
                 CalibrateHands(prefab,fit,false,recipe.id=="hero");
                 CalibrateHands(prefab,fit,true,recipe.id=="hero");
                 EditorUtility.SetDirty(fit);
