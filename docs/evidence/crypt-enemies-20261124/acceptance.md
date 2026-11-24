@@ -50,7 +50,24 @@ The contract between figure and game is small: states Attack, Hit and Death, the
 
 Unity 6000.6.8f1; Unity CLI in the live editor, not a Director job. The Core is unchanged.
 
-@@CHECKS@@
+| Run | Code | Result |
+|---|---|---|
+| PlayMode `EnemyClipsFollowTheCoresWindupHitsAndDefeat` (new), all three kinds: attack starts with the windup and is at its blow when the windup ends (0.42 / 0.39 / 0.94 s of clip against 0.47 / 0.42 / 1.00 s, one frame of 0.05 s apart), the enemy faces the hero, no flinch in the windup, flinch when free, death clip upright in place, removal after lying still | `83227f3a5d632c9e4506b3b6b8148ba0c13fe880` | PASS |
+| PlayMode `EnemyAttackShowsUnderTheOldCombatToo` (new): an unannounced blow shows the attack at once; a cooldown that only counts down starts none | `83227f3a5d632c9e4506b3b6b8148ba0c13fe880` | PASS |
+| EditMode `BuiltEnemyFiguresKeepTheClipContract` (new): passive prefabs, five states with moving clips, parameters, attack pacing, Death only left by standing up, baked colour textures, at most 32,000 triangles | `83227f3a5d632c9e4506b3b6b8148ba0c13fe880` | PASS |
+| PlayMode `EnemyFacesItsAcceptedCoreDisplacement` | `83227f3a5d632c9e4506b3b6b8148ba0c13fe880` | PASS |
+| PlayMode with the private overlay `MeleeAnimationRequiresAnAcceptedCoreStrike`: stale since combat v2 (it expected the strike to hit in its first tick and a strike at the air to be rejected), brought up to it; the commits between the two revisions change only this test | `e7c4f92d650b6b0085c76c9e936b5a4a3c262b0b` | PASS |
+| PlayMode with the private overlay (`ARE_ENTRY_EVIDENCE_DIR` set in the editor for these runs): `HitsReactOpticallyKillsToppleAndLevelUpsShine`, `DefeatedEnemiesStayFrozenAfterHitStop`, both brought up to figures with a death clip | `83227f3a5d632c9e4506b3b6b8148ba0c13fe880` | 2 / 2 PASS |
+| Full EditMode suite | `83227f3a5d632c9e4506b3b6b8148ba0c13fe880` | not run yet; it runs once before the merge (owner rule: short tests first) |
+| Full PlayMode suite | `83227f3a5d632c9e4506b3b6b8148ba0c13fe880` | not run yet; it runs once before the merge (owner rule: short tests first) |
+
+The builder ran in the live editor and reported: Ghoul 12,148 triangles with clips of 1.83 / 1.65 / 1.15 / 0.65 /
+1.40 s (idle, run, attack, hit, death), Goblin 30,146 triangles with 3.33 / 1.25 / 1.25 / 1.25 / 1.25 s, Demon
+15,999 triangles with 8.33 / 1.03 / 3.17 / 0.67 / 1.67 s.
+
+`DefeatedEnemiesStayFrozenAfterHitStop` used to look at the animator a quarter second after the button, which can be
+the very frame of the kill, inside the hit-stop. A toppling figure is frozen then and later, so that never showed;
+a death clip must run once the hit-stop is over, so the test now looks 0.2 s after the kill.
 
 ## Limits
 

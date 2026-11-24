@@ -460,3 +460,11 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: keine echte Trinkbewegung im Paket (Buff-Geste als Ersatz), kein bildgenauer Abgleich von Zauber und Wirkung, nur Standbilder gesichtet, kein Gerätetest; Begleiter und Gegner unverändert.
 - Nächste Schritte: #48 Block 4 (Welt- und Figurenqualität), Block 5 (Audio/Stimmen), Block 6 (Android-Profiling auf dem Tab A9, braucht das Gerät des Owners).
 - [Technische Abnahme](../combat-clips-20261124/acceptance.md)
+
+## 24. November 2026 · Neue Gruft-Gegner aus den Monsterpaketen
+
+- Neu im Spiel: Ghul, Ritter (Goblin mit Schwert und Schild) und der schwere Gruft-Boss (gehörnter Dämon) sind eigene Figuren. Sie holen sichtbar aus, bevor sie treffen, zucken bei einem Treffer und fallen mit einer eigenen Bewegung, statt wie ein Brett umzukippen.
+- Evidence auf `83227f3a5d632c9e4506b3b6b8148ba0c13fe880`: neue Tests `EnemyClipsFollowTheCoresWindupHitsAndDefeat`, `EnemyAttackShowsUnderTheOldCombatToo` und `BuiltEnemyFiguresKeepTheClipContract` PASS, drei weitere Gegner-Darstellungstests PASS, `MeleeAnimationRequiresAnAcceptedCoreStrike` auf `e7c4f92d650b6b0085c76c9e936b5a4a3c262b0b` PASS; volle Reihen laufen einmal vor dem Merge.
+- Grenzen: nur Standbilder gesichtet, kein Gerätetest; Rollenzeichen sitzen bei Ghul und Goblin fest an der Figur; Laufzyklen nicht auf das Core-Tempo abgestimmt.
+- Nächste Schritte: neues Dark-Fantasy-Interieur aus den Requisitenpaketen, Gegner-Drops (Schwert, Schild, Holzpanzer, Hörnerhelm; Owner-Entscheid zur Rüstungsregel nötig), Dark-Souls-Design der sechs Rollen (Owner-Auftrag vom 24.11.), Monster in den Zufalls-Dungeons.
+- [Technische Abnahme](../crypt-enemies-20261124/acceptance.md)
