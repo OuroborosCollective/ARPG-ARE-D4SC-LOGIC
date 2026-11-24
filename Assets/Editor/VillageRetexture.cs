@@ -57,44 +57,38 @@ namespace AreArpg.EditorTools
             if (plan == null || plan.bindings == null || plan.bindings.Length == 0)
                 throw new InvalidOperationException("Village bindings name no material");
             int size = Mathf.Clamp(Mathf.ClosestPowerOfTwo(plan.maxSize), 64, 2048);
+            Check(plan, folder); // every name and path is judged before the first write
             var copies = new Dictionary<Material, Material>();
-            var seen = new HashSet<string>(StringComparer.Ordinal);
             int changed = 0;
             foreach (Binding binding in plan.bindings)
             {
-                if (binding == null || !seen.Add(binding.material ?? "")) throw new InvalidOperationException("Empty or repeated village binding");
-                Material source = AssetDatabase.LoadAssetAtPath<Material>(Readable(binding.material));
-                if (source == null) throw new InvalidOperationException("Village binding names no material: " + binding.material);
+                Material source = AssetDatabase.LoadAssetAtPath<Material>(binding.material);
                 Texture2D picture = Picture(folder, binding.albedo, false, size);
                 Texture2D normal = string.IsNullOrEmpty(binding.normal) ? null : Picture(folder, binding.normal, true, size);
-                Material target;
-                if (binding.inPlace)
-                {
-                    Writable(binding.material, folder);
-                    target = source;
-                }
-                else
+                Material target = source;
+                Texture before = Shown(source);
+                if (!binding.inPlace)
                 {
                     string path = folder + "Materials/" + source.name + ".mat";
                     Directory.CreateDirectory(folder + "Materials");
                     target = AssetDatabase.LoadAssetAtPath<Material>(path);
+                    before = target != null ? Shown(target) : null;
                     if (target == null) { target = new Material(source); AssetDatabase.CreateAsset(target, path); }
                     target.shader = source.shader;
-                    target.CopyPropertiesFromMaterial(source);
+                    target.CopyPropertiesFromMaterial(source); // a copy follows its source in everything but the pictures
                     copies.Add(source, target);
                 }
-                if (Dress(target, binding, picture, normal)) changed++;
+                Dress(target, binding, picture, normal);
+                if (before != picture) changed++;
                 EditorUtility.SetDirty(target);
             }
             AssetDatabase.SaveAssets();
             foreach (string prefab in plan.prefabs ?? new string[0])
-                changed += Rebind(Writable(prefab, folder), renderer => true, slot => copies.TryGetValue(slot, out Material copy) ? copy : slot);
+                changed += Rebind(prefab, renderer => true, slot => copies.TryGetValue(slot, out Material copy) ? copy : slot);
             foreach (Swap swap in plan.swaps ?? new Swap[0])
             {
-                if (swap == null || string.IsNullOrEmpty(swap.child)) throw new InvalidOperationException("Village swap names no part");
-                Material material = AssetDatabase.LoadAssetAtPath<Material>(Readable(swap.material));
-                if (material == null) throw new InvalidOperationException("Village swap names no material: " + swap.material);
-                changed += Rebind(Writable(swap.prefab, folder), renderer => Under(renderer.transform, swap.child), slot => material);
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(swap.material);
+                changed += Rebind(swap.prefab, renderer => Under(renderer.transform, swap.child), slot => material);
             }
             AssetDatabase.SaveAssets();
             Debug.Log("ARE_VILLAGE_RETEXTURE bindings=" + plan.bindings.Length + " changed=" + changed);
@@ -121,18 +115,53 @@ namespace AreArpg.EditorTools
             return left;
         }
 
-        private static bool Dress(Material target, Binding binding, Texture2D picture, Texture2D normal)
+        /// <summary>Judges the whole plan without writing: names, paths, and that every named asset is there.</summary>
+        private static void Check(Bindings plan, string folder)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (Binding binding in plan.bindings)
+            {
+                if (binding == null || !seen.Add(binding.material ?? "")) throw new InvalidOperationException("Empty or repeated village binding");
+                if (binding.inPlace) Writable(binding.material, folder); else Readable(binding.material);
+                Material source = AssetDatabase.LoadAssetAtPath<Material>(binding.material);
+                if (source == null) throw new InvalidOperationException("Village binding names no material: " + binding.material);
+                if (MainProperty(source) == null) throw new InvalidOperationException("Village material shows no picture: " + source.name);
+                PicturePath(folder, binding.albedo);
+                if (!string.IsNullOrEmpty(binding.normal))
+                {
+                    PicturePath(folder, binding.normal);
+                    if (!source.HasProperty("_BumpMap")) throw new InvalidOperationException("Village material takes no normal map: " + source.name);
+                }
+            }
+            foreach (string prefab in plan.prefabs ?? new string[0]) Built(prefab, folder);
+            foreach (Swap swap in plan.swaps ?? new Swap[0])
+            {
+                if (swap == null || string.IsNullOrEmpty(swap.child)) throw new InvalidOperationException("Village swap names no part");
+                Built(swap.prefab, folder);
+                if (AssetDatabase.LoadAssetAtPath<Material>(Readable(swap.material)) == null)
+                    throw new InvalidOperationException("Village swap names no material: " + swap.material);
+            }
+        }
+
+        private static void Built(string prefab, string folder)
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(Writable(prefab, folder)) == null) throw new InvalidOperationException("Village prefab missing: " + prefab);
+        }
+
+        private static Texture Shown(Material material)
+        {
+            string main = MainProperty(material);
+            return main == null ? null : material.GetTexture(main);
+        }
+
+        private static void Dress(Material target, Binding binding, Texture2D picture, Texture2D normal)
         {
             string main = MainProperty(target);
-            if (main == null) throw new InvalidOperationException("Village material shows no picture: " + target.name);
-            bool changed = target.GetTexture(main) != picture;
             target.SetTexture(main, picture);
             foreach (string twin in new[] { "_BaseMap", "_MainTex" })
                 if (twin != main && target.HasProperty(twin)) target.SetTexture(twin, picture);
             if (normal != null)
             {
-                if (!target.HasProperty("_BumpMap")) throw new InvalidOperationException("Village material takes no normal map: " + target.name);
-                changed |= target.GetTexture("_BumpMap") != normal;
                 target.SetTexture("_BumpMap", normal);
                 if (target.HasProperty("_BumpScale")) target.SetFloat("_BumpScale", binding.normalScale);
                 target.EnableKeyword("_NORMALMAP");
@@ -141,7 +170,6 @@ namespace AreArpg.EditorTools
             if (binding.tintWhite)
                 foreach (string tint in new[] { "_BaseColor", "_Color" })
                     if (target.HasProperty(tint)) target.SetColor(tint, Color.white);
-            return changed;
         }
 
         /// <summary>The property that holds the picture a material shows: URP's, the built-in one, or a pack shader's first colour map.</summary>
@@ -161,7 +189,6 @@ namespace AreArpg.EditorTools
 
         private static int Rebind(string prefab, Func<Renderer, bool> wanted, Func<Material, Material> worn)
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(prefab) == null) throw new InvalidOperationException("Village prefab missing: " + prefab);
             GameObject root = PrefabUtility.LoadPrefabContents(prefab);
             int changed = 0;
             try
@@ -192,12 +219,18 @@ namespace AreArpg.EditorTools
             return false;
         }
 
-        private static Texture2D Picture(string folder, string id, bool normal, int size)
+        private static string PicturePath(string folder, string id)
         {
             if (string.IsNullOrEmpty(id) || !PictureId.IsMatch(id) || id.Contains("..")) throw new InvalidOperationException("Invalid village picture name: " + id);
             string path = folder + id + ".png";
-            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
-            if (importer == null) throw new InvalidOperationException("Village picture missing: " + path);
+            if (!(AssetImporter.GetAtPath(path) is TextureImporter)) throw new InvalidOperationException("Village picture missing: " + path);
+            return path;
+        }
+
+        private static Texture2D Picture(string folder, string id, bool normal, int size)
+        {
+            string path = PicturePath(folder, id);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
             TextureImporterPlatformSettings android = importer.GetPlatformTextureSettings("Android");
             TextureImporterType type = normal ? TextureImporterType.NormalMap : TextureImporterType.Default;
             if (importer.textureType != type || importer.sRGBTexture == normal || !importer.mipmapEnabled || importer.isReadable ||
