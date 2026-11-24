@@ -61,19 +61,19 @@ namespace AreArpg.EditMode.Tests
 
             Material copy = AssetDatabase.LoadAssetAtPath<Material>(Folder + "Materials/Source.mat");
             Assert.IsNotNull(copy, "the copy lives in the private folder");
-            Assert.AreSame(_dark, copy.GetTexture("_BaseMap"));
+            Assert.AreEqual(Where(_dark), Where(copy.GetTexture("_BaseMap")));
             Assert.AreEqual(new Color(.9f, .8f, .7f), copy.GetColor("_BaseColor"), "a copy keeps the source's other values");
-            Assert.AreSame(_old, _source.GetTexture("_BaseMap"), "the source material is only read");
-            Assert.AreSame(_dark, _own.GetTexture("_BaseMap"), "a material of the game's own builders changes where it is");
+            Assert.AreEqual(Where(_old), Where(_source.GetTexture("_BaseMap")), "the source material is only read");
+            Assert.AreEqual(Where(_dark), Where(_own.GetTexture("_BaseMap")), "a material of the game's own builders changes where it is");
             Assert.IsNotNull(_own.GetTexture("_BumpMap"));
             Assert.IsTrue(_own.IsKeywordEnabled("_NORMALMAP"));
             Assert.AreEqual(Color.white, _own.GetColor("_BaseColor"));
             Assert.AreEqual(.1f, _own.GetFloat("_Smoothness"), 1e-4f);
 
             Material[] wall = Slots("Wall"), hill = Slots("Hill");
-            Assert.AreSame(copy, wall[0]);
-            Assert.AreSame(_own, wall[1]);
-            Assert.AreSame(_other, hill[0], "a named part takes the material its swap gives it");
+            Assert.AreEqual(Where(copy), Where(wall[0]));
+            Assert.AreEqual(Where(_own), Where(wall[1]));
+            Assert.AreEqual(Where(_other), Where(hill[0]), "a named part takes the material its swap gives it");
             var normal = (TextureImporter)AssetImporter.GetAtPath(Folder + "dark_normal.png");
             Assert.AreEqual(TextureImporterType.NormalMap, normal.textureType);
             var picture = (TextureImporter)AssetImporter.GetAtPath(Folder + "dark.png");
@@ -96,7 +96,8 @@ namespace AreArpg.EditMode.Tests
             }
             finally { PrefabUtility.UnloadPrefabContents(root); }
 
-            Assert.AreEqual(1, Unapplied(Folder).Count);
+            List<string> left = Unapplied(Folder);
+            Assert.AreEqual(1, left.Count, string.Join(" | ", left));
             Assert.AreEqual(1, Apply(Folder));
             CollectionAssert.IsEmpty(Unapplied(Folder));
         }
@@ -118,8 +119,8 @@ namespace AreArpg.EditMode.Tests
             Bind("\"prefabs\": [\"" + Folder + "House.prefab\"]", own: "Assets/PrivateArt/README.md");
             Assert.Throws<InvalidOperationException>(() => Apply(Folder), "nothing outside the folder changes in place");
 
-            Assert.AreSame(_source, Slots("Wall")[0], "the prefab still wears its source");
-            Assert.AreSame(_old, _own.GetTexture("_BaseMap"));
+            Assert.AreEqual(Where(_source), Where(Slots("Wall")[0]), "the prefab still wears its source");
+            Assert.AreEqual(Where(_old), Where(_own.GetTexture("_BaseMap")));
         }
 
         [Test]
@@ -136,6 +137,9 @@ namespace AreArpg.EditMode.Tests
                 + "{\"material\": \"" + own + "\", \"albedo\": \"dark\", \"normal\": \"dark_normal\", \"smoothness\": 0.1, \"tintWhite\": true, \"inPlace\": true}],"
                 + prefabs + ", \"swaps\": [{\"prefab\": \"" + Folder + "House.prefab\", \"child\": \"Hill\", \"material\": \"" + Folder + "Other.mat\"}]}");
         }
+
+        /// <summary>Unity hands out a new managed wrapper after a reimport: an asset is known by where it lives.</summary>
+        private static string Where(UnityEngine.Object asset) { return AssetDatabase.GetAssetPath(asset); }
 
         private static int Apply(string folder) { return (int)Call("Apply", folder); }
 
