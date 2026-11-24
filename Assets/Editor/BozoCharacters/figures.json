@@ -145,11 +145,11 @@
       ]
     },
     {
-      "id": "hero", "role": "Der Wanderer (Spielfigur) in der Dark-Souls-Fassung (Owner-Auftrag 2026-11-24): dunkler Schwertkämpfer; verwitterter kohlschwarzer Waffenrock mit angelaufenen Stahlplatten an Brust und Armen, Lederriemen, ein Umhang in verblichenem Blutrot mit zurückgeschlagener Kapuze, dunkle Reisehose, hohe geschwärzte Lederstiefel und Handschuhe; das junge Gesicht und das Haar bleiben wie zuvor. Stoff-, Leder- und Metallfarben sind für die Aufhellung des Bakers (Exponent 0.6) abgedunkelt.",
+      "id": "hero", "role": "Der Wanderer (Spielfigur) in der Dark-Souls-Fassung (Owner-Auftrag 2026-11-24): dunkler Schwertkämpfer; verwitterter kohlschwarzer Waffenrock mit angelaufenen Stahlplatten an Brust und Armen, Lederriemen, ein Umhang in verblichenem Blutrot mit zurückgeschlagener Kapuze, Soldatenschultern aus angelaufenem Stahl, dunkle Reisehose, hohe geschwärzte Lederstiefel und Handschuhe; das junge Gesicht und das Haar bleiben wie zuvor. Stoff-, Leder- und Metallfarben sind für die Aufhellung des Bakers (Exponent 0.6) abgedunkelt.",
       "base": "Fantasy/Hero", "height": 1.9, "texture": 2048, "motion": "m", "keys": ["Hero"], "sources": ["HeroSource"],
       "body": [],
       "face": [],
-      "remove": ["Shoulders"],
+      "remove": [],
       "outfits": [
         {"slot": "Head", "id": "Head_YoungSharpHead", "colors": ["#c08a6c", "#6a1c14", "#d6a388", "#ecebe6", "#6a3a30", "#7a2a22"]},
         {"slot": "Body", "id": "Body_StrongBody", "colors": ["#c08a6c", "#6a1c14", "#8a3a28"]},
@@ -157,6 +157,7 @@
         {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#2f2620"]},
         {"slot": "Top", "id": "Top_VanguardCoat", "colors": ["#0e0d0c", "#201b13", "#131416", "#16100d", "#0c0c0d", "#0c0c0d", "#0f1113", "#202223", "#121316"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.35, "fabricScale": 3},
         {"slot": "Neck", "id": "Neck_HoodedCape", "colors": ["#1d0d0b", "#0d0605"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.4, "fabricScale": 7},
+        {"slot": "Shoulders", "id": "Shoulders_SoldiersPauldrons", "colors": ["#202223", "#131416", "#131416", "#131416", "#131416", "#131416", "#131416", "#131416", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.35, "fabricScale": 3},
         {"slot": "Bottom", "id": "Bottom_TightTravelPants", "colors": ["#0b0a0a", "#0b0a0a", "#070706", "#070706", "#16100d"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.25, "fabricScale": 9},
         {"slot": "Feet", "id": "Feet_ForestLongBoots", "colors": ["#0d0a08", "#090706", "#0d0a08", "#16100d", "#030302"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
         {"slot": "Gloves", "id": "Gloves_LeatherGloves", "colors": ["#0d0a08", "#16100d", "#090706", "#0d0a08", "#16100d", "#0d0a08"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
