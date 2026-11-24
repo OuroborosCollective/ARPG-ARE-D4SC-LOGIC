@@ -53,77 +53,114 @@ namespace AreArpg.PlayMode.Tests
             try
             {
                 Time.captureDeltaTime = .05f;
-                foreach (MonsterState enemy in figures)
+                foreach (MonsterState enemy in figures) yield return EnemyFollowsTheCore(enemy);
+
+                // The owner's own model as the Ember Warden: the same contract, a sword in its hand and no blockout crown.
+                if (Resources.Load<GameObject>("ARE/Visuals/EntryEnemy3") != null) // built from the owner's model only
                 {
-                    // Everybody else waits far away; this one stands in front of the hero and the Core leaves it alone.
-                    foreach (MonsterState other in Game.Monsters)
-                        if (other != enemy && !other.IsDead) { other.Xmm = other.PreviousXmm = 26000; other.Zmm = other.PreviousZmm = 26000 - 1500L * other.Id; }
-                    enemy.Xmm = enemy.PreviousXmm = Game.PlayerXmm + 1700; enemy.Zmm = enemy.PreviousZmm = Game.PlayerZmm;
-                    enemy.Health = enemy.MaxHealth; enemy.BossWindupTicks = 0; enemy.AttackCooldownTicks = 0;
-                    Transform visual = Find("Enemy_" + enemy.Id).transform;
-                    Animator animator = ClipEnemy(visual.gameObject);
-                    string label = "Kind " + enemy.Kind + ": ";
-                    var clips = animator.runtimeAnimatorController.animationClips.GroupBy(c => c.name).ToDictionary(g => g.Key, g => g.First());
-                    AnimationClip attack = clips.First(pair => pair.Key.EndsWith("Attack")).Value, death = clips.First(pair => pair.Key.EndsWith("Death")).Value;
-                    Assert.IsFalse(attack.isLooping || death.isLooping, label + "attack and death play once");
-                    yield return EnemyFrames(6);
-                    Assert.IsTrue(EnemyShows(animator, "Idle"), label + "a standing enemy idles");
-                    SaveReviewFrame("enemy-clip-" + enemy.Kind + "-idle.png");
-
-                    // The Core announces the blow: the clip starts now and is at its blow when the windup ends.
-                    int windup = CombatV2Rules.EnemyWindupTicks(enemy.Role, enemy.Kind);
-                    enemy.BossWindupTicks = windup; enemy.AttackCooldownTicks = windup + 1 + CombatV2Rules.EnemyRecoveryTicks(enemy.Role, enemy.Kind);
-                    yield return EnemyFrames(1);
-                    Assert.IsTrue(EnemyShows(animator, "Attack"), label + "the attack clip starts with the Core's windup");
-                    Assert.AreEqual(1f / (windup * .1f), animator.GetFloat("AttackSpeed"), .01f, label + "the clip is paced by the Core's windup");
-                    Vector3 toHero = Find("Wanderer").transform.position - visual.position; toHero.y = 0f;
-                    Assert.Greater(Vector3.Dot(visual.forward, toHero.normalized), .95f, label + "the enemy turns to the hero as it winds up");
-                    yield return EnemyFrames(windup); // half of the windup: two frames of 0.05 s are one tick
-                    SaveReviewFrame("enemy-clip-" + enemy.Kind + "-windup.png");
-                    yield return EnemyFrames(windup - 1);
-                    AnimatorStateInfo swing = animator.GetCurrentAnimatorStateInfo(0);
-                    Assert.IsTrue(swing.IsName("Attack"), label + "the attack still plays when the windup ends");
-                    float clipSeconds = swing.normalizedTime * attack.length;
-                    Debug.Log("ENEMY_CLIP kind=" + enemy.Kind + " windupTicks=" + windup + " stateSpeed=" + swing.speed.ToString("0.000") +
-                        " multiplier=" + swing.speedMultiplier.ToString("0.000") + " clipSecondsAtWindupEnd=" + clipSeconds.ToString("0.000") +
-                        " attackLength=" + attack.length.ToString("0.00") + " deathLength=" + death.length.ToString("0.00"));
-                    // By the controller's contract the state's own speed is the second of the clip at which the blow lands.
-                    Assert.AreEqual(swing.speed, clipSeconds, .1f, label + "when the Core's windup ends the clip is at its blow");
-                    enemy.BossWindupTicks = 0;
-                    SaveReviewFrame("enemy-clip-" + enemy.Kind + "-blow.png");
-
-                    // A blow that lands while the enemy winds up again does not break its announcement.
-                    yield return EnemyFrames(4);
-                    enemy.BossWindupTicks = windup;
-                    yield return EnemyFrames(1);
-                    enemy.Health -= 5;
-                    yield return EnemyFrames(2);
-                    Assert.IsTrue(EnemyShows(animator, "Attack") && !EnemyShows(animator, "Hit"), label + "an enemy that winds up does not flinch");
-                    enemy.BossWindupTicks = 0;
-                    yield return EnemyFrames(2);
-                    enemy.Health -= 5;
-                    yield return EnemyFrames(2);
-                    Assert.IsTrue(EnemyShows(animator, "Hit"), label + "a free enemy flinches when a blow gets through");
-                    SaveReviewFrame("enemy-clip-" + enemy.Kind + "-hit.png");
-                    yield return EnemyFrames(30);
-                    Assert.IsFalse(EnemyShows(animator, "Hit"), label + "the flinch passes");
-
-                    // Defeat: the death clip plays upright where the enemy stood; then it lies still and is removed.
-                    enemy.Health = 0;
-                    yield return EnemyFrames(3);
-                    Assert.IsTrue(EnemyShows(animator, "Death") && animator.GetBool("Dead"), label + "a defeated enemy plays its death clip");
-                    Assert.Greater(animator.speed, 0f, label + "the death clip is not frozen");
-                    int fallFrames = Mathf.CeilToInt(death.length / .05f);
-                    yield return EnemyFrames(fallFrames);
-                    Assert.IsTrue(visual.gameObject.activeSelf, label + "the fallen enemy is still there when its clip ends");
-                    Assert.Less(Vector3.Angle(visual.up, Vector3.up), 1f, label + "the clip does the falling, not an optical topple");
-                    SaveReviewFrame("enemy-clip-" + enemy.Kind + "-death.png");
-                    bool removed = false;
-                    for (int frame = 0; frame < 60 && !removed; frame++) { yield return EnemyFrames(1); removed = !visual.gameObject.activeSelf; }
-                    Assert.IsTrue(removed, label + "the fallen enemy is removed after it lay still");
+                    int kind = figures[0].Kind;
+                    MonsterState warden = DressAsEmberWarden(figures[0]);
+                    try
+                    {
+                        Transform visual = Find("Enemy_" + warden.Id).transform;
+                        Animator rig = ClipEnemy(visual.gameObject);
+                        Assert.IsNotNull(rig, "The Ember Warden's entry figure follows the clip contract");
+                        Assert.IsFalse(visual.GetComponentsInChildren<Transform>(true).Any(part => part.name == "Ember_Warden_Crown"),
+                            "The blockout crown belongs to the earlier stand-in only");
+                        Transform sword = visual.GetComponentsInChildren<Transform>(true).FirstOrDefault(part => part.name == PassiveArtVisuals.CarriedPrefix + "Sword");
+                        Assert.IsTrue(sword != null && sword.parent == rig.GetBoneTransform(HumanBodyBones.RightHand), "The Ember Warden holds its sword in the right hand");
+                        yield return EnemyFollowsTheCore(warden);
+                    }
+                    finally { warden.Kind = kind; }
                 }
             }
             finally { Time.captureDeltaTime = before; }
+        }
+
+        /// <summary>One enemy figure through the Core's signals: idle, windup and blow, flinch, defeat and removal.</summary>
+        private IEnumerator EnemyFollowsTheCore(MonsterState enemy)
+        {
+                // Everybody else waits far away; this one stands in front of the hero and the Core leaves it alone.
+                foreach (MonsterState other in Game.Monsters)
+                    if (other != enemy && !other.IsDead) { other.Xmm = other.PreviousXmm = 26000; other.Zmm = other.PreviousZmm = 26000 - 1500L * other.Id; }
+                enemy.Xmm = enemy.PreviousXmm = Game.PlayerXmm + 1700; enemy.Zmm = enemy.PreviousZmm = Game.PlayerZmm;
+                enemy.Health = enemy.MaxHealth; enemy.BossWindupTicks = 0; enemy.AttackCooldownTicks = 0;
+                Transform visual = Find("Enemy_" + enemy.Id).transform;
+                Animator animator = ClipEnemy(visual.gameObject);
+                string label = "Kind " + enemy.Kind + ": ";
+                var clips = animator.runtimeAnimatorController.animationClips.GroupBy(c => c.name).ToDictionary(g => g.Key, g => g.First());
+                AnimationClip attack = clips.First(pair => pair.Key.EndsWith("Attack")).Value, death = clips.First(pair => pair.Key.EndsWith("Death")).Value;
+                Assert.IsFalse(attack.isLooping || death.isLooping, label + "attack and death play once");
+                yield return EnemyFrames(6);
+                Assert.IsTrue(EnemyShows(animator, "Idle"), label + "a standing enemy idles");
+                SaveReviewFrame("enemy-clip-" + enemy.Kind + "-idle.png");
+
+                // The Core announces the blow: the clip starts now and is at its blow when the windup ends.
+                int windup = CombatV2Rules.EnemyWindupTicks(enemy.Role, enemy.Kind);
+                enemy.BossWindupTicks = windup; enemy.AttackCooldownTicks = windup + 1 + CombatV2Rules.EnemyRecoveryTicks(enemy.Role, enemy.Kind);
+                yield return EnemyFrames(1);
+                Assert.IsTrue(EnemyShows(animator, "Attack"), label + "the attack clip starts with the Core's windup");
+                Assert.AreEqual(1f / (windup * .1f), animator.GetFloat("AttackSpeed"), .01f, label + "the clip is paced by the Core's windup");
+                Vector3 toHero = Find("Wanderer").transform.position - visual.position; toHero.y = 0f;
+                Assert.Greater(Vector3.Dot(visual.forward, toHero.normalized), .95f, label + "the enemy turns to the hero as it winds up");
+                yield return EnemyFrames(windup); // half of the windup: two frames of 0.05 s are one tick
+                SaveReviewFrame("enemy-clip-" + enemy.Kind + "-windup.png");
+                yield return EnemyFrames(windup - 1);
+                AnimatorStateInfo swing = animator.GetCurrentAnimatorStateInfo(0);
+                Assert.IsTrue(swing.IsName("Attack"), label + "the attack still plays when the windup ends");
+                float clipSeconds = swing.normalizedTime * attack.length;
+                Debug.Log("ENEMY_CLIP kind=" + enemy.Kind + " windupTicks=" + windup + " stateSpeed=" + swing.speed.ToString("0.000") +
+                    " multiplier=" + swing.speedMultiplier.ToString("0.000") + " clipSecondsAtWindupEnd=" + clipSeconds.ToString("0.000") +
+                    " attackLength=" + attack.length.ToString("0.00") + " deathLength=" + death.length.ToString("0.00"));
+                // By the controller's contract the state's own speed is the second of the clip at which the blow lands.
+                Assert.AreEqual(swing.speed, clipSeconds, .1f, label + "when the Core's windup ends the clip is at its blow");
+                enemy.BossWindupTicks = 0;
+                SaveReviewFrame("enemy-clip-" + enemy.Kind + "-blow.png");
+
+                // A blow that lands while the enemy winds up again does not break its announcement.
+                yield return EnemyFrames(4);
+                enemy.BossWindupTicks = windup;
+                yield return EnemyFrames(1);
+                enemy.Health -= 5;
+                yield return EnemyFrames(2);
+                Assert.IsTrue(EnemyShows(animator, "Attack") && !EnemyShows(animator, "Hit"), label + "an enemy that winds up does not flinch");
+                enemy.BossWindupTicks = 0;
+                yield return EnemyFrames(2);
+                enemy.Health -= 5;
+                yield return EnemyFrames(2);
+                Assert.IsTrue(EnemyShows(animator, "Hit"), label + "a free enemy flinches when a blow gets through");
+                SaveReviewFrame("enemy-clip-" + enemy.Kind + "-hit.png");
+                yield return EnemyFrames(30);
+                Assert.IsFalse(EnemyShows(animator, "Hit"), label + "the flinch passes");
+
+                // Defeat: the death clip plays upright where the enemy stood; then it lies still and is removed.
+                enemy.Health = 0;
+                yield return EnemyFrames(3);
+                Assert.IsTrue(EnemyShows(animator, "Death") && animator.GetBool("Dead"), label + "a defeated enemy plays its death clip");
+                Assert.Greater(animator.speed, 0f, label + "the death clip is not frozen");
+                int fallFrames = Mathf.CeilToInt(death.length / .05f);
+                yield return EnemyFrames(fallFrames);
+                Assert.IsTrue(visual.gameObject.activeSelf, label + "the fallen enemy is still there when its clip ends");
+                Assert.Less(Vector3.Angle(visual.up, Vector3.up), 1f, label + "the clip does the falling, not an optical topple");
+                SaveReviewFrame("enemy-clip-" + enemy.Kind + "-death.png");
+                bool removed = false;
+                for (int frame = 0; frame < 60 && !removed; frame++) { yield return EnemyFrames(1); removed = !visual.gameObject.activeSelf; }
+                Assert.IsTrue(removed, label + "the fallen enemy is removed after it lay still");
+        }
+
+        /// <summary>
+        /// The Ember Warden (kind 3) waits at the end of the deeper crypt, not in a new character's first run: one of this
+        /// run's enemies stands in for it, dressed by the runtime exactly as it dresses a spawned monster.
+        /// </summary>
+        private MonsterState DressAsEmberWarden(MonsterState enemy)
+        {
+            typeof(ArenaRuntime).GetMethod("ResetCombatFeel", Flags).Invoke(_runtime, null);
+            var visuals = (Dictionary<int, Transform>)typeof(ArenaRuntime).GetField("_monsterVisuals", Flags).GetValue(_runtime);
+            if (visuals.TryGetValue(enemy.Id, out Transform old) && old != null) Object.DestroyImmediate(old.gameObject);
+            visuals.Remove(enemy.Id);
+            enemy.Kind = 3; enemy.Health = enemy.MaxHealth; enemy.BossWindupTicks = 0; enemy.AttackCooldownTicks = 0;
+            typeof(ArenaRuntime).GetMethod("SpawnMonster", Flags).Invoke(_runtime, new object[] { enemy });
+            return enemy;
         }
 
         /// <summary>The old combat lands its blow without a windup: the enemy still shows its attack, right away.</summary>

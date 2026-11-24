@@ -101,16 +101,18 @@ namespace AreArpg.EditorTools
             {
                 // The owner's model has no flinch: that comes from the licensed humanoid takes, as for the demon. Its hand
                 // is empty in the sword slash, so it holds one of the game's swords; its ember runes glow.
-                Kind = 3, Label = "Glutwaechter", Model = Warden + ".fbx", Human = true, Height = 3f, BlowSeconds = .62f,
+                Kind = 3, Label = "Glutwaechter", Model = Warden + ".fbx", Human = true, Height = 3f, BlowSeconds = .57f,
                 Idle = new Take(Warden + "@Idle.fbx", "Idle", true, true), Move = new Take(Warden + "@Walk.fbx", "Walk", true, true),
                 Attack = new Take(Warden + "@Slash.fbx", "Slash", true, true),
                 Hit = new Take(StarterPack + "Combat/GetHit.fbx", "GetHit", true), Death = new Take(Warden + "@Dead.fbx", "Dead", true, true),
-                Skins = new[] { new Skin { Key = "", Renderers = "", Colour = Warden + "_Colour.png", Saturation = .9f, Gain = 1.7f,
+                Skins = new[] { new Skin { Key = "", Renderers = "", Colour = Warden + "_Colour.png", Saturation = .9f, Gain = 1.35f,
                     Glow = new Color(1f, .42f, .16f), GlowStrength = 2.4f, GlowSaturation = .55f } },
                 Carried = new[]
                 {
+                    // The pommel just behind the fist of the rest pose; the blade runs along the hand's own forward axis, the
+                    // edge along the fingers (read from the slash: the blade trails back in the windup and sweeps the front).
                     new BozoFigureRecipes.Prop { name = "Sword", asset = Output + "Weapons/sword.demonic.prefab", bone = "RightHand",
-                        position = new[] { .69f, 1.50f, .02f }, rotation = new[] { 75f, 0f, 0f }, size = 1.9f, anchor = "bottom", tint = "#8a8580" },
+                        position = new[] { .545f, 1.487f, .356f }, rotation = new[] { 4.6f, 83.2f, 248.1f }, size = 1.9f, anchor = "bottom", tint = "#8a8580" },
                 },
             },
         };
