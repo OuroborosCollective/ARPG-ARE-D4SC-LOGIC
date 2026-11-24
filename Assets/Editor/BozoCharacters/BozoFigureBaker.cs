@@ -783,6 +783,8 @@ namespace AreArpg.EditorTools
                 mesh.tangents = tangents;
             }
             if (recipe.expressions) KeepExpressions(full, skins[0], mesh);
+            if (recipe.tuckHair)
+                Debug.Log("BOZO_HAIR_TUCKED " + recipe.id + " triangles=" + FigureHairTuck.Apply(mesh, vertices, PartRanges(recipe.id, count)));
             mesh.RecalculateBounds();
             return mesh;
         }

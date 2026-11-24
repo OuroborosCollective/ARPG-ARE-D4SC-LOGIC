@@ -115,6 +115,11 @@ namespace AreArpg.EditorTools
             /// figure to life; every other shape is baked flat. Residents of the pool leave it off and stay light.
             /// </summary>
             public bool expressions;
+            /// <summary>
+            /// Cuts the hair that sticks out through the cloth of the figure's hat or hood (see FigureHairTuck). Hair that
+            /// leaves the hat at its rim stays. Off: the mesh is exactly the pack's.
+            /// </summary>
+            public bool tuckHair;
             /// <summary>Things the figure carries; they are hung on the game visuals only (not on source figures).</summary>
             public Prop[] props = new Prop[0];
         }
@@ -217,6 +222,7 @@ namespace AreArpg.EditorTools
             Func<string[], string> slots = list => string.Join(",", (list ?? new string[0]).OrderBy(s => s, StringComparer.Ordinal));
             if (slots(a.remove) != slots(b.remove)) return "remove";
             if (a.parts != b.parts) return "parts";
+            if (a.tuckHair != b.tuckHair) return "tuckHair";
             Func<Outfit[], string> parts = list => string.Join(",", (list ?? new Outfit[0]).Where(o => o != null)
                 .OrderBy(o => o.slot, StringComparer.Ordinal).Select(o => o.slot + "=" + o.id));
             if (parts(a.outfits) != parts(b.outfits)) return "outfits";
