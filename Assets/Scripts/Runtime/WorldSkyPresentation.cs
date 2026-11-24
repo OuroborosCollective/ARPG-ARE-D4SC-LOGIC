@@ -139,9 +139,11 @@ namespace AreArpg.UnityClient
                 _sun.transform.rotation = Quaternion.LookRotation(-lightDirection.normalized, Vector3.forward);
                 Color daylightTint = Color.Lerp(new Color(1.0f, .68f, .45f),
                                                  new Color(1.0f, .92f, .76f), daylight);
-                _sun.color = Color.Lerp(new Color(.45f, .57f, .82f), daylightTint,
+                // Night: a cold moon that still draws dark, worn clothes out of the dark (owner brief 2026-11-24:
+                // cold moonlight against warm light islands).
+                _sun.color = Color.Lerp(new Color(.42f, .56f, .86f), daylightTint,
                                         Mathf.Clamp01(daylight * 4f));
-                _sun.intensity = Mathf.Lerp(0.40f, 1.50f, daylight);
+                _sun.intensity = Mathf.Lerp(0.66f, 1.50f, daylight);
             }
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = Color.Lerp(new Color(0.26f, 0.30f, 0.40f),
