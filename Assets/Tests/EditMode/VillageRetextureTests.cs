@@ -1,0 +1,170 @@
+using System;
+using System.IO;
+using AreArpg.EditorTools;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+
+namespace AreArpg.EditMode.Tests
+{
+    /// <summary>
+    /// The village's dark pictures go onto its built visuals as private copies of the source materials: the source
+    /// stays as it was, a second run changes nothing, a rebuild that puts the source back is noticed, and bindings
+    /// that reach outside the private folder or the built visuals are refused before anything is written.
+    /// </summary>
+    public sealed class VillageRetextureTests
+    {
+        private const string Folder = "Assets/PrivateArt/VillageRetextureTest/";
+        private Material _source, _own, _other;
+        private Texture2D _old, _dark;
+
+        [SetUp]
+        public void Build()
+        {
+            if (AssetDatabase.IsValidFolder(Folder.TrimEnd('/'))) AssetDatabase.DeleteAsset(Folder.TrimEnd('/'));
+            Directory.CreateDirectory(Folder);
+            _old = Picture("old", new Color(.8f, .3f, .1f));
+            _dark = Picture("dark", new Color(.2f, .2f, .22f));
+            Picture("dark_normal", new Color(.5f, .5f, 1f));
+            Shader lit = Shader.Find("Universal Render Pipeline/Lit");
+            _source = Material(lit, "Source", _old, new Color(.9f, .8f, .7f));
+            _own = Material(lit, "Own", _old, new Color(.6f, .6f, .6f));
+            _other = Material(lit, "Other", null, Color.white);
+            var root = new GameObject("House");
+            try
+            {
+                Part(root, "Wall", _source, _own);
+                Part(root, "Hill", _source);
+                PrefabUtility.SaveAsPrefabAsset(root, Folder + "House.prefab");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+            Bind("\"prefabs\": [\"" + Folder + "House.prefab\"]");
+        }
+
+        [TearDown]
+        public void Remove()
+        {
+            AssetDatabase.DeleteAsset(Folder.TrimEnd('/'));
+        }
+
+        [Test]
+        public void TheBuiltPrefabWearsACopyAndTheSourceStaysAsItWas()
+        {
+            Assert.Greater(VillageRetexture.Apply(Folder), 0);
+
+            Material copy = AssetDatabase.LoadAssetAtPath<Material>(Folder + "Materials/Source.mat");
+            Assert.IsNotNull(copy, "the copy lives in the private folder");
+            Assert.AreSame(_dark, copy.GetTexture("_BaseMap"));
+            Assert.AreEqual(new Color(.9f, .8f, .7f), copy.GetColor("_BaseColor"), "a copy keeps the source's other values");
+            Assert.AreSame(_old, _source.GetTexture("_BaseMap"), "the source material is only read");
+            Assert.AreSame(_dark, _own.GetTexture("_BaseMap"), "a material of the game's own builders changes where it is");
+            Assert.IsNotNull(_own.GetTexture("_BumpMap"));
+            Assert.IsTrue(_own.IsKeywordEnabled("_NORMALMAP"));
+            Assert.AreEqual(Color.white, _own.GetColor("_BaseColor"));
+            Assert.AreEqual(.1f, _own.GetFloat("_Smoothness"), 1e-4f);
+
+            Material[] wall = Slots("Wall"), hill = Slots("Hill");
+            Assert.AreSame(copy, wall[0]);
+            Assert.AreSame(_own, wall[1]);
+            Assert.AreSame(_other, hill[0], "a named part takes the material its swap gives it");
+            var normal = (TextureImporter)AssetImporter.GetAtPath(Folder + "dark_normal.png");
+            Assert.AreEqual(TextureImporterType.NormalMap, normal.textureType);
+            var picture = (TextureImporter)AssetImporter.GetAtPath(Folder + "dark.png");
+            Assert.AreEqual(64, picture.GetPlatformTextureSettings("Android").maxTextureSize, "pictures keep the tablet's budget");
+            Assert.IsFalse(picture.isReadable);
+
+            CollectionAssert.IsEmpty(VillageRetexture.Unapplied(Folder));
+            Assert.AreEqual(0, VillageRetexture.Apply(Folder), "a second run finds nothing to change");
+        }
+
+        [Test]
+        public void ARebuildThatPutsTheSourceBackIsNoticedAndRepaired()
+        {
+            VillageRetexture.Apply(Folder);
+            GameObject root = PrefabUtility.LoadPrefabContents(Folder + "House.prefab");
+            try
+            {
+                root.transform.Find("Wall").GetComponent<Renderer>().sharedMaterials = new[] { _source, _own };
+                PrefabUtility.SaveAsPrefabAsset(root, Folder + "House.prefab");
+            }
+            finally { PrefabUtility.UnloadPrefabContents(root); }
+
+            Assert.AreEqual(1, VillageRetexture.Unapplied(Folder).Count);
+            Assert.AreEqual(1, VillageRetexture.Apply(Folder));
+            CollectionAssert.IsEmpty(VillageRetexture.Unapplied(Folder));
+        }
+
+        [Test]
+        public void BindingsThatReachOutsideAreRefusedBeforeAnythingIsWritten()
+        {
+            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply("Assets/Scripts/"), "pictures live below the private art");
+            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder + "../VillageRetextureTest/"), "no climbing out");
+
+            Bind("\"prefabs\": [\"Assets/Scenes/Somewhere.prefab\"]");
+            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder), "only built visuals are written");
+            Bind("\"prefabs\": [\"" + Folder + "../VillageRetextureTest/House.prefab\"]");
+            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder));
+            Bind("\"prefabs\": [\"" + Folder + "House.prefab\"]", picture: "../dark");
+            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder), "a picture is a plain name");
+            Bind("\"prefabs\": [\"" + Folder + "House.prefab\"]", picture: "missing");
+            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder), "a missing picture stops the run");
+            Bind("\"prefabs\": [\"" + Folder + "House.prefab\"]", own: "Assets/PrivateArt/README.md");
+            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder), "nothing outside the folder changes in place");
+
+            Assert.AreSame(_source, Slots("Wall")[0], "the prefab still wears its source");
+            Assert.AreSame(_old, _own.GetTexture("_BaseMap"));
+        }
+
+        [Test]
+        public void TheInstalledVillageWearsItsDarkPictures()
+        {
+            if (!VillageRetexture.Installed) Assert.Ignore("Requires the private village pictures");
+            CollectionAssert.IsEmpty(VillageRetexture.Unapplied(VillageRetexture.DefaultFolder));
+        }
+
+        private static void Bind(string prefabs, string picture = "dark", string own = Folder + "Own.mat")
+        {
+            File.WriteAllText(Folder + VillageRetexture.BindingsFile, "{\"maxSize\": 64, \"bindings\": ["
+                + "{\"material\": \"" + Folder + "Source.mat\", \"albedo\": \"" + picture + "\"},"
+                + "{\"material\": \"" + own + "\", \"albedo\": \"dark\", \"normal\": \"dark_normal\", \"smoothness\": 0.1, \"tintWhite\": true, \"inPlace\": true}],"
+                + prefabs + ", \"swaps\": [{\"prefab\": \"" + Folder + "House.prefab\", \"child\": \"Hill\", \"material\": \"" + Folder + "Other.mat\"}]}");
+        }
+
+        private static Material[] Slots(string part)
+        {
+            return AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "House.prefab").transform.Find(part).GetComponent<Renderer>().sharedMaterials;
+        }
+
+        private static void Part(GameObject root, string name, params Material[] materials)
+        {
+            var part = new GameObject(name);
+            part.transform.SetParent(root.transform, false);
+            part.AddComponent<MeshFilter>().sharedMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            part.AddComponent<MeshRenderer>().sharedMaterials = materials;
+        }
+
+        private static Material Material(Shader shader, string name, Texture2D picture, Color tint)
+        {
+            var material = new Material(shader);
+            material.SetTexture("_BaseMap", picture);
+            material.SetColor("_BaseColor", tint);
+            AssetDatabase.CreateAsset(material, Folder + name + ".mat");
+            return material;
+        }
+
+        private static Texture2D Picture(string name, Color colour)
+        {
+            var pixels = new Texture2D(4, 4, TextureFormat.RGBA32, false);
+            try
+            {
+                var fill = new Color[16];
+                for (int i = 0; i < fill.Length; i++) fill[i] = colour;
+                pixels.SetPixels(fill);
+                File.WriteAllBytes(Folder + name + ".png", pixels.EncodeToPNG());
+            }
+            finally { UnityEngine.Object.DestroyImmediate(pixels); }
+            AssetDatabase.ImportAsset(Folder + name + ".png", ImportAssetOptions.ForceSynchronousImport);
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(Folder + name + ".png");
+        }
+    }
+}

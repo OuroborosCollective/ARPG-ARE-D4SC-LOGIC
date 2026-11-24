@@ -71,6 +71,8 @@ namespace AreArpg.EditorTools
             EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
             AssetDatabase.SaveAssets();
             AuditInputs();
+            // A rebuild puts the source materials back on the village; its dark pictures go on again where they are installed.
+            if (VillageRetexture.Installed) VillageRetexture.ApplyDefault();
             Debug.Log("ARE_ENTRY_ART_BUILT: crypt, village, supply parcels; private render-only prefabs.");
         }
 

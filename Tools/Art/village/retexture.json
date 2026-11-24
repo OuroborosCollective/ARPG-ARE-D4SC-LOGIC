@@ -1,0 +1,421 @@
+{
+ "surfaces": [
+  {
+   "id": "road.cobble",
+   "source": "road.cobble",
+   "size": 1024,
+   "saturation": 0.5,
+   "gain": 0.58,
+   "contrast": 1.08,
+   "tint": [
+    0.9,
+    0.96,
+    1.06
+   ],
+   "normalFromLuma": 1.3
+  },
+  {
+   "id": "ground.earth",
+   "source": "ground.earth",
+   "size": 1024,
+   "saturation": 0.45,
+   "gain": 0.62,
+   "tint": [
+    0.95,
+    0.97,
+    1.04
+   ],
+   "normalFromLuma": 1.6
+  },
+  {
+   "id": "palisade",
+   "source": "palisade",
+   "size": 1024,
+   "saturation": 0.5,
+   "gain": 0.62,
+   "tint": [
+    0.94,
+    0.97,
+    1.05
+   ]
+  },
+  {
+   "id": "barrel",
+   "source": "barrel",
+   "size": 512,
+   "saturation": 0.55,
+   "gain": 0.7,
+   "tint": [
+    0.95,
+    0.97,
+    1.03
+   ]
+  },
+  {
+   "id": "fence",
+   "source": "fence",
+   "size": 512,
+   "saturation": 0.55,
+   "gain": 0.7,
+   "tint": [
+    0.95,
+    0.97,
+    1.03
+   ]
+  },
+  {
+   "id": "logpile",
+   "source": "logpile",
+   "size": 512,
+   "saturation": 0.55,
+   "gain": 0.7,
+   "tint": [
+    0.95,
+    0.97,
+    1.03
+   ]
+  },
+  {
+   "id": "gate.a",
+   "source": "gate.a",
+   "size": 512,
+   "saturation": 0.55,
+   "gain": 0.68,
+   "tint": [
+    0.95,
+    0.97,
+    1.03
+   ]
+  },
+  {
+   "id": "gate.b",
+   "source": "gate.b",
+   "size": 512,
+   "saturation": 0.55,
+   "gain": 0.68,
+   "tint": [
+    0.95,
+    0.97,
+    1.03
+   ]
+  },
+  {
+   "id": "foliage",
+   "source": "foliage",
+   "size": 1024,
+   "saturation": 0.8,
+   "gain": 0.8,
+   "hues": [
+    {
+     "from": 60,
+     "to": 175,
+     "saturation": 0.28,
+     "gain": 0.5,
+     "tint": [
+      0.95,
+      1.0,
+      1.02
+     ]
+    },
+    {
+     "from": 345,
+     "to": 32,
+     "saturation": 0.5,
+     "gain": 0.42
+    },
+    {
+     "from": 33,
+     "to": 59,
+     "saturation": 0.4,
+     "gain": 0.55
+    }
+   ]
+  },
+  {
+   "id": "house.atlas",
+   "source": "house.atlas",
+   "size": 1024,
+   "saturation": 0.5,
+   "gain": 0.6,
+   "regions": [
+    {
+     "rect": [
+      0.0,
+      0.0,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.22,
+     "gain": 0.5,
+     "tint": [
+      0.96,
+      1.0,
+      1.0
+     ]
+    },
+    {
+     "rect": [
+      0.25,
+      0.0,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.28,
+     "gain": 0.46,
+     "tint": [
+      1.03,
+      1.0,
+      0.96
+     ]
+    },
+    {
+     "rect": [
+      0.0,
+      0.25,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.5,
+     "gain": 0.42,
+     "tint": [
+      1.0,
+      0.99,
+      0.95
+     ]
+    },
+    {
+     "rect": [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.28,
+     "gain": 0.48,
+     "tint": [
+      1.02,
+      1.0,
+      0.96
+     ]
+    },
+    {
+     "rect": [
+      0.5,
+      0.0,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.2,
+     "gain": 0.42,
+     "tint": [
+      0.9,
+      0.95,
+      1.08
+     ],
+     "ash": 0.28
+    },
+    {
+     "rect": [
+      0.5,
+      0.25,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.35,
+     "gain": 0.5,
+     "tint": [
+      0.95,
+      0.98,
+      1.05
+     ],
+     "ash": 0.28
+    },
+    {
+     "rect": [
+      0.75,
+      0.75,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.3,
+     "gain": 0.5,
+     "tint": [
+      0.95,
+      0.98,
+      1.06
+     ],
+     "ash": 0.22
+    },
+    {
+     "rect": [
+      0.75,
+      0.0,
+      0.125,
+      0.125
+     ],
+     "saturation": 0.5,
+     "gain": 0.6
+    },
+    {
+     "rect": [
+      0.875,
+      0.0,
+      0.125,
+      0.125
+     ],
+     "saturation": 0.4,
+     "gain": 0.75
+    },
+    {
+     "rect": [
+      0.75,
+      0.125,
+      0.25,
+      0.125
+     ],
+     "saturation": 0.4,
+     "gain": 0.55
+    },
+    {
+     "rect": [
+      0.75,
+      0.25,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.5,
+     "gain": 0.6
+    },
+    {
+     "rect": [
+      0.0,
+      0.5,
+      0.125,
+      0.25
+     ],
+     "saturation": 0.4,
+     "gain": 0.6,
+     "tint": [
+      0.96,
+      0.98,
+      1.04
+     ]
+    },
+    {
+     "rect": [
+      0.125,
+      0.5,
+      0.125,
+      0.25
+     ],
+     "saturation": 0.7,
+     "gain": 0.5,
+     "tint": [
+      1.03,
+      1.0,
+      0.95
+     ]
+    },
+    {
+     "rect": [
+      0.25,
+      0.5,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.7,
+     "gain": 0.6,
+     "tint": [
+      1.03,
+      1.0,
+      0.95
+     ]
+    },
+    {
+     "rect": [
+      0.5,
+      0.5,
+      0.5,
+      0.25
+     ],
+     "saturation": 0.4,
+     "gain": 0.62,
+     "tint": [
+      0.96,
+      0.98,
+      1.04
+     ]
+    },
+    {
+     "rect": [
+      0.0,
+      0.75,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.7,
+     "gain": 0.55,
+     "tint": [
+      1.03,
+      1.0,
+      0.95
+     ]
+    },
+    {
+     "rect": [
+      0.25,
+      0.75,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.38,
+     "gain": 0.55,
+     "ash": 0.3
+    },
+    {
+     "rect": [
+      0.5,
+      0.75,
+      0.25,
+      0.25
+     ],
+     "saturation": 0.4,
+     "gain": 0.62,
+     "tint": [
+      0.96,
+      0.98,
+      1.04
+     ]
+    }
+   ]
+  },
+  {
+   "id": "house.trim",
+   "source": "house.trim",
+   "size": 256,
+   "saturation": 0.5,
+   "gain": 0.65
+  },
+  {
+   "id": "borderland",
+   "source": "borderland",
+   "size": 256,
+   "saturation": 0.85,
+   "gain": 0.85,
+   "hues": [
+    {
+     "from": 70,
+     "to": 175,
+     "saturation": 0.3,
+     "gain": 0.5
+    },
+    {
+     "from": 36,
+     "to": 60,
+     "saturation": 0.45,
+     "gain": 0.6
+    }
+   ]
+  }
+ ]
+}
