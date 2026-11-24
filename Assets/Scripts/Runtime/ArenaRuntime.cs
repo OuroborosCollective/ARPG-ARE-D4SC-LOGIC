@@ -1311,6 +1311,7 @@ namespace AreArpg.UnityClient
                     visual.position = new Vector3(x, visual.localScale.y * 0.6f + GroundHeight(x,z), z);
                     AnimateActor(visual, enemy.Xmm - enemy.PreviousXmm, enemy.Zmm - enemy.PreviousZmm);
                     ApplyHitReaction(enemy.Id, visual);
+                    UpdateEnemyClips(enemy, visual);
                 }
             }
             UpdateLootPresentation();
