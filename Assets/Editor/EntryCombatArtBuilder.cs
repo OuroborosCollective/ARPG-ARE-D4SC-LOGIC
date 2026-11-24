@@ -175,6 +175,9 @@ namespace AreArpg.EditorTools
             var idleSource = SourceClip(input.idle, input.idleClip, "EntryIdle");
             var moveSource = SourceClip(input.move, input.moveClip, "EntryMove");
             var attackSource = SourceClip(input.melee, input.meleeClip, "EntryStrike");
+            // Every licensed combat take is found before anything is written: a missing take stops the build while the
+            // previous clips and controller are still whole (review on #135).
+            AnimationClip[] combatTakes = CombatClipsAvailable() ? ResolveCombatTakes() : null;
             var idleClip = Clip(idleSource, "EntryIdle", true);
             var moveClip = Clip(moveSource, "EntryMove", true);
             var attackClip = Clip(attackSource, "EntryStrike", false);
@@ -212,8 +215,135 @@ namespace AreArpg.EditorTools
             var leave = attack.AddTransition(idle);
             foreach (var transition in new[] { resume, leave })
             { transition.hasExitTime = true; transition.exitTime = .9f; transition.duration = .08f; transition.hasFixedDuration = true; }
-            AddAbilityStates(_controller, idleClip);
+            // Real clips where the licensed starter pack is installed; the generated poses only as the fallback.
+            if (combatTakes == null) AddAbilityStates(_controller, idleClip);
+            else AddCombatStates(_controller, combatTakes);
             EditorUtility.SetDirty(_controller);
+        }
+
+        private const string StarterPack = Output + "Vendor/AnimationsStarterPack/";
+
+        /// <summary>
+        /// The hero's combat states and the licensed takes they play (issue #48, block 3): state, model below the starter
+        /// pack, take, the game's clip, looping. Guard and Cast replace the generated poses of the same name.
+        /// </summary>
+        private static readonly (string State, string Model, string Take, string Key, bool Loop)[] CombatClips =
+        {
+            ("Guard", "Combat/BlockingLoop.fbx", "BlockingLoop", "EntryGuard", true),
+            ("Cast", "Combat/SpellCast.fbx", "SpellCast", "EntryCast", false),
+            ("Hit", "Combat/GetHit.fbx", "GetHit", "EntryHit", false),
+            ("Death", "Combat/Death.fbx", "Death", "EntryDeath", false),
+            ("Dodge", "Movement/RollForward.fbx", "RollForward", "EntryDodge", false),
+            ("Drink", "Combat/Buff.fbx", "Buff", "EntryDrink", false),
+        };
+
+        private static bool CombatClipsAvailable()
+        {
+            return CombatClips.All(entry => AssetDatabase.LoadMainAssetAtPath(StarterPack + entry.Model) != null);
+        }
+
+        /// <summary>
+        /// Give the existing private hero controller real clips for guard, cast, hit, death, dodge and drink, taken from
+        /// the licensed animation starter pack. Idempotent; the other clips, the weapon and the bow export stay as they are.
+        /// </summary>
+        [MenuItem("ARE ARPG/Art/Add Hero Combat Clips")]
+        public static void AddCombatClips()
+        {
+            var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(Output + "EntryMelee.controller");
+            if (controller == null) throw new InvalidOperationException("Missing private hero controller; run the full entry combat build first");
+            if (!CombatClipsAvailable()) throw new InvalidOperationException("The licensed animation starter pack is not installed below " + StarterPack);
+            AddCombatStates(controller, ResolveCombatTakes()); // all six takes are resolved before the first clip is written
+            EditorUtility.SetDirty(controller);
+            AssetDatabase.SaveAssets();
+            Debug.Log("ENTRY_COMBAT_CLIPS " + string.Join(",", controller.layers[0].stateMachine.states.Select(s => s.state.name + "=" + (s.state.motion != null ? s.state.motion.name : "-"))));
+        }
+
+        /// <summary>Exactly one moving humanoid take of that name; a reference pose or a legacy clip is refused.</summary>
+        private static AnimationClip LicensedTake(string model, string take)
+        {
+            var takes = AssetDatabase.LoadAllAssetsAtPath(StarterPack + model).OfType<AnimationClip>().Where(c => string.Equals(c.name, take, StringComparison.Ordinal)).ToArray();
+            if (takes.Length != 1) throw new InvalidOperationException("Expected exactly one take '" + take + "' in " + StarterPack + model);
+            if (!takes[0].humanMotion || takes[0].legacy || takes[0].frameRate <= 0 || takes[0].length * takes[0].frameRate <= 1.5f)
+                throw new InvalidOperationException(take + " must be a moving humanoid take");
+            return takes[0];
+        }
+
+        /// <summary>The six takes in the order of <see cref="CombatClips"/>; throws before anything was written.</summary>
+        private static AnimationClip[] ResolveCombatTakes()
+        {
+            return CombatClips.Select(entry => LicensedTake(entry.Model, entry.Take)).ToArray();
+        }
+
+        /// <summary>
+        /// Copy the licensed takes into the game's clips and wire their states. Triggers start cast, hit, dodge and drink;
+        /// the guard is held by the bool Guarding and death by the bool Dead; nothing but getting up leaves death. Cast,
+        /// dodge and drink play at the speed ActionSpeed, which the game sets so the clip spans the Core's action.
+        /// </summary>
+        private static void AddCombatStates(AnimatorController controller, AnimationClip[] takes)
+        {
+            var machine = controller.layers[0].stateMachine;
+            bool grip = controller.parameters.Any(parameter => parameter.name == AreArpg.UnityClient.EntryWeaponGrip.WeightParameter);
+            var clips = new System.Collections.Generic.Dictionary<string, AnimationClip>();
+            for (int i = 0; i < CombatClips.Length; i++)
+            {
+                var entry = CombatClips[i];
+                var clip = Clip(takes[i], entry.Key, entry.Loop);
+                if (grip) GripCurve(clip, 0f);
+                clips[entry.State] = clip;
+            }
+            var names = new System.Collections.Generic.HashSet<string>(CombatClips.Select(entry => entry.State));
+            foreach (var transition in machine.anyStateTransitions)
+                if (transition.destinationState != null && names.Contains(transition.destinationState.name)) machine.RemoveAnyStateTransition(transition);
+            foreach (var child in machine.states)
+                if (names.Contains(child.state.name)) machine.RemoveState(child.state);
+            var owned = new System.Collections.Generic.HashSet<string> { "Guard", "Cast", "Hit", "Dodge", "Drink", "Guarding", "Dead", "ActionSpeed" };
+            foreach (var parameter in controller.parameters)
+                if (owned.Contains(parameter.name)) controller.RemoveParameter(parameter);
+            foreach (string trigger in new[] { "Guard", "Cast", "Hit", "Dodge", "Drink" }) controller.AddParameter(trigger, AnimatorControllerParameterType.Trigger);
+            controller.AddParameter("Guarding", AnimatorControllerParameterType.Bool);
+            controller.AddParameter("Dead", AnimatorControllerParameterType.Bool);
+            controller.AddParameter(new AnimatorControllerParameter { name = "ActionSpeed", type = AnimatorControllerParameterType.Float, defaultFloat = 1f });
+            var idleState = machine.states.First(s => s.state.name == "Idle").state;
+            var moveState = machine.states.First(s => s.state.name == "Move").state;
+            foreach (var entry in CombatClips)
+            {
+                var state = machine.AddState(entry.State);
+                state.motion = clips[entry.State];
+                if (entry.State == "Cast" || entry.State == "Dodge" || entry.State == "Drink") { state.speedParameterActive = true; state.speedParameter = "ActionSpeed"; }
+                var enter = machine.AddAnyStateTransition(state);
+                if (entry.State == "Death") enter.AddCondition(AnimatorConditionMode.If, 0, "Dead");
+                else { enter.AddCondition(AnimatorConditionMode.If, 0, entry.State); enter.AddCondition(AnimatorConditionMode.IfNot, 0, "Dead"); }
+                enter.hasExitTime = false; enter.hasFixedDuration = true; enter.duration = entry.State == "Hit" ? .04f : .08f;
+                enter.canTransitionToSelf = false;
+                if (entry.State == "Death")
+                {
+                    var rise = state.AddTransition(idleState);
+                    rise.AddCondition(AnimatorConditionMode.IfNot, 0, "Dead");
+                    rise.hasExitTime = false; rise.hasFixedDuration = true; rise.duration = .1f;
+                }
+                else if (entry.State == "Guard")
+                {
+                    var lowerMoving = state.AddTransition(moveState);
+                    lowerMoving.AddCondition(AnimatorConditionMode.IfNot, 0, "Guarding");
+                    lowerMoving.AddCondition(AnimatorConditionMode.Greater, .1f, "MoveMagnitude");
+                    var lower = state.AddTransition(idleState);
+                    lower.AddCondition(AnimatorConditionMode.IfNot, 0, "Guarding");
+                    foreach (var transition in new[] { lowerMoving, lower })
+                    { transition.hasExitTime = false; transition.hasFixedDuration = true; transition.duration = .1f; }
+                }
+                else
+                {
+                    var resume = state.AddTransition(moveState);
+                    resume.AddCondition(AnimatorConditionMode.Greater, .1f, "MoveMagnitude");
+                    var leave = state.AddTransition(idleState);
+                    foreach (var transition in new[] { resume, leave })
+                    { transition.hasExitTime = true; transition.exitTime = .85f; transition.duration = .1f; transition.hasFixedDuration = true; }
+                }
+            }
+            // A strike never gets a fallen hero up again.
+            foreach (var transition in machine.anyStateTransitions)
+                if (transition.destinationState != null && transition.destinationState.name == "Melee" && !transition.conditions.Any(c => c.parameter == "Dead"))
+                    transition.AddCondition(AnimatorConditionMode.IfNot, 0, "Dead");
         }
 
         /// <summary>

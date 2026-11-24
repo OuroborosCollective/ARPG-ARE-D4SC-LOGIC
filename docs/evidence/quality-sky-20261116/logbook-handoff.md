@@ -452,3 +452,11 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: Raten nur gezählt, nicht erspielt; Rationen sind viel seltener (Begleiter beobachten); Münzmodelle aus der privaten Asset Registry nicht verwendet; kein Gerätetest.
 - Nächste Schritte: #48 Block 3 (echte Kampfanimationen aus dem vorhandenen Animationspaket: Abwehr, Zauber, Treffer, Tod, Ausweichen, Trank), danach Welt- und Figurenqualität, Audio, Android-Profiling.
 - [Technische Abnahme](../loot-v2-20261123/acceptance.md)
+
+## 24. November 2026 · Echte Kampfclips für den Helden, Issue #48 Block 3
+
+- Neu im Spiel: Der Held rollt beim Ausweichen, hebt die Waffe zur Abwehr und hält sie oben, solange gedrückt wird, zuckt bei einem Treffer, hebt beim Trank die Arme und fällt bei der Niederlage um. Alles kommt aus dem vorhandenen lizenzierten Animationspaket und läuft im Takt der Kampf-v2-Aktionen.
+- Evidence auf `ae194be53a197c8269b0baa8e92fdf0766937724`: neuer Test `HeroClipsFollowTheCoresActions` PASS, volle EditMode-Reihe 254 PASS / 0 FAIL / 28 ignored, volle PlayMode-Reihe 183 PASS / 0 FAIL / 28 ignored, sieben Animationstests mit privatem Overlay 7/7 PASS auf dem Vorgänger `d423a44`.
+- Grenzen: keine echte Trinkbewegung im Paket (Buff-Geste als Ersatz), kein bildgenauer Abgleich von Zauber und Wirkung, nur Standbilder gesichtet, kein Gerätetest; Begleiter und Gegner unverändert.
+- Nächste Schritte: #48 Block 4 (Welt- und Figurenqualität), Block 5 (Audio/Stimmen), Block 6 (Android-Profiling auf dem Tab A9, braucht das Gerät des Owners).
+- [Technische Abnahme](../combat-clips-20261124/acceptance.md)
