@@ -279,7 +279,7 @@
         {"slot": "HairBack", "id": "HairBack_LooseLong", "colors": ["#a8a49c", "#7a766e", "#8e8a82"]}
       ],
       "props": [
-        {"name": "Staff", "asset": "Assets/Resources/ARE/Visuals/Weapons/staff_newbie.3.prefab", "bone": "Chest", "position": [0.0, 1.12, -0.19], "rotation": [0, 0, 24], "size": 1.5, "anchor": "center", "tint": "#c9b79f"},
+        {"name": "Staff", "asset": "Assets/Resources/ARE/Visuals/Weapons/staff_newbie.3.prefab", "bone": "Chest", "position": [0.03, 1.08, -0.2], "rotation": [-24, 90, 0], "size": 1.4, "anchor": "center", "tint": "#c9b79f"},
         {"name": "Lantern", "asset": "Assets/PrivateArt/DesignAssets/AlchemyLabProps/Multistory Dungeons 2/Prefabs/Props/Lantern_Handheld_01.prefab", "bone": "LeftHand", "position": [-0.443, 1.003, 0.062], "rotation": [-5, 2, -17], "size": 0.25, "anchor": "top", "tint": "#8f8a86", "glow": "#ffb060", "glowStrength": 3.0, "glowSaturation": 0.4},
         {"name": "HerbPouch", "asset": "Assets/PrivateArt/DesignAssets/SimpleMedievalProps/LowPolyMedievalPropsLite/Prefabs/Bag_01.prefab", "bone": "Hips", "position": [0.14, 1.095, 0.14], "rotation": [0, -45, 0], "size": 0.12, "anchor": "top", "tint": "#4f4a3a"},
         {"name": "Flask", "asset": "Assets/PrivateArt/DesignAssets/AlchemyLabProps/Multistory Dungeons 2/Prefabs/Props/Books And Alchemy/Potion_02.prefab", "bone": "Hips", "position": [0.185, 1.085, 0.07], "rotation": [0, 0, -4], "size": 0.11, "anchor": "top", "tint": "#8a8580", "glow": "#7fe0c8", "glowStrength": 0.4, "glowSaturation": 0.75}
