@@ -63,10 +63,12 @@ namespace AreArpg.EditMode.Tests
                 foreach (Renderer renderer in prefab.GetComponentsInChildren<Renderer>(true))
                     foreach (Material material in renderer.sharedMaterials)
                     {
-                        Assert.IsTrue(material != null && material.mainTexture != null, key + " has a textured material on " + renderer.name);
-                        // The body wears the muted texture baked for the game; what it holds (a weapon) wears a private worn copy of its own material.
+                        Assert.IsTrue(material != null && material.shader.isSupported, key + ": the material on " + renderer.name + " must render");
+                        // The body wears the muted texture baked for the game; what it holds (a weapon) wears a private worn copy of its
+                        // own material, which may be a plain colour.
                         if (renderer is SkinnedMeshRenderer)
-                            Assert.IsTrue(AssetDatabase.GetAssetPath(material.mainTexture).StartsWith(Visuals), key + " wears the muted colour texture baked for the game");
+                            Assert.IsTrue(material.mainTexture != null && AssetDatabase.GetAssetPath(material.mainTexture).StartsWith(Visuals),
+                                key + " wears the muted colour texture baked for the game");
                         else
                             StringAssert.StartsWith("Assets/PrivateArt/BozoCharacters/Props/", AssetDatabase.GetAssetPath(material), key + ": " + renderer.name + " wears a worn copy");
                     }
