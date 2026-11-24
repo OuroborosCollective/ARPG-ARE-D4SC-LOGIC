@@ -38,11 +38,15 @@ class ArtForgeArchitectureTests(unittest.TestCase):
 
     def test_all_art_mutations_are_refused_before_source_or_asset_reads(self):
         controller = source("Assets/Editor/ArtForge/ArtForgeCanvasController.cs")
-        handler = controller.split("public static FadenwerkExtensionReply Handle(", 1)[1]
+        handler = controller.split("public static FadenwerkExtensionReply Handle(", 1)[1].split(
+            "static FadenwerkExtensionReply BeginRead(", 1)[0]
         rejection = handler.index('if (method != "GET")')
-        self.assertLess(rejection, handler.index("ReadProjectSha()"))
-        self.assertLess(rejection, handler.index("ArtForgeWorldForgeReader.Read("))
-        self.assertRegex(handler[:handler.index("ReadProjectSha()")], r'Error\("READ_ONLY"[\s\S]*?,\s*405\)')
+        self.assertLess(rejection, handler.index("BeginRead("))
+        self.assertRegex(handler[:handler.index("BeginRead(")], r'Error\("READ_ONLY"[\s\S]*?,\s*405\)')
+        self.assertNotIn("ReadProjectSha(", handler, "The editor dispatcher must not wait for Git.")
+        self.assertNotIn("ArtForgeWorldForgeReader.Read(", handler, "The editor dispatcher must not hash files.")
+        self.assertIn("Task.Run(async () =>", controller)
+        self.assertIn("ReadGate.WaitAsync(cancellation)", controller)
 
     def test_new_read_surfaces_have_no_game_save_import_or_scene_write_apis(self):
         paths = (ART / "ArtForgeCanvasController.cs", ART / "ArtForgeWorldForgeReader.cs")
@@ -60,7 +64,7 @@ class ArtForgeArchitectureTests(unittest.TestCase):
 
     def test_worldforge_root_is_existing_owner_and_not_a_request_parameter(self):
         controller = source("Assets/Editor/ArtForge/ArtForgeCanvasController.cs")
-        self.assertIn("ArtForgeWorldForgeReader.Read(WFBlenderIntake.Root, projectSha)", controller)
+        self.assertIn("ArtForgeWorldForgeReader.Read(WFBlenderIntake.Root, projectSha, cancellation)", controller)
         self.assertNotRegex(controller, r'Arg\(query,\s*"(?:root|path|host|command)"\)')
         self.assertIn('"QUERY_INVALID"', controller)
 
@@ -91,7 +95,7 @@ class ArtForgeArchitectureTests(unittest.TestCase):
         boot = page.split("async function boot()", 1)[1].split("function showLogin()", 1)[0]
         self.assertRegex(boot, r"if\s*\(ART_MODE\)\s*\{\s*await artBoot\(\);\s*return;")
         self.assertLess(boot.index("artBoot()"), boot.index("selectArea(start)"))
-        api = page.split("async function api(path, body)", 1)[1].split("async function apiBlob", 1)[0]
+        api = re.split(r"async function api\([^)]*\)", page, maxsplit=1)[1].split("async function apiBlob", 1)[0]
         self.assertIn('!path.startsWith("art/")', api)
         self.assertIn("body !== undefined", api)
 

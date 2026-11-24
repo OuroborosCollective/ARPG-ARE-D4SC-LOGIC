@@ -155,21 +155,71 @@ optionales `art/asset` mit derselben Identität. Nach einem Konflikt verwirft di
 Oberfläche den alten Graphen und verlangt erneutes Laden. Es gibt keine
 optimistische Freigabe mit einem veralteten Stand.
 
+### Begrenzte Hintergrundprüfung über denselben Dispatcher
+
+Eine neue zulässige Leseanfrage liefert zunächst `202 ART_SCAN_PENDING`:
+
+```json
+{"ok":false,"readOnly":true,"code":"ART_SCAN_PENDING","scanId":"0123456789abcdef0123456789abcdef","retryAfterMs":200,"error":"Die Herkunft wird geprüft. Einen Moment bitte."}
+```
+
+Die ID oben illustriert nur das Format. Echte IDs sind einmalige Transporttickets.
+Der Browser fragt **dieselbe Route mit denselben ursprünglichen Query-Werten**
+und zusätzlich `scanId` ab. Nur `202` mit genau diesem Code, `readOnly=true`
+und einer gültigen 32-stelligen Hex-ID darf weiter abgefragt werden. Der
+vorhandene Fadenwerk-Token wird bei jedem Abruf erneut vom bestehenden Server
+geprüft. Eine endgültige Antwort verbraucht das Ticket; ein weiterer Abruf
+dieses Tickets liefert `410`.
+
+Der Controller hält höchstens acht offene Leseoperationen; ein einzelner
+Hintergrundlauf führt Git-, Receipt- und Artefaktprüfungen nacheinander aus.
+Der Editor-Hauptthread validiert die Anfrage und liefert Pending-/fertige
+Antworten, führt aber keine Git-Prozesse und keine Katalog-Hashläufe aus.
+Jede neue Anfrage ohne Ticket prüft die echten Bytes neu. Es gibt keinen Cache,
+der Herkunft allein aus Dateiname, Dateigröße oder Änderungszeit ableitet.
+Ein Ticket bezeichnet ausschließlich das Ergebnis seiner begonnenen Prüfung,
+keine fortlaufende Garantie über spätere Dateiänderungen.
+
+Die Prüfung erhält nach 30 Sekunden ein Abbruchsignal, das bei Git-Wartephasen,
+Job-/Dateigrenzen und Byteblöcken geprüft wird. Tickets werden spätestens nach
+60 Sekunden bei einem weiteren Abruf verworfen. Editor-Ende und Assembly-Reload
+brechen laufende Operationen ab, ohne im Hauptthread auf deren IO zu warten.
+Diese Fristen und Ticket-IDs gehören ausschließlich zur Editor-Kommunikation;
+sie fließen weder in `graphRevision` noch in Simulation, Saves oder Ticks ein.
+
+Der Browser wartet normalerweise 200 ms zwischen Abrufen, begrenzt vorgegebene
+Intervalle auf 100–1000 ms und endet nach höchstens 150 Polls oder 40 Sekunden
+einschließlich hängender Netzwerkanfragen. Terminale Fehler starten keinen
+neuen Scan. Ein Reload beendet alte Polls; eine andere Knotenauswahl im selben
+Graphen darf dagegen einen noch ausstehenden `409`-Konflikt nicht verschlucken.
+Ein Konflikt für die weiterhin aktive Graphidentität verwirft den Graphen,
+auch wenn inzwischen ein anderer Knoten ausgewählt ist. Antworten aus einer
+früheren Reload-Epoche dürfen einen neu geladenen Graphen nicht entfernen.
+
+Die Hintergrundserialisierung verwendet ausschließlich gewöhnliche DTOs und
+String-JSON, keine Unity-Objekte. [Unity dokumentiert diesen Threadzugriff für
+JsonUtility.FromJson](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/JsonUtility.FromJson.html).
+
 | HTTP / Code | Bedeutung |
 | --- | --- |
+| `202 ART_SCAN_PENDING` | Byteprüfung läuft; ausschließlich dasselbe Ticket weiter abfragen |
 | `401` | Bestehende Fadenwerk-Authentifizierung fehlt oder lehnt ab |
 | `400 QUERY_INVALID` | Ein unbekannter Query-Schlüssel wurde übergeben; Pfade, Hosts und Shellargumente sind keine API-Eingaben |
 | `400 ASSET_ID_INVALID` | Unsichere oder fehlende Asset-ID |
+| `400 ART_SCAN_INVALID` | Ticketformat ist ungültig |
+| `400 ART_SCAN_MISMATCH` | Route oder ursprüngliche Anfragewerte passen nicht zum Ticket |
 | `404 ASSET_NOT_FOUND` | ID gehört nicht zum aktuell geprüften Graphen |
+| `410 ART_SCAN_EXPIRED` | Ticket abgelaufen, abgebrochen, unbekannt oder bereits verbraucht |
 | `428 EXPECTED_REVISION_REQUIRED` | Projekt-/Graphrevision fehlt oder ist formal ungültig |
 | `409 PROJECT_REVISION_CONFLICT` | Projekt-SHA hat sich geändert, auch während des Lesevorgangs |
 | `409 GRAPH_REVISION_CONFLICT` | Erwartete Graphrevision stimmt nicht mehr |
 | `503 EDITOR_BUSY` | Unity importiert oder kompiliert |
+| `503 ART_SCAN_CAPACITY` | Acht offene Leseoperationen; keine weitere Arbeit gestartet |
 | `503 PROVENANCE_UNAVAILABLE` | Projektidentität oder Herkunft ließ sich nicht sicher lesen |
 
 Controller-Fehler haben die Form `{"ok":false,"code":"...","error":"..."}`.
 Die Art-API akzeptiert nur die Query-Schlüssel `expectedProjectSha`,
-`expectedGraphRevision` und `id`. Sie liest keinen frei übergebenen Dateipfad.
+`expectedGraphRevision`, `id` und `scanId`. Sie liest keinen frei übergebenen Dateipfad.
 
 Der Projektbeleg stammt aus einer festen lesenden Git-Invocation im tatsächlichen
 Unity-Projekt. Vor und nach dem Snapshot wird HEAD gelesen. Ungesicherte

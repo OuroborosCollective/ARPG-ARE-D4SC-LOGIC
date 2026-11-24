@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Text;
 using Fadenwerk.EditorTools;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace AshenCrypt.ArtForge.Tests
 {
@@ -54,16 +56,26 @@ namespace AshenCrypt.ArtForge.Tests
             Fixture();
             var before = ArtForgeWorldForgeReader.Read(root, Project);
             string artifactPath = Path.Combine(Folder, "model.fbx");
+            string receiptPath = Path.Combine(Folder, "receipt.json");
             byte[] original = File.ReadAllBytes(artifactPath);
-            File.WriteAllBytes(artifactPath, Encoding.UTF8.GetBytes("changed__geometry"));
+            byte[] originalReceipt = File.ReadAllBytes(receiptPath);
+            DateTime originalWrite = File.GetLastWriteTimeUtc(artifactPath);
+            byte[] mutation = (byte[])original.Clone();
+            mutation[0] ^= 1;
+            File.WriteAllBytes(artifactPath, mutation);
+            File.SetLastWriteTimeUtc(artifactPath, originalWrite);
             byte[] changed = File.ReadAllBytes(artifactPath);
             Assert.AreEqual(original.Length, changed.Length,
                 "This regression must reach the byte-hash check, not only the file-size check.");
+            Assert.AreEqual(1, Enumerable.Range(0, original.Length).Count(i => original[i] != changed[i]));
+            Assert.AreEqual(originalWrite, File.GetLastWriteTimeUtc(artifactPath),
+                "Unchanged size and mtime must not hide changed artifact bytes.");
             Assert.AreNotEqual(ArtGraphContract.Fingerprint(original), ArtGraphContract.Fingerprint(changed));
             var after = ArtForgeWorldForgeReader.Read(root, Project);
             Assert.IsEmpty(after.graph.nodes);
             Assert.IsTrue(after.diagnostics.Any(d => d.code == "HASH_DRIFT"));
             Assert.AreNotEqual(before.graph.graphRevision, after.graph.graphRevision);
+            CollectionAssert.AreEqual(originalReceipt, File.ReadAllBytes(receiptPath));
         }
 
         [Test] public void MissingParentArtifactRejectsReceiptWithoutPartialGraph()
@@ -156,18 +168,21 @@ namespace AshenCrypt.ArtForge.Tests
 
         [Serializable] sealed class StateData { public bool ok, readOnly; public string projectSha, graphRevision; public int nodeCount; }
         [Serializable] sealed class GraphData { public bool ok, readOnly; public string schema, projectSha, graphRevision; public ArtGraphNode[] nodes; }
+        [Serializable] sealed class PendingData { public string scanId; }
 
-        [Test] public void RealProjectDispatcherReadsWorldForgeAndRejectsStaleRevisionsWithoutSceneChanges()
+        [UnityTest] public IEnumerator RealProjectDispatcherReadsWorldForgeAndRejectsStaleRevisionsWithoutSceneChanges()
         {
             int objects = Resources.FindObjectsOfTypeAll<GameObject>().Length;
             var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
             bool dirty = scene.isDirty;
-            var stateReply = FadenwerkAuthoringBridge.Extension("GET", "art/state", "", new Dictionary<string, string>());
+            FadenwerkExtensionReply stateReply = null;
+            yield return ReadThroughDispatcher("art/state", new Dictionary<string, string>(), reply => stateReply = reply);
             Assert.AreEqual(200, stateReply.status, Encoding.UTF8.GetString(stateReply.body));
             var state = JsonUtility.FromJson<StateData>(Encoding.UTF8.GetString(stateReply.body));
             Assert.IsTrue(state.ok && state.readOnly);
             var query = new Dictionary<string, string> { { "expectedProjectSha", state.projectSha }, { "expectedGraphRevision", state.graphRevision } };
-            var graphReply = FadenwerkAuthoringBridge.Extension("GET", "art/graph", "", query);
+            FadenwerkExtensionReply graphReply = null;
+            yield return ReadThroughDispatcher("art/graph", query, reply => graphReply = reply);
             Assert.AreEqual(200, graphReply.status, Encoding.UTF8.GetString(graphReply.body));
             var graph = JsonUtility.FromJson<GraphData>(Encoding.UTF8.GetString(graphReply.body));
             Assert.IsTrue(graph.ok && graph.readOnly);
@@ -176,14 +191,19 @@ namespace AshenCrypt.ArtForge.Tests
             if (graph.nodes.Length > 0)
             {
                 query["id"] = graph.nodes[0].id;
-                Assert.AreEqual(200, FadenwerkAuthoringBridge.Extension("GET", "art/asset", "", query).status);
+                FadenwerkExtensionReply assetReply = null;
+                yield return ReadThroughDispatcher("art/asset", query, reply => assetReply = reply);
+                Assert.AreEqual(200, assetReply.status, Encoding.UTF8.GetString(assetReply.body));
                 query.Remove("id");
             }
             query["expectedGraphRevision"] = new string(state.graphRevision[0] == 'a' ? 'b' : 'a', 64);
-            Assert.AreEqual(409, FadenwerkAuthoringBridge.Extension("GET", "art/graph", "", query).status);
+            FadenwerkExtensionReply conflictReply = null;
+            yield return ReadThroughDispatcher("art/graph", query, reply => conflictReply = reply);
+            Assert.AreEqual(409, conflictReply.status, Encoding.UTF8.GetString(conflictReply.body));
             query["expectedGraphRevision"] = state.graphRevision;
             query["expectedProjectSha"] = new string(state.projectSha[0] == 'a' ? 'b' : 'a', 40);
-            Assert.AreEqual(409, FadenwerkAuthoringBridge.Extension("GET", "art/graph", "", query).status);
+            yield return ReadThroughDispatcher("art/graph", query, reply => conflictReply = reply);
+            Assert.AreEqual(409, conflictReply.status, Encoding.UTF8.GetString(conflictReply.body));
             Assert.AreEqual(objects, Resources.FindObjectsOfTypeAll<GameObject>().Length);
             Assert.AreEqual(dirty, scene.isDirty);
             string evidence = Environment.GetEnvironmentVariable("ASHEN_ART_FORGE_CAPTURE_DIR");
@@ -194,6 +214,24 @@ namespace AshenCrypt.ArtForge.Tests
                 File.WriteAllText(Path.Combine(evidence, "unity-readonly-snapshot.json"), "{\"state\":" + Encoding.UTF8.GetString(stateReply.body) + ",\"graph\":" + Encoding.UTF8.GetString(graphReply.body) + "}");
             }
             Debug.Log("[ArtForge readback] source=" + state.projectSha + " graph=" + state.graphRevision + " nodes=" + state.nodeCount + " scene unchanged; no import/approval");
+        }
+
+        static IEnumerator ReadThroughDispatcher(string path, Dictionary<string, string> query, Action<FadenwerkExtensionReply> complete)
+        {
+            var parameters = new Dictionary<string, string>(query);
+            var reply = FadenwerkAuthoringBridge.Extension("GET", path, "", parameters);
+            Assert.AreEqual(202, reply.status, Encoding.UTF8.GetString(reply.body));
+            string scanId = JsonUtility.FromJson<PendingData>(Encoding.UTF8.GetString(reply.body)).scanId;
+            StringAssert.IsMatch("^[a-f0-9]{32}$", scanId);
+            parameters["scanId"] = scanId;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            do
+            {
+                yield return null;
+                reply = FadenwerkAuthoringBridge.Extension("GET", path, "", parameters);
+                Assert.Less(watch.Elapsed.TotalSeconds, 40, "The real read operation must finish within its transport budget.");
+            } while (reply.status == 202);
+            complete(reply);
         }
 
 #if UNITY_EDITOR_LINUX

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using UnityEngine;
 
 namespace AshenCrypt.ArtForge
@@ -27,6 +28,7 @@ namespace AshenCrypt.ArtForge
     {
         public const int MaxJobs = 128, MaxFilesPerJob = 16, MaxReceiptBytes = 262144;
         public const long MaxFileBytes = 16L * 1024 * 1024, MaxReadBytes = 64L * 1024 * 1024;
+        const int ReadChunkBytes = 65536;
         [Serializable] sealed class Receipt { public string schema, jobId, sourceSha256; public ExportFile[] files; }
         [Serializable] sealed class ExportFile { public string path, sha256; public long size; }
         sealed class Refusal : Exception
@@ -35,8 +37,10 @@ namespace AshenCrypt.ArtForge
             public Refusal(string code) { Code = code; }
         }
 
-        public static ArtForgeSnapshot Read(string root, string projectSha)
+        public static ArtForgeSnapshot Read(string root, string projectSha,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var nodes = new List<ArtGraphNode>();
             var diagnostics = new List<ArtForgeDiagnostic>();
             long budget = MaxReadBytes;
@@ -53,11 +57,12 @@ namespace AshenCrypt.ArtForge
                 Array.Sort(jobs, StringComparer.Ordinal);
                 foreach (string folder in jobs)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     try
                     {
                         string jobId = Path.GetFileName(folder);
                         if (!ArtGraphContract.IsSha256(jobId)) throw new Refusal("JOB_ID_INVALID");
-                        var jobNodes = ReadJob(folder, jobId, ref budget);
+                        var jobNodes = ReadJob(folder, jobId, ref budget, cancellationToken);
                         if (nodes.Count + jobNodes.Length > ArtGraphContract.MaxNodes) throw new Refusal("CATALOG_NODE_LIMIT");
                         nodes.AddRange(jobNodes);
                     }
@@ -71,16 +76,19 @@ namespace AshenCrypt.ArtForge
             catch (IOException) { diagnostics.Add(Diagnostic("READ_UNAVAILABLE")); }
             catch (UnauthorizedAccessException) { diagnostics.Add(Diagnostic("READ_UNAVAILABLE")); }
             catch (ArgumentException) { diagnostics.Add(Diagnostic("PATH_REJECTED")); }
+            cancellationToken.ThrowIfCancellationRequested();
             var graph = new ArtGraph { projectSha = projectSha, nodes = nodes.ToArray() };
             graph.graphRevision = ArtGraphContract.ComputeRevision(graph);
+            cancellationToken.ThrowIfCancellationRequested();
             return new ArtForgeSnapshot { graph = graph, diagnostics = diagnostics.ToArray() };
         }
 
-        static ArtGraphNode[] ReadJob(string folder, string jobId, ref long budget)
+        static ArtGraphNode[] ReadJob(string folder, string jobId, ref long budget, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             RejectLinks(folder);
             string receiptPath = Path.Combine(folder, "receipt.json");
-            byte[] receiptBytes = ReadSmallFile(receiptPath, MaxReceiptBytes, ref budget);
+            byte[] receiptBytes = ReadSmallFile(receiptPath, MaxReceiptBytes, ref budget, cancellationToken);
             Receipt receipt;
             try { receipt = JsonUtility.FromJson<Receipt>(Encoding.UTF8.GetString(receiptBytes)); }
             catch (ArgumentException) { throw new Refusal("RECEIPT_INVALID"); }
@@ -92,6 +100,7 @@ namespace AshenCrypt.ArtForge
             var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (var file in receipt.files)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (file == null || !SafeRelative(file.path) || file.path == "receipt.json") throw new Refusal("PATH_REJECTED");
                 if (!seen.Add(file.path) || !ArtGraphContract.IsSha256(file.sha256) || file.size <= 0) throw new Refusal("RECEIPT_INVALID");
             }
@@ -106,6 +115,7 @@ namespace AshenCrypt.ArtForge
             };
             for (int index = 0; index < files.Length; index++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 ExportFile file = files[index];
                 string path = ContainedFile(folder, file.path);
                 if (!File.Exists(path)) throw new Refusal("ARTIFACT_MISSING");
@@ -122,14 +132,14 @@ namespace AshenCrypt.ArtForge
                     new[] { parentId }, file.sha256, jobId, file.path, receipt.sourceSha256, receiptHash);
                 using (var stream = File.OpenRead(path))
                 {
-                    VerifyReservedArtifact(node, stream, file.size);
+                    VerifyReservedArtifact(node, stream, file.size, cancellationToken);
                 }
                 RejectLinks(path);
                 info.Refresh();
                 if (info.Length != previousLength || info.LastWriteTimeUtc != previousWrite) throw new Refusal("HASH_DRIFT");
                 nodes.Add(node);
             }
-            if (ArtGraphContract.Fingerprint(ReadSmallFile(receiptPath, MaxReceiptBytes, ref budget)) != receiptHash)
+            if (ArtGraphContract.Fingerprint(ReadSmallFile(receiptPath, MaxReceiptBytes, ref budget, cancellationToken)) != receiptHash)
                 throw new Refusal("HASH_DRIFT");
             return nodes.ToArray(); // All-or-nothing per receipt, never a dangling partial chain.
         }
@@ -171,36 +181,119 @@ namespace AshenCrypt.ArtForge
             }
             return path;
         }
-        static byte[] ReadSmallFile(string path, int maximum, ref long budget)
+        static byte[] ReadSmallFile(string path, int maximum, ref long budget, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!File.Exists(path)) throw new Refusal("RECEIPT_MISSING");
             RejectLinks(path);
             var info = new FileInfo(path);
+            long expectedLength = info.Length;
             // Reject empty/special files before opening: a FIFO must not block the Editor thread.
-            if (info.Length <= 0 || info.Length > maximum || (info.Attributes & FileAttributes.Directory) != 0)
+            if (expectedLength <= 0 || expectedLength > maximum || (info.Attributes & FileAttributes.Directory) != 0)
                 throw new Refusal("RECEIPT_INVALID");
-            if (info.Length > budget) throw new Refusal("READ_BUDGET_EXCEEDED");
-            budget -= info.Length;
+            if (expectedLength > budget) throw new Refusal("READ_BUDGET_EXCEEDED");
+            budget -= expectedLength;
             using (var input = File.OpenRead(path))
             {
-                byte[] data = ReadReceiptBytes(input, info.Length);
+                byte[] data = ReadReceiptBytes(input, expectedLength, cancellationToken);
                 RejectLinks(path);
                 return data;
             }
         }
         static byte[] ReadReceiptBytes(Stream input, long expectedLength)
         {
+            return ReadReceiptBytes(input, expectedLength, CancellationToken.None);
+        }
+        static byte[] ReadReceiptBytes(Stream input, long expectedLength, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (expectedLength <= 0 || expectedLength > MaxReceiptBytes) throw new Refusal("RECEIPT_INVALID");
             if (input.Length != expectedLength) throw new Refusal("HASH_DRIFT");
-            byte[] data = new byte[(int)input.Length];
-            int offset = 0, read;
-            while (offset < data.Length && (read = input.Read(data, offset, data.Length - offset)) > 0) offset += read;
-            if (offset != data.Length || input.ReadByte() != -1) throw new Refusal("HASH_DRIFT");
+            byte[] data = new byte[(int)expectedLength];
+            int offset = 0;
+            while (offset < data.Length)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                int read = input.Read(data, offset, Math.Min(ReadChunkBytes, data.Length - offset));
+                if (read <= 0) throw new Refusal("HASH_DRIFT");
+                offset += read;
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            // Observe growth without consuming an extra byte beyond the reserved budget.
+            if (input.Position != expectedLength || input.Length != expectedLength) throw new Refusal("HASH_DRIFT");
             return data;
         }
         static void VerifyReservedArtifact(ArtGraphNode node, Stream input, long reservedLength)
         {
-            if (input.Length != reservedLength || !ArtGraphContract.VerifyArtifact(node, input).IsValid)
-                throw new Refusal("HASH_DRIFT");
+            VerifyReservedArtifact(node, input, reservedLength, CancellationToken.None);
+        }
+        static void VerifyReservedArtifact(ArtGraphNode node, Stream input, long reservedLength,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (reservedLength <= 0 || reservedLength > MaxFileBytes) throw new Refusal("READ_BUDGET_EXCEEDED");
+            if (input.Length != reservedLength) throw new Refusal("HASH_DRIFT");
+            using (var bounded = new ReservedReadStream(input, reservedLength, cancellationToken))
+                if (!ArtGraphContract.VerifyArtifact(node, bounded).IsValid) throw new Refusal("HASH_DRIFT");
+            cancellationToken.ThrowIfCancellationRequested();
+            if (input.Position != reservedLength || input.Length != reservedLength) throw new Refusal("HASH_DRIFT");
+        }
+
+        // The caller retains ownership of the underlying stream. Its actual length is checked
+        // before and after hashing; this view permits only the already charged byte budget.
+        sealed class ReservedReadStream : Stream
+        {
+            readonly Stream input;
+            readonly long length;
+            readonly CancellationToken cancellationToken;
+            long remaining;
+
+            public ReservedReadStream(Stream input, long length, CancellationToken cancellationToken)
+            {
+                this.input = input;
+                this.length = length;
+                this.remaining = length;
+                this.cancellationToken = cancellationToken;
+            }
+            public override bool CanRead { get { return input.CanRead; } }
+            public override bool CanSeek { get { return input.CanSeek; } }
+            public override bool CanWrite { get { return false; } }
+            public override long Length { get { return length; } }
+            public override long Position
+            {
+                get { return input.Position; }
+                set
+                {
+                    if (value < 0 || value > length) throw new ArgumentOutOfRangeException(nameof(value));
+                    input.Position = value;
+                }
+            }
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+                if (offset < 0 || count < 0 || offset > buffer.Length - count) throw new ArgumentOutOfRangeException();
+                cancellationToken.ThrowIfCancellationRequested();
+                if (remaining == 0) return 0;
+                int read = input.Read(buffer, offset, (int)Math.Min(Math.Min(count, ReadChunkBytes), remaining));
+                remaining -= read;
+                return read;
+            }
+            public override long Seek(long offset, SeekOrigin origin)
+            {
+                long start;
+                switch (origin)
+                {
+                    case SeekOrigin.Begin: start = 0; break;
+                    case SeekOrigin.Current: start = Position; break;
+                    case SeekOrigin.End: start = length; break;
+                    default: throw new ArgumentOutOfRangeException(nameof(origin));
+                }
+                Position = checked(start + offset);
+                return Position;
+            }
+            public override void Flush() { }
+            public override void SetLength(long value) { throw new NotSupportedException(); }
+            public override void Write(byte[] buffer, int offset, int count) { throw new NotSupportedException(); }
         }
         static void RejectLinks(string path)
         {

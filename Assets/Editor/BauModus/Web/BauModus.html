@@ -214,10 +214,11 @@ function readToken() {
   try { S.token = localStorage.getItem("fw.token") || ""; } catch (e) { S.token = ""; }
   return !!S.token;
 }
-async function api(path, body) {
+async function api(path, body, signal) {
   if (ART_MODE && (!path.startsWith("art/") || body !== undefined))
     throw new Error("Die Asset-Werkstatt erlaubt ausschließlich lesende Art-Abfragen.");
   const o = { method: body === undefined ? "GET" : "POST", headers: { "X-Fadenwerk-Token": S.token } };
+  if (signal) o.signal = signal;
   if (body !== undefined) { o.headers["Content-Type"] = "application/json"; o.body = JSON.stringify(body); }
   let res;
   try { res = await fetch("./api/x/" + path, o); }
@@ -917,6 +918,42 @@ function artClear(title, message) {
   $("#artcount").textContent = "";
   $("#artdetail").replaceChildren(artText("h2", "Asset-Details"), artText("p", "Es ist kein aktuell verifizierter Graph ausgewählt."));
 }
+async function artApi(path, epoch, graph) {
+  const controller = new AbortController(), started = performance.now();
+  const timeout = () => Object.assign(new Error("Die Herkunftsprüfung dauert zu lange. Bitte neu laden."), { status: 408 });
+  const current = () => epoch === A.epoch && (!graph || A.graph === graph);
+  const abandoned = () => new DOMException("Diese Ansicht wurde ersetzt.", "AbortError");
+  const timer = setTimeout(() => controller.abort(), 40000);
+  let ticket = "", polls = 0, delay = 200;
+  try {
+    while (true) {
+      if (!current()) throw abandoned();
+      if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+      if (ticket) {
+        if (polls >= 150) throw timeout();
+        await sleep(Math.min(delay, 40000 - (performance.now() - started)));
+        if (!current()) throw abandoned();
+        if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+        polls++;
+      }
+      try {
+        const data = await api(path + (ticket ? (path.includes("?") ? "&" : "?") + "scanId=" + ticket : ""), undefined, controller.signal);
+        if (!current()) throw abandoned();
+        if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+        return data;
+      } catch (error) {
+        if (!current()) throw abandoned();
+        if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+        const pending = error.data;
+        if (error.status !== 202 || !pending || pending.code !== "ART_SCAN_PENDING") throw error;
+        if (pending.ok !== false || pending.readOnly !== true || !/^[a-f0-9]{32}$/.test(pending.scanId || "") ||
+            (ticket && pending.scanId !== ticket)) throw new Error("Unity hat keinen gültigen, unveränderten Prüfauftrag geliefert. Bitte neu laden.");
+        ticket = pending.scanId;
+        delay = Math.max(100, Math.min(1000, Number.isFinite(pending.retryAfterMs) ? pending.retryAfterMs : 200));
+      }
+    }
+  } finally { clearTimeout(timer); }
+}
 async function artBoot() {
   if (!readToken()) { showLogin(); return; }
   $("#login").style.display = "none";
@@ -926,8 +963,8 @@ async function artBoot() {
   artClear("Herkunft wird gelesen", "World-Forge-Belege und Projektstand werden geprüft.");
   artStatus("Herkunft und Revision werden geladen …", false);
   try {
-    const state = artIdentity(await api("art/state"));
-    const graph = artIdentity(await api("art/graph?" + artQuery(state)), state);
+    const state = artIdentity(await artApi("art/state", epoch));
+    const graph = artIdentity(await artApi("art/graph?" + artQuery(state), epoch), state);
     if (graph.schema !== "ashen.art-graph.v1" || !Array.isArray(graph.nodes)) throw new Error("Nicht unterstützter Asset-Graph-Vertrag.");
     if (epoch !== A.epoch) return;
     A.graph = graph;
@@ -1015,7 +1052,7 @@ async function selectArtNode(id, reveal) {
   if (reveal && A.buttons.has(id)) A.buttons.get(id).scrollIntoView({ block: "nearest", inline: "nearest" });
   $("#artdetail").replaceChildren(artText("h2", "Details werden gelesen …"));
   try {
-    const detail = artIdentity(await api("art/asset?" + artQuery(graph, id)), graph);
+    const detail = artIdentity(await artApi("art/asset?" + artQuery(graph, id), epoch, graph), graph);
     if (request !== A.detailRequest || epoch !== A.epoch) return;
     if (!detail.node || detail.node.id !== id) throw new Error("Die Asset-Antwort gehört nicht zum ausgewählten Knoten.");
     renderArtDetails(detail.node);
