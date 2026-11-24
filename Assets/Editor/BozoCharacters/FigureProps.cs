@@ -29,7 +29,12 @@ namespace AreArpg.EditorTools
             foreach (BozoFigureRecipes.Prop prop in recipe.props ?? new BozoFigureRecipes.Prop[0])
             {
                 var model = AssetDatabase.LoadAssetAtPath<GameObject>(prop.asset);
-                if (model == null) throw new InvalidOperationException("Requisit fehlt: " + prop.asset + " (" + recipe.id + ")");
+                if (model == null)
+                {
+                    // A private model that is not installed here: the figure is built without it instead of not at all.
+                    Debug.LogWarning("Figur " + recipe.id + ": Requisit " + prop.name + " fehlt und wird ausgelassen (" + prop.asset + ")");
+                    continue;
+                }
                 Transform bone = Bone(animator, prop.bone);
                 if (bone == null) throw new InvalidOperationException("Knochen fehlt: " + prop.bone + " (" + recipe.id + ")");
                 EnsureFolder();

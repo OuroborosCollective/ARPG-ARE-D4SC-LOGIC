@@ -24,7 +24,7 @@
       ]
     },
     {
-      "id": "mara", "role": "Mara, die Versorgerin, in der Dark-Fantasy-Fassung (Owner 2026-11-23: junges Gesicht, Beine zeigen, sexy, eigene Stoffe): junge Frau, die das Lager zusammenhält; schulterfreie Bluse aus aschfahlem grobem Leinen mit geschnürtem ochsenblutrotem Ledermieder, kurze zerschlissene Lederhose, hohe Fechtstiefel, Lederarmschienen, dunkelrotes Haar mit hohem Zopf. Stofffarben sind für die Aufhellung des Bakers (Exponent 0.6) abgedunkelt.",
+      "id": "mara", "role": "Mara, die Versorgerin und Händlerin, in der Dark-Souls-Fassung (Owner-Auftrag 2026-11-24; Schnitt vom 23.11. bleibt: junges Gesicht, Beine zeigen): geheimnisvoll und stilvoll in dunklem Weinrot, Schwarz und verblichenem Gold; kohlschwarze Bluse aus grobem Leinen mit goldfarbenen Kanten, geschnürtes weinrotes Mieder, kurze schwarze Lederhose, hohe Fechtstiefel mit weinroten Stulpen, Lederarmschienen, dunkelrotes Haar mit langem Zopf. Sie trägt ein Amulett an einer Halskette, einen schräg sitzenden Gürtel mit Münzbeutel und zwei schwach leuchtende Fläschchen. Stofffarben sind für die Aufhellung des Bakers (Exponent 0.6) abgedunkelt.",
       "base": "Fantasy/Ranger", "height": 1.78, "texture": 1024, "motion": "f", "keys": ["EntryNpc1", "Npc1"], "expressions": true,
       "body": [{"id": "Chest", "value": 55}, {"id": "Weight", "value": 20}],
       "face": [{"id": "EarsElf", "value": 0}, {"id": "Stern", "value": 0}, {"id": "RaiseBrows", "value": 10}],
@@ -34,12 +34,19 @@
         {"slot": "Body", "id": "Body_BasicBody", "colors": ["#d6a88e", "#7a3228", "#e6bca4"]},
         {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2e2014", "#7a5230"]},
         {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#160b08"]},
-        {"slot": "Top", "id": "Top_WitchBlouse", "colors": ["#615a4b", "#2d2820", "#4b453a", "#200a09", "#0d0807", "#615a4b", "#000000", "#000000", "#000000"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.5, "fabricScale": 4},
-        {"slot": "Bottom", "id": "Bottom_TatteredPants", "colors": ["#110d0a", "#0d0807", "#201c19"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
-        {"slot": "Feet", "id": "Feet_FencingBoots", "colors": ["#0f0b08", "#16100d", "#060403", "#16100d"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
-        {"slot": "Gloves", "id": "Gloves_LeatherArmbands", "colors": ["#110d0a", "#0d0807", "#2d2924"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
+        {"slot": "Top", "id": "Top_WitchBlouse", "colors": ["#100e0e", "#4b3d22", "#0c0b0b", "#240d0f", "#5c4c2d", "#1d0b0d", "#0c0b0b", "#0c0b0b", "#0c0b0b"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.5, "fabricScale": 4},
+        {"slot": "Bottom", "id": "Bottom_TatteredPants", "colors": ["#090807", "#16100d", "#070606"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
+        {"slot": "Feet", "id": "Feet_FencingBoots", "colors": ["#0d0a08", "#090706", "#030302", "#180a0b"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
+        {"slot": "Gloves", "id": "Gloves_LeatherArmbands", "colors": ["#0d0a08", "#4b3d22", "#090706"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
         {"slot": "HairFront", "id": "HairFront_ProperPart", "colors": ["#200e0b", "#3b1711", "#200e0b"]},
         {"slot": "HairBack", "id": "HairBack_DolphinTail", "colors": ["#200e0b", "#3b1711", "#0d0807"]}
+      ],
+      "props": [
+        {"name": "Amulet", "asset": "Assets/PrivateArt/FigureProps/MaraAmulet.fbx", "bone": "UpperChest", "position": [0, 0, 0], "rotation": [0, 0, 0], "size": 0, "anchor": "origin", "metallic": 0.85, "smoothness": 0.5},
+        {"name": "Belt", "asset": "Assets/PrivateArt/FigureProps/MaraBelt.fbx", "bone": "Hips", "position": [0, 0, 0], "rotation": [0, 0, 0], "size": 0, "anchor": "origin", "smoothness": 0.25},
+        {"name": "CoinPurse", "asset": "Assets/PrivateArt/DesignAssets/SimpleMedievalProps/LowPolyMedievalPropsLite/Prefabs/Bag_01.prefab", "bone": "Hips", "position": [0.125, 1.045, 0.142], "rotation": [0, -25, 0], "size": 0.12, "anchor": "top", "tint": "#6a503c"},
+        {"name": "FlaskRed", "asset": "Assets/PrivateArt/DesignAssets/AlchemyLabProps/Multistory Dungeons 2/Prefabs/Props/Books And Alchemy/Potion_01.prefab", "bone": "Hips", "position": [-0.125, 1.002, 0.142], "rotation": [0, 0, 5], "size": 0.11, "anchor": "top", "tint": "#8a8580", "glow": "#ff5a3a", "glowStrength": 0.35, "glowSaturation": 0.75},
+        {"name": "FlaskSmall", "asset": "Assets/PrivateArt/DesignAssets/AlchemyLabProps/Multistory Dungeons 2/Prefabs/Props/Books And Alchemy/Potion_04.prefab", "bone": "Hips", "position": [-0.19, 0.992, 0.078], "rotation": [0, 0, -5], "size": 0.075, "anchor": "top", "tint": "#8a8580", "glow": "#7fe0c8", "glowStrength": 0.3, "glowSaturation": 0.75}
       ]
     },
     {
@@ -82,6 +89,9 @@
         {"slot": "Neck", "id": "Neck_HoodedCape", "colors": ["#0e0b0a", "#070605"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.45, "fabricScale": 3},
         {"slot": "HairFront", "id": "HairFront_HeroCut", "colors": ["#0d0907", "#18110c"]},
         {"slot": "HairBack", "id": "HairBack_WarriorWolfTail", "colors": ["#0d0907", "#18110c", "#0d0807"]}
+      ],
+      "props": [
+        {"name": "Quiver", "asset": "Assets/Resources/ARE/Borderland/RangedQuiver.prefab", "bone": "Chest", "position": [0.07, 1.36, -0.2], "rotation": [0, 180, 0], "size": 0.66, "anchor": "center", "tint": "#6e5a48"}
       ]
     },
     {
@@ -250,7 +260,7 @@
       ]
     },
     {
-      "id": "orsel", "role": "Orsel, die Feldheilerin der alten Mühle, in der Dark-Fantasy-Fassung (Owner 2026-11-23: junges Gesicht, Beine zeigen, sexy, grobes schweres Leinen, Strumpfhalter-Shorts): Kampfkleid aus grobem Leinen mit vorn offenem Rock, darunter geschnürte Shorts mit Strumpfhaltern und Overknee-Strümpfen (Owner-Wahl), kurze Schnürstiefel, dunkle Kapuze mit blutrotem Saum, Leinenwickel wie Verbände an den Händen, langes aschsilbernes Haar. Stofffarben sind so gewählt, dass sie nach der Aufhellung des Bakers (Exponent 0.6) gedeckt und dunkel erscheinen.",
+      "id": "orsel", "role": "Orsel, die Feldheilerin der alten Mühle, in der Dark-Souls-Fassung (Owner-Auftrag 2026-11-24; Schnitt vom 23.11. bleibt: junges Gesicht, Beine zeigen, grobes schweres Leinen): ruhig und schlicht in verblichenem Grau, Creme und dunklem Grün; Kampfkleid aus grauem grobem Leinen mit dunkelgrünen Säumen und Ärmeln, moosgrüne Kapuze, geschnürte Shorts mit Strumpfhaltern und schwarzen Overknee-Strümpfen, kurze Schnürstiefel, Leinenwickel wie Verbände an den Händen, langes aschsilbernes Haar. Sie trägt einen knorrigen Heilerstab auf dem Rücken, eine warm leuchtende Laterne am Gürtel, Kräuterbeutel und ein schwach leuchtendes Fläschchen. Stofffarben sind für die Aufhellung des Bakers (Exponent 0.6) abgedunkelt.",
       "base": "Fantasy/Ranger", "height": 1.74, "texture": 1024, "motion": "f", "keys": ["Orsel0"], "expressions": true,
       "body": [{"id": "Chest", "value": 45}, {"id": "Weight", "value": 20}],
       "face": [{"id": "EarsElf", "value": 0}, {"id": "Stern", "value": 20}, {"id": "RaiseBrows", "value": 0}],
@@ -260,13 +270,19 @@
         {"slot": "Body", "id": "Body_BasicBody", "colors": ["#cfa58c", "#74322a", "#dfb7a0"]},
         {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#2a3028", "#6a7a62"]},
         {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#6e6860"]},
-        {"slot": "Hat", "id": "Hat_RusticHood", "colors": ["#0f0c0a", "#200b09"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.5, "fabricScale": 4},
-        {"slot": "Top", "id": "Top_BattleDress", "colors": ["#4b4134", "#200b09", "#161311", "#201812", "#160d09", "#201f1c", "#0f0a08", "#160d09", "#201f1c"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.6, "fabricScale": 4},
-        {"slot": "Gloves", "id": "Gloves_ClothHandwraps", "colors": ["#5c5141"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.7, "fabricScale": 6},
-        {"slot": "Bottom", "id": "Bottom_StrappedLeggings", "colors": ["#0f0a08", "#200b09", "#160d09", "#070605", "#200b09", "#160d09"]},
-        {"slot": "Feet", "id": "Feet_TiedBoots", "colors": ["#160f0b", "#070504", "#20160f"]},
+        {"slot": "Hat", "id": "Hat_RusticHood", "colors": ["#0e120e", "#2d2a25"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.5, "fabricScale": 4},
+        {"slot": "Top", "id": "Top_BattleDress", "colors": ["#3c3933", "#101611", "#3b3221", "#0d0a08", "#0f0b09", "#121812", "#0e110f", "#312f29", "#0d0c0b"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.6, "fabricScale": 4},
+        {"slot": "Gloves", "id": "Gloves_ClothHandwraps", "colors": ["#3c3933"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.7, "fabricScale": 6},
+        {"slot": "Bottom", "id": "Bottom_StrappedLeggings", "colors": ["#0b0a09", "#101611", "#0d0a08", "#060606", "#101611", "#0d0a08"]},
+        {"slot": "Feet", "id": "Feet_TiedBoots", "colors": ["#0e0b09", "#040303", "#16100d"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.5, "fabricScale": 3},
         {"slot": "HairFront", "id": "HairFront_DesolateHair", "colors": ["#a8a49c", "#7a766e"]},
         {"slot": "HairBack", "id": "HairBack_LooseLong", "colors": ["#a8a49c", "#7a766e", "#8e8a82"]}
+      ],
+      "props": [
+        {"name": "Staff", "asset": "Assets/Resources/ARE/Visuals/Weapons/staff_newbie.3.prefab", "bone": "Chest", "position": [0.0, 1.12, -0.19], "rotation": [0, 0, 24], "size": 1.5, "anchor": "center", "tint": "#c9b79f"},
+        {"name": "Lantern", "asset": "Assets/PrivateArt/DesignAssets/AlchemyLabProps/Multistory Dungeons 2/Prefabs/Props/Lantern_Handheld_01.prefab", "bone": "Hips", "position": [-0.25, 1.05, 0.03], "rotation": [0, 0, 0], "size": 0.24, "anchor": "top", "tint": "#8f8a86", "glow": "#ffb060", "glowStrength": 3.0, "glowSaturation": 0.4},
+        {"name": "HerbPouch", "asset": "Assets/PrivateArt/DesignAssets/SimpleMedievalProps/LowPolyMedievalPropsLite/Prefabs/Bag_01.prefab", "bone": "Hips", "position": [0.2, 1.03, 0.03], "rotation": [0, 90, 0], "size": 0.15, "anchor": "top", "tint": "#6a6a52"},
+        {"name": "Flask", "asset": "Assets/PrivateArt/DesignAssets/AlchemyLabProps/Multistory Dungeons 2/Prefabs/Props/Books And Alchemy/Potion_02.prefab", "bone": "Hips", "position": [0.15, 1.03, 0.13], "rotation": [0, 0, 0], "size": 0.11, "anchor": "top", "tint": "#8a8580", "glow": "#7fe0c8", "glowStrength": 0.4, "glowSaturation": 0.75}
       ]
     },
     {
