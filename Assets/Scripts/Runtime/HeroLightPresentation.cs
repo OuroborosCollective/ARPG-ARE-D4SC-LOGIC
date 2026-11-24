@@ -5,16 +5,16 @@ namespace AreArpg.UnityClient
     /// <summary>
     /// A soft circle of light around the wanderer under the night sky, like a carried lantern (owner decision
     /// 2026-11-24): away from the torches his dark clothes sank into black. One point light without shadows that stays
-    /// above the hero, a little towards the camera, so it falls on the side the player sees; presentation only, it
+    /// at the hero's shoulder height, a good step towards the camera, so it falls on the side the player sees; presentation only, it
     /// changes no rule and no saved state.
     /// </summary>
     public sealed partial class ArenaRuntime
     {
         public const string HeroLightName = "ARE Hero light";
         /// <summary>Reach of the circle in metres and its strength: enough to read the hero, not enough to light the village.</summary>
-        public const float HeroLightRange = 6.5f, HeroLightIntensity = 2.1f;
+        public const float HeroLightRange = 6.5f, HeroLightIntensity = 1.8f;
         /// <summary>Height above the hero's middle and the step towards the camera, in metres.</summary>
-        private const float HeroLightHeight = 1.25f, HeroLightLead = .8f;
+        private const float HeroLightHeight = .6f, HeroLightLead = 1.2f;
         private static readonly Color HeroLightColor = new Color(1f, .78f, .52f);
         private Light _heroLight;
 
@@ -40,7 +40,7 @@ namespace AreArpg.UnityClient
             FollowHeroLight();
         }
 
-        /// <summary>Once per frame: over the hero's head and a step towards the camera.</summary>
+        /// <summary>Once per frame: at shoulder height, a good step from the hero towards the camera.</summary>
         private void FollowHeroLight()
         {
             if (_heroLight == null || !_heroLight.enabled || _hero == null) return;

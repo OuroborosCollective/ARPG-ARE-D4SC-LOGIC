@@ -73,8 +73,10 @@ namespace AreArpg.PlayMode.Tests
                 Assert.IsTrue(heroLight.enabled && heroLight.type == LightType.Point && heroLight.shadows == LightShadows.None);
                 Assert.Greater(heroLight.color.r, heroLight.color.b, "A warm light against the cold moon");
                 Vector3 offset = heroLight.transform.position - Find("Wanderer").transform.position;
-                Assert.Greater(offset.y, .8f, "The light hangs over the wanderer");
-                Assert.Less(new Vector2(offset.x, offset.z).magnitude, 1.2f, "The light stays with the wanderer");
+                Assert.That(offset.y, Is.InRange(.3f, 1.5f), "The light hangs at the wanderer's shoulder");
+                Assert.Less(new Vector2(offset.x, offset.z).magnitude, 1.6f, "The light stays with the wanderer");
+                Vector3 toCamera = Camera.main.transform.position - Find("Wanderer").transform.position; toCamera.y = 0f;
+                Assert.Greater(Vector3.Dot(new Vector3(offset.x, 0f, offset.z), toCamera.normalized), .5f, "The light stands on the side the player sees");
                 Assert.AreEqual(1, Object.FindObjectsByType<Light>(FindObjectsSortMode.None).Count(light => light.name == ArenaRuntime.HeroLightName),
                     "Refreshing the sky never adds a second hero light");
             }
