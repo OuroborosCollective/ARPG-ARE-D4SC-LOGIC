@@ -398,7 +398,6 @@
   },
   {
    "id": "borderland",
-   "source": "borderland",
    "size": 256,
    "saturation": 0.85,
    "gain": 0.85,
@@ -415,7 +414,10 @@
      "saturation": 0.45,
      "gain": 0.6
     }
-   ]
+   ],
+   "ownSource": "Tools/Art/village/borderland-atlas-source.png",
+   "ownOutput": "Assets/AshenCrypt/BorderlandArt/BorderlandAtlas.png",
+   "keepAlpha": true
   }
  ]
 }

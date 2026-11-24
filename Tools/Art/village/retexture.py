@@ -6,6 +6,9 @@ The recipe (in the repository) says how each surface looks: size, grade, what ha
 a normal map is made from the brightness. The sources file (private, never in the repository) says where the
 licensed or generated source picture of each surface lies. Outputs are private as well.
 
+The game's own art is the exception: a surface with "ownSource" and "ownOutput" (paths from the repository's root)
+reads a picture of the repository and writes one, here the plants' colour atlas.
+
 Grade of a surface, applied in this order:
   hues        list of {"from", "to" (degrees), "saturation", "gain", "tint", "toward" [r,g,b], "amount"}: only pixels
               whose hue lies in the range (soft edges of 12 degrees, weighted by how colourful the pixel is)
@@ -101,14 +104,18 @@ def main():
     recipe = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
     sources = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
     out = pathlib.Path(sys.argv[3])
+    repository = pathlib.Path(sys.argv[1]).resolve().parents[3]
     wanted = set(sys.argv[4:])
     out.mkdir(parents=True, exist_ok=True)
     for spec in recipe["surfaces"]:
         if wanted and spec["id"] not in wanted:
             continue
-        if spec["source"] not in sources:
+        if "ownSource" in spec:
+            image = Image.open(repository / spec["ownSource"])
+        elif spec["source"] in sources:
+            image = Image.open(sources[spec["source"]])
+        else:
             sys.exit("no private source for " + spec["source"])
-        image = Image.open(sources[spec["source"]])
         alpha = image.getchannel("A") if image.mode in ("RGBA", "LA") else None
         image = image.convert("RGB")
         size = spec.get("size", 1024)
@@ -127,7 +134,7 @@ def main():
         result = Image.fromarray((to_srgb(rgb) * 255.0 + 0.5).astype(np.uint8), "RGB")
         if alpha is not None and spec.get("keepAlpha", True):
             result.putalpha(alpha)
-        result.save(out / (spec["id"] + ".png"))
+        result.save(repository / spec["ownOutput"] if "ownOutput" in spec else out / (spec["id"] + ".png"))
         if spec.get("normalFromLuma", 0) > 0:
             normal = normal_from_luma(rgb, spec["normalFromLuma"])
             Image.fromarray((normal * 255.0 + 0.5).astype(np.uint8), "RGB").save(out / (spec["id"] + "_normal.png"))
