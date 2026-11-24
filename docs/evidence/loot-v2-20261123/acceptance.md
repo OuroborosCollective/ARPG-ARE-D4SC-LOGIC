@@ -101,7 +101,7 @@ were committed red (`8de0b75`, the catalog and the bags did not exist) before th
 | Full EditMode suite | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | 254 PASS / 0 FAIL / 28 ignored |
 | Full PlayMode suite | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | 182 PASS / 0 FAIL / 28 ignored |
 | PlayMode `CanonicalKillProjectsAndPersistsVersionedLoot` (bag shown, glint within its limit, reduced effects, real pickup input, save, restart) | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | PASS |
-| Review fixes on #134 (flags fit only their two sources, legendary shield glint, the fixture reads the world's loot revision, the glint test sets its effect mode): `Tests/CoreVerification`, and PlayMode `CanonicalKillProjectsAndPersistsVersionedLoot`, `CryptLeadsToVillageAndResumesItsCheckpoint`, `CampFiguresWearTheMoodOfTheirRole` | @@REVIEWHEAD@@ | ALL PASS 23.143 (75 for loot revision 2); 3 / 3 PASS |
+| Review fixes on #134 (flags fit only their two sources, legendary shield glint, the fixture reads the world's loot revision, the glint test sets its effect mode): `Tests/CoreVerification`, and PlayMode `CanonicalKillProjectsAndPersistsVersionedLoot`, `CryptLeadsToVillageAndResumesItsCheckpoint`, `CampFiguresWearTheMoodOfTheirRole` | `72c86010f02af5a503a1b65d73b442f6db64dc88` | ALL PASS 23.143 (75 for loot revision 2); 3 / 3 PASS |
 
 What the Core checks cover:
 
