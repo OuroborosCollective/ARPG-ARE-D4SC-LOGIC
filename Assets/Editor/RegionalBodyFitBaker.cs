@@ -25,10 +25,12 @@ namespace AreArpg.Editor
         public static void BakeRegionalFits()
         {
             if (!AssetDatabase.IsValidFolder(ClothesRoot.TrimEnd('/'))) return;
-            RegionalVariant(new WardrobeSource { id = "hero", top="Top/Top_RangerVest", uniform = new[] {
-                "Shoulders/Shoulders_SoldiersPauldrons", "Neck/Neck_LooseScarf" },
+            // The wardrobes of 2026-11-24 (Dark-Souls looks): the hero's coat with pauldrons and hooded cape; Mara's blouse
+            // with nothing over it, so only the covered front and back of her top give way to the work outfit.
+            RegionalVariant(new WardrobeSource { id = "hero", top="Top/Top_VanguardCoat", uniform = new[] {
+                "Shoulders/Shoulders_SoldiersPauldrons", "Neck/Neck_HoodedCape" },
                 hair = new[] {"HairFront/HairFront_FreeTussle","HairBack/HairBack_ShortChoppy"} }, "EntryHero");
-            RegionalVariant(new WardrobeSource { id = "mara", top="Top/Top_RusticCorset", uniform = new[] {"Shoulders/Shoulders_HomelyShawl"},
+            RegionalVariant(new WardrobeSource { id = "mara", top="Top/Top_WitchBlouse", uniform = Array.Empty<string>(),
                 hair = Array.Empty<string>() }, "EntryNpc1");
             AssetDatabase.SaveAssets();
         }
@@ -67,7 +69,7 @@ namespace AreArpg.Editor
                     MatchWardrobePart(module, targets, candidates, indices, points, skin.bones, input.boneWeights);
                 }
                 var untrimmed = new HashSet<int>(uniform); untrimmed.UnionWith(hair);
-                if (uniform.Count==0 || (recipe.hair.Length>0 && hair.Count==0) || untrimmed.Count!=uniform.Count+hair.Count)
+                if ((recipe.uniform.Length>0 && uniform.Count==0) || (recipe.hair.Length>0 && hair.Count==0) || untrimmed.Count!=uniform.Count+hair.Count)
                     throw new InvalidOperationException("Arbeitskleidung oder Kopfgeometrie nicht getrennt");
                 var originalTop=new HashSet<int>();
                 MatchTopSurfaces(recipe.top,originalTop,indices,points,skin.bones,input.boneWeights,input.bindposes);
