@@ -36,6 +36,9 @@ namespace AreArpg.PlayMode.Tests
             var missing = new List<string>();
             for (int slot = 0; slot < 4; slot++)
             {
+                // Under combat v2 slot 2 is no ability any more: the guard is held, and HeroClipsFollowTheCoresActions
+                // checks that the hero raises and lowers it with the Core.
+                if (Game.CombatV2 && slot == 2) continue;
                 var target = Game.Monsters.Find(m => !m.IsDead);
                 Assert.IsNotNull(target);
                 target.Xmm = Game.PlayerXmm + 900; target.Zmm = Game.PlayerZmm; target.Health = 100000;
@@ -186,7 +189,9 @@ namespace AreArpg.PlayMode.Tests
                 inMelee = melee; lastTime = melee ? state.normalizedTime : 0f;
             }
             Debug.Log("COMBAT_SAME_TICK starts=" + starts + " message=" + Message());
-            Assert.GreaterOrEqual(starts, 2, "Strike and Heavy Strike in one tick must both be visible");
+            // Combat v2 runs one action at a time: the first tap starts its strike, the second is refused until it ends.
+            if (Game.CombatV2) Assert.GreaterOrEqual(starts, 1, "The accepted strike must be visible");
+            else Assert.GreaterOrEqual(starts, 2, "Strike and Heavy Strike in one tick must both be visible");
         }
 
         /// <summary>Review fix: a defeated enemy's skeleton stays frozen after the brief hit-stop ends.</summary>
