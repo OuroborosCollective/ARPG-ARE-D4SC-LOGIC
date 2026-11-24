@@ -3,7 +3,10 @@ using UnityEngine;
 
 namespace AreArpg.UnityClient
 {
-    /// <summary>Only displays the existing persisted Core tick; it never controls game time or game rules.</summary>
+    /// <summary>
+    /// The sky of the outdoor regions: always night (owner decision 2026-11-24). It only displays the existing persisted
+    /// Core tick as the moon's place and the clouds' drift; it never controls game time or game rules.
+    /// </summary>
     public sealed partial class ArenaRuntime
     {
         private Material _worldSkyMaterial;
@@ -46,7 +49,7 @@ namespace AreArpg.UnityClient
                 Debug.LogWarning("ARE WorldSky: reviewed URP shader unavailable; retaining the existing backdrop.");
                 return;
             }
-            _worldSkyMaterial = new Material(shader) { name = "ARE day-night sky (presentation only)" };
+            _worldSkyMaterial = new Material(shader) { name = "ARE night sky (presentation only)" };
             _worldSkyOriginalMaterial = RenderSettings.skybox;
             _worldSkyOriginalSun = RenderSettings.sun;
             if (_sun != null)
@@ -100,6 +103,7 @@ namespace AreArpg.UnityClient
                     Shader.SetGlobalColor(WorldTintId, Color.clear);
                     _worldSkyOutdoor = false;
                 }
+                RefreshHeroLight(false);
                 return;
             }
             if (!_worldSkyOutdoor || RenderSettings.sun != _sun)
@@ -113,54 +117,60 @@ namespace AreArpg.UnityClient
             _worldSkyPhase = phase;
             _worldSkyReduced = reduced;
 
-            // Noon at the start of a fresh save; a full orbit costs exactly 14,400 Core ticks.
+            // Owner decision 2026-11-24: the story plays in the night of the world. The persisted Core tick no longer
+            // brings a day: it only lets the moon wander and the clouds drift (a full round costs exactly 14,400 Core
+            // ticks). The Core clock itself and everything it rules stay as they are.
             float time = phase / (float)WorldSkyClock.TicksPerDay;
             float angle = time * Mathf.PI * 2f;
-            float altitude = Mathf.Cos(angle);
-            float daylight = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(-0.23f, 0.38f, altitude));
-            Shader.SetGlobalFloat(EmberGainId, reduced ? .28f : Mathf.Lerp(1.50f, .70f, daylight));
-            Vector3 direction = new Vector3(Mathf.Sin(angle) * 0.84f, altitude, Mathf.Cos(angle) * 0.46f).normalized;
+            Shader.SetGlobalFloat(EmberGainId, reduced ? .28f : 1.50f);
+            Vector3 moon = MoonDirection(angle);
 
-            _worldSkyMaterial.SetVector("_SunDirection", new Vector4(direction.x, direction.y, direction.z, 0));
-            _worldSkyMaterial.SetFloat("_Daylight", daylight);
+            // The sky shader draws the moon opposite its sun: the sun stays below the ground for good.
+            _worldSkyMaterial.SetVector("_SunDirection", new Vector4(-moon.x, -moon.y, -moon.z, 0));
+            _worldSkyMaterial.SetFloat("_Daylight", 0f);
             _worldSkyMaterial.SetFloat("_CloudPhase", angle);
             _worldSkyMaterial.SetFloat("_CloudAmount", reduced ? 0.0f : 0.72f);
             _worldSkyMaterial.SetFloat("_StarAmount", reduced ? 0.0f : 1.0f);
-            _worldSkyMaterial.SetColor("_SunColor", Color.Lerp(
-                new Color(1.0f, 0.44f, 0.19f), new Color(1.0f, 0.84f, 0.54f), daylight));
+            _worldSkyMaterial.SetColor("_SunColor", new Color(1.0f, 0.44f, 0.19f));
 
             if (_sun != null)
             {
-                // One existing directional proxy follows the sun by day and the visible moon at night.
-                Vector3 lightDirection = daylight <= 0f ? -direction : direction;
-                // The visible disc keeps its solar position; the single shadow proxy stays high enough
-                // to read the ground at dawn/dusk without adding another mobile light.
-                lightDirection.y = Mathf.Max(lightDirection.y, .50f);
-                _sun.transform.rotation = Quaternion.LookRotation(-lightDirection.normalized, Vector3.forward);
-                Color daylightTint = Color.Lerp(new Color(1.0f, .68f, .45f),
-                                                 new Color(1.0f, .92f, .76f), daylight);
-                // Night: a cold moon that still draws dark, worn clothes out of the dark (owner brief 2026-11-24:
-                // cold moonlight against warm light islands).
-                _sun.color = Color.Lerp(new Color(.42f, .56f, .86f), daylightTint,
-                                        Mathf.Clamp01(daylight * 4f));
-                _sun.intensity = Mathf.Lerp(0.66f, 1.50f, daylight);
+                // The one directional light is the moon: cold, and strong enough to draw dark, worn clothes out of
+                // the night. More light, where it is wanted, comes from the moon, never from a day.
+                _sun.transform.rotation = Quaternion.LookRotation(-moon, Vector3.forward);
+                _sun.color = MoonColor;
+                _sun.intensity = MoonIntensity;
             }
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = Color.Lerp(new Color(0.26f, 0.30f, 0.40f),
-                                                      new Color(0.47f, 0.46f, 0.45f), daylight);
+            RenderSettings.ambientLight = new Color(0.26f, 0.30f, 0.40f);
             ApplyFlatWorldSkyProbe();
             foreach (var backdrop in _worldSkyBackdrops)
-                if (backdrop != null) backdrop.SetDaylight(daylight);
-            RefreshVillageLights(daylight, reduced);
-            // Unlit ground dressing follows the same daylight as the lit world around it.
-            Color tint = Color.Lerp(new Color(.20f, .24f, .34f), Color.white, Mathf.SmoothStep(0f, 1f, daylight));
-            tint.a = 1f;
-            Shader.SetGlobalColor(WorldTintId, tint);
+                if (backdrop != null) backdrop.SetDaylight(0f);
+            RefreshVillageLights(0f, reduced);
+            RefreshHeroLight(true);
+            // Unlit ground dressing wears the same night as the lit world around it.
+            Shader.SetGlobalColor(WorldTintId, new Color(.20f, .24f, .34f, 1f));
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.Exponential;
-            RenderSettings.fogColor = Color.Lerp(new Color(0.10f, 0.13f, 0.20f),
-                                                  new Color(0.48f, 0.53f, 0.56f), daylight);
-            RenderSettings.fogDensity = Mathf.Lerp(0.0030f, 0.0018f, daylight);
+            RenderSettings.fogColor = new Color(0.10f, 0.13f, 0.20f);
+            RenderSettings.fogDensity = 0.0030f;
+        }
+
+        /// <summary>The moon's light: cold blue-white.</summary>
+        public static readonly Color MoonColor = new Color(.42f, .56f, .86f);
+        /// <summary>The moon's strength as the night's only key light (the day's sun had 1.5).</summary>
+        public const float MoonIntensity = 0.66f;
+
+        /// <summary>
+        /// Where the moon stands for a phase of the Core day (0..2π): it circles the sky once and never sets, between 40
+        /// and 62 degrees high. A fresh save starts with the moon in the south-east, behind the right shoulder of a
+        /// wanderer who looks north, so it lights what the camera sees.
+        /// </summary>
+        public static Vector3 MoonDirection(float angle)
+        {
+            float height = Mathf.Deg2Rad * (51f + 11f * Mathf.Sin(angle * 2f));
+            float azimuth = angle + Mathf.Deg2Rad * 120f;
+            return new Vector3(Mathf.Sin(azimuth) * Mathf.Cos(height), Mathf.Sin(height), Mathf.Cos(azimuth) * Mathf.Cos(height));
         }
 
         private static void ApplyFlatWorldSkyProbe()
@@ -204,6 +214,7 @@ namespace AreArpg.UnityClient
             WorldSurfacePresentation.ReleaseAshPaint();
             Shader.SetGlobalFloat(EmberGainId, 0f);
             DisposeVillageLights();
+            DisposeHeroLight();
             DisposePostProcessing();
             Shader.SetGlobalColor(WorldTintId, Color.clear);
             if (_worldSkyMaterial != null) Destroy(_worldSkyMaterial);

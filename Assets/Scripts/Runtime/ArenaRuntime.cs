@@ -1221,6 +1221,7 @@ namespace AreArpg.UnityClient
             RefreshVillageRoomLight();
             RefreshPostProcessing();
             AnimateVillageLights();
+            FollowHeroLight();
             AnimateDungeonLights();
             UpdateRegionalSources();
             UpdateOrselFigure();
