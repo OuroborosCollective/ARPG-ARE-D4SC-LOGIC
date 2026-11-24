@@ -112,8 +112,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(save, Game.Progression.SaveString());
 
             // Select an interior only inside this fixture; rendering remains a consumer of Core state.
-            typeof(CharacterProgression).GetProperty("EntryAct").SetValue(Game.Progression, 4);
-            Assert.AreEqual(4, Game.CurrentAreaId);
+            typeof(CharacterProgression).GetProperty("EntryAct").SetValue(Game.Progression, 5);
+            Assert.AreEqual(5, Game.CurrentAreaId, "The old storehouse is an interior; the mill lies under the open night sky");
             rebuild.Invoke(_runtime, null);
             Color authoredFog = RenderSettings.fogColor;
             Color authoredAmbient = RenderSettings.ambientLight;

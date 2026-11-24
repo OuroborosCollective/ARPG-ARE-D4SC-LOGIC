@@ -36,9 +36,10 @@ namespace AreArpg.UnityClient
 
         private static bool IsOutdoorSkyArea(int area)
         {
-            // Village, Ash Road, woodland, Aschenzoll and the onward forest road.
-            // Mill, storehouse, crypt, rattler den, caves and legacy scenes keep their authored light.
-            return area == 2 || area == 3 || area == 8 || area == 10 || area == 11;
+            // Village, Ash Road, the old mill, woodland, Aschenzoll and the onward forest road: every place under the
+            // open sky wears the night of the world (the mill had an overcast day of its own until 2026-11-24).
+            // Storehouse, crypt, rattler den, caves and legacy scenes keep their authored light.
+            return area == 2 || area == 3 || area == 4 || area == 8 || area == 10 || area == 11;
         }
 
         private void InitializeWorldSky()
