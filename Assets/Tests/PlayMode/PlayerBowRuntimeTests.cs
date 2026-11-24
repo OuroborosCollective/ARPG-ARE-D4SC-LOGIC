@@ -173,7 +173,9 @@ namespace AreArpg.PlayMode.Tests
             for(int i=0;i<10;i++)TickOnce();
             target.Xmm=Game.PlayerXmm+1000;target.Zmm=Game.PlayerZmm;target.Health=1000;
             animator.ResetTrigger("Melee");animator.SetFloat("MoveMagnitude",0);animator.Play(idleState,0,0);animator.Update(0);
-            queue.Enqueue(0);TickOnce();Assert.Less(target.Health,1000);
+            queue.Enqueue(0);TickOnce();
+            for(int tick=0;tick<8&&target.Health==1000;tick++)TickOnce(); // combat v2 winds the strike up before it lands
+            Assert.Less(target.Health,1000);
             hash=Game.ComputeWorldHash();save=p.SaveString();
             animator.Update(0);animator.Update(.15f);
             Assert.AreEqual(attackState,animator.GetCurrentAnimatorStateInfo(0).shortNameHash);
