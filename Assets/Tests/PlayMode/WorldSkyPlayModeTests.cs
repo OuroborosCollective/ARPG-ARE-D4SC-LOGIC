@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Linq;
 using System.Reflection;
 using AreArpg.Core;
 using AreArpg.UnityClient;
@@ -11,12 +10,8 @@ namespace AreArpg.PlayMode.Tests
 {
     public sealed partial class EntryJourneyRuntimeTests
     {
-        /// <summary>
-        /// Owner decision 2026-11-24: the story plays in the night of the world. The saved Core tick no longer brings a
-        /// day; it only moves the moon and the clouds. The moon never sets, and a light goes with the wanderer.
-        /// </summary>
         [UnityTest]
-        public IEnumerator VillageSkyStaysNightAndOnlyTheMoonFollowsTheCoreTicks()
+        public IEnumerator VillageSkyProjectsCoreTicksWithoutWritingAnyRules()
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
@@ -26,11 +21,14 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(Game.IsVillage, "The sky must appear only after entering the outdoor village");
             var material = (Material)typeof(ArenaRuntime).GetField("_worldSkyMaterial", Flags).GetValue(_runtime);
             Assert.IsNotNull(material, "The imported shader must create a real render material");
-            var refresh = typeof(ArenaRuntime).GetMethod("RefreshWorldSky", Flags);
-            refresh.Invoke(_runtime, null);
+            typeof(ArenaRuntime).GetMethod("RefreshWorldSky", Flags).Invoke(_runtime, null);
             Assert.AreSame(material, RenderSettings.skybox);
             Assert.AreEqual(CameraClearFlags.Skybox, Camera.main.clearFlags);
-            var moonLight = (Light)typeof(ArenaRuntime).GetField("_sun", Flags).GetValue(_runtime);
+            float lightAtStart = material.GetFloat("_Daylight");
+            Assert.Greater(lightAtStart, .20f, "Fresh outdoor gameplay starts in daylight");
+            var dayLight = GameObject.Find(ArenaRuntime.HeroLightName)?.GetComponent<Light>();
+            Assert.IsTrue(dayLight == null || !dayLight.enabled, "By day the wanderer needs no light of his own");
+            yield return Capture("village-world-sky-day.png");
 
             // Test fixture moves ONLY the persisted canonical Core clock, not wall time or frames.
             var forge = Game.Progression.Social.Forge;
@@ -41,49 +39,52 @@ namespace AreArpg.PlayMode.Tests
             ulong original = forge.ProcessedTicks;
             try
             {
-                Vector3 last = Vector3.up; // no moon shines upwards: the first hour differs from it too
-                foreach (ulong hour in new[] { 0UL, 3600UL, 7200UL, 10800UL })
-                {
-                    counter.SetValue(forge, hour);
-                    ulong before = Game.ComputeWorldHash();
-                    string checkpoint = Game.Progression.SaveString();
-                    refresh.Invoke(_runtime, null);
-                    string label = "Core tick " + hour + ": ";
-                    Assert.AreEqual(0f, material.GetFloat("_Daylight"), 1e-4f, label + "no hour of the Core day brings daylight");
-                    Assert.Greater(material.GetFloat("_StarAmount"), 0.5f, label + "the stars stay");
-                    Assert.AreEqual(ArenaRuntime.MoonIntensity, moonLight.intensity, 1e-4f, label + "the moon is the one key light");
-                    Assert.Greater(moonLight.color.b, moonLight.color.r, label + "moonlight is cold");
-                    Assert.Less(moonLight.transform.forward.y, -.6f, label + "the moon never sets: it lights the ground from high above");
-                    Vector4 sun = material.GetVector("_SunDirection");
-                    Assert.Less(Vector3.Angle(-(Vector3)sun, -moonLight.transform.forward), .5f, label + "the light comes from the moon the sky shows");
-                    Assert.Greater(Vector3.Angle(last, moonLight.transform.forward), 20f, label + "the moon wanders with the Core clock");
-                    last = moonLight.transform.forward;
-                    Assert.That(material.GetFloat("_CloudPhase"), Is.EqualTo(hour / (float)WorldSkyClock.TicksPerDay * Mathf.PI * 2f).Within(.001f),
-                        label + "cloud motion follows the saved tick phase");
-                    Assert.That(Shader.GetGlobalFloat("_AREEmberGain"), Is.EqualTo(1.50f).Within(.01f), label + "embers glow as at night");
-                    Assert.Less(RenderSettings.ambientLight.maxColorComponent, .45f, label + "the air stays dark");
-                    Assert.AreEqual(before, Game.ComputeWorldHash(), "RenderSettings cannot write authoritative rules");
-                    Assert.AreEqual(checkpoint, Game.Progression.SaveString(), "Rendering cannot change a saved checkpoint");
-                    yield return Capture("village-world-sky-hour" + hour / 600UL + ".png");
-                }
-
-                // A light goes with the wanderer under the night sky: one point light without shadows, over his head.
+                counter.SetValue(forge, 7200UL);
+                ulong before = Game.ComputeWorldHash();
+                string checkpoint = Game.Progression.SaveString();
+                typeof(ArenaRuntime).GetMethod("RefreshWorldSky", Flags).Invoke(_runtime, null);
+                Assert.Less(material.GetFloat("_Daylight"), .05f, "Half a 24-minute day later is night");
+                Assert.Greater(material.GetFloat("_StarAmount"), 0.5f);
+                var nightLight = (Light)typeof(ArenaRuntime).GetField("_sun", Flags).GetValue(_runtime);
+                Assert.Less(nightLight.transform.forward.y, -.1f,
+                    "At night the directional proxy must illuminate from the visible moon above the ground");
+                Assert.That(material.GetFloat("_CloudPhase"), Is.EqualTo(Mathf.PI).Within(.001f),
+                    "Cloud motion follows the same saved tick phase as the sun");
+                // At night a light goes with the wanderer: one warm point light without shadows, at his shoulder,
+                // on the side the player sees (owner decision 2026-11-24).
                 var heroLight = GameObject.Find(ArenaRuntime.HeroLightName)?.GetComponent<Light>();
-                Assert.IsNotNull(heroLight, "The wanderer carries a light under the night sky");
+                Assert.IsNotNull(heroLight, "The wanderer carries a light at night");
                 Assert.IsTrue(heroLight.enabled && heroLight.type == LightType.Point && heroLight.shadows == LightShadows.None);
+                Assert.AreEqual(ArenaRuntime.HeroLightIntensity, heroLight.intensity, 1e-3f, "Full strength once the sky is dark");
                 Assert.Greater(heroLight.color.r, heroLight.color.b, "A warm light against the cold moon");
                 Vector3 offset = heroLight.transform.position - Find("Wanderer").transform.position;
                 Assert.That(offset.y, Is.InRange(.3f, 1.5f), "The light hangs at the wanderer's shoulder");
                 Assert.Less(new Vector2(offset.x, offset.z).magnitude, 1.6f, "The light stays with the wanderer");
                 Vector3 toCamera = Camera.main.transform.position - Find("Wanderer").transform.position; toCamera.y = 0f;
                 Assert.Greater(Vector3.Dot(new Vector3(offset.x, 0f, offset.z), toCamera.normalized), .5f, "The light stands on the side the player sees");
-                Assert.AreEqual(1, Object.FindObjectsByType<Light>(FindObjectsSortMode.None).Count(light => light.name == ArenaRuntime.HeroLightName),
-                    "Refreshing the sky never adds a second hero light");
+                Assert.AreEqual(before, Game.ComputeWorldHash(), "RenderSettings cannot write authoritative rules");
+                Assert.AreEqual(checkpoint, Game.Progression.SaveString(), "Rendering cannot change a saved checkpoint");
+                yield return Capture("village-world-sky-night.png");
+                foreach (ulong twilightTick in new[] { 3600UL, 10800UL })
+                {
+                    counter.SetValue(forge, twilightTick);
+                    ulong twilightHash = Game.ComputeWorldHash();
+                    string twilightSave = Game.Progression.SaveString();
+                    typeof(ArenaRuntime).GetMethod("RefreshWorldSky", Flags).Invoke(_runtime, null);
+                    Assert.That(material.GetFloat("_Daylight"), Is.InRange(.05f, .95f),
+                        "Morning and evening must be between full day and full night");
+                    Assert.Less(nightLight.transform.forward.y, -.30f,
+                        "Twilight key light needs enough elevation for readable ground and actors");
+                    Assert.AreEqual(twilightHash, Game.ComputeWorldHash());
+                    Assert.AreEqual(twilightSave, Game.Progression.SaveString());
+                    yield return Capture(twilightTick == 3600UL
+                        ? "village-world-sky-evening.png" : "village-world-sky-morning.png");
+                }
             }
             finally
             {
                 counter.SetValue(forge, original);
-                refresh.Invoke(_runtime, null);
+                typeof(ArenaRuntime).GetMethod("RefreshWorldSky", Flags).Invoke(_runtime, null);
             }
         }
 
@@ -112,8 +113,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(save, Game.Progression.SaveString());
 
             // Select an interior only inside this fixture; rendering remains a consumer of Core state.
-            typeof(CharacterProgression).GetProperty("EntryAct").SetValue(Game.Progression, 5);
-            Assert.AreEqual(5, Game.CurrentAreaId, "The old storehouse is an interior; the mill lies under the open night sky");
+            typeof(CharacterProgression).GetProperty("EntryAct").SetValue(Game.Progression, 4);
+            Assert.AreEqual(4, Game.CurrentAreaId);
             rebuild.Invoke(_runtime, null);
             Color authoredFog = RenderSettings.fogColor;
             Color authoredAmbient = RenderSettings.ambientLight;

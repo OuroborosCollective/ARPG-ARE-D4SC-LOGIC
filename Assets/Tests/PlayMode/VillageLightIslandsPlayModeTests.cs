@@ -10,9 +10,8 @@ namespace AreArpg.PlayMode.Tests
 {
     public sealed partial class EntryJourneyRuntimeTests
     {
-        /// <summary>The world stays night (owner decision 2026-11-24): the village torches burn at every hour of the Core day.</summary>
         [UnityTest]
-        public IEnumerator VillageTorchesBurnThroughTheNightOfTheWorldOnAMobileLightBudget()
+        public IEnumerator VillageTorchesFollowTheSavedDuskOnAMobileLightBudget()
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
@@ -28,10 +27,12 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(ArenaRuntime.VillageLightBudget, lights.Length, "Exactly the budgeted torch lights exist");
             foreach (var light in lights)
             {
+                Assert.IsFalse(light.enabled, "Torches are unlit in daylight");
                 Assert.AreEqual(LightShadows.None, light.shadows, "Torch lights never cast mobile shadows");
                 Assert.AreEqual(LightType.Point, light.type);
             }
             foreach (var part in root.GetComponentsInChildren<Collider>(true)) Assert.Fail("Torch art must stay passive: " + part.name);
+            yield return Capture("village-light-islands-day.png");
 
             var forge = Game.Progression.Social.Forge;
             Assert.IsNotNull(forge);
@@ -40,25 +41,25 @@ namespace AreArpg.PlayMode.Tests
             ulong original = forge.ProcessedTicks;
             try
             {
+                counter.SetValue(forge, 7200UL);
+                ulong hash = Game.ComputeWorldHash();
+                string save = Game.Progression.SaveString();
+                refresh.Invoke(_runtime, null);
                 int lit = 0;
-                foreach (ulong hour in new[] { 0UL, 3600UL, 7200UL })
-                {
-                    counter.SetValue(forge, hour);
-                    ulong hash = Game.ComputeWorldHash();
-                    string save = Game.Progression.SaveString();
-                    refresh.Invoke(_runtime, null);
-                    lit = 0;
-                    foreach (var light in lights)
-                        if (light.enabled) { lit++; Assert.Greater(light.intensity, 1.5f, "Torches throw a readable warm pool"); }
-                    Assert.AreEqual(ArenaRuntime.VillageLightBudget, lit, "All budgeted torches burn at Core tick " + hour);
-                    int flames = 0;
-                    foreach (var flame in root.GetComponentsInChildren<MeshRenderer>(true))
-                        if (flame.name.StartsWith("Torch flame") && flame.enabled) flames++;
-                    Assert.AreEqual(ArenaRuntime.VillageLightBudget, flames, "Every torch shows a flame at Core tick " + hour);
-                    Assert.AreEqual(hash, Game.ComputeWorldHash(), "Torches cannot alter core world state");
-                    Assert.AreEqual(save, Game.Progression.SaveString(), "Torches cannot alter the saved timeline");
-                    yield return Capture("village-light-islands-hour" + hour / 600UL + ".png");
-                }
+                foreach (var light in lights)
+                    if (light.enabled) { lit++; Assert.Greater(light.intensity, 1.5f, "Night torches throw a readable warm pool"); }
+                Assert.AreEqual(ArenaRuntime.VillageLightBudget, lit, "All budgeted torches burn at night");
+                int flames = 0;
+                foreach (var flame in root.GetComponentsInChildren<MeshRenderer>(true))
+                    if (flame.name.StartsWith("Torch flame") && flame.enabled) flames++;
+                Assert.AreEqual(ArenaRuntime.VillageLightBudget, flames, "Every torch shows a flame at night");
+                Assert.AreEqual(hash, Game.ComputeWorldHash(), "Torches cannot alter core world state");
+                Assert.AreEqual(save, Game.Progression.SaveString(), "Torches cannot alter the saved timeline");
+                yield return Capture("village-light-islands-night.png");
+
+                counter.SetValue(forge, 3600UL);
+                refresh.Invoke(_runtime, null);
+                yield return Capture("village-light-islands-dusk.png");
 
                 // The reduced-effects preference halves the dynamic light cost.
                 var atmosphere = _runtime.GetComponentInChildren<AshenAtmosphere>();

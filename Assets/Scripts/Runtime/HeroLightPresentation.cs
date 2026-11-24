@@ -3,8 +3,8 @@ using UnityEngine;
 namespace AreArpg.UnityClient
 {
     /// <summary>
-    /// A soft circle of light around the wanderer under the night sky, like a carried lantern (owner decision
-    /// 2026-11-24): away from the torches his dark clothes sank into black. One point light without shadows that stays
+    /// A soft circle of light around the wanderer at night, like a carried lantern (owner decision 2026-11-24): away
+    /// from the torches his dark clothes sank into black. It comes up with the dusk exactly as the village torches do. One point light without shadows that stays
     /// at the hero's shoulder height, a good step towards the camera, so it falls on the side the player sees; presentation only, it
     /// changes no rule and no saved state.
     /// </summary>
@@ -18,10 +18,13 @@ namespace AreArpg.UnityClient
         private static readonly Color HeroLightColor = new Color(1f, .78f, .52f);
         private Light _heroLight;
 
-        /// <summary>Called by the sky: on under the open night, off wherever a place has its own authored light.</summary>
-        private void RefreshHeroLight(bool night)
+        /// <summary>
+        /// Called by the sky with the night share of the saved tick (0 by day, 1 once the sky is dark); 0 wherever a
+        /// place has its own authored light.
+        /// </summary>
+        private void RefreshHeroLight(float night)
         {
-            if (!night || _hero == null)
+            if (night <= .01f || _hero == null)
             {
                 if (_heroLight != null) _heroLight.enabled = false;
                 return;
@@ -34,8 +37,8 @@ namespace AreArpg.UnityClient
                 _heroLight.shadows = LightShadows.None;
                 _heroLight.color = HeroLightColor;
                 _heroLight.range = HeroLightRange;
-                _heroLight.intensity = HeroLightIntensity;
             }
+            _heroLight.intensity = HeroLightIntensity * Mathf.Clamp01(night);
             _heroLight.enabled = true;
             FollowHeroLight();
         }

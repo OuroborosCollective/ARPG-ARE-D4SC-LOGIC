@@ -116,7 +116,7 @@ namespace AreArpg.PlayMode.Tests
                     ulong hash = Game.ComputeWorldHash();
                     refresh.Invoke(_runtime, null);
                     appear.Invoke(_runtime, null);
-                    Assert.That(Shader.GetGlobalFloat("_AREEmberGain"), Is.EqualTo(shot == 2 ? .28f : 1.50f).Within(.01f)); // the world stays night: embers glow at full strength at every hour
+                    Assert.That(Shader.GetGlobalFloat("_AREEmberGain"), Is.EqualTo(shot == 0 ? .70f : shot == 1 ? 1.50f : .28f).Within(.01f));
                     gill.GetPropertyBlock(block);
                     Assert.That(block.GetColor("_EmissionColor").r, Is.EqualTo(shot == 2 ? .22f : .92f).Within(.01f));
                     if (Resources.Load<GameObject>("ARE/Visuals/AshFloraMushrooms") != null)
