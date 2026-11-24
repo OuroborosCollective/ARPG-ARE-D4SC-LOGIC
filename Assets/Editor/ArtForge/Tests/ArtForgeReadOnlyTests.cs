@@ -53,7 +53,13 @@ namespace AshenCrypt.ArtForge.Tests
         {
             Fixture();
             var before = ArtForgeWorldForgeReader.Read(root, Project);
-            File.WriteAllBytes(Path.Combine(Folder, "model.fbx"), Encoding.UTF8.GetBytes("changed__geometry"));
+            string artifactPath = Path.Combine(Folder, "model.fbx");
+            byte[] original = File.ReadAllBytes(artifactPath);
+            File.WriteAllBytes(artifactPath, Encoding.UTF8.GetBytes("changed__geometry"));
+            byte[] changed = File.ReadAllBytes(artifactPath);
+            Assert.AreEqual(original.Length, changed.Length,
+                "This regression must reach the byte-hash check, not only the file-size check.");
+            Assert.AreNotEqual(ArtGraphContract.Fingerprint(original), ArtGraphContract.Fingerprint(changed));
             var after = ArtForgeWorldForgeReader.Read(root, Project);
             Assert.IsEmpty(after.graph.nodes);
             Assert.IsTrue(after.diagnostics.Any(d => d.code == "HASH_DRIFT"));

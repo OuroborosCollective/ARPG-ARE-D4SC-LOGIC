@@ -122,8 +122,7 @@ namespace AshenCrypt.ArtForge
                     new[] { parentId }, file.sha256, jobId, file.path, receipt.sourceSha256, receiptHash);
                 using (var stream = File.OpenRead(path))
                 {
-                    if (stream.Length != file.size || !ArtGraphContract.VerifyArtifact(node, stream).IsValid)
-                        throw new Refusal("HASH_DRIFT");
+                    VerifyReservedArtifact(node, stream, file.size);
                 }
                 RejectLinks(path);
                 info.Refresh();
@@ -184,14 +183,24 @@ namespace AshenCrypt.ArtForge
             budget -= info.Length;
             using (var input = File.OpenRead(path))
             {
-                if (input.Length != info.Length) throw new Refusal("HASH_DRIFT");
-                byte[] data = new byte[(int)input.Length];
-                int offset = 0, read;
-                while (offset < data.Length && (read = input.Read(data, offset, data.Length - offset)) > 0) offset += read;
-                if (offset != data.Length || input.ReadByte() != -1) throw new Refusal("HASH_DRIFT");
+                byte[] data = ReadReceiptBytes(input, info.Length);
                 RejectLinks(path);
                 return data;
             }
+        }
+        static byte[] ReadReceiptBytes(Stream input, long expectedLength)
+        {
+            if (input.Length != expectedLength) throw new Refusal("HASH_DRIFT");
+            byte[] data = new byte[(int)input.Length];
+            int offset = 0, read;
+            while (offset < data.Length && (read = input.Read(data, offset, data.Length - offset)) > 0) offset += read;
+            if (offset != data.Length || input.ReadByte() != -1) throw new Refusal("HASH_DRIFT");
+            return data;
+        }
+        static void VerifyReservedArtifact(ArtGraphNode node, Stream input, long reservedLength)
+        {
+            if (input.Length != reservedLength || !ArtGraphContract.VerifyArtifact(node, input).IsValid)
+                throw new Refusal("HASH_DRIFT");
         }
         static void RejectLinks(string path)
         {

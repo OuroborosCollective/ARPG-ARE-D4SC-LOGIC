@@ -1020,9 +1020,11 @@ async function selectArtNode(id, reveal) {
     if (!detail.node || detail.node.id !== id) throw new Error("Die Asset-Antwort gehört nicht zum ausgewählten Knoten.");
     renderArtDetails(detail.node);
   } catch (e) {
-    if (request !== A.detailRequest || epoch !== A.epoch) return;
+    // A conflict invalidates the active graph even after another node was selected.
+    // Responses from a previous reload must never clear its replacement graph.
+    if (epoch !== A.epoch || A.graph !== graph) return;
     if (e.status === 409) { artClear("Stand geändert", "Die angezeigte Herkunft ist nicht mehr aktuell. Bitte neu laden."); artStatus("Projekt- oder Graphrevision hat sich geändert. Die alte Ansicht wurde verworfen.", true); }
-    else { $("#artdetail").replaceChildren(artText("h2", "Details nicht verfügbar"), artText("p", e.message)); artStatus("Zuvor gelesener Graph · Aktualität dieser Ansicht derzeit unbelegt. " + e.message, true); }
+    else if (request === A.detailRequest) { $("#artdetail").replaceChildren(artText("h2", "Details nicht verfügbar"), artText("p", e.message)); artStatus("Zuvor gelesener Graph · Aktualität dieser Ansicht derzeit unbelegt. " + e.message, true); }
   }
 }
 function renderArtDetails(node) {
