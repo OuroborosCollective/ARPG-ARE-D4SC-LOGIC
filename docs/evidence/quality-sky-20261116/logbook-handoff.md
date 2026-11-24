@@ -468,3 +468,13 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: nur Standbilder gesichtet, kein Gerätetest; Rollenzeichen sitzen bei Ghul und Goblin fest an der Figur; Laufzyklen nicht auf das Core-Tempo abgestimmt.
 - Nächste Schritte: neues Dark-Fantasy-Interieur aus den Requisitenpaketen, Gegner-Drops (Schwert, Schild, Holzpanzer, Hörnerhelm; Owner-Entscheid zur Rüstungsregel nötig), Dark-Souls-Design der sechs Rollen (Owner-Auftrag vom 24.11.), Monster in den Zufalls-Dungeons.
 - [Technische Abnahme](../crypt-enemies-20261124/acceptance.md)
+
+## 24. November 2026 · Dark-Souls-Look, Glutwächter, Dorf-Stimmung
+
+- Neu im Spiel: Held, Jäger, Dorfwache, Mara, Orsel, die Dorfbewohner und alle 180 Bewohner tragen dunkle, gedeckte, abgetragene Kleidung. Figuren tragen jetzt Dinge: Orsel Laterne und Krummstab, Mara Amulett und Gürtel mit Beutel und Fläschchen, der Jäger seinen Köcher, drei Dorfbewohner Sack, Eimer und Stock. Das eigene Modell des Owners ist der Glutwächter, der Boss am Ende der tieferen Gruft-Läufe. Im Dorf liegt Bodennebel, der Mond ist nachts kälter und heller, und nachts geht ein weiches Licht mit dem Helden.
+- Evidence auf `dda2f387daf580e4f1f922df41458d55d30e3066`: volle EditMode-Reihe 285 gesamt, 257 bestanden, 0 Fehler, 28 übersprungen; volle PlayMode-Reihe mit privatem Overlay 213 gesamt, 208 bestanden, 1 Fehler, 4 übersprungen. Der eine Fehler (Bogen-Test, seit Kampf v2 veraltet) ist im Test behoben und besteht auf `10c49fbe5b125e90173509a6c16c6e0a9a8ff770`; der Spielcode ist derselbe.
+- Grenzen: nur Standbilder gesichtet, kein Gerätetest; Hellebarde und verziertes Schwert fehlen noch; das Dorf selbst (Häuser, Weg) ist unverändert; das Szenenbild auf der Design-Seite ist gestellt.
+- Owner-Entscheide des Tages: Tag und Nacht bleiben; nachts ein weiches Licht um den Helden; als Nächstes der Texturen-Umbau des Dorfs (alles neu, nicht alles Stein, Boden auf Asche und Glut abgestimmt, für das Tablet optimiert).
+- Offene Owner-Fragen: Gegner-Drops und die Rüstungsregel.
+- Nächste Schritte: Texturen-Umbau des Dorfs mit Vorschau je Schritt (dafür liegen die Pakete »Blacksmith's Forge« und »Stylized Ground Textures« privat bereit), danach Podest, Schmuckstein des Königs und Glutwächter als Begleiter (eigener Block mit Core-Regeln), Dark-Fantasy-Interieur der Gruft, Gegner-Drops, Monster in den Zufalls-Dungeons.
+- [Technische Abnahme](../dark-souls-figures-20261124/acceptance.md)
