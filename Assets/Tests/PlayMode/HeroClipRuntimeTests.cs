@@ -107,6 +107,13 @@ namespace AreArpg.PlayMode.Tests
                 yield return HeroFrames(8);
                 Assert.IsTrue(HeroShows(hero, "Death"), "A queued strike does not get a fallen hero up");
                 yield return HeroFrames(20); SaveReviewFrame("hero-clip-death.png");
+
+                // A new run keeps the same animators: the fallen hero gets up (review on #135).
+                typeof(ArenaRuntime).GetMethod("Restart", Flags).Invoke(_runtime, null);
+                Assert.IsFalse(Game.GameOver, "The new run starts alive");
+                yield return HeroFrames(12);
+                Assert.IsFalse(hero.GetBool("Dead"), "The new run tells the hero he is alive");
+                Assert.IsFalse(HeroShows(hero, "Death"), "and he stands up");
                 hero.ResetTrigger("Melee");
             }
             finally { Time.captureDeltaTime = before; }

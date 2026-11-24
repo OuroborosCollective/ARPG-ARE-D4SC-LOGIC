@@ -53,14 +53,23 @@ namespace AreArpg.UnityClient
             if (!_entryProfile || _hero == null || _heroMeleeAnimations.Length == 0) return;
             if (!ReferenceEquals(_clipAnimators, _heroMeleeAnimations))
             {
-                // A rebuilt hero starts standing, with his guard down: forget what the previous figure was shown doing.
+                // A new run or a rebuilt hero: forget what was shown before and write the Core's state to the animators.
+                // A restart keeps the same animators, so a hero who fell must be told to get up (review on #135).
                 _clipAnimators = _heroMeleeAnimations;
                 _heroParameters.Clear();
-                _clipGuarding = false; _clipDead = false; _clipHealth = int.MinValue;
+                _clipGuarding = false; _clipDead = _game.GameOver; _clipHealth = int.MinValue; _clipGuardUntil = 0f;
+                foreach (Animator animator in _heroMeleeAnimations)
+                {
+                    if (HeroHas(animator, DeadParameter)) animator.SetBool(DeadParameter, _clipDead);
+                    if (HeroHas(animator, GuardingParameter)) animator.SetBool(GuardingParameter, false);
+                    ClearHeroTriggers(animator);
+                }
             }
             if (_game.CombatV2 && _game.ActionSequence != _clipSequence)
             {
                 _clipSequence = _game.ActionSequence;
+                // A flinch that was asked for but not yet shown must not cut into the action the Core now runs.
+                foreach (Animator animator in _heroMeleeAnimations) if (HeroHas(animator, HitTrigger)) animator.ResetTrigger(HitTrigger);
                 switch (_game.ActionKind)
                 {
                     case CombatActionKind.Dodge:
@@ -87,7 +96,11 @@ namespace AreArpg.UnityClient
             bool free = _game.CombatV2 ? _game.ActionKind == CombatActionKind.None : Time.time - _heroActionAt > FlinchPauseSeconds;
             if (_clipHealth != int.MinValue && health < _clipHealth && !_game.GameOver && free)
                 foreach (Animator animator in _heroMeleeAnimations)
-                    if (HeroHas(animator, HitTrigger)) { animator.ResetTrigger(HitTrigger); animator.SetTrigger(HitTrigger); }
+                {
+                    // While he is already flinching a second blow asks for nothing: the trigger would wait and fire late.
+                    if (!HeroHas(animator, HitTrigger) || animator.GetCurrentAnimatorStateInfo(0).IsName("Hit")) continue;
+                    animator.ResetTrigger(HitTrigger); animator.SetTrigger(HitTrigger);
+                }
             _clipHealth = health;
             bool dead = _game.GameOver;
             if (dead != _clipDead)
@@ -96,6 +109,12 @@ namespace AreArpg.UnityClient
                 foreach (Animator animator in _heroMeleeAnimations)
                     if (HeroHas(animator, DeadParameter)) animator.SetBool(DeadParameter, dead);
             }
+        }
+
+        private void ClearHeroTriggers(Animator animator)
+        {
+            foreach (int trigger in new[] { GuardTrigger, CastTrigger, HitTrigger, DodgeTrigger, DrinkTrigger })
+                if (HeroHas(animator, trigger)) animator.ResetTrigger(trigger);
         }
 
         /// <summary>Start a clip so that it spans the Core's action of that many ticks.</summary>

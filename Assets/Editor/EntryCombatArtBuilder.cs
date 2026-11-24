@@ -175,6 +175,9 @@ namespace AreArpg.EditorTools
             var idleSource = SourceClip(input.idle, input.idleClip, "EntryIdle");
             var moveSource = SourceClip(input.move, input.moveClip, "EntryMove");
             var attackSource = SourceClip(input.melee, input.meleeClip, "EntryStrike");
+            // Every licensed combat take is found before anything is written: a missing take stops the build while the
+            // previous clips and controller are still whole (review on #135).
+            AnimationClip[] combatTakes = CombatClipsAvailable() ? ResolveCombatTakes() : null;
             var idleClip = Clip(idleSource, "EntryIdle", true);
             var moveClip = Clip(moveSource, "EntryMove", true);
             var attackClip = Clip(attackSource, "EntryStrike", false);
@@ -213,8 +216,8 @@ namespace AreArpg.EditorTools
             foreach (var transition in new[] { resume, leave })
             { transition.hasExitTime = true; transition.exitTime = .9f; transition.duration = .08f; transition.hasFixedDuration = true; }
             // Real clips where the licensed starter pack is installed; the generated poses only as the fallback.
-            if (!CombatClipsAvailable()) AddAbilityStates(_controller, idleClip);
-            else AddCombatStates(_controller);
+            if (combatTakes == null) AddAbilityStates(_controller, idleClip);
+            else AddCombatStates(_controller, combatTakes);
             EditorUtility.SetDirty(_controller);
         }
 
@@ -249,7 +252,7 @@ namespace AreArpg.EditorTools
             var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(Output + "EntryMelee.controller");
             if (controller == null) throw new InvalidOperationException("Missing private hero controller; run the full entry combat build first");
             if (!CombatClipsAvailable()) throw new InvalidOperationException("The licensed animation starter pack is not installed below " + StarterPack);
-            AddCombatStates(controller);
+            AddCombatStates(controller, ResolveCombatTakes()); // all six takes are resolved before the first clip is written
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
             Debug.Log("ENTRY_COMBAT_CLIPS " + string.Join(",", controller.layers[0].stateMachine.states.Select(s => s.state.name + "=" + (s.state.motion != null ? s.state.motion.name : "-"))));
@@ -265,19 +268,26 @@ namespace AreArpg.EditorTools
             return takes[0];
         }
 
+        /// <summary>The six takes in the order of <see cref="CombatClips"/>; throws before anything was written.</summary>
+        private static AnimationClip[] ResolveCombatTakes()
+        {
+            return CombatClips.Select(entry => LicensedTake(entry.Model, entry.Take)).ToArray();
+        }
+
         /// <summary>
         /// Copy the licensed takes into the game's clips and wire their states. Triggers start cast, hit, dodge and drink;
         /// the guard is held by the bool Guarding and death by the bool Dead; nothing but getting up leaves death. Cast,
         /// dodge and drink play at the speed ActionSpeed, which the game sets so the clip spans the Core's action.
         /// </summary>
-        private static void AddCombatStates(AnimatorController controller)
+        private static void AddCombatStates(AnimatorController controller, AnimationClip[] takes)
         {
             var machine = controller.layers[0].stateMachine;
             bool grip = controller.parameters.Any(parameter => parameter.name == AreArpg.UnityClient.EntryWeaponGrip.WeightParameter);
             var clips = new System.Collections.Generic.Dictionary<string, AnimationClip>();
-            foreach (var entry in CombatClips)
+            for (int i = 0; i < CombatClips.Length; i++)
             {
-                var clip = Clip(LicensedTake(entry.Model, entry.Take), entry.Key, entry.Loop);
+                var entry = CombatClips[i];
+                var clip = Clip(takes[i], entry.Key, entry.Loop);
                 if (grip) GripCurve(clip, 0f);
                 clips[entry.State] = clip;
             }
