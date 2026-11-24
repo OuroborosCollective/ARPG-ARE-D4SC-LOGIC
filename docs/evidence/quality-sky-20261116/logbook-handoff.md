@@ -460,3 +460,12 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Grenzen: keine echte Trinkbewegung im Paket (Buff-Geste als Ersatz), kein bildgenauer Abgleich von Zauber und Wirkung, nur Standbilder gesichtet, kein Gerätetest; Begleiter und Gegner unverändert.
 - Nächste Schritte: #48 Block 4 (Welt- und Figurenqualität), Block 5 (Audio/Stimmen), Block 6 (Android-Profiling auf dem Tab A9, braucht das Gerät des Owners).
 - [Technische Abnahme](../combat-clips-20261124/acceptance.md)
+
+## 24. November 2026 · Art Forge A, Issue #132
+
+- Lokaler Code `c089fc97ed957fdc4784be35d47892add23c3531`: lesender Vertrag/Canvas über vorhandenen Bau-Modus, Fadenwerk und World Forge; Unity-Studio-Option ausschließlich dokumentiert.
+- Tatsächlich geprüft: 35 C#-Fälle, 62 Preflights, 23.143 Core-Assertions, 49/49 neue native Unity-Fälle sowie 20 synthetische und 24 echte JSON-Replay-UI-Gruppen. Native Gesamtsuite Kandidat 273 PASS / 6 FAIL / 52 SKIP, Baseline 224 / 6 / 52; alle 282 gemeinsamen Testergebnisse einschließlich Meldungen identisch.
+- Echter Snapshot: 163 Knoten aus 25 Jobs, weitere 38 Budgetdiagnosen. Lizenz ungeprüft, Originalquellhash nur laut Receipt. Kein Import oder Approval.
+- Getrennte Testkopie wieder auf Kandidat; generierte getrackte Unity-Einstellungen zurückgesetzt, aktive Editor-Git-Metadaten unverändert. Keine vollständige private Asset-Suite, kein Live-HTTP-/PlayMode-/APK-/Tab-A9-Nachweis.
+- Push/Draft-PR erst nach ausdrücklicher Zustimmung; Merge, aktive Editoränderung und externe Aufträge weiter gesperrt. PR #136 bleibt parallel; vor Veröffentlichung Memory/Übergabe erneut abgleichen.
+- [Prüfbericht und Grenzen](../art-forge-a-20261124/acceptance.md) · [Maschinenlesbarer Readback](../art-forge-a-20261124/readback.json)
