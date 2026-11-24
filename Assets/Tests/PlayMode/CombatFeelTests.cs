@@ -99,24 +99,35 @@ namespace AreArpg.PlayMode.Tests
             Assert.Less(finalOffset, .06f, "The knockback is optical and returns onto the Core position");
             Assert.IsTrue(shook, "Accepted hits shake the camera briefly");
 
-            // A kill topples the visual instead of making it vanish at once.
+            // A kill shows the fall instead of making the visual vanish at once: a figure with a death clip plays it
+            // (and lies still for a moment), any other figure topples.
+            Animator dying = ClipEnemy(visual.gameObject);
             target.Health = 1; for (int i = 0; i < Game.Cooldowns.Length; i++) Game.Cooldowns[i] = 0;
             typeof(ArenaRuntime).GetMethod("RouteHudControl", Flags).Invoke(_runtime, new object[] { ArenaHudControl.Skill0 });
-            float maxTilt = 0f; bool visibleWhileDead = false; bool hiddenLater = false;
-            until = Time.time + 2.2f;
+            float maxTilt = 0f; bool visibleWhileDead = false; bool hiddenLater = false; bool deathClip = false;
+            until = Time.time + (dying != null ? 5.2f : 2.2f);
             bool captured = false;
             while (Time.time < until)
             {
                 yield return null;
                 if (!target.IsDead) continue;
-                if (visual.gameObject.activeSelf) { visibleWhileDead = true; maxTilt = Mathf.Max(maxTilt, Vector3.Angle(visual.up, Vector3.up)); }
+                if (visual.gameObject.activeSelf)
+                {
+                    visibleWhileDead = true; maxTilt = Mathf.Max(maxTilt, Vector3.Angle(visual.up, Vector3.up));
+                    deathClip |= dying != null && EnemyShows(dying, "Death");
+                }
                 else hiddenLater = true;
-                if (!captured && maxTilt > 40f) { captured = true; yield return Capture("combat-topple.png"); }
+                if (!captured && (dying != null ? deathClip : maxTilt > 40f)) { captured = true; yield return Capture("combat-topple.png"); }
             }
-            Debug.Log("COMBAT_DEATH tilt=" + maxTilt.ToString("0.0") + " visibleWhileDead=" + visibleWhileDead + " hiddenLater=" + hiddenLater);
+            Debug.Log("COMBAT_DEATH tilt=" + maxTilt.ToString("0.0") + " deathClip=" + deathClip + " visibleWhileDead=" + visibleWhileDead + " hiddenLater=" + hiddenLater);
             Assert.IsTrue(target.IsDead);
             Assert.IsTrue(visibleWhileDead, "A defeated enemy stays visible while it falls");
-            Assert.Greater(maxTilt, 50f, "A defeated enemy topples over");
+            if (dying != null)
+            {
+                Assert.IsTrue(deathClip, "A defeated enemy with a death clip plays it");
+                Assert.Less(maxTilt, 5f, "The clip does the falling; the visual is not toppled on top of it");
+            }
+            else Assert.Greater(maxTilt, 50f, "A defeated enemy topples over");
             Assert.IsTrue(hiddenLater, "The fallen enemy is removed after its fall");
 
             // Level-up: explicit fixture through the canonical Core experience method used by kills and loot.
@@ -215,8 +226,11 @@ namespace AreArpg.PlayMode.Tests
                 if (target.IsDead && Time.time - start > .25f && dying.gameObject.activeSelf && !checkedFrozen)
                 {
                     checkedFrozen = true;
+                    // A toppling figure stays frozen; a figure with a death clip must keep playing it once the hit-stop ends.
+                    bool clip = ClipEnemy(dying.gameObject) != null;
                     foreach (var animator in dying.GetComponentsInChildren<Animator>())
-                        Assert.AreEqual(0f, animator.speed, "The falling enemy's skeleton must stay frozen after hit-stop");
+                        if (clip) Assert.Greater(animator.speed, 0f, "An enemy with a death clip keeps playing it after hit-stop");
+                        else Assert.AreEqual(0f, animator.speed, "The falling enemy's skeleton must stay frozen after hit-stop");
                 }
             }
             Assert.IsTrue(target.IsDead && checkedFrozen, "The frozen check must run during the fall");
