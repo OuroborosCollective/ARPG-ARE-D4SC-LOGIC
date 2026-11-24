@@ -270,45 +270,43 @@
       ]
     },
     {
-      "id": "guard_a", "role": "Dorfwache: wachsam und fest; dunkelroter Waffenrock mit Stahlplatten, Soldatenhelm, Schulterplatten, Lederhandschuhe, kurzer dunkler Bart",
-      "base": "Fantasy/Hero", "height": 1.92, "texture": 512, "motion": "m", "keys": ["Guard0"], "parts": true,
-      "body": [{"id": "Muscle", "value": 55}, {"id": "Weight", "value": 25}],
+      "id": "guard_a", "role": "Dorfwache in der Dark-Souls-Fassung (Owner-Auftrag 2026-11-24): massiger, schwer gerüsteter Wächter in dickem, zerkratztem Plattenharnisch aus angelaufenem Stahl mit Kettenschurz, schweren Schulterplatten, Beinschienen, Eisenschuhen und Panzerhandschuhen; geschlossener Helm mit Sehschlitz und Kinnreff, um den Hals die Fetzen eines verblichenen ochsenblutroten Waffenrocks. Farben sind für die Aufhellung des Bakers (Exponent 0.6) abgedunkelt.",
+      "base": "Fantasy/Hero", "height": 2.0, "texture": 512, "motion": "m", "keys": ["Guard0"], "parts": true,
+      "body": [{"id": "Muscle", "value": 80}, {"id": "Weight", "value": 35}],
       "face": [{"id": "Muscle", "value": 45}, {"id": "Stern", "value": 55}, {"id": "Squareness", "value": 40}],
-      "remove": ["Neck", "HairFront"],
+      "remove": ["HairFront", "HairBack", "LowerFace"],
       "outfits": [
         {"slot": "Head", "id": "Head_Stern", "colors": ["#a8765c", "#541410", "#c08d72", "#e8e6e0", "#5a3028", "#6a2018"]},
         {"slot": "Body", "id": "Body_StrongBody", "colors": ["#a8765c", "#541410", "#8a3a28"]},
         {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#22180f", "#4a3423"]},
         {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#231d19"]},
-        {"slot": "Top", "id": "Top_VanguardCoat", "colors": ["#4e2f2a", "#8a7040", "#2e2622", "#3e3026", "#8a7040", "#33271e", "#5a5650", "#6e757b", "#3e3026"]},
-        {"slot": "Bottom", "id": "Bottom_TightTravelPants", "colors": ["#3a3632", "#2e2a26", "#2e2a26", "#33271e", "#3e3026"]},
-        {"slot": "Feet", "id": "Feet_CuffedBoots", "colors": ["#3e2e24", "#4e3c2e", "#2e221a", "#382a22", "#3e2e24", "#201a16"]},
-        {"slot": "Gloves", "id": "Gloves_LeatherGloves", "colors": ["#3e3024", "#2e241c", "#33271e"]},
-        {"slot": "Hat", "id": "Hat_SolidersHelm", "colors": ["#6e757b", "#4a5056", "#3a4047"]},
-        {"slot": "Shoulders", "id": "Shoulders_SolidShoulders", "colors": ["#6e757b", "#3e3026"]},
-        {"slot": "LowerFace", "id": "LowerFace_SquareBeard", "colors": ["#231d19", "#3a302a"]},
-        {"slot": "HairBack", "id": "HairBack_ShortChoppy", "colors": ["#231d19", "#3a302a"]}
+        {"slot": "Top", "id": "Top_SteelArmor", "colors": ["#202223", "#0f0e0d", "#131416", "#0d0c0b", "#0b0a0a", "#16100d", "#18191b"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Shoulders", "id": "Shoulders_StrongShoulders", "colors": ["#202223", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Bottom", "id": "Bottom_SharpGreaves", "colors": ["#0b0a0a", "#070706", "#16100d", "#16100d", "#0d0a08", "#16100d", "#202223", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Feet", "id": "Feet_SteelSabatons", "colors": ["#202223", "#131416", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Gloves", "id": "Gloves_SteelGauntlets", "colors": ["#131416", "#202223", "#0d0a08"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Hat", "id": "Hat_SteelHelmet", "colors": ["#202223", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Neck", "id": "Neck_TatteredMuffler", "colors": ["#180a09"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.4, "fabricScale": 7}
       ]
     },
     {
-      "id": "guard_b", "role": "Dorfwache, zweite Farbe: blaugrauer Waffenrock mit Stahlplatten, Soldatenhelm, Schulterplatten, brauner Bart",
-      "base": "Fantasy/Hero", "height": 1.92, "texture": 512, "motion": "m", "keys": ["Guard1"], "parts": true, "sameShapeAs": "guard_a",
-      "body": [{"id": "Muscle", "value": 55}, {"id": "Weight", "value": 25}],
+      "id": "guard_b", "role": "Dorfwache, zweite Farbe, in der Dark-Souls-Fassung: wie die erste, mit Fetzen eines verblichenen blaugrauen Waffenrocks.",
+      "base": "Fantasy/Hero", "height": 2.0, "texture": 512, "motion": "m", "keys": ["Guard1"], "parts": true, "sameShapeAs": "guard_a",
+      "body": [{"id": "Muscle", "value": 80}, {"id": "Weight", "value": 35}],
       "face": [{"id": "Muscle", "value": 45}, {"id": "Stern", "value": 55}, {"id": "Squareness", "value": 40}],
-      "remove": ["Neck", "HairFront"],
+      "remove": ["HairFront", "HairBack", "LowerFace"],
       "outfits": [
         {"slot": "Head", "id": "Head_Stern", "colors": ["#a8765c", "#541410", "#c08d72", "#e8e6e0", "#5a3028", "#6a2018"]},
         {"slot": "Body", "id": "Body_StrongBody", "colors": ["#a8765c", "#541410", "#8a3a28"]},
         {"slot": "Eyes", "id": "Eyes_BasicIris", "colors": ["#0a0a0a", "#22180f", "#4a3423"]},
         {"slot": "EyeBrows", "id": "EyeBrows_StylizedBasicBrows", "colors": ["#5a4630"]},
-        {"slot": "Top", "id": "Top_VanguardCoat", "colors": ["#34404a", "#8a7040", "#2e2622", "#3e3026", "#8a7040", "#33271e", "#55524c", "#6e757b", "#3e3026"]},
-        {"slot": "Bottom", "id": "Bottom_TightTravelPants", "colors": ["#3a3632", "#2e2a26", "#2e2a26", "#33271e", "#3e3026"]},
-        {"slot": "Feet", "id": "Feet_CuffedBoots", "colors": ["#3e2e24", "#4e3c2e", "#2e221a", "#382a22", "#3e2e24", "#201a16"]},
-        {"slot": "Gloves", "id": "Gloves_LeatherGloves", "colors": ["#3e3024", "#2e241c", "#33271e"]},
-        {"slot": "Hat", "id": "Hat_SolidersHelm", "colors": ["#6e757b", "#4a5056", "#3a4047"]},
-        {"slot": "Shoulders", "id": "Shoulders_SolidShoulders", "colors": ["#6e757b", "#3e3026"]},
-        {"slot": "LowerFace", "id": "LowerFace_SquareBeard", "colors": ["#5a4630", "#6e5840"]},
-        {"slot": "HairBack", "id": "HairBack_ShortChoppy", "colors": ["#5a4630", "#6e5840"]}
+        {"slot": "Top", "id": "Top_SteelArmor", "colors": ["#202223", "#0f0e0d", "#131416", "#0d0c0b", "#0b0a0a", "#16100d", "#18191b"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Shoulders", "id": "Shoulders_StrongShoulders", "colors": ["#202223", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Bottom", "id": "Bottom_SharpGreaves", "colors": ["#0b0a0a", "#070706", "#16100d", "#16100d", "#0d0a08", "#16100d", "#202223", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Feet", "id": "Feet_SteelSabatons", "colors": ["#202223", "#131416", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Gloves", "id": "Gloves_SteelGauntlets", "colors": ["#131416", "#202223", "#0d0a08"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Hat", "id": "Hat_SteelHelmet", "colors": ["#202223", "#131416"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3},
+        {"slot": "Neck", "id": "Neck_TatteredMuffler", "colors": ["#0f1114"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.4, "fabricScale": 7}
       ]
     },
     {
