@@ -1,0 +1,9 @@
+{
+  "name": "AshenCrypt.ArtForge.Tests",
+  "rootNamespace": "AshenCrypt.ArtForge.Tests",
+  "references": ["AshenCrypt.ArtForge.Contracts", "AshenCrypt.ArtForge.Editor", "Fadenwerk.Editor"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "includePlatforms": ["Editor"],
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+  "autoReferenced": false
+}

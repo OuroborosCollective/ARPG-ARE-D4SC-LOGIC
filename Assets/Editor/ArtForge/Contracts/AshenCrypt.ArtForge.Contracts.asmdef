@@ -1,0 +1,8 @@
+{
+  "name": "AshenCrypt.ArtForge.Contracts",
+  "rootNamespace": "AshenCrypt.ArtForge",
+  "references": [],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true,
+  "noEngineReferences": true
+}
