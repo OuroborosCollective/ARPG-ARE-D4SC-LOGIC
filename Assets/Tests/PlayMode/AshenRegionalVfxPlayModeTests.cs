@@ -45,7 +45,9 @@ namespace AreArpg.PlayMode.Tests
                     audio.EnterRegion(openGround);
                     Assert.IsTrue(ash.isPlaying && fog.isPlaying, "Village and road keep the ash snow and get ground fog");
                     Assert.Greater(fog.main.startColor.color.a, millFog.a, "The ground fog is denser than the mill's damp mist");
-                    Assert.Greater(fog.main.startSize.constantMin, 3f, "Ground fog lies in wide banks");
+                    Assert.IsTrue(fog.main.startSize3D, "Ground fog lies in banks, not in round puffs");
+                    Assert.Greater(fog.main.startSizeX.constantMin, 3f, "Ground fog lies in wide banks");
+                    Assert.Less(fog.main.startSizeY.constantMax, 2f, "Ground fog stays low");
                     Assert.Greater(fog.main.startColor.color.b, fog.main.startColor.color.r, "Ground fog is cold, lit by the moon");
                     Assert.LessOrEqual(fog.main.maxParticles, 24, "Ground fog stays on the mist budget");
                 }

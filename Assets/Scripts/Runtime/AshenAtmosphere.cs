@@ -17,6 +17,8 @@ namespace AreArpg.UnityClient
         private readonly Dictionary<string, AudioClip> _clips = new Dictionary<string, AudioClip>();
         private readonly Queue<KeyValuePair<int, SpeechLine>> _speech = new Queue<KeyValuePair<int, SpeechLine>>();
         private ParticleSystem _ash, _dust, _sparks;
+        /// <summary>How far below the hero's middle the mist is born: ground fog lies at knee height, crypt mist around the body.</summary>
+        private float _mistDrop;
         private Material _particleMaterial;
         private Texture2D _particleTexture;
         private MaterialPropertyBlock _regionGlow;
@@ -190,7 +192,7 @@ namespace AreArpg.UnityClient
             for (int i = 0; i < _effects.Length; i++) _effects[i].volume = EffectsVolume * _effectGains[i];
             foreach (var source in _sources) source.mute = Muted;
             if (_subtitleLeft > 0) { _subtitleLeft -= Time.unscaledDeltaTime; if (_subtitleLeft <= 0) NextSpeech(); }
-            if (_hero != null) { _ash.transform.position = _hero.position + Vector3.up * AshEmitterHeight; _dust.transform.position = _hero.position; }
+            if (_hero != null) { _ash.transform.position = _hero.position + Vector3.up * AshEmitterHeight; _dust.transform.position = _hero.position + Vector3.down * _mistDrop; }
         }
 
         public void Suspend(bool suspended)
@@ -322,10 +324,20 @@ namespace AreArpg.UnityClient
             var mist = _dust.main;
             mist.startColor = forest ? new Color(.30f, .54f, .46f, .075f)
                 : mill ? new Color(.43f, .61f, .67f, .060f)
-                : groundFog ? new Color(.62f, .68f, .78f, .13f)
+                : groundFog ? new Color(.62f, .68f, .78f, .26f)
                 : new Color(.42f, .55f, .60f, .055f);
-            float mistSize = forest ? 2.8f : mill ? 1.8f : groundFog ? 4.4f : 2.3f;
-            mist.startSize = new ParticleSystem.MinMaxCurve(mistSize * .8f, mistSize * 1.25f);
+            float mistSize = forest ? 2.8f : mill ? 1.8f : groundFog ? 5.2f : 2.3f;
+            // Ground fog lies in wide, low banks that keep level; every other mist is a round, turning puff.
+            mist.startSize3D = groundFog;
+            if (groundFog)
+            {
+                mist.startSizeX = new ParticleSystem.MinMaxCurve(mistSize * .8f, mistSize * 1.25f);
+                mist.startSizeY = new ParticleSystem.MinMaxCurve(mistSize * .22f, mistSize * .34f);
+                mist.startSizeZ = 1f;
+            }
+            else mist.startSize = new ParticleSystem.MinMaxCurve(mistSize * .8f, mistSize * 1.25f);
+            mist.startRotation = groundFog ? new ParticleSystem.MinMaxCurve(-.08f, .08f) : new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+            _mistDrop = groundFog ? .75f : 0f;
             ApplyParticleGlow(_ash, rift ? .86f : 0f);
             ApplyParticleGlow(_dust, forest ? .07f : 0f);
 
