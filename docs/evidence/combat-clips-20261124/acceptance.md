@@ -42,6 +42,7 @@ All six come from the licensed animation starter pack that already supplies the 
 - **Hit:** when the hero loses health while he is free. During an attack, a dodge or a raised guard he does not
   flinch, so the body never contradicts the action the Core is still running.
 - **Defeat:** he falls and stays down. No queued strike gets him up; a new run does.
+- A flinch is not asked for while one plays, and a pending one is dropped when the Core starts an action.
 - On a dodge the hero stops holding his last target and turns into the roll.
 
 A hero controller without the new states (no private overlay) behaves as before.
@@ -64,6 +65,7 @@ Unity 6000.6.8f1; Unity CLI in the live editor, not a Director job. The Core is 
 | Full EditMode suite | `ae194be53a197c8269b0baa8e92fdf0766937724` | 254 PASS / 0 FAIL / 28 ignored |
 | Full PlayMode suite | `ae194be53a197c8269b0baa8e92fdf0766937724` | 183 PASS / 0 FAIL / 28 ignored |
 | Seven hero and companion animation tests that need the private overlay (`ARE_ENTRY_EVIDENCE_DIR` set in the editor for these runs): `EveryExecutedAbilityShowsAVisibleHeroAction`, `SameTickAbilitiesEachShowAnAction`, `TargetFacingHoldsWhileRunningDuringTheAction`, `HitsReactOpticallyKillsToppleAndLevelUpsShine`, `DefeatedEnemiesStayFrozenAfterHitStop`, `RoadBearReactsToHitsOptically`, `HunterBowShotMovesTheHumanoidArmsAndReturnsWithoutChangingCoreOrSave` | the commit before `ae194be53a197c8269b0baa8e92fdf0766937724`, which only adds the reset for a rebuilt hero | 7 / 7 PASS |
+| Review fixes on #135 (a new run gets the fallen hero up, no late flinch, the builder resolves all takes before it writes): `HeroClipsFollowTheCoresActions` with the restart, and the builder step run again in the live editor | `ad467b4a8e23cb56e051f34778616fcd45b30011` | PASS; controller rebuilt with the same six states |
 
 The builder step ran in the live editor; the controller then held Guard, Cast, Hit, Death, Dodge and Drink with the
 takes and lengths of the table above, the bools `Guarding` and `Dead`, and the speed `ActionSpeed`.
