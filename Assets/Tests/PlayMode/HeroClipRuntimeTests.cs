@@ -64,6 +64,7 @@ namespace AreArpg.PlayMode.Tests
                 yield return HeroFrames(3);
                 Assert.IsTrue(HeroShows(hero, "Dodge"), "The hero rolls when the Core starts a dodge");
                 Assert.AreEqual(clips["EntryDodge"].length / (CombatV2Rules.Dodge.Total * .1f), hero.GetFloat("ActionSpeed"), .02f, "The roll spans the Core's dodge");
+                yield return HeroFrames(4); SaveReviewFrame("hero-clip-dodge.png");
                 FinishHeroAction();
                 yield return HeroFrames(24);
                 Assert.IsFalse(HeroShows(hero, "Dodge"), "and gets up again");
@@ -71,6 +72,7 @@ namespace AreArpg.PlayMode.Tests
                 typeof(ArenaSimulation).GetProperty("PlayerHealth").SetValue(Game, Game.MaxPlayerHealth - 200);
                 yield return HeroFrames(3);
                 Assert.IsTrue(HeroShows(hero, "Hit"), "A blow that gets through makes the hero flinch");
+                yield return HeroFrames(3); SaveReviewFrame("hero-clip-hit.png");
                 yield return HeroFrames(24);
                 Assert.IsFalse(HeroShows(hero, "Hit"), "The flinch passes");
 
@@ -79,6 +81,7 @@ namespace AreArpg.PlayMode.Tests
                 yield return HeroFrames(3);
                 Assert.IsTrue(HeroShows(hero, "Drink"), "The hero drinks when the Core starts the flask");
                 Assert.AreEqual(clips["EntryDrink"].length / (CombatV2Rules.Drink.Total * .1f), hero.GetFloat("ActionSpeed"), .02f, "The drink spans the Core's action");
+                yield return HeroFrames(6); SaveReviewFrame("hero-clip-drink.png");
                 FinishHeroAction();
                 yield return HeroFrames(24);
                 Assert.IsFalse(HeroShows(hero, "Drink"), "The flask is put away");
@@ -90,6 +93,7 @@ namespace AreArpg.PlayMode.Tests
                 for (int tick = 0; tick < 10; tick++) { Game.Step(); yield return HeroFrames(2); }
                 Assert.AreEqual(CombatActionKind.Guard, Game.ActionKind, "The Core still holds the guard");
                 Assert.IsTrue(HeroShows(hero, "Guard"), "The guard stays up for longer than one loop of its clip");
+                SaveReviewFrame("hero-clip-guard.png");
                 Game.SetGuard(false);
                 FinishHeroAction();
                 yield return HeroFrames(8);
@@ -102,6 +106,7 @@ namespace AreArpg.PlayMode.Tests
                 hero.SetTrigger("Melee");
                 yield return HeroFrames(8);
                 Assert.IsTrue(HeroShows(hero, "Death"), "A queued strike does not get a fallen hero up");
+                yield return HeroFrames(20); SaveReviewFrame("hero-clip-death.png");
                 hero.ResetTrigger("Melee");
             }
             finally { Time.captureDeltaTime = before; }
