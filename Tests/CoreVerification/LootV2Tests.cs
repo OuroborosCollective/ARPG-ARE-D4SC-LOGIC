@@ -123,6 +123,16 @@ internal static class LootV2Tests
         check(!LootItem.TryRead(with(11, "2"), out _) && !LootItem.TryRead(with(11, "1"), out _) && !LootItem.TryRead(with(11, "4"), out _),
             "loot2-reject-flags-that-do-not-fit-the-enemy");
         check(!LootItem.TryRead(with(0, "3"), out _) && !LootItem.TryRead(item.Token() + ",0", out _), "loot2-reject-unknown-revision-or-shape");
+        // Review on #134: a negative flag is refused, not thrown at; the guaranteed drop only fits a knight who may carry
+        // the field pauldron (an elite at depth 1: the entry crypt's knight or a creature of the wood).
+        check(!LootItem.TryRead(with(11, "-1"), out _) && !SupplyBag.TryRead("2,0000000000000005,1,40,9,0,1,-1,5,1", out _), "loot2-reject-negative-flags-without-throwing");
+        check(LootCatalog.FlagsFit(1, 1, 2, 1) && LootCatalog.FlagsFit(1, 1, 200, 1) && LootCatalog.FlagsFit(1, 1, 215, 1) && LootCatalog.FlagsFit(2, 2, 42, 3) &&
+            !LootCatalog.FlagsFit(1, 1, 9, 1) && !LootCatalog.FlagsFit(1, 1, 2, 2) && !LootCatalog.FlagsFit(1, 0, 2, 1) && !LootCatalog.FlagsFit(1, 1, 216, 1) &&
+            !LootCatalog.FlagsFit(2, 2, 41, 3) && !LootCatalog.FlagsFit(3, 1, 2, 1) && !LootCatalog.FlagsFit(-1, 1, 2, 1), "loot2-flags-fit-only-their-two-sources");
+        var elite = LootCatalog.Version2.GenerateFlagged(5, 1, 40, 9, 1, 77, LootCatalog.GuaranteedFlag);
+        check(elite != null && !LootItem.TryRead(elite.Token(), out _), "loot2-reject-a-guaranteed-drop-for-an-ordinary-elite");
+        var sourceKnight = LootCatalog.Version2.GenerateFlagged(5, 1, 40, 2, 1, 77, LootCatalog.GuaranteedFlag);
+        check(sourceKnight != null && LootItem.TryRead(sourceKnight.Token(), out _), "loot2-accept-the-guaranteed-drop-of-the-crypt-knight");
     }
 
     private static void AKillWithoutADropStillCounts(Action<bool, string> check)

@@ -52,8 +52,8 @@ namespace AreArpg.Core
         public ulong StableHash { get { return LootCatalog.HashText(Token()); } }
         /// <summary>
         /// Regenerate the receipt with the catalog of its revision and reject unknown or noncanonical persisted receipts.
-        /// A revision-2 receipt has one more field, the flags; they must fit the enemy (guaranteed: an elite, boss: the
-        /// rattler), and a kill that dropped nothing has no receipt.
+        /// A revision-2 receipt has one more field, the flags; they must fit the kill (<see cref="LootCatalog.FlagsFit"/>),
+        /// and a kill that dropped nothing has no receipt.
         /// </summary>
         internal static bool TryRead(string token, out LootItem item)
         {
@@ -70,9 +70,7 @@ namespace AreArpg.Core
                 !BigInteger.TryParse(p[6], NumberStyles.None, CultureInfo.InvariantCulture, out var ordinal) || ordinal < 1) return false;
             int flags = 0;
             if (second && (!int.TryParse(p[11], NumberStyles.None, CultureInfo.InvariantCulture, out flags) ||
-                flags > (LootCatalog.GuaranteedFlag | LootCatalog.BossFlag) ||
-                ((flags & LootCatalog.GuaranteedFlag) != 0 && kind != 1) ||
-                ((flags & LootCatalog.BossFlag) != 0 && (kind != 2 || enemyId != LootCatalog.RattlerEnemyId)))) return false;
+                !LootCatalog.FlagsFit(flags, kind, enemyId, depth))) return false;
             var generated = second ? LootCatalog.Version2.GenerateFlagged(seed, depth, tick, enemyId, kind, ordinal, flags)
                 : LootCatalog.Version1.Generate(seed, depth, tick, enemyId, kind, ordinal);
             // Replay the exact shipped definition: rejects unknown IDs, values, rarity and noncanonical numbers.

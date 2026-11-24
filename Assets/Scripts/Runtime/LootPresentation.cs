@@ -7,7 +7,7 @@ namespace AreArpg.UnityClient
     /// <summary>
     /// Loot revision 2 in the scene (issue #48, owner decisions of 2026-11-15 and 2026-11-17): supply bags lie where
     /// their enemy fell and glint, weapons on the ground glint in the colour of their tier, and a legendary weapon wears
-    /// an aura on the ground and in the hand. The Core decides what lies where; nothing here changes it. All glints
+    /// an aura on the ground and in the hand (weapon or shield). The Core decides what lies where; nothing here changes it. All glints
     /// share one particle system with a fixed limit, and with reduced effects only legendary weapons keep a faint one.
     /// </summary>
     public sealed partial class ArenaRuntime
@@ -75,9 +75,12 @@ namespace AreArpg.UnityClient
                 if (reduced && !legendary) continue;
                 Glint(visual.position + Vector3.up * .2f, AshenUiTheme.RarityColor(item.Item.Rarity), legendary ? .16f : .09f, legendary && !reduced ? 3 : 1);
             }
-            WeaponItem held = _game.Progression.Equipment.Weapon;
+            // A legendary piece glints in the hand that holds it: the weapon, and a shield in the other hand.
+            WeaponItem held = _game.Progression.Equipment.Weapon, shield = _game.Progression.Equipment.Shield;
             if (held != null && held.Rarity == ItemRarity.Legendary && _equippedVisual != null)
                 Glint(_equippedVisual.position, AshenUiTheme.RarityColor(ItemRarity.Legendary), .12f, reduced ? 1 : 2);
+            if (shield != null && shield.Rarity == ItemRarity.Legendary && _shieldVisual != null)
+                Glint(_shieldVisual.position, AshenUiTheme.RarityColor(ItemRarity.Legendary), .12f, reduced ? 1 : 2);
         }
 
         private void Glint(Vector3 at, Color color, float size, int count)

@@ -44,9 +44,7 @@ namespace AreArpg.Core
                 !int.TryParse(p[5], NumberStyles.None, CultureInfo.InvariantCulture, out var kind) || kind < 0 || kind > 3 ||
                 !BigInteger.TryParse(p[6], NumberStyles.None, CultureInfo.InvariantCulture, out var ordinal) || ordinal < 1 ||
                 !int.TryParse(p[7], NumberStyles.None, CultureInfo.InvariantCulture, out var flags) ||
-                flags > (LootCatalog.GuaranteedFlag | LootCatalog.BossFlag) ||
-                ((flags & LootCatalog.GuaranteedFlag) != 0 && kind != 1) ||
-                ((flags & LootCatalog.BossFlag) != 0 && (kind != 2 || enemyId != LootCatalog.RattlerEnemyId))) return false;
+                !LootCatalog.FlagsFit(flags, kind, enemyId, depth)) return false;
             var generated = LootCatalog.Version2.Supply(seed, depth, tick, enemyId, kind, ordinal, flags);
             if (generated == null || generated.Token() != token) return false;
             bag = generated;
@@ -189,7 +187,10 @@ namespace AreArpg.Core
         /// <summary>The weapon receipt the last <see cref="TryCollectLoot"/> took, or null; presentation only.</summary>
         public LootItem LastLoot { get; private set; }
 
-        private bool LootRevisionTwo { get { return _lootCatalog != null && _lootCatalog.Revision >= 2; } }
+        /// <summary>The revision of the catalog this world rolls loot with; 0 for a world without a catalog.</summary>
+        public int LootRevision { get { return _lootCatalog == null ? 0 : _lootCatalog.Revision; } }
+
+        private bool LootRevisionTwo { get { return LootRevision >= 2; } }
 
         /// <summary>
         /// The area with the identity of its layout. Generated places carry their seed, so bags never survive into a

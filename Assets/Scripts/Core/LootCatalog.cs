@@ -149,6 +149,21 @@ namespace AreArpg.Core
 
         private static bool IsBoss(int kind, int flags) { return kind >= 3 || (flags & BossFlag) != 0; }
 
+        /// <summary>
+        /// Whether the flags of a persisted receipt or bag can be true for its kill. The kill path sets them in two
+        /// places only: the guaranteed drop for a knight who may carry the field pauldron (an elite at depth 1, the entry
+        /// crypt's knight or a creature of the wood), and the boss flag for the rattler. Anything else is a forgery
+        /// (review on #134).
+        /// </summary>
+        internal static bool FlagsFit(int flags, int kind, int enemyId, BigInteger depth)
+        {
+            if (flags < 0 || flags > (GuaranteedFlag | BossFlag)) return false;
+            if ((flags & GuaranteedFlag) != 0 && (kind != 1 || !depth.IsOne ||
+                (enemyId != 2 && (enemyId < WoodlandLayout.FirstMonsterId || enemyId >= WoodlandLayout.FirstMonsterId + WoodlandLayout.MonstersPerRun)))) return false;
+            if ((flags & BossFlag) != 0 && (kind != 2 || enemyId != RattlerEnemyId)) return false;
+            return true;
+        }
+
         private static void RequireKill(BigInteger depth, int enemyId, int kind, BigInteger killOrdinal, int flags)
         {
             if (depth < 1 || enemyId <= 0 || killOrdinal < 1 || kind < 0 || kind > 3 || flags < 0 || flags > (GuaranteedFlag | BossFlag))
@@ -220,7 +235,8 @@ namespace AreArpg.Core
         /// <summary>
         /// The supply bag of a kill, or null: revision 2 only. A bag falls from every fourth enemy, from every boss and
         /// from a character's first three kills (so the camp's rations stay within reach of a new character). It holds
-        /// coins by the enemy's class; every third bag, every boss bag and the first three hold a ration.
+        /// coins by the enemy's class. One bag in three holds a ration (a roll per bag, not a count); every boss bag and
+        /// the first three always do.
         /// </summary>
         internal SupplyBag Supply(ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger killOrdinal, int flags = 0)
         {

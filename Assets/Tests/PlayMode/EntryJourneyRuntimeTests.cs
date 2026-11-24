@@ -365,7 +365,7 @@ namespace AreArpg.PlayMode.Tests
             // Loot revision 2: a weapon is no longer certain, but everybody fell, and a character's first three kills
             // each leave a supply bag. A world on revision 1 still drops one weapon per kill.
             Assert.IsTrue(Game.Monsters.TrueForAll(m => m.IsDead), "crypt fixture: " + before + " -> " + after);
-            if (Game.GroundSupplies.Count == 0) Assert.AreEqual(3, Game.GroundLoot.Count, "crypt fixture: " + before + " -> " + after);
+            if (Game.LootRevision < 2) Assert.AreEqual(3, Game.GroundLoot.Count, "crypt fixture: " + before + " -> " + after);
             else if (Game.Progression.LifetimeKills <= 3) Assert.AreEqual((int)Game.Progression.LifetimeKills, Game.GroundSupplies.Count, "crypt fixture: " + before + " -> " + after);
             foreach (var l in Game.GroundLoot)
             {

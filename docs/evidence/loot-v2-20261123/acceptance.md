@@ -54,6 +54,11 @@ enemies already gave blue and yellow weapons.
   task: the entry crypt has three enemies, so a new character reaches the camp with three rations, as before. Mara
   asks for two.
 - Rations now come from bags and chests. A revision-2 weapon brings none; before, every pickup brought one.
+- One bag in three holds a ration. This is a roll per bag, not a count of bags.
+- Two authored encounter rewards are unchanged: the road bear and the rattler's nest outside the crypt still give
+  their fixed 12 weapon points and one ration directly, without a drop. Turning them into boss drops would put a
+  silver in the player's purse before Orsel's course, whose price of 12 coins the owner set against the hunter's
+  purse; that is the owner's call (review on #134).
 - Bags are taken with the same pickup as weapons; weapons within reach go first. Coins and rations are credited once.
 - Weapons or bags on the ground keep the ways out of the area closed, as weapons already did.
 - Bags live in the save (section `supplies`), so they survive a reload. A restart of the same area finds them again;
@@ -69,7 +74,7 @@ enemies already gave blue and yellow weapons.
 
 - Bags show the supply sack model and send up gold sparks.
 - Weapons on the ground send up sparks in the colour of their tier. A legendary weapon has more and larger sparks, on
-  the ground and in the hero's hand.
+  the ground and in the hero's hand. A legendary shield glints in the other hand.
 - All sparks share one particle system limited to 96 particles. With reduced effects only legendary weapons keep a
   faint glint.
 - The pickup text names what was taken: the tier of a weapon, or the coins and ration of a bag.
@@ -79,7 +84,9 @@ enemies already gave blue and yellow weapons.
 
 A weapon receipt and a bag are both regenerated from the identity of their kill when a save loads. These are rejected:
 
-- a receipt with a raised tier, with flags that do not fit the enemy, or for a kill that dropped nothing;
+- a receipt with a raised tier or for a kill that dropped nothing;
+- flags that cannot be true for the kill: the guaranteed drop fits only an elite at depth 1 that may carry the field
+  pauldron (the entry crypt's knight or a creature of the wood), the boss flag only the rattler (review on #134);
 - a fuller bag, the same bag twice, a bag of a kill the character never made, an unknown version or area.
 
 ## Checks
@@ -94,6 +101,7 @@ were committed red (`8de0b75`, the catalog and the bags did not exist) before th
 | Full EditMode suite | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | 254 PASS / 0 FAIL / 28 ignored |
 | Full PlayMode suite | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | 182 PASS / 0 FAIL / 28 ignored |
 | PlayMode `CanonicalKillProjectsAndPersistsVersionedLoot` (bag shown, glint within its limit, reduced effects, real pickup input, save, restart) | `758a66767800319b6ac32d2ee2ffb43f7eba7456` | PASS |
+| Review fixes on #134 (flags fit only their two sources, legendary shield glint, the fixture reads the world's loot revision, the glint test sets its effect mode): `Tests/CoreVerification`, and PlayMode `CanonicalKillProjectsAndPersistsVersionedLoot`, `CryptLeadsToVillageAndResumesItsCheckpoint`, `CampFiguresWearTheMoodOfTheirRole` | @@REVIEWHEAD@@ | ALL PASS 23.143 (75 for loot revision 2); 3 / 3 PASS |
 
 What the Core checks cover:
 

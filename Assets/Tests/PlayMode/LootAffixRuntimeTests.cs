@@ -76,9 +76,14 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNotNull(runtime);
             var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
             var game = (ArenaSimulation)typeof(ArenaRuntime).GetField("_game", flags).GetValue(runtime);
+            var atmosphere = (AshenAtmosphere)typeof(ArenaRuntime).GetField("_atmosphere", flags).GetValue(runtime);
+            bool reducedBefore = atmosphere.ReducedEffects;
+            // The glint checks must not depend on the stored preference: full effects first, reduced effects later.
+            atmosphere.SetPreferences(atmosphere.MusicVolume, atmosphere.VoiceVolume, atmosphere.EffectsVolume, atmosphere.Muted, false);
             game.Monsters[0].Xmm = 1000; game.Monsters[0].Zmm = 0; game.Monsters[0].Health = 1;
             Assert.AreEqual(1, game.ActivateSkill(0).Kills);
-            Assert.AreEqual(1, game.GroundSupplies.Count, "Client must bind loot revision 2: the first kill leaves a supply bag");
+            Assert.AreEqual(2, game.LootRevision, "Client must bind loot revision 2");
+            Assert.AreEqual(1, game.GroundSupplies.Count, "The first kill leaves a supply bag");
             SupplyBag bag = game.GroundSupplies[0].Bag;
             LootItem item = game.GroundLoot.Count > 0 ? game.GroundLoot[0].Item : null;
             if (game.GroundLoot.Count > 0) Assert.AreEqual(2, item.CatalogRevision, "A weapon that falls carries revision 2");
@@ -87,13 +92,11 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
             Assert.IsNotNull(FindIsolated(ArenaRuntime.SupplyVisualPrefix + "1"), "The bag the Core dropped is shown");
             if (item != null) Assert.IsNotNull(FindIsolated("Loot_1"), "Existing projection must consume the real drop");
-            var atmosphere = (AshenAtmosphere)typeof(ArenaRuntime).GetField("_atmosphere", flags).GetValue(runtime);
             var glint = (ParticleSystem)typeof(ArenaRuntime).GetField("_lootGlint", flags).GetValue(runtime);
             Assert.IsNotNull(glint, "Loot on the ground glints");
             Assert.AreEqual(ArenaRuntime.LootGlintLimit, glint.main.maxParticles, "The glint keeps its mobile limit");
             yield return new WaitForSeconds(0.7f);
             Assert.That(glint.particleCount, Is.InRange(1, ArenaRuntime.LootGlintLimit), "Sparks rise over the bag");
-            bool reducedBefore = atmosphere.ReducedEffects;
             try
             {
                 atmosphere.SetPreferences(atmosphere.MusicVolume, atmosphere.VoiceVolume, atmosphere.EffectsVolume, atmosphere.Muted, true);
