@@ -32,6 +32,17 @@ namespace AreArpg.EditorTools
         [Serializable] public sealed class Tone { public string id = ""; public string[] head = new string[0]; public string[] body = new string[0]; }
         [Serializable] public sealed class PartRoles { public string slot = ""; public string id = ""; public string[] roles = new string[0]; }
         [Serializable] public sealed class Look { public string tone = ""; public string hair = ""; public string palette = ""; public string eyes = ""; }
+        [Serializable] public sealed class Weave { public string fabric = ""; public float strength = .3f; public float scale = 6f; }
+        /// <summary>
+        /// How every resident wears its clothes (owner brief 2026-11-24: dark, desaturated, worn): a grade over all worn
+        /// parts and a fabric for cloth and for leather. Laid on when the visuals are built; the bakes stay as they are.
+        /// </summary>
+        [Serializable]
+        public sealed class Finish
+        {
+            public float gain = 1f; public float saturation = 1f;
+            public Weave cloth = new Weave(); public Weave leather = new Weave();
+        }
         [Serializable]
         public sealed class Kind
         {
@@ -69,6 +80,7 @@ namespace AreArpg.EditorTools
             public Named[] eyes = new Named[0];
             public PartRoles[] parts = new PartRoles[0];
             public Kind[] kinds = new Kind[0];
+            public Finish finish = new Finish();
         }
 
         static readonly string[] HairRoles = { "hair", "hair_light", "hair_dark" };
@@ -127,7 +139,7 @@ namespace AreArpg.EditorTools
                         Outfit("EyeBrows", pool.browsPart, new[] { hair[0] }),
                     };
                     foreach (PartRoles part in worn)
-                        outfits.Add(Outfit(part.slot, part.id, part.roles.Select(role => Colour(pool, role, palette, hair)).ToArray()));
+                        outfits.Add(Worn(pool, Outfit(part.slot, part.id, part.roles.Select(role => Colour(pool, role, palette, hair)).ToArray()), part));
                     figures.Add(new BozoFigureRecipes.Figure
                     {
                         id = FigureId(kind.id, n),
@@ -156,6 +168,30 @@ namespace AreArpg.EditorTools
             return new BozoFigureRecipes.Outfit { slot = slot, id = id, colors = colours.ToArray() };
         }
 
+        /// <summary>
+        /// The pool's finish on one worn part: the grade on everything that is clothing or armour (not hair or beard),
+        /// the cloth fabric on parts mostly made of cloth, the leather fabric on parts mostly made of leather, none on metal.
+        /// </summary>
+        static BozoFigureRecipes.Outfit Worn(Pool pool, BozoFigureRecipes.Outfit outfit, PartRoles part)
+        {
+            Finish finish = pool.finish ?? new Finish();
+            if (BozoFigureRecipes.IsHeadSlot(part.slot) != false && part.slot != "Hat") return outfit;
+            outfit.gain = finish.gain; outfit.saturation = finish.saturation;
+            int cloth = 0, leather = 0, metal = 0;
+            foreach (string role in part.roles)
+            {
+                if (role.StartsWith("metal", StringComparison.Ordinal)) metal++;
+                else if (role.StartsWith("leather", StringComparison.Ordinal) || role.StartsWith("boots", StringComparison.Ordinal) || role == "sole") leather++;
+                else if (!Hex.IsMatch(role) && Array.IndexOf(HairRoles, role) < 0) cloth++;
+            }
+            Weave weave = metal > cloth && metal >= leather ? null : leather > cloth ? finish.leather : finish.cloth;
+            if (weave != null && !string.IsNullOrEmpty(weave.fabric))
+            {
+                outfit.fabric = weave.fabric; outfit.fabricStrength = weave.strength; outfit.fabricScale = weave.scale;
+            }
+            return outfit;
+        }
+
         static string Colour(Pool pool, string role, Named palette, string[] hair)
         {
             int shade = Array.IndexOf(HairRoles, role);
@@ -169,6 +205,11 @@ namespace AreArpg.EditorTools
         {
             if (pool.texture != 512 && pool.texture != 1024) return "texture must be 512 or 1024.";
             if (!Part.IsMatch(pool.eyesPart ?? "") || !Part.IsMatch(pool.browsPart ?? "")) return "eyesPart and browsPart must name parts.";
+            Finish finish = pool.finish ?? new Finish();
+            if (!(finish.gain >= .2f && finish.gain <= 1.5f) || !(finish.saturation >= 0f && finish.saturation <= 1f)) return "finish: gain must be 0.2–1.5 and saturation 0–1.";
+            foreach (Weave weave in new[] { finish.cloth ?? new Weave(), finish.leather ?? new Weave() })
+                if (!string.IsNullOrEmpty(weave.fabric) && (!Part.IsMatch(weave.fabric) || !(weave.strength >= 0f && weave.strength <= 1f) || !(weave.scale > 0f && weave.scale <= 64f)))
+                    return "finish: a fabric needs a name, a strength of 0–1 and a scale of at most 64.";
             string error = Names("wearable slot", pool.wearable, Part) ?? Names("group", pool.groups, Name) ?? Names("role", pool.roles, Name);
             if (error != null) return error;
             foreach (string slot in pool.wearable)

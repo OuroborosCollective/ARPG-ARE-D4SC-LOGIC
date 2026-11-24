@@ -44,6 +44,15 @@ namespace AreArpg.EditorTools
             public float fabricStrength = 0.6f;
             /// <summary>How often the fabric repeats across the figure's texture atlas.</summary>
             public float fabricScale = 4f;
+            /// <summary>
+            /// How the part's baked colours are worn in the game (owner brief 2026-11-24: dark, desaturated, worn), laid
+            /// over this part's pixels when the visual is built, without a new bake: gain below 1 darkens, saturation
+            /// below 1 takes colour out (0 is grey). 1 and 1 keep the baked colours.
+            /// </summary>
+            public float gain = 1f;
+            public float saturation = 1f;
+            /// <summary>Whether the part is worn darker, duller or lighter than it was baked.</summary>
+            public bool Graded { get { return !Mathf.Approximately(gain, 1f) || !Mathf.Approximately(saturation, 1f); } }
         }
         /// <summary>
         /// A rigid thing the figure carries (staff, lantern, pouch, quiver, jewellery): a model hung on one bone of the
@@ -266,6 +275,8 @@ namespace AreArpg.EditorTools
                     if (o == null || !Part.IsMatch(o.slot ?? "") || !Part.IsMatch(o.id ?? "")) return f.id + ": invalid outfit entry.";
                     if (!slots.Add(o.slot)) return f.id + ": slot " + o.slot + " is set twice.";
                     if (o.colors != null && o.colors.Length > 9) return f.id + ": at most nine colours per outfit.";
+                    if (!(o.gain >= .2f && o.gain <= 1.5f) || !(o.saturation >= 0f && o.saturation <= 1f))
+                        return f.id + ": slot " + o.slot + ": gain must be 0.2–1.5 and saturation 0–1.";
                     bool ended = false;
                     foreach (string c in o.colors ?? new string[0])
                     {

@@ -933,18 +933,22 @@ namespace AreArpg.EditorTools
 
         static readonly System.Globalization.CultureInfo Invariant = System.Globalization.CultureInfo.InvariantCulture;
 
-        static bool HasFabric(BozoFigureRecipes.Figure recipe) { return recipe.outfits.Any(o => !string.IsNullOrEmpty(o.fabric)); }
+        /// <summary>Whether any part is worn with a fabric of its own or darker and duller than it was baked.</summary>
+        static bool HasFabric(BozoFigureRecipes.Figure recipe) { return recipe.outfits.Any(o => !string.IsNullOrEmpty(o.fabric) || o.Graded); }
 
         /// <summary>The fabric settings as part of a texture's stamp: a changed fabric rebuilds the derived textures.</summary>
         static string FabricStamp(BozoFigureRecipes.Figure recipe)
         {
             if (!HasFabric(recipe)) return "";
             // "v3": skin that outfits carry or let through stays free of fabric; older derived textures are rebuilt.
-            var used = recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)).ToList();
+            var used = recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric) || o.Graded).ToList();
             // The maps' content is part of the stamp: a regenerated map under the same name rebuilds both atlases.
+            // (A part without a grade keeps the stamp it had before grades existed, so its textures are not rebuilt.)
             return ";fabric=v3," + string.Join(",", used.Select(o =>
-                o.slot + ":" + o.fabric + ":" + o.fabricStrength.ToString("0.###", Invariant) + ":" + o.fabricScale.ToString("0.###", Invariant))) +
-                ";maps=" + string.Join(",", used.Select(o => o.fabric).Distinct().OrderBy(n => n, StringComparer.Ordinal).Select(n => n + ":" + FileFingerprint(FabricPath(n))));
+                o.slot + ":" + o.fabric + ":" + o.fabricStrength.ToString("0.###", Invariant) + ":" + o.fabricScale.ToString("0.###", Invariant) +
+                (o.Graded ? ":gain=" + o.gain.ToString("0.###", Invariant) + ":saturation=" + o.saturation.ToString("0.###", Invariant) : ""))) +
+                ";maps=" + string.Join(",", used.Where(o => !string.IsNullOrEmpty(o.fabric)).Select(o => o.fabric).Distinct().OrderBy(n => n, StringComparer.Ordinal)
+                    .Select(n => n + ":" + FileFingerprint(FabricPath(n))));
         }
 
         /// <summary>FNV-1a over a file's bytes, as hex; "missing" for an absent file (the bake then reports it).</summary>
@@ -956,7 +960,8 @@ namespace AreArpg.EditorTools
             return h.ToString("x16", Invariant);
         }
 
-        sealed class FabricLayer { public bool[] Mask; public float[] Height; public int Size; public float Strength, Scale; }
+        /// <summary>One worn part on the atlas: its pixels, its fabric (Height is null without one) and its grade.</summary>
+        sealed class FabricLayer { public bool[] Mask; public float[] Height; public int Size; public float Strength, Scale, Gain = 1f, Saturation = 1f; }
 
         static string FabricPath(string name) { return Path.Combine(Directory.GetCurrentDirectory(), "Tools/Art/fabric/" + name + ".png"); }
 
@@ -1000,9 +1005,10 @@ namespace AreArpg.EditorTools
                 int a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
                 if (skinVertex[a] && skinVertex[b] && skinVertex[c]) FillTriangle(skin, width, height, uv[a], uv[b], uv[c]);
             }
-            foreach (var outfit in recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric)))
+            foreach (var outfit in recipe.outfits.Where(o => !string.IsNullOrEmpty(o.fabric) || o.Graded))
             {
-                if (!(outfit.fabricStrength >= 0f && outfit.fabricStrength <= 1f) || !(outfit.fabricScale > 0f && outfit.fabricScale <= 64f))
+                bool woven = !string.IsNullOrEmpty(outfit.fabric);
+                if (woven && (!(outfit.fabricStrength >= 0f && outfit.fabricStrength <= 1f) || !(outfit.fabricScale > 0f && outfit.fabricScale <= 64f)))
                     throw new InvalidOperationException(recipe.id + ": ungültige Stoffwerte für " + outfit.slot);
                 var inside = new bool[mesh.vertexCount];
                 bool any = false;
@@ -1018,6 +1024,11 @@ namespace AreArpg.EditorTools
                 }
                 mask = Grow(mask, width, height, 2);
                 for (int i = 0; i < mask.Length; i++) if (skin[i] || skinColoured[i]) mask[i] = false;
+                if (!woven)
+                {
+                    layers.Add(new FabricLayer { Mask = mask, Gain = outfit.gain, Saturation = outfit.saturation });
+                    continue;
+                }
                 string path = FabricPath(outfit.fabric);
                 if (!File.Exists(path)) throw new InvalidOperationException("Stoff fehlt: " + path);
                 var texture = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
@@ -1027,7 +1038,8 @@ namespace AreArpg.EditorTools
                     Color32[] pixels = texture.GetPixels32();
                     var heights = new float[pixels.Length];
                     for (int i = 0; i < pixels.Length; i++) heights[i] = pixels[i].r / 255f;
-                    layers.Add(new FabricLayer { Mask = mask, Height = heights, Size = texture.width, Strength = outfit.fabricStrength, Scale = outfit.fabricScale });
+                    layers.Add(new FabricLayer { Mask = mask, Height = heights, Size = texture.width, Strength = outfit.fabricStrength, Scale = outfit.fabricScale,
+                        Gain = outfit.gain, Saturation = outfit.saturation });
                 }
                 finally { Object.DestroyImmediate(texture); }
             }
@@ -1133,7 +1145,10 @@ namespace AreArpg.EditorTools
             return Mathf.Lerp(Mathf.Lerp(h00, h10, tx), Mathf.Lerp(h01, h11, tx), ty);
         }
 
-        /// <summary>Weave in the colours: raised threads a little lighter, the gaps between them darker.</summary>
+        /// <summary>
+        /// The worn look in the colours: first the part's grade (duller, darker), then the weave: raised threads a little
+        /// lighter, the gaps between them darker.
+        /// </summary>
         static Action<Color32[], int, int> FabricWeave(BozoFigureRecipes.Figure recipe)
         {
             if (!HasFabric(recipe)) return null;
@@ -1145,10 +1160,13 @@ namespace AreArpg.EditorTools
                         {
                             int i = y * width + x;
                             if (!layer.Mask[i]) continue;
-                            float gain = Mathf.Lerp(1f, .72f + .42f * FabricHeight(layer, (x + .5f) / width, (y + .5f) / height), layer.Strength);
+                            float gain = layer.Gain;
+                            if (layer.Height != null) gain *= Mathf.Lerp(1f, .72f + .42f * FabricHeight(layer, (x + .5f) / width, (y + .5f) / height), layer.Strength);
                             Color32 p = pixels[i];
-                            pixels[i] = new Color32((byte)Mathf.Clamp(Mathf.RoundToInt(p.r * gain), 0, 255), (byte)Mathf.Clamp(Mathf.RoundToInt(p.g * gain), 0, 255),
-                                (byte)Mathf.Clamp(Mathf.RoundToInt(p.b * gain), 0, 255), p.a);
+                            float grey = (1f - layer.Saturation) * (.2126f * p.r + .7152f * p.g + .0722f * p.b), s = layer.Saturation;
+                            pixels[i] = new Color32((byte)Mathf.Clamp(Mathf.RoundToInt((s * p.r + grey) * gain), 0, 255),
+                                (byte)Mathf.Clamp(Mathf.RoundToInt((s * p.g + grey) * gain), 0, 255),
+                                (byte)Mathf.Clamp(Mathf.RoundToInt((s * p.b + grey) * gain), 0, 255), p.a);
                         }
             };
         }
@@ -1161,6 +1179,7 @@ namespace AreArpg.EditorTools
             {
                 foreach (FabricLayer layer in FabricLayers(recipe, width, height))
                 {
+                    if (layer.Height == null) continue; // a grade without a fabric changes colours only
                     float du = 1f / width, dv = 1f / height, k = 1.1f * layer.Strength;
                     for (int y = 0; y < height; y++)
                         for (int x = 0; x < width; x++)
