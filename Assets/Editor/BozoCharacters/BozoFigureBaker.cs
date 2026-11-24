@@ -1339,6 +1339,8 @@ namespace AreArpg.EditorTools
                 bounds = EntryWorldArtBuilder.VisibleBody(art);
                 art.transform.localPosition -= new Vector3(bounds.center.x, 0f, bounds.center.z);
                 EntryWorldArtBuilder.StandOnVisibleFeet(art);
+                // What the figure carries hangs on its bones only now: its height and its stand are measured on the body alone.
+                if (gameVisual) FigureProps.Attach(recipe, root.transform, animators[0]);
                 if (PrefabUtility.SaveAsPrefabAsset(root, path) == null) throw new IOException("Konnte nicht speichern: " + path);
             }
             finally { Object.DestroyImmediate(root); }

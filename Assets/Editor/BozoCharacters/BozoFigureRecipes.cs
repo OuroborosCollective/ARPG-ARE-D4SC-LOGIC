@@ -45,6 +45,38 @@ namespace AreArpg.EditorTools
             /// <summary>How often the fabric repeats across the figure's texture atlas.</summary>
             public float fabricScale = 4f;
         }
+        /// <summary>
+        /// A rigid thing the figure carries (staff, lantern, pouch, quiver, jewellery): a model hung on one bone of the
+        /// standing figure, so it follows every animation without game code (see FigureProps).
+        /// </summary>
+        [Serializable]
+        public sealed class Prop
+        {
+            public string name = "";
+            /// <summary>Project path of the model or prefab (usually a private pack asset).</summary>
+            public string asset = "";
+            /// <summary>Humanoid bone that carries it (UnityEngine.HumanBodyBones name, e.g. "Hips", "Chest", "RightHand").</summary>
+            public string bone = "";
+            /// <summary>Where the anchor sits on the standing figure, in metres from the point between its feet: x to the figure's right, y up, z to its front.</summary>
+            public float[] position = new float[0];
+            /// <summary>Euler angles in degrees in figure space.</summary>
+            public float[] rotation = new float[0];
+            /// <summary>Longest edge in metres; 0 keeps the size the model was made in.</summary>
+            public float size;
+            /// <summary>Which point of the model sits at the position: "center", "top", "bottom" or "origin" (the model's own pivot).</summary>
+            public string anchor = "center";
+            /// <summary>Colour the pack's material is multiplied with ("#rrggbb"); empty keeps it.</summary>
+            public string tint = "";
+            /// <summary>Emission colour ("#rrggbb"); empty: none. Only bright, saturated texels of the colour texture glow.</summary>
+            public string glow = "";
+            public float glowStrength = 1f;
+            /// <summary>Saturation (0..1) from which a bright texel glows: 0.5 takes a candle flame, 0.75 only vivid liquid.</summary>
+            public float glowSaturation = 0.5f;
+            /// <summary>0..1; negative keeps the material's own value.</summary>
+            public float metallic = -1f;
+            /// <summary>0..1; negative halves the material's own value (worn, dull).</summary>
+            public float smoothness = -1f;
+        }
         [Serializable]
         public sealed class Figure
         {
@@ -83,7 +115,16 @@ namespace AreArpg.EditorTools
             /// figure to life; every other shape is baked flat. Residents of the pool leave it off and stay light.
             /// </summary>
             public bool expressions;
+            /// <summary>Things the figure carries; they are hung on the game visuals only (not on source figures).</summary>
+            public Prop[] props = new Prop[0];
         }
+
+        /// <summary>The bones a prop may hang on: the trunk and the limbs, not fingers, toes, eyes or jaw.</summary>
+        public static readonly string[] PropBones = { "Hips", "Spine", "Chest", "UpperChest", "Neck", "Head", "LeftShoulder", "RightShoulder",
+            "LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "LeftHand", "RightHand",
+            "LeftUpperLeg", "RightUpperLeg", "LeftLowerLeg", "RightLowerLeg", "LeftFoot", "RightFoot" };
+        static readonly string[] PropAnchors = { "center", "top", "bottom", "origin" };
+        static readonly Regex AssetPath = new Regex(@"^Assets/[A-Za-z0-9 _.()\[\]/+-]{1,200}\.(prefab|fbx|FBX|obj|OBJ)$");
 
         // The pack's outfit types (Assets/BoZo_StylizedModularCharacters/OutfitTypes): what belongs to the head when a
         // figure is built in two parts. A type in neither list is refused, so that a new type of the pack is sorted
@@ -193,7 +234,7 @@ namespace AreArpg.EditorTools
                 if (f == null || !Id.IsMatch(f.id ?? "")) return "Invalid figure id.";
                 if (!ids.Add(f.id)) return "Duplicate figure " + f.id + ".";
                 // Each figure owns the folder <BakeFolder>/<id>; these two names are shared folders there.
-                if (f.id == "sources" || f.id == "animation") return "Figure id " + f.id + " is reserved.";
+                if (f.id == "sources" || f.id == "animation" || f.id == "props") return "Figure id " + f.id + " is reserved.";
                 if (string.IsNullOrWhiteSpace(f.role)) return f.id + ": role missing (figures are designed for their role).";
                 if (!Preset.IsMatch(f.@base ?? "") || f.@base.Contains("..")) return f.id + ": invalid base preset.";
                 if (!(f.height >= 1.2f && f.height <= 2.3f)) return f.id + ": height must be 1.2–2.3 m."; // also rejects "not a number"
@@ -229,6 +270,26 @@ namespace AreArpg.EditorTools
                 }
                 foreach (string c in f.skin ?? new string[0])
                     if (c != "" && !Hex.IsMatch(c ?? "")) return f.id + ": skin colour '" + c + "' is not #rrggbb.";
+                var propNames = new HashSet<string>();
+                foreach (Prop prop in f.props ?? new Prop[0])
+                {
+                    if (prop == null || !Part.IsMatch(prop.name ?? "")) return f.id + ": invalid prop name.";
+                    string where = f.id + ": prop " + prop.name;
+                    if (!propNames.Add(prop.name)) return where + " is listed twice.";
+                    if (!AssetPath.IsMatch(prop.asset ?? "") || prop.asset.Contains("..")) return where + " needs a model path under Assets/.";
+                    if (Array.IndexOf(PropBones, prop.bone) < 0) return where + " hangs on an unknown bone '" + prop.bone + "'.";
+                    if (prop.position == null || prop.position.Length != 3 || prop.position.Any(v => float.IsNaN(v) || Math.Abs(v) > 3f))
+                        return where + " needs a position of three numbers within 3 m.";
+                    if (prop.rotation != null && prop.rotation.Length != 0 && (prop.rotation.Length != 3 || prop.rotation.Any(v => float.IsNaN(v) || Math.Abs(v) > 360f)))
+                        return where + ": rotation must be three angles.";
+                    if (!(prop.size >= 0f && prop.size <= 2.5f)) return where + ": size must be 0–2.5 m.";
+                    if (Array.IndexOf(PropAnchors, prop.anchor) < 0) return where + ": anchor must be center, top, bottom or origin.";
+                    if (!string.IsNullOrEmpty(prop.tint) && !Hex.IsMatch(prop.tint)) return where + ": tint is not #rrggbb.";
+                    if (!string.IsNullOrEmpty(prop.glow) && !Hex.IsMatch(prop.glow)) return where + ": glow is not #rrggbb.";
+                    if (!(prop.glowStrength >= 0f && prop.glowStrength <= 8f)) return where + ": glowStrength must be 0–8.";
+                    if (!(prop.glowSaturation >= 0f && prop.glowSaturation <= 1f)) return where + ": glowSaturation must be 0–1.";
+                    if (!(prop.metallic <= 1f) || !(prop.smoothness <= 1f)) return where + ": metallic and smoothness must be at most 1.";
+                }
             }
             foreach (Figure f in figures)
             {
