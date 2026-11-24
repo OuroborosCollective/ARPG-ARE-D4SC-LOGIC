@@ -295,10 +295,12 @@ namespace AreArpg.UnityClient
             bool rift = _act == 12;
             bool crypt = _act <= 1 || (_act >= 5 && _act <= 7) || _act == 9;
             // Village, ash road and mill lie under open sky: there the ash falls like snow (owner direction 2026-11-20:
-            // an ash world with ash snow and glowing embers, not a world hidden in haze).
+            // an ash world with ash snow and glowing embers). The far view stays clear; the owner's Dark-Souls brief of
+            // 2026-11-24 adds fog that lies on the ground of the village and the road: wide, cold banks at knee height.
             bool snow = _act >= 2 && _act <= 4;
+            bool groundFog = _act == 2 || _act == 3;
             bool showAsh = snow || forest || _act == 10 || rift;
-            bool showMist = forest || mill || crypt;
+            bool showMist = forest || mill || crypt || groundFog;
 
             var ash = _ash.main;
             ash.startColor = rift ? new Color(.98f, .34f, .10f, .66f)
@@ -320,8 +322,9 @@ namespace AreArpg.UnityClient
             var mist = _dust.main;
             mist.startColor = forest ? new Color(.30f, .54f, .46f, .075f)
                 : mill ? new Color(.43f, .61f, .67f, .060f)
+                : groundFog ? new Color(.62f, .68f, .78f, .13f)
                 : new Color(.42f, .55f, .60f, .055f);
-            float mistSize = forest ? 2.8f : mill ? 1.8f : 2.3f;
+            float mistSize = forest ? 2.8f : mill ? 1.8f : groundFog ? 4.4f : 2.3f;
             mist.startSize = new ParticleSystem.MinMaxCurve(mistSize * .8f, mistSize * 1.25f);
             ApplyParticleGlow(_ash, rift ? .86f : 0f);
             ApplyParticleGlow(_dust, forest ? .07f : 0f);
@@ -345,7 +348,8 @@ namespace AreArpg.UnityClient
             float ashRate = rift ? 13f : forest ? 5f : mill ? 14f : _act == 2 ? 17f : 19f;
             var rate = _ash.emission; rate.rateOverTime = ReducedEffects ? ashRate * (2f / 9f) : ashRate;
             var dust = _dust.main; dust.maxParticles = ReducedEffects ? 6 : 24;
-            float mistRate = forest ? 1.6f : mill ? 1.1f : 2f;
+            // Ten seconds of life: the village's ground fog keeps the whole budget of 24 banks in the air.
+            float mistRate = forest ? 1.6f : mill ? 1.1f : _act == 2 || _act == 3 ? 2.4f : 2f;
             var drift = _dust.emission; drift.rateOverTime = ReducedEffects ? mistRate * .25f : mistRate;
         }
 
