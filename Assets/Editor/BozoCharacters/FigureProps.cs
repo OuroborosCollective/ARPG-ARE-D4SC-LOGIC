@@ -77,17 +77,24 @@ namespace AreArpg.EditorTools
             }
         }
 
-        /// <summary>The bone by its humanoid name, from the animator or, where that is not ready in the editor, from the avatar's own mapping.</summary>
+        /// <summary>
+        /// The bone by its humanoid name, from the animator or, where that is not ready in the editor, from the avatar's
+        /// own mapping; on a figure without a humanoid rig, the bone of that very name.
+        /// </summary>
         static Transform Bone(Animator animator, string name)
         {
+            if (animator == null) return null;
             HumanBodyBones id;
-            if (!Enum.TryParse(name, out id) || animator == null || animator.avatar == null) return null;
-            Transform bone = animator.GetBoneTransform(id);
-            if (bone != null) return bone;
-            foreach (HumanBone human in animator.avatar.humanDescription.human)
-                if (human.humanName == name)
-                    return animator.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == human.boneName);
-            return null;
+            if (animator.avatar != null && animator.avatar.isHuman && Enum.TryParse(name, out id))
+            {
+                Transform bone = animator.GetBoneTransform(id);
+                if (bone != null) return bone;
+                foreach (HumanBone human in animator.avatar.humanDescription.human)
+                    if (human.humanName == name)
+                        return animator.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == human.boneName);
+                return null;
+            }
+            return animator.GetComponentsInChildren<Transform>(true).FirstOrDefault(t => t.name == name);
         }
 
         /// <summary>Only transforms and static meshes stay: no light, particles, physics, scripts, skeleton or lower detail levels.</summary>
@@ -186,7 +193,9 @@ namespace AreArpg.EditorTools
             if (BozoFigureRecipes.TryColor(prop.glow, out glow) && material.HasProperty("_EmissionColor"))
             {
                 Texture colours = material.HasProperty("_BaseMap") ? material.GetTexture("_BaseMap") : null;
-                if (material.HasProperty("_EmissionMap")) material.SetTexture("_EmissionMap", colours != null ? GlowMask(colours, prop.glowSaturation) : null);
+                if (material.HasProperty("_EmissionMap"))
+                    material.SetTexture("_EmissionMap", colours == null ? null : GlowMask(colours, prop.glowSaturation,
+                        Folder + "/" + Safe(colours.name) + "_Glow" + Mathf.RoundToInt(prop.glowSaturation * 100f) + ".png", GlowSize));
                 material.SetColor("_EmissionColor", glow.linear * prop.glowStrength);
                 material.EnableKeyword("_EMISSION");
                 material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
@@ -197,15 +206,14 @@ namespace AreArpg.EditorTools
 
         /// <summary>
         /// Where a colour texture glows: its bright, saturated texels (a candle flame, a vivid liquid) keep their colour,
-        /// everything else is black. Written once per texture and threshold.
+        /// everything else is black. Written again only when the colour texture is newer than the mask.
         /// </summary>
-        static Texture2D GlowMask(Texture colours, float saturation)
+        internal static Texture2D GlowMask(Texture colours, float saturation, string path, int size)
         {
-            string path = Folder + "/" + Safe(colours.name) + "_Glow" + Mathf.RoundToInt(saturation * 100f) + ".png";
             string source = AssetDatabase.GetAssetPath(colours);
             if (!File.Exists(path) || (File.Exists(source) && File.GetLastWriteTimeUtc(source) > File.GetLastWriteTimeUtc(path)))
             {
-                Color32[] pixels = Pixels(colours, GlowSize);
+                Color32[] pixels = Pixels(colours, size);
                 for (int i = 0; i < pixels.Length; i++)
                 {
                     Color32 p = pixels[i];
@@ -213,9 +221,9 @@ namespace AreArpg.EditorTools
                     bool glows = high >= GlowValue * 255f && high - low >= saturation * high;
                     pixels[i] = glows ? new Color32(p.r, p.g, p.b, 255) : new Color32(0, 0, 0, 255);
                 }
-                WritePng(path, pixels, GlowSize);
+                WritePng(path, pixels, size);
             }
-            return Imported(path, GlowSize);
+            return Imported(path, size);
         }
 
         /// <summary>The sRGB texels of any texture at a given edge length (the texture need not be readable).</summary>

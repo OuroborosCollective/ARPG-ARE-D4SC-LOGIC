@@ -24,14 +24,14 @@ namespace AreArpg.EditMode.Tests
                 .GetMethod("Owns", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             Assert.IsFalse((bool)owns.Invoke(null, new object[] { "EntryHero" }), "Only enemy figures belong to the builder");
             int built = 0;
-            for (int kind = 0; kind < 3; kind++)
+            for (int kind = 0; kind < 4; kind++)
             {
                 string key = "EntryEnemy" + kind;
                 if (!(bool)owns.Invoke(null, new object[] { key })) continue;
                 built++;
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Visuals + key + ".prefab");
                 foreach (Component component in prefab.GetComponentsInChildren<Component>(true))
-                    Assert.IsTrue(component is Transform || component is Renderer || component is Animator, key + " is passive art: " + component.GetType().Name);
+                    Assert.IsTrue(component is Transform || component is Renderer || component is MeshFilter || component is Animator, key + " is passive art: " + component.GetType().Name);
                 Animator[] animators = prefab.GetComponentsInChildren<Animator>(true);
                 Assert.AreEqual(1, animators.Length, key + " has one animator");
                 Assert.IsFalse(animators[0].applyRootMotion, key + ": the Core owns the position");
@@ -64,8 +64,18 @@ namespace AreArpg.EditMode.Tests
                     foreach (Material material in renderer.sharedMaterials)
                     {
                         Assert.IsTrue(material != null && material.mainTexture != null, key + " has a textured material on " + renderer.name);
-                        Assert.IsTrue(AssetDatabase.GetAssetPath(material.mainTexture).StartsWith(Visuals), key + " wears the muted colour texture baked for the game");
+                        // The body wears the muted texture baked for the game; what it holds (a weapon) wears a private worn copy of its own material.
+                        if (renderer is SkinnedMeshRenderer)
+                            Assert.IsTrue(AssetDatabase.GetAssetPath(material.mainTexture).StartsWith(Visuals), key + " wears the muted colour texture baked for the game");
+                        else
+                            StringAssert.StartsWith("Assets/PrivateArt/BozoCharacters/Props/", AssetDatabase.GetAssetPath(material), key + ": " + renderer.name + " wears a worn copy");
                     }
+                foreach (MeshRenderer held in prefab.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    bool carried = false;
+                    for (Transform node = held.transform; node != null && !carried; node = node.parent) carried = node.name.StartsWith("FigureProp_");
+                    Assert.IsTrue(carried, key + ": a rigid mesh on an enemy is something it holds, hung on a bone: " + held.name);
+                }
                 int triangles = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true).Sum(skin => skin.sharedMesh.triangles.Length / 3);
                 Assert.LessOrEqual(triangles, 32000, key + " stays inside the figure budget of the tablet");
             }

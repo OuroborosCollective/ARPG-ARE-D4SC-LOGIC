@@ -66,6 +66,8 @@ namespace AreArpg.EditorTools
                 if (!CryptEnemyArtBuilder.TryBuild(id))
                     Save("EntryEnemy" + id, root => Actor(root, "Enemy" + id, "Enemy" + id, id == 2 ? 2.6f : 1.6f));
             }
+            // The Ember Warden (kind 3) has an entry figure only from the owner's model; without it the game keeps Enemy3.
+            CryptEnemyArtBuilder.TryBuild(3);
             EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
             AssetDatabase.SaveAssets();
             AuditInputs();

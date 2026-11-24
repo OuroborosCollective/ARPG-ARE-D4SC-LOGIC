@@ -10,10 +10,11 @@ namespace AreArpg.EditorTools
 {
     /// <summary>
     /// The crypt's enemy figures from the monster packs the owner bought on 2026-11-24: the ghoul (Core kind 0), the
-    /// goblin with sword and shield as the knight (kind 1) and the horned demon as the heavy crypt boss (kind 2).
+    /// goblin with sword and shield as the knight (kind 1) and the horned demon as the heavy crypt boss (kind 2); and
+    /// the owner's own model "Darkfire" as the Ember Warden at the end of the crypt (kind 3, "Glutwächter").
     /// Each figure gets a private, passive prefab EntryEnemy&lt;kind&gt; with its own controller: Idle, Move, Attack, Hit and
     /// Death. The colour textures are baked muted (dark, low saturation), because the packs are far brighter than the
-    /// game. Nothing of the packs is part of the repository; without a pack its kind keeps the earlier figure.
+    /// game. Nothing of the models is part of the repository; without its model a kind keeps the earlier figure.
     /// </summary>
     public static class CryptEnemyArtBuilder
     {
@@ -24,13 +25,17 @@ namespace AreArpg.EditorTools
         private const string StarterPack = Output + "Vendor/AnimationsStarterPack/";
         /// <summary>The demon ships with 224,729 triangles; this is the copy reduced in Blender (see the evidence file).</summary>
         private const string DemonMesh = "Assets/PrivateArt/EnemyPacks/DemonLow.fbx";
+        /// <summary>The owner's model with one file per take (made from his GLB in Blender, see the evidence file).</summary>
+        private const string Warden = "Assets/PrivateArt/EnemyPacks/Glutwaechter/Glutwaechter";
         private const string MixamoTake = "mixamo.com";
         private const int TextureSize = 1024;
 
         private sealed class Take
         {
             public readonly string Asset, Name; public readonly bool Human;
-            public Take(string asset, string name, bool human = false) { Asset = asset; Name = name; Human = human; }
+            /// <summary>The file holds this one take and is imported here as a humanoid clip (see Humanoid).</summary>
+            public readonly bool Import;
+            public Take(string asset, string name, bool human = false, bool import = false) { Asset = asset; Name = name; Human = human; Import = import; }
         }
 
         /// <summary>One material of a figure: which renderers wear it and how its colour texture is muted.</summary>
@@ -38,6 +43,8 @@ namespace AreArpg.EditorTools
         {
             public string Key, Renderers, Colour, Normal;
             public float Saturation = 1f, Gain = 1f; public Color Tint = Color.white;
+            /// <summary>Glow of the bright, saturated texels of the pack's colour texture (embers, runes); strength 0: none.</summary>
+            public Color Glow = Color.white; public float GlowStrength, GlowSaturation = .5f;
         }
 
         private sealed class Figure
@@ -50,6 +57,8 @@ namespace AreArpg.EditorTools
             public float BlowSeconds;
             public float MoveSpeed = 1f;
             public Skin[] Skins;
+            /// <summary>What the figure holds (a weapon in its hand): hung on a bone like the things human figures carry.</summary>
+            public BozoFigureRecipes.Prop[] Carried = new BozoFigureRecipes.Prop[0];
         }
 
         private static readonly Figure[] Figures =
@@ -82,11 +91,27 @@ namespace AreArpg.EditorTools
             {
                 // The pack has neither a flinch nor a death: both come from the licensed humanoid takes the hero already uses.
                 Kind = 2, Label = "Demon", Model = DemonMesh, Human = true, Height = 2.6f, BlowSeconds = 1f, MoveSpeed = 1.2f,
-                Idle = new Take(Demon + "evil@Idle (1).fbx", MixamoTake, true), Move = new Take(Demon + "evil@Walking.fbx", MixamoTake, true),
-                Attack = new Take(Demon + "evil@Standing Melee Attack Backhand.fbx", MixamoTake, true),
+                Idle = new Take(Demon + "evil@Idle (1).fbx", MixamoTake, true, true), Move = new Take(Demon + "evil@Walking.fbx", MixamoTake, true, true),
+                Attack = new Take(Demon + "evil@Standing Melee Attack Backhand.fbx", MixamoTake, true, true),
                 Hit = new Take(StarterPack + "Combat/GetHit.fbx", "GetHit", true), Death = new Take(StarterPack + "Combat/Death.fbx", "Death", true),
                 Skins = new[] { new Skin { Key = "", Renderers = "", Colour = Demon + "a_huge_evil_with_an_h_0304192645_texture.png",
                     Saturation = .8f, Tint = new Color(1f, .97f, .93f), Gain = 2.1f } }, // charcoal in the pack: a black shape in the dark crypt
+            },
+            new Figure
+            {
+                // The owner's model has no flinch: that comes from the licensed humanoid takes, as for the demon. Its hand
+                // is empty in the sword slash, so it holds one of the game's swords; its ember runes glow.
+                Kind = 3, Label = "Glutwaechter", Model = Warden + ".fbx", Human = true, Height = 3f, BlowSeconds = .62f,
+                Idle = new Take(Warden + "@Idle.fbx", "Idle", true, true), Move = new Take(Warden + "@Walk.fbx", "Walk", true, true),
+                Attack = new Take(Warden + "@Slash.fbx", "Slash", true, true),
+                Hit = new Take(StarterPack + "Combat/GetHit.fbx", "GetHit", true), Death = new Take(Warden + "@Dead.fbx", "Dead", true, true),
+                Skins = new[] { new Skin { Key = "", Renderers = "", Colour = Warden + "_Colour.png", Saturation = .9f, Gain = 1.7f,
+                    Glow = new Color(1f, .42f, .16f), GlowStrength = 2.4f, GlowSaturation = .55f } },
+                Carried = new[]
+                {
+                    new BozoFigureRecipes.Prop { name = "Sword", asset = Output + "Weapons/sword.demonic.prefab", bone = "RightHand",
+                        position = new[] { .69f, 1.50f, .02f }, rotation = new[] { 75f, 0f, 0f }, size = 1.9f, anchor = "bottom", tint = "#8a8580" },
+                },
             },
         };
 
@@ -98,6 +123,7 @@ namespace AreArpg.EditorTools
             Figure figure = Figures.FirstOrDefault(each => each.Kind == kind);
             if (figure == null) return false;
             var paths = new List<string> { figure.Model, figure.Idle.Asset, figure.Move.Asset, figure.Attack.Asset, figure.Hit.Asset, figure.Death.Asset };
+            paths.AddRange(figure.Carried.Select(prop => prop.asset));
             foreach (Skin skin in figure.Skins) { paths.Add(skin.Colour); if (skin.Normal != null) paths.Add(skin.Normal); }
             return paths.All(path => AssetDatabase.LoadMainAssetAtPath(path) != null);
         }
@@ -182,6 +208,9 @@ namespace AreArpg.EditorTools
                 if (animator == null) animator = art.AddComponent<Animator>();
                 animator.avatar = avatar; animator.runtimeAnimatorController = controller;
                 animator.applyRootMotion = false; animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+                // Only now, on the finished body in its rest pose: height and stand are the body's alone.
+                if (figure.Carried.Length > 0)
+                    FigureProps.Attach(new BozoFigureRecipes.Figure { id = key, props = figure.Carried }, root, animator);
             });
             Debug.Log("CRYPT_ENEMY " + key + " " + figure.Label + " height=" + height.ToString("0.00") + " triangles=" + triangles +
                 " clips=" + string.Join(",", new[] { idle, move, attack, hit, death }.Select(clip => clip.name + ":" + clip.length.ToString("0.00"))) +
@@ -200,7 +229,7 @@ namespace AreArpg.EditorTools
         /// <summary>Exactly one moving take of that name; humanoid takes are imported as such first.</summary>
         private static AnimationClip Resolve(Take take, bool loop)
         {
-            if (take.Human && take.Name == MixamoTake) Humanoid(take.Asset, take.Name, loop);
+            if (take.Import) Humanoid(take.Asset, take.Name, loop);
             AnimationClip[] clips = AssetDatabase.LoadAllAssetsAtPath(take.Asset).OfType<AnimationClip>()
                 .Where(clip => string.Equals(clip.name, take.Name, StringComparison.Ordinal)).ToArray();
             if (clips.Length != 1) throw new InvalidOperationException("Expected exactly one take '" + take.Name + "' in " + take.Asset);
@@ -324,6 +353,20 @@ namespace AreArpg.EditorTools
             material.SetTexture("_BumpMap", normal);
             if (normal != null) material.EnableKeyword("_NORMALMAP"); else material.DisableKeyword("_NORMALMAP");
             material.SetFloat("_Metallic", 0f); material.SetFloat("_Smoothness", .18f);
+            if (skin.GlowStrength > 0f)
+            {
+                // The glow is read from the pack's own colours, not from the muted copy: embers stay embers.
+                var source = AssetDatabase.LoadAssetAtPath<Texture2D>(skin.Colour);
+                material.SetTexture("_EmissionMap", FigureProps.GlowMask(source, skin.GlowSaturation, Output + key + "_Glow.png", TextureSize));
+                material.SetColor("_EmissionColor", skin.Glow.linear * skin.GlowStrength);
+                material.EnableKeyword("_EMISSION");
+                material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            }
+            else
+            {
+                material.SetTexture("_EmissionMap", null); material.SetColor("_EmissionColor", Color.black);
+                material.DisableKeyword("_EMISSION");
+            }
             EditorUtility.SetDirty(material);
             return material;
         }
