@@ -221,7 +221,17 @@ namespace AreArpg.PlayMode.Tests
             queue.Enqueue(0);
             TickOnce();
             animator.Update(.05f);
-            Assert.AreNotEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash, "Rejected out-of-range attacks must not animate");
+            if (!Game.CombatV2)
+                Assert.AreNotEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash, "Rejected out-of-range attacks must not animate");
+            else
+            {
+                // Combat v2 accepts a strike at the air: the Core runs that action, so the swing belongs to it. Let it end.
+                for (int tick = 0; tick < 40 && Game.ActionKind != CombatActionKind.None; tick++) TickOnce();
+                Assert.AreEqual(CombatActionKind.None, Game.ActionKind, "The strike at the air ends");
+                for (int i = 0; i < Game.Cooldowns.Length; i++) Game.Cooldowns[i] = 0;
+                animator.Update(2f); animator.Update(.2f);
+                Assert.AreNotEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash, "The swing at the air has played out");
+            }
             var target = Game.Monsters[0]; target.Xmm = Game.PlayerXmm + 1000; target.Zmm = Game.PlayerZmm; target.Health = 1000;
             queue.Enqueue(0);
             TickOnce();
