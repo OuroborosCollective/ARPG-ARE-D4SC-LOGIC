@@ -180,6 +180,9 @@
         {"slot": "Feet", "id": "Feet_VillagerBoots", "colors": ["#43342a", "#2e241c", "#7a6a4a", "#261f1a"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3, "gain": 0.62, "saturation": 0.8},
         {"slot": "HairFront", "id": "HairFront_TightCurls", "colors": ["#6b5236", "#8a6c48"]},
         {"slot": "HairBack", "id": "HairBack_ProperUndercut", "colors": ["#6b5236", "#7a5e3e", "#5a442c"]}
+      ],
+      "props": [
+        {"name": "Sack", "asset": "Assets/Resources/ARE/Borderland/SupplySack.prefab", "bone": "Chest", "position": [0.0, 1.3, -0.225], "rotation": [20, 0, 0], "size": 0.42, "anchor": "center", "tint": "#6e6250"}
       ]
     },
     {
@@ -198,6 +201,9 @@
         {"slot": "Feet", "id": "Feet_TravelSandal", "colors": ["#5a4632", "#8a7040", "#33291f"], "fabric": "AC_LeatherWorn", "fabricStrength": 0.4, "fabricScale": 3, "gain": 0.62, "saturation": 0.8},
         {"slot": "HairFront", "id": "HairFront_PureCut", "colors": ["#2a221c", "#40342a"]},
         {"slot": "HairBack", "id": "HairBack_DolphinTail", "colors": ["#2a221c", "#40342a", "#6e2f2a"]}
+      ],
+      "props": [
+        {"name": "Bucket", "asset": "Assets/PrivateArt/DesignAssets/RPGMedievalProps01/Medieval Props Pack 01/Universal Render Pipeline(URP)/Prefabs/Wooden_Bucket_1.prefab", "bone": "LeftHand", "position": [-0.458, 1.032, 0.123], "rotation": [-6.6, 1.1, -18.7], "size": 0.3, "anchor": "top", "tint": "#8a7a68"}
       ]
     },
     {
@@ -217,6 +223,9 @@
         {"slot": "Shoulders", "id": "Shoulders_HomelyShawl", "colors": ["#625a4b", "#7e745f", "#4a4338"], "fabric": "AC_LinenCoarse", "fabricStrength": 0.3, "fabricScale": 5, "gain": 0.62, "saturation": 0.8},
         {"slot": "LowerFace", "id": "LowerFace_WizzendBeard", "colors": ["#a09b92", "#bcb7ae"]},
         {"slot": "HairBack", "id": "HairBack_SchalorTail", "colors": ["#a09b92", "#bcb7ae", "#6a5a4a"]}
+      ],
+      "props": [
+        {"name": "Stick", "asset": "Assets/Resources/ARE/Visuals/Weapons/staff_newbie.4.prefab", "bone": "RightHand", "position": [0.509, 0.991, 0.062], "rotation": [-18.0, -7.3, 26.6], "size": 0.86, "anchor": "top", "tint": "#b8a48c"}
       ]
     },
     {
