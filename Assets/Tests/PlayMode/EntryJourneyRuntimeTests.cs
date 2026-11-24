@@ -229,7 +229,8 @@ namespace AreArpg.PlayMode.Tests
                 for (int tick = 0; tick < 40 && Game.ActionKind != CombatActionKind.None; tick++) TickOnce();
                 Assert.AreEqual(CombatActionKind.None, Game.ActionKind, "The strike at the air ends");
                 for (int i = 0; i < Game.Cooldowns.Length; i++) Game.Cooldowns[i] = 0;
-                animator.Update(2f); animator.Update(.2f);
+                // Enter the swing first, then let it pass its exit time inside one step (as at the end of this test).
+                animator.Update(0f); animator.Update(.15f); animator.Update(2f); animator.Update(.2f);
                 Assert.AreNotEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash, "The swing at the air has played out");
             }
             var target = Game.Monsters[0]; target.Xmm = Game.PlayerXmm + 1000; target.Zmm = Game.PlayerZmm; target.Health = 1000;
