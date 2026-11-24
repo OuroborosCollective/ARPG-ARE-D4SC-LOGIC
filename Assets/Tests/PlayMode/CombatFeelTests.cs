@@ -219,11 +219,13 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
             for (int i = 0; i < Game.Cooldowns.Length; i++) Game.Cooldowns[i] = 0;
             typeof(ArenaRuntime).GetMethod("RouteHudControl", Flags).Invoke(_runtime, new object[] { ArenaHudControl.Skill0 });
-            float start = Time.time; bool checkedFrozen = false;
-            while (Time.time - start < .6f)
+            // The check runs a moment after the kill, when the hit-stop (0.06 s) is over, whatever the frame rate is.
+            float start = Time.time, deadAt = -1f; bool checkedFrozen = false;
+            while (Time.time - start < 1.4f)
             {
                 yield return null;
-                if (target.IsDead && Time.time - start > .25f && dying.gameObject.activeSelf && !checkedFrozen)
+                if (target.IsDead && deadAt < 0f) deadAt = Time.time;
+                if (target.IsDead && Time.time - deadAt > .2f && dying.gameObject.activeSelf && !checkedFrozen)
                 {
                     checkedFrozen = true;
                     // A toppling figure stays frozen; a figure with a death clip must keep playing it once the hit-stop ends.

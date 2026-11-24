@@ -56,12 +56,12 @@ namespace AreArpg.EditorTools
         {
             new Figure
             {
-                Kind = 0, Label = "Ghoul", Model = Ghoul + "FBX/Ghoul.fbx", Height = 2.05f, BlowSeconds = .47f,
+                Kind = 0, Label = "Ghoul", Model = Ghoul + "FBX/Ghoul.fbx", Height = 2.25f, BlowSeconds = .47f,
                 Idle = new Take(Ghoul + "Animation/Idle.fbx", "Idle"), Move = new Take(Ghoul + "Animation/Run.fbx", "Run"),
                 Attack = new Take(Ghoul + "Animation/Attack.fbx", "Attack"), Hit = new Take(Ghoul + "Animation/Hit.fbx", "Hit"),
                 Death = new Take(Ghoul + "Animation/Death2.fbx", "Death"),
                 Skins = new[] { new Skin { Key = "", Renderers = "", Colour = Ghoul + "Texture/BaseBlue.tga",
-                    Normal = Ghoul + "Texture/Body_low_Default OBJ_Normal.png", Saturation = .30f, Tint = new Color(.86f, .90f, .84f), Gain = .80f } },
+                    Normal = Ghoul + "Texture/Body_low_Default OBJ_Normal.png", Saturation = .26f, Tint = new Color(.88f, .90f, .86f), Gain = .82f } },
             },
             new Figure
             {
@@ -73,9 +73,9 @@ namespace AreArpg.EditorTools
                 Skins = new[]
                 {
                     new Skin { Key = "_Body", Renderers = "body", Colour = Goblin + "Textures/body/body_baseColor.png",
-                        Normal = Goblin + "Textures/body/low2_body_Normal.png", Saturation = .45f, Tint = new Color(.80f, .84f, .72f), Gain = .70f },
+                        Normal = Goblin + "Textures/body/low2_body_Normal.png", Saturation = .34f, Tint = new Color(.80f, .83f, .74f), Gain = .66f },
                     new Skin { Key = "_Gear", Renderers = "", Colour = Goblin + "Textures/cloth/cloth_Albedo.png",
-                        Normal = Goblin + "Textures/cloth/low2_cloth_Normal.png", Saturation = .50f, Tint = new Color(.85f, .82f, .78f), Gain = .65f },
+                        Normal = Goblin + "Textures/cloth/low2_cloth_Normal.png", Saturation = .40f, Tint = new Color(.85f, .82f, .78f), Gain = .62f },
                 },
             },
             new Figure
@@ -85,7 +85,8 @@ namespace AreArpg.EditorTools
                 Idle = new Take(Demon + "evil@Idle (1).fbx", MixamoTake, true), Move = new Take(Demon + "evil@Walking.fbx", MixamoTake, true),
                 Attack = new Take(Demon + "evil@Standing Melee Attack Backhand.fbx", MixamoTake, true),
                 Hit = new Take(StarterPack + "Combat/GetHit.fbx", "GetHit", true), Death = new Take(StarterPack + "Combat/Death.fbx", "Death", true),
-                Skins = new[] { new Skin { Key = "", Renderers = "", Colour = Demon + "a_huge_evil_with_an_h_0304192645_texture.png", Gain = 1.2f } },
+                Skins = new[] { new Skin { Key = "", Renderers = "", Colour = Demon + "a_huge_evil_with_an_h_0304192645_texture.png",
+                    Saturation = .8f, Tint = new Color(1f, .97f, .93f), Gain = 2.1f } }, // charcoal in the pack: a black shape in the dark crypt
             },
         };
 
