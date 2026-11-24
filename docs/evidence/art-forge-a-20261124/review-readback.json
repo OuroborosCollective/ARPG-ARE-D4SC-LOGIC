@@ -1,0 +1,317 @@
+{
+  "schema": "ashen.art-forge.review-evidence-index.v1",
+  "kind": "Derived index of preserved execution evidence; not a generated runtime receipt",
+  "issue": 132,
+  "pullRequest": 137,
+  "branch": "feat/ashen-art-forge-a-readonly",
+  "sourceCommit": "5b4602f466352f57de4611eaa907530203299451",
+  "sourceTree": "004ff051687fc1cc004afff67184d57c62619d1d",
+  "revisionMapping": [
+    {
+      "stage": "red",
+      "localCommit": "d4ccaf6118a8c16f914b6ae962432d5f8917df8c",
+      "githubCommit": "a90aa9ad052ad0caefe9d5df33f71efd0a233e22",
+      "tree": "997c09f95b139e0aceb302ffc6cd4e39d422edf9"
+    },
+    {
+      "stage": "green",
+      "localCommit": "5b4602f466352f57de4611eaa907530203299451",
+      "githubCommit": "0488e5c4c0406bd041a014a6563288a257fe8d0a",
+      "tree": "004ff051687fc1cc004afff67184d57c62619d1d"
+    }
+  ],
+  "nativeGreen": {
+    "jobId": "20261124T162742Z-9018f545595a",
+    "total": 342,
+    "passed": 284,
+    "failed": 6,
+    "skipped": 52,
+    "artForgePassed": 60,
+    "artForgeFailed": 0,
+    "artForgeSkipped": 0,
+    "unityExitCode": 2,
+    "directorStatus": "failed",
+    "directorError": "TRACKED_WORKTREE_DIRTY",
+    "sameBaselineFailures": true,
+    "sameBaselineSkips": true,
+    "commonBaselineResultsIdentical": true,
+    "redFailuresNowPassed": {
+      "AshenCrypt.ArtForge.Tests.ArtForgeAsyncReadTests.ANewReadStartsANewVerificationInsteadOfReusingCompletedMetadata": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeAsyncReadTests.PendingReadsHaveABoundedCapacityAndReleaseAfterConsumption": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeAsyncReadTests.ScanTicketCannotBeReboundToAnotherRouteOrQuery": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeAsyncReadTests.StateReadYieldsToEditorUpdatesBeforeDeliveringRealSnapshot": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeReaderBudgetTests.GrowingArtifactCannotConsumeBytesOutsideItsReservedBudget": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeReaderBudgetTests.ReceiptGrowthCannotIncreaseTheReservedAllocationOrReadBudget": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeReaderBudgetTests.ReceiptShrinkAfterLengthObservationIsRejected": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeReadOnlyTests.SameLengthHashDriftRejectsTheWholeReceiptAndChangesRevision": "Passed"
+    },
+    "additionalCancellationCases": {
+      "AshenCrypt.ArtForge.Tests.ArtForgeReaderBudgetTests.CancellationAfterOneRealChunkStopsFurtherReceiptOrArtifactReads(False)": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeReaderBudgetTests.CancellationAfterOneRealChunkStopsFurtherReceiptOrArtifactReads(True)": "Passed",
+      "AshenCrypt.ArtForge.Tests.ArtForgeReaderBudgetTests.CancelledReaderThrowsInsteadOfReturningADiagnosticSnapshot": "Passed"
+    }
+  },
+  "nativeRed": {
+    "sourceCommit": "d4ccaf6118a8c16f914b6ae962432d5f8917df8c",
+    "jobId": "20261124T161321Z-635878a4be06",
+    "total": 339,
+    "passed": 273,
+    "failed": 14,
+    "skipped": 52,
+    "artForgePassed": 49,
+    "artForgeFailed": 8,
+    "artForgeSkipped": 0,
+    "unityExitCode": 2,
+    "directorStatus": "failed",
+    "directorError": "TRACKED_WORKTREE_DIRTY"
+  },
+  "baselineComparison": {
+    "commonCases": 282,
+    "allResultsAndFailureSkipMessagesIdentical": true,
+    "removedTests": 0
+  },
+  "core": {
+    "sourceCommit": "5b4602f466352f57de4611eaa907530203299451",
+    "sourceTree": "004ff051687fc1cc004afff67184d57c62619d1d",
+    "jobId": "20261124T163220Z-b29c8f2da8e5",
+    "directorStatus": "passed",
+    "exitCode": 0,
+    "boundary": "domain",
+    "fullLogBytes": 1102062,
+    "fullLogSha256": "f58810f94f987a7c03f23580b164d664173ee789877837ede87d43702a23bb8d",
+    "reportedAssertions": 23143
+  },
+  "pureCSharp": {
+    "passed": 35,
+    "failed": 0,
+    "exitCode": 0,
+    "outputSha256": "be4c179218a89c5103ed35015f13fbd0a5fc385f8577f2bc52de062d5bb7bddd",
+    "boundary": "pure C# behavioral runner; not Unity runtime or Director suite"
+  },
+  "preflight": {
+    "passed": 62,
+    "failed": 0,
+    "exitCode": 0,
+    "log": {
+      "path": "local-tests/preflight-green.log",
+      "bytes": 10527,
+      "sha256": "0567135706e2a6f44ee5996a108512501ba22e138f6eb3e6ed0a42d8e69c16d6"
+    },
+    "previousFailedLogsPreserved": true
+  },
+  "browser": {
+    "runtimeEvidence": false,
+    "htmlSha256": "ffa8c1c6fbb51e51af3f8767af373b2aa6995e8a61d4f8a215787fe9127199af",
+    "viewports": [
+      [
+        1007,
+        601
+      ],
+      [
+        601,
+        1007
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "finalSyntheticCases": {
+      "passed": 28,
+      "failed": 0,
+      "protocol": 13,
+      "racesWithPending": 12,
+      "limits": 3
+    },
+    "capturedJsonReplayGroups": {
+      "passed": 27,
+      "failed": 0,
+      "groupsPerViewport": 9,
+      "capturedStateAndGraphBytesUnmodified": true,
+      "assetEnvelope": "synthetic envelope around unchanged captured graph node",
+      "pendingTransport": "synthetic"
+    },
+    "priorDirectRaceGreenNotAddedToFinalCount": 12,
+    "artifacts": [
+      {
+        "path": "reports/poll-green/scan-polling.json",
+        "bytes": 24948,
+        "sha256": "8fdeb5ecc92c76b4e0a29e17410f066060fd0a35197db427a84c3591b84708bf"
+      },
+      {
+        "path": "reports/race-scanning-green/revision-races.json",
+        "bytes": 41253,
+        "sha256": "eff7e9df252ea6f0c412c8bbff3b6fca14e3e34fd4a7947bb02708a3202d95ea"
+      },
+      {
+        "path": "reports/poll-limit-green/scan-polling.json",
+        "bytes": 32440,
+        "sha256": "6a2f8eebf8052339005f7ec5f5c5bd97681de9c146e1f19235bee34e168769b4"
+      },
+      {
+        "path": "reports/time-limit-green/scan-polling.json",
+        "bytes": 9670,
+        "sha256": "b23409b567f70fd6d30275ff1375f700eba5f1c87833b55034d2dae6d1c6cfd0"
+      },
+      {
+        "path": "reports/network-timeout-green/scan-polling.json",
+        "bytes": 1808,
+        "sha256": "84917c2099e6e1b5f5f25a0512cee9000b0aa7f31b24f2dd55ce5f0288a2d86c"
+      },
+      {
+        "path": "reports/captured-unity-polling/browser-results.json",
+        "bytes": 53962,
+        "sha256": "ad90b5097811729c4ad5184297c29a31403c5f2ef14c2c949b8b580edd81de9a"
+      },
+      {
+        "path": "reports/captured-unity-polling/capture-manifest.json",
+        "bytes": 2042,
+        "sha256": "56e890eb8fb338a95bed23b58ad11a50ffe06222ffbb0ee48165c6922d4cfbf0"
+      }
+    ]
+  },
+  "snapshot": {
+    "path": "green-unity-readonly-snapshot.json",
+    "sourceCommit": "5b4602f466352f57de4611eaa907530203299451",
+    "graphRevision": "8b8eef5ce7d2703fe68c457fbd6b6dacbdef2170c7f020014147604ee098e9f8",
+    "nodeCount": 163,
+    "graphNodeCount": 163,
+    "nodeKinds": {
+      "source": 50,
+      "mesh": 75,
+      "material": 38
+    },
+    "diagnosticsCount": 38,
+    "stateKeys": [
+      "ok",
+      "readOnly",
+      "schema",
+      "projectSha",
+      "graphRevision",
+      "nodeCount",
+      "diagnostics"
+    ],
+    "graphKeys": [
+      "ok",
+      "readOnly",
+      "schema",
+      "projectSha",
+      "graphRevision",
+      "nodes",
+      "diagnostics"
+    ]
+  },
+  "observedPerformance": {
+    "loggedStartCumulativeMaximumMs": [
+      5.436,
+      18.888,
+      0.074,
+      0.262,
+      0.262,
+      0.262,
+      0.262,
+      0.262,
+      0.262,
+      0.262,
+      41.889,
+      0.086,
+      0.082
+    ],
+    "largestLoggedStartCumulativeMaximumMs": 41.889,
+    "stateReadHeartbeatEvidence": [
+      {
+        "sourceCommit": "5b4602f466352f57de4611eaa907530203299451",
+        "nodes": 163,
+        "editorUpdates": 10202,
+        "maximumDispatchMsForThisTest": 8.409
+      }
+    ],
+    "interpretation": "Start dispatchMs is the cumulative maximum so far within each test; values are observed samples, not a tablet latency guarantee or an asserted universal limit."
+  },
+  "postrun": {
+    "observedAtUtc": "2026-11-24T16:34:10.981438+00:00",
+    "trackedStatus": "",
+    "settingsMatchCommit": true,
+    "untrackedSettingsPreserved": 18,
+    "ownUnityPids": [],
+    "ownUnityLockExists": false,
+    "directorLockHeld": false,
+    "activeEditorPid1728385Present": true,
+    "activeMetadataComparison": {
+      "baselineObservedAtUtc": "2026-11-24T16:26:39.918209+00:00",
+      "activeHeadSame": true,
+      "activeDiffSame": true,
+      "activeStatusSame": false,
+      "interpretation": "Only observed metadata compared; no cause assigned to parallel changes."
+    }
+  },
+  "nativeArtifacts": [
+    {
+      "path": "review-red/red-tests.xml",
+      "bytes": 338927,
+      "sha256": "dd2d434f3e5ed4de9a8397c413d37daffd060888a6d766927645191a9bd54c31"
+    },
+    {
+      "path": "review-red/red-receipt.json",
+      "bytes": 3269,
+      "sha256": "f1bb801641557a140216c6a2cf277e9acc10c6e51175ed1a7a497706f07c74e7"
+    },
+    {
+      "path": "review-red/red-summary.json",
+      "bytes": 32046,
+      "sha256": "47fb682f398bc05128f91217da23dd3205d59f96dda7a2392c08b62aa7a49ec8"
+    },
+    {
+      "path": "review-green/green-tests.xml",
+      "bytes": 313792,
+      "sha256": "f5c10f9135dc0d6a08d6e5e8b1788935060564d7f028838741571867110de9f6"
+    },
+    {
+      "path": "review-green/green-receipt.json",
+      "bytes": 3268,
+      "sha256": "9b4193cf2ff27bc77559d366d438f84368fd8ce2e07c9caa20c7161ab18a183f"
+    },
+    {
+      "path": "review-green/green-unity-readonly-snapshot.json",
+      "bytes": 141828,
+      "sha256": "4fe5aa8fbf85fbab203f26dcf3dd7b4b864257aa04bc1a0d9f98bfc2220ab6ae"
+    },
+    {
+      "path": "review-green/green-complete-summary.json",
+      "bytes": 6611,
+      "sha256": "3b210ba555e640f6f2c2f68ec1ffd6ac19147eeaaeefd0005216872fb6362500"
+    },
+    {
+      "path": "review-green/green-complete-manifest.json",
+      "bytes": 3565,
+      "sha256": "3125205577f87f2f0d0438ac73cace488bd7e9165f36a8b6bd8e3b3e7de4c55e"
+    },
+    {
+      "path": "review-green/green-core-output.log",
+      "bytes": 1102062,
+      "sha256": "f58810f94f987a7c03f23580b164d664173ee789877837ede87d43702a23bb8d"
+    },
+    {
+      "path": "review-green/green-artforge-verification.log",
+      "bytes": 1426,
+      "sha256": "be4c179218a89c5103ed35015f13fbd0a5fc385f8577f2bc52de062d5bb7bddd"
+    },
+    {
+      "path": "review-green/green-postrun-readback.json",
+      "bytes": 3542,
+      "sha256": "ceb47dc65588c00b30afd1251024c71e0c9c302e3ff43003ce19eaf8bc02e0f7"
+    }
+  ],
+  "limitations": [
+    "Entire native suite remains failed because six baseline private-asset prerequisites fail; 52 tests remain skipped.",
+    "Thirty-eight READ_BUDGET_EXCEEDED diagnostics mean the snapshot is a bounded inventory.",
+    "Timing observations are VPS EditMode measurements, not Samsung Galaxy Tab A9 device or PlayMode evidence.",
+    "Native Director dirty-worktree failure remains preserved; only own generated ProjectSettings was restored after terminal editor exit.",
+    "Budget and cancellation cases use explicit controlled stream test seams with real file bytes.",
+    "Browser execution and recorded-JSON replay do not prove live HTTP, token authentication, physical devices, PlayMode or an APK.",
+    "Backend 30-second cancellation, 60-second expiry and domain-reload cancellation were not separately timed in native tests.",
+    "Unity Studio remains a proposal, not an installed or activated provider.",
+    "This documentation follows the tested source commit; no native execution at the later documentation commit is claimed.",
+    "GitHub CI and postpublication reviews are recorded separately after the feature branch update."
+  ]
+}
