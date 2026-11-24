@@ -20,6 +20,7 @@ namespace AreArpg.UnityClient
         private const float LegacyGuardSeconds = .6f, SlowestClip = .6f, FastestClip = 2.2f, FlinchPauseSeconds = .35f;
 
         private readonly Dictionary<Animator, HashSet<int>> _heroParameters = new Dictionary<Animator, HashSet<int>>();
+        private Animator[] _clipAnimators;
         private ulong _clipSequence;
         private int _clipHealth = int.MinValue;
         private bool _clipGuarding, _clipDead;
@@ -50,6 +51,13 @@ namespace AreArpg.UnityClient
         private void UpdateHeroClips()
         {
             if (!_entryProfile || _hero == null || _heroMeleeAnimations.Length == 0) return;
+            if (!ReferenceEquals(_clipAnimators, _heroMeleeAnimations))
+            {
+                // A rebuilt hero starts standing, with his guard down: forget what the previous figure was shown doing.
+                _clipAnimators = _heroMeleeAnimations;
+                _heroParameters.Clear();
+                _clipGuarding = false; _clipDead = false; _clipHealth = int.MinValue;
+            }
             if (_game.CombatV2 && _game.ActionSequence != _clipSequence)
             {
                 _clipSequence = _game.ActionSequence;
