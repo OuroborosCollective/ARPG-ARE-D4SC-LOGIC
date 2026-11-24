@@ -73,7 +73,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(1, Game.Progression.EntryAct);
             yield return StoreFrame(output, "krypta", "Bau_b0202_Brazier", new Vector3(2.35f, 1.4f, -3.3f), .42f);
             ArrangeCryptKill();
-            for (int k = 0; k < 3; k++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             yield return StoreFrame(output, "aschengrenze", "Bau_b0202_BloodcapBank", new Vector3(-2.02f, 1.12f, -3.15f), .40f);
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;

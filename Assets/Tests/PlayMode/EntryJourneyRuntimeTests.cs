@@ -134,7 +134,7 @@ namespace AreArpg.PlayMode.Tests
             float chosenCameraDistance = cameraRig.Distance;
             // Test-only arrangement; each kill/drop/pickup still uses the actual Core implementation.
             Assert.AreEqual(3, ArrangeCryptKill().Kills);
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             Game.SetMoveInput(0, 10000);
             for (int tick = 0; tick < 50 && !Game.AtWorldPassage; tick++) Game.Step();
             Assert.IsTrue(Game.AtWorldPassage);
@@ -152,7 +152,10 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(3, Game.Npcs.Count);
             Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var loaded));
             Assert.AreEqual(2, loaded.EntryAct);
-            Assert.AreEqual(3, loaded.Items.Count);
+            // Loot revision 2: the knight who carries the field pauldron always drops; the first three bags hold rations.
+            Assert.GreaterOrEqual(loaded.Items.Count, 1);
+            Assert.AreEqual(Game.Progression.Items.Count, loaded.Items.Count);
+            Assert.GreaterOrEqual((int)loaded.Social.Provisions, 3, "The first three bags hold the rations Mara asks for");
             yield return null;
             Assert.IsNotNull(Find("Aschengrenze_Supply_Hall"));
             Assert.IsNotNull(Find(AschengrenzeArt.BackdropLabel));
@@ -197,7 +200,7 @@ namespace AreArpg.PlayMode.Tests
             typeof(ArenaRuntime).GetMethod("Restart", Flags).Invoke(_runtime, null);
             Assert.AreEqual(2, Game.Progression.EntryAct);
             Assert.AreEqual(0, Game.Monsters.Count);
-            Assert.AreEqual(3, Game.Progression.Items.Count);
+            Assert.GreaterOrEqual(Game.Progression.Items.Count, 1);
             Assert.AreEqual(stock - 1, Game.Progression.Social.CampProvisions);
             Assert.AreEqual(System.Numerics.BigInteger.One, Game.Progression.Social.GetMemory(1).HostileActions);
         }
@@ -358,14 +361,37 @@ namespace AreArpg.PlayMode.Tests
             string after = "ruin '" + ruin.Message + "' kills " + ruin.Kills + ", player (" + Game.PlayerXmm + ", " + Game.PlayerZmm +
                 "), loot " + Game.GroundLoot.Count;
             foreach (var l in Game.GroundLoot) after += " (" + l.Xmm + "," + l.Zmm + ")";
-            Assert.AreEqual(3, Game.GroundLoot.Count, "crypt fixture: " + before + " -> " + after);
+            after += ", bags " + Game.GroundSupplies.Count;
+            // Loot revision 2: a weapon is no longer certain, but everybody fell, and a character's first three kills
+            // each leave a supply bag. A world on revision 1 still drops one weapon per kill.
+            Assert.IsTrue(Game.Monsters.TrueForAll(m => m.IsDead), "crypt fixture: " + before + " -> " + after);
+            if (Game.LootRevision < 2) Assert.AreEqual(3, Game.GroundLoot.Count, "crypt fixture: " + before + " -> " + after);
+            else if (Game.Progression.LifetimeKills <= 3) Assert.AreEqual((int)Game.Progression.LifetimeKills, Game.GroundSupplies.Count, "crypt fixture: " + before + " -> " + after);
             foreach (var l in Game.GroundLoot)
             {
                 long dx = l.Xmm - Game.PlayerXmm, dz = l.Zmm - Game.PlayerZmm;
                 Assert.LessOrEqual(dx * dx + dz * dz, ArenaSimulation.PickupRadiusMm * ArenaSimulation.PickupRadiusMm,
                     "crypt fixture drop out of reach: " + before + " -> " + after);
             }
+            foreach (var bag in Game.GroundSupplies)
+            {
+                long dx = bag.Xmm - Game.PlayerXmm, dz = bag.Zmm - Game.PlayerZmm;
+                Assert.LessOrEqual(dx * dx + dz * dz, ArenaSimulation.PickupRadiusMm * ArenaSimulation.PickupRadiusMm,
+                    "crypt fixture bag out of reach: " + before + " -> " + after);
+            }
             return ruin;
+        }
+
+        /// <summary>
+        /// Take everything the crypt kill left on the ground, as a player does before the north arch opens: the weapons
+        /// that fell and the supply bags (loot revision 2). Something must lie there, and nothing may stay.
+        /// </summary>
+        private void CollectCryptLoot()
+        {
+            int lying = Game.GroundLoot.Count + Game.GroundSupplies.Count;
+            Assert.GreaterOrEqual(lying, 1, "the crypt kill leaves something to take");
+            for (int taken = 0; taken < lying; taken++) Assert.IsTrue(Game.TryCollectLoot(), "crypt loot within reach");
+            Assert.IsFalse(Game.LootOnGround, "nothing stays on the ground");
         }
 
         /// <summary>Exercise the real input queue on a scheduled tick without wall-clock waiting.</summary>
@@ -459,7 +485,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled = false;
             ArrangeCryptKill();
-            for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0);
             ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
@@ -738,7 +764,7 @@ namespace AreArpg.PlayMode.Tests
         public IEnumerator HunterBearRescuePersistsAndProjectsReviewedAnimations()
         {
             _runtime.enabled = false;
-            ArrangeCryptKill(); for (int i = 0; i < 3; i++) Assert.IsTrue(Game.TryCollectLoot());
+            ArrangeCryptKill(); CollectCryptLoot();
             MoveStory(0, 24000); TravelStory();
             var ilyan = Game.Npcs.Find(n => n.Id == 0); ilyan.Xmm = Game.PlayerXmm + 1000; ilyan.Zmm = Game.PlayerZmm;
             yield return StoryAction(HungerAction.HearIlyan);

@@ -17,7 +17,7 @@ namespace AreArpg.PlayMode.Tests
             var text=Resources.Load<AshenFadenwerkText>(AshenFadenwerkText.ResourceName);
             Assert.IsNotNull(text);Assert.IsTrue(text.Valid);
             Assert.AreEqual(3, ArrangeCryptKill().Kills);
-            for(int i=0;i<3;i++)Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0,24000);TravelStory();yield return null;
             var pending=typeof(ArenaRuntime).GetField("_pendingHungerAction",Flags);
             pending.SetValue(_runtime,(int)HungerAction.HearIlyan);TickOnce();

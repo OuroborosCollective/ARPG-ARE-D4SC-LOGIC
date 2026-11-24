@@ -72,6 +72,7 @@ namespace AreArpg.PlayMode.Tests
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();yield return Capture("woodland-combat-path.png");yield return DungeonOverview("woodland-clearings-overview.png");
             WoodlandWalk(-36000,0);
             while(Game.GroundLoot.Count>0){var drop=Game.GroundLoot[0];WoodlandWalk(drop.Xmm,drop.Zmm);Game.TryCollectLoot();}
+                while(Game.GroundSupplies.Count>0){var bag=Game.GroundSupplies[0];WoodlandWalk(bag.Xmm,bag.Zmm);Game.TryCollectLoot();} // loot revision 2: bags too
             WoodlandWalk(-36000,0);ulong seed=Game.Progression.Woodland.Seed;TravelStory();yield return null;
             Assert.AreEqual(9,Game.Progression.EntryAct);MoveStory(0,5000);
             yield return StoryAction(HungerAction.InspectCubs);yield return StoryAction(HungerAction.SpareCubs);

@@ -332,7 +332,11 @@ namespace AreArpg.UnityClient
             return baseName;
         }
 
-        public static string RarityName(ItemRarity rarity) { return rarity == ItemRarity.Rare ? "Selten" : "Magisch"; }
+        /// <summary>The four tiers of loot revision 2; revision 1 only knows the middle two.</summary>
+        public static string RarityName(ItemRarity rarity)
+        {
+            return rarity == ItemRarity.Legendary ? "Legendär" : rarity == ItemRarity.Rare ? "Selten" : rarity == ItemRarity.Magic ? "Magisch" : "Gewöhnlich";
+        }
 
         private void BuildInventoryTab(RectTransform body, Vector2 size)
         {

@@ -160,6 +160,13 @@ namespace AreArpg.Core
 
         internal void ProvisionFromLoot() { Provisions++; }
 
+        /// <summary>The content of a supply bag (loot revision 2) goes to the character.</summary>
+        internal void TakeSupplies(int coins, int rations)
+        {
+            if (coins < 0 || rations < 0) throw new ArgumentOutOfRangeException();
+            Coins += coins; Provisions += rations;
+        }
+
         /// <summary>Hand over rations (Orsel's course): all or nothing.</summary>
         internal bool SpendProvisions(int count)
         {

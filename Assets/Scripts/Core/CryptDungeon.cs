@@ -42,7 +42,7 @@ namespace AreArpg.Core
 
         private ArenaSimulation TraverseDungeon(bool backwards)
         {
-            if(GameOver || GroundLoot.Count!=0 || (!backwards && !DungeonForwardOpen)) return null;
+            if(GameOver || LootOnGround || (!backwards && !DungeonForwardOpen)) return null;
             if(!CharacterProgression.TryLoad(Progression.SaveString(),_journeyMaps,out var p)) return null;
             int depth=p.Dungeon.Depth+(backwards?-1:1);
             if(depth==0) { p.TravelHunger(5,true); p.Dungeon.NeedsNewRun=true; }
@@ -68,7 +68,7 @@ namespace AreArpg.Core
                 if(d.Depth==3) return !Progression.Rattler.Creature.IsDead ? "Ebene III: Erkunde die Kammern und besiege den MaulwurfRattler im Nordsaal." :
                     !Progression.Rattler.BrandExamined ? RattlerObjective : "Der Rattler ist besiegt. Sichere deine Beute. Ein neuer Run beginnt nach dem Rueckzug in den Speicher und erneutem Abstieg.";
                 if(!d.Current.Cleared) return "Ebene "+d.Depth+"/3: Erkunde die Seitenkammern und besiege die Waechter. Halte nach Truhen mit optionaler Beute Ausschau.";
-                if(GroundLoot.Count>0) return "Sichere die gefallene Beute, bevor du die Ebene verlaesst.";
+                if(LootOnGround) return "Sichere die gefallene Beute, bevor du die Ebene verlaesst.";
                 if(d.Depth==2 && !Progression.Rattler.Active) return "Untersuche den frischen Verband im Nordsaal und oeffne den Riegel zur dritten Ebene.";
                 return "Die Waechter sind besiegt. Der Abstieg im Norden fuehrt tiefer; im Sueden liegt dein Rueckweg.";
             }

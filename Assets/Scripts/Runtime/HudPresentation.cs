@@ -501,6 +501,11 @@ namespace AreArpg.UnityClient
                 long dx = loot.Xmm - _game.PlayerXmm, dz = loot.Zmm - _game.PlayerZmm;
                 if (dx * dx + dz * dz <= 2500L * 2500L) { lootNear = true; break; }
             }
+            foreach (var bag in _game.GroundSupplies)
+            {
+                long dx = bag.Xmm - _game.PlayerXmm, dz = bag.Zmm - _game.PlayerZmm;
+                if (dx * dx + dz * dz <= 2500L * 2500L) { lootNear = true; break; }
+            }
             var pg = _hudPickupGlow.color; pg.a = lootNear ? 0.45f + 0.25f * Mathf.Sin(Time.unscaledTime * 6f) : 0f; _hudPickupGlow.color = pg;
 
             Vector2 origin = _movementTouch.IsCaptured ? _movementTouch.Origin : l.MoveRect.center;
@@ -539,6 +544,8 @@ namespace AreArpg.UnityClient
                 PlaceDot(ref used, n.Xmm, n.Zmm, new Color(1f, 0.82f, 0.35f), 10f, PerMetre, Radius);
             foreach (var loot in _game.GroundLoot)
                 PlaceDot(ref used, loot.Xmm, loot.Zmm, new Color(1f, 0.95f, 0.55f), 8f, PerMetre, Radius);
+            foreach (var bag in _game.GroundSupplies)
+                PlaceDot(ref used, bag.Xmm, bag.Zmm, new Color(1f, 0.95f, 0.55f), 6f, PerMetre, Radius);
             if (_worldPassage != null)
                 PlaceDot(ref used, (long)(_worldPassage.position.x*1000), (long)(_worldPassage.position.z*1000), new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
             if (_returnPassage != null)

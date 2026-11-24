@@ -118,7 +118,7 @@ namespace AreArpg.PlayMode.Tests
         {
             _runtime.enabled=false;
             Assert.AreEqual(3, ArrangeCryptKill().Kills);
-            for(int i=0;i<3;i++)Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0,24000);TravelStory();yield return null;
             Assert.AreEqual(2,Game.Progression.EntryAct);
             var p=Game.Progression;
@@ -149,7 +149,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNotNull(Game.Progression.Social.Forge,"Shipped runtime must enable the checked NPC contract");
             // The encounter fixture clears the established entry and uses its actual village transition.
             Assert.AreEqual(3, ArrangeCryptKill().Kills);
-            for(int i=0;i<3;i++)Assert.IsTrue(Game.TryCollectLoot());
+            CollectCryptLoot();
             MoveStory(0,24000);TravelStory();yield return null;
             Assert.AreEqual(2,Game.Progression.EntryAct);
             // Arrange contact only. Input, transaction, memory, animation and PlayerPrefs are production paths.
@@ -167,7 +167,7 @@ namespace AreArpg.PlayMode.Tests
             string controller=mind.Controller.Hash;ulong episode=mind.Known[0].Event.Id;
             ulong hash=Game.ComputeWorldHash();
             ulong seed=(ulong)typeof(ArenaRuntime).GetField("DemoSeed",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic).GetRawConstantValue();
-            var resumed=new ArenaSimulation(seed,loaded,loaded.UnlockedCryptDepth,LootCatalog.Version1);
+            var resumed=new ArenaSimulation(seed,loaded,loaded.UnlockedCryptDepth,LootCatalog.Version2); // the catalog the game runs on
             Assert.AreEqual(hash,resumed.ComputeWorldHash());
             typeof(ArenaRuntime).GetMethod("InstallNewRun",Flags).Invoke(_runtime,new object[]{resumed,"Ilyan erinnert sich"});
             for(int tick=0;tick<12;tick++)Game.Step();

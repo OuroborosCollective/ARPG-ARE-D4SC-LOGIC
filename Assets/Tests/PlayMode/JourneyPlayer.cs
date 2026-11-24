@@ -246,26 +246,35 @@ namespace AreArpg.PlayMode.Tests
             return -1;
         }
 
-        /// <summary>Walk to every drop on the ground and tap the pickup button beside it.</summary>
+        /// <summary>
+        /// Walk to every drop on the ground and tap the pickup button beside it: the weapons that fell and the supply
+        /// bags (loot revision 2), nearest first.
+        /// </summary>
         public IEnumerator PickUpAll()
         {
             int start = Frames;
-            while (Game.GroundLoot.Count > 0)
+            while (Game.LootOnGround)
             {
                 if (Frames - start > 2000) Assert.Fail("Loot could not be collected: " + Describe());
                 var g = Game;
-                LootState nearest = null; long best = long.MaxValue;
+                long best = long.MaxValue, x = 0, z = 0;
                 foreach (var l in g.GroundLoot)
                 {
                     long d2 = Distance2(l.Xmm, l.Zmm, g.PlayerXmm, g.PlayerZmm);
-                    if (d2 < best) { best = d2; nearest = l; }
+                    if (d2 < best) { best = d2; x = l.Xmm; z = l.Zmm; }
                 }
-                var spot = new Vector2Int((int)nearest.Xmm, (int)nearest.Zmm);
+                foreach (var bag in g.GroundSupplies)
+                {
+                    long d2 = Distance2(bag.Xmm, bag.Zmm, g.PlayerXmm, g.PlayerZmm);
+                    if (d2 < best) { best = d2; x = bag.Xmm; z = bag.Zmm; }
+                }
+                var spot = new Vector2Int((int)x, (int)z);
                 yield return WalkTo("loot", () => spot, 900);
-                int before = Game.GroundLoot.Count;
+                int before = Game.GroundLoot.Count + Game.GroundSupplies.Count;
                 Phone.Tap(Layout, Layout.PickupRect.center);
-                for (int i = 0; i < 6 && Game.GroundLoot.Count == before; i++) yield return Frame();
-                if (Game.GroundLoot.Count < before) Note("picked up loot (" + Game.Progression.Items.Count + " items carried)");
+                for (int i = 0; i < 6 && Game.GroundLoot.Count + Game.GroundSupplies.Count == before; i++) yield return Frame();
+                if (Game.GroundLoot.Count + Game.GroundSupplies.Count < before)
+                    Note("picked up loot (" + Game.Progression.Items.Count + " items carried, " + Game.Progression.Social.Provisions + " rations)");
             }
         }
 

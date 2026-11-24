@@ -222,7 +222,7 @@ namespace AreArpg.PlayMode.Tests
         private void JourneyNativeClear()
         {
             for(int i=0;i<50&&Game.Monsters.Any(m=>!m.IsDead);i++){var m=Game.Monsters.First(e=>!e.IsDead);JourneyNativeWalk(m.Xmm,m.Zmm);}
-            Assert.IsTrue(Game.Monsters.All(m=>m.IsDead));while(Game.GroundLoot.Count>0){var loot=Game.GroundLoot[0];JourneyNativeWalk(loot.Xmm,loot.Zmm);Game.TryCollectLoot();}
+            Assert.IsTrue(Game.Monsters.All(m=>m.IsDead));while(Game.GroundLoot.Count>0){var loot=Game.GroundLoot[0];JourneyNativeWalk(loot.Xmm,loot.Zmm);Game.TryCollectLoot();}while(Game.GroundSupplies.Count>0){var bag=Game.GroundSupplies[0];JourneyNativeWalk(bag.Xmm,bag.Zmm);Game.TryCollectLoot();}
         }
     }
 }

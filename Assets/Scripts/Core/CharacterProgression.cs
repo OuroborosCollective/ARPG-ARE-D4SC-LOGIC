@@ -31,7 +31,8 @@ namespace AreArpg.Core
             int index = 0;
             while (index < _items.Count && _items[index].KillOrdinal < item.KillOrdinal) index++;
             _items.Insert(index, item);
-            AddWeaponUpgrade(item.AffixValue);
+            // Under loot revision 2 rations come from supply bags; a revision-1 receipt keeps the ration it always brought.
+            AddWeaponUpgrade(item.AffixValue, item.CatalogRevision < 2);
             return true;
         }
         /// <summary>Join acquired receipts in canonical kill order for checkpoint persistence.</summary>
@@ -147,12 +148,14 @@ namespace AreArpg.Core
 
         public void RecordKill() { LootOrdinal += BigInteger.One; }
         internal void RecordCompanionKill() { LootOrdinal += BigInteger.One; Companion.LifetimeKills += BigInteger.One; }
-        public void AddWeaponUpgrade(int amount)
+        public void AddWeaponUpgrade(int amount) { AddWeaponUpgrade(amount, true); }
+
+        private void AddWeaponUpgrade(int amount, bool ration)
         {
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
             WeaponBonus = amount > int.MaxValue - WeaponBonus ? int.MaxValue : WeaponBonus + amount;
             LootCollected += BigInteger.One;
-            Social.ProvisionFromLoot();
+            if (ration) Social.ProvisionFromLoot();
         }
 
         /// <summary>Keep legacy AC5/AC7 bytes; explicit entry profiles bind revision/act and receipts in AC8.</summary>
@@ -186,7 +189,7 @@ namespace AreArpg.Core
 
         public ulong StableHash { get { return HashText(WeaponMasteryPayload()); } }
         /// <summary>Write the legacy chain, wrapped in the AC22 section container only when a section exists.</summary>
-        public string SaveString() { SyncRegionSection(); SyncContentSection(); SyncCraftSection(); SyncCompanionRecoverySection(); SyncVillageSection(); SyncHousesSection(); SyncEconomySection(); SyncArmorSection(); SyncCombatSection(); SyncHealingSection(); return SectionContainer(WeaponMasteryPayload() + "|" + StableHash.ToString("X16", CultureInfo.InvariantCulture)); }
+        public string SaveString() { SyncRegionSection(); SyncContentSection(); SyncCraftSection(); SyncCompanionRecoverySection(); SyncVillageSection(); SyncHousesSection(); SyncEconomySection(); SyncArmorSection(); SyncCombatSection(); SyncHealingSection(); SyncSuppliesSection(); return SectionContainer(WeaponMasteryPayload() + "|" + StableHash.ToString("X16", CultureInfo.InvariantCulture)); }
 
         private static bool CanonicalNonNegative(string text, out BigInteger value)
         {
