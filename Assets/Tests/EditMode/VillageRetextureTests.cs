@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using AreArpg.EditorTools;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.ExceptionServices;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -15,6 +18,10 @@ namespace AreArpg.EditMode.Tests
     public sealed class VillageRetextureTests
     {
         private const string Folder = "Assets/PrivateArt/VillageRetextureTest/";
+        private const string BindingsFile = "bindings.json";
+        // The editor tools are not an assembly a test can reference: the pass is reached by name.
+        private static readonly Type Tool = AppDomain.CurrentDomain.GetAssemblies()
+            .Select(assembly => assembly.GetType("AreArpg.EditorTools.VillageRetexture")).First(type => type != null);
         private Material _source, _own, _other;
         private Texture2D _old, _dark;
 
@@ -50,7 +57,7 @@ namespace AreArpg.EditMode.Tests
         [Test]
         public void TheBuiltPrefabWearsACopyAndTheSourceStaysAsItWas()
         {
-            Assert.Greater(VillageRetexture.Apply(Folder), 0);
+            Assert.Greater(Apply(Folder), 0);
 
             Material copy = AssetDatabase.LoadAssetAtPath<Material>(Folder + "Materials/Source.mat");
             Assert.IsNotNull(copy, "the copy lives in the private folder");
@@ -73,14 +80,14 @@ namespace AreArpg.EditMode.Tests
             Assert.AreEqual(64, picture.GetPlatformTextureSettings("Android").maxTextureSize, "pictures keep the tablet's budget");
             Assert.IsFalse(picture.isReadable);
 
-            CollectionAssert.IsEmpty(VillageRetexture.Unapplied(Folder));
-            Assert.AreEqual(0, VillageRetexture.Apply(Folder), "a second run finds nothing to change");
+            CollectionAssert.IsEmpty(Unapplied(Folder));
+            Assert.AreEqual(0, Apply(Folder), "a second run finds nothing to change");
         }
 
         [Test]
         public void ARebuildThatPutsTheSourceBackIsNoticedAndRepaired()
         {
-            VillageRetexture.Apply(Folder);
+            Apply(Folder);
             GameObject root = PrefabUtility.LoadPrefabContents(Folder + "House.prefab");
             try
             {
@@ -89,27 +96,27 @@ namespace AreArpg.EditMode.Tests
             }
             finally { PrefabUtility.UnloadPrefabContents(root); }
 
-            Assert.AreEqual(1, VillageRetexture.Unapplied(Folder).Count);
-            Assert.AreEqual(1, VillageRetexture.Apply(Folder));
-            CollectionAssert.IsEmpty(VillageRetexture.Unapplied(Folder));
+            Assert.AreEqual(1, Unapplied(Folder).Count);
+            Assert.AreEqual(1, Apply(Folder));
+            CollectionAssert.IsEmpty(Unapplied(Folder));
         }
 
         [Test]
         public void BindingsThatReachOutsideAreRefusedBeforeAnythingIsWritten()
         {
-            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply("Assets/Scripts/"), "pictures live below the private art");
-            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder + "../VillageRetextureTest/"), "no climbing out");
+            Assert.Throws<InvalidOperationException>(() => Apply("Assets/Scripts/"), "pictures live below the private art");
+            Assert.Throws<InvalidOperationException>(() => Apply(Folder + "../VillageRetextureTest/"), "no climbing out");
 
             Bind("\"prefabs\": [\"Assets/Scenes/Somewhere.prefab\"]");
-            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder), "only built visuals are written");
+            Assert.Throws<InvalidOperationException>(() => Apply(Folder), "only built visuals are written");
             Bind("\"prefabs\": [\"" + Folder + "../VillageRetextureTest/House.prefab\"]");
-            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder));
+            Assert.Throws<InvalidOperationException>(() => Apply(Folder));
             Bind("\"prefabs\": [\"" + Folder + "House.prefab\"]", picture: "../dark");
-            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder), "a picture is a plain name");
+            Assert.Throws<InvalidOperationException>(() => Apply(Folder), "a picture is a plain name");
             Bind("\"prefabs\": [\"" + Folder + "House.prefab\"]", picture: "missing");
-            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder), "a missing picture stops the run");
+            Assert.Throws<InvalidOperationException>(() => Apply(Folder), "a missing picture stops the run");
             Bind("\"prefabs\": [\"" + Folder + "House.prefab\"]", own: "Assets/PrivateArt/README.md");
-            Assert.Throws<InvalidOperationException>(() => VillageRetexture.Apply(Folder), "nothing outside the folder changes in place");
+            Assert.Throws<InvalidOperationException>(() => Apply(Folder), "nothing outside the folder changes in place");
 
             Assert.AreSame(_source, Slots("Wall")[0], "the prefab still wears its source");
             Assert.AreSame(_old, _own.GetTexture("_BaseMap"));
@@ -118,16 +125,26 @@ namespace AreArpg.EditMode.Tests
         [Test]
         public void TheInstalledVillageWearsItsDarkPictures()
         {
-            if (!VillageRetexture.Installed) Assert.Ignore("Requires the private village pictures");
-            CollectionAssert.IsEmpty(VillageRetexture.Unapplied(VillageRetexture.DefaultFolder));
+            if (!(bool)Tool.GetProperty("Installed").GetValue(null)) Assert.Ignore("Requires the private village pictures");
+            CollectionAssert.IsEmpty(Unapplied((string)Tool.GetField("DefaultFolder").GetValue(null)));
         }
 
         private static void Bind(string prefabs, string picture = "dark", string own = Folder + "Own.mat")
         {
-            File.WriteAllText(Folder + VillageRetexture.BindingsFile, "{\"maxSize\": 64, \"bindings\": ["
+            File.WriteAllText(Folder + BindingsFile, "{\"maxSize\": 64, \"bindings\": ["
                 + "{\"material\": \"" + Folder + "Source.mat\", \"albedo\": \"" + picture + "\"},"
                 + "{\"material\": \"" + own + "\", \"albedo\": \"dark\", \"normal\": \"dark_normal\", \"smoothness\": 0.1, \"tintWhite\": true, \"inPlace\": true}],"
                 + prefabs + ", \"swaps\": [{\"prefab\": \"" + Folder + "House.prefab\", \"child\": \"Hill\", \"material\": \"" + Folder + "Other.mat\"}]}");
+        }
+
+        private static int Apply(string folder) { return (int)Call("Apply", folder); }
+
+        private static List<string> Unapplied(string folder) { return (List<string>)Call("Unapplied", folder); }
+
+        private static object Call(string name, string folder)
+        {
+            try { return Tool.GetMethod(name, BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { folder }); }
+            catch (TargetInvocationException wrapped) { ExceptionDispatchInfo.Capture(wrapped.InnerException).Throw(); throw; }
         }
 
         private static Material[] Slots(string part)
