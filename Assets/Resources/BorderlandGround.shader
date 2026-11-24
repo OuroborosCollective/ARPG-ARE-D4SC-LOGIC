@@ -80,7 +80,9 @@ Shader "ARE/World/Schneeasche"
                     half cover = .20h + .53h * roadside + .30h * (ground.g-.5h) + .63h * (drift-.5h);
                     cover = smoothstep(.06h,.84h, cover * (.72h + .28h * court));
                     half3 albedo = lerp(earth, lerp(slate, powder, .59h + .34h * ground.g), cover);
-                    half core = 0;
+                    // Embers show in the cracks of the open ash field, in drifts, never on the trodden road or in the court.
+                    half core = ground.b * smoothstep(.34h,.66h,drift) * smoothstep(.50h,.92h,cover)
+                        * smoothstep(3.4h,8.5h,abs(i.world.x)) * court;
                 #elif defined(ARE_CLEFT_STONE)
                     float2 edgeUV = float2(abs(n.x) > abs(n.z) ? i.world.z : i.world.x, i.world.y) / _Metres;
                     half face = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, edgeUV).r;
