@@ -19,6 +19,45 @@ namespace AreArpg.EditMode.Tests
 
         static Type Recipes() { return Tool("BozoFigureRecipes"); }
 
+        [Test]
+        public void RebuildingALegacyPropKeepsItsSourceFinish()
+        {
+            string bakeFolder = Baked.TrimEnd('/');
+            string propsFolder = Baked + "Props";
+            bool madeBakeFolder = !AssetDatabase.IsValidFolder(bakeFolder);
+            bool madePropsFolder = !AssetDatabase.IsValidFolder(propsFolder);
+            string name = "PropFinishProbe_" + GUID.Generate();
+            string sourcePath = "Assets/" + name + ".mat";
+            string outputPath = null;
+            try
+            {
+                if (madeBakeFolder) AssetDatabase.CreateFolder("Assets/PrivateArt", "BozoCharacters");
+                if (madePropsFolder) AssetDatabase.CreateFolder(bakeFolder, "Props");
+                var source = new Material(Shader.Find("Standard")) { name = name };
+                source.SetFloat("_Glossiness", .8f);
+                source.SetFloat("_Metallic", .3f);
+                AssetDatabase.CreateAsset(source, sourcePath);
+                object prop = Activator.CreateInstance(Recipes().GetNestedType("Prop"));
+                var worn = Tool("FigureProps").GetMethod("Worn", BindingFlags.Static | BindingFlags.NonPublic);
+                var first = (Material)worn.Invoke(null, new[] { (object)source, prop });
+                outputPath = AssetDatabase.GetAssetPath(first);
+                float initial = first.GetFloat("_Smoothness");
+                var rebuilt = (Material)worn.Invoke(null, new[] { (object)source, prop });
+                Assert.AreSame(first, rebuilt);
+                Assert.AreEqual(initial, rebuilt.GetFloat("_Smoothness"), .0001f, "rebuilding must keep the same finish");
+                Assert.AreEqual(.4f, initial, .0001f, "the worn finish halves the source glossiness");
+                Assert.AreEqual(.3f, rebuilt.GetFloat("_Metallic"), .0001f);
+                Assert.AreEqual(.8f, source.GetFloat("_Glossiness"), .0001f);
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(outputPath)) AssetDatabase.DeleteAsset(outputPath);
+                AssetDatabase.DeleteAsset(sourcePath);
+                if (madePropsFolder) AssetDatabase.DeleteAsset(propsFolder);
+                if (madeBakeFolder) AssetDatabase.DeleteAsset(bakeFolder);
+            }
+        }
+
         static Type Tool(string name)
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())

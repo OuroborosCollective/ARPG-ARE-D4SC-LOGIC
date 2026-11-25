@@ -177,6 +177,10 @@ namespace AreArpg.EditorTools
                 material.shader = lit;
                 material.SetTexture("_BaseMap", source.mainTexture);
                 material.SetColor("_BaseColor", source.HasProperty("_Color") ? source.GetColor("_Color") : Color.white);
+                float smoothness = source.HasProperty("_Smoothness") ? source.GetFloat("_Smoothness") :
+                    source.HasProperty("_Glossiness") ? source.GetFloat("_Glossiness") : .5f;
+                material.SetFloat("_Smoothness", smoothness);
+                material.SetFloat("_Metallic", source.HasProperty("_Metallic") ? source.GetFloat("_Metallic") : 0f);
             }
             Color tint;
             if (BozoFigureRecipes.TryColor(prop.tint, out tint))
