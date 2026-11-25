@@ -26,6 +26,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(CameraClearFlags.Skybox, Camera.main.clearFlags);
             float lightAtStart = material.GetFloat("_Daylight");
             Assert.Greater(lightAtStart, .20f, "Fresh outdoor gameplay starts in daylight");
+            var dayLight = GameObject.Find(ArenaRuntime.HeroLightName)?.GetComponent<Light>();
+            Assert.IsTrue(dayLight == null || !dayLight.enabled, "By day the wanderer needs no light of his own");
             yield return Capture("village-world-sky-day.png");
 
             // Test fixture moves ONLY the persisted canonical Core clock, not wall time or frames.
@@ -48,6 +50,18 @@ namespace AreArpg.PlayMode.Tests
                     "At night the directional proxy must illuminate from the visible moon above the ground");
                 Assert.That(material.GetFloat("_CloudPhase"), Is.EqualTo(Mathf.PI).Within(.001f),
                     "Cloud motion follows the same saved tick phase as the sun");
+                // At night a light goes with the wanderer: one warm point light without shadows, at his shoulder,
+                // on the side the player sees (owner decision 2026-11-24).
+                var heroLight = GameObject.Find(ArenaRuntime.HeroLightName)?.GetComponent<Light>();
+                Assert.IsNotNull(heroLight, "The wanderer carries a light at night");
+                Assert.IsTrue(heroLight.enabled && heroLight.type == LightType.Point && heroLight.shadows == LightShadows.None);
+                Assert.AreEqual(ArenaRuntime.HeroLightIntensity, heroLight.intensity, 1e-3f, "Full strength once the sky is dark");
+                Assert.Greater(heroLight.color.r, heroLight.color.b, "A warm light against the cold moon");
+                Vector3 offset = heroLight.transform.position - Find("Wanderer").transform.position;
+                Assert.That(offset.y, Is.InRange(.3f, 1.5f), "The light hangs at the wanderer's shoulder");
+                Assert.Less(new Vector2(offset.x, offset.z).magnitude, 1.6f, "The light stays with the wanderer");
+                Vector3 toCamera = Camera.main.transform.position - Find("Wanderer").transform.position; toCamera.y = 0f;
+                Assert.Greater(Vector3.Dot(new Vector3(offset.x, 0f, offset.z), toCamera.normalized), .5f, "The light stands on the side the player sees");
                 Assert.AreEqual(before, Game.ComputeWorldHash(), "RenderSettings cannot write authoritative rules");
                 Assert.AreEqual(checkpoint, Game.Progression.SaveString(), "Rendering cannot change a saved checkpoint");
                 yield return Capture("village-world-sky-night.png");
@@ -110,6 +124,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.AreEqual(authoredFog, RenderSettings.fogColor);
             Assert.AreEqual(authoredAmbient, RenderSettings.ambientLight);
             Assert.AreNotEqual(CameraClearFlags.Skybox, Camera.main.clearFlags);
+            var heroLight = GameObject.Find(ArenaRuntime.HeroLightName)?.GetComponent<Light>();
+            Assert.IsTrue(heroLight == null || !heroLight.enabled, "A place with its own authored light needs no light around the wanderer");
             yield return null;
         }
 

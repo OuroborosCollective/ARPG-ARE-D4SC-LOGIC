@@ -38,6 +38,19 @@ namespace AreArpg.PlayMode.Tests
                 Assert.IsTrue(ash.isPlaying);
                 Assert.IsTrue(fog.isPlaying, "Old mill needs damp low-lying mist");
                 Assert.AreNotEqual(forestFog, fog.main.startColor.color);
+                Color millFog = fog.main.startColor.color;
+                // Owner brief 2026-11-24: fog lies on the ground of the village and the road, in wider and denser banks than anywhere else.
+                foreach (int openGround in new[] { 2, 3 })
+                {
+                    audio.EnterRegion(openGround);
+                    Assert.IsTrue(ash.isPlaying && fog.isPlaying, "Village and road keep the ash snow and get ground fog");
+                    Assert.Greater(fog.main.startColor.color.a, millFog.a, "The ground fog is denser than the mill's damp mist");
+                    Assert.IsTrue(fog.main.startSize3D, "Ground fog lies in banks, not in round puffs");
+                    Assert.Greater(fog.main.startSizeX.constantMin, 3f, "Ground fog lies in wide banks");
+                    Assert.Less(fog.main.startSizeY.constantMax, 2f, "Ground fog stays low");
+                    Assert.Greater(fog.main.startColor.color.b, fog.main.startColor.color.r, "Ground fog is cold, lit by the moon");
+                    Assert.LessOrEqual(fog.main.maxParticles, 24, "Ground fog stays on the mist budget");
+                }
                 audio.EnterRegion(6);
                 Assert.IsFalse(ash.isPlaying, "Interior crypt must not rain outdoor ash");
                 Assert.IsTrue(fog.isPlaying);

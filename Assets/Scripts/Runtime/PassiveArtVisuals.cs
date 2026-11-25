@@ -17,6 +17,27 @@ namespace AreArpg.UnityClient
         private static readonly Dictionary<Material, Material> PipelineAdapters = new Dictionary<Material, Material>();
         private static readonly string[] BaseMapHints = { "base", "albedo", "diffuse", "color" };
 
+        /// <summary>Name prefix of the rigid things a figure's recipe hangs on its bones (staff, lantern, pouches, jewellery).</summary>
+        public const string CarriedPrefix = "FigureProp_";
+
+        /// <summary>
+        /// Take off what a bound figure carries: for a stand-in that borrows a story figure's body and wears its own outfit.
+        /// </summary>
+        public static void DropCarried(Transform figure)
+        {
+            if (figure == null) return;
+            foreach (Transform part in figure.GetComponentsInChildren<Transform>(true))
+            {
+                if (part == null || !part.name.StartsWith(CarriedPrefix, System.StringComparison.Ordinal)) continue;
+                if (Application.isPlaying)
+                {
+                    part.gameObject.SetActive(false); // gone in this very frame; the object itself goes at its end
+                    Object.Destroy(part.gameObject);
+                }
+                else Object.DestroyImmediate(part.gameObject); // an editor preview has no end of frame
+            }
+        }
+
         /// <summary>True when a private visual exists for this key; presentation code asks before it plans dressing.</summary>
         public static bool Has(string key)
         {

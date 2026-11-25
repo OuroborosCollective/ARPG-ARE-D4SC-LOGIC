@@ -1,5 +1,6 @@
 {
  "schema": "ashen.bozo-pool.v1",
+ "finish": {"gain": 0.62, "saturation": 0.8, "cloth": {"fabric": "AC_LinenCoarse", "strength": 0.3, "scale": 5}, "leather": {"fabric": "AC_LeatherWorn", "strength": 0.4, "scale": 3}},
  "texture": 512,
  "eyesPart": "Eyes_BasicIris",
  "browsPart": "EyeBrows_StylizedBasicBrows",

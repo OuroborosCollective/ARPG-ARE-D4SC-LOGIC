@@ -134,6 +134,33 @@ namespace AreArpg.EditMode.Tests
         }
 
         /// <summary>
+        /// A figure may carry things (staff, lantern, pouches, jewellery): each names a model inside the project, one of
+        /// the trunk or limb bones and a place on the standing figure. Anything else would hang art from nowhere.
+        /// </summary>
+        [Test]
+        public void WhatAFigureCarriesNamesAModelABoneAndAPlace()
+        {
+            const string staff = "{\"name\":\"Staff\",\"asset\":\"Assets/PrivateArt/Props/Staff 01.prefab\",\"bone\":\"Chest\","
+                + "\"position\":[0,1.1,-0.2],\"rotation\":[0,0,24],\"size\":1.5,\"anchor\":\"center\",\"tint\":\"#c9b79f\"}";
+            string carrying = Probe.Replace("\"outfits\":", "\"props\":[" + staff + "],\"outfits\":");
+            Assert.IsNull(Defect(carrying), "A complete prop is accepted");
+            Assert.IsNull(Defect(carrying.Replace("\"rotation\":[0,0,24],", "")), "The turn is optional");
+            StringAssert.Contains("unknown bone", Rejection(carrying.Replace("\"Chest\"", "\"LeftIndexDistal\"")));
+            StringAssert.Contains("model path", Rejection(carrying.Replace("Assets/PrivateArt/Props/Staff 01.prefab", "Assets/../../etc/Staff.prefab")));
+            StringAssert.Contains("model path", Rejection(carrying.Replace("Staff 01.prefab", "Staff 01.cs")));
+            StringAssert.Contains("position", Rejection(carrying.Replace("[0,1.1,-0.2]", "[0,1.1]")));
+            StringAssert.Contains("position", Rejection(carrying.Replace("[0,1.1,-0.2]", "[0,11,0]")));
+            StringAssert.Contains("rotation", Rejection(carrying.Replace("[0,0,24]", "[0,24]")));
+            StringAssert.Contains("size", Rejection(carrying.Replace("\"size\":1.5", "\"size\":9")));
+            StringAssert.Contains("anchor", Rejection(carrying.Replace("\"center\"", "\"left\"")));
+            StringAssert.Contains("tint", Rejection(carrying.Replace("#c9b79f", "braun")));
+            StringAssert.Contains("glow", Rejection(carrying.Replace("\"tint\":\"#c9b79f\"", "\"glow\":\"hell\"")));
+            StringAssert.Contains("listed twice", Rejection(carrying.Replace("[" + staff + "]", "[" + staff + "," + staff + "]")));
+            StringAssert.Contains("prop name", Rejection(carrying.Replace("\"name\":\"Staff\"", "\"name\":\"../Staff\"")));
+            StringAssert.Contains("reserved", Rejection(Probe.Replace("\"id\":\"probe\"", "\"id\":\"props\"")), "The props share a folder beside the figures");
+        }
+
+        /// <summary>
         /// Values no comparison catches: "not a number" passes every smaller/greater check and would scale a figure
         /// or its colour atlas into garbage; a negative brightening is a typo, not "use the default".
         /// </summary>

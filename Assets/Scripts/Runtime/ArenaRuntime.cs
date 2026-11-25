@@ -718,7 +718,8 @@ namespace AreArpg.UnityClient
                 PassiveArtVisuals.TryBind(root, "Enemy" + monster.Kind);
             BindRoleArt(root, monster.Role);
             RegisterActorMotion(root);
-            if (monster.Kind == 3)
+            // The blockout crown marks the earlier stand-in only; a figure with clips of its own is the Ember Warden already.
+            if (monster.Kind == 3 && EnemyClipsOf(monster.Id, root).Controllers.Length == 0)
             {
                 Transform crown = Shape(PrimitiveType.Cylinder, "Ember_Warden_Crown",
                     Vector3.zero, new Vector3(1.3f, 0.12f, 1.3f),
@@ -1220,6 +1221,7 @@ namespace AreArpg.UnityClient
             RefreshVillageRoomLight();
             RefreshPostProcessing();
             AnimateVillageLights();
+            FollowHeroLight();
             AnimateDungeonLights();
             UpdateRegionalSources();
             UpdateOrselFigure();

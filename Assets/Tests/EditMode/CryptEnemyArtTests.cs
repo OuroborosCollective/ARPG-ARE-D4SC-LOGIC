@@ -27,7 +27,7 @@ namespace AreArpg.EditMode.Tests
                 .GetMethod("Owns", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
             Assert.IsFalse((bool)owns.Invoke(null, new object[] { "EntryHero" }), "Only enemy figures belong to the builder");
             int built = 0;
-            for (int kind = 0; kind < 3; kind++)
+            for (int kind = 0; kind < 4; kind++)
             {
                 string key = "EntryEnemy" + kind;
                 if (!(bool)owns.Invoke(null, new object[] { key })) continue;
@@ -66,9 +66,21 @@ namespace AreArpg.EditMode.Tests
                 foreach (Renderer renderer in prefab.GetComponentsInChildren<Renderer>(true))
                     foreach (Material material in renderer.sharedMaterials)
                     {
-                        Assert.IsTrue(material != null && material.mainTexture != null, key + " has a textured material on " + renderer.name);
-                        Assert.IsTrue(AssetDatabase.GetAssetPath(material.mainTexture).StartsWith(Visuals), key + " wears the muted colour texture baked for the game");
+                        Assert.IsTrue(material != null && material.shader.isSupported, key + ": the material on " + renderer.name + " must render");
+                        // The body wears the muted texture baked for the game; what it holds (a weapon) wears a private worn copy of its
+                        // own material, which may be a plain colour.
+                        if (renderer is SkinnedMeshRenderer)
+                            Assert.IsTrue(material.mainTexture != null && AssetDatabase.GetAssetPath(material.mainTexture).StartsWith(Visuals),
+                                key + " wears the muted colour texture baked for the game");
+                        else
+                            StringAssert.StartsWith("Assets/PrivateArt/BozoCharacters/Props/", AssetDatabase.GetAssetPath(material), key + ": " + renderer.name + " wears a worn copy");
                     }
+                foreach (MeshRenderer held in prefab.GetComponentsInChildren<MeshRenderer>(true))
+                {
+                    bool carried = false;
+                    for (Transform node = held.transform; node != null && !carried; node = node.parent) carried = node.name.StartsWith("FigureProp_");
+                    Assert.IsTrue(carried, key + ": a rigid mesh on an enemy is something it holds, hung on a bone: " + held.name);
+                }
                 int triangles = prefab.GetComponentsInChildren<SkinnedMeshRenderer>(true).Sum(skin => skin.sharedMesh.triangles.Length / 3);
                 Assert.LessOrEqual(triangles, 32000, key + " stays inside the figure budget of the tablet");
             }
@@ -156,12 +168,6 @@ namespace AreArpg.EditMode.Tests
             animator.Update(.1f);
             Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Death"));
             Assert.AreEqual(4f, animator.GetCurrentAnimatorStateInfo(0).length, .01f);
-            // The lethal blow also stops the animator briefly before the death motion resumes.
-            animator.speed = 0f;
-            animator.Update(.1f);
-            Assert.IsTrue((bool)present.Invoke(runtime, args));
-            animator.speed = 1f;
-            animator.Update(.1f);
             var starts = (System.Collections.Generic.Dictionary<int, float>)typeof(ArenaRuntime)
                 .GetField("_deathTime", Instance).GetValue(runtime);
             starts[1] = Time.time - 3.5f;

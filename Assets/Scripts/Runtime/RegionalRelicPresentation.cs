@@ -42,6 +42,8 @@ namespace AreArpg.UnityClient
             string character = guard ? "EntryHero" : "EntryNpc1";
             if (PassiveArtVisuals.TryBindGrounded(actor, character, actor.position.y))
             {
+                // The worker borrows a story figure's body, not its staff, pouches or jewellery.
+                PassiveArtVisuals.DropCarried(actor);
                 if (guard)
                 {
                     var donor=Resources.Load<GameObject>("ARE/Visuals/EntryNpc2");

@@ -237,3 +237,5 @@ Owner requested a persistent Design Report evidence logbook after every work rou
 - 2026-11-25 [PR #137] Art Forge gibt Detailplätze beim Graphwechsel frei. Sechs Browserfälle reproduzierten die Blockade. Nach der Korrektur bestanden 73/73 Browserfälle und 66/66 native EditMode-Tests.
 
 - 2026-11-25 [PR #136] Gruftgegner richten Treffer auf das Core-Ziel aus und spielen ihre Angriffs-, Treffer- und Todesclips. Beim Trefferstopp meldete Unity zeitweise eine unendliche Cliplänge. Nach der Korrektur bestanden 213/213 PlayMode-Fälle. Der anschließende Test des letzten möglichen Bogenschusses bestand auf Tree `9f96a47a`. [Abnahme](docs/evidence/crypt-enemies-20261124/acceptance.md)
+
+- 2026-11-25 [PR #138] Sechs Figurenrollen, die eigene Glutwächter-Figur und das Dorf nutzen die überarbeiteten Materialien. Beim erneuten Aufbau verdunkelte sich ein Ausrüstungsteil nochmals. Der reparierte Aufbau erhält den Quellfarbwert. Auf Tree `c89a78b5` bestanden 365 EditMode- und 214 PlayMode-Fälle. [Abnahme](docs/evidence/dark-souls-figures-20261124/acceptance.md)
