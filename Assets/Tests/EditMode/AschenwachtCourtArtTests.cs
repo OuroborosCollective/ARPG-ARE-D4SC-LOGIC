@@ -60,9 +60,9 @@ namespace AreArpg.EditMode.Tests
                 // Textured surfaces show their colour map; the set's plain surfaces (dark recesses, glowing embers) carry a colour.
                 Assert.IsTrue(material.GetTexture("_BaseMap") != null || material.GetColor("_BaseColor") != Color.white, material.name + " shows its colour");
             }
-            Material grass = materials.FirstOrDefault(m => m.name == "Grass");
-            Assert.IsNotNull(grass);
-            Assert.IsFalse(grass.GetShaderPassEnabled("ShadowCaster"), "grass casts no shadow on the tablet");
+            Renderer[] grass = renderers.Where(r => r.sharedMaterials.All(m => m != null && (m.name == "Grass" || m.name == "gras"))).ToArray();
+            Assert.Greater(grass.Length, 1000, "every grass tuft of both sets is placed");
+            Assert.IsTrue(grass.All(r => r.shadowCastingMode == UnityEngine.Rendering.ShadowCastingMode.Off), "grass casts no shadow on the tablet");
         }
 
         [Test]

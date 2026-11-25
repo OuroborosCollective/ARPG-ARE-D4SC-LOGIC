@@ -105,6 +105,11 @@ namespace AreArpg.EditorTools
                         // Scenery and the bell court's two still figures stand as they were placed.
                         foreach (Animator animator in instance.GetComponentsInChildren<Animator>(true)) UnityEngine.Object.DestroyImmediate(animator);
                     }
+                    // Grass, leaves, candles, embers, ash drifts and the distant ridge cast no shadow on the tablet.
+                    // URP's material validation re-enables a material's shadow pass, so this is decided per renderer.
+                    foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
+                        if (p.Model == "Fernkulisse" || renderer.sharedMaterials.All(m => m != null && (NoShadows.Contains(m.name) || m.name == "gras")))
+                            renderer.shadowCastingMode = ShadowCastingMode.Off;
                     count++;
                 }
                 Directory.CreateDirectory(Path.GetDirectoryName(Output));
@@ -181,10 +186,6 @@ namespace AreArpg.EditorTools
                     material.DisableKeyword("_EMISSION");
                     material.SetColor("_EmissionColor", Color.black);
                 }
-                // URP's material validation sets the shadow pass from _CastShadows, so both say the same.
-                bool shadows = !NoShadows.Contains(surface);
-                material.SetFloat("_CastShadows", shadows ? 1f : 0f);
-                material.SetShaderPassEnabled("ShadowCaster", shadows);
                 material.enableInstancing = true;
                 EditorUtility.SetDirty(material);
                 set.Add(surface, material);
@@ -224,8 +225,6 @@ namespace AreArpg.EditorTools
             material.SetColor("_BaseColor", new Color(.56f, .58f, .62f));
             material.SetFloat("_Smoothness", .12f);
             material.SetFloat("_BumpScale", .6f);
-            material.SetFloat("_CastShadows", 0f);
-            material.SetShaderPassEnabled("ShadowCaster", false);
             EditorUtility.SetDirty(material);
             AssetDatabase.SaveAssets();
             return material;
