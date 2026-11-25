@@ -75,7 +75,13 @@ namespace AreArpg.UnityClient
                     if (!renderer.enabled || !(renderer is MeshRenderer || renderer is SkinnedMeshRenderer)) continue;
                     Bounds box = renderer.bounds;
                     if (box.max.y < 1.5f || box.size.y < 1f) continue;
-                    if (box.size.x > 30f || box.size.z > 30f) continue;
+                    if (box.size.x > 30f || box.size.z > 30f)
+                    {
+                        // A long, thin wall (Aschenwacht's westwork) still hides the hero: it counts in pieces along its length.
+                        // Region-sized shells and floors stay out.
+                        if (Mathf.Min(box.size.x, box.size.z) <= 8f) AddWallPieces(box);
+                        continue;
+                    }
                     // Most tall props are round (pillars, trunks, towers); trim the box corners.
                     box.extents = new Vector3(box.extents.x * .8f, box.extents.y, box.extents.z * .8f);
                     _occluderBoxes.Add(box);
@@ -83,6 +89,21 @@ namespace AreArpg.UnityClient
             }
             _occluderScan.Clear();
             _cameraRig.SetOccluders(_occluderBoxes.ToArray());
+        }
+
+        private void AddWallPieces(Bounds wall)
+        {
+            bool alongX = wall.size.x >= wall.size.z;
+            float length = alongX ? wall.size.x : wall.size.z;
+            int pieces = Mathf.CeilToInt(length / 20f);
+            for (int i = 0; i < pieces; i++)
+            {
+                float start = (alongX ? wall.min.x : wall.min.z) + i * length / pieces;
+                Vector3 center = wall.center, size = wall.size;
+                if (alongX) { center.x = start + length / pieces * .5f; size.x = length / pieces; }
+                else { center.z = start + length / pieces * .5f; size.z = length / pieces; }
+                _occluderBoxes.Add(new Bounds(center, size));
+            }
         }
 
         /// <summary>Reads existing actors; neither camera context nor interpolation writes the Core.</summary>
