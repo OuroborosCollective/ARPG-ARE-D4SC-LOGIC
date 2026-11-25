@@ -65,10 +65,21 @@ namespace AreArpg.PlayMode.Tests
         private static void CheckWorkshopCatalog()
         {
             // The workshop's 23 pieces lie in the world. Orsel's staff (M_Heilerstab) is handed over by her and borrows a
-            // skinned staff model from the weapon catalog, so it is no workshop piece.
-            var catalog=new ArsenalAssetList();var all=RegionalRelics.All.Where(id=>!RegionalRelics.GrantedOnly(id)).ToList();
+            // skinned staff model from the weapon catalog, so it is no workshop piece. The Brennerhof's spear and halberd
+            // (owner 2026-11-25) come from the private Brennerhof pack, not from the shipped workshop: they are checked apart.
+            var catalog=new ArsenalAssetList();
+            var kiln=RegionalRelics.All.Where(id=>RegionalRelics.Location(id).StartsWith("Brennerhof",System.StringComparison.Ordinal)).ToList();
+            var all=RegionalRelics.All.Where(id=>!RegionalRelics.GrantedOnly(id)&&!kiln.Contains(id)).ToList();
             Assert.AreEqual(23,all.Count);
-            Assert.AreEqual(24,RegionalRelics.All.Count);
+            Assert.AreEqual(2,kiln.Count);
+            Assert.AreEqual(26,RegionalRelics.All.Count);
+            foreach(var id in kiln)
+            {
+                var hand=RegionalRelics.HandDefinition(id);
+                Assert.IsNotNull(hand,id+" missing hand combat definition");
+                var pickup=AuthoredRelicSource(id);
+                if(pickup!=null)Assert.AreSame(pickup,Resources.Load<GameObject>("ARE/Visuals/"+hand.VisualKey),id+" configured hand visual differs from the pickup");
+            }
             foreach(var id in all)
             {
                 var prefab=AuthoredRelicSource(id);Assert.IsNotNull(prefab,"Missing native fund prefab "+id);

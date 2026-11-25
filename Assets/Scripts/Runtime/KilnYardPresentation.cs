@@ -293,9 +293,10 @@ namespace AreArpg.UnityClient
             var arch = new GameObject("Aschenwacht_Seitentor").transform;
             arch.SetParent(scenery, false);
             if (!PassiveArtVisuals.TryBindPrefab(arch, Resources.Load<GameObject>(KilnKit + "Seitentor"))) Destroy(arch.gameObject);
+            // The glow is a passage marker of its own, like the bell tower's, not part of the place's lit scenery.
             var glow = new GameObject("ARE_Kiln_Passage");
-            glow.transform.SetParent(scenery, false);
-            glow.transform.localPosition = new Vector3(x - .6f, 1.5f + GroundHeight(x - .6f, z), z);
+            glow.transform.position = new Vector3(x - .6f, 1.5f + GroundHeight(x - .6f, z), z);
+            _chapterScenery.Add(glow.transform);
             var light = glow.AddComponent<Light>();
             light.type = LightType.Point; light.range = 5f; light.intensity = 2f; light.shadows = LightShadows.None;
             light.color = new Color(1f, .58f, .28f);
