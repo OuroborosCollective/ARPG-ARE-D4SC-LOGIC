@@ -35,6 +35,10 @@ namespace AreArpg.UnityClient
         private ArenaSimulation _kilnWorld;
         private AudioSource _kilnWind;
         private AudioClip[] _kilnBreakClips;
+        private readonly List<MeshRenderer> _kilnFog = new List<MeshRenderer>();
+        private MaterialPropertyBlock _kilnFogBlock;
+        private float _kilnFogDaylight = -1f;
+        private static readonly int FogCool = Shader.PropertyToID("_Cool"), FogWarm = Shader.PropertyToID("_Warm");
 
         /// <summary>
         /// The Brennerhof's living parts on top of its passive art: the eight vases, the gate of the kiln passage, embers and ash
@@ -61,6 +65,12 @@ namespace AreArpg.UnityClient
                 if (_game.Progression.KilnGateOpen) _kilnGate.localPosition = _kilnGateClosed + Vector3.up * KilnGateLift;
             }
             _kilnGateOpenFor = -1f;
+            // The pack's ground fog is unlit; its colours follow the daylight here so the fog does not glow at night.
+            _kilnFog.Clear();
+            foreach (var renderer in scenery.GetComponentsInChildren<MeshRenderer>(true))
+                if (renderer.name.StartsWith("Bodennebel", System.StringComparison.Ordinal) && renderer.sharedMaterial != null &&
+                    renderer.sharedMaterial.HasProperty(FogCool)) _kilnFog.Add(renderer);
+            _kilnFogDaylight = -1f;
             AddKilnEmbers(scenery);
             var windClip = Resources.Load<AudioClip>(KilnKit + "Zugwind_Loop");
             if (windClip != null && _atmosphere != null)
@@ -166,7 +176,29 @@ namespace AreArpg.UnityClient
                 _kilnGate.localPosition = _kilnGateClosed + Vector3.up * (KilnGateLift * Mathf.SmoothStep(0f, 1f, _kilnGateOpenFor / KilnGateSeconds));
             }
             StepKilnShards(Time.deltaTime);
+            ShadeKilnFog();
             if (_kilnWind != null && _atmosphere != null) { _kilnWind.volume = _atmosphere.EffectsVolume * .35f; _kilnWind.mute = _atmosphere.Muted; }
+        }
+
+        /// <summary>Darken the ground fog with the ambient light the sky sets (night 0.26 .. day 0.47 in red).</summary>
+        private void ShadeKilnFog()
+        {
+            if (_kilnFog.Count == 0) return;
+            float daylight = Mathf.Clamp01((RenderSettings.ambientLight.r - .26f) / .21f);
+            if (Mathf.Abs(daylight - _kilnFogDaylight) < .01f) return;
+            _kilnFogDaylight = daylight;
+            if (_kilnFogBlock == null) _kilnFogBlock = new MaterialPropertyBlock();
+            float shade = Mathf.Lerp(.22f, 1f, daylight);
+            foreach (var renderer in _kilnFog)
+            {
+                if (renderer == null) continue;
+                var material = renderer.sharedMaterial;
+                renderer.GetPropertyBlock(_kilnFogBlock);
+                Color cool = material.GetColor(FogCool), warm = material.GetColor(FogWarm);
+                _kilnFogBlock.SetColor(FogCool, new Color(cool.r * shade, cool.g * shade, cool.b * shade, cool.a));
+                _kilnFogBlock.SetColor(FogWarm, new Color(warm.r * shade, warm.g * shade, warm.b * shade, warm.a));
+                renderer.SetPropertyBlock(_kilnFogBlock);
+            }
         }
 
         /// <summary>
