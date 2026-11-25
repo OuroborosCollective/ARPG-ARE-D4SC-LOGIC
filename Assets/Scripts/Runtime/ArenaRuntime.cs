@@ -636,6 +636,7 @@ namespace AreArpg.UnityClient
             string key = _game.IsVillage ? "EntryVillageWorld" : _game.InCourt ? "EntryCourtWorld" : "EntryCryptWorld";
             if (!PassiveArtVisuals.TryBind(root.transform, key)) { Destroy(root); return false; }
             _chapterScenery.Add(root.transform);
+            if (_game.InCourt) AddCourtFireLights(root.transform);
             if (_game.IsVillage)
             {
                 var floor = root.transform.Find("Art_EntryVillageWorld/Ground");

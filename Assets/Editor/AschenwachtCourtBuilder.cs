@@ -15,7 +15,8 @@ namespace AreArpg.EditorTools
     /// old crypt and the village) as one passive prefab from the owner's two private sets. Every placement of the source
     /// scenes is kept: each building, grave, stone, grass tuft and the Aschbeter stand where the sets put them, in the frame
     /// of CourtLayout (the set turned half a turn so that the way leads north). The models are the reduced FBX of
-    /// Tools/Art/aschenwacht/convert.py; materials come from the sets' own PBR maps. Nothing here is part of the repository.
+    /// Tools/Art/aschenwacht/convert.py; materials come from the sets' own PBR maps. The prefab stays passive (no light, no collider, no script: the art
+    /// binding rejects them); the runtime lights its fire baskets. Nothing here is part of the repository.
     /// </summary>
     public static class AschenwachtCourtBuilder
     {
@@ -103,7 +104,6 @@ namespace AreArpg.EditorTools
                     }
                     count++;
                 }
-                AddFireLight(root.transform, placements);
                 Directory.CreateDirectory(Path.GetDirectoryName(Output));
                 PrefabUtility.SaveAsPrefabAsset(root, Output);
             }
@@ -289,26 +289,6 @@ namespace AreArpg.EditorTools
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
             return controller;
-        }
-
-        /// <summary>Warm light at the fire baskets beside the procession path and at the bell court; no shadows.</summary>
-        private static void AddFireLight(Transform root, List<Placement> placements)
-        {
-            var holder = new GameObject("Feuerlicht").transform;
-            holder.SetParent(root, false);
-            var spots = placements.Where(p => p.Model == "Glutkorb" && Mathf.Abs(p.Position.x) < 12f).OrderBy(p => p.Position.z).Select(p => p.Position + Vector3.up * 1.9f).Take(8).ToList();
-            spots.Add(new Vector3(0f, 2.6f, 57.5f));
-            foreach (Vector3 spot in spots)
-            {
-                var light = new GameObject("Glut").AddComponent<Light>();
-                light.transform.SetParent(holder, false);
-                light.transform.localPosition = spot;
-                light.type = LightType.Point;
-                light.shadows = LightShadows.None;
-                light.color = new Color(1f, .56f, .26f);
-                light.range = 6.5f;
-                light.intensity = 1.6f;
-            }
         }
     }
 }

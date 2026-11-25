@@ -25,11 +25,12 @@ namespace AreArpg.EditMode.Tests
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Prefab);
             if (prefab == null || !File.Exists(Placements)) Assert.Ignore("Requires the private Aschenwacht sets");
             int rows = File.ReadAllLines(Placements).Skip(1).Count(line => line.Length > 0);
-            Transform[] holders = prefab.transform.Cast<Transform>().Where(group => group.name != "Feuerlicht").SelectMany(group => group.Cast<Transform>()).ToArray();
+            Transform[] holders = prefab.transform.Cast<Transform>().SelectMany(group => group.Cast<Transform>()).ToArray();
             Assert.AreEqual(rows, holders.Length, "one holder per placement of the two sets");
             Assert.IsTrue(holders.All(h => h.childCount == 1 && h.GetComponentsInChildren<Renderer>(true).Length > 0), "every holder shows its model");
 
             Assert.IsEmpty(prefab.GetComponentsInChildren<Collider>(true), "the rules decide the walk, not physics");
+            Assert.IsEmpty(prefab.GetComponentsInChildren<Light>(true), "the art binding rejects lights; the runtime lights the fire baskets");
             Assert.IsEmpty(prefab.GetComponentsInChildren<MonoBehaviour>(true), "no behaviour runs in the picture");
             Animator[] animators = prefab.GetComponentsInChildren<Animator>(true);
             Assert.AreEqual(1, animators.Length, "only the Aschbeter moves");
