@@ -54,6 +54,7 @@ namespace AreArpg.UnityClient
         private HungerAction[] StoryActions()
         {
             var p = _game.Progression;
+            if (_game.InCourt) return _game.NearCourtTrace.HasValue ? new[] { HungerAction.ReadCourtTrace } : new HungerAction[0];
             if (_game.InJourney) return JourneyActions();
             if (_game.InDungeon) return DungeonActions();
             var freight=FreightActions(); if(freight!=null)return freight;
@@ -89,6 +90,7 @@ namespace AreArpg.UnityClient
                 case HungerAction.StoreBandage: return "AM WESTLICHEN VERBAND: Stoff und Knoten untersuchen";
                 case HungerAction.StoreTracks: return "AN DER SCHLEIFSPUR: Fugen und Staub untersuchen";
                 case HungerAction.InspectSeal: return "AM SIEGEL: Mechanismus und Gefahr untersuchen";
+                case HungerAction.ReadCourtTrace: return "SPUR: " + (_game.NearCourtTrace.HasValue ? _game.NearCourtTrace.Value.Title : "Untersuchen");
                 case HungerAction.OpenDungeonSeal: return "SIEGEL ENTLASTEN: Drei Kryptaebenen erkunden";
                 case HungerAction.BeginDungeonRun: return "AM OFFENEN SIEGEL: Neuen Dungeon-Run beginnen";
                 case HungerAction.BreakDungeonSeal: return "SIEGEL BRECHEN: Krypta betreten - Steinschlaggefahr!";

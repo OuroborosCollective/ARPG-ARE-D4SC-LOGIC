@@ -96,7 +96,7 @@ namespace AreArpg.UnityClient
             if (_game.IsVillage)
                 _message = "Aschengrenze: Lager, Wache und Nordpass. Deine Taten bleiben in Erinnerung.";
             if (_game.Progression.EntryAct == 1)
-                _message = "AKT I: Verlasse die Krypta. Besiege ihre Waechter und sichere die Beute.";
+                _message = CourtLore.Prologue;
             if (_game.Progression.EntryAct == 2)
                 _message = "AKT II: Folge dem Dorfweg. Ilyan hungert; Mara und Dorn erwarten dich.";
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
@@ -1001,7 +1001,7 @@ namespace AreArpg.UnityClient
             // Commit and read back the new checkpoint before changing the active world.
             SaveCharacter(next.Progression);
             if (_storageFault) return;
-            InstallNewRun(next, next.InCourt ? "Du trittst aus der alten Krypta in den Glockenhof. Die Glocke schweigt. Folge dem Pilgerweg hinab zum Dorf." :
+            InstallNewRun(next, next.InCourt ? CourtLore.Arrival :
                 next.Progression.HungerStage > 0 ? next.HungerObjective : next.Progression.EntryAct == 2 ?
                 "AKT II: Folge dem Dorfweg zu Ilyan, Mara und Dorn. Zwei Rationen fehlen." :
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");

@@ -155,7 +155,7 @@ namespace AreArpg.Core
         public const long CampZmm = -6000L;
         public const long NpcInteractionRadiusMm = 2400L;
         public bool AtWorldPassage { get { return !InJourney && !InWoodlandRegion && DistanceSquared(PlayerXmm, PlayerZmm, InCourt ? CourtLayout.ExitXmm : PassageXmm, InCourt ? CourtLayout.ExitZmm : PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
-        /// <summary>The bell court between the old crypt and the village: open air, no fight, the pilgrim path leads on.</summary>
+        /// <summary>Aschenwacht between the old crypt and the village: forecourt and bell court, open air, no fight.</summary>
         public bool InCourt { get { return Progression.EntryAct == 1 && Progression.InCourt; } }
 
         /// <summary>Use the existing passage gate and carry surviving player resources into the next approved world.</summary>
@@ -170,7 +170,7 @@ namespace AreArpg.Core
             next.PlayerHealth = Math.Min(PlayerHealth, next.MaxPlayerHealth);
             next.Resource = Resource;
             for (int i = 0; i < Cooldowns.Length; i++) next.Cooldowns[i] = Cooldowns[i];
-            next.PlayerZmm = next.PrevPlayerZmm = next.Progression.HungerStage > 0 ?
+            next.PlayerZmm = next.PrevPlayerZmm = next.InCourt ? CourtLayout.SpawnZmm : next.Progression.HungerStage > 0 ?
                 (next.Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
             next.BindCompanion(true);
             next.SaveRoadPlayer(); next.SaveInvestigationPlayer(); next.SaveDungeonPlayer();
@@ -182,7 +182,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return InJourney ? (InJourneyCave ? "Seitenhöhle – Ebene " + Progression.Journey.Depth : "Waldweg jenseits von Aschenzoll") : InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : InCourt ? "Der Glockenhof" : Progression.EntryAct == 2 ? (InsidePlace != VillagePlace.None ? VillagePlaceLayout.Name(InsidePlace) + " von Aschengrenze" : "Die Aschengrenze") : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return InJourney ? (InJourneyCave ? "Seitenhöhle – Ebene " + Progression.Journey.Depth : "Waldweg jenseits von Aschenzoll") : InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : InCourt ? (PlayerZmm >= CourtLayout.BellCourtZmm ? "Aschenwacht – Der Glockenhof" : "Aschenwacht – Der entweihte Vorhof") : Progression.EntryAct == 2 ? (InsidePlace != VillagePlace.None ? VillagePlaceLayout.Name(InsidePlace) + " von Aschengrenze" : "Die Aschengrenze") : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -266,7 +266,7 @@ namespace AreArpg.Core
             }
             if (InCourt)
             {
-                // Nothing fights here: the wanderer steps out of the chapel's nave and may look around.
+                // Nothing fights here: the wanderer steps out of the crypt portal and may look around.
                 PlayerXmm = PrevPlayerXmm = CourtLayout.SpawnXmm;
                 PlayerZmm = PrevPlayerZmm = CourtLayout.SpawnZmm;
                 BindForge();

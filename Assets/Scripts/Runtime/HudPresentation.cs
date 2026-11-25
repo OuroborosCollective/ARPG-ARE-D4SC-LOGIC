@@ -377,6 +377,7 @@ namespace AreArpg.UnityClient
         public static string ObjectiveText(ArenaSimulation game)
         {
             if (game.Progression.HungerStage > 0) return game.HungerObjective;
+            if (game.InCourt) return CourtLore.Objective + " Spuren: " + CourtLore.Count(game.Progression.CourtTraces) + "/" + CourtLore.Traces.Length + ".";
             if (game.Progression.EntryAct == 1) return "Verlasse die Krypta. Besiege ihre Wächter und sichere die Beute.";
             if (game.Progression.EntryAct == 2) return "Folge dem Dorfweg: Ilyan hungert, Mara und Dorn erwarten dich.";
             if (game.IsVillage) return "Aschengrenze: Lager, Wache und Nordpass.";
