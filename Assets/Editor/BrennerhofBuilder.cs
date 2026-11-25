@@ -56,7 +56,10 @@ namespace AreArpg.EditorTools
                 foreach (var r in renderers)
                 {
                     if (Living.Contains(Family(r.name))) continue;
-                    Copy(r, world.transform, r.transform.position, r.transform.rotation, r.transform.lossyScale);
+                    var piece = Copy(r, world.transform, r.transform.position, r.transform.rotation, r.transform.lossyScale);
+                    // The pack's wet slate shines like metal at a distance; the ridges on the horizon wear a matte copy.
+                    if (Family(r.name).StartsWith("Fernkamm", StringComparison.Ordinal))
+                        piece.GetComponent<MeshRenderer>().sharedMaterials = r.sharedMaterials.Select(Matte).ToArray();
                     still++;
                 }
                 Save(world, WorldPrefab);
@@ -125,6 +128,23 @@ namespace AreArpg.EditorTools
             renderer.shadowCastingMode = source.shadowCastingMode;
             renderer.receiveShadows = source.receiveShadows;
             return go;
+        }
+
+        /// <summary>A matte, slightly darker copy of a pack material for distant ridges: no metal, little gloss.</summary>
+        private static Material Matte(Material source)
+        {
+            string path = Kit + "/" + source.name + "_Matt.mat";
+            var matte = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (matte == null) { matte = new Material(source); AssetDatabase.CreateAsset(matte, path); }
+            else matte.CopyPropertiesFromMaterial(source);
+            matte.name = source.name + "_Matt";
+            matte.SetTexture("_MetallicGlossMap", null);
+            matte.DisableKeyword("_METALLICSPECGLOSSMAP");
+            matte.SetFloat("_Metallic", 0f);
+            matte.SetFloat("_Smoothness", .12f);
+            if (matte.HasProperty("_BaseColor")) matte.SetColor("_BaseColor", source.GetColor("_BaseColor") * new Color(.82f, .82f, .84f, 1f));
+            EditorUtility.SetDirty(matte);
+            return matte;
         }
 
         /// <summary>

@@ -43,6 +43,8 @@ namespace AreArpg.EditMode.Tests
             Assert.Greater(world.GetComponentsInChildren<MeshRenderer>(true).Length, 300, "every still piece of the pack's scene is kept");
             Assert.IsTrue(world.GetComponentsInChildren<MeshRenderer>(true).Any(r => r.name.StartsWith("Aschenabtei")) &&
                 world.GetComponentsInChildren<MeshRenderer>(true).Count(r => r.name.StartsWith("Bodennebel")) == 6, "horizon and ground fog stand in the yard");
+            Assert.IsTrue(world.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.name.StartsWith("Fernkamm")).SelectMany(r => r.sharedMaterials)
+                .All(m => m.GetFloat("_Metallic") == 0f && m.GetFloat("_Smoothness") <= .2f), "the ridges on the horizon are matte");
 
             foreach (KilnVase vase in KilnYard.Vases)
             {
