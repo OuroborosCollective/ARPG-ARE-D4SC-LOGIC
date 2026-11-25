@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Assets/Editor/ArtForge/Contracts/*.cs" LinkBase="ArtForge" />
+    <Compile Include="../../Assets/Editor/ArtForge/Tests/ArtGraphBehaviorCases.cs" Link="ArtGraphBehaviorCases.cs" />
+  </ItemGroup>
+</Project>

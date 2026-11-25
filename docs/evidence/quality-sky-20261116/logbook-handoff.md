@@ -494,3 +494,26 @@ The canonical owner DOCX reference was not visible through the connected file se
 ### Review follow-up: retain the surviving source wrapper
 
 The repair checks for an existing wrapper with matching source identity even after the earlier legacy wrapper is deleted. It preserves the surviving wrapper's path, GUID and bytes, while retaining the occupied-target guard. Two new deletion regression cases failed before the repair; all nine targeted cases passed afterward with unchanged test code. The complete native acceptance gate and final published-head CI remain separate pending checks.
+
+## 24. November 2026 · Art Forge A, Issue #132
+
+- Lokaler Code `c089fc97ed957fdc4784be35d47892add23c3531`: lesender Vertrag/Canvas über vorhandenen Bau-Modus, Fadenwerk und World Forge; Unity-Studio-Option ausschließlich dokumentiert.
+- Tatsächlich geprüft: 35 C#-Fälle, 62 Preflights, 23.143 Core-Assertions, 49/49 neue native Unity-Fälle sowie 20 synthetische und 24 echte JSON-Replay-UI-Gruppen. Native Gesamtsuite Kandidat 273 PASS / 6 FAIL / 52 SKIP, Baseline 224 / 6 / 52; alle 282 gemeinsamen Testergebnisse einschließlich Meldungen identisch.
+- Echter Snapshot: 163 Knoten aus 25 Jobs, weitere 38 Budgetdiagnosen. Lizenz ungeprüft, Originalquellhash nur laut Receipt. Kein Import oder Approval.
+- Getrennte Testkopie wieder auf Kandidat; generierte getrackte Unity-Einstellungen zurückgesetzt, aktive Editor-Git-Metadaten unverändert. Keine vollständige private Asset-Suite, kein Live-HTTP-/PlayMode-/APK-/Tab-A9-Nachweis.
+- Push/Draft-PR erst nach ausdrücklicher Zustimmung; Merge, aktive Editoränderung und externe Aufträge weiter gesperrt. PR #136 bleibt parallel; vor Veröffentlichung Memory/Übergabe erneut abgleichen.
+- [Prüfbericht und Grenzen](../art-forge-a-20261124/acceptance.md) · [Maschinenlesbarer Readback](../art-forge-a-20261124/readback.json)
+
+## 24. November 2026 · Art Forge A, Reviewkorrekturen PR #137
+
+- Ausdrücklich freigegebener Ausgangsstand `ef4a270…` wurde bereits auf eigener Branch als baumgleiches `0f1720…` mit Draft-PR #137 veröffentlicht. Die anschließende Fortsetzung korrigiert die drei Reviewbefunde und den unzutreffenden Gleichlängen-Testaufbau; der ältere Vor-Push-Bericht bleibt als historischer Beleg erhalten.
+- Native RED-Revision `d4ccaf6118a8c16f914b6ae962432d5f8917df8c`: 49 ArtForge PASS / 8 FAIL. Native GREEN-Revision `5b4602f466352f57de4611eaa907530203299451`, Tree `004ff051687fc1cc004afff67184d57c62619d1d`: 60/60 ArtForge, Core 23.143 und separater C#-Runner 35/35. GitHub-Codeobjekt `0488e5c4c0406bd041a014a6563288a257fe8d0a` hat denselben Tree; Evidence bleibt an die tatsächlich ausgeführte lokale Revision gebunden.
+- Zusätzlich 62 Preflights, 28 finale synthetische Browserfälle und 27 Prüfgruppen mit aufgezeichneten echten Unity-State-/Graphbytes bestanden. Budget-/Cancellation-Tests verwenden ausgewiesene Stream-Testseams; Browser-Replay ist kein Live-HTTP-/Authentifizierungs-/Gerätenachweis.
+- Gesamte native Suite weiter 284 PASS / 6 FAIL / 52 SKIP; alle 282 gemeinsamen Baselineergebnisse samt Meldungen identisch. Unity Exit 2 und Director `TRACKED_WORKTREE_DIRTY` bleiben erhalten. Eigene erzeugte getrackte Settings erst nach terminalem Testende wiederhergestellt, 18 ungetrackte Settings erhalten, keine eigenen Unity-Prozesse/Locks zurückgelassen.
+- Echter Dispatcher: 163 Knoten, 38 Budgetdiagnosen; 10.202 Editorupdates während State-Prüfung. Gemessener maximaler Dispatch in diesem Test 8,409 ms, größter protokollierter kumulativer Startwert aller Tests 41,889 ms. Keine FPS-/Tab-A9-Leistungsbehauptung. Aktiver Editor nur lesend erfasst; HEAD und Diff-Hash gleich GREEN-Baseline, Statusliste parallel verändert ohne Ursachenzuordnung.
+- Nächster Schritt: Feature-Branch mit Dokumentationsnachtrag veröffentlichen, GitHub-CI und tatsächlich behobene Reviewthreads zurücklesen. Merge weiter offen; Live-HTTP/Auth, PlayMode, vollständiges privates Overlay, physisches Gerät und Studio-Pilot brauchen eigene Evidence. PR #136 bleibt getrennt; beide Memory-/Übergabeeinträge bei späterer Integration erhalten.
+- [Review-Nachtrag](../art-forge-a-20261124/review-fixes.md) · [Review-Readback](../art-forge-a-20261124/review-readback.json)
+
+### 2026-11-25 · PR #137
+
+Art Forge gibt Detailplätze beim Graphwechsel frei. Sechs Browserfälle reproduzierten die Blockade. Nach der Korrektur bestanden 73/73 Browserfälle und 66/66 native EditMode-Tests. Nativer Prüftree `401a076888ca615959191f52ea44fc137a32e9bb`, Director `20261125T004520Z-abd5af1043bb`, XML SHA-256 `bd3919c556099d1194c8aad4c062c05c172d7cf5d9941307de7befbf08c91956`. Chromium prüfte eine gesteuerte HTTP-Testumgebung. Die physische Tablet-Prüfung steht aus.

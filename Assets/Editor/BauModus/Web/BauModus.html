@@ -61,6 +61,46 @@ button svg{vertical-align:-6px}#tabs svg,#drawer h3 svg,#action svg{width:18px;h
 #help h2{margin:0 0 8px;color:var(--accent);font-size:18px}#help li{margin:4px 0}
 #legend{position:fixed;left:10px;top:68px;z-index:3;font-size:12px;color:var(--muted);background:rgba(18,20,24,.82);border:1px solid var(--line);border-radius:10px;padding:6px 9px;pointer-events:none}
 @media (max-width:760px){#brand small{display:none}#pill{max-width:40vw}#topbtns .wide{display:none}#notice{display:none}#tools button{min-width:66px;height:58px}#drawer,#action{bottom:76px}}
+/* Art Forge is a read-only view of the same owner-authenticated Bau-Modus page. */
+#artforge{display:none}
+.art-view #top,.art-view #map,.art-view #legend,.art-view #notice,.art-view #tools,.art-view #drawer,.art-view #popup,.art-view #action,.art-view #help,.art-view #busy{display:none!important}
+.art-view #artforge{position:fixed;inset:0;z-index:10;display:grid;grid-template-rows:auto auto auto minmax(0,1fr);background:var(--bg)}
+.art-view button,.art-view select,.art-view input,.art-link,#artopen{min-height:44px;min-width:44px}
+.art-view :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.art-link{display:inline-flex;align-items:center;justify-content:center;color:var(--text);text-decoration:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:14px;touch-action:manipulation}
+#arthead{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+#arthead h1{font-size:19px;margin:0;line-height:1.2}#arthead small{display:block;color:var(--muted);font-size:11px;letter-spacing:.08em;margin-bottom:4px}
+.art-badge{color:var(--blue);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;white-space:nowrap}
+#artfilters{display:flex;gap:10px;align-items:end;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+#artfilters label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+#artfilters label:first-child{flex:1;min-width:150px}
+#artfilters input,#artfilters select{width:100%;max-width:none;font:inherit;font-size:14px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+#artfilters label:not(:first-child){flex:0 1 180px}#artrefresh{flex:none}
+#artstatus{padding:9px 16px;margin:0;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);overflow-wrap:anywhere;max-height:92px;overflow:auto}
+#artstatus[data-error="true"]{color:var(--warn)}
+#artworkspace{display:grid;grid-template-columns:minmax(0,1fr) 300px;min-height:0}
+#artcanvas{display:grid;grid-template-rows:auto minmax(0,1fr);min-width:0;min-height:0}
+#artcanvashead{padding:10px 16px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+#artcanvashead h2{font-size:14px;margin:0}#artcount,#artcanvashead p{font-size:12px;margin:0;color:var(--muted)}
+#artscroll{position:relative;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y;min-height:0;background-image:radial-gradient(var(--line) .7px,transparent .7px);background-size:20px 20px}
+#artnodes{position:relative;min-width:100%;min-height:100%}
+#artedges{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.art-node{position:absolute;width:224px;height:156px;text-align:left;display:flex;flex-direction:column;gap:7px;padding:12px;border-radius:10px;background:var(--panel);box-shadow:0 2px 6px #0003;overflow:hidden}
+.art-node strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25;font-size:14px;overflow-wrap:anywhere}
+.art-node .art-kind{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.art-node .art-variant{font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%}
+.art-node .art-review{margin-top:auto;font-size:12px;color:var(--warn)}
+.art-node .art-license{font-size:11px;color:var(--muted)}
+.art-node[aria-pressed="true"]{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.art-node.art-context{border-style:dashed}
+.art-empty{padding:28px 20px;max-width:500px;line-height:1.5}.art-empty h3{margin:0 0 8px;font-size:17px}.art-empty p{color:var(--muted);margin:0}
+#artdetail{border-left:1px solid var(--line);padding:16px;overflow:auto;overscroll-behavior:contain;min-height:0;background:var(--panel);user-select:text;-webkit-user-select:text}
+#artdetail h2{font-size:18px;margin:0 0 12px;overflow-wrap:anywhere}#artdetail h3{font-size:13px;margin:20px 0 8px;color:var(--accent)}
+#artdetail p{font-size:13px;margin:8px 0;overflow-wrap:anywhere}#artdetail dl{margin:0;font-size:12px}#artdetail dt{color:var(--muted);margin-top:12px}#artdetail dd{margin:4px 0 0;overflow-wrap:anywhere;white-space:pre-wrap}
+#artdetail code{font-size:11px;overflow-wrap:anywhere}#artdetail details{margin-top:18px;border-top:1px solid var(--line);padding-top:8px}#artdetail summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:13px;color:var(--muted)}
+.art-relations{display:flex;flex-direction:column;gap:7px}.art-relations button{text-align:left;font-size:13px;overflow-wrap:anywhere}
+@media(max-width:880px){#artworkspace{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(190px,1.1fr) minmax(170px,1fr)}#artdetail{border-left:0;border-top:1px solid var(--line)}#artfilters{gap:8px;padding:10px 12px}#arthead{padding:10px 12px}#artfilters label:not(:first-child){flex:1 1 120px}#artfilters label:first-child{flex-basis:100%}#arthead h1{font-size:17px}}
+@media(max-width:420px){#arthead{gap:8px}#arthead .art-badge{padding:4px;font-size:11px}#arthead .art-link{padding:8px;font-size:12px}#artfilters label:not(:first-child){flex-basis:95px}#artrefresh{padding:8px;font-size:12px}#artworkspace{grid-template-rows:minmax(145px,1fr) minmax(135px,.8fr)}#arthead small{font-size:10px}#artstatus{font-size:12px}}
 </style>
 </head>
 <body>
@@ -70,6 +110,7 @@ button svg{vertical-align:-6px}#tabs svg,#drawer h3 svg,#action svg{width:18px;h
   <div id="pill" class="off"><i></i><span id="pilltext">Verbinde mit Unity …</span></div>
   <div class="grow"></div>
   <div id="topbtns">
+    <a id="artopen" class="art-link" href="?bau&amp;art">Asset-Werkstatt</a>
     <button id="undo" title="Rückgängig (Strg+Z)">↶<span class="wide"> Rückgängig</span></button>
     <button id="rotate" title="Ansicht um 90° drehen">⟳<span class="wide"> Ansicht</span></button>
     <button id="redraw" class="wide" title="Hintergrund aus Unity neu zeichnen"></button>
@@ -85,6 +126,27 @@ button svg{vertical-align:-6px}#tabs svg,#drawer h3 svg,#action svg{width:18px;h
 <section id="drawer"></section>
 <div id="popup"><h3 id="poptitle">Was soll hier hin?</h3><div id="tabs"></div><div class="grid" id="popgrid"></div></div>
 <div id="action"></div>
+<main id="artforge" aria-label="Asset-Werkstatt">
+  <header id="arthead">
+    <div><small>ASHEN CRYPT · BAU-MODUS</small><h1>Asset-Werkstatt</h1></div>
+    <span class="art-badge">Nur lesen</span><div class="grow"></div>
+    <a class="art-link" href="?bau">Zum Bau-Modus</a>
+  </header>
+  <form id="artfilters" role="search">
+    <label for="artsearch">Assets suchen<input id="artsearch" type="search" autocomplete="off" placeholder="Name, ID oder Variante"></label>
+    <label for="artcategory">Kategorie<select id="artcategory"><option value="">Alle Kategorien</option><option value="figures">Figuren</option><option value="creatures">Kreaturen</option><option value="weapons">Waffen</option><option value="armor">Rüstungen</option><option value="props">Props</option><option value="materials">Materialien</option><option value="animations">Animationen</option></select></label>
+    <label for="artvariant">Varianten<select id="artvariant"><option value="">Alle Varianten</option></select></label>
+    <button id="artrefresh" type="button">Neu laden</button>
+  </form>
+  <p id="artstatus" role="status" aria-live="polite">Herkunft und Revision werden geladen …</p>
+  <div id="artworkspace">
+    <section id="artcanvas" aria-labelledby="artcanvastitle">
+      <header id="artcanvashead"><h2 id="artcanvastitle">Herkunft &amp; Varianten</h2><span id="artcount"></span><p>Wischen zum Verschieben · Knoten antippen für Details</p></header>
+      <div id="artscroll" tabindex="0" aria-label="Asset-Graph, horizontal und vertikal scrollbar"><div id="artnodes"></div></div>
+    </section>
+    <aside id="artdetail" aria-label="Asset-Details"><h2>Asset-Details</h2><p>Einen Knoten antippen, um Herkunft, Prüfsummen und Lizenzbelege zu lesen.</p></aside>
+  </div>
+</main>
 <div id="toast"></div>
 <div id="busy"><div><span class="spin"></span><span id="busytext">Unity arbeitet …</span></div></div>
 <div id="login"><div><h2 style="margin:0;color:var(--accent)">Bau-Modus</h2><p>Zugangsschlüssel aus dem Unity-Fenster <i>Fadenwerk → Einstellungen</i> eingeben (oder über den geschützten Link öffnen).</p><input id="tok" type="password" autocomplete="off" placeholder="Zugangsschlüssel"><button class="primary" id="tokbtn">Verbinden</button></div></div>
@@ -106,6 +168,9 @@ button svg{vertical-align:-6px}#tabs svg,#drawer h3 svg,#action svg{width:18px;h
 <script>
 "use strict";
 const $ = s => document.querySelector(s);
+const ART_MODE = new URLSearchParams(location.search).has("art");
+document.body.classList.toggle("art-view", ART_MODE);
+if (ART_MODE) document.querySelector('meta[name="viewport"]').content = "width=device-width,initial-scale=1";
 const R2 = Math.SQRT2, COS30 = 0.8660254;
 const S = {
   token: "", areas: [], area: "", extent: 40, cats: [], entries: [], byKey: {}, forestKeys: [],
@@ -149,15 +214,18 @@ function readToken() {
   try { S.token = localStorage.getItem("fw.token") || ""; } catch (e) { S.token = ""; }
   return !!S.token;
 }
-async function api(path, body) {
+async function api(path, body, signal) {
+  if (ART_MODE && (!path.startsWith("art/") || body !== undefined))
+    throw new Error("Die Asset-Werkstatt erlaubt ausschließlich lesende Art-Abfragen.");
   const o = { method: body === undefined ? "GET" : "POST", headers: { "X-Fadenwerk-Token": S.token } };
+  if (signal) o.signal = signal;
   if (body !== undefined) { o.headers["Content-Type"] = "application/json"; o.body = JSON.stringify(body); }
   let res;
   try { res = await fetch("./api/x/" + path, o); }
   catch (e) { throw Object.assign(new Error("Unity ist nicht erreichbar."), { status: 0 }); }
   let data = null;
   try { data = await res.json(); } catch (e) {}
-  if (res.status === 401) { showLogin(); throw Object.assign(new Error("Zugangsschlüssel fehlt oder ist falsch."), { status: 401 }); }
+  if (res.status === 401) { if (!ART_MODE) showLogin(); throw Object.assign(new Error("Zugangsschlüssel fehlt oder ist falsch."), { status: 401 }); }
   if (!res.ok || (data && data.ok === false)) {
     const err = new Error((data && data.error) || ("Fehler " + res.status));
     err.status = res.status; err.data = data; throw err;
@@ -165,6 +233,7 @@ async function api(path, body) {
   return data;
 }
 async function apiBlob(path, tries) {
+  if (ART_MODE) return null;
   for (let i = 0; i < (tries || 6); i++) {
     let res;
     try { res = await fetch("./api/x/" + path, { headers: { "X-Fadenwerk-Token": S.token } }); } catch (e) { return null; }
@@ -218,6 +287,7 @@ function clampArea(v) { return Math.max(-S.extent, Math.min(S.extent, v)); }
 
 // ------------------------------------------------------------------ boot
 async function boot() {
+  if (ART_MODE) { await artBoot(); return; }
   if (!readToken()) { showLogin(); return; }
   $("#login").style.display = "none";
   try {
@@ -363,7 +433,7 @@ function resize() {
   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   draw();
 }
-window.addEventListener("resize", () => { const c = W ? s2w(W / 2, H / 2) : [0, 0]; resize(); centerOn(c[0], c[1]); draw(); });
+window.addEventListener("resize", () => { if (ART_MODE) return; const c = W ? s2w(W / 2, H / 2) : [0, 0]; resize(); centerOn(c[0], c[1]); draw(); });
 function fitView() {
   const e = S.extent; let u0 = 1e9, u1 = -1e9, v0 = 1e9, v1 = -1e9;
   for (const x of [-e, e]) for (const z of [-e, e]) { const p = uv(x, z, 0); u0 = Math.min(u0, p[0]); u1 = Math.max(u1, p[0]); v0 = Math.min(v0, p[1]); v1 = Math.max(v1, p[1]); }
@@ -799,6 +869,7 @@ cv.addEventListener("wheel", ev => {
   draw();
 }, { passive: false });
 window.addEventListener("keydown", ev => {
+  if (ART_MODE) return;
   if (ev.target && (ev.target.tagName === "INPUT" || ev.target.tagName === "SELECT")) return;
   const k = ev.key.toLowerCase();
   if ((ev.ctrlKey || ev.metaKey) && k === "z") { ev.preventDefault(); undo(); return; }
@@ -822,9 +893,257 @@ $("#helpok").onclick = () => $("#help").style.display = "none";
 $("#help").onclick = ev => { if (ev.target.id === "help") $("#help").style.display = "none"; };
 $("#noticeok").onclick = () => { $("#notice").style.display = "none"; try { localStorage.setItem("bau.noticeSeen", "1"); } catch (e) {} };
 
+// ------------------------------------------------------------------ Art Forge (read-only, no build or render commands)
+const ART_CATEGORIES = { figures: "Figuren", creatures: "Kreaturen", weapons: "Waffen", armor: "Rüstungen", props: "Props", materials: "Materialien", animations: "Animationen" };
+const ART_KINDS = { source: "Quelle", concept: "Konzept", mesh: "Modell", material: "Material", rig: "Rig", animation: "Animation", preview: "Vorschau" };
+const A = { graph: null, selected: "", loading: false, epoch: 0, detailRequest: 0, detailReads: null, buttons: new Map() };
+function artText(tag, value, cls) { const el = document.createElement(tag); el.textContent = value == null ? "" : String(value); if (cls) el.className = cls; return el; }
+function artStatus(message, error) { const el = $("#artstatus"); el.textContent = message; el.dataset.error = error ? "true" : "false"; }
+function artIdentity(data, expected) {
+  if (!data || data.ok !== true || data.readOnly !== true || !/^[a-f0-9]{40}$/.test(data.projectSha || "") || !/^[a-f0-9]{64}$/.test(data.graphRevision || ""))
+    throw new Error("Die Herkunftsantwort enthält keine gültige Projekt- und Graphrevision.");
+  if (expected && (data.projectSha !== expected.projectSha || data.graphRevision !== expected.graphRevision))
+    throw Object.assign(new Error("Der Herkunftsstand hat sich geändert. Bitte neu laden."), { status: 409 });
+  return data;
+}
+function artQuery(identity, id) {
+  const q = new URLSearchParams({ expectedProjectSha: identity.projectSha, expectedGraphRevision: identity.graphRevision });
+  if (id !== undefined) q.set("id", id);
+  return q.toString();
+}
+function artClear(title, message) {
+  if (A.detailReads) A.detailReads.queued = null;
+  A.detailReads = { active: 0, queued: null };
+  A.graph = null; A.selected = ""; A.detailRequest++; A.buttons.clear();
+  const stage = $("#artnodes"); stage.replaceChildren(); stage.style.width = ""; stage.style.height = "";
+  const empty = artText("div", "", "art-empty"); empty.append(artText("h3", title), artText("p", message)); stage.append(empty);
+  $("#artcount").textContent = "";
+  $("#artdetail").replaceChildren(artText("h2", "Asset-Details"), artText("p", "Es ist kein aktuell verifizierter Graph ausgewählt."));
+}
+function artAbandon(path, ticket) {
+  // Only a bound transport ticket is abandoned; no asset or project mutation.
+  if (!path.startsWith("art/") || !/^[a-f0-9]{32}$/.test(ticket)) return;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2000);
+  fetch("./api/x/" + path + (path.includes("?") ? "&" : "?") + "scanId=" + ticket + "&cancelScan=1",
+    { method: "GET", headers: { "X-Fadenwerk-Token": S.token }, signal: controller.signal })
+    .catch(() => {}).finally(() => clearTimeout(timer));
+}
+async function artApi(path, epoch, graph) {
+  const controller = new AbortController(), started = performance.now();
+  const timeout = () => Object.assign(new Error("Die Herkunftsprüfung dauert zu lange. Bitte neu laden."), { status: 408 });
+  const current = () => epoch === A.epoch && (!graph || A.graph === graph);
+  const abandoned = () => new DOMException("Diese Ansicht wurde ersetzt.", "AbortError");
+  const timer = setTimeout(() => controller.abort(), 40000);
+  let ticket = "", polls = 0, delay = 200, terminal = false;
+  try {
+    while (true) {
+      if (!current()) throw abandoned();
+      if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+      if (ticket) {
+        if (polls >= 150) throw timeout();
+        await sleep(Math.min(delay, 40000 - (performance.now() - started)));
+        if (!current()) throw abandoned();
+        if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+        polls++;
+      }
+      try {
+        const data = await api(path + (ticket ? (path.includes("?") ? "&" : "?") + "scanId=" + ticket : ""), undefined, controller.signal);
+        terminal = true;
+        if (!current()) throw abandoned();
+        if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+        return data;
+      } catch (error) {
+        const pending = error.data;
+        // A valid ticket may arrive after a reload. Remember it before the epoch
+        // check so even that late response can be abandoned.
+        if (error.status === 202 && pending && pending.code === "ART_SCAN_PENDING") {
+          if (pending.ok !== false || pending.readOnly !== true || !/^[a-f0-9]{32}$/.test(pending.scanId || "") ||
+              (ticket && pending.scanId !== ticket)) throw new Error("Unity hat keinen gültigen, unveränderten Prüfauftrag geliefert. Bitte neu laden.");
+          ticket = pending.scanId;
+          if (!current()) throw abandoned();
+          if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+          delay = Math.max(100, Math.min(1000, Number.isFinite(pending.retryAfterMs) ? pending.retryAfterMs : 200));
+          continue;
+        }
+        // A terminal HTTP response generally consumes or rejects the ticket.
+        // EDITOR_BUSY precedes polling and still leaves its ticket live.
+        if (error.status > 0 && error.status !== 202 &&
+            !(error.status === 503 && pending?.code === "EDITOR_BUSY")) terminal = true;
+        if (!current()) throw abandoned();
+        if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+        throw error;
+      }
+    }
+  } finally {
+    clearTimeout(timer);
+    if (ticket && !terminal) artAbandon(path, ticket);
+  }
+}
+async function artBoot() {
+  if (!readToken()) { showLogin(); return; }
+  $("#login").style.display = "none";
+  if (A.loading) return;
+  A.loading = true; const epoch = ++A.epoch;
+  $("#artrefresh").disabled = true; $("#artcanvas").setAttribute("aria-busy", "true");
+  artClear("Herkunft wird gelesen", "World-Forge-Belege und Projektstand werden geprüft.");
+  artStatus("Herkunft und Revision werden geladen …", false);
+  try {
+    const state = artIdentity(await artApi("art/state", epoch));
+    const graph = artIdentity(await artApi("art/graph?" + artQuery(state), epoch), state);
+    if (graph.schema !== "ashen.art-graph.v1" || !Array.isArray(graph.nodes)) throw new Error("Nicht unterstützter Asset-Graph-Vertrag.");
+    if (epoch !== A.epoch) return;
+    A.graph = graph;
+    const select = $("#artvariant"), previous = select.value;
+    select.replaceChildren(new Option("Alle Varianten", ""));
+    const groups = [...new Set(graph.nodes.map(n => n.variantGroup).filter(Boolean))].sort();
+    for (const group of groups) select.add(new Option(group, group));
+    select.value = groups.includes(previous) ? previous : "";
+    renderArtGraph();
+    const diagnostics = (graph.diagnostics || []).map(d => [d.code, d.message].filter(Boolean).join(": ")).join(" · ");
+    artStatus(diagnostics || "Lesender Herkunftsindex · Freigaben und Importe sind hier nicht möglich. Lizenzbelege bleiben gesondert prüfbar.", !!diagnostics);
+  } catch (e) {
+    if (epoch !== A.epoch) return;
+    if (e.status === 401) showLogin();
+    artClear(e.status === 409 ? "Stand geändert" : "Graph nicht verfügbar", e.status === 409 ? "Die bisherige Ansicht wurde verworfen. Mit „Neu laden“ den aktuellen Stand erneut prüfen." : e.message);
+    artStatus(e.status === 409 ? "Projekt- oder Graphrevision stimmt nicht mehr überein. Bitte neu laden." : e.message, true);
+  } finally {
+    if (epoch === A.epoch) { A.loading = false; $("#artrefresh").disabled = false; $("#artcanvas").setAttribute("aria-busy", "false"); }
+  }
+}
+function artLayers(nodes) {
+  const byId = new Map(), depth = new Map();
+  for (const n of nodes) {
+    if (!n || typeof n.id !== "string" || byId.has(n.id) || !Array.isArray(n.parentIds)) throw new Error("Ungültige Graphknoten. Bitte Herkunft prüfen.");
+    byId.set(n.id, n);
+  }
+  const pending = new Set(byId.keys());
+  while (pending.size) {
+    let progress = false;
+    for (const id of pending) {
+      const parents = byId.get(id).parentIds;
+      if (parents.some(p => !byId.has(p))) throw new Error("Ein Herkunftsknoten fehlt. Der Graph wird nicht dargestellt.");
+      if (parents.every(p => depth.has(p))) { depth.set(id, parents.length ? 1 + Math.max(...parents.map(p => depth.get(p))) : 0); pending.delete(id); progress = true; }
+    }
+    if (!progress) throw new Error("Der Herkunftsgraph enthält einen Zyklus und wird nicht dargestellt.");
+  }
+  return { byId, depth };
+}
+function renderArtGraph() {
+  if (!A.graph) return;
+  const stage = $("#artnodes"); stage.replaceChildren(); A.buttons.clear();
+  const nodes = A.graph.nodes, { byId, depth } = artLayers(nodes);
+  const search = $("#artsearch").value.trim().toLowerCase(), category = $("#artcategory").value, variant = $("#artvariant").value;
+  const matches = nodes.filter(n => (!category || n.category === category) && (!variant || n.variantGroup === variant) && (!search || [n.label, n.id, n.variantGroup].join(" ").toLowerCase().includes(search)));
+  const shown = new Set(matches.map(n => n.id)), direct = new Set(shown), queue = [...shown];
+  while (queue.length) for (const p of byId.get(queue.pop()).parentIds) if (!shown.has(p)) { shown.add(p); queue.push(p); }
+  $("#artcount").textContent = matches.length + " Treffer" + (shown.size > matches.length ? " · " + (shown.size - matches.length) + " Vorstufen" : "");
+  if (!shown.size) {
+    stage.style.width = ""; stage.style.height = "";
+    const empty = artText("div", "", "art-empty");
+    empty.append(artText("h3", nodes.length ? "Keine passenden Assets" : "Noch kein Herkunftsgraph"), artText("p", nodes.length ? "Suche oder Filter ändern. Die Quelldaten bleiben unverändert." : "Für diesen Stand sind noch keine lesbaren Asset-Belege vorhanden. Es werden keine Beispielmodelle oder Freigaben ergänzt."));
+    stage.append(empty); return;
+  }
+  const columns = new Map(), positions = new Map();
+  for (const n of [...nodes].filter(n => shown.has(n.id)).sort((a,b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) {
+    const d = depth.get(n.id); if (!columns.has(d)) columns.set(d, []); columns.get(d).push(n);
+  }
+  const depths = [...columns.keys()].sort((a,b) => a-b);
+  let maxRows = 1;
+  depths.forEach((d,x) => { const col = columns.get(d); maxRows = Math.max(maxRows, col.length); col.forEach((n,y) => positions.set(n.id, { x: 20 + x*264, y: 20 + y*176 })); });
+  const width = depths.length*264 + 16, height = maxRows*176 + 24;
+  stage.style.width = width + "px"; stage.style.height = height + "px";
+  const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+  svg.id = "artedges"; svg.setAttribute("width", width); svg.setAttribute("height", height); svg.setAttribute("aria-hidden", "true");
+  const defs = document.createElementNS(ns, "defs"), marker = document.createElementNS(ns, "marker"), arrow = document.createElementNS(ns, "path");
+  marker.id = "artarrow"; marker.setAttribute("viewBox", "0 0 10 10"); marker.setAttribute("refX", "9"); marker.setAttribute("refY", "5"); marker.setAttribute("markerWidth", "6"); marker.setAttribute("markerHeight", "6"); marker.setAttribute("orient", "auto"); arrow.setAttribute("d", "M 0 0 L 10 5 L 0 10 z"); arrow.setAttribute("fill", "var(--muted)"); marker.append(arrow); defs.append(marker); svg.append(defs); stage.append(svg);
+  for (const n of nodes.filter(n => shown.has(n.id))) {
+    const pos = positions.get(n.id);
+    for (const id of n.parentIds) {
+      const p = positions.get(id), path = document.createElementNS(ns, "path");
+      const x1 = p.x + 224, x2 = pos.x, y1 = p.y + 78, y2 = pos.y + 78, mid = (x1+x2)/2;
+      path.setAttribute("d", "M"+x1+","+y1+" C"+mid+","+y1+" "+mid+","+y2+" "+(x2-4)+","+y2); path.setAttribute("fill", "none"); path.setAttribute("stroke", "var(--muted)"); path.setAttribute("stroke-width", "1.5"); path.setAttribute("marker-end", "url(#artarrow)"); svg.append(path);
+    }
+    const b = artText("button", "", "art-node" + (direct.has(n.id) ? "" : " art-context")); b.type = "button";
+    b.style.left = pos.x + "px"; b.style.top = pos.y + "px"; b.setAttribute("aria-pressed", n.id === A.selected ? "true" : "false"); b.title = n.label || n.id;
+    b.append(artText("span", (ART_KINDS[n.kind] || n.kind) + " · " + (ART_CATEGORIES[n.category] || n.category), "art-kind"), artText("strong", n.label || n.id), artText("span", n.variantGroup || n.id, "art-variant"), artText("span", n.reviewState === "protected" ? "Geschützt · zuständiger Owner" : "Prüfung erforderlich", "art-review"), artText("span", n.license && n.license.state === "documented" ? "Lizenzbeleg hinterlegt" : "Lizenz ungeprüft", "art-license"));
+    b.onclick = () => selectArtNode(n.id); A.buttons.set(n.id,b); stage.append(b);
+  }
+}
+async function selectArtNode(id, reveal) {
+  if (!A.graph || A.loading) return;
+  const graph = A.graph, request = ++A.detailRequest, epoch = A.epoch;
+  A.selected = id;
+  if (reveal && !A.buttons.has(id)) { $("#artsearch").value = ""; $("#artcategory").value = ""; $("#artvariant").value = ""; renderArtGraph(); }
+  for (const [nodeId, b] of A.buttons) b.setAttribute("aria-pressed", nodeId === id ? "true" : "false");
+  if (reveal && A.buttons.has(id)) A.buttons.get(id).scrollIntoView({ block: "nearest", inline: "nearest" });
+  $("#artdetail").replaceChildren(artText("h2", "Details werden gelesen …"));
+  const reads = A.detailReads, work = { id, graph, request, epoch, reads };
+  // Keep two overlapping reads so an older 409 still invalidates the graph.
+  // Further fast taps coalesce to the latest selection, not another hash scan.
+  if (reads.active >= 2) { reads.queued = work; return; }
+  return readArtDetail(work);
+}
+async function readArtDetail(work) {
+  const { id, graph, request, epoch, reads } = work;
+  reads.active++;
+  try {
+    const detail = artIdentity(await artApi("art/asset?" + artQuery(graph, id), epoch, graph), graph);
+    if (request !== A.detailRequest || epoch !== A.epoch) return;
+    if (!detail.node || detail.node.id !== id) throw new Error("Die Asset-Antwort gehört nicht zum ausgewählten Knoten.");
+    renderArtDetails(detail.node);
+  } catch (e) {
+    // A conflict invalidates the active graph even after another node was selected.
+    // Responses from a previous reload must never clear its replacement graph.
+    if (epoch !== A.epoch || A.graph !== graph) return;
+    if (e.status === 409) { artClear("Stand geändert", "Die angezeigte Herkunft ist nicht mehr aktuell. Bitte neu laden."); artStatus("Projekt- oder Graphrevision hat sich geändert. Die alte Ansicht wurde verworfen.", true); }
+    else if (e.status === 410) { artClear("Prüfung nicht mehr verfügbar", "Der Prüfauftrag ist abgelaufen oder wurde freigegeben. Die Herkunft muss erneut gelesen werden."); artStatus("Die Aktualität des bisherigen Graphen ist nicht mehr belegt. Bitte neu laden.", true); }
+    else if (request === A.detailRequest) {
+      if (e.status === 401) showLogin();
+      $("#artdetail").replaceChildren(artText("h2", "Details nicht verfügbar"), artText("p", e.message));
+      artStatus("Zuvor gelesener Graph · Aktualität dieser Ansicht derzeit unbelegt. " + e.message, true);
+    }
+  } finally {
+    // Return the slot to the graph that started this read, even after a reload.
+    reads.active--;
+    const queued = reads.queued;
+    reads.queued = null;
+    if (queued && queued.epoch === A.epoch && queued.graph === A.graph && queued.request === A.detailRequest)
+      void readArtDetail(queued);
+  }
+}
+function renderArtDetails(node) {
+  const target = $("#artdetail"), license = node.license || {}, provenance = node.provenance || {};
+  target.replaceChildren(artText("h2", node.label || node.id)); target.scrollTop = 0;
+  target.append(artText("p", node.reviewState === "protected" ? "Geschützt. Dieses Asset bleibt beim bestehenden Figuren-, Equipment- oder World-Forge-Owner." : "Prüfung erforderlich. Dieser Index erteilt keine Import- oder Verwendungsfreigabe."));
+  function field(list, label, value, hash) { const dd = artText("dd", hash ? "" : value || "Nicht belegt"); if (hash) dd.append(artText("code", value || "Nicht belegt")); list.append(artText("dt", label), dd); }
+  const basic = document.createElement("dl"); field(basic, "Knoten-ID", node.id); field(basic, "Typ / Kategorie", (ART_KINDS[node.kind] || node.kind) + " / " + (ART_CATEGORIES[node.category] || node.category)); field(basic, "Variantengruppe", node.variantGroup); target.append(basic);
+  target.append(artText("h3", "Herkunft & Lizenz"));
+  const source = document.createElement("dl"); field(source, "Autor / Anbieter", provenance.provider); field(source, "Original- / Quellenreferenz", provenance.sourceRef); field(source, "Lizenzstatus", license.state === "documented" ? "Beleg hinterlegt; keine automatische Freigabe" : "Ungeprüft"); field(source, "Lizenz / Rechte", license.identifier); field(source, "Rechtebeleg", license.evidenceRef); target.append(source);
+  target.append(artText("p", "Der Hash der Originalquelle stammt aus dem Exportbeleg. Die Originaldatei wurde hier nicht selbst gelesen. Der Artefakthash wurde gegen die vorhandenen Datei-Bytes geprüft."));
+  function relations(title, nodes) {
+    target.append(artText("h3", title));
+    if (!nodes.length) { target.append(artText("p", "Keine verknüpften Knoten.")); return; }
+    const list = artText("div", "", "art-relations");
+    for (const n of nodes) { const b = artText("button", n.label || n.id); b.type = "button"; b.onclick = () => selectArtNode(n.id, true); list.append(b); }
+    target.append(list);
+  }
+  relations("Abgeleitet von", A.graph.nodes.filter(n => node.parentIds.includes(n.id)));
+  relations("Ableitungen", A.graph.nodes.filter(n => n.parentIds.includes(node.id)));
+  if (node.variantGroup) relations("Weitere Varianten", A.graph.nodes.filter(n => n.id !== node.id && n.variantGroup === node.variantGroup));
+  const evidence = document.createElement("details"), hashes = document.createElement("dl"); evidence.append(artText("summary", "Vollständige Prüfsummen & Revision"));
+  field(hashes, "Artefakt · SHA-256 (Datei-Bytes geprüft)", node.artifactSha256, true); field(hashes, "Originalquelle · SHA-256 laut Exportbeleg", provenance.sourceSha256, true); field(hashes, "World-Forge-Beleg · SHA-256", provenance.receiptSha256, true); field(hashes, "Projekt · Git-SHA", A.graph.projectSha, true); field(hashes, "Graphrevision · SHA-256", A.graph.graphRevision, true); evidence.append(hashes); target.append(evidence);
+  target.append(artText("p", "Diese erste Ansicht zeigt Beziehungen und Belege. 3D-, Material- und Animationsvorschauen folgen in einem späteren Lieferblock."));
+}
+$("#artfilters").onsubmit = ev => ev.preventDefault();
+$("#artsearch").oninput = () => renderArtGraph();
+$("#artcategory").onchange = () => renderArtGraph();
+$("#artvariant").onchange = () => renderArtGraph();
+$("#artrefresh").onclick = () => artBoot();
+
 $("#redraw").innerHTML = icon("map") + " Karte";
 $("#real").innerHTML = icon("camera") + " Echtbild";
-resize();
+if (!ART_MODE) resize();
 boot();
 </script>
 </body>

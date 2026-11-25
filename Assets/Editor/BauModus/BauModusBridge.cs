@@ -80,6 +80,8 @@ public static class BauModusBridge
 
     static FadenwerkExtensionReply Handle(string method, string path, string body, IDictionary<string, string> query)
     {
+        if (path != null && path.StartsWith("art/", StringComparison.Ordinal))
+            return AshenCrypt.ArtForge.ArtForgeCanvasController.Handle(method, path, body, query);
         if (method == "GET")
         {
             switch (path)
