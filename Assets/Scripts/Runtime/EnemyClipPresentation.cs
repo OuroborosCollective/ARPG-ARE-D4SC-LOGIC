@@ -124,8 +124,10 @@ namespace AreArpg.UnityClient
                 var state = animator.GetCurrentAnimatorStateInfo(0);
                 if (state.shortNameHash != EnemyDeathState && animator.IsInTransition(0))
                     state = animator.GetNextAnimatorStateInfo(0);
-                if (state.shortNameHash == EnemyDeathState)
-                    clips.MeasuredDeathSeconds = Mathf.Max(clips.MeasuredDeathSeconds, state.length);
+                // During hit-stop Unity can report an infinite state length until the animator resumes.
+                float length = state.length;
+                if (state.shortNameHash == EnemyDeathState && length > 0f && !float.IsInfinity(length))
+                    clips.MeasuredDeathSeconds = Mathf.Max(clips.MeasuredDeathSeconds, length);
             }
             float duration = clips.MeasuredDeathSeconds > 0f ? clips.MeasuredDeathSeconds : FallbackDeathSeconds;
             float t = Time.time - start, down = duration + EnemyLieSeconds;

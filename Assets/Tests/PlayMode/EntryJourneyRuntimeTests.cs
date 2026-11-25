@@ -303,6 +303,10 @@ namespace AreArpg.PlayMode.Tests
             enemy.Xmm = Game.PlayerXmm + 1000; enemy.Zmm = Game.PlayerZmm; enemy.Health = 1000;
             var queue = (System.Collections.Generic.Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills", Flags).GetValue(_runtime);
             queue.Enqueue(0); TickOnce();
+            // The accepted strike reaches its impact after the weapon's Core windup.
+            int startup = CombatV2Rules.Primary(Game.Progression.Equipment.Weapon?.Definition).Startup;
+            for (int tick = 0; tick <= startup && Game.ActionKind == CombatActionKind.Strike && enemy.Health == 1000; tick++)
+                TickOnce();
             Assert.Less(enemy.Health, 1000);
             ulong hash = Game.ComputeWorldHash();
             // Hold the presentation movement input while independently inspecting this animation boundary.

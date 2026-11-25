@@ -144,6 +144,44 @@ namespace AreArpg.PlayMode.Tests
             yield return Capture("combat-level-up.png", true);
         }
 
+        [UnityTest]
+        public IEnumerator EnemyDeathFinishesAfterAnimatorHitStop()
+        {
+            var enemy = Game.Monsters.Find(m => !m.IsDead && ClipEnemy(Find("Enemy_" + m.Id)) != null);
+            if (enemy == null && string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("ARE_ENTRY_EVIDENCE_DIR")))
+                Assert.Ignore("No spawned enemy has a bound death animator.");
+            Assert.IsNotNull(enemy, "Native character acceptance requires a living enemy with an animated defeat.");
+            _runtime.enabled = false;
+            UseFrameClock(.05f);
+            enemy.Xmm = enemy.PreviousXmm = Game.PlayerXmm + 1700;
+            enemy.Zmm = enemy.PreviousZmm = Game.PlayerZmm;
+            var visual = Find("Enemy_" + enemy.Id);
+            var animator = ClipEnemy(visual);
+
+            yield return EnemyFrames(6);
+            enemy.Health = 0;
+            for (int frame = 0; frame < 20 && !animator.GetCurrentAnimatorStateInfo(0).IsName("Death"); frame++)
+                yield return EnemyFrames(1);
+            var death = animator.GetCurrentAnimatorStateInfo(0);
+            Assert.IsTrue(death.IsName("Death"), "The visible figure must complete its transition into the death state.");
+            Assert.Greater(death.length, 0f);
+            Assert.IsFalse(float.IsInfinity(death.length));
+
+            float speed = animator.speed;
+            try
+            {
+                animator.speed = 0f;
+                yield return EnemyFrames(2);
+                Assert.IsTrue(visual.activeSelf, "The figure must stay visible while its motion is paused.");
+            }
+            finally { animator.speed = speed; }
+
+            yield return EnemyFrames(Mathf.CeilToInt(death.length / Time.captureDeltaTime));
+            Assert.IsTrue(visual.activeSelf, "The figure remains visible through its complete death motion.");
+            for (int frame = 0; frame < 60 && visual.activeSelf; frame++) yield return EnemyFrames(1);
+            Assert.IsFalse(visual.activeSelf, "The resumed motion, rest and sink must finish.");
+        }
+
         /// <summary>Review fix: the hero keeps facing its target during the action even while movement continues.</summary>
         [UnityTest]
         public IEnumerator TargetFacingHoldsWhileRunningDuringTheAction()

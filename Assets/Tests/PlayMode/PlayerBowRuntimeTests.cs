@@ -67,10 +67,11 @@ namespace AreArpg.PlayMode.Tests
             // Combat v2 winds a shot up for a few ticks before it lands; the old combat hits in the first tick. The shot's
             // animation starts with the accepted action, so the animator is left alone until this shot has landed or missed.
             // Owner decision 2026-11-17: a low-level bow can miss. Shoot again after the cooldown until the Core reports a hit.
-            for(int retry=0;retry<12;retry++)
+            const int maximumShots = 13;
+            for (int shotNumber = 1; shotNumber <= maximumShots; shotNumber++)
             {
                 for(int tick=0;tick<10&&target.Health==1000;tick++)TickOnce();
-                if(target.Health<1000)break;
+                if (target.Health < 1000 || shotNumber == maximumShots) break;
                 for(int wait=0;wait<12&&Game.Cooldowns[0]>0;wait++)TickOnce();
                 yield return new WaitForSeconds(.6f); // real time between two shots, as in play; hero actions are spaced in real time
                 target.Xmm=Game.PlayerXmm+1400;target.Zmm=Game.PlayerZmm;
