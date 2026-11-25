@@ -1,0 +1,142 @@
+{
+  "schema": "ashen.art-forge.integration-evidence.v1",
+  "status": "LOCAL_REVIEW_ONLY_NO_OWNER_APPROVAL",
+  "observedDate": "2026-11-24",
+  "displayTimezone": "Europe/Berlin",
+  "baseCommitSha": "489a3120915a5fdcec4bae83dc1f9afac6a2aa22",
+  "implementationCommitSha": "c089fc97ed957fdc4784be35d47892add23c3531",
+  "implementationTreeSha": "36d04d0ade938e91429cf32dd864b4395f629cb2",
+  "scope": "First read-only slice of Issue132 delivery blockA; Studio option is design only",
+  "sourceSurfaceHashes": {
+    "Assets/Editor/ArtForge/Contracts/ArtGraphContract.cs": "1b418e130559e62d4c90fcd3e3515c14c551e81fd93802511df5d790ddfa3de2",
+    "Assets/Editor/ArtForge/ArtForgeCanvasController.cs": "4e0f17286b151588206f1105984707a2e965105dbfc7f86da5874808a8fffdc1",
+    "Assets/Editor/ArtForge/ArtForgeWorldForgeReader.cs": "18ccf3022538afaa07d5fce9cf33658d4e0a1642989215437b0cbe9b0cafd423",
+    "Assets/Editor/BauModus/BauModusBridge.cs": "4b27f4ea5f972d7c679f96dac8c2638ad23645c2183c7a2d8182611fce95b06a",
+    "Assets/Editor/BauModus/Web/BauModus.html": "a6ffc33d30e0f2452978ab881bc9f785c412ad8658e1ba1f21c71a5711be503c"
+  },
+  "tests": {
+    "contractDotnet8": {
+      "passed": 35,
+      "failed": 0,
+      "logSha256": "be4c179218a89c5103ed35015f13fbd0a5fc385f8577f2bc52de062d5bb7bddd"
+    },
+    "contractMono": {
+      "passed": 35,
+      "failed": 0
+    },
+    "preflight": {
+      "passed": 62,
+      "failed": 0,
+      "logSha256": "c511c59890dbe779b42c40eaeaba4c5e9222f43809f5e6d26878d9680f25b786"
+    },
+    "core": {
+      "assertionsPassed": 23143,
+      "exitCode": 0,
+      "jobId": "20261124T072940Z-decc024aff3c",
+      "logSha256": "ecc5b438b096f23dbb3db9f378b4f8f9ca89a30ab3a4caee6b0d6c08bd4bba4d"
+    },
+    "nativeCandidate": {
+      "jobId": "20261124T073236Z-f6aef030b69a",
+      "total": 331,
+      "passed": 273,
+      "failed": 6,
+      "skipped": 52,
+      "artForgePassed": 49,
+      "artForgeFailed": 0,
+      "artForgeSkipped": 0,
+      "unityExitCode": 2,
+      "directorStatus": "failed",
+      "directorError": "TRACKED_WORKTREE_DIRTY"
+    },
+    "nativeBaseline": {
+      "jobId": "20261124T073829Z-d12081810eb3",
+      "total": 282,
+      "passed": 224,
+      "failed": 6,
+      "skipped": 52,
+      "unityExitCode": 2,
+      "directorStatus": "failed",
+      "directorError": "TRACKED_WORKTREE_DIRTY"
+    },
+    "comparison": {
+      "commonTests": 282,
+      "changedCommonTestResults": [],
+      "removedTests": [],
+      "newCandidateTests": 49,
+      "newCandidateTestsAllPassed": true
+    },
+    "browser": {
+      "synthetic": {
+        "groupsPassed": 20,
+        "viewports": [
+          {
+            "width": 1007,
+            "height": 601
+          },
+          {
+            "width": 601,
+            "height": 1007
+          }
+        ],
+        "evidenceKind": "synthetic API browser behavior test, not Unity runtime",
+        "runtimeEvidence": false
+      },
+      "tabletReplay": {
+        "groupsPassed": 16,
+        "viewports": [
+          {
+            "width": 1007,
+            "height": 601
+          },
+          {
+            "width": 601,
+            "height": 1007
+          }
+        ],
+        "evidenceKind": "browser replay of captured Unity JSON, not live Unity",
+        "runtimeEvidence": false
+      },
+      "phoneReplay": {
+        "groupsPassed": 8,
+        "viewports": [
+          {
+            "width": 390,
+            "height": 844
+          }
+        ],
+        "evidenceKind": "browser replay of captured Unity JSON, not live Unity",
+        "runtimeEvidence": false
+      }
+    }
+  },
+  "realWorldForgeReadback": {
+    "projectSha": "c089fc97ed957fdc4784be35d47892add23c3531",
+    "graphRevision": "a0d9da28064ab1e74925d1aa9ce6fb4473eaf55f9bb7c6d8f21ad9478b921053",
+    "nodes": 163,
+    "distinctJobs": 25,
+    "receiptNodes": 25,
+    "diagnostics": {
+      "READ_BUDGET_EXCEEDED": 38
+    },
+    "catalogComplete": false,
+    "sceneUnchangedInTest": true,
+    "licenseVerified": false,
+    "originalSourceBytesRead": false,
+    "snapshotSha256": "58e2e09c220aa29c62214ee60ab12ab89a63edc59dc5abd2fa877fc0f1bad177"
+  },
+  "notExecuted": [
+    "GitHub CI",
+    "Unity PlayMode",
+    "Android APK build",
+    "physical Samsung Galaxy Tab A9",
+    "live browser-to-HTTP-to-Unity end-to-end test",
+    "Unity Studio import/API integration"
+  ],
+  "approval": {
+    "push": false,
+    "pullRequest": false,
+    "merge": false,
+    "activeEditorChange": false,
+    "externalAIJob": false
+  }
+}
