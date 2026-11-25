@@ -42,8 +42,11 @@ namespace AreArpg.EditMode.Tests
                 var first = (Material)worn.Invoke(null, new[] { (object)source, prop });
                 outputPath = AssetDatabase.GetAssetPath(first);
                 float initial = first.GetFloat("_Smoothness");
+                string guid = AssetDatabase.AssetPathToGUID(outputPath);
+                AssetDatabase.SaveAssetIfDirty(first);
                 var rebuilt = (Material)worn.Invoke(null, new[] { (object)source, prop });
-                Assert.AreSame(first, rebuilt);
+                Assert.AreEqual(outputPath, AssetDatabase.GetAssetPath(rebuilt));
+                Assert.AreEqual(guid, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(rebuilt)));
                 Assert.AreEqual(initial, rebuilt.GetFloat("_Smoothness"), .0001f, "rebuilding must keep the same finish");
                 Assert.AreEqual(.4f, initial, .0001f, "the worn finish halves the source glossiness");
                 Assert.AreEqual(.3f, rebuilt.GetFloat("_Metallic"), .0001f);
