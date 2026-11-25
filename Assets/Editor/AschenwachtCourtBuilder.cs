@@ -181,7 +181,10 @@ namespace AreArpg.EditorTools
                     material.DisableKeyword("_EMISSION");
                     material.SetColor("_EmissionColor", Color.black);
                 }
-                material.SetShaderPassEnabled("ShadowCaster", !NoShadows.Contains(surface));
+                // URP's material validation sets the shadow pass from _CastShadows, so both say the same.
+                bool shadows = !NoShadows.Contains(surface);
+                material.SetFloat("_CastShadows", shadows ? 1f : 0f);
+                material.SetShaderPassEnabled("ShadowCaster", shadows);
                 material.enableInstancing = true;
                 EditorUtility.SetDirty(material);
                 set.Add(surface, material);
@@ -221,6 +224,7 @@ namespace AreArpg.EditorTools
             material.SetColor("_BaseColor", new Color(.56f, .58f, .62f));
             material.SetFloat("_Smoothness", .12f);
             material.SetFloat("_BumpScale", .6f);
+            material.SetFloat("_CastShadows", 0f);
             material.SetShaderPassEnabled("ShadowCaster", false);
             EditorUtility.SetDirty(material);
             AssetDatabase.SaveAssets();

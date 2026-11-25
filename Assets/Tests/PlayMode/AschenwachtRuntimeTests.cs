@@ -29,15 +29,16 @@ namespace AreArpg.PlayMode.Tests
             float ground = CourtLayout.HeightMm(Game.PlayerXmm, Game.PlayerZmm) / 1000f;
             Assert.Greater(ground, .9f, "the portal stands on its terrace");
             Assert.AreEqual(1.05f + ground, hero.position.y, .06f, "the hero stands on the terrace, not on the yard below it");
-            var court = GameObject.Find("AshenCrypt_BellCourt");
-            Assert.IsNotNull(court ?? GameObject.Find("Aschenwacht_FallbackFloor"), "the place is shown");
+            var court = Find("AshenCrypt_BellCourt");
+            Assert.IsNotNull(court ?? Find("Aschenwacht_FallbackFloor"), "the place is shown");
             if (court != null)
             {
                 Assert.IsNotNull(court.transform.Find("Art_EntryCourtWorld"), "the private sets are bound as passive art");
                 Assert.AreEqual(9, court.GetComponentsInChildren<Light>().Length, "the fire baskets burn");
             }
-            Assert.IsNotNull(GameObject.Find("ARE_World_Passage"), "the passage to the village exists");
-            Assert.AreEqual(CourtLayout.ExitZmm / 1000f, GameObject.Find("ARE_World_Passage").transform.position.z, .01f, "it waits at the bell tower");
+            GameObject passage = Find("ARE_World_Passage");
+            Assert.IsNotNull(passage, "the passage to the village exists");
+            Assert.AreEqual(CourtLayout.ExitZmm / 1000f, passage.transform.position.z, .01f, "it waits at the bell tower");
             StringAssert.Contains("Aschenwacht", ArenaRuntime.ObjectiveText(Game));
 
             // The first trace lies at the portal: the story action offers it and reading it keeps it in the save.
