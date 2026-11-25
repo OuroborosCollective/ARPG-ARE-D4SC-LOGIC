@@ -256,12 +256,21 @@ namespace AreArpg.EditorTools
                 importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
                 changed = true;
             }
-            if (take == null)
+            bool needsAnimation = take != null;
+            if (importer.importAnimation != needsAnimation)
             {
-                if (importer.importAnimation) { importer.importAnimation = false; changed = true; }
+                importer.importAnimation = needsAnimation;
+                changed = true;
             }
-            else
+            if (needsAnimation)
             {
+                // Take information is populated by the import. Read it only after enabling animations.
+                if (changed)
+                {
+                    importer.SaveAndReimport();
+                    importer = (ModelImporter)AssetImporter.GetAtPath(asset);
+                    changed = false;
+                }
                 TakeInfo[] takes = importer.importedTakeInfos.Where(info => info.name == take).ToArray();
                 if (takes.Length != 1) throw new InvalidOperationException("Expected exactly one take '" + take + "' in " + asset);
                 float first = takes[0].startTime * takes[0].sampleRate, last = takes[0].stopTime * takes[0].sampleRate;

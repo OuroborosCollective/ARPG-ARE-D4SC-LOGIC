@@ -25,9 +25,8 @@ namespace AreArpg.UnityClient
 
         private sealed class EnemyClips
         {
-            public Animator[] Attackers = System.Array.Empty<Animator>(), Flinchers = System.Array.Empty<Animator>(),
-                Mortals = System.Array.Empty<Animator>();
-            public float DeathSeconds = FallbackDeathSeconds;
+            public Animator[] Controllers;
+            public float MeasuredDeathSeconds;
             public int Windup, Cooldown, Health = int.MinValue;
             public bool Dead;
         }
@@ -38,8 +37,7 @@ namespace AreArpg.UnityClient
         private EnemyClips EnemyClipsOf(int id, Transform visual)
         {
             if (_enemyClips.TryGetValue(id, out EnemyClips clips)) return clips;
-            clips = new EnemyClips();
-            var attackers = new List<Animator>(); var flinchers = new List<Animator>(); var mortals = new List<Animator>();
+            var controllers = new List<Animator>();
             foreach (Animator animator in AnimatorsOf(visual))
             {
                 if (animator == null || animator.runtimeAnimatorController == null) continue;
@@ -49,18 +47,11 @@ namespace AreArpg.UnityClient
                     speed |= parameter.nameHash == EnemyAttackSpeedParameter && parameter.type == AnimatorControllerParameterType.Float;
                     dead |= parameter.nameHash == EnemyDeadParameter && parameter.type == AnimatorControllerParameterType.Bool;
                 }
-                if (speed && animator.HasState(0, EnemyAttackState)) attackers.Add(animator);
-                if (animator.HasState(0, EnemyHitState)) flinchers.Add(animator);
-                if (dead && animator.HasState(0, EnemyDeathState))
-                {
-                    mortals.Add(animator);
-                    foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
-                        if (clip != null && clip.name.EndsWith("Death", System.StringComparison.Ordinal)) clips.DeathSeconds = clip.length;
-                }
+                if (speed && dead && animator.HasState(0, EnemyAttackState) && animator.HasState(0, EnemyHitState) &&
+                    animator.HasState(0, EnemyDeathState))
+                    controllers.Add(animator);
             }
-            // The flinch belongs to figures built for this contract, not to any controller that happens to have a "Hit".
-            clips.Attackers = attackers.ToArray(); clips.Mortals = mortals.ToArray();
-            clips.Flinchers = attackers.Count > 0 ? flinchers.ToArray() : System.Array.Empty<Animator>();
+            clips = new EnemyClips { Controllers = controllers.ToArray() };
             _enemyClips[id] = clips;
             return clips;
         }
@@ -73,10 +64,12 @@ namespace AreArpg.UnityClient
             {
                 // A new run reuses the enemy's id: it stands again.
                 clips.Dead = false;
-                foreach (Animator animator in clips.Mortals) if (animator != null) animator.SetBool(EnemyDeadParameter, false);
+                clips.MeasuredDeathSeconds = 0f;
+                _deathTime.Remove(enemy.Id);
+                foreach (Animator animator in clips.Controllers) if (animator != null) animator.SetBool(EnemyDeadParameter, false);
             }
             int windup = enemy.BossWindupTicks, cooldown = enemy.AttackCooldownTicks;
-            if (clips.Attackers.Length > 0)
+            if (clips.Controllers.Length > 0)
             {
                 bool announced = windup > 0 && clips.Windup == 0;
                 // The old combat lands a blow without a windup; the cooldown starting anew is the only sign of it.
@@ -85,12 +78,13 @@ namespace AreArpg.UnityClient
                 {
                     float seconds = announced ? windup * ArenaSimulation.TickMs / 1000f : LegacyBlowSeconds;
                     float speed = Mathf.Clamp(1f / seconds, SlowestEnemyAttack, FastestEnemyAttack);
-                    if (_hero != null)
-                    {
-                        Vector3 toHero = _hero.position - visual.position; toHero.y = 0f;
-                        if (toHero.sqrMagnitude > .0001f) visual.rotation = Quaternion.LookRotation(toHero);
-                    }
-                    foreach (Animator animator in clips.Attackers)
+                    Vector3 target = _hero != null ? _hero.position : visual.position;
+                    if (unannounced && enemy.LastImmediateStrikeTarget is { } strike)
+                        target = new Vector3(strike.Xmm * .001f, 0f, strike.Zmm * .001f);
+                    Vector3 facing = target - visual.position;
+                    facing.y = 0f;
+                    if (facing.sqrMagnitude > .0001f) visual.rotation = Quaternion.LookRotation(facing);
+                    foreach (Animator animator in clips.Controllers)
                     {
                         if (animator == null || !animator.isActiveAndEnabled) continue;
                         animator.SetFloat(EnemyAttackSpeedParameter, speed);
@@ -100,7 +94,7 @@ namespace AreArpg.UnityClient
                 else if (clips.Health != int.MinValue && enemy.Health < clips.Health && windup == 0)
                 {
                     // While it winds up the body keeps announcing the blow the Core is going to land.
-                    foreach (Animator animator in clips.Flinchers)
+                    foreach (Animator animator in clips.Controllers)
                         if (animator != null && animator.isActiveAndEnabled) animator.CrossFadeInFixedTime(EnemyHitState, .04f, 0, 0f);
                 }
             }
@@ -108,7 +102,7 @@ namespace AreArpg.UnityClient
         }
 
         /// <summary>Whether this enemy falls with its own clip instead of the optical topple.</summary>
-        private bool EnemyDiesWithClip(int id, Transform visual) { return EnemyClipsOf(id, visual).Mortals.Length > 0; }
+        private bool EnemyDiesWithClip(int id, Transform visual) { return EnemyClipsOf(id, visual).Controllers.Length > 0; }
 
         /// <summary>The death clip plays where the enemy fell; it lies for a moment, then sinks. False once nothing is left to show.</summary>
         private bool PresentEnemyDeathClip(int id, Transform visual)
@@ -120,11 +114,22 @@ namespace AreArpg.UnityClient
                 start = Time.time; _deathTime[id] = start;
                 _deathPosition[id] = visual.position;
                 _deathRotation[id] = _hitBaseRotation.TryGetValue(id, out Quaternion upright) ? upright : visual.rotation;
-                _deathSeconds[id] = clips.DeathSeconds + EnemyLieSeconds + SinkSeconds;
                 clips.Dead = true; clips.Windup = 0;
-                foreach (Animator animator in clips.Mortals) if (animator != null) animator.SetBool(EnemyDeadParameter, true);
+                foreach (Animator animator in clips.Controllers) if (animator != null) animator.SetBool(EnemyDeadParameter, true);
             }
-            float t = Time.time - start, down = clips.DeathSeconds + EnemyLieSeconds;
+            // Unity resolves the motion (including overrides) after it evaluates the Dead transition.
+            foreach (Animator animator in clips.Controllers)
+            {
+                if (animator == null || !animator.isActiveAndEnabled) continue;
+                var state = animator.GetCurrentAnimatorStateInfo(0);
+                if (state.shortNameHash != EnemyDeathState && animator.IsInTransition(0))
+                    state = animator.GetNextAnimatorStateInfo(0);
+                if (state.shortNameHash == EnemyDeathState)
+                    clips.MeasuredDeathSeconds = Mathf.Max(clips.MeasuredDeathSeconds, state.length);
+            }
+            float duration = clips.MeasuredDeathSeconds > 0f ? clips.MeasuredDeathSeconds : FallbackDeathSeconds;
+            float t = Time.time - start, down = duration + EnemyLieSeconds;
+            _deathSeconds[id] = down + SinkSeconds;
             if (t > down + SinkSeconds) return false;
             Vector3 origin = _deathPosition[id];
             float sink = t > down ? (t - down) / SinkSeconds * .7f : 0f;
