@@ -154,7 +154,9 @@ namespace AreArpg.Core
         public const long CampXmm = -4500L;
         public const long CampZmm = -6000L;
         public const long NpcInteractionRadiusMm = 2400L;
-        public bool AtWorldPassage { get { return !InJourney && !InWoodlandRegion && DistanceSquared(PlayerXmm, PlayerZmm, PassageXmm, PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
+        public bool AtWorldPassage { get { return !InJourney && !InWoodlandRegion && DistanceSquared(PlayerXmm, PlayerZmm, InCourt ? CourtLayout.ExitXmm : PassageXmm, InCourt ? CourtLayout.ExitZmm : PassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
+        /// <summary>The bell court between the old crypt and the village: open air, no fight, the pilgrim path leads on.</summary>
+        public bool InCourt { get { return Progression.EntryAct == 1 && Progression.InCourt; } }
 
         /// <summary>Use the existing passage gate and carry surviving player resources into the next approved world.</summary>
         public ArenaSimulation TryTraversePassage()
@@ -162,7 +164,8 @@ namespace AreArpg.Core
             if (AtJourneyPassage) return TraverseJourney();
             if (AtWoodlandPassage) return TraverseWoodland();
             if (!AtAnyPassage || GameOver) return null;
-            ArenaSimulation next = Progression.EntryAct >= 2 ? TraverseHunger(AtReturnPassage) : TryAdvanceCrypt();
+            ArenaSimulation next = Progression.EntryAct >= 2 ? TraverseHunger(AtReturnPassage)
+                : Progression.EntryAct == 1 && !InCourt ? TryEnterCourt() : TryAdvanceCrypt();
             if (next == null) return null;
             next.PlayerHealth = Math.Min(PlayerHealth, next.MaxPlayerHealth);
             next.Resource = Resource;
@@ -179,7 +182,7 @@ namespace AreArpg.Core
         private readonly LootCatalog _lootCatalog;
         public System.Numerics.BigInteger CryptDepth { get; private set; }
         public int ChapterId { get { return CryptDepth.IsOne ? 1 : 2; } }
-        public string ChapterName { get { return InJourney ? (InJourneyCave ? "Seitenhöhle – Ebene " + Progression.Journey.Depth : "Waldweg jenseits von Aschenzoll") : InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : Progression.EntryAct == 2 ? (InsidePlace != VillagePlace.None ? VillagePlaceLayout.Name(InsidePlace) + " von Aschengrenze" : "Die Aschengrenze") : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
+        public string ChapterName { get { return InJourney ? (InJourneyCave ? "Seitenhöhle – Ebene " + Progression.Journey.Depth : "Waldweg jenseits von Aschenzoll") : InWoodlandRegion ? (InForest ? "Der Wald nach Aschenzoll" : Progression.EntryAct == 9 ? "Die Bärenhöhle" : "Aschenzoll – Frachtplatz") : InDungeon ? "Krypta unter der Muehle - Ebene " + Progression.Dungeon.Depth : Progression.EntryAct == 7 ? "Das Rattlernest" : Progression.EntryAct == 6 ? "Die verborgene Krypta" : Progression.EntryAct == 5 ? "Der alte Speicher" : Progression.EntryAct == 4 ? "Die alte Muehle" : Progression.EntryAct == 3 ? "Die Aschestrasse" : InCourt ? "Der Glockenhof" : Progression.EntryAct == 2 ? (InsidePlace != VillagePlace.None ? VillagePlaceLayout.Name(InsidePlace) + " von Aschengrenze" : "Die Aschengrenze") : (ChapterId == 1 ? "Ashen Crypt" : "Ember Rift"); } }
         /// <summary>Legacy chapter one or the explicit entry's second act hosts the existing social scene.</summary>
         public bool IsVillage { get { return Progression.EntryAct == 2 || (Progression.EntryAct == 0 && ChapterId == 1); } }
         public bool CryptCleared { get { return !GameOver && Monsters.TrueForAll(m => m.IsDead); } }
@@ -261,6 +264,14 @@ namespace AreArpg.Core
                 BindForge();
                 return;
             }
+            if (InCourt)
+            {
+                // Nothing fights here: the wanderer steps out of the chapel's nave and may look around.
+                PlayerXmm = PrevPlayerXmm = CourtLayout.SpawnXmm;
+                PlayerZmm = PrevPlayerZmm = CourtLayout.SpawnZmm;
+                BindForge();
+                return;
+            }
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
             int depthScale = (int)System.Numerics.BigInteger.Min(cryptDepth - 1, 10000);
             if (ChapterId == 1)
@@ -277,6 +288,20 @@ namespace AreArpg.Core
                 Monsters.Add(NewMonster(3, 3, 0, 12000, 2800 + depthScale * 200));
             }
             BindForge();
+        }
+
+        /// <summary>
+        /// The passage of the cleared entry crypt leads into the bell court, not straight to the village. The same
+        /// conditions as for any advance hold: every guardian down, nothing left on the ground.
+        /// </summary>
+        public ArenaSimulation TryEnterCourt()
+        {
+            if (Progression.EntryAct != 1 || InCourt || !CryptCleared || LootOnGround ||
+                CryptDepth != Progression.UnlockedCryptDepth) return null;
+            CharacterProgression nextProgress;
+            if (!CharacterProgression.TryLoad(Progression.SaveString(), _journeyMaps, out nextProgress)) return null;
+            if (!nextProgress.EnterCourt()) return null;
+            return new ArenaSimulation(_runSeed, nextProgress, CryptDepth, _lootCatalog, _journeyMaps);
         }
 
         /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
@@ -581,6 +606,7 @@ namespace AreArpg.Core
                 VillagePlace room = VillagePlaceLayout.RoomAt(x, z);
                 if (room != VillagePlace.None) return VillagePlaceLayout.CanStandInRoom(room, x, z);
             }
+            if (InCourt) return CourtLayout.CanStand(x, z);
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             if (InDungeon) return Progression.Dungeon.Current.Layout.CanStand(x, z) && (z <= 21000 || DungeonForwardOpen);
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);

@@ -931,13 +931,26 @@ namespace AreArpg.PlayMode.Tests
         private void TravelStory()
         {
             typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
+            CrossCourt();
             // Story tests model a player who already watched the first-arrival scene; its own test covers playback.
             if (Game.ArrivalScenePending) Assert.IsTrue(Game.CompleteArrivalScene());
         }
 
         /// <summary>Travel like <see cref="TravelStory"/> but leave the first-arrival scene to the runtime.</summary>
         private void TravelStoryWithArrivalScene()
-        { typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null); }
+        { typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null); CrossCourt(); }
+
+        /// <summary>
+        /// Between the old crypt and the village lies the bell court: walk out of the nave, west past the two figures
+        /// on the path and north to the path's end, then take the passage to the village.
+        /// </summary>
+        private void CrossCourt()
+        {
+            if (!Game.InCourt) return;
+            MoveStory(-2400, 1800); MoveStory(-2400, 5200); MoveStory(CourtLayout.ExitXmm, CourtLayout.ExitZmm);
+            Assert.IsTrue(Game.AtWorldPassage, "the pilgrim path's end is reachable on foot: " + Game.PlayerXmm + "," + Game.PlayerZmm);
+            typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
+        }
 
         /// <summary>Feed the same request queue used by touch/GUI, then wait for an actual Unity tick and save.</summary>
         private IEnumerator StoryAction(HungerAction action)

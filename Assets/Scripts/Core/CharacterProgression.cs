@@ -45,6 +45,11 @@ namespace AreArpg.Core
         public SocialLedger Social { get; private set; } = new SocialLedger();
         /// <summary>Zero retains legacy chapter semantics; entry revision 1 has Crypt=1 and Village=2.</summary>
         public int EntryAct { get; private set; }
+        /// <summary>
+        /// Owner decision 2026-11-25: between the old crypt and the village lies the bell court. While the entry's first
+        /// act is in the court this is set; the crypt lies behind, the village still ahead.
+        /// </summary>
+        public bool InCourt { get; private set; }
         /// <summary>Create a separate explicit entry profile; never reinterpret an existing save.</summary>
         public static CharacterProgression CreateEntryProfile() { return new CharacterProgression { EntryAct = 1 }; }
         /// <summary>Only the canonical cleared-crypt transition may advance this checkpoint once.</summary>
@@ -52,6 +57,15 @@ namespace AreArpg.Core
         {
             if (EntryAct != 1) return false;
             EntryAct = 2;
+            InCourt = false;
+            return true;
+        }
+
+        /// <summary>The cleared crypt opens into the court once; from there only the village follows.</summary>
+        internal bool EnterCourt()
+        {
+            if (EntryAct != 1 || InCourt) return false;
+            InCourt = true;
             return true;
         }
 
@@ -173,7 +187,7 @@ namespace AreArpg.Core
                 "|" + _practice[1].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[2].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[3].ToString(CultureInfo.InvariantCulture) +
-                "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|" + (HungerStage > 0 ? HungerToken() : "1," + EntryAct.ToString(CultureInfo.InvariantCulture)) :
+                "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|" + (HungerStage > 0 ? HungerToken() : "1," + EntryAct.ToString(CultureInfo.InvariantCulture) + (InCourt ? ",c" : "")) :
                     (_items.Count == 0 ? "" : "|" + ItemToken())) +
                 (Road.Started || Investigation.Active ? "|" + Road.Token() + "|" + Social.RoadSocialToken() : "") +
                 (Investigation.Active ? "|" + Investigation.Token() : "") + (Rattler.Active ? "|" + Rattler.Token() : Dungeon.Active ? "|-" : "") + (Dungeon.Active ? "|" + Dungeon.Token() : Woodland.Active ? "|-" : "") + (Woodland.Active ? "|" + Woodland.Token() : "");
@@ -253,13 +267,15 @@ namespace AreArpg.Core
             SocialLedger social = new SocialLedger();
             if ((ac5 || ac7 || ac8 || ac9) && !SocialLedger.TryRead(parts[13], out social)) return false;
             int entryAct = 0, hungerStage = 0;
+            bool inCourt = false;
             bool entryFromNorth = false;
             HungerChoice supplyChoice = HungerChoice.Undecided;
             if (ac9 && (!unlockedDepth.IsOne || !ReadHungerToken(parts[15], out entryAct, out entryFromNorth, out hungerStage, out supplyChoice, ac11, ac12 || ac14, ac15))) return false;
             if (ac8)
             {
-                if (!unlockedDepth.IsOne || (parts[15] != "1,1" && parts[15] != "1,2")) return false;
-                entryAct = parts[15] == "1,1" ? 1 : 2;
+                if (!unlockedDepth.IsOne || (parts[15] != "1,1" && parts[15] != "1,1,c" && parts[15] != "1,2")) return false;
+                entryAct = parts[15] == "1,2" ? 2 : 1;
+                inCourt = parts[15] == "1,1,c";
             }
             HunterEncounter road = new HunterEncounter();
             if (ac10 && (!HunterEncounter.TryRead(parts[16], out road) || (!road.Started && !ac11) || !social.ReadRoadSocial(parts[17]) ||
@@ -309,7 +325,7 @@ namespace AreArpg.Core
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LootOrdinal = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
-                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct,
+                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct, InCourt = inCourt,
                 HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland,
                 WeaponMastery = restoring ?? new WeaponMasteryState(), _restoringWeaponMastery = restoring != null
             };

@@ -397,8 +397,8 @@ namespace AreArpg.UnityClient
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
             // Inside a village house nothing of the village is shown: the room itself is put up with the village economy.
             if (_game.InsidePlace != VillagePlace.None) { BuildVillageRoomScenery(); return; }
-            if (_entryProfile && _game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4)
-                _chapterScenery.Add(OutdoorBackdrop.Create(_game.Progression.EntryAct));
+            if (_entryProfile && ((_game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4) || _game.InCourt))
+                _chapterScenery.Add(OutdoorBackdrop.Create(_game.InCourt ? 2 : _game.Progression.EntryAct)); // the court lies under the village's sky and ash plain
             if (_game.InJourney) { BuildJourneyScenery(); return; }
             if (_game.InWoodlandRegion) { BuildWoodlandScenery(); return; }
             if (_game.InDungeon) { BuildDungeonScenery(); return; }
@@ -630,8 +630,8 @@ namespace AreArpg.UnityClient
         /// <summary>Install privately composed real meshes; the Core still owns all walkability and resources.</summary>
         private bool BuildEntryArt()
         {
-            var root = new GameObject(_game.IsVillage ? AschengrenzeArt.BackdropLabel : "AshenCrypt_Architecture");
-            string key = _game.IsVillage ? "EntryVillageWorld" : "EntryCryptWorld";
+            var root = new GameObject(_game.IsVillage ? AschengrenzeArt.BackdropLabel : _game.InCourt ? "AshenCrypt_BellCourt" : "AshenCrypt_Architecture");
+            string key = _game.IsVillage ? "EntryVillageWorld" : _game.InCourt ? "EntryCourtWorld" : "EntryCryptWorld";
             if (!PassiveArtVisuals.TryBind(root.transform, key)) { Destroy(root); return false; }
             _chapterScenery.Add(root.transform);
             if (_game.IsVillage)
@@ -642,14 +642,15 @@ namespace AreArpg.UnityClient
             }
             else _walkSurfaces.Clear();
             var passage = new GameObject("ARE_World_Passage");
-            passage.transform.position = new Vector3(0f, 1.5f, 24f);
+            passage.transform.position = _game.InCourt
+                ? new Vector3(CourtLayout.ExitXmm / 1000f, 1.5f, CourtLayout.ExitZmm / 1000f) : new Vector3(0f, 1.5f, 24f);
             var light = passage.AddComponent<Light>();
             light.type = LightType.Point; light.range = 6f; light.intensity = 2.5f;
             light.color = new Color(1f, 0.64f, 0.3f);
             _worldPassage = passage.transform;
             _chapterScenery.Add(_worldPassage);
             passage.SetActive(false);
-            RenderSettings.ambientLight = _game.IsVillage ? new Color(0.47f, 0.48f, 0.5f) : new Color(0.26f, 0.30f, 0.36f);
+            RenderSettings.ambientLight = _game.IsVillage || _game.InCourt ? new Color(0.47f, 0.48f, 0.5f) : new Color(0.26f, 0.30f, 0.36f);
             RenderSettings.fogColor = _game.IsVillage ? new Color(0.24f, 0.28f, 0.29f) : new Color(0.045f, 0.055f, 0.07f);
             RenderSettings.fogDensity = _game.IsVillage ? 0.007f : 0.012f;
             if (!_game.IsVillage)
@@ -1000,7 +1001,8 @@ namespace AreArpg.UnityClient
             // Commit and read back the new checkpoint before changing the active world.
             SaveCharacter(next.Progression);
             if (_storageFault) return;
-            InstallNewRun(next, next.Progression.HungerStage > 0 ? next.HungerObjective : next.Progression.EntryAct == 2 ?
+            InstallNewRun(next, next.InCourt ? "Du trittst aus der alten Krypta in den Glockenhof. Die Glocke schweigt. Folge dem Pilgerweg hinab zum Dorf." :
+                next.Progression.HungerStage > 0 ? next.HungerObjective : next.Progression.EntryAct == 2 ?
                 "AKT II: Folge dem Dorfweg zu Ilyan, Mara und Dorn. Zwei Rationen fehlen." :
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;

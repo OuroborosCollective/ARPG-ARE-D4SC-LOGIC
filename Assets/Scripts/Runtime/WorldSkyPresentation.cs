@@ -74,7 +74,8 @@ namespace AreArpg.UnityClient
             int area = _game.CurrentAreaId;
             // A room inside a village house has no sky; it counts as a place of its own, so entering and leaving switch the sky.
             VillagePlace room = _game.InsidePlace;
-            bool outdoors = _entryProfile && IsOutdoorSkyArea(area) && room == VillagePlace.None;
+            // The bell court shares the crypt's area but lies under the open sky.
+            bool outdoors = _entryProfile && (IsOutdoorSkyArea(area) || _game.InCourt) && room == VillagePlace.None;
             bool reduced = _atmosphere != null && _atmosphere.ReducedEffects;
             ulong phase = WorldSkyClock.CurrentPhaseTicks(_game);
             if (room != VillagePlace.None) area = 1000 + (int)room;
