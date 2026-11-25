@@ -57,7 +57,8 @@ namespace AreArpg.EditMode.Tests
                 Assert.AreEqual("Universal Render Pipeline/Lit", material.shader.name, material.name);
                 Assert.IsTrue(AssetDatabase.GetAssetPath(material).StartsWith("Assets/PrivateArt/") || AssetDatabase.GetAssetPath(material).StartsWith("Assets/Aschenwacht/"),
                     material.name + " is one of the sets' own materials, not an imported default");
-                Assert.IsNotNull(material.GetTexture("_BaseMap"), material.name + " shows its colour map");
+                // Textured surfaces show their colour map; the set's plain surfaces (dark recesses, glowing embers) carry a colour.
+                Assert.IsTrue(material.GetTexture("_BaseMap") != null || material.GetColor("_BaseColor") != Color.white, material.name + " shows its colour");
             }
             Material grass = materials.FirstOrDefault(m => m.name == "Grass");
             Assert.IsNotNull(grass);
