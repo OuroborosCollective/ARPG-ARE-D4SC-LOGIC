@@ -156,6 +156,12 @@ namespace AreArpg.EditMode.Tests
             animator.Update(.1f);
             Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Death"));
             Assert.AreEqual(4f, animator.GetCurrentAnimatorStateInfo(0).length, .01f);
+            // The lethal blow also stops the animator briefly before the death motion resumes.
+            animator.speed = 0f;
+            animator.Update(.1f);
+            Assert.IsTrue((bool)present.Invoke(runtime, args));
+            animator.speed = 1f;
+            animator.Update(.1f);
             var starts = (System.Collections.Generic.Dictionary<int, float>)typeof(ArenaRuntime)
                 .GetField("_deathTime", Instance).GetValue(runtime);
             starts[1] = Time.time - 3.5f;
