@@ -27,8 +27,8 @@ node Tests/Browser/scan-polling.cjs \
 
 | Skript / Suite | Verhalten |
 | --- | --- |
-| `revision-races.cjs` | Direkte Antworten: beide Reihenfolgen A→409/B→503; ältere 200 überschreibt B nicht; frühere Reload-Epoche löscht neuen Graph nicht. Vier Fälle bei 1007×601, 601×1007 und 390×844. |
-| `revision-races-scanning.cjs` | Dieselben zwölf Fälle mit echten 202-Zwischenschritten im Browser-Testdouble und identischen Ticket-Abfragen. |
+| `revision-races.cjs` | Direkte Antworten. Sieben Fälle prüfen vertauschte 409/503-Antworten, überholte 200- und 401-Antworten, Neuanmeldung, Reload und schnelle Auswahlwechsel bei 1007×601, 601×1007 und 390×844. |
+| `revision-races-scanning.cjs` | Führt dieselben 21 Fälle mit 202-Zwischenschritten im Browser-Testdouble und identischen Ticket-Abfragen aus. Beide Einstiegsskripte verwenden dieselben Assertions und warten auf das vollständige Promise des angeklickten Produkt-Handlers. |
 | `scan-polling.cjs --suite protocol` | 13 Fälle: State/Graph/Asset, unveränderte Query und Ticket-ID, ungültige Pending-Antworten, 410/400/503, Reload, 401-Anmeldung, Intervallbegrenzung. |
 | `scan-polling.cjs --suite poll-limit` | Ein Fall bei 1007×601: Startanfrage plus höchstens 150 Polls, ohne Ersatzscan. |
 | `scan-polling.cjs --suite time-limit` | Ein Fall bei 1007×601: tatsächliches 40-Sekunden-Budget bei wiederholten 202-Antworten. |
@@ -47,7 +47,7 @@ Am 24.11.2026 liefen die Evidence-Kopien mit vorhandenem Playwright Core 1.62.1 
   --phase green --suite protocol
 ```
 
-Die damals ausgeführten Originalkopien enthielten die bereits bekannten lokalen Dependency-Pfade als Defaults. Die dauerhaften Kopien hier verlangen diese Pfade explizit. Ausschließlich diese Argumentprüfung und zwei Default-Ausdrücke wurden geändert; die Prüf- und Assertion-Logik blieb bytegleich. Die Originalbytes und Originalberichte bleiben als Evidence erhalten. Die dauerhaften Kopien wurden zusätzlich auf JavaScript-Syntax und fehlende Pflichtargumente geprüft; die langen Browserläufe wurden dafür nicht wiederholt.
+Die damals ausgeführten Originalkopien enthielten die bereits bekannten lokalen Dependency-Pfade als Defaults. Die am 24.11. veröffentlichten Kopien verlangten diese Pfade explizit. Zu diesem Zeitpunkt waren ausschließlich die Argumentprüfung und zwei Default-Ausdrücke geändert, die Prüf- und Assertion-Logik war bytegleich. Die Originalbytes und Originalberichte bleiben als Evidence erhalten. Die dauerhaften Kopien wurden zusätzlich auf JavaScript-Syntax und fehlende Pflichtargumente geprüft; die langen Browserläufe wurden dafür nicht wiederholt.
 
 | Stufe | HTML-SHA-256 | Ergebnis |
 | --- | --- | --- |
@@ -56,3 +56,7 @@ Die damals ausgeführten Originalkopien enthielten die bereits bekannten lokalen
 | Polling und Revisions-Race GREEN | `ffa8c1c6fbb51e51af3f8767af373b2aa6995e8a61d4f8a215787fe9127199af` | 13 Protokollfälle, zwölf Races und drei einzelne Budget-/Netzabbruchfälle bestanden. |
 
 Gemessen wurden 151 Requests bis zur Pollgrenze, 40.007 ms bis zur Zeitgrenze und 40.011 ms bis zum Abbruch des unbeantworteten Polls. Das sind Beobachtungen der isolierten Browserprüfungen und keine Leistungswerte eines Unity-Editors.
+
+## Scan-Kapazität und Abbruch (Folgerunde)
+
+`scan-capacity.cjs` verwendet dieselben Pfadargumente mit `--phase red|green` und prüft drei Szenarien in drei Viewports: maximal zwei überlappende Detail-Scans, Zusammenfassung auf die letzte Auswahl, 410-Reaktion sowie Abmeldung des gebundenen Tickets beim Reload. Abbrüche der synthetischen Testserver sind separat von Polls erfasst und prüfen die unveränderte Routen-/Revisions-/Asset-ID-Bindung. Die ursprünglichen Poll-Limits bleiben unverändert; maximal ein zusätzlicher gebundener Abbruchabruf ist zulässig. Diese Tests sind kein Unity-/Live-HTTP-/Gerätenachweis.

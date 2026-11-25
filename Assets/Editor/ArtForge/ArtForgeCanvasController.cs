@@ -29,8 +29,14 @@ namespace AshenCrypt.ArtForge
         {
             public string path, projectSha, graphRevision, assetId;
             public long started;
+            public bool abandoned;
             public CancellationTokenSource cancellation;
             public Task<FadenwerkExtensionReply> task;
+        }
+        [Serializable] sealed class AbandonedReply
+        {
+            public bool ok = true, readOnly = true;
+            public string code = "ART_SCAN_ABANDONED";
         }
         [Serializable] sealed class PendingReply
         {
@@ -72,18 +78,26 @@ namespace AshenCrypt.ArtForge
             // Reject before reading any request body, path, World Forge job or Unity asset.
             if (method != "GET") return Error("READ_ONLY", "Die Asset-Werkstatt ist in dieser Ausbaustufe ausschließlich lesend.", 405);
             if (path != "art/state" && path != "art/graph" && path != "art/asset") return Error("ART_ROUTE_UNKNOWN", "Unbekannter Asset-Lesebefehl.", 404);
-            if (query != null && query.Keys.Any(k => k != "expectedProjectSha" && k != "expectedGraphRevision" && k != "id" && k != "scanId"))
+            if (query != null && query.Keys.Any(k => k != "expectedProjectSha" && k != "expectedGraphRevision" && k != "id" && k != "scanId" && k != "cancelScan"))
                 return Error("QUERY_INVALID", "Nur feste Asset-IDs und Revisionen sind zulässig.", 400);
+            bool cancel = query != null && query.ContainsKey("cancelScan");
+            if (cancel && (Arg(query, "cancelScan") != "1" || !query.ContainsKey("scanId")))
+                return Error("QUERY_INVALID", "Der Abbruch benötigt eine gebundene Leseprüfung.", 400);
             if (path != "art/state" && (!ArtGraphContract.IsProjectSha(Arg(query, "expectedProjectSha")) ||
                 !ArtGraphContract.IsSha256(Arg(query, "expectedGraphRevision"))))
                 return Error("EXPECTED_REVISION_REQUIRED", "Projekt- und Graphrevision fehlen. Bitte die Ansicht neu laden.", 428);
             if (path == "art/asset" && !ArtGraphContract.IsIdentifier(Arg(query, "id")))
                 return Error("ASSET_ID_INVALID", "Ungültige Asset-ID.", 400);
-            if (stopping || EditorApplication.isCompiling || EditorApplication.isUpdating)
-                return Error("EDITOR_BUSY", "Unity importiert oder kompiliert gerade. Bitte später erneut laden.", 503);
+            if (stopping)
+                return Error("EDITOR_BUSY", "Unity beendet die Leseprüfungen.", 503);
             PruneExpiredReads();
+            // An authenticated, bound cancellation affects ephemeral tickets only.
+            // It remains available during compilation/import, without starting IO.
+            if (cancel) return PollRead(path, query);
+            if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+                return Error("EDITOR_BUSY", "Unity importiert oder kompiliert gerade. Bitte später erneut laden.", 503);
             if (query != null && query.ContainsKey("scanId")) return PollRead(path, query);
-            if (Reads.Count >= MaxPendingReads)
+            if (!ArtForgeReadCapacity.TryAdmit(Reads, MaxPendingReads, r => r.task, r => r.started, ForgetRead))
                 return Error("ART_SCAN_CAPACITY", "Es laufen bereits mehrere Leseprüfungen. Bitte kurz warten und erneut laden.", 503);
 
             // Unity state is captured on the main thread. No Git or file reads run here.
@@ -130,6 +144,14 @@ namespace AshenCrypt.ArtForge
             if (operation.path != path || operation.projectSha != Arg(query, "expectedProjectSha") ||
                 operation.graphRevision != Arg(query, "expectedGraphRevision") || operation.assetId != Arg(query, "id"))
                 return Error("ART_SCAN_MISMATCH", "Die Leseprüfung gehört zu einer anderen Anfrage.", 400);
+            if (Arg(query, "cancelScan") == "1")
+            {
+                AbandonRead(operation);
+                if (operation.task.IsCompleted) ForgetRead(scanId, operation);
+                return Json(new AbandonedReply());
+            }
+            if (operation.abandoned)
+                return Error("ART_SCAN_EXPIRED", "Diese Leseprüfung wurde aufgegeben. Bitte neu laden.", 410);
             if (!operation.task.IsCompleted) return Pending(scanId);
 
             // Consume exactly once. A later new request always verifies actual bytes again.
@@ -152,13 +174,25 @@ namespace AshenCrypt.ArtForge
         static void PruneExpiredReads()
         {
             long now = Stopwatch.GetTimestamp();
-            foreach (var pair in Reads.Where(p => (now - p.Value.started) / (double)Stopwatch.Frequency >= TicketLifetimeSeconds).ToArray())
-                ForgetRead(pair.Key, pair.Value);
+            foreach (var pair in Reads.ToArray())
+            {
+                var operation = pair.Value;
+                if ((now - operation.started) / (double)Stopwatch.Frequency >= TicketLifetimeSeconds)
+                    AbandonRead(operation);
+                // Keep unfinished workers counted even if their token was cancelled.
+                if (operation.abandoned && operation.task.IsCompleted)
+                    ForgetRead(pair.Key, operation);
+            }
+        }
+        static void AbandonRead(ReadOperation operation)
+        {
+            operation.abandoned = true;
+            if (!operation.cancellation.IsCancellationRequested) operation.cancellation.Cancel();
         }
         static void ForgetRead(string id, ReadOperation operation)
         {
             Reads.Remove(id);
-            operation.cancellation.Cancel();
+            AbandonRead(operation);
             // Never wait for IO during an editor lifecycle callback.
             operation.task.ContinueWith(task => { _ = task.Exception; operation.cancellation.Dispose(); }, TaskScheduler.Default);
         }

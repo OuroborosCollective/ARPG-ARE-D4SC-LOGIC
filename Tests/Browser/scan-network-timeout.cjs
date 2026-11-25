@@ -52,7 +52,7 @@ async function runCase(browser, test) {
   await context.addInitScript(() => localStorage.setItem('fw.token', 'synthetic-scan-test-only'));
   const page = await context.newPage(), tickets = new Map(), routeErrors = [], browserErrors = [];
   let serial = 0, activeGraph = graph();
-  const result = { ...test, passed: false, requests: [], routeErrors, browserErrors, screenshots: [], failedRequests: [] };
+  const result = { ...test, passed: false, requests: [], cancellations: [], routeErrors, browserErrors, screenshots: [], failedRequests: [] };
   page.on('pageerror', e => browserErrors.push(e.message));
   page.on('requestfailed', r => result.failedRequests.push({ path: new URL(r.url()).pathname, failure: r.failure()?.errorText }));
   await page.route('**/*', async route => {
@@ -60,15 +60,27 @@ async function runCase(browser, test) {
       const request = route.request(), url = new URL(request.url());
       if (url.origin === ORIGIN && url.pathname === '/') { await route.fulfill({ status: 200, contentType: 'text/html; charset=utf-8', body: html }); return; }
       const query = Object.fromEntries(url.searchParams), item = { method: request.method(), path: url.pathname, query, at: Date.now() };
-      result.requests.push(item);
+      if (query.cancelScan === undefined) result.requests.push(item);
       assert.equal(url.origin, ORIGIN); assert.equal(request.method(), 'GET'); assert.equal(request.postData(), null);
       assert(/^\/api\/x\/art\/(state|graph|asset)$/.test(url.pathname), 'Only existing Art routes may be called');
       const endpoint = url.pathname.split('/').pop(), scanId = query.scanId;
       delete query.scanId;
+      const cancel = query.cancelScan; delete query.cancelScan;
       // Keep an immutable trace including scanId; query is kept separately for ticket matching.
       item.query = Object.fromEntries(url.searchParams);
       const send = (body, status = 200) => route.fulfill({ status, contentType: 'application/json; charset=utf-8', body: JSON.stringify(body) });
       const pending = (id, delay = 200) => ({ ok: false, readOnly: true, code: 'ART_SCAN_PENDING', scanId: id, retryAfterMs: delay, error: 'Synthetic scan is pending.' });
+      if (cancel !== undefined) {
+        assert.equal(cancel, '1');
+        assert(/^[0-9a-f]{32}$/.test(scanId || ''));
+        const entry = tickets.get(scanId);
+        assert(entry, 'Only an issued live ticket may be abandoned in this fixture');
+        assert.equal(url.pathname, entry.path);
+        assert.deepEqual(query, entry.query, 'Abandonment must preserve the entire original tuple');
+        assert(!result.cancellations.some(r => r.query.scanId === scanId), 'No duplicate cancellation');
+        result.cancellations.push(item); tickets.delete(scanId);
+        await send({ok:true,readOnly:true,code:'ART_SCAN_ABANDONED'}); return;
+      }
       if (!scanId) {
         if (endpoint !== 'state') {
           assert.equal(query.expectedProjectSha, PROJECT); assert.equal(query.expectedGraphRevision, activeGraph.graphRevision);
@@ -177,6 +189,12 @@ async function runCase(browser, test) {
       if (test.name === 'expired-ticket-is-terminal') assert((await page.locator('#artstatus').innerText()).includes('Synthetic scan expired.'));
       if (test.name === 'mismatched-ticket-is-terminal') assert((await page.locator('#artstatus').innerText()).includes('Synthetic scan query mismatch.'));
     }
+    const expectsCancel = ['changed-ticket-is-rejected','reload-stops-old-epoch-polls','poll-limit','time-limit'].includes(test.name);
+    if (expectsCancel) {
+      await waitForCount(() => result.cancellations.length === 1);
+      assert.equal(result.cancellations.length, 1, 'Only one bound abandonment is allowed');
+      if (test.name === 'reload-stops-old-epoch-polls') assert.equal(result.cancellations[0].query.id,'fixture.b');
+    } else assert.equal(result.cancellations.length,0,'Terminal or invalid initial responses cannot abandon an unknown ticket');
     assert.deepEqual(routeErrors, []); assert.deepEqual(browserErrors, []);
     result.observed = await page.evaluate(() => ({ nodes: document.querySelectorAll('#artnodes .art-node').length,
       title: document.querySelector('#artdetail h2')?.textContent, status: document.querySelector('#artstatus')?.textContent,

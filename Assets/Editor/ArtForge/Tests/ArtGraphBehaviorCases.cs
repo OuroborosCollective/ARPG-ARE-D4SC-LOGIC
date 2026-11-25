@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace AshenCrypt.ArtForge.Tests
 {
@@ -46,7 +47,11 @@ namespace AshenCrypt.ArtForge.Tests
             Case("oversized_graph_is_rejected", OversizedGraph),
             Case("empty_graph_is_a_valid_readonly_snapshot", EmptyGraph),
             Case("validation_does_not_mutate_input", InputPreserved),
-            Case("schema_version_and_project_are_hash_bound", EnvelopeBound)
+            Case("schema_version_and_project_are_hash_bound", EnvelopeBound),
+            Case("full_scan_pool_reclaims_oldest_completed_ticket", ReclaimCompletedTicket),
+            Case("full_scan_pool_reclaims_completed_cancelled_ticket", ReclaimCancelledTicket),
+            Case("full_scan_pool_preserves_all_unfinished_tasks", PreserveUnfinishedTickets),
+            Case("scan_pool_with_room_preserves_completed_results", PreserveResultsWithRoom)
         };
 
         public static IEnumerable<string> Names
@@ -64,6 +69,53 @@ namespace AshenCrypt.ArtForge.Tests
         static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
         static void Equal(string expected, string actual) { Require(expected == actual, "Expected " + expected + ", observed " + actual); }
         static void Code(string expected, ArtGraphValidation result) { Require(!result.IsValid, "Malformed graph was accepted."); Equal(expected, result.Code); }
+
+        sealed class ScanFixture
+        {
+            public Task Task;
+            public long Started;
+        }
+        static Dictionary<string, ScanFixture> FullScanPool()
+        {
+            var reads = new Dictionary<string, ScanFixture>(StringComparer.Ordinal);
+            for (int i = 0; i < 8; i++)
+                reads.Add("ticket-" + i, new ScanFixture { Task = new TaskCompletionSource<int>().Task, Started = i });
+            return reads;
+        }
+        static bool Admit(Dictionary<string, ScanFixture> reads)
+        {
+            return ArtForgeReadCapacity.TryAdmit(reads, 8, r => r.Task, r => r.Started,
+                (id, operation) => { Require(ReferenceEquals(reads[id], operation), "Wrong ticket identity."); reads.Remove(id); });
+        }
+        static void ReclaimCompletedTicket()
+        {
+            var reads = FullScanPool();
+            reads["ticket-2"].Task = Task.FromResult(1);
+            reads["ticket-6"].Task = Task.FromResult(2);
+            Require(Admit(reads), "Completed unclaimed reads must not deny admission.");
+            Require(reads.Count == 7 && !reads.ContainsKey("ticket-2") && reads.ContainsKey("ticket-6"),
+                "Evict only the oldest completed ticket; keep later results and all unfinished work.");
+        }
+        static void ReclaimCancelledTicket()
+        {
+            var reads = FullScanPool();
+            var cancelled = new TaskCompletionSource<int>(); cancelled.SetCanceled();
+            reads["ticket-4"].Task = cancelled.Task;
+            Require(Admit(reads) && reads.Count == 7 && !reads.ContainsKey("ticket-4"),
+                "A terminal cancelled ticket must release capacity.");
+        }
+        static void PreserveUnfinishedTickets()
+        {
+            var reads = FullScanPool();
+            Require(!Admit(reads) && reads.Count == 8, "Unfinished background tasks cannot be evicted to admit unbounded work.");
+        }
+        static void PreserveResultsWithRoom()
+        {
+            var reads = FullScanPool(); reads.Remove("ticket-7");
+            reads["ticket-1"].Task = Task.FromResult(1);
+            Require(Admit(reads) && reads.Count == 7 && reads.ContainsKey("ticket-1"),
+                "Completed results remain available unless capacity requires reclamation.");
+        }
 
         static ArtGraphNode Node(string id, params string[] parents)
         {

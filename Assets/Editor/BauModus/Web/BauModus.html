@@ -225,7 +225,7 @@ async function api(path, body, signal) {
   catch (e) { throw Object.assign(new Error("Unity ist nicht erreichbar."), { status: 0 }); }
   let data = null;
   try { data = await res.json(); } catch (e) {}
-  if (res.status === 401) { showLogin(); throw Object.assign(new Error("Zugangsschlüssel fehlt oder ist falsch."), { status: 401 }); }
+  if (res.status === 401) { if (!ART_MODE) showLogin(); throw Object.assign(new Error("Zugangsschlüssel fehlt oder ist falsch."), { status: 401 }); }
   if (!res.ok || (data && data.ok === false)) {
     const err = new Error((data && data.error) || ("Fehler " + res.status));
     err.status = res.status; err.data = data; throw err;
@@ -896,7 +896,7 @@ $("#noticeok").onclick = () => { $("#notice").style.display = "none"; try { loca
 // ------------------------------------------------------------------ Art Forge (read-only, no build or render commands)
 const ART_CATEGORIES = { figures: "Figuren", creatures: "Kreaturen", weapons: "Waffen", armor: "Rüstungen", props: "Props", materials: "Materialien", animations: "Animationen" };
 const ART_KINDS = { source: "Quelle", concept: "Konzept", mesh: "Modell", material: "Material", rig: "Rig", animation: "Animation", preview: "Vorschau" };
-const A = { graph: null, selected: "", loading: false, epoch: 0, detailRequest: 0, buttons: new Map() };
+const A = { graph: null, selected: "", loading: false, epoch: 0, detailRequest: 0, detailActive: 0, detailQueued: null, buttons: new Map() };
 function artText(tag, value, cls) { const el = document.createElement(tag); el.textContent = value == null ? "" : String(value); if (cls) el.className = cls; return el; }
 function artStatus(message, error) { const el = $("#artstatus"); el.textContent = message; el.dataset.error = error ? "true" : "false"; }
 function artIdentity(data, expected) {
@@ -912,11 +912,20 @@ function artQuery(identity, id) {
   return q.toString();
 }
 function artClear(title, message) {
-  A.graph = null; A.selected = ""; A.detailRequest++; A.buttons.clear();
+  A.graph = null; A.selected = ""; A.detailRequest++; A.detailQueued = null; A.buttons.clear();
   const stage = $("#artnodes"); stage.replaceChildren(); stage.style.width = ""; stage.style.height = "";
   const empty = artText("div", "", "art-empty"); empty.append(artText("h3", title), artText("p", message)); stage.append(empty);
   $("#artcount").textContent = "";
   $("#artdetail").replaceChildren(artText("h2", "Asset-Details"), artText("p", "Es ist kein aktuell verifizierter Graph ausgewählt."));
+}
+function artAbandon(path, ticket) {
+  // Only a bound transport ticket is abandoned; no asset or project mutation.
+  if (!path.startsWith("art/") || !/^[a-f0-9]{32}$/.test(ticket)) return;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2000);
+  fetch("./api/x/" + path + (path.includes("?") ? "&" : "?") + "scanId=" + ticket + "&cancelScan=1",
+    { method: "GET", headers: { "X-Fadenwerk-Token": S.token }, signal: controller.signal })
+    .catch(() => {}).finally(() => clearTimeout(timer));
 }
 async function artApi(path, epoch, graph) {
   const controller = new AbortController(), started = performance.now();
@@ -924,7 +933,7 @@ async function artApi(path, epoch, graph) {
   const current = () => epoch === A.epoch && (!graph || A.graph === graph);
   const abandoned = () => new DOMException("Diese Ansicht wurde ersetzt.", "AbortError");
   const timer = setTimeout(() => controller.abort(), 40000);
-  let ticket = "", polls = 0, delay = 200;
+  let ticket = "", polls = 0, delay = 200, terminal = false;
   try {
     while (true) {
       if (!current()) throw abandoned();
@@ -938,21 +947,36 @@ async function artApi(path, epoch, graph) {
       }
       try {
         const data = await api(path + (ticket ? (path.includes("?") ? "&" : "?") + "scanId=" + ticket : ""), undefined, controller.signal);
+        terminal = true;
         if (!current()) throw abandoned();
         if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
         return data;
       } catch (error) {
+        const pending = error.data;
+        // A valid ticket may arrive after a reload. Remember it before the epoch
+        // check so even that late response can be abandoned.
+        if (error.status === 202 && pending && pending.code === "ART_SCAN_PENDING") {
+          if (pending.ok !== false || pending.readOnly !== true || !/^[a-f0-9]{32}$/.test(pending.scanId || "") ||
+              (ticket && pending.scanId !== ticket)) throw new Error("Unity hat keinen gültigen, unveränderten Prüfauftrag geliefert. Bitte neu laden.");
+          ticket = pending.scanId;
+          if (!current()) throw abandoned();
+          if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
+          delay = Math.max(100, Math.min(1000, Number.isFinite(pending.retryAfterMs) ? pending.retryAfterMs : 200));
+          continue;
+        }
+        // A terminal HTTP response generally consumes or rejects the ticket.
+        // EDITOR_BUSY precedes polling and still leaves its ticket live.
+        if (error.status > 0 && error.status !== 202 &&
+            !(error.status === 503 && pending?.code === "EDITOR_BUSY")) terminal = true;
         if (!current()) throw abandoned();
         if (controller.signal.aborted || performance.now() - started >= 40000) throw timeout();
-        const pending = error.data;
-        if (error.status !== 202 || !pending || pending.code !== "ART_SCAN_PENDING") throw error;
-        if (pending.ok !== false || pending.readOnly !== true || !/^[a-f0-9]{32}$/.test(pending.scanId || "") ||
-            (ticket && pending.scanId !== ticket)) throw new Error("Unity hat keinen gültigen, unveränderten Prüfauftrag geliefert. Bitte neu laden.");
-        ticket = pending.scanId;
-        delay = Math.max(100, Math.min(1000, Number.isFinite(pending.retryAfterMs) ? pending.retryAfterMs : 200));
+        throw error;
       }
     }
-  } finally { clearTimeout(timer); }
+  } finally {
+    clearTimeout(timer);
+    if (ticket && !terminal) artAbandon(path, ticket);
+  }
 }
 async function artBoot() {
   if (!readToken()) { showLogin(); return; }
@@ -978,6 +1002,7 @@ async function artBoot() {
     artStatus(diagnostics || "Lesender Herkunftsindex · Freigaben und Importe sind hier nicht möglich. Lizenzbelege bleiben gesondert prüfbar.", !!diagnostics);
   } catch (e) {
     if (epoch !== A.epoch) return;
+    if (e.status === 401) showLogin();
     artClear(e.status === 409 ? "Stand geändert" : "Graph nicht verfügbar", e.status === 409 ? "Die bisherige Ansicht wurde verworfen. Mit „Neu laden“ den aktuellen Stand erneut prüfen." : e.message);
     artStatus(e.status === 409 ? "Projekt- oder Graphrevision stimmt nicht mehr überein. Bitte neu laden." : e.message, true);
   } finally {
@@ -1051,6 +1076,15 @@ async function selectArtNode(id, reveal) {
   for (const [nodeId, b] of A.buttons) b.setAttribute("aria-pressed", nodeId === id ? "true" : "false");
   if (reveal && A.buttons.has(id)) A.buttons.get(id).scrollIntoView({ block: "nearest", inline: "nearest" });
   $("#artdetail").replaceChildren(artText("h2", "Details werden gelesen …"));
+  const work = { id, graph, request, epoch };
+  // Keep two overlapping reads so an older 409 still invalidates the graph.
+  // Further fast taps coalesce to the latest selection, not another hash scan.
+  if (A.detailActive >= 2) { A.detailQueued = work; return; }
+  return readArtDetail(work);
+}
+async function readArtDetail(work) {
+  const { id, graph, request, epoch } = work;
+  A.detailActive++;
   try {
     const detail = artIdentity(await artApi("art/asset?" + artQuery(graph, id), epoch, graph), graph);
     if (request !== A.detailRequest || epoch !== A.epoch) return;
@@ -1061,7 +1095,18 @@ async function selectArtNode(id, reveal) {
     // Responses from a previous reload must never clear its replacement graph.
     if (epoch !== A.epoch || A.graph !== graph) return;
     if (e.status === 409) { artClear("Stand geändert", "Die angezeigte Herkunft ist nicht mehr aktuell. Bitte neu laden."); artStatus("Projekt- oder Graphrevision hat sich geändert. Die alte Ansicht wurde verworfen.", true); }
-    else if (request === A.detailRequest) { $("#artdetail").replaceChildren(artText("h2", "Details nicht verfügbar"), artText("p", e.message)); artStatus("Zuvor gelesener Graph · Aktualität dieser Ansicht derzeit unbelegt. " + e.message, true); }
+    else if (e.status === 410) { artClear("Prüfung nicht mehr verfügbar", "Der Prüfauftrag ist abgelaufen oder wurde freigegeben. Die Herkunft muss erneut gelesen werden."); artStatus("Die Aktualität des bisherigen Graphen ist nicht mehr belegt. Bitte neu laden.", true); }
+    else if (request === A.detailRequest) {
+      if (e.status === 401) showLogin();
+      $("#artdetail").replaceChildren(artText("h2", "Details nicht verfügbar"), artText("p", e.message));
+      artStatus("Zuvor gelesener Graph · Aktualität dieser Ansicht derzeit unbelegt. " + e.message, true);
+    }
+  } finally {
+    A.detailActive--;
+    const queued = A.detailQueued;
+    A.detailQueued = null;
+    if (queued && queued.epoch === A.epoch && queued.graph === A.graph && queued.request === A.detailRequest)
+      void readArtDetail(queued);
   }
 }
 function renderArtDetails(node) {

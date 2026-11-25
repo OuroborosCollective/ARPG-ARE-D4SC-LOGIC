@@ -182,8 +182,18 @@ keine fortlaufende Garantie über spätere Dateiänderungen.
 
 Die Prüfung erhält nach 30 Sekunden ein Abbruchsignal, das bei Git-Wartephasen,
 Job-/Dateigrenzen und Byteblöcken geprüft wird. Tickets werden spätestens nach
-60 Sekunden bei einem weiteren Abruf verworfen. Editor-Ende und Assembly-Reload
-brechen laufende Operationen ab, ohne im Hauptthread auf deren IO zu warten.
+60 Sekunden aufgegeben. Belegte Plätze werden erst freigegeben, wenn ihre
+Hintergrundaufgabe tatsächlich beendet wurde. Sind alle acht Plätze belegt,
+verdrängt eine neue Anfrage genau ein abgeschlossenes Ergebnis, das älteste
+zuerst. Solange alle acht Aufgaben laufen, bleibt die Antwort
+`503 ART_SCAN_CAPACITY`. Eine Abfrage eines verdrängten Tickets erhält `410`.
+Lässt der Browser ein bekanntes Ticket wegen Reload oder Zeitlimit fallen,
+darf er auf derselben GET-Route mit unverändertem Ticket, beiden ursprünglich
+übergebenen Revisionen und ursprünglicher Asset-ID zusätzlich `cancelScan=1`
+senden. Der bestehende Dispatcher prüft die Bindung und antwortet
+`ART_SCAN_ABANDONED` oder bei bereits entferntem Ticket `410`. Auch bei Abbruch
+wartet der Editor-Hauptthread nicht auf IO. Editor-Ende und Assembly-Reload
+beenden offene Aufträge.
 Diese Fristen und Ticket-IDs gehören ausschließlich zur Editor-Kommunikation;
 sie fließen weder in `graphRevision` noch in Simulation, Saves oder Ticks ein.
 
@@ -194,7 +204,11 @@ neuen Scan. Ein Reload beendet alte Polls; eine andere Knotenauswahl im selben
 Graphen darf dagegen einen noch ausstehenden `409`-Konflikt nicht verschlucken.
 Ein Konflikt für die weiterhin aktive Graphidentität verwirft den Graphen,
 auch wenn inzwischen ein anderer Knoten ausgewählt ist. Antworten aus einer
-früheren Reload-Epoche dürfen einen neu geladenen Graphen nicht entfernen.
+früheren Reload-Epoche dürfen einen neu geladenen Graphen nicht entfernen. Pro
+Graphansicht können zwei Detailprüfungen gleichzeitig laufen. Sind beide belegt,
+erhält nur die jüngste wartende Auswahl einen frei werdenden Platz. Eine `401`
+öffnet die Anmeldung ausschließlich für das aktuelle Laden oder die weiterhin
+ausgewählte Detailanfrage.
 
 Die Hintergrundserialisierung verwendet ausschließlich gewöhnliche DTOs und
 String-JSON, keine Unity-Objekte. [Unity dokumentiert diesen Threadzugriff für
