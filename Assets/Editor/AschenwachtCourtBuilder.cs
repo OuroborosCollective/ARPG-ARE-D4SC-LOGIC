@@ -64,8 +64,11 @@ namespace AreArpg.EditorTools
             Dictionary<string, Material> forecourt = ForecourtMaterialSet();
             Dictionary<string, Material> court = AssetDatabase.FindAssets("t:Material", new[] { CourtMaterials.TrimEnd('/') })
                 .Select(guid => AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid))).ToDictionary(m => m.name, StringComparer.Ordinal);
-            PrepareModels(ForecourtModels, forecourt);
-            PrepareModels(CourtModels, court);
+            // The distant slate ridge is a silhouette, not wet stone in the sun: a matte, darker copy of its material.
+            var ridge = new Dictionary<string, Dictionary<string, Material>>(StringComparer.Ordinal)
+                { { "Fernkulisse", new Dictionary<string, Material>(StringComparer.Ordinal) { { "WetStone", RidgeMaterial(forecourt["WetStone"]) } } } };
+            PrepareModels(ForecourtModels, forecourt, ridge);
+            PrepareModels(CourtModels, court, null);
             RuntimeAnimatorController idle = AschbeterIdle();
 
             var root = new GameObject("EntryCourtWorld");
@@ -209,7 +212,22 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>Models arrive without animation (the takes keep theirs) and wear the set's materials by name.</summary>
-        private static void PrepareModels(string folder, Dictionary<string, Material> materials)
+        private static Material RidgeMaterial(Material wetStone)
+        {
+            string path = ForecourtMaterials + "WetStone_Fernkulisse.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null) { material = new Material(wetStone); AssetDatabase.CreateAsset(material, path); }
+            material.CopyPropertiesFromMaterial(wetStone);
+            material.SetColor("_BaseColor", new Color(.56f, .58f, .62f));
+            material.SetFloat("_Smoothness", .12f);
+            material.SetFloat("_BumpScale", .6f);
+            material.SetShaderPassEnabled("ShadowCaster", false);
+            EditorUtility.SetDirty(material);
+            AssetDatabase.SaveAssets();
+            return material;
+        }
+
+        private static void PrepareModels(string folder, Dictionary<string, Material> materials, Dictionary<string, Dictionary<string, Material>> perModel)
         {
             string avatarModel = folder + "Aschbeter.fbx";
             // A take copies its avatar from the model, so every model is prepared before any take.
@@ -253,9 +271,13 @@ namespace AreArpg.EditorTools
                 {
                     Set(importer.materialImportMode, ModelImporterMaterialImportMode.ImportViaMaterialDescription, v => importer.materialImportMode = v);
                     Dictionary<AssetImporter.SourceAssetIdentifier, UnityEngine.Object> map = importer.GetExternalObjectMap();
-                    foreach (var name in SourceMaterialNames(path))
+                    Dictionary<string, Material> special = null;
+                    perModel?.TryGetValue(Path.GetFileNameWithoutExtension(path), out special);
+                    foreach (var name in SourceMaterialNames(importer))
                     {
-                        if (!materials.TryGetValue(name, out Material material)) throw new InvalidOperationException("No material '" + name + "' for " + path);
+                        Material material = null;
+                        if (special != null && special.TryGetValue(name, out Material own)) material = own;
+                        else if (!materials.TryGetValue(name, out material)) throw new InvalidOperationException("No material '" + name + "' for " + path);
                         var id = new AssetImporter.SourceAssetIdentifier(typeof(Material), name);
                         if (!map.TryGetValue(id, out UnityEngine.Object current) || current != material) { importer.AddRemap(id, material); changed = true; }
                     }
@@ -264,14 +286,14 @@ namespace AreArpg.EditorTools
             }
         }
 
-        /// <summary>The material names an imported model asks for (its default sub-assets or existing remaps).</summary>
-        private static IEnumerable<string> SourceMaterialNames(string path)
+        /// <summary>The material names the source model file asks for, whatever they are remapped to now.</summary>
+        private static IEnumerable<string> SourceMaterialNames(ModelImporter importer)
         {
+            // Remapped source materials are keys of the external object map; the others are embedded under their own name.
             var names = new SortedSet<string>(StringComparer.Ordinal);
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>(true))
-                foreach (Material material in renderer.sharedMaterials)
-                    if (material != null) names.Add(material.name.Split('.')[0].Replace(" (Instance)", ""));
+            foreach (var pair in importer.GetExternalObjectMap())
+                if (pair.Key.type == typeof(Material)) names.Add(pair.Key.name);
+            foreach (Material embedded in AssetDatabase.LoadAllAssetsAtPath(importer.assetPath).OfType<Material>()) names.Add(embedded.name);
             return names;
         }
 

@@ -15,6 +15,25 @@ namespace AreArpg.UnityClient
             new Vector3(0f, 3.8f, 57.5f)
         };
 
+        /// <summary>
+        /// The ash plain the place stands on: below the forecourt's floor and around the bell court's island, so the open
+        /// sky never shows beneath them. The village's own ash-snow surface, unlit by any rule.
+        /// </summary>
+        private static void AddCourtAshPlain(Transform scenery)
+        {
+            Material ash = WorldSurfacePresentation.AshSnow;
+            if (ash == null) return;
+            var plain = new GameObject("Aschenwacht_Ascheebene");
+            plain.transform.SetParent(scenery, false);
+            plain.transform.localPosition = new Vector3(0f, -.3f, 12f);
+            plain.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            plain.transform.localScale = new Vector3(420f, 420f, 1f);
+            plain.AddComponent<MeshFilter>().sharedMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
+            var renderer = plain.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = ash;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+
         private static void AddCourtFireLights(Transform scenery)
         {
             var holder = new GameObject("Aschenwacht_Feuerlicht").transform;
