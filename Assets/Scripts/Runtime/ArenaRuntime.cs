@@ -407,6 +407,7 @@ namespace AreArpg.UnityClient
             if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); if (_game.Progression.EntryAct == 4 && _game.Progression.Woodland.Active) WoodlandPortal("Wald nach Aschenzoll",-20,18); return; }
             if (_game.Progression.EntryAct > 0 && BuildEntryArt()) return;
             if (_game.Progression.EntryAct == 2) { BuildEntryVillageFallback(); return; }
+            if (_game.InCourt) { BuildCourtFallback(); return; }
             _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
                 new Vector3(ArenaSimulation.PassageXmm / 1000f, 0.02f, ArenaSimulation.PassageZmm / 1000f),
                 new Vector3(3.6f, 0.02f, 3.6f), new Color(0.25f, 0.68f, 0.72f));
@@ -673,6 +674,16 @@ namespace AreArpg.UnityClient
         }
 
         /// <summary>Visible development-only geometry follows every Core footprint; it is not finished world art.</summary>
+        /// <summary>Without the private sets: a plain floor under Aschenwacht's walkable area and the passage at the tower door.</summary>
+        private void BuildCourtFallback()
+        {
+            ChapterShape(PrimitiveType.Cube, "Aschenwacht_FallbackFloor", new Vector3(0f, -.05f, 12f), new Vector3(86f, .1f, 120f), new Color(.30f, .30f, .32f));
+            _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
+                new Vector3(CourtLayout.ExitXmm / 1000f, .03f, CourtLayout.ExitZmm / 1000f), new Vector3(3.6f, .02f, 3.6f), new Color(.25f, .68f, .72f));
+            _worldPassage.gameObject.SetActive(false);
+            RenderSettings.ambientLight = new Color(0.47f, 0.48f, 0.5f);
+        }
+
         private void BuildEntryVillageFallback()
         {
             ChapterShape(PrimitiveType.Cube, "Aschengrenze_FallbackSoil", new Vector3(0f, -.05f, 0f),

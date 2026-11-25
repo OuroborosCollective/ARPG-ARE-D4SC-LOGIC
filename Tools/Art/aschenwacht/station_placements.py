@@ -66,6 +66,8 @@ def main():
         t_b = np.array([float(r["blender_x_m"]), float(r["blender_y_m"]), float(r["blender_z_m"])])
         rows.append(row(r["gruppe"], "II", r["modell"], F @ C @ t_b, F @ C @ rot_b @ C.T @ M_INV,
                         (float(r["sx"]), float(r["sz"]), float(r["sy"]))))
+    # The terraced floor carries every other placement; the table of placements leaves it out, the scene has it at the origin.
+    rows.append(row("Boden", "II", "Hofboden_84x92", np.zeros(3), F @ np.eye(3) @ M_INV, (1, 1, 1)))
     rows.append(row("Anschluss", "II", "Anschluss_Glockenhof", F @ np.array([0.0, 1.195, 46.0]), F @ np.eye(3) @ M_INV, (1, 1, 1)))
     rows.append(row("Fernkulisse", "II", "Fernkulisse", np.zeros(3), F @ np.eye(3) @ M_INV, (1, 1, 1)))
     # The Aschbeter keeps his place on the procession path but faces the crypt portal he guards.
