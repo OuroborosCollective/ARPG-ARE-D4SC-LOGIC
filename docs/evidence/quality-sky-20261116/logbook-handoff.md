@@ -555,3 +555,12 @@ Historischer Werkstattvermerk vom 24. November, PR #138
 ### 2026-11-25 · Aschenwacht I und II im Haupteditor
 
 Glockenhof unter `Assets/Aschenwacht/Scenes/Glockenhof.unity`, Vorhof unter `Assets/PrivateArt/Aschenwacht_II/Szene/Aschenwacht_II_Gesamtszene.glb`. Im getrennten Unity-Vorschaukontext wurden alle Modelle geprüft. Aktive Arbeitsszene `AshenEntry`, lokaler Projektstand `460cb1722e34e15e7e18e468f2497f2dd82bf341`. Abnahme `aschenwacht-haupteditor-import-20261125`, Nachweisarchiv `Aschenwacht_I_II_Unity_Importnachweis_2026-11-25.zip`. Nächster Arbeitsschritt ist die gemeinsame Szenenplatzierung.
+
+## 25. November 2026 · Aschenwacht und der Anfang der Geschichte
+
+- Neu im Spiel: Nach der Krypta steht der Held im entweihten Vorhof von Aschenwacht, geht durch das Tor in den Glockenhof und durch die Tür des Glockenturms ins Dorf. Unterwegs kann er acht Spuren lesen, die seine Vorgeschichte erzählen: Er ist der letzte Läuter des Glockenordens, im Aschenschlaf gelegt, und erwacht, weil die Glocke verstummt ist.
+- Evidence auf `39cd6cd63cf592c016c5179159d2ab89e6371d57`: Core ALL PASS, 23,200 checks (57 of them for Aschenwacht); volle EditMode-Reihe 371 tests: 343 passed, 0 failed, 28 skipped; volle PlayMode-Reihe mit Overlay 215 tests: 210 passed, 1 failed, 4 skipped (the long journey run, see below).
+- Grenzen: Tablet-Bildrate ungemessen; der Aschbeter kämpft noch nicht; die Geschichte kann der Owner noch ändern.
+- Offene Owner-Fragen: Wird der Aschbeter ein Gegner? Werden Rüstung und Klauenstäbe der Sets zu Beute?
+- Nächste Schritte: Antworten einbauen; danach der Dorf-Umbau (Entscheidung A) und die Häuser aus dem Bausatz (B) nach dem Editor-Sync.
+- [Technische Abnahme](../aschenwacht-20261125/acceptance.md)
