@@ -11,7 +11,8 @@ namespace AreArpg.Core
         R_Gratkeule, R_Splitterzahn, R_Scharrbeil, R_Rippenschild, R_Grabschild,
         G_Ofengabel, G_Zollmesser, G_Hammerbeil, G_Zollbuckler, G_Zunderpfanne,
         M_Wehrsaebel, M_Lotklinge, M_Jochbeil, M_Wehrschild, M_Glockenring,
-        G_Ziegelschild, M_Handglocke, G_Schuerhaken, M_Heilerstab
+        G_Ziegelschild, M_Handglocke, G_Schuerhaken, M_Heilerstab,
+        B_Brennerspeer, B_Scherbenhellebarde
     }
 
     public enum RegionalRelicSlot { Body, Belt, Weapon, Shield, Utility, Head }
@@ -19,7 +20,7 @@ namespace AreArpg.Core
     /// <summary>Fixed sources for the regional gear. Version-one random weapon rolls have their own frozen catalog.</summary>
     public static class RegionalRelics
     {
-        internal enum Unlock { Trail, Shelter, Beds, Trace, Brand, Toll }
+        internal enum Unlock { Trail, Shelter, Beds, Trace, Brand, Toll, Kiln }
         internal sealed class Source
         {
             public readonly RegionalRelic Id;
@@ -53,6 +54,8 @@ namespace AreArpg.Core
                     case Unlock.Trace: return p.Investigation.TraceFound;
                     case Unlock.Brand: return p.Rattler.BrandExamined;
                     case Unlock.Toll: return p.Woodland.ReachedAschenzoll;
+                    // The Brennerhof lies in Aschenwacht, which the wanderer passes once on his way to the village.
+                    case Unlock.Kiln: return p.EntryAct >= 2 || p.InCourt;
                     default: return false;
                 }
             }
@@ -88,7 +91,12 @@ namespace AreArpg.Core
             // shield, Wundschluss works at 80 %. It borrows the wanderer's staff model until it has its own.
             new Source(RegionalRelic.M_Heilerstab, "Orsels Heilerstab", RegionalRelicSlot.Weapon, 4, HealingRules.OrselMillXmm, HealingRules.OrselMillZmm,
                 Unlock.Shelter, "Alte Mühle · von Orsel nach ihrer Unterweisung", WeaponFamily.Staff, 150, 7, 8000, false,
-                granted: true, visualKey: "Weapons/staff_newbie.1")
+                granted: true, visualKey: "Weapons/staff_newbie.1"),
+            // Owner decision 2026-11-25: the Brennerhof's two weapons are fixed finds. Its yard frame is KilnLayout's.
+            new Source(RegionalRelic.B_Brennerspeer, "Brennerspeer", RegionalRelicSlot.Weapon, 1, KilnYard.SpearXmm, KilnYard.SpearZmm,
+                Unlock.Kiln, "Brennerhof · an der Waffenbank", WeaponFamily.Spear, 140, 4, 4600, true, WeaponFamily.Staff),
+            new Source(RegionalRelic.B_Scherbenhellebarde, "Scherbenhellebarde", RegionalRelicSlot.Weapon, 1, KilnYard.HalberdXmm, KilnYard.HalberdZmm,
+                Unlock.Kiln, "Brennerhof · im Scherbenschlupf", WeaponFamily.Spear, 175, 5, 4800, true, WeaponFamily.Axe)
         };
 
         public static readonly IReadOnlyList<RegionalRelic> All = Array.AsReadOnly(Array.ConvertAll(
@@ -199,6 +207,7 @@ namespace AreArpg.Core
             if (GameOver || InJourney || !RegionalRelics.Valid(id) || Progression.Equipment.OwnsRegionalRelic(id)) return false;
             var source = RegionalRelics.Get(id);
             if (source.Granted || source.Act != Progression.EntryAct || !source.HistoricalSource(Progression)) return false;
+            if ((source.Required == RegionalRelics.Unlock.Kiln) != InKilnYard) return false; // the yard's finds lie only there
             if (id == RegionalRelic.Grubenlicht)
             {
                 var rattler = Progression.Rattler;

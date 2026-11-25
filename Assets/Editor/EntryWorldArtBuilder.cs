@@ -70,6 +70,8 @@ namespace AreArpg.EditorTools
             CryptEnemyArtBuilder.TryBuild(3);
             // Aschenwacht between crypt and village is built from the owner's two private sets where they are installed.
             AschenwachtCourtBuilder.TryBuild();
+            // Its side yard, the Brennerhof, from the private pack where it is installed.
+            BrennerhofBuilder.TryBuild();
             EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
             AssetDatabase.SaveAssets();
             AuditInputs();

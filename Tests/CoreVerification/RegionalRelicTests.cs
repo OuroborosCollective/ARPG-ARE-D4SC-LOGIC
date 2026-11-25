@@ -151,6 +151,12 @@ internal static class RegionalRelicTests
                 require(!world.TryGetRegionalRelicSource(id,out _,out _),"regional-granted-piece-has-no-world-source-"+id);
                 continue;
             }
+            if (src.Required == RegionalRelics.Unlock.Kiln)
+            {
+                // The Brennerhof's two weapons lie only in that yard (owner 2026-11-25); KilnYardTests take them on foot.
+                require(!world.TryGetRegionalRelicSource(id,out _,out _),"regional-kiln-find-only-in-the-brennerhof-"+id);
+                continue;
+            }
             require(!seen.Contains(id) && world.TryGetRegionalRelicSource(id,out _,out _),"regional-walkable-authored-source-"+id);
             seen.Add(id);
             // Start at a close, walkable point for testing every individual source. Normal protagonist input must claim it.

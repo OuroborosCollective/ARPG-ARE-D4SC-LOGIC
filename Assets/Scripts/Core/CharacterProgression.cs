@@ -59,6 +59,7 @@ namespace AreArpg.Core
             EntryAct = 2;
             InCourt = false;
             CourtTraces = 0;
+            KilnState = 0;
             return true;
         }
 
@@ -198,7 +199,7 @@ namespace AreArpg.Core
                 "|" + _practice[1].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[2].ToString(CultureInfo.InvariantCulture) +
                 "|" + _practice[3].ToString(CultureInfo.InvariantCulture) +
-                "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|" + (HungerStage > 0 ? HungerToken() : "1," + EntryAct.ToString(CultureInfo.InvariantCulture) + (InCourt ? ",c" + (CourtTraces > 0 ? CourtTraces.ToString(CultureInfo.InvariantCulture) : "") : "")) :
+                "|" + Social.Token() + (EntryAct > 0 ? "|" + ItemToken() + "|" + (HungerStage > 0 ? HungerToken() : "1," + EntryAct.ToString(CultureInfo.InvariantCulture) + (InCourt ? CourtToken() : "")) :
                     (_items.Count == 0 ? "" : "|" + ItemToken())) +
                 (Road.Started || Investigation.Active ? "|" + Road.Token() + "|" + Social.RoadSocialToken() : "") +
                 (Investigation.Active ? "|" + Investigation.Token() : "") + (Rattler.Active ? "|" + Rattler.Token() : Dungeon.Active ? "|-" : "") + (Dungeon.Active ? "|" + Dungeon.Token() : Woodland.Active ? "|-" : "") + (Woodland.Active ? "|" + Woodland.Token() : "");
@@ -279,7 +280,7 @@ namespace AreArpg.Core
             if ((ac5 || ac7 || ac8 || ac9) && !SocialLedger.TryRead(parts[13], out social)) return false;
             int entryAct = 0, hungerStage = 0;
             bool inCourt = false;
-            int courtTraces = 0;
+            int courtTraces = 0, kilnState = 0;
             bool entryFromNorth = false;
             HungerChoice supplyChoice = HungerChoice.Undecided;
             if (ac9 && (!unlockedDepth.IsOne || !ReadHungerToken(parts[15], out entryAct, out entryFromNorth, out hungerStage, out supplyChoice, ac11, ac12 || ac14, ac15))) return false;
@@ -287,7 +288,7 @@ namespace AreArpg.Core
             {
                 if (!unlockedDepth.IsOne) return false;
                 if (parts[15] == "1,1" || parts[15] == "1,2") entryAct = parts[15] == "1,1" ? 1 : 2;
-                else if (parts[15].StartsWith("1,1,c", StringComparison.Ordinal) && ReadCourtTraces(parts[15].Substring(5), out courtTraces)) { entryAct = 1; inCourt = true; }
+                else if (parts[15].StartsWith("1,1,c", StringComparison.Ordinal) && ReadCourtToken(parts[15].Substring(5), out courtTraces, out kilnState)) { entryAct = 1; inCourt = true; }
                 else return false;
             }
             HunterEncounter road = new HunterEncounter();
@@ -338,7 +339,7 @@ namespace AreArpg.Core
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LootOrdinal = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
-                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct, InCourt = inCourt, CourtTraces = courtTraces,
+                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct, InCourt = inCourt, CourtTraces = courtTraces, KilnState = kilnState,
                 HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland,
                 WeaponMastery = restoring ?? new WeaponMasteryState(), _restoringWeaponMastery = restoring != null
             };

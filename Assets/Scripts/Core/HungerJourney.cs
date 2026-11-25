@@ -4,7 +4,7 @@ using System.Globalization;
 namespace AreArpg.Core
 {
     public enum HungerChoice { Undecided = 0, Reveal = 1, Protect = 2, Replace = 3 }
-    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17, OpenDungeonSeal = 18, BreakDungeonSeal = 19, OpenWestChest = 20, OpenEastChest = 21, BeginDungeonRun = 22, AcceptTransportLead = 23, ForestChest0 = 24, ForestChest1 = 25, ForestChest2 = 26, ForestChest3 = 27, InspectCubs = 28, SpareCubs = 29, SkinCubs = 30, ReportCubs = 31, OrganizeCubProtection = 32, CraftPeltArmor = 33, InspectFreightNotice = 34, InspectFreightCage = 35, ReadFreightManifest = 36, SecureFreight = 37, ReleaseFreight = 38, TakeFreightOriginal = 39, InspectFreightArrival = 40, ReportFreightEvidence = 41, ClaimRegionalRelic = 42, ReadCourtTrace = 43 }
+    public enum HungerAction { HearIlyan = 0, InspectTrail = 1, InspectShelter = 2, Reveal = 3, Protect = 4, Replace = 5, InspectBeds = 6, StoreBandage = 7, StoreTracks = 8, InspectSeal = 9, OpenSeal = 10, BreakSeal = 11, InspectCryptTrace = 12, ReportCrypt = 13, OpenInnerDoor = 14, ToggleSneak = 15, InspectRoyalBrand = 16, ReportRoyalBrand = 17, OpenDungeonSeal = 18, BreakDungeonSeal = 19, OpenWestChest = 20, OpenEastChest = 21, BeginDungeonRun = 22, AcceptTransportLead = 23, ForestChest0 = 24, ForestChest1 = 25, ForestChest2 = 26, ForestChest3 = 27, InspectCubs = 28, SpareCubs = 29, SkinCubs = 30, ReportCubs = 31, OrganizeCubProtection = 32, CraftPeltArmor = 33, InspectFreightNotice = 34, InspectFreightCage = 35, ReadFreightManifest = 36, SecureFreight = 37, ReleaseFreight = 38, TakeFreightOriginal = 39, InspectFreightArrival = 40, ReportFreightEvidence = 41, ClaimRegionalRelic = 42, ReadCourtTrace = 43, OpenKilnGate = 44, BreakKilnVase = 45 }
 
     public sealed partial class CharacterProgression
     {
@@ -115,6 +115,8 @@ namespace AreArpg.Core
         {
             if (action == HungerAction.ClaimRegionalRelic) return ClaimRegionalRelic();
             if (action == HungerAction.ReadCourtTrace) return ReadCourtTrace(); // reading changes no rule and is not a story deed
+            if (action == HungerAction.OpenKilnGate) return OpenKilnGate(); // the Brennerhof keeps its own state, no story deed
+            if (action == HungerAction.BreakKilnVase) return BreakKilnVase();
             var result=ActOnHungerCore(action);
             if(result.Accepted)RememberStoryAction(action);
             return result;

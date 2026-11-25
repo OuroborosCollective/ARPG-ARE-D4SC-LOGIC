@@ -19,7 +19,7 @@ namespace AreArpg.UnityClient
         private void RebuildAtmosphere()
         {
             if (_atmosphere == null) return;
-            _atmosphere.EnterRegion(_game.InCourt ? 2 : _game.CurrentAreaId); // Aschenwacht lies under the same open ash sky as the village
+            _atmosphere.EnterRegion(_game.InCourt || _game.InKilnYard ? 2 : _game.CurrentAreaId); // Aschenwacht lies under the same open ash sky as the village
             int act = _game.CurrentAreaId;
             if (act == 3)
                 // Ash, not grass (owner direction 2026-11-20). The strip lies flush on the ground, whose top is at -.1:

@@ -20,6 +20,9 @@ F = np.diag([-1.0, 1.0, 1.0])
 M_INV = np.diag([1.0, 1.0, -1.0])
 C = np.array([[1.0, 0, 0], [0, 0, 1.0], [0, -1.0, 0]])          # Blender (Z up) -> glTF (Y up)
 DOCK_R, DOCK_T = np.diag([-1.0, 1.0, -1.0]), np.array([0.55, 1.195, 60.33])  # the bell court, turned half a turn
+# Owner decision 2026-11-25: the side gate to the Brennerhof stands in the forecourt's east wall; that wall piece gives way to it
+# (the runtime puts up the gate's arch, KilnYard.SideGateXmm/Zmm).
+SIDE_GATE = (40.8, 3.0)
 
 
 def quaternion(m):
@@ -64,6 +67,9 @@ def main():
         rot_b = (np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]]) @ np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]]) @
                  np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]]))
         t_b = np.array([float(r["blender_x_m"]), float(r["blender_y_m"]), float(r["blender_z_m"])])
+        at = F @ C @ t_b
+        if r["gruppe"] == "Umfriedung" and abs(at[0] - SIDE_GATE[0]) < 0.3 and abs(at[2] - SIDE_GATE[1]) < 0.3:
+            continue
         rows.append(row(r["gruppe"], "II", r["modell"], F @ C @ t_b, F @ C @ rot_b @ C.T @ M_INV,
                         (float(r["sx"]), float(r["sz"]), float(r["sy"]))))
     # The terraced floor carries every other placement; the table of placements leaves it out, the scene has it at the origin.

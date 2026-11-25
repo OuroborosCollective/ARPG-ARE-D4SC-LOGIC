@@ -377,6 +377,7 @@ namespace AreArpg.UnityClient
         public static string ObjectiveText(ArenaSimulation game)
         {
             if (game.Progression.HungerStage > 0) return game.HungerObjective;
+            if (game.InKilnYard) return KilnYard.Objective + " Funde: " + KilnYard.FoundCount(game.Progression) + "/2.";
             if (game.InCourt) return CourtLore.Objective + " Spuren: " + CourtLore.Count(game.Progression.CourtTraces) + "/" + CourtLore.Traces.Length + ".";
             if (game.Progression.EntryAct == 1) return "Verlasse die Krypta. Besiege ihre Wächter und sichere die Beute.";
             if (game.Progression.EntryAct == 2) return "Folge dem Dorfweg: Ilyan hungert, Mara und Dorn erwarten dich.";
@@ -549,6 +550,8 @@ namespace AreArpg.UnityClient
                 PlaceDot(ref used, bag.Xmm, bag.Zmm, new Color(1f, 0.95f, 0.55f), 6f, PerMetre, Radius);
             if (_worldPassage != null)
                 PlaceDot(ref used, (long)(_worldPassage.position.x*1000), (long)(_worldPassage.position.z*1000), new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
+            if (_game.InCourt) // the side gate to the Brennerhof, a way of its own beside the pilgrim path
+                PlaceDot(ref used, KilnYard.SideGateXmm, KilnYard.SideGateZmm, new Color(1f, 0.62f, 0.3f), 10f, PerMetre, Radius);
             if (_returnPassage != null)
                 PlaceDot(ref used, (long)(_returnPassage.position.x*1000), (long)(_returnPassage.position.z*1000), new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
             foreach(var portal in _woodlandPortals) if(portal!=null) PlaceDot(ref used,(long)(portal.position.x*1000),(long)(portal.position.z*1000),new Color(.35f,.85f,1f),12f,PerMetre,Radius);
