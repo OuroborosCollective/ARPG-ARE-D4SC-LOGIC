@@ -564,3 +564,11 @@ Glockenhof unter `Assets/Aschenwacht/Scenes/Glockenhof.unity`, Vorhof unter `Ass
 - Offene Owner-Fragen: Wird der Aschbeter ein Gegner? Werden Rüstung und Klauenstäbe der Sets zu Beute?
 - Nächste Schritte: Antworten einbauen; danach der Dorf-Umbau (Entscheidung A) und die Häuser aus dem Bausatz (B) nach dem Editor-Sync.
 - [Technische Abnahme](../aschenwacht-20261125/acceptance.md)
+
+## 25. November 2026 · Der Brennerhof
+
+- Neu im Spiel: In der Ostmauer des Vorhofs von Aschenwacht steht ein Seitentor. Dahinter liegt der verschleierte Brennerhof des Glockenordens mit Öfen, Gassen, Nebel und Glut, am Horizont Abtei, Aquädukt und Berge. Acht Vasen lassen sich zerschlagen. Das Gitter des Ofengangs ist von innen verriegelt (Rätsel). Der Scherbenschlupf hinter dem Westofen ist der Geheimweg zur Scherbenhellebarde. Der Brennerspeer liegt an der Waffenbank. Durch das Südtor geht es zurück.
+- Evidence auf `50e97348588ee4c90abdb5dce5ce49beee75e4b4`: Core ALL PASS, 23,297 checks (97 of them for the Brennerhof); volle EditMode-Reihe 372 tests: 336 passed, 8 failed, 28 skipped (the 8: the editor was still busy, see the table); volle PlayMode-Reihe mit Overlay 216 tests: 209 passed, 3 failed, 4 skipped (fixed, see the table).
+- Grenzen: Tablet-Bildrate ungemessen; Vasen geben keine Beute.
+- Nächste Schritte: Owner-Antworten zu Aschenwacht (Aschbeter, Beute der Sets); danach der Dorf-Umbau.
+- [Technische Abnahme](../brennerhof-20261125/acceptance.md)
