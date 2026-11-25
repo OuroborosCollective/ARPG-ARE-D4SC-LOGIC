@@ -99,6 +99,8 @@ namespace AreArpg.Core
         public int Health;
         public int MaxHealth;
         public int AttackCooldownTicks;
+        // Read-only projection of the last immediate strike. Combat, replay hashes and saves never consume it.
+        public (long Xmm, long Zmm)? LastImmediateStrikeTarget { get; internal set; }
         public bool LootGranted;
         // The ember-warden's countdown is part of the authoritative replay state.
         public int BossWindupTicks;
@@ -728,6 +730,7 @@ namespace AreArpg.Core
                 {
                     int damage = enemy.Role != MonsterRole.None ? MonsterRoles.AttackDamage(enemy.Role) : (enemy.Kind >= 2 ? 105 : (enemy.Kind == 1 ? 60 : 40));
                     enemy.AttackCooldownTicks = enemy.Role != MonsterRole.None ? MonsterRoles.AttackCooldownTicks(enemy.Role) : (enemy.Kind >= 2 ? 12 : 17);
+                    enemy.LastImmediateStrikeTarget = (PlayerXmm, PlayerZmm);
                     ReceiveCreatureHit(enemy, damage);
                     if (GameOver) break;
                 }
