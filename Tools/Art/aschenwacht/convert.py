@@ -74,7 +74,8 @@ if armature:
 for folder in ("Full", "Game"):
     os.makedirs(os.path.join(config["out"], folder), exist_ok=True)
 select()
-bpy.ops.export_scene.fbx(filepath=os.path.join(config["out"], "Full", config["name"] + ".fbx"), bake_anim=False, **common)
+if config.get("full", True):
+    bpy.ops.export_scene.fbx(filepath=os.path.join(config["out"], "Full", config["name"] + ".fbx"), bake_anim=False, **common)
 
 # The game mesh: a plant keeps a share of its loose parts (whole blades, not shredded ones), then every mesh is
 # collapsed to its share of the triangle target. UVs, material slots and skin weights stay.

@@ -68,6 +68,8 @@ namespace AreArpg.EditorTools
             }
             // The Ember Warden (kind 3) has an entry figure only from the owner's model; without it the game keeps Enemy3.
             CryptEnemyArtBuilder.TryBuild(3);
+            // Aschenwacht between crypt and village is built from the owner's two private sets where they are installed.
+            AschenwachtCourtBuilder.TryBuild();
             EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
             AssetDatabase.SaveAssets();
             AuditInputs();
