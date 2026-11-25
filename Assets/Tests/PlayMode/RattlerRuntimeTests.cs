@@ -42,12 +42,22 @@ namespace AreArpg.PlayMode.Tests
             for (int tick = 0; tick < 600 && !Game.GameOver && !Game.Progression.Rattler.Creature.IsDead; tick++)
             {
                 var r = Game.Progression.Rattler; var m = r.Creature;
-                if (m.BossWindupTicks > 0) Game.SetMoveInput(0, -10000);
+                if (m.BossWindupTicks > 0)
+                {
+                    // The blind creature attacks the remembered position. Roll sideways out of the committed circle.
+                    long side = Game.PlayerXmm > r.StrikeX ? 10000 : Game.PlayerXmm < r.StrikeX ? -10000 :
+                        (Game.PlayerXmm > 0 ? -10000 : 10000);
+                    Game.SetMoveInput(side, 0);
+                    if (Game.CombatV2) Game.StartDodge(side, 0);
+                }
                 else
                 {
-                    long dz = m.Zmm - Game.PlayerZmm;
-                    Game.SetMoveInput(0, System.Math.Abs(dz) > 1800 ? System.Math.Sign(dz) * 10000 : 0);
-                    Game.ActivateSkill(3); Game.ActivateSkill(1); Game.ActivateSkill(0);
+                    long dx = m.Xmm - Game.PlayerXmm, dz = m.Zmm - Game.PlayerZmm;
+                    bool approach = dx * dx + dz * dz > 2500L * 2500;
+                    Game.SetMoveInput(approach ? System.Math.Sign(dx) * 10000 : 0, approach ? System.Math.Sign(dz) * 10000 : 0);
+                    // Ruin roots the player during its startup. Use the recovery after a strike for a locked action.
+                    if (!Game.CombatV2 || m.AttackCooldownTicks > CombatV2Rules.Ruin.Startup) Game.ActivateSkill(3);
+                    Game.ActivateSkill(1); Game.ActivateSkill(0);
                 }
                 Game.Step();
                 typeof(ArenaRuntime).GetMethod("UpdateRattlerPresentation", Flags).Invoke(_runtime, null);

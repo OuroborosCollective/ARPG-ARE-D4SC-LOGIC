@@ -1,0 +1,7 @@
+{
+  "name": "AshenCrypt.ArtForge.Editor",
+  "rootNamespace": "AshenCrypt.ArtForge",
+  "references": ["AshenCrypt.ArtForge.Contracts", "Fadenwerk.Editor", "AshenCrypt.WorldForge.Editor"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

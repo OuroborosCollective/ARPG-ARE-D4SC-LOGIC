@@ -461,6 +461,63 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Nächste Schritte: #48 Block 4 (Welt- und Figurenqualität), Block 5 (Audio/Stimmen), Block 6 (Android-Profiling auf dem Tab A9, braucht das Gerät des Owners).
 - [Technische Abnahme](../combat-clips-20261124/acceptance.md)
 
+## 2026-11-24 — WF-TREE-SOURCE-IDENTITY-20261124
+
+### Change and causal native evidence
+
+`WFEditorUtil.CreateTreeWrapper` previously reused the first wrapper with the same sanitized model name even when the actual prefab source differed. The wrapper now verifies its first nested prefab's immediate source, and uses the source GUID plus invariant local file ID when names collide. Correct existing legacy wrappers keep their path and GUID. A foreign prefab occupying the fallback is explicitly refused.
+
+Independent review found a second defect: `LoadAssetAtPath<GameObject>() == null` does not establish that a destination is free. A real Editor RED replaced two 48-byte raw files with 4428/4480 bytes of prefab data. The added file/directory/meta guard runs before root creation and `SaveAsPrefabAsset`. Negative tests check preserved content and .meta bytes before asserting the explicit exception type. No errors or assertions were globally suppressed.
+
+### Revisions and outcomes
+
+- Original public source blob: `84716dd958879b5a37e1a82ebb2fb5f30ba13a65` on public base `489a3120915a5fdcec4bae83dc1f9afac6a2aa22`.
+- Final source blob: `a475b469b3b27b2ffe32c0663682dcba85d83e7f`; SHA256 `a44e44cf53b13e3ea334f5ade4411edec42e829aa5f8e136850cedf1df891189`.
+- Final test SHA256: `0f217408de19f7881b62270bbc8360b5661d40ffe75d48e7c4d41d78ff657ede`.
+- Identity RED / GREEN: local `c98f014c676818ba147e2ee3343a9b2cd6221d17` / `da661d7e3d86adc8caad8c7158b71c5983fe24bd`; two target failures become two passes; nine other failures remain.
+- Occupancy RED: `3b9e16ec7f634ca2bd9be57a2dda22e892dbc02f`, job `20261124T170720Z-f5c65e823d00`; four new target failures, three target passes; full 228 passed / 13 failed / 55 skipped out of 296.
+- Final GREEN: executed local `53ddee458092f21cf5a564bbb4c232e460f3be0e`, tree `4289c3d3e08ee2055906de62eb2c45daba807d9b`, job `20261124T171135Z-6e1c21532bc2`, Unity `6000.6.8f1`; all seven target cases pass. Full suite: 232 passed / 9 failed / 55 skipped out of 296. Test bytes are identical between the occupancy RED and GREEN; only the three guard lines change.
+- Original final XML SHA256: `2c26655a390dbd4b4a53025bcdac304cda5242cb93f4dc1ae476f48974f00f84`.
+- Original final Director receipt SHA256: `9e2f642fd69185cd89c553fd12647cd15c4f62391e8149c5f8d5b08f6977a263`.
+- Compact private evidence SHA256: `78b7813ace9d4b5d3d1d42852c53247cb66bc21b02ac25c6011435111abc7b9d`; source/test-only patch SHA256 `3131b8aa4fb8e51706e5eaa116e88baa1aaef16116a090629df145d96a87ce51`.
+
+### Explicit boundaries and next gate
+
+These native runs executed in isolated local clones based on `b5b9fd37401a59c01603035fc30d508c9f65b52e`, with six deterministic fixture script-meta files. That local commit ancestry is not the public PR and must not be pushed. Only the listed source/test/meta bytes are transferred onto the actual public base. The public PR's full tree is not claimed to be the already executed native tree.
+
+The same six private AssetIntake fixture failures and three VillageRetexture failures remain in both occupancy runs. Both Director receipts correctly report `failed / TRACKED_WORKTREE_DIRTY` because Unity auto-serialized ProjectSettings. No Settings values, licensed private assets, generated passcodes or local fixture commits are included in this change. The final readback confirms the Editor exited, zero remaining owned test paths and no untracked game inputs.
+
+Independent source/test review has zero open findings and independently parsed both final XMLs, but this is Draft readiness only. Persistent prefab/model asset roots at the canonical sample caller are covered; variants and child subassets remain unproven. Complete native/private-fixture and exact published-head Core/CI gates remain required before merge. No device, APK, game-frame or deployment success is asserted.
+
+The canonical owner DOCX reference was not visible through the connected file service on this round. Per this handoff's existing fallback, the complete round is retained in repository/private evidence; no unrelated document was created or overwritten. DOCX writeback is not claimed.
+
+### Review follow-up: retain the surviving source wrapper
+
+The repair checks for an existing wrapper with matching source identity even after the earlier legacy wrapper is deleted. It preserves the surviving wrapper's path, GUID and bytes, while retaining the occupied-target guard. Two new deletion regression cases failed before the repair; all nine targeted cases passed afterward with unchanged test code. The complete native acceptance gate and final published-head CI remain separate pending checks.
+
+## 24. November 2026 · Art Forge A, Issue #132
+
+- Lokaler Code `c089fc97ed957fdc4784be35d47892add23c3531`: lesender Vertrag/Canvas über vorhandenen Bau-Modus, Fadenwerk und World Forge; Unity-Studio-Option ausschließlich dokumentiert.
+- Tatsächlich geprüft: 35 C#-Fälle, 62 Preflights, 23.143 Core-Assertions, 49/49 neue native Unity-Fälle sowie 20 synthetische und 24 echte JSON-Replay-UI-Gruppen. Native Gesamtsuite Kandidat 273 PASS / 6 FAIL / 52 SKIP, Baseline 224 / 6 / 52; alle 282 gemeinsamen Testergebnisse einschließlich Meldungen identisch.
+- Echter Snapshot: 163 Knoten aus 25 Jobs, weitere 38 Budgetdiagnosen. Lizenz ungeprüft, Originalquellhash nur laut Receipt. Kein Import oder Approval.
+- Getrennte Testkopie wieder auf Kandidat; generierte getrackte Unity-Einstellungen zurückgesetzt, aktive Editor-Git-Metadaten unverändert. Keine vollständige private Asset-Suite, kein Live-HTTP-/PlayMode-/APK-/Tab-A9-Nachweis.
+- Push/Draft-PR erst nach ausdrücklicher Zustimmung; Merge, aktive Editoränderung und externe Aufträge weiter gesperrt. PR #136 bleibt parallel; vor Veröffentlichung Memory/Übergabe erneut abgleichen.
+- [Prüfbericht und Grenzen](../art-forge-a-20261124/acceptance.md) · [Maschinenlesbarer Readback](../art-forge-a-20261124/readback.json)
+
+## 24. November 2026 · Art Forge A, Reviewkorrekturen PR #137
+
+- Ausdrücklich freigegebener Ausgangsstand `ef4a270…` wurde bereits auf eigener Branch als baumgleiches `0f1720…` mit Draft-PR #137 veröffentlicht. Die anschließende Fortsetzung korrigiert die drei Reviewbefunde und den unzutreffenden Gleichlängen-Testaufbau; der ältere Vor-Push-Bericht bleibt als historischer Beleg erhalten.
+- Native RED-Revision `d4ccaf6118a8c16f914b6ae962432d5f8917df8c`: 49 ArtForge PASS / 8 FAIL. Native GREEN-Revision `5b4602f466352f57de4611eaa907530203299451`, Tree `004ff051687fc1cc004afff67184d57c62619d1d`: 60/60 ArtForge, Core 23.143 und separater C#-Runner 35/35. GitHub-Codeobjekt `0488e5c4c0406bd041a014a6563288a257fe8d0a` hat denselben Tree; Evidence bleibt an die tatsächlich ausgeführte lokale Revision gebunden.
+- Zusätzlich 62 Preflights, 28 finale synthetische Browserfälle und 27 Prüfgruppen mit aufgezeichneten echten Unity-State-/Graphbytes bestanden. Budget-/Cancellation-Tests verwenden ausgewiesene Stream-Testseams; Browser-Replay ist kein Live-HTTP-/Authentifizierungs-/Gerätenachweis.
+- Gesamte native Suite weiter 284 PASS / 6 FAIL / 52 SKIP; alle 282 gemeinsamen Baselineergebnisse samt Meldungen identisch. Unity Exit 2 und Director `TRACKED_WORKTREE_DIRTY` bleiben erhalten. Eigene erzeugte getrackte Settings erst nach terminalem Testende wiederhergestellt, 18 ungetrackte Settings erhalten, keine eigenen Unity-Prozesse/Locks zurückgelassen.
+- Echter Dispatcher: 163 Knoten, 38 Budgetdiagnosen; 10.202 Editorupdates während State-Prüfung. Gemessener maximaler Dispatch in diesem Test 8,409 ms, größter protokollierter kumulativer Startwert aller Tests 41,889 ms. Keine FPS-/Tab-A9-Leistungsbehauptung. Aktiver Editor nur lesend erfasst; HEAD und Diff-Hash gleich GREEN-Baseline, Statusliste parallel verändert ohne Ursachenzuordnung.
+- Nächster Schritt: Feature-Branch mit Dokumentationsnachtrag veröffentlichen, GitHub-CI und tatsächlich behobene Reviewthreads zurücklesen. Merge weiter offen; Live-HTTP/Auth, PlayMode, vollständiges privates Overlay, physisches Gerät und Studio-Pilot brauchen eigene Evidence. PR #136 bleibt getrennt; beide Memory-/Übergabeeinträge bei späterer Integration erhalten.
+- [Review-Nachtrag](../art-forge-a-20261124/review-fixes.md) · [Review-Readback](../art-forge-a-20261124/review-readback.json)
+
+### 2026-11-25 · PR #137
+
+Art Forge gibt Detailplätze beim Graphwechsel frei. Sechs Browserfälle reproduzierten die Blockade. Nach der Korrektur bestanden 73/73 Browserfälle und 66/66 native EditMode-Tests. Nativer Prüftree `401a076888ca615959191f52ea44fc137a32e9bb`, Director `20261125T004520Z-abd5af1043bb`, XML SHA-256 `bd3919c556099d1194c8aad4c062c05c172d7cf5d9941307de7befbf08c91956`. Chromium prüfte eine gesteuerte HTTP-Testumgebung. Die physische Tablet-Prüfung steht aus.
+
 ## 24. November 2026 · Neue Gruft-Gegner aus den Monsterpaketen
 
 - Neu im Spiel: Ghul, Ritter (Goblin mit Schwert und Schild) und der schwere Gruft-Boss (gehörnter Dämon) sind eigene Figuren. Sie holen sichtbar aus, bevor sie treffen, zucken bei einem Treffer und fallen mit einer eigenen Bewegung, statt wie ein Brett umzukippen.
@@ -478,3 +535,7 @@ Nachweise: Core 22.792 Prüfungen erfolgreich, darunter 136 Chronik-Fälle (abge
 - Offene Owner-Fragen: Gegner-Drops und die Rüstungsregel.
 - Nächste Schritte: Texturen-Umbau des Dorfs mit Vorschau je Schritt (dafür liegen die Pakete »Blacksmith's Forge« und »Stylized Ground Textures« privat bereit), danach Podest, Schmuckstein des Königs und Glutwächter als Begleiter (eigener Block mit Core-Regeln), Dark-Fantasy-Interieur der Gruft, Gegner-Drops, Monster in den Zufalls-Dungeons.
 - [Technische Abnahme](../dark-souls-figures-20261124/acceptance.md)
+
+### 2026-11-25 · PR #136
+
+Öffentlicher Prüftree `716fd35ab61cc8683f9c573dc05c6bd4a11a75c2`. Die vier EditMode-Regressionen sind im Lauf `20261125T001433Z-8eff97fe753d` grün. Der gezielte PlayMode-Lauf `20261125T004258Z-573ac610c2d8` bestand 5/5 Fälle, XML-SHA-256 `44c8c76d6be2c6ec5aea205d1fa4fc03d70ddfb577d8435ef422075b5df90158`. Ein nachfolgender Voll-PlayMode-Versuch überschritt die Zeitgrenze des Directors. Der einzelne Rattler-Fall bestand auch auf dem Ausgangsstand. Der ursprüngliche Fehler in der Vollsuite ist gesondert zu bewerten.
