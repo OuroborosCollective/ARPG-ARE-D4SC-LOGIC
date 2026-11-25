@@ -27,7 +27,8 @@ const PROJECT = 'a'.repeat(40), INITIAL_REVISION = 'b'.repeat(64), NEXT_REVISION
 const ORIGIN = 'http://art-forge-race.test';
 const viewports = [{ width: 1007, height: 601 }, { width: 601, height: 1007 }, { width: 390, height: 844 }];
 const scenarios = ['older-409-before-newer-503', 'older-409-after-newer-503', 'older-200-does-not-overwrite-newer-200', 'previous-epoch-409-does-not-clear-new-graph',
-  'superseded-401-keeps-active-session', 'old-401-after-sign-in-keeps-login-closed', 'rapid-selections-start-only-latest-queued-read'];
+  'superseded-401-keeps-active-session', 'old-401-after-sign-in-keeps-login-closed', 'rapid-selections-start-only-latest-queued-read',
+  'hung-old-epoch-cannot-take-or-release-new-graph-slots'];
 const report = {
   schema: 'ashen.art-forge.browser-revision-races.v1', phase,
   runtimeEvidence: false, evidenceKind: 'real Chromium UI execution with explicitly synthetic API responses; not Unity or live HTTP',
@@ -198,7 +199,23 @@ async function runScenario(browser, viewport, scenario, withScanTickets) {
     } else {
       await select('Modell B', 'fixture.b');
       assert.equal(pending.size, 2, 'A and B requests must genuinely overlap');
-      if (scenario === 'superseded-401-keeps-active-session') {
+      if (scenario === 'hung-old-epoch-cannot-take-or-release-new-graph-slots') {
+        currentGraph = graph(NEXT_REVISION);
+        currentGraph.nodes = ['c', 'd', 'e'].map(key => node('fixture.' + key, 'Neue Quelle ' + key, []));
+        await page.locator('#artrefresh').click(); await loaded('Neue Quelle c');
+        for (const key of ['c', 'd', 'e']) await page.getByTitle('Neue Quelle ' + key, { exact: true }).click();
+        const admitted = () => page.evaluate(() => ['c', 'd', 'e'].filter(k => window.artTestSelections.has('fixture.' + k)));
+        assert.deepEqual(await admitted(), ['c', 'd'], 'The first two selections in the new graph must start before either obsolete response arrives.');
+        await release('fixture.a', 409); await release('fixture.b', 401);
+        assert.deepEqual(await admitted(), ['c', 'd'], 'An old completion cannot free a slot owned by the new graph.');
+        assert.equal(await page.locator('#login').isVisible(), false);
+        for (let step = 0; (!pending.has('fixture.c') || !pending.has('fixture.d')) && step < 400; step++)
+          await new Promise(resolve => setTimeout(resolve, 5));
+        await release('fixture.c', 200);
+        for (let step = 0; !pending.has('fixture.e') && step < 400; step++) await new Promise(resolve => setTimeout(resolve, 5));
+        await release('fixture.d', 503); await release('fixture.e', 200);
+        assert.equal(await page.locator('#artdetail h2').innerText(), 'Neue Quelle e');
+      } else if (scenario === 'superseded-401-keeps-active-session') {
         await release('fixture.a', 401);
         assert.equal(await page.locator('#login').isVisible(), false, 'A superseded selection cannot request sign-in');
         await release('fixture.b', 200);

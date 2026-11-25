@@ -54,12 +54,15 @@ namespace AshenCrypt.ArtForge.Tests
         [Test] public void SameLengthHashDriftRejectsTheWholeReceiptAndChangesRevision()
         {
             Fixture();
-            var before = ArtForgeWorldForgeReader.Read(root, Project);
             string artifactPath = Path.Combine(Folder, "model.fbx");
+            // Some file systems expose finer timestamps than Mono can write back.
+            var originalWrite = new DateTime(2024, 1, 2, 12, 0, 0, DateTimeKind.Utc);
+            File.SetLastWriteTimeUtc(artifactPath, originalWrite);
+            Assert.AreEqual(originalWrite, File.GetLastWriteTimeUtc(artifactPath));
+            var before = ArtForgeWorldForgeReader.Read(root, Project);
             string receiptPath = Path.Combine(Folder, "receipt.json");
             byte[] original = File.ReadAllBytes(artifactPath);
             byte[] originalReceipt = File.ReadAllBytes(receiptPath);
-            DateTime originalWrite = File.GetLastWriteTimeUtc(artifactPath);
             byte[] mutation = (byte[])original.Clone();
             mutation[0] ^= 1;
             File.WriteAllBytes(artifactPath, mutation);

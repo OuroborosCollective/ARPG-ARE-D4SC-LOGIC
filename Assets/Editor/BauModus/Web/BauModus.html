@@ -896,7 +896,7 @@ $("#noticeok").onclick = () => { $("#notice").style.display = "none"; try { loca
 // ------------------------------------------------------------------ Art Forge (read-only, no build or render commands)
 const ART_CATEGORIES = { figures: "Figuren", creatures: "Kreaturen", weapons: "Waffen", armor: "Rüstungen", props: "Props", materials: "Materialien", animations: "Animationen" };
 const ART_KINDS = { source: "Quelle", concept: "Konzept", mesh: "Modell", material: "Material", rig: "Rig", animation: "Animation", preview: "Vorschau" };
-const A = { graph: null, selected: "", loading: false, epoch: 0, detailRequest: 0, detailActive: 0, detailQueued: null, buttons: new Map() };
+const A = { graph: null, selected: "", loading: false, epoch: 0, detailRequest: 0, detailReads: null, buttons: new Map() };
 function artText(tag, value, cls) { const el = document.createElement(tag); el.textContent = value == null ? "" : String(value); if (cls) el.className = cls; return el; }
 function artStatus(message, error) { const el = $("#artstatus"); el.textContent = message; el.dataset.error = error ? "true" : "false"; }
 function artIdentity(data, expected) {
@@ -912,7 +912,9 @@ function artQuery(identity, id) {
   return q.toString();
 }
 function artClear(title, message) {
-  A.graph = null; A.selected = ""; A.detailRequest++; A.detailQueued = null; A.buttons.clear();
+  if (A.detailReads) A.detailReads.queued = null;
+  A.detailReads = { active: 0, queued: null };
+  A.graph = null; A.selected = ""; A.detailRequest++; A.buttons.clear();
   const stage = $("#artnodes"); stage.replaceChildren(); stage.style.width = ""; stage.style.height = "";
   const empty = artText("div", "", "art-empty"); empty.append(artText("h3", title), artText("p", message)); stage.append(empty);
   $("#artcount").textContent = "";
@@ -1076,15 +1078,15 @@ async function selectArtNode(id, reveal) {
   for (const [nodeId, b] of A.buttons) b.setAttribute("aria-pressed", nodeId === id ? "true" : "false");
   if (reveal && A.buttons.has(id)) A.buttons.get(id).scrollIntoView({ block: "nearest", inline: "nearest" });
   $("#artdetail").replaceChildren(artText("h2", "Details werden gelesen …"));
-  const work = { id, graph, request, epoch };
+  const reads = A.detailReads, work = { id, graph, request, epoch, reads };
   // Keep two overlapping reads so an older 409 still invalidates the graph.
   // Further fast taps coalesce to the latest selection, not another hash scan.
-  if (A.detailActive >= 2) { A.detailQueued = work; return; }
+  if (reads.active >= 2) { reads.queued = work; return; }
   return readArtDetail(work);
 }
 async function readArtDetail(work) {
-  const { id, graph, request, epoch } = work;
-  A.detailActive++;
+  const { id, graph, request, epoch, reads } = work;
+  reads.active++;
   try {
     const detail = artIdentity(await artApi("art/asset?" + artQuery(graph, id), epoch, graph), graph);
     if (request !== A.detailRequest || epoch !== A.epoch) return;
@@ -1102,9 +1104,10 @@ async function readArtDetail(work) {
       artStatus("Zuvor gelesener Graph · Aktualität dieser Ansicht derzeit unbelegt. " + e.message, true);
     }
   } finally {
-    A.detailActive--;
-    const queued = A.detailQueued;
-    A.detailQueued = null;
+    // Return the slot to the graph that started this read, even after a reload.
+    reads.active--;
+    const queued = reads.queued;
+    reads.queued = null;
     if (queued && queued.epoch === A.epoch && queued.graph === A.graph && queued.request === A.detailRequest)
       void readArtDetail(queued);
   }
