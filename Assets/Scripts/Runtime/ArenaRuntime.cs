@@ -397,8 +397,9 @@ namespace AreArpg.UnityClient
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
             // Inside a village house nothing of the village is shown: the room itself is put up with the village economy.
             if (_game.InsidePlace != VillagePlace.None) { BuildVillageRoomScenery(); return; }
-            if (_entryProfile && ((_game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4) || _game.InCourt))
-                _chapterScenery.Add(OutdoorBackdrop.Create(_game.InCourt ? 2 : _game.Progression.EntryAct)); // the court lies under the village's sky and ash plain
+            // Aschenwacht brings its own distant slate ridge; the village's backdrop ring would cut through its walls.
+            if (_entryProfile && _game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4)
+                _chapterScenery.Add(OutdoorBackdrop.Create(_game.Progression.EntryAct));
             if (_game.InJourney) { BuildJourneyScenery(); return; }
             if (_game.InWoodlandRegion) { BuildWoodlandScenery(); return; }
             if (_game.InDungeon) { BuildDungeonScenery(); return; }
