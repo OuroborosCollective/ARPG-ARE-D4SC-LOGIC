@@ -13,6 +13,18 @@ Die Steinfalle warnt eine Sekunde lang mit einer roten Bodenfläche. Sie trifft 
 
 Vor einer verschlossenen inneren Tür findet der Spieler frischen Verbandsstoff. Das Journal beschreibt dumpfe Schläge von dahinter. Erst ein persönlicher Bericht bei Ilyan macht ihn zum Mitwisser. Andere Dorfbewohner erhalten dadurch keine erfundenen Erinnerungen. Die Identität des Verursachers, das Schicksal der Vermissten und das Öffnen der inneren Tür bleiben für die Fortsetzung offen.
 
+## Aschenwacht II – Erster Blick vom Dorf, späterer Weg durch den Vorhof
+
+**Designentscheidung vom 25. November 2026. Die Umsetzung in Unity und die Bildabnahme stehen aus.**
+
+Beim ersten Austritt aus der Startkrypta führt der Weg ins Dorf zu Ilyan. Vom niedrigen Dorfeingang aus sieht die Heldin schräg hinauf: Zwischen den nahen Hauskanten steigen Dächer und Stützmauern in mehreren Ebenen an. Über ihnen zeichnet sich das Tor des entweihten Vorhofs gegen einen schmalen Streifen Himmel ab. Das Tor gehört zur späteren verborgenen Krypta. Vom Dorf führt kein direkter Durchgang dorthin.
+
+Für den ersten Bauversuch genügt eine Gasse. Der Weg knickt an einer Stützmauer ab, die kurz die Sicht aufs Tor nimmt. Er steigt begehbar auf ein höheres Podest. Dort erscheint dieselbe Torkontur in einer Lücke zwischen zwei Dächern. Beim Zurückgehen blickt man über die Mauer auf den tieferen Dorfeingang. Bodenhöhe, Figur und Sichtschutz müssen dabei zusammenpassen. Die freie Spielkamera und der Weg zu Ilyan bleiben nutzbar.
+
+Erst auf der Route über die alte Mühle und den alten Speicher betritt die Heldin den Vorhof. Hinter dem geöffneten Speichersiegel tritt sie unter freien Himmel und erkennt auf der anderen Seite des Hofs das Tor von ihrem ersten Dorfblick wieder. Beide oben beschriebenen Siegelwege führen durch den Hof. Die Entscheidung am Siegel bestimmt weiterhin, ob im vorderen Kryptagang die Steinfalle auslöst.
+
+**Abnahme im Spiel.** Auf derselben Unity-Revision einen ungeschnittenen Hin- und Rückweg mit der normalen Spielkamera aufnehmen. Am Eingang sollen Gasse und Tor zusammen lesbar sein, in der Kurve soll die Mauer das Tor verdecken, auf dem Podest soll es wieder sichtbar werden. Beim Auf- und Abstieg Schuhkontakt, Durchgänge und Kamera an der Mauer prüfen. Den Vorhof vom Dorf aus auf vorzeitigen Zugang prüfen und später über beide Siegelwege begehen. Erst diese Aufnahmen und Spielproben belegen die Wirkung.
+
 ## Zuständigkeiten und Spielstand
 
 - `CryptInvestigation` gehört zur bestehenden `CharacterProgression`. Hinweise, erste Siegelentscheidung, Bericht und Fallenzustand haben genau diesen Eigentümer.
