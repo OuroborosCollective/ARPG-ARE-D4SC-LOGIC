@@ -23,6 +23,7 @@ namespace AreArpg.UnityClient
         private readonly Dictionary<int, Quaternion> _hitBaseRotation = new Dictionary<int, Quaternion>();
         private readonly Dictionary<int, Quaternion> _hitAppliedRotation = new Dictionary<int, Quaternion>();
         private readonly Dictionary<int, float> _deathTime = new Dictionary<int, float>();
+        private readonly Dictionary<int, float> _deathSeconds = new Dictionary<int, float>();
         private readonly Dictionary<int, Vector3> _deathPosition = new Dictionary<int, Vector3>();
         private readonly Dictionary<int, Quaternion> _deathRotation = new Dictionary<int, Quaternion>();
         private readonly HashSet<int> _seenAlive = new HashSet<int>();
@@ -35,7 +36,11 @@ namespace AreArpg.UnityClient
         private Text _hudLevelBanner;
 
         /// <summary>True while a defeated enemy is still toppling; visible for checks, never read by the Core.</summary>
-        public bool IsPresentingDeath(int monsterId) { return _deathTime.ContainsKey(monsterId) && Time.time - _deathTime[monsterId] <= ToppleSeconds + SinkSeconds; }
+        public bool IsPresentingDeath(int monsterId)
+        {
+            return _deathTime.ContainsKey(monsterId) && Time.time - _deathTime[monsterId] <=
+                (_deathSeconds.TryGetValue(monsterId, out float seconds) ? seconds : ToppleSeconds + SinkSeconds);
+        }
 
         /// <summary>Called right after the Core executed an ability from the shared touch/keyboard queue.</summary>
         /// <summary>Legacy combat: the accepted ability starts and lands in the same tick.</summary>
@@ -170,6 +175,7 @@ namespace AreArpg.UnityClient
         private bool PresentDeath(int id, Transform visual)
         {
             if (!_entryProfile || !_seenAlive.Contains(id)) return false;
+            if (EnemyDiesWithClip(id, visual)) return PresentEnemyDeathClip(id, visual); // a figure with a death clip falls by itself
             if (!_deathTime.TryGetValue(id, out float start))
             {
                 if (!visual.gameObject.activeSelf) return false;
@@ -284,7 +290,8 @@ namespace AreArpg.UnityClient
         private void ResetCombatFeel()
         {
             _hitDirection.Clear(); _hitTime.Clear(); _hitBaseRotation.Clear(); _hitAppliedRotation.Clear();
-            _deathTime.Clear(); _deathPosition.Clear(); _deathRotation.Clear(); _seenAlive.Clear(); _hitStopped.Clear();
+            _deathTime.Clear(); _deathSeconds.Clear(); _deathPosition.Clear(); _deathRotation.Clear(); _seenAlive.Clear(); _hitStopped.Clear();
+            _enemyClips.Clear();
             _hitStopUntil = -1f; _heroActions.Clear(); _faceTargetUntil = -1f; _visualAnimators.Clear();
         }
     }

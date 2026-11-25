@@ -30,7 +30,11 @@ namespace AreArpg.Core
                 if(CanStand(nx,nz)){enemy.Xmm=nx;enemy.Zmm=nz;}else if(CanStand(nx,enemy.Zmm))enemy.Xmm=nx;else if(CanStand(enemy.Xmm,nz))enemy.Zmm=nz;
             }
             else if(enemy.AttackCooldownTicks==0)
-            {enemy.AttackCooldownTicks=enemy.Kind>=2?12:17;DamageCompanion(enemy,enemy.Kind>=2?105:enemy.Kind==1?60:40);}
+            {
+                enemy.AttackCooldownTicks=enemy.Kind>=2?12:17;
+                enemy.LastImmediateStrikeTarget = (c.Xmm, c.Zmm);
+                DamageCompanion(enemy,enemy.Kind>=2?105:enemy.Kind==1?60:40);
+            }
             return true;
         }
         private void DamageCompanion(MonsterState source,int amount,bool committed=false)

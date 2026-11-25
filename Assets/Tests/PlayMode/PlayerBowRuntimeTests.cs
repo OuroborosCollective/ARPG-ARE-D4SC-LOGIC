@@ -64,9 +64,14 @@ namespace AreArpg.PlayMode.Tests
                 "An out-of-range rejected bow attack must not animate");
             var target=Game.Monsters[0];target.Xmm=Game.PlayerXmm+1400;target.Zmm=Game.PlayerZmm;target.Health=1000;target.MaxHealth=1000;
             queue.Enqueue(0);TickOnce();
+            // Combat v2 winds a shot up for a few ticks before it lands; the old combat hits in the first tick. The shot's
+            // animation starts with the accepted action, so the animator is left alone until this shot has landed or missed.
             // Owner decision 2026-11-17: a low-level bow can miss. Shoot again after the cooldown until the Core reports a hit.
-            for(int retry=0;retry<12&&target.Health==1000;retry++)
+            const int maximumShots = 13;
+            for (int shotNumber = 1; shotNumber <= maximumShots; shotNumber++)
             {
+                for(int tick=0;tick<10&&target.Health==1000;tick++)TickOnce();
+                if (target.Health < 1000 || shotNumber == maximumShots) break;
                 for(int wait=0;wait<12&&Game.Cooldowns[0]>0;wait++)TickOnce();
                 yield return new WaitForSeconds(.6f); // real time between two shots, as in play; hero actions are spaced in real time
                 target.Xmm=Game.PlayerXmm+1400;target.Zmm=Game.PlayerZmm;
@@ -169,7 +174,9 @@ namespace AreArpg.PlayMode.Tests
             for(int i=0;i<10;i++)TickOnce();
             target.Xmm=Game.PlayerXmm+1000;target.Zmm=Game.PlayerZmm;target.Health=1000;
             animator.ResetTrigger("Melee");animator.SetFloat("MoveMagnitude",0);animator.Play(idleState,0,0);animator.Update(0);
-            queue.Enqueue(0);TickOnce();Assert.Less(target.Health,1000);
+            queue.Enqueue(0);TickOnce();
+            for(int tick=0;tick<8&&target.Health==1000;tick++)TickOnce(); // combat v2 winds the strike up before it lands
+            Assert.Less(target.Health,1000);
             hash=Game.ComputeWorldHash();save=p.SaveString();
             animator.Update(0);animator.Update(.15f);
             Assert.AreEqual(attackState,animator.GetCurrentAnimatorStateInfo(0).shortNameHash);

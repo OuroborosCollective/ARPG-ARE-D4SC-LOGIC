@@ -14,6 +14,43 @@ namespace AreArpg.PlayMode.Tests
     /// </summary>
     public sealed partial class EntryJourneyRuntimeTests
     {
+        // Faces animate while seen by a camera. A dedicated rendered view keeps each actor on screen in batch PlayMode.
+        private sealed class FaceReviewView : System.IDisposable
+        {
+            private readonly SkinnedMeshRenderer skin;
+            private readonly Camera camera;
+            private readonly RenderTexture target;
+
+            public FaceReviewView(SkinnedMeshRenderer skin)
+            {
+                this.skin = skin;
+                target = RenderTexture.GetTemporary(96, 96, 16);
+                camera = new GameObject("Face review camera").AddComponent<Camera>();
+                camera.targetTexture = target;
+                camera.orthographic = true;
+                camera.cullingMask = 1 << skin.gameObject.layer;
+                camera.useOcclusionCulling = false;
+                Render();
+            }
+
+            public void Render()
+            {
+                Bounds bounds = skin.bounds;
+                camera.orthographicSize = Mathf.Max(.5f, bounds.extents.magnitude);
+                camera.transform.position = bounds.center + Vector3.forward * (2f * camera.orthographicSize);
+                camera.transform.LookAt(bounds.center, Vector3.up);
+                camera.Render();
+            }
+
+            public void Dispose()
+            {
+                camera.enabled = false;
+                camera.targetTexture = null;
+                Object.Destroy(camera.gameObject);
+                RenderTexture.ReleaseTemporary(target);
+            }
+        }
+
         /// <summary>Ilyan, Mara and Dorn stand in the camp after the crypt with the expression shapes of their new bake
         /// and the mood of their role: Ilyan sad, Mara smiling, Dorn grim.</summary>
         [UnityTest, Timeout(300000)]
@@ -45,13 +82,16 @@ namespace AreArpg.PlayMode.Tests
             float before = Time.captureDeltaTime;
             try
             {
-                Time.captureDeltaTime = 0.1f;
+                using var view = new FaceReviewView(dorn);
+                Time.captureDeltaTime = .1f;
                 _runtime.enabled = true;
                 typeof(ArenaRuntime).GetMethod("FaceSpeak", Flags).Invoke(_runtime, new object[] { Find("ARE_NPC_2").transform, 1.5f });
                 float open = 0f;
                 for (int frame = 0; frame < 10; frame++)
                 {
+                    view.Render();
                     yield return null;
+                    Assert.IsTrue(dorn.isVisible, "Dorn must be visible to the face-animation system.");
                     Assert.AreEqual(dorn.GetBlendShapeWeight(mouth), dorn.GetBlendShapeWeight(beard), 0.01f, "the beard follows the mouth");
                     open = Mathf.Max(open, dorn.GetBlendShapeWeight(mouth));
                 }
@@ -90,10 +130,12 @@ namespace AreArpg.PlayMode.Tests
             float before = Time.captureDeltaTime;
             try
             {
-                Time.captureDeltaTime = 0.1f;
+                using var view = new FaceReviewView(face);
+                Time.captureDeltaTime = .1f;
                 _runtime.enabled = true;
                 float open = 0f;
-                for (int frame = 0; frame < 15 && open <= 10f; frame++) { yield return null; open = Mathf.Max(open, face.GetBlendShapeWeight(mouth)); }
+                for (int frame = 0; frame < 15 && open <= 10f; frame++) { view.Render(); yield return null; open = Mathf.Max(open, face.GetBlendShapeWeight(mouth)); }
+                Assert.IsTrue(face.isVisible, "The speaking hunter must be in view.");
                 Assert.IsNotEmpty(atmosphere.Subtitle, "His thanks are still heard");
                 Assert.Greater(open, 10f, "His mouth moves while he thanks the player");
             }
@@ -135,14 +177,16 @@ namespace AreArpg.PlayMode.Tests
             float before = Time.captureDeltaTime;
             try
             {
-                Time.captureDeltaTime = 0.1f;
+                using var view = new FaceReviewView(skin);
+                Time.captureDeltaTime = .1f;
                 _runtime.enabled = true;
                 float closed = 0f;
-                for (int frame = 0; frame < 90 && closed < 99f; frame++) { yield return null; closed = Mathf.Max(closed, skin.GetBlendShapeWeight(blink)); }
+                for (int frame = 0; frame < 90 && closed < 99f; frame++) { view.Render(); yield return null; closed = Mathf.Max(closed, skin.GetBlendShapeWeight(blink)); }
+                Assert.IsTrue(skin.isVisible, "Orsel must be in view during the blink observation.");
                 Assert.Greater(closed, 99f, "She blinks within nine seconds");
                 typeof(ArenaRuntime).GetMethod("FaceSpeak", Flags).Invoke(_runtime, new object[] { orsel.transform, 2f });
                 float open = 0f;
-                for (int frame = 0; frame < 15; frame++) { yield return null; open = Mathf.Max(open, skin.GetBlendShapeWeight(mouth)); }
+                for (int frame = 0; frame < 15; frame++) { view.Render(); yield return null; open = Mathf.Max(open, skin.GetBlendShapeWeight(mouth)); }
                 Assert.Greater(open, 10f, "Her lips move while she answers");
                 for (int frame = 0; frame < 30; frame++) yield return null;
                 Assert.AreEqual(0f, skin.GetBlendShapeWeight(mouth), 0.01f, "and rest when she is done");

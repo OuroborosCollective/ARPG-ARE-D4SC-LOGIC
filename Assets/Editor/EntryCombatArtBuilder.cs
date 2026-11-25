@@ -466,7 +466,7 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>Preserve private clip identities and strip events that could execute vendor gameplay.</summary>
-        private static AnimationClip Clip(AnimationClip source, string key, bool loop)
+        internal static AnimationClip Clip(AnimationClip source, string key, bool loop)
         {
             string path = Output + key + ".anim";
             var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(path);

@@ -60,8 +60,17 @@ namespace AreArpg.PlayMode.Tests
             for (int i = 0; i < 4; i++) { long x = Game.PlayerXmm, z = Game.PlayerZmm; int hp = Game.PlayerHealth; Game.Step(); audio.ObserveTick(Game, x, z, hp); }
             Assert.AreEqual(before, audio.FootstepCount, "Standing still must be silent.");
             Game.SetMoveInput(10000, 0);
-            for (int i = 0; i < 8; i++) { long x = Game.PlayerXmm, z = Game.PlayerZmm; int hp = Game.PlayerHealth; Game.Step(); audio.ObserveTick(Game, x, z, hp); }
-            Assert.Greater(audio.FootstepCount, before); StringAssert.StartsWith("step_stone", audio.LastEffectKey);
+            for (int i = 0; i < 8; i++)
+            {
+                int previousSteps = audio.FootstepCount;
+                long x = Game.PlayerXmm, z = Game.PlayerZmm;
+                int hp = Game.PlayerHealth;
+                Game.Step();
+                audio.ObserveTick(Game, x, z, hp);
+                if (audio.FootstepCount > previousSteps)
+                    StringAssert.StartsWith("step_stone", audio.LastEffectKey);
+            }
+            Assert.Greater(audio.FootstepCount, before);
             Game.SetMoveInput(0, 0);
             var skill = Game.ActivateSkill(0); Assert.IsTrue(skill.Activated); audio.Skill(skill, 0, Game);
             Assert.AreEqual(skill.Hits > 0 ? "impact" : "swing", audio.LastEffectKey);

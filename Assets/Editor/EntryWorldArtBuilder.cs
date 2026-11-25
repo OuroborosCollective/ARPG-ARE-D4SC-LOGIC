@@ -62,7 +62,9 @@ namespace AreArpg.EditorTools
                 // Figures of the unified character system are built by BozoFigureBaker; this builder keeps them.
                 if (!IsBozoVisual("EntryNpc" + id))
                     Save("EntryNpc" + id, root => Actor(root, id == 2 ? "Hero" : "Npc" + id, "Npc" + id, id == 2 ? 2.05f : 1.9f));
-                Save("EntryEnemy" + id, root => Actor(root, "Enemy" + id, "Enemy" + id, id == 2 ? 2.6f : 1.6f));
+                // The monster packs give each kind its own figure with real clips; without a pack the earlier one stays.
+                if (!CryptEnemyArtBuilder.TryBuild(id))
+                    Save("EntryEnemy" + id, root => Actor(root, "Enemy" + id, "Enemy" + id, id == 2 ? 2.6f : 1.6f));
             }
             EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
             AssetDatabase.SaveAssets();
@@ -361,7 +363,7 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>Validate every component before writing the private prefab.</summary>
-        private static void Save(string key, Action<Transform> compose)
+        internal static void Save(string key, Action<Transform> compose)
         {
             var root = new GameObject(key);
             try

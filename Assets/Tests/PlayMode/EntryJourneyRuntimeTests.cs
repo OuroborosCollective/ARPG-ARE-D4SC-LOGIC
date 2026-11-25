@@ -218,13 +218,20 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(animator.HasState(0, Animator.StringToHash("Melee")), "Reviewed melee state is missing");
             var queue = (System.Collections.Generic.Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills", Flags).GetValue(_runtime);
             foreach (var enemy in Game.Monsters) { enemy.Xmm = 20000; enemy.Zmm = 20000; }
-            queue.Enqueue(0);
-            TickOnce();
-            animator.Update(.05f);
-            Assert.AreNotEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash, "Rejected out-of-range attacks must not animate");
+            // The old combat rejects a strike without a target in reach. Combat v2 accepts a strike at the air as a
+            // Core action of its own (its swing is covered by EveryExecutedAbilityShowsAVisibleHeroAction).
+            if (!Game.CombatV2)
+            {
+                queue.Enqueue(0);
+                TickOnce();
+                animator.Update(.05f);
+                Assert.AreNotEqual(Animator.StringToHash("Melee"), animator.GetCurrentAnimatorStateInfo(0).shortNameHash, "Rejected out-of-range attacks must not animate");
+            }
             var target = Game.Monsters[0]; target.Xmm = Game.PlayerXmm + 1000; target.Zmm = Game.PlayerZmm; target.Health = 1000;
             queue.Enqueue(0);
             TickOnce();
+            // Combat v2 winds a strike up for a few ticks before it lands; the old combat hits in the first tick.
+            for (int tick = 0; tick < 8 && target.Health == 1000; tick++) TickOnce();
             Assert.Less(target.Health, 1000, "A real Core hit must precede the visual");
             ulong hash = Game.ComputeWorldHash();
             // The first evaluation consumes the trigger; a second advances the fixed-duration blend.
@@ -296,6 +303,10 @@ namespace AreArpg.PlayMode.Tests
             enemy.Xmm = Game.PlayerXmm + 1000; enemy.Zmm = Game.PlayerZmm; enemy.Health = 1000;
             var queue = (System.Collections.Generic.Queue<int>)typeof(ArenaRuntime).GetField("_pendingSkills", Flags).GetValue(_runtime);
             queue.Enqueue(0); TickOnce();
+            // The accepted strike reaches its impact after the weapon's Core windup.
+            int startup = CombatV2Rules.Primary(Game.Progression.Equipment.Weapon?.Definition).Startup;
+            for (int tick = 0; tick <= startup && Game.ActionKind == CombatActionKind.Strike && enemy.Health == 1000; tick++)
+                TickOnce();
             Assert.Less(enemy.Health, 1000);
             ulong hash = Game.ComputeWorldHash();
             // Hold the presentation movement input while independently inspecting this animation boundary.
