@@ -52,6 +52,7 @@
     <Compile Include="../../Assets/Scripts/Core/KilnLayout.cs" Link="KilnLayout.cs" />
     <Compile Include="../../Assets/Scripts/Core/KilnYard.cs" Link="KilnYard.cs" />
     <Compile Include="../../Assets/Scripts/Core/Aschbeter.cs" Link="Aschbeter.cs" />
+    <Compile Include="../../Assets/Scripts/Core/AschenwachtGear.cs" Link="AschenwachtGear.cs" />
     <Compile Include="../../Assets/Scripts/Core/HungerJourney.cs" Link="HungerJourney.cs" />
     <Compile Include="../../Assets/Scripts/Core/HunterEncounter.cs" Link="HunterEncounter.cs" />
     <Compile Include="../../Assets/Scripts/Core/CryptDungeon.cs" Link="CryptDungeon.cs" />

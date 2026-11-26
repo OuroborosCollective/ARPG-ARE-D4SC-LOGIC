@@ -69,6 +69,8 @@ namespace AreArpg.EditorTools
                 { { "Fernkulisse", new Dictionary<string, Material>(StringComparer.Ordinal) { { "WetStone", RidgeMaterial(forecourt["WetStone"]) } } } };
             PrepareModels(ForecourtModels, forecourt, ridge);
             PrepareModels(CourtModels, court, null);
+            // Aschenwacht's rare gear (owner 2026-11-26): the armour fitted to the hero, the two claw staffs as arsenal pieces.
+            AschenwachtGearBuilder.TryBuild();
             RuntimeAnimatorController moves = AschbeterMoves();
             BuildAschbeterFigure(moves);
 
