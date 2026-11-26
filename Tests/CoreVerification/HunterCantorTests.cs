@@ -18,6 +18,7 @@ internal static class HunterCantorTests
         SharedLootKind(check);
         Wearing(check);
         Saves(check);
+        SteadyHand(check);
     }
 
     private static List<LootItem> Loot(int count, int kind)
@@ -168,6 +169,72 @@ internal static class HunterCantorTests
         check(w.TrySetRegionalRelicEquipped(RegionalRelic.K_Kapuze, true) && w.TrySetRegionalRelicEquipped(RegionalRelic.F_Gugel, true) &&
             !gear.IsRegionalRelicEquipped(RegionalRelic.K_Kapuze) &&
             gear.WornRegionalRelic(RegionalRelicSlot.Head) == RegionalRelic.F_Gugel, "hunter-cantor-one-hood-at-a-time");
+    }
+
+    private static (int Hits, int Misses, ulong WorldHash) BowShot(ulong seed, int slot, int worn)
+    {
+        var p = Dressed(RotfaehrteSet.Pieces);
+        p.UseCombatV2();
+        var w = new ArenaSimulation(seed, p, BigInteger.One, LootCatalog.Version1);
+        w.TrySetRegionalRelicEquipped(RegionalRelic.F_Langbogen, true);
+        for (int i = worn; i < 8; i++) w.TrySetRegionalRelicEquipped(RotfaehrteSet.Pieces[i], false);
+        var target = w.Monsters[0];
+        w.Monsters.Clear();
+        target.Xmm = w.PlayerXmm + 4000; target.Zmm = w.PlayerZmm;
+        target.Health = target.MaxHealth = 5000; target.AttackCooldownTicks = 1000;
+        w.Monsters.Add(target);
+        if (!w.ActivateSkill(slot).Activated) throw new Exception("bow shot did not start");
+        for (int tick = 0; tick < 12 && w.Impacts.Count == 0; tick++) w.Step();
+        var impact = w.Impacts.Single();
+        return (impact.Hits, impact.Misses, w.ComputeWorldHash());
+    }
+
+    private static void SteadyHand(Action<bool, string> check)
+    {
+        for (int slot = 0; slot <= 1; slot++)
+        {
+            // The first accuracy roll on this seed is between the ordinary and full-set thresholds.
+            var ordinary = BowShot(102, slot, 3);
+            var steady = BowShot(102, slot, 8);
+            check(ordinary.Misses == 1 && steady.Hits == 1 && steady == BowShot(102, slot, 8),
+                "steady-hand-changes-hit-and-replays-" + slot);
+        }
+        var profile = Dressed(RotfaehrteSet.Pieces);
+        var gear = profile.Equipment;
+        gear.SetRegionalRelicEquipped(RegionalRelic.F_Langbogen, true);
+        check(profile.WeaponAccuracyBp == 6125, "legacy-hunter-accuracy");
+        profile.UseCombatV2();
+        for (int worn = 8; worn >= 0; worn--)
+        {
+            int expected = worn == 8 ? 6525 : worn >= 4 ? 6325 : 6125;
+            check(profile.WeaponAccuracyBp == expected, "steady-hand-accuracy-" + worn);
+            if (worn > 0) gear.SetRegionalRelicEquipped(RotfaehrteSet.Pieces[worn - 1], false);
+        }
+
+        foreach (var id in RotfaehrteSet.Pieces.Take(8)) gear.SetRegionalRelicEquipped(id, true);
+        var world = new ArenaSimulation(171, profile, BigInteger.One, LootCatalog.Version1);
+        world.Monsters.Clear();
+        check(world.StartDodge(0, 0) && world.Stamina == 77, "steady-hand-dodge-debit");
+        while (world.Stamina < 100) world.Step();
+        world.SetGuard(true);
+        world.Step();
+        world.Step();
+        world.ReceiveBlowFrom(1, world.PlayerXmm + world.FacingXbp, world.PlayerZmm + world.FacingZbp);
+        for (int i = 0; i < 40 && world.Stamina > 23; i++) world.Step();
+        world.SetGuard(false);
+        world.Step();
+        check(world.Stamina == 23, "steady-hand-exact-stamina-fixture");
+        world.TrySetRegionalRelicEquipped(RegionalRelic.F_Stiefel, false);
+        check(!world.StartDodge(0, 0) && world.Stamina == 23, "steady-hand-seven-cannot-dodge-at-23");
+        world.TrySetRegionalRelicEquipped(RegionalRelic.F_Stiefel, true);
+        check(world.StartDodge(0, 0) && world.Stamina == 0, "steady-hand-eight-can-dodge-at-23");
+        check(CharacterProgression.TryLoad(profile.SaveString(), out var loaded) && loaded.WeaponAccuracyBp == 6525,
+            "steady-hand-restored-from-saved-equipment");
+        gear.SetRegionalRelicEquipped(RegionalRelic.F_Langbogen, false);
+        check(profile.WeaponAccuracyBp == 10000, "steady-hand-unarmed");
+        gear.SetRegionalRelicEquipped(RegionalRelic.F_Langbogen, true);
+        profile.WeaponMastery.Record(WeaponFamily.Bow, WeaponMasteryRules.ExperienceForLevel(32));
+        check(profile.WeaponAccuracyBp == 10000, "steady-hand-accuracy-cap");
     }
 
     private static void Saves(Action<bool, string> check)

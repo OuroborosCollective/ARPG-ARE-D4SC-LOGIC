@@ -1178,7 +1178,7 @@ namespace AreArpg.UnityClient
                 {
                     _pendingDodge = false;
                     if (_game.StartDodge(_moveWorldX, _moveWorldZ)) PresentDodge();
-                    else _message = _game.Stamina < CombatV2Rules.Dodge.Stamina ? "Zu erschöpft zum Ausweichen." : "Erst die laufende Bewegung beenden.";
+                    else _message = _game.Stamina < _game.DodgeStaminaCost ? "Zu erschöpft zum Ausweichen." : "Erst die laufende Bewegung beenden.";
                 }
                 if (_pendingFlask)
                 {

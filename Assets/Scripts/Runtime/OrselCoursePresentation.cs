@@ -115,7 +115,7 @@ namespace AreArpg.UnityClient
                 text.AppendLine().AppendLine().Append("Du hast ").Append(p.Social.Provisions).Append(" Rationen · ")
                     .Append(p.Social.Coins).Append(" Münzen · ").Append(p.Crafting.VillageGiftCount(VillageGood.Herb)).Append(" Aschenflieder bei dir.");
             if (p.Healing.Learned)
-                text.AppendLine().AppendLine().Append("Wundschluss: ").Append(HealingRules.WundschlussHealing).Append(" Heilung · ")
+                text.AppendLine().AppendLine().Append("Wundschluss: ").Append(_game.WundschlussBaseHealing).Append(" Basisheilung · ")
                     .Append(HealingRules.WundschlussFocus).Append(" Fokus · ").Append(HealingRules.WundschlussCooldownTicks / 10).Append(" s Abklingzeit. ")
                     .Append("Einhandstab 80 %, Zweihandstab 100 %; Rüstung senkt die Heilung, Stoff gar nicht.");
             return text.ToString();

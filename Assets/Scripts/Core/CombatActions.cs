@@ -177,17 +177,20 @@ namespace AreArpg.Core
             return result;
         }
 
+        public int DodgeStaminaCost => CombatV2Rules.Dodge.Stamina - (CombatV2 && Progression.Equipment.SteadyHandTier == 2 ? 2 : 0);
+
         /// <summary>Dodge toward a direction (or step back without one): 2.8 m over 8 ticks, ticks 2–4 untouchable.</summary>
         public bool StartDodge(long directionXbp, long directionZbp)
         {
-            if (!CombatV2 || GameOver || Stamina < CombatV2Rules.Dodge.Stamina) return false;
+            int cost = DodgeStaminaCost;
+            if (!CombatV2 || GameOver || Stamina < cost) return false;
             // A dodge may cut an attack's or a spell's recovery short, never its windup or impact.
             if (ActionKind != CombatActionKind.None &&
                 !((IsAttack(ActionKind) || ActionKind == CombatActionKind.Cast) && ActionPhase == CombatPhase.Recovery)) return false;
             if (directionXbp == 0 && directionZbp == 0) { directionXbp = -FacingXbp; directionZbp = -FacingZbp; }
             long length = Math.Max(1, FixedMath.IntegerSqrt(FixedMath.Square(directionXbp) + FixedMath.Square(directionZbp)));
             _dodgeXbp = directionXbp * 10000 / length; _dodgeZbp = directionZbp * 10000 / length;
-            SpendStamina(CombatV2Rules.Dodge.Stamina);
+            SpendStamina(cost);
             BeginAction(CombatActionKind.Dodge, CombatV2Rules.Dodge, -1);
             return true;
         }

@@ -19,6 +19,7 @@ public static class HealingCourseTests
         WundschlussNeedsLessonStaffFocusAndSomebodyHurt(check);
         WundschlussHealsOnItsEffectTickAndThenCoolsDown(check);
         StaffAndArmorScaleTheHeal(check);
+        FieldSuture(check);
         TheMostHurtIsHealedFirst(check);
         PatientsHealOnlyTheirRealWound(check);
         ABlowDuringTheWindupCutsItShort(check);
@@ -171,6 +172,55 @@ public static class HealingCourseTests
         check(w.ActionKind == CombatActionKind.None && !w.CastWundschluss().Activated, "healing-cooldown-blocks");
         Run(w, 80);
         check(p.Healing.CooldownTicks == 0 && w.CanCastWundschluss, "healing-ready-after-eight-seconds");
+    }
+
+    private static void FieldSuture(Action<bool, string> check)
+    {
+        foreach (var staff in new[] { RegionalRelic.K_Kurzstab, RegionalRelic.K_Langstab })
+        foreach (int worn in new[] { 3, 4, 7, 8 })
+        {
+            var w = Learned();
+            var p = w.Progression;
+            foreach (var id in RusskantorSet.Pieces) p.Equipment.ClaimRegionalRelic(p, id);
+            for (int i = 0; i < worn; i++) w.TrySetRegionalRelicEquipped(RusskantorSet.Pieces[i], true);
+            w.TrySetRegionalRelicEquipped(staff, true);
+            Hurt(w, 500);
+            int hp = w.PlayerHealth;
+            int bonus = worn == 8 ? 20 : worn >= 4 ? 10 : 0;
+            int expected = HealingRules.Healing(180 + p.ResolveHealBonus + p.PracticeHealingBonus + bonus,
+                staff == RegionalRelic.K_Kurzstab ? 8000 : 10000, p.WornHealingEfficiencyBp);
+            check(w.CastWundschluss().Target == HealTargetKind.Self, "field-suture-self-target");
+            Run(w, 5);
+            check(w.PlayerHealth == hp + expected && w.Heals[0].Amount == expected, "field-suture-impact-" + staff + "-" + worn);
+        }
+
+        var swap = Learned();
+        var gear = swap.Progression.Equipment;
+        foreach (var id in RusskantorSet.Pieces)
+        {
+            gear.ClaimRegionalRelic(swap.Progression, id);
+            if (id != RegionalRelic.K_Langstab) swap.TrySetRegionalRelicEquipped(id, true);
+        }
+        Hurt(swap, 500);
+        check(swap.CastWundschluss().Activated, "field-suture-start-before-swap");
+        Run(swap, 4);
+        swap.TrySetRegionalRelicEquipped(RegionalRelic.M_Heilerstab, true);
+        swap.Step();
+        int ordinary = HealingRules.Healing(180 + swap.Progression.ResolveHealBonus, 8000, swap.Progression.WornHealingEfficiencyBp);
+        check(swap.Heals[0].Amount == ordinary, "field-suture-checks-staff-on-impact");
+
+        var patientWorld = Learned();
+        var healer = patientWorld.Progression;
+        foreach (var id in RusskantorSet.Pieces)
+        {
+            healer.Equipment.ClaimRegionalRelic(healer, id);
+            if (id != RegionalRelic.K_Langstab) patientWorld.TrySetRegionalRelicEquipped(id, true);
+        }
+        ToBed(patientWorld, 0);
+        HunterEncounterTests.Move(patientWorld, HealingRules.PatientXmm(0) + 2000, 4000);
+        check(patientWorld.CastWundschluss().Target == HealTargetKind.Patient, "field-suture-patient-target");
+        Run(patientWorld, 5);
+        check(patientWorld.Heals[0].Amount == 160 && healer.Healing.PatientWound(0) == 0, "field-suture-closes-first-wound");
     }
 
     private static void StaffAndArmorScaleTheHeal(Action<bool, string> check)

@@ -434,6 +434,9 @@ namespace AreArpg.Core
             }
         }
 
+        public int WundschlussBaseHealing => HealingRules.WundschlussHealing + Progression.ResolveHealBonus
+            + Progression.PracticeHealingBonus + Progression.Equipment.FieldSutureTier * 10;
+
         /// <summary>The effect tick: the staff and armor in place now decide, overhealing is not counted.</summary>
         private void ResolveWundschluss()
         {
@@ -451,8 +454,7 @@ namespace AreArpg.Core
                 Heals.Add(r);
                 return;
             }
-            int baseHealing = HealingRules.WundschlussHealing + Progression.ResolveHealBonus + Progression.PracticeHealingBonus;
-            int amount = HealingRules.Healing(baseHealing, staff, Progression.WornHealingEfficiencyBp);
+            int amount = HealingRules.Healing(WundschlussBaseHealing, staff, Progression.WornHealingEfficiencyBp);
             int restored = 0;
             if (target == HealTargetKind.Self)
             {

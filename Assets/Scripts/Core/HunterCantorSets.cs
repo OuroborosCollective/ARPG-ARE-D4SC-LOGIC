@@ -87,6 +87,19 @@ namespace AreArpg.Core
 
     public sealed partial class WeaponEquipment
     {
+        // Only armour advances a tier. Each signature weapon enables its own set while in hand.
+        private int ArmourBonusTier(RegionalRelic[] pieces)
+        {
+            var progress = ArmourSetProgress(pieces);
+            return progress.Worn == progress.Total ? 2 : progress.Worn >= 4 ? 1 : 0;
+        }
+
+        internal int SteadyHandTier => IsRegionalRelicEquipped(RegionalRelic.F_Langbogen)
+            ? ArmourBonusTier(RotfaehrteSet.Pieces) : 0;
+
+        internal int FieldSutureTier => IsRegionalRelicEquipped(RegionalRelic.K_Kurzstab) || IsRegionalRelicEquipped(RegionalRelic.K_Langstab)
+            ? ArmourBonusTier(RusskantorSet.Pieces) : 0;
+
         public (int Worn, int Total) ArmourSetProgress(RegionalRelic[] pieces)
         {
             int worn = 0, total = 0;
