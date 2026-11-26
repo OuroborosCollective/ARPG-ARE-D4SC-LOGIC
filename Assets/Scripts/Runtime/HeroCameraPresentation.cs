@@ -69,10 +69,13 @@ namespace AreArpg.UnityClient
             foreach (Transform part in _chapterScenery)
             {
                 if (part == null || !part.gameObject.activeInHierarchy) continue;
+                bool northGate = _nordbogenArch != null && _nordbogenArch.parent == part;
+                if (northGate) _occluderBoxes.AddRange(_nordbogenCameraBounds);
                 part.GetComponentsInChildren(false, _occluderScan);
                 foreach (Renderer renderer in _occluderScan)
                 {
                     if (!renderer.enabled || !(renderer is MeshRenderer || renderer is SkinnedMeshRenderer)) continue;
+                    if (northGate && renderer.transform.IsChildOf(_nordbogenArch)) continue;
                     Bounds box = renderer.bounds;
                     if (box.max.y < 1.5f || box.size.y < 1f) continue;
                     if (box.size.x > 30f || box.size.z > 30f)

@@ -21,6 +21,10 @@ namespace AreArpg.PlayMode.Tests
             // Arrange the already reported prologue. Walk the new passage, write and reload through the real client.
             InstallJourneyStationFixture();
             Game.Progression.UseCombatV2();
+            typeof(ArenaRuntime).GetMethod("SaveCharacter", Flags, null, System.Type.EmptyTypes, null).Invoke(_runtime, null);
+            // Both ends use the entry scene's real seed, loot catalog and Forge population binding.
+            yield return ReloadNordwechselEntry();
+            Assert.IsTrue(Game.InAschenzoll);
             MoveStory(-9500, 12500);
             DungeonProject();
             CaptureNordwechselFrame("aschenzoll-nordbogen");
@@ -51,14 +55,10 @@ namespace AreArpg.PlayMode.Tests
             CaptureNordwechselFrame("glutklamm-causeway");
 
             // Recreate the actual entry runtime and let Awake read PlayerPrefs again.
-            Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_previous));
-            yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_scene);
-            _scene = UnityEngine.SceneManagement.SceneManager.CreateScene("AshenEntry");
-            Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_scene));
-            _runtime = new GameObject("Nordwechsel_Checkpoint").AddComponent<ArenaRuntime>();
-            _runtime.enabled = false;
+            yield return ReloadNordwechselEntry();
             Assert.AreEqual(2, Game.ChapterId);
             Assert.AreEqual(saved.StableHash, Game.Progression.StableHash);
+            Assert.AreEqual(destination, Game.Progression.SaveString());
             Assert.IsNotNull(Find("Ember_Rift_Causeway"));
             var warden = Game.Monsters.Single(m => m.Kind == 3);
             for (int i = 0; i < 200 && warden.BossWindupTicks == 0 && !Game.GameOver; i++)
@@ -124,12 +124,24 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
         }
 
+        private IEnumerator ReloadNordwechselEntry()
+        {
+            Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_previous));
+            yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_scene);
+            _scene = UnityEngine.SceneManagement.SceneManager.CreateScene("AshenEntry");
+            Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_scene));
+            _runtime = new GameObject("Nordwechsel_Checkpoint").AddComponent<ArenaRuntime>();
+            _runtime.enabled = false;
+        }
+
         private void CaptureNordwechselFrame(string name)
         {
             var directory = System.Environment.GetEnvironmentVariable("ASHEN_NORDWECHSEL_OUTPUT");
             if (string.IsNullOrEmpty(directory)) return;
             var camera = Camera.main;
-            camera.GetComponent<ArenaCameraRig>().SnapToTarget();
+            var rig = camera.GetComponent<ArenaCameraRig>();
+            // Let the gameplay camera settle in its current context while the sampled Core tick stays fixed.
+            for (int i = 0; i < 40; i++) rig.AdvancePresentation(.05f);
             System.IO.Directory.CreateDirectory(directory);
             var frame = RenderArea(camera, System.IO.Path.Combine(directory, name + ".png"));
             UnityEngine.Object.Destroy(frame);
