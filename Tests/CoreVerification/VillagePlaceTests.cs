@@ -19,7 +19,7 @@ internal static class VillagePlaceTests
         WhoIsSeenWhere(check);
     }
 
-    private static ArenaSimulation Village(ulong seed)
+    internal static ArenaSimulation Village(ulong seed)
     {
         // These checks are about houses that stand; how a lot becomes a house is checked in VillageBuildingSiteTests.
         // Orsel's sick room needs her mill quest done: the journey went to the mill and back to the village.

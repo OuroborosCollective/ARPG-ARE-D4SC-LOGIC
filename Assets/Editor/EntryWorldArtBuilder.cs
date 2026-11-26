@@ -155,6 +155,41 @@ namespace AreArpg.EditorTools
             AssetDatabase.SaveAssets();
         }
 
+        [MenuItem("ARE ARPG/Art/Seat Village Tavern")]
+        public static void SeatVillageTavern()
+        {
+            EditPrefab("EntryVillageWorld", world => FitTavernFoundation(world.transform));
+        }
+
+        // The porch steps touch the soil. The four walls of this particular tavern start
+        // 0.532 m higher. Fit the masonry under the walls and leave the steps exposed.
+        private static void FitTavernFoundation(Transform village)
+        {
+            Transform home = village.Find("home-west-south");
+            if (home == null) return;
+            foreach (var filter in home.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (filter.sharedMesh == null || filter.sharedMesh.name != "Preset_Tavern_01_LOD0") continue;
+                const string label = "Tavern masonry foundation";
+                if (home.Find(label) != null) return;
+                Material stone = AssetDatabase.LoadAssetAtPath<Material>(Output + "WorldSurfaces/StoneMasonry.mat")
+                    ?? AssetDatabase.LoadAssetAtPath<Material>(Output + "EntryMaterials/AshStoneWall.mat");
+                if (stone == null) throw new InvalidOperationException("Missing tavern foundation masonry material");
+                Bounds shell = filter.GetComponent<MeshRenderer>().bounds;
+                GameObject baseCourse = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                UnityEngine.Object.DestroyImmediate(baseCourse.GetComponent<Collider>());
+                baseCourse.name = label;
+                baseCourse.GetComponent<MeshRenderer>().sharedMaterial = stone;
+                // Ratios are relative to the measured LOD0 including its porch and roof.
+                Vector3 size = Vector3.Scale(shell.size, new Vector3(.71f, .092f, .632f));
+                baseCourse.transform.localScale = size;
+                baseCourse.transform.position = new Vector3(shell.center.x + .011f * shell.size.x,
+                    shell.min.y + size.y * .5f, shell.center.z - .091f * shell.size.z);
+                baseCourse.transform.SetParent(home, true);
+                return;
+            }
+        }
+
         /// <summary>
         /// Stand every paving strip so the median height of its upward-facing stone faces sits just above the ground.
         /// Single tall stones must not define the height, otherwise the ground plane covers the laid surface.
@@ -309,6 +344,7 @@ namespace AreArpg.EditorTools
                     new Vector3(b.X / 1000f, 0, b.Z / 1000f),
                     new Vector3(b.HalfWidth / 500f, i < 4 ? heights[i] : 6f, b.HalfDepth / 500f));
             }
+            FitTavernFoundation(root);
             for (int z = -24; z <= 12; z += 4)
                 Fit(root, "AshStoneFloor", "Old village road", new Vector3(0, PavingFootY, z), new Vector3(3.8f, PavingThickness, 4f));
             for (int x = -10; x <= -2; x += 4)

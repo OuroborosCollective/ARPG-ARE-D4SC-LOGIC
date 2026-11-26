@@ -22,6 +22,7 @@
     <Compile Include="../../Assets/Scripts/Core/ArmorRules.cs" Link="ArmorRules.cs" />
     <Compile Include="../../Assets/Scripts/Core/HealingCourse.cs" Link="HealingCourse.cs" />
     <Compile Include="../../Assets/Scripts/Core/WorldSkyClock.cs" Link="WorldSkyClock.cs" />
+    <Compile Include="../../Assets/Scripts/Runtime/WorldHorizonSite.cs" Link="Presentation/WorldHorizonSite.cs" />
     <Compile Include="../../Assets/Scripts/Core/CharacterProgression.cs" Link="CharacterProgression.cs" />
     <Compile Include="../../Assets/Scripts/Core/SaveSections.cs" Link="SaveSections.cs" />
     <Compile Include="../../Assets/Scripts/Core/RegionalRelics.cs" Link="RegionalRelics.cs" />

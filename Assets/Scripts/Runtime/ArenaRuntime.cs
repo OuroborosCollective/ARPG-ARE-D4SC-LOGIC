@@ -109,6 +109,7 @@ namespace AreArpg.UnityClient
             }
             BuildWorld();
             InitializeWorldSky();
+            if (_entryProfile) WorldHorizon.Attach(this, _hero);
             InitializePostProcessing();
             BuildHud();
         }

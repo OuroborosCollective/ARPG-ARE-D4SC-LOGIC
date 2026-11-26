@@ -139,7 +139,7 @@ internal static class JourneyPilotTests
         }
         throw new Exception("Journey movement stalled at "+w.PlayerXmm+","+w.PlayerZmm+" targeting "+x+","+z);
     }
-    private static void ClearAndCollect(ArenaSimulation w)
+    internal static void ClearAndCollect(ArenaSimulation w)
     {
         for(int i=0;i<50&&w.Monsters.Any(m=>!m.IsDead);i++){var m=w.Monsters.First(e=>!e.IsDead);Walk(w,m.Xmm,m.Zmm);}
         if(w.Monsters.Any(m=>!m.IsDead))throw new Exception("Journey encounters not cleared");

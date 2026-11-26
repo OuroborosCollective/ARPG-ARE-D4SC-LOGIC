@@ -151,7 +151,7 @@ internal static class KilnYardTests
     }
 
     /// <summary>Where the wanderer stands to use the side gate: the free cell of the forecourt nearest to it.</summary>
-    private static readonly long[] SideGateStand = { 39375L, KilnYard.SideGateZmm };
+    internal static readonly long[] SideGateStand = { 39375L, KilnYard.SideGateZmm };
     /// <summary>In front of the gate on the Topfhof side, and behind it in the kiln passage at the bolt.</summary>
     private static readonly long[] LockedStand = { KilnYard.GateXmm, KilnYard.LockedMaxZmm - 900 };
     private static readonly long[] LatchStand = { KilnYard.GateXmm, KilnYard.LatchMinZmm + 1200 };
@@ -181,7 +181,7 @@ internal static class KilnYardTests
         check(Math.Abs(south) < 800 && Math.Abs(upper) < 1500, "kiln-layout-heights-plausible");
     }
 
-    private static ArenaSimulation Court(ulong seed)
+    internal static ArenaSimulation Court(ulong seed)
     {
         var crypt = new ArenaSimulation(seed, CharacterProgression.CreateEntryProfile(), BigInteger.One, LootCatalog.Version1);
         foreach (var enemy in crypt.Monsters) { enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1; }
