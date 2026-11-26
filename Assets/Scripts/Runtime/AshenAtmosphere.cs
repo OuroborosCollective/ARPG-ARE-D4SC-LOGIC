@@ -23,7 +23,7 @@ namespace AreArpg.UnityClient
         private Texture2D _particleTexture;
         private MaterialPropertyBlock _regionGlow;
         private Transform _hero;
-        private int _act = -1, _effectIndex, _stepVariant, _swordVariant, _speaker = -1;
+        private int _act = -1, _effectIndex, _stepVariant, _swordSwing, _swordImpact, _speaker = -1;
         private readonly Dictionary<string, int> _variants = new Dictionary<string, int>();
         private float _walked, _subtitleLeft, _fade = 1f;
         private ulong _lastStepTick;
@@ -94,7 +94,10 @@ namespace AreArpg.UnityClient
             var weapon = game?.Progression?.Equipment?.Weapon;
             if (weapon == null || weapon.Definition.Family != WeaponFamily.Sword) return kind;
             int takes = Variants(kind + "_sword_");
-            return takes > 0 ? kind + "_sword_" + (_swordVariant++ % takes) : kind;
+            if (takes == 0) return kind;
+            // Swings and hits go through their takes each on their own, so a hit after every swing hears them all.
+            int take = kind == "swing" ? _swordSwing++ : _swordImpact++;
+            return kind + "_sword_" + (take % takes);
         }
         private void Loop(AudioSource source, AudioClip clip)
         { source.Stop(); source.clip = clip; if (clip != null && !_suspended) source.Play(); }

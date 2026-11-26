@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Unity.Profiling.Memory;
+using UnityEngine.Profiling;
 using UnityEngine;
 
 namespace AreArpg.UnityClient
@@ -27,6 +28,8 @@ namespace AreArpg.UnityClient
         private bool _snapshotBusy;
 
         public static string MemorySnapshotFolder => Path.Combine(Application.persistentDataPath, "MemorySnapshots");
+        /// <summary>Each session writes into a folder of its own, so a new session never replaces snapshots not yet pulled.</summary>
+        private string _snapshotSession;
         public int MemorySnapshotsTaken { get; private set; }
 
         private bool MemorySnapshotsOn
@@ -64,16 +67,21 @@ namespace AreArpg.UnityClient
         {
             try
             {
-                Directory.CreateDirectory(MemorySnapshotFolder);
+                if (_snapshotSession == null)
+                    _snapshotSession = Path.Combine(MemorySnapshotFolder, DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture));
+                Directory.CreateDirectory(_snapshotSession);
                 var safe = new System.Text.StringBuilder();
                 foreach (char c in area) safe.Append(char.IsLetterOrDigit(c) ? c : '_');
-                string path = Path.Combine(MemorySnapshotFolder, (++_snapshotCount).ToString("00") + "-" + safe + ".snap");
+                string path = Path.Combine(_snapshotSession, (++_snapshotCount).ToString("00") + "-" + safe + ".snap");
                 _snapshotBusy = true;
                 MemoryProfiler.TakeSnapshot(path, (file, ok) =>
                 {
                     _snapshotBusy = false;
                     if (ok) MemorySnapshotsTaken++;
-                    Debug.Log("ARE_MEMORY_SNAPSHOT " + (ok ? "saved " : "failed ") + file);
+                    // With a profiler attached the snapshot goes to the connected editor instead of the file, and Unity
+                    // reports false here; the editor's Memory Profiler window then holds it.
+                    Debug.Log("ARE_MEMORY_SNAPSHOT " + (ok ? "saved " + file : Profiler.enabled ?
+                        "sent to the connected editor (" + file + ")" : "failed " + file));
                 }, CaptureFlags.ManagedObjects | CaptureFlags.NativeObjects | CaptureFlags.NativeAllocations);
             }
             catch (Exception error)

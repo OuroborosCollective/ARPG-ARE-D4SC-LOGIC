@@ -24,9 +24,22 @@ namespace AreArpg.UnityClient
             try
             {
                 AndroidGame.Automatic.SetGameState(AndroidGameState.GamePlayInterruptible);
-                if (AndroidGame.GameMode == AndroidGameMode.Battery) Application.targetFrameRate = BatteryFrameRate;
+                ApplyAndroidGameMode();
             }
             catch (Exception error) { Debug.LogWarning("Ashen Crypt: Android hints unavailable: " + error.Message); }
+        }
+
+        /// <summary>The player may change the game mode while the game is paused: it is read again on every return.</summary>
+        private void ApplyAndroidGameMode()
+        {
+            Application.targetFrameRate = AndroidGame.GameMode == AndroidGameMode.Battery ? BatteryFrameRate : 60;
+        }
+
+        private void ReapplyAndroidGameMode()
+        {
+            if (Application.platform != RuntimePlatform.Android) return;
+            try { ApplyAndroidGameMode(); }
+            catch (Exception error) { Debug.LogWarning("Ashen Crypt: Android game mode unavailable: " + error.Message); }
         }
 
         private void ReportFullyDrawnWhenPlayable()

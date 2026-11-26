@@ -30,6 +30,13 @@ namespace AreArpg.UnityClient
         public const bool PerformanceAlwaysInDevelopment = true;
 
         private long _stepTicksThisFrame;
+        private (long x, long z)? _scriptedMove;
+
+        /// <summary>
+        /// A fixed movement in world basis points that replaces touch and keyboard while set, for profiling routes and
+        /// tests that walk with the runtime running; null gives the input back.
+        /// </summary>
+        public void ScriptMove((long x, long z)? move) { _scriptedMove = move; }
         private bool? _performanceOn;
         private PerformanceLog _performanceLog;
         public PerformanceLog PerformanceLog => _performanceLog;

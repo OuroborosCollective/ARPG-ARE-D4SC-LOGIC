@@ -35,12 +35,15 @@ namespace AreArpg.PlayMode.Tests
             Profiler.logFile = capture;
             Profiler.enableBinaryLog = true;
             Profiler.enabled = true;
-            foreach (var (x, z) in new[] { (10000, 0), (0, 10000), (-10000, 0), (0, -10000) })
+            // The legs are measured in simulation ticks, not frames, so two captures walk the same way at any frame rate;
+            // the movement goes through the runtime's own input, which would otherwise reset it every frame.
+            foreach (var (x, z) in new[] { (10000L, 0L), (0L, 10000L), (-10000L, 0L), (0L, -10000L) })
             {
-                Game.SetMoveInput(x, z);
-                for (int i = 0; i < RouteFramesPerLeg; i++) yield return null;
+                _runtime.ScriptMove((x, z));
+                ulong start = Game.CurrentTick;
+                while (Game.CurrentTick < start + RouteTicksPerLeg) yield return null;
             }
-            Game.SetMoveInput(0, 0);
+            _runtime.ScriptMove(null);
             Profiler.enabled = false;
             Profiler.enableBinaryLog = false;
             Profiler.logFile = "";
@@ -52,6 +55,6 @@ namespace AreArpg.PlayMode.Tests
             Debug.Log("ARE_PROFILED_ROUTE " + written + " " + new FileInfo(written).Length + " bytes");
         }
 
-        private const int RouteFramesPerLeg = 150;
+        private const ulong RouteTicksPerLeg = 40;
     }
 }

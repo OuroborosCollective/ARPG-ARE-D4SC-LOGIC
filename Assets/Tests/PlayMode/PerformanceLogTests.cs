@@ -26,6 +26,7 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNotNull(log, "the log is running");
             string path = log.FilePath;
             Assert.GreaterOrEqual(log.Lines, 2, "about one line a second");
+            typeof(ArenaRuntime).GetField("_performanceOn", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(_runtime, (bool?)false);
             Object.Destroy(log);
             yield return null;
             var lines = File.ReadAllLines(path);

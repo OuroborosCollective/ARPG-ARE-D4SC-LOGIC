@@ -30,6 +30,7 @@ namespace AreArpg.UnityClient
 
         private void OnEnable()
         {
+            _frames = 0; _frameSum = _frameWorst = _stepSum = 0;
             _systemMemory = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "System Used Memory");
             _gcMemory = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "GC Used Memory");
             _gfxMemory = ProfilerRecorder.StartNew(ProfilerCategory.Memory, "Gfx Used Memory");
@@ -59,7 +60,7 @@ namespace AreArpg.UnityClient
             catch (Exception error)
             {
                 Debug.LogWarning("ARE_PERFORMANCE_LOG could not open its file: " + error.Message);
-                _file = null;
+                CloseFile();
             }
             _windowStart = Time.realtimeSinceStartup;
         }
@@ -90,7 +91,7 @@ namespace AreArpg.UnityClient
                 .Append(',').Append(Mb(_systemMemory)).Append(',').Append(Mb(_gcMemory)).Append(',').Append(Mb(_gfxMemory));
             foreach (var (_, recorder) in _gpu) line.Append(',').Append(recorder.LastValue.ToString(c));
             try { _file.WriteLine(line); _file.Flush(); Lines++; }
-            catch (Exception error) { Debug.LogWarning("ARE_PERFORMANCE_LOG write failed: " + error.Message); _file = null; }
+            catch (Exception error) { Debug.LogWarning("ARE_PERFORMANCE_LOG write failed: " + error.Message); CloseFile(); }
             _windowStart = now; _frames = 0; _frameSum = _frameWorst = _stepSum = 0;
         }
 
@@ -102,6 +103,11 @@ namespace AreArpg.UnityClient
             foreach (var (_, recorder) in _gpu) recorder.Dispose();
             _gpu.Clear();
             _systemMemory.Dispose(); _gcMemory.Dispose(); _gfxMemory.Dispose();
+            CloseFile();
+        }
+
+        private void CloseFile()
+        {
             try { _file?.Dispose(); } catch (Exception) { }
             _file = null;
         }

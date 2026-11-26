@@ -196,6 +196,7 @@ namespace AreArpg.UnityClient
             _appUnfocused = !focused;
             if (_atmosphere != null) _atmosphere.Suspend(_appPaused || _appUnfocused);
             if (!focused) { ReleasePresentationTouches(); ReleaseVillageBoardScroll(false); }
+            else ReapplyAndroidGameMode();
         }
 
         /// <summary>Discard interrupted gestures without changing chosen zoom or character progression.</summary>
@@ -919,7 +920,8 @@ namespace AreArpg.UnityClient
             if (_cameraRig != null) _cameraRig.EndTouchFrame();
             if (MenuOpen) { _game.SetMoveInput(0, 0); return; }
 
-            CameraRelativeMove(ref x, ref z);
+            if (_scriptedMove.HasValue) { x = _scriptedMove.Value.x; z = _scriptedMove.Value.z; }
+            else CameraRelativeMove(ref x, ref z);
             _game.SetMoveInput(x, z);
             _moveWorldX = x; _moveWorldZ = z;
             if (_game.CombatV2)
