@@ -1,0 +1,66 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :
+Build was configured to prefer settings repositories over project repositories but repository 'Google' was added by build file 'build.gradle'
+Build was configured to prefer settings repositories over project repositories but repository 'MavenRepo' was added by build file 'build.gradle'
+Build was configured to prefer settings repositories over project repositories but repository 'Google' was added by build file 'build.gradle'
+Build was configured to prefer settings repositories over project repositories but repository 'MavenRepo' was added by build file 'build.gradle'
+Build was configured to prefer settings repositories over project repositories but repository 'Google' was added by build file 'build.gradle'
+Build was configured to prefer settings repositories over project repositories but repository 'MavenRepo' was added by build file 'build.gradle'
+Build was configured to prefer settings repositories over project repositories but repository 'Google' was added by build file 'build.gradle'
+Build was configured to prefer settings repositories over project repositories but repository 'MavenRepo' was added by build file 'build.gradle'
+
+> Configure project :launcher
+WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
+The current default is 'true'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+WARNING: The option setting 'android.enableJetifier=true' is deprecated.
+The current default is 'false'.
+It will be removed in version 10.0 of the Android Gradle plugin.
+
+> Configure project :unityLibrary
+Variant 'debug', will keep symbols in binaries for:
+  'libunity.so'
+  'libil2cpp.so'
+  'libmain.so'
+Variant 'release', symbols will be stripped from binaries.
+
+> Configure project :launcher
+Variant 'debug', will keep symbols in binaries for:
+  'libunity.so'
+  'libil2cpp.so'
+  'libmain.so'
+Variant 'release', symbols will be stripped from binaries.
+
+> Task :launcher:dependencyInsight
+com.google.android.gms:play-services-games-v2:22.1.0
+  Variant runtime:
+    | Attribute Name                                  | Provided     | Requested    |
+    |-------------------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements                      | jar          |              |
+    | org.gradle.status                               | release      |              |
+    | org.gradle.category                             | library      | library      |
+    | org.gradle.usage                                | java-runtime | java-runtime |
+    | com.android.build.api.attributes.AgpVersionAttr |              | 9.1.1        |
+    | com.android.build.api.attributes.BuildTypeAttr  |              | release      |
+    | org.gradle.jvm.environment                      |              | android      |
+    | org.jetbrains.kotlin.platform.type              |              | androidJvm   |
+
+com.google.android.gms:play-services-games-v2:+ -> 22.1.0
+\--- project :unityLibrary
+     \--- releaseRuntimeClasspath
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+[Incubating] Problems report is available at: file:///var/lib/unityarpg/workspaces/ashen-games-id-rdwI8Cp3/project/Library/Bee/Android/Prj/IL2CPP/Gradle/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 14s
+1 actionable task: 1 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.1/userguide/configuration_cache_enabling.html

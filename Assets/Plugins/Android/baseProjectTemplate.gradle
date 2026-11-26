@@ -1,0 +1,27 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+plugins {
+    // Keep Unity's generated AGP declarations and build-script dependencies.
+    id 'com.android.application' version '9.1.1' apply false
+    id 'com.android.library' version '9.1.1' apply false
+    **BUILD_SCRIPT_DEPS**
+}
+
+allprojects {
+    repositories {
+        // Unity keeps its settings-level repositories authoritative under PREFER_SETTINGS.
+        if (gradle.settings.dependencyResolutionManagement.repositoriesMode.get() != RepositoriesMode.FAIL_ON_PROJECT_REPOS) {
+            google()
+            mavenCentral()
+        }
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
+}

@@ -1,0 +1,26 @@
+{
+  "apk_size": 67798095,
+  "defined_play_games_classes": [
+    "Lcom/google/android/gms/games/GamesSignInClient;",
+    "Lcom/google/android/gms/games/PlayGames;",
+    "Lcom/google/android/gms/games/PlayGamesSdk;"
+  ],
+  "launcher": "com.unity3d.player.UnityPlayerGameActivity",
+  "linked_strings": {
+    "app_id": {
+      "id": "0x7f0d0021",
+      "value": "511695074775"
+    },
+    "package_name": {
+      "id": "0x7f0d0036",
+      "value": "com.ouroboroscollective.areashencrypt"
+    }
+  },
+  "matching_application_metadata_count": 1,
+  "package": "com.ouroboroscollective.areashencrypt",
+  "play_games_app_id_reference": "0x7f0d0021",
+  "revision": "ceca4fbad6beb28fee8cf30c852c3e9ded4b6ce5",
+  "sha256": "76d1cf7f10a2360b72b32b151481b7699d20ab70889cd209ff88cc39a91ba688",
+  "tree": "2d4808b44176036ac3e4e324e335c8e2f24a252f",
+  "unity_metadata_files_in_apk_res": 0
+}
