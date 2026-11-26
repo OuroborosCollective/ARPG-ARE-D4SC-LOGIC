@@ -15,6 +15,112 @@ namespace AreArpg.PlayMode.Tests
         [UnityTest] public IEnumerator AschenzollReleasedCargoRequiresActualUpperRampInspection()
         { yield return VerifyAschenzoll(true); }
 
+        [UnityTest]
+        public IEnumerator NordwechselCommitsChapterTwoBeforeSwitchAndRestoresItInAshenEntry()
+        {
+            // Arrange the already reported prologue. Walk the new passage, write and reload through the real client.
+            InstallJourneyStationFixture();
+            Game.Progression.UseCombatV2();
+            MoveStory(-9500, 12500);
+            DungeonProject();
+            CaptureNordwechselFrame("aschenzoll-nordbogen");
+            MoveStory(-9500, 18000);
+            typeof(ArenaRuntime).GetMethod("SaveCharacter", Flags, null, System.Type.EmptyTypes, null)
+                .Invoke(_runtime, null);
+            var source = Game;
+            ulong sourceHash = source.ComputeWorldHash();
+            string station = PlayerPrefs.GetString(_keys[0]);
+            TravelStory();
+            Assert.AreEqual(2, Game.ChapterId, "The second, spatially distinct northern arch must lead to Ember Rift.");
+            Assert.AreNotSame(source, Game);
+            Assert.AreEqual(sourceHash, source.ComputeWorldHash(), "Travel must keep the source world replayable.");
+            Assert.AreNotEqual(sourceHash, Game.ComputeWorldHash());
+            Assert.AreEqual(station, PlayerPrefs.GetString(_keys[1]), "The last valid station checkpoint is the backup.");
+            string destination = PlayerPrefs.GetString(_keys[0]);
+            Assert.IsTrue(CharacterProgression.TryLoad(destination, NativeJourneyMaps, out var saved));
+            Assert.AreEqual(Game.Progression.StableHash, saved.StableHash);
+            Assert.AreEqual("2", saved.UnlockedCryptDepth.ToString());
+            Assert.IsTrue(saved.Freight.Reported);
+            Assert.AreEqual(FreightChoice.Secured, saved.Freight.Choice);
+            yield return null;
+            Assert.IsNotNull(Find("Ember_Rift_Causeway"));
+            Assert.IsNotNull(Find("Ember_Rift_Boss_Dais"));
+            Assert.That(ArenaRuntime.DisplayChapterName(Game), Does.Contain("Glutklamm"));
+            Assert.IsNull(Find("Aschenzoll_EmptyFreightCart"));
+
+            // Recreate the actual entry runtime and let Awake read PlayerPrefs again.
+            Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_previous));
+            yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_scene);
+            _scene = UnityEngine.SceneManagement.SceneManager.CreateScene("AshenEntry");
+            Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_scene));
+            _runtime = new GameObject("Nordwechsel_Checkpoint").AddComponent<ArenaRuntime>();
+            _runtime.enabled = false;
+            Assert.AreEqual(2, Game.ChapterId);
+            Assert.AreEqual(saved.StableHash, Game.Progression.StableHash);
+            Assert.IsNotNull(Find("Ember_Rift_Causeway"));
+            var warden = Game.Monsters.Single(m => m.Kind == 3);
+            for (int i = 0; i < 200 && warden.BossWindupTicks == 0 && !Game.GameOver; i++)
+            {
+                Game.SetMoveInput((warden.Xmm - Game.PlayerXmm) * 10, (warden.Zmm - Game.PlayerZmm) * 10);
+                Game.Step();
+            }
+            Assert.AreEqual(8, warden.BossWindupTicks);
+            DungeonProject();
+            var warning = Find("Ember_Warden_Telegraph");
+            Assert.IsNotNull(warning);
+            Assert.IsTrue(warning.activeInHierarchy);
+            CaptureNordwechselFrame("glutklamm-warden");
+            int health = warden.Health;
+            for (int i = 0; i < 120 && !Game.GameOver && warden.Health == health; i++)
+            {
+                Game.SetMoveInput((warden.Xmm - Game.PlayerXmm) * 10, (warden.Zmm - Game.PlayerZmm) * 10);
+                Game.ActivateSkill(0);
+                Game.Step();
+            }
+            Assert.Less(warden.Health, health, "A normal combat ability can hit the chapter boss.");
+        }
+
+        [UnityTest]
+        public IEnumerator NordwechselReadbackFailureKeepsTheStationWorldActive()
+        {
+            InstallJourneyStationFixture();
+            // A real previously visited forest binds this save to the shipped map catalog.
+            MoveStory(0, 18000);
+            TravelStory();
+            Assert.IsTrue(Game.InJourney);
+            var route = Game.JourneyGeometry;
+            JourneyNativeWalk(route.ReturnX, route.ReturnZ, false);
+            TravelStory();
+            Assert.IsTrue(Game.InAschenzoll);
+            MoveStory(-9500, 18000);
+            var station = Game;
+            var field = typeof(ArenaRuntime).GetField("_journeyMaps", Flags);
+            var maps = field.GetValue(_runtime);
+            try
+            {
+                // The simulation retains its correct catalog. The independent persistence reader loses it.
+                field.SetValue(_runtime, null);
+                LogAssert.Expect(LogType.Error, "ARPG character save readback failed; no further overwrites allowed.");
+                TravelStory();
+                Assert.AreSame(station, Game);
+                Assert.AreEqual("1", Game.CryptDepth.ToString());
+                Assert.IsTrue((bool)typeof(ArenaRuntime).GetField("_storageFault", Flags).GetValue(_runtime));
+            }
+            finally { field.SetValue(_runtime, maps); }
+            yield return null;
+        }
+
+        private void CaptureNordwechselFrame(string name)
+        {
+            var directory = System.Environment.GetEnvironmentVariable("ASHEN_NORDWECHSEL_OUTPUT");
+            if (string.IsNullOrEmpty(directory)) return;
+            var camera = Camera.main;
+            camera.GetComponent<ArenaCameraRig>().SnapToTarget();
+            System.IO.Directory.CreateDirectory(directory);
+            var frame = RenderArea(camera, System.IO.Path.Combine(directory, name + ".png"));
+            UnityEngine.Object.Destroy(frame);
+        }
+
         private IEnumerator VerifyAschenzoll(bool release)
         {
             InstallWoodlandFixture();Game.Progression.Social.EnableForge();
