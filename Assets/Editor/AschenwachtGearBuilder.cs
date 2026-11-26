@@ -121,6 +121,24 @@ namespace AreArpg.EditorTools
         /// </summary>
         internal static bool FitToHero(IList<(RegionalRelic id, SkinnedMeshRenderer[] skins)> pieces, string meshFolder)
         {
+            return FitToHero(pieces.Select(p => new FitPiece(p.id.ToString(), p.skins,
+                RegionalRelics.Slot(p.id) == RegionalRelicSlot.Head ? HeadFit.Closed : HeadFit.None)).ToList(), meshFolder);
+        }
+
+        /// <summary>How a piece sits on the head: not at all, closed over the whole head and face (a helm), or open at the face (a hood).</summary>
+        public enum HeadFit { None, Closed, Open }
+
+        /// <summary>One piece to fit: the name of its mesh and prefab, its meshes, and how it sits on the head.</summary>
+        internal sealed class FitPiece
+        {
+            public readonly string Name;
+            public readonly SkinnedMeshRenderer[] Skins;
+            public readonly HeadFit Head;
+            public FitPiece(string name, SkinnedMeshRenderer[] skins, HeadFit head) { Name = name; Skins = skins; Head = head; }
+        }
+
+        internal static bool FitToHero(IList<FitPiece> pieces, string meshFolder)
+        {
             var hero = AssetDatabase.LoadAssetAtPath<GameObject>(Hero);
             if (hero == null) return false;
             Directory.CreateDirectory(meshFolder);
@@ -135,7 +153,7 @@ namespace AreArpg.EditorTools
                 fit.Body.HeadBox = new Bounds(fit.Body.HeadPoints[0], Vector3.zero);
                 foreach (var p in fit.Body.HeadPoints) fit.Body.HeadBox.Encapsulate(p);
                 fit.GuardHead = GuardHeadWidth();
-                foreach (var (id, skins) in pieces) BuildArmour(id, skins, meshFolder, fit);
+                foreach (var piece in pieces) BuildArmour(piece, meshFolder, fit);
             }
             finally { UnityEngine.Object.DestroyImmediate(heroInstance); }
             AssetDatabase.SaveAssets();
@@ -276,14 +294,21 @@ namespace AreArpg.EditorTools
         /// </summary>
         private const float HelmRoom = .98f, HelmCone = .97f, HelmShiftStepMm = 5f;
         private const int HelmShiftSteps = 4, HelmShellPoints = 2500, HelmProbePoints = 1600;
-        private static void FitOverHead(Vector3[] points, Body hero)
+        /// <summary>A hood open at the face holds only the head behind the face: points this far forward are left out.</summary>
+        private const float OpenFaceCone = .4f;
+        private static void FitOverHead(Vector3[] points, Body hero, bool openFace)
         {
-            var box = new Bounds(points[0], Vector3.zero);
-            foreach (var p in points) box.Encapsulate(p);
             var head = hero.HeadBox;
-            float scale = 0f;
-            for (int a = 0; a < 3; a++) if (box.extents[a] > 1e-5f) scale = Mathf.Max(scale, head.extents[a] / box.extents[a]);
-            for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - box.center) * scale;
+            if (!openFace)
+            {
+                // A helm's box is first laid on the head's box. A hood keeps the place its joints gave it (it hangs down
+                // the back, so its box does not stand for the head).
+                var box = new Bounds(points[0], Vector3.zero);
+                foreach (var p in points) box.Encapsulate(p);
+                float scale = 0f;
+                for (int a = 0; a < 3; a++) if (box.extents[a] > 1e-5f) scale = Mathf.Max(scale, head.extents[a] / box.extents[a]);
+                for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - box.center) * scale;
+            }
 
             var shellDirection = new List<Vector3>(); var shellLength = new List<float>();
             for (int i = 0; i < points.Length; i += Math.Max(1, points.Length / HelmShellPoints))
@@ -292,7 +317,8 @@ namespace AreArpg.EditorTools
                 if (m > 1e-4f) { shellDirection.Add(d / m); shellLength.Add(m); }
             }
             var probe = new List<Vector3>();
-            for (int i = 0; i < hero.HeadPoints.Length; i += Math.Max(1, hero.HeadPoints.Length / HelmProbePoints)) probe.Add(hero.HeadPoints[i]);
+            for (int i = 0; i < hero.HeadPoints.Length; i += Math.Max(1, hero.HeadPoints.Length / HelmProbePoints))
+                if (!openFace || Vector3.Dot((hero.HeadPoints[i] - head.center).normalized, hero.Front) <= OpenFaceCone) probe.Add(hero.HeadPoints[i]);
             float Worst(Vector3 shift)
             {
                 float worst = 0f;
@@ -336,8 +362,9 @@ namespace AreArpg.EditorTools
             return HeadWidth(skin.sharedMesh, head, body);
         }
 
-        private static void BuildArmour(RegionalRelic id, SkinnedMeshRenderer[] skins, string meshFolder, HeroFit fit)
+        private static void BuildArmour(FitPiece piece, string meshFolder, HeroFit fit)
         {
+            string id = piece.Name; var skins = piece.Skins;
             var hero = fit.Body;
             float headScale = hero.HeadWidth / fit.GuardHead;
             var used = new List<HumanBodyBones>();
@@ -402,14 +429,14 @@ namespace AreArpg.EditorTools
                 }
             }
             var points = outVertices.ToArray();
-            if (RegionalRelics.Slot(id) == RegionalRelicSlot.Head) FitOverHead(points, hero);
+            if (piece.Head != HeadFit.None) FitOverHead(points, hero, piece.Head == HeadFit.Open);
 
             string meshPath = meshFolder + id + ".asset";
             var fitted = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
             bool fresh = fitted == null;
             if (fresh) fitted = new Mesh();
             fitted.Clear();
-            fitted.name = id.ToString();
+            fitted.name = id;
             fitted.indexFormat = points.Length > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
             fitted.vertices = points;
             fitted.normals = outNormals.ToArray();
@@ -423,7 +450,7 @@ namespace AreArpg.EditorTools
             fitted.RecalculateBounds();
             if (fresh) AssetDatabase.CreateAsset(fitted, meshPath); else EditorUtility.SetDirty(fitted);
 
-            var root = new GameObject(id.ToString());
+            var root = new GameObject(id);
             try
             {
                 var bones = new GameObject("Bones").transform;
@@ -442,10 +469,13 @@ namespace AreArpg.EditorTools
             finally { UnityEngine.Object.DestroyImmediate(root); }
         }
 
-        private static void BuildStaff(string model, RegionalRelic id)
+        private static void BuildStaff(string model, RegionalRelic id) { BuildHandPiece(AschenwachtCourtBuilder.ForecourtModels + model + ".fbx", id); }
+
+        /// <summary>A weapon from a static model becomes an arsenal piece: its file's own scale and its grip at the origin kept.</summary>
+        internal static void BuildHandPiece(string path, RegionalRelic id)
         {
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>(AschenwachtCourtBuilder.ForecourtModels + model + ".fbx");
-            if (source == null) throw new InvalidOperationException("Staff missing: " + model);
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (source == null) throw new InvalidOperationException("Weapon model missing: " + path);
             var filter = source.GetComponentInChildren<MeshFilter>(true);
             var root = new GameObject(id.ToString());
             try

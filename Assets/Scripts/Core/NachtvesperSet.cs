@@ -33,20 +33,7 @@ namespace AreArpg.Core
         /// <summary>The piece a picked-up loot carries, or None: by its chance, among the pieces not owned yet.</summary>
         public static RegionalRelic Roll(LootItem item, WeaponEquipment gear)
         {
-            if (item == null || gear == null) return RegionalRelic.None;
-            ulong h = item.StableHash ^ Salt;
-            unchecked { h ^= h >> 33; h *= 0xFF51AFD7ED558CCDUL; h ^= h >> 33; h *= 0xC4CEB9FE1A85EC53UL; h ^= h >> 33; }
-            if ((int)(h % 10000UL) >= ChanceBpFor(item)) return RegionalRelic.None;
-            int missing = 0;
-            foreach (var id in Pieces) if (!gear.OwnsRegionalRelic(id)) missing++;
-            if (missing == 0) return RegionalRelic.None;
-            int pick = (int)((h >> 20) % (ulong)missing);
-            foreach (var id in Pieces)
-            {
-                if (gear.OwnsRegionalRelic(id)) continue;
-                if (pick-- == 0) return id;
-            }
-            return RegionalRelic.None;
+            return LootSetRoll.Roll(item, gear, Pieces, Salt, ChanceBpFor(item));
         }
 
         public static bool IsPiece(RegionalRelic id) { return Array.IndexOf(Pieces, id) >= 0; }

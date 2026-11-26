@@ -22,12 +22,39 @@ namespace AreArpg.EditMode.Tests
             { RegionalRelic.A_Visierhelm, RegionalRelic.A_Kuerass, RegionalRelic.A_Schulterplatten, RegionalRelic.A_Gliedpanzer };
 
         [Test]
-        public void AschenwachtArmourIsSkinnedToTheHeroesBones() => CheckSet(Aschenwacht, int.MaxValue);
+        public void AschenwachtArmourIsSkinnedToTheHeroesBones() => CheckSet(Names(Aschenwacht), int.MaxValue);
 
         [Test]
-        public void TheNachtvesperIsSkinnedToTheHeroesBonesWithinTheTabletBudget() => CheckSet(NachtvesperSet.Pieces, NachtvesperTriangleBudget);
+        public void TheNachtvesperIsSkinnedToTheHeroesBonesWithinTheTabletBudget() => CheckSet(Names(NachtvesperSet.Pieces), NachtvesperTriangleBudget);
 
-        private static void CheckSet(RegionalRelic[] pieces, int budget)
+        /// <summary>Owner request 2026-11-26: the hunter's and the sorcerer's sets, the hunter's quiver with them.</summary>
+        [Test]
+        public void TheHunterAndCantorSetsAreSkinnedToTheHeroesBonesWithinTheTabletBudget()
+        {
+            CheckSet(Names(Worn(RotfaehrteSet.Pieces)).Concat(new[] { "F_Koecher" }).ToArray(), NachtvesperTriangleBudget);
+            CheckSet(Names(Worn(RusskantorSet.Pieces)), NachtvesperTriangleBudget);
+        }
+
+        [Test]
+        public void TheBowAndTheStaffsArePassiveArsenalPieces()
+        {
+            foreach (var id in new[] { RegionalRelic.F_Langbogen, RegionalRelic.K_Kurzstab, RegionalRelic.K_Langstab })
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Arsenal + id + ".prefab");
+                if (prefab == null) Assert.Ignore("Requires the private weapon pictures");
+                Assert.IsNotEmpty(prefab.GetComponentsInChildren<MeshRenderer>(true), id + " has its picture");
+                Assert.IsEmpty(prefab.GetComponentsInChildren<Collider>(true), id + " has no collider");
+                Assert.IsEmpty(prefab.GetComponentsInChildren<MonoBehaviour>(true), id + " carries no script");
+                foreach (var renderer in prefab.GetComponentsInChildren<MeshRenderer>(true))
+                    foreach (var material in renderer.sharedMaterials)
+                        Assert.IsTrue(material != null && material.shader.name == "Universal Render Pipeline/Lit", id + " wears URP/Lit materials");
+            }
+        }
+
+        private static RegionalRelic[] Worn(RegionalRelic[] set) => set.Where(id => RegionalRelics.HandDefinition(id) == null).ToArray();
+        private static string[] Names(RegionalRelic[] set) => set.Select(id => id.ToString()).ToArray();
+
+        private static void CheckSet(string[] pieces, int budget)
         {
             var prefabs = pieces.Select(id => AssetDatabase.LoadAssetAtPath<GameObject>(Arsenal + id + ".prefab")).ToArray();
             if (prefabs.Any(p => p == null)) Assert.Ignore("Requires the private armour pictures");

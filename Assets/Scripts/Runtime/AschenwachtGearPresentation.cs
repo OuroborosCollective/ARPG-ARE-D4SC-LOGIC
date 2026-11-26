@@ -19,7 +19,7 @@ namespace AreArpg.UnityClient
         private static bool IsBakedArmor(RegionalRelic id)
         {
             return id == RegionalRelic.A_Visierhelm || id == RegionalRelic.A_Kuerass || id == RegionalRelic.A_Schulterplatten || id == RegionalRelic.A_Gliedpanzer ||
-                NachtvesperSet.IsPiece(id);
+                NachtvesperSet.IsPiece(id) || ((RotfaehrteSet.IsPiece(id) || RusskantorSet.IsPiece(id)) && RegionalRelics.HandDefinition(id) == null);
         }
 
         private void ClearBakedArmor()
@@ -37,12 +37,19 @@ namespace AreArpg.UnityClient
         /// </summary>
         private bool MountBakedArmor(RegionalRelic id)
         {
-            var prefab = RegionalSourcePrefab(id);
+            return MountBakedPrefab(RegionalSourcePrefab(id), id.ToString(), RegionalRelics.Slot(id) == RegionalRelicSlot.Head);
+        }
+
+        /// <summary>The hunter's back quiver, worn while the slate longbow is in hand (HunterCantorBuilder.Quiver).</summary>
+        private const string HunterQuiver = "Werkarsenal/F_Koecher";
+
+        private bool MountBakedPrefab(GameObject prefab, string label, bool onHead)
+        {
             Animator avatar = null;
             if (_hero) foreach (var candidate in _hero.GetComponentsInChildren<Animator>(true))
                 if (candidate.isHuman && candidate.avatar && candidate.avatar.isValid) { avatar = candidate; break; }
             if (!prefab || !avatar) return false;
-            var holder = new GameObject("Equipped_" + id).transform;
+            var holder = new GameObject("Equipped_" + label).transform;
             holder.SetParent(avatar.transform, false);
             if (!PassiveArtVisuals.TryBindPrefab(holder, prefab)) { Destroy(holder.gameObject); return false; }
             foreach (var skin in holder.GetComponentsInChildren<SkinnedMeshRenderer>(true))
@@ -61,7 +68,7 @@ namespace AreArpg.UnityClient
                 skin.updateWhenOffscreen = true;
             }
             _bakedArmor.Add(holder.gameObject);
-            if (RegionalRelics.Slot(id) == RegionalRelicSlot.Head) HideHair(avatar.GetBoneTransform(HumanBodyBones.Head));
+            if (onHead) HideHair(avatar.GetBoneTransform(HumanBodyBones.Head));
             return true;
         }
 

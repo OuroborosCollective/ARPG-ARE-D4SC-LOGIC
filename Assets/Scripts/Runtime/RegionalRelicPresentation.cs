@@ -151,6 +151,9 @@ namespace AreArpg.UnityClient
             foreach (var piece in new[] { outfit, head, shoulders, limbs, gear.WornRegionalRelic(RegionalRelicSlot.Arms), gear.WornRegionalRelic(RegionalRelicSlot.Hands),
                 gear.WornRegionalRelic(RegionalRelicSlot.Waist), gear.WornRegionalRelic(RegionalRelicSlot.Legs), gear.WornRegionalRelic(RegionalRelicSlot.Feet) })
                 if (IsBakedArmor(piece) && !MountBakedArmor(piece)) Debug.LogWarning("Ashen Crypt: Rüstung konnte nicht angelegt werden: " + piece);
+            if (gear.WornRegionalRelic(RegionalRelicSlot.Weapon) == RegionalRelic.F_Langbogen &&
+                !MountBakedPrefab(Resources.Load<GameObject>("ARE/Visuals/" + HunterQuiver), "F_Koecher", false))
+                Debug.LogWarning("Ashen Crypt: Köcher konnte nicht angelegt werden");
             if (IsBakedArmor(outfit)) outfit = RegionalRelic.None;
             if (IsBakedArmor(head)) head = RegionalRelic.None;
             if (outfit == RegionalRelic.None && head == RegionalRelic.None && belt == RegionalRelic.None && utility == RegionalRelic.None) return;
@@ -252,9 +255,13 @@ namespace AreArpg.UnityClient
                 case RegionalRelicSlot.Feet: place = "Fußschutz"; break;
                 default: place = "Rüstung"; break;
             }
+            var gear = _game.Progression.Equipment;
+            int Worn(RegionalRelic[] set) { int n = 0; foreach (var piece in set) if (gear.IsRegionalRelicEquipped(piece)) n++; return n; }
+            if (RotfaehrteSet.IsPiece(id)) return place + " · Leder · Set Rotfährte (" + Worn(RotfaehrteSet.Pieces) + "/" + RotfaehrteSet.Pieces.Length + " angelegt)";
+            if (RusskantorSet.IsPiece(id)) return place + " · Leinen · Set Rußkantor (" + Worn(RusskantorSet.Pieces) + "/" + RusskantorSet.Pieces.Length + " angelegt)";
             if (!NachtvesperSet.IsPiece(id)) return place + " · Platte";
             int worn = _game.Progression.NachtvesperPiecesWorn;
-            return place + " · Set Nachtvesper (" + worn + "/" + NachtvesperSet.Pieces.Length + " angelegt)" +
+            return place + " · Platte · Set Nachtvesper (" + worn + "/" + NachtvesperSet.Pieces.Length + " angelegt)" +
                 "\nJedes angelegte Teil: +1 % Lebenspunkte\nAlle " + NachtvesperSet.Pieces.Length + " Teile: +25 % Ausdauer";
         }
 

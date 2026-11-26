@@ -72,6 +72,16 @@ namespace AreArpg.Core
             if (gear.IsRegionalRelicEquipped(RegionalRelic.N_Handschuhe)) worn[(int)ArmorSlot.Hands] = NachtvesperSet.Gauntlets;
             if (gear.IsRegionalRelicEquipped(RegionalRelic.N_Beinzeug)) worn[(int)ArmorSlot.Legs] = NachtvesperSet.Greaves;
             if (gear.IsRegionalRelicEquipped(RegionalRelic.N_Panzerschuhe)) worn[(int)ArmorSlot.Feet] = NachtvesperSet.Sabatons;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.F_Gugel)) worn[(int)ArmorSlot.Head] = RotfaehrteSet.Hood;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.F_Wams)) worn[(int)ArmorSlot.Chest] = RotfaehrteSet.Jerkin;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.F_Handschuhe)) worn[(int)ArmorSlot.Hands] = RotfaehrteSet.Gloves;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.F_Beinkleid)) worn[(int)ArmorSlot.Legs] = RotfaehrteSet.Breeches;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.F_Stiefel)) worn[(int)ArmorSlot.Feet] = RotfaehrteSet.Boots;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.K_Kapuze)) worn[(int)ArmorSlot.Head] = RusskantorSet.Hood;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.K_Kittel)) worn[(int)ArmorSlot.Chest] = RusskantorSet.Smock;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.K_Handschuhe)) worn[(int)ArmorSlot.Hands] = RusskantorSet.Gloves;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.K_Beinkleid)) worn[(int)ArmorSlot.Legs] = RusskantorSet.Breeches;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.K_Stiefel)) worn[(int)ArmorSlot.Feet] = RusskantorSet.Boots;
             return worn;
         }
 
