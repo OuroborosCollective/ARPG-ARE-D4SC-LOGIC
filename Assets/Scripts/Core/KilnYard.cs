@@ -169,6 +169,31 @@ namespace AreArpg.Core
 
         private bool CanStandInKilnYard(long x, long z) => KilnLayout.CanStand(x, z) && (Progression.KilnGateOpen || !KilnYard.InGate(x, z));
 
+        // Check every crossed walk cell. The two side cells at a corner prevent a diagonal reach through a wall.
+        private bool KilnHasSight(long ax, long az, long bx, long bz)
+        {
+            if (!CanStandInKilnYard(ax, az) || !CanStandInKilnYard(bx, bz)) return false;
+            const long cell = KilnLayout.CellMm;
+            long x = (ax - KilnLayout.MinXmm) / cell, z = (az - KilnLayout.MinZmm) / cell;
+            long endX = (bx - KilnLayout.MinXmm) / cell, endZ = (bz - KilnLayout.MinZmm) / cell;
+            int sx = Math.Sign(bx - ax), sz = Math.Sign(bz - az);
+            long dx = Math.Abs(bx - ax), dz = Math.Abs(bz - az);
+            long edgeX = Math.Abs(KilnLayout.MinXmm + (x + (sx > 0 ? 1 : 0)) * cell - ax);
+            long edgeZ = Math.Abs(KilnLayout.MinZmm + (z + (sz > 0 ? 1 : 0)) * cell - az);
+            bool Free(long col, long row) => CanStandInKilnYard(
+                KilnLayout.MinXmm + col * cell + cell / 2, KilnLayout.MinZmm + row * cell + cell / 2);
+            while (x != endX || z != endZ)
+            {
+                long crossX = x == endX ? long.MaxValue : edgeX * dz;
+                long crossZ = z == endZ ? long.MaxValue : edgeZ * dx;
+                if (crossX == crossZ && (!Free(x + sx, z) || !Free(x, z + sz))) return false;
+                if (crossX <= crossZ) { x += sx; edgeX += cell; }
+                if (crossZ <= crossX) { z += sz; edgeZ += cell; }
+                if (!Free(x, z)) return false;
+            }
+            return true;
+        }
+
         /// <summary>The gate within reach while it is still bolted: from the passage side to open it, from the Topfhof to find it locked.</summary>
         public bool NearKilnGate { get { return InKilnYard && !GameOver && !Progression.KilnGateOpen && (KilnYard.OnLatchSide(PlayerXmm, PlayerZmm) || KilnYard.OnLockedSide(PlayerXmm, PlayerZmm)); } }
 
@@ -201,7 +226,7 @@ namespace AreArpg.Core
         /// <summary>Back through the south gate into Aschenwacht's forecourt; the yard keeps what happened there.</summary>
         public ArenaSimulation TryLeaveKilnYard()
         {
-            if (!InKilnYard || GameOver) return null;
+            if (!InKilnYard || !AtWorldPassage || GameOver) return null;
             CharacterProgression nextProgress;
             if (!CharacterProgression.TryLoad(Progression.SaveString(), _journeyMaps, out nextProgress) || !nextProgress.LeaveKilnYard()) return null;
             return new ArenaSimulation(_runSeed, nextProgress, CryptDepth, _lootCatalog, _journeyMaps);

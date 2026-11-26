@@ -259,10 +259,10 @@ namespace AreArpg.EditorTools
             }
             var probe = new List<Vector3>();
             for (int i = 0; i < hero.HeadPoints.Length; i += Math.Max(1, hero.HeadPoints.Length / HelmProbePoints)) probe.Add(hero.HeadPoints[i]);
-            float Worst(Vector3 shift)
+            float Worst(Vector3 shift, IEnumerable<Vector3> headPoints)
             {
                 float worst = 0f;
-                foreach (var p in probe)
+                foreach (var p in headPoints)
                 {
                     var d = p - head.center - shift; float length = d.magnitude;
                     if (length < 1e-4f) continue;
@@ -273,15 +273,15 @@ namespace AreArpg.EditorTools
                 }
                 return worst;
             }
-            Vector3 bestShift = Vector3.zero; float best = Worst(Vector3.zero);
+            Vector3 bestShift = Vector3.zero; float best = Worst(Vector3.zero, probe);
             for (int up = -HelmShiftSteps; up <= HelmShiftSteps; up++)
                 for (int forward = -HelmShiftSteps; forward <= HelmShiftSteps; forward++)
                 {
                     var shift = (hero.Up * up + hero.Front * forward) * (HelmShiftStepMm * .001f);
-                    float worst = Worst(shift);
+                    float worst = Worst(shift, probe);
                     if (worst < best - 1e-5f) { best = worst; bestShift = shift; }
                 }
-            float needed = best / HelmRoom;
+            float needed = Worst(bestShift, hero.HeadPoints) / HelmRoom;
             var centre = head.center + bestShift;
             for (int i = 0; i < points.Length; i++)
             {

@@ -137,6 +137,8 @@ namespace AreArpg.Core
             get
             {
                 if (ActionKind != CombatActionKind.None) return true;
+                if (Aschbeter != null && !Aschbeter.IsDead &&
+                    DistanceSquared(Aschbeter.Xmm, Aschbeter.Zmm, PlayerXmm, PlayerZmm) <= FixedMath.Square(AschbeterState.DetectMm)) return true;
                 foreach (var m in Monsters)
                     if (!m.IsDead && (m.Kind != 4 || Progression.Road.Started) &&
                         DistanceSquared(m.Xmm, m.Zmm, PlayerXmm, PlayerZmm) <= FixedMath.Square(CombatV2Rules.CombatRadiusMm)) return true;

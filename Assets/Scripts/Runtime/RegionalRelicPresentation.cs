@@ -250,6 +250,7 @@ namespace AreArpg.UnityClient
             {
                 var slot = RegionalRelics.Slot(id);
                 description = slot == RegionalRelicSlot.Body ? "Montur" : slot == RegionalRelicSlot.Head ? "Kopfschmuck" :
+                    slot == RegionalRelicSlot.Shoulders ? "Schulterrüstung" : slot == RegionalRelicSlot.Limbs ? "Gliedpanzer" :
                     slot == RegionalRelicSlot.Belt ? "Gürtellicht" : "Werkzeug für die Nebenhand";
             }
             info.text = "<size=18><b>" + RegionalRelics.Name(id) + "</b></size>\n" + description + "\n\n" +
