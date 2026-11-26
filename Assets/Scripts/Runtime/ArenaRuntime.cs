@@ -1221,7 +1221,9 @@ namespace AreArpg.UnityClient
                 int potionsBefore = _game.Progression.Crafting.PotionCount(PotionType.Heal), blockedBefore = _game.BlockedAttacks;
                 bool guardBefore = _game.GuardRaised;
                 for (int slot = 0; slot < _practiceBefore.Length; slot++) _practiceBefore[slot] = _game.Progression.PracticeLevel(slot);
+                long stepStart = BeginStepTiming();
                 _game.Step();
+                EndStepTiming(stepStart);
                 if (_game.CombatV2) PresentCombatTick(oldHealth, potionsBefore, blockedBefore, guardBefore);
                 _atmosphere.ObserveTick(_game, oldX, oldZ, oldHealth);
                 SaveWeaponLevelUps(); // a shield trains on incoming attacks inside the step
@@ -1255,6 +1257,8 @@ namespace AreArpg.UnityClient
             UpdateRegionalSources();
             UpdateKilnYard();
             UpdateAschbeter();
+            UpdateMemorySnapshots();
+            UpdatePerformanceProbes();
             UpdateOrselFigure();
             UpdateCombatFeel();
             UpdateFaceLife();
