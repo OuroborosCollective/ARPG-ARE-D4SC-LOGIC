@@ -1245,6 +1245,7 @@ namespace AreArpg.UnityClient
             AnimateDungeonLights();
             UpdateRegionalSources();
             UpdateKilnYard();
+            UpdateAschbeter();
             UpdateOrselFigure();
             UpdateCombatFeel();
             UpdateFaceLife();

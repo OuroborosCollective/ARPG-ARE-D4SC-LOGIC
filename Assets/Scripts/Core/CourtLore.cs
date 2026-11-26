@@ -49,9 +49,11 @@ namespace AreArpg.Core
             new CourtTrace(3, -11520L, 9780L, TraceRadiusMm, "Das leere Grab",
                 "Eine Grabplatte ohne Namen, nur eine Glocke ist eingemeißelt, und darunter liegt niemand. Der Orden legte seinen letzten Läuter " +
                 "nicht ins Grab, sondern in den Aschenschlaf: Er sollte erwachen, wenn die Glocke verstummt. Die Glocke ist verstummt. Du bist erwacht."),
-            new CourtTrace(4, 0L, 8000L, 3000L, "Der Aschbeter",
+            // Read from a few steps away: since 2026-11-26 the Aschbeter is an enemy whose claw strikes from 2.12 m.
+            new CourtTrace(4, 0L, 8000L, 4000L, "Der Aschbeter",
                 "Eine verhüllte Gestalt in schwarzer Kutte, das Gesicht zur Krypta gewandt. Sie murmelt immer dieselben Worte: „Lass die Glocke " +
-                "schweigen, lass die Asche kommen.“ Die Aschbeter haben den Vorhof entweiht und das Portal verriegelt. Komm ihr nicht zu nahe."),
+                "schweigen, lass die Asche kommen.“ Die Aschbeter haben den Vorhof entweiht und das Portal verriegelt. Komm ihr nicht zu nahe: " +
+                "Von vorn tötet ihre Klaue. Nur wenn sie sich dreht, ist ihre Flanke offen."),
             new CourtTrace(5, -5650L, 34500L, TraceRadiusMm, "Die Steinwächter am Tor",
                 "Zwei steinerne Wächter bewachen die Treppe zum Tor. Sie sollten Pilger hereinlassen und die Asche draußen halten. In ihren Augen " +
                 "glimmt nur noch ein Rest der alten Glut."),

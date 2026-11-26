@@ -37,6 +37,7 @@ internal static class Program
             ArrivalSceneTests.Run(Require);
             CourtTests.Run(Require);
             KilnYardTests.Run(Require);
+            AschbeterTests.Run(Require);
             CampDecisionTests.Run(Require);
             CausalCampSliceTests.Run(Require);
             CausalKnowledgeGraphTests.Run(Require);

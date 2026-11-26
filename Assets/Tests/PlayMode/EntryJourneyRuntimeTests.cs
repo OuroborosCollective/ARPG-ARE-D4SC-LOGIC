@@ -958,9 +958,17 @@ namespace AreArpg.PlayMode.Tests
         /// Walk Aschenwacht's own route with the stick, one Core tick at a time, as the Core checks do (CourtTests.WalkTo):
         /// aim a little ahead on the way and let the rules decide every move.
         /// </summary>
+        /// <summary>Aschenwacht's way, keeping 2.4 m from the living Aschbeter (his strike starts at 2.12 m).</summary>
+        private long[] CourtRoute(long x, long z)
+        {
+            var a = Game.Aschbeter;
+            return a == null || a.Down ? CourtLayout.Route(Game.PlayerXmm, Game.PlayerZmm, x, z)
+                : CourtLayout.Route(Game.PlayerXmm, Game.PlayerZmm, x, z, a.Xmm, a.Zmm, 2400);
+        }
+
         private bool WalkCourt(long x, long z, long stopMm = 650, int limit = 600)
         {
-            long[] route = CourtLayout.Route(Game.PlayerXmm, Game.PlayerZmm, x, z);
+            long[] route = CourtRoute(x, z);
             if (route.Length == 0) return false;
             int points = route.Length / 2, index = 0, stuck = 0;
             long lastX = Game.PlayerXmm, lastZ = Game.PlayerZmm;
@@ -968,6 +976,12 @@ namespace AreArpg.PlayMode.Tests
             {
                 long ex = x - Game.PlayerXmm, ez = z - Game.PlayerZmm;
                 if (ex * ex + ez * ez <= stopMm * stopMm) { Game.SetMoveInput(0, 0); return true; }
+                // The Aschbeter shuffles after the wanderer: the way is planned round him again every few steps.
+                if (tick > 0 && tick % 8 == 0 && Game.Aschbeter != null && !Game.Aschbeter.Down)
+                {
+                    long[] again = CourtRoute(x, z);
+                    if (again.Length > 0) { route = again; points = route.Length / 2; index = 0; }
+                }
                 while (index < points - 1)
                 {
                     long px = route[2 * index] - Game.PlayerXmm, pz = route[2 * index + 1] - Game.PlayerZmm;

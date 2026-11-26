@@ -78,7 +78,13 @@ namespace AreArpg.Core
         /// millimetres, x and z alternating; empty when either end is blocked or no way exists. Breadth-first in a fixed
         /// neighbour order, so the same question always gets the same way.
         /// </summary>
-        public static long[] Route(long fromX, long fromZ, long toX, long toZ)
+        public static long[] Route(long fromX, long fromZ, long toX, long toZ) { return Route(fromX, fromZ, toX, toZ, 0, 0, 0); }
+
+        /// <summary>
+        /// The same way, keeping every cell centre further than <paramref name="avoidMm"/> from a point (the Aschbeter, who
+        /// strikes from 2.12 m); the start and goal cells may lie inside that circle.
+        /// </summary>
+        public static long[] Route(long fromX, long fromZ, long toX, long toZ, long avoidX, long avoidZ, long avoidMm)
         {
             if (!CanStand(fromX, fromZ) || !CanStand(toX, toZ)) return new long[0];
             int start = Index(fromX, fromZ), goal = Index(toX, toZ);
@@ -96,6 +102,11 @@ namespace AreArpg.Core
                     if (r < 0 || c < 0 || r >= RowCount || c >= Columns) continue;
                     int next = r * Columns + c;
                     if (!Walk[next] || previous[next] >= 0) continue;
+                    if (avoidMm > 0 && next != goal)
+                    {
+                        long dx = MinXmm + c * CellMm + CellMm / 2 - avoidX, dz = MinZmm + r * CellMm + CellMm / 2 - avoidZ;
+                        if (dx * dx + dz * dz <= avoidMm * avoidMm) continue;
+                    }
                     previous[next] = cell; queue[tail++] = next;
                 }
             }

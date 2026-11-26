@@ -164,6 +164,11 @@ namespace AreArpg.Core
                 Face(target.Xmm - PlayerXmm, target.Zmm - PlayerZmm);
                 result.HasTarget = true; result.TargetXmm = target.Xmm; result.TargetZmm = target.Zmm; // presentation facing only
             }
+            else if (AschbeterInReach(AttackRange(slot)))
+            {
+                Face(Aschbeter.Xmm - PlayerXmm, Aschbeter.Zmm - PlayerZmm);
+                result.HasTarget = true; result.TargetXmm = Aschbeter.Xmm; result.TargetZmm = Aschbeter.Zmm;
+            }
             BeginAction(slot == 0 ? CombatActionKind.Strike : slot == 1 ? CombatActionKind.HeavyStrike : CombatActionKind.Ruin, timing, slot);
             result.Activated = true;
             result.Message = skill.DisplayName + ": holt aus";
@@ -337,6 +342,16 @@ namespace AreArpg.Core
             var result = new SkillResult { Activated = true, Slot = slot };
             long range = AttackRange(slot);
             MonsterState nearest = NearestMonster(range);
+            if (nearest == null && AschbeterInReach(range))
+            {
+                // His own rules decide the swing on his tick, later in this one (Spielprobe order: decide, then receive).
+                SwingAtAschbeter(range);
+                Resource = Math.Min(100, Resource + skill.FocusGain);
+                result.HasTarget = true; result.TargetXmm = Aschbeter.Xmm; result.TargetZmm = Aschbeter.Zmm;
+                result.Message = skill.DisplayName + ": gegen den Aschbeter";
+                Impacts.Add(result);
+                return;
+            }
             if (nearest == null) { result.Message = skill.DisplayName + ": ins Leere"; Impacts.Add(result); return; }
             Resource = Math.Min(100, Resource + skill.FocusGain);
             ApplySkillHits(skill, slot, nearest, range, result);

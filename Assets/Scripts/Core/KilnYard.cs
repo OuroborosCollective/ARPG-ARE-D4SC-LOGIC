@@ -134,20 +134,29 @@ namespace AreArpg.Core
             return true;
         }
 
-        /// <summary>The court token after <c>1,1,c</c>: the traces, then optionally <c>,b</c> and the yard's state.</summary>
-        private static bool ReadCourtToken(string text, out int traces, out int kiln)
+        /// <summary>
+        /// The court token after <c>1,1,c</c>: the traces, then optionally <c>,b</c> and the yard's state, then optionally
+        /// <c>,a</c> when the Aschbeter lies dead. Only this order is canonical.
+        /// </summary>
+        private static bool ReadCourtToken(string text, out int traces, out int kiln, out bool fallen)
         {
-            traces = kiln = 0;
-            int comma = text.IndexOf(',');
-            if (comma < 0) return ReadCourtTraces(text, out traces);
-            string yard = text.Substring(comma + 1);
-            return ReadCourtTraces(text.Substring(0, comma), out traces) && yard.Length > 1 && yard[0] == 'b' &&
-                KilnYard.TryReadState(yard.Substring(1), out kiln);
+            traces = kiln = 0; fallen = false;
+            string[] f = text.Split(',');
+            if (f.Length > 3 || !ReadCourtTraces(f[0], out traces)) return false;
+            int i = 1;
+            if (i < f.Length && f[i].Length > 0 && f[i][0] == 'b')
+            {
+                if (f[i].Length < 2 || !KilnYard.TryReadState(f[i].Substring(1), out kiln)) return false;
+                i++;
+            }
+            if (i < f.Length && f[i] == "a") { fallen = true; i++; }
+            return i == f.Length;
         }
 
         private string CourtToken() =>
             ",c" + (CourtTraces > 0 ? CourtTraces.ToString(CultureInfo.InvariantCulture) : "") +
-            (KilnState > 0 ? ",b" + KilnState.ToString(CultureInfo.InvariantCulture) : "");
+            (KilnState > 0 ? ",b" + KilnState.ToString(CultureInfo.InvariantCulture) : "") +
+            (AschbeterFallen ? ",a" : "");
     }
 
     public sealed partial class ArenaSimulation

@@ -356,7 +356,9 @@ namespace AreArpg.PlayMode.Tests
             private ArenaSimulation _world;
             private VillagePlace _place;
             private bool[] _open;
-            private bool _court;
+            private bool _court, _avoid;
+            private long _avoidX, _avoidZ;
+            private const long AvoidMm = 2400;
 
             private static long Coord(int i) { return -Limit + i * Cell; }
             private static int Index(long v) { return (int)Math.Max(0, Math.Min(Size - 1, (v + Limit + Cell / 2) / Cell)); }
@@ -399,7 +401,11 @@ namespace AreArpg.PlayMode.Tests
                 _court = g.InCourt;
                 if (_court)
                 {
-                    long[] route = CourtLayout.Route(fromX, fromZ, toX, toZ);
+                    // The living Aschbeter is passed at 2.4 m, beyond his strike; the straight shortcuts keep that distance too.
+                    var a = g.Aschbeter;
+                    _avoid = a != null && !a.Down;
+                    if (_avoid) { _avoidX = a.Xmm; _avoidZ = a.Zmm; }
+                    long[] route = _avoid ? CourtLayout.Route(fromX, fromZ, toX, toZ, _avoidX, _avoidZ, AvoidMm) : CourtLayout.Route(fromX, fromZ, toX, toZ);
                     if (route.Length == 0) return null;
                     var way = new List<Vector2Int>();
                     for (int k = 0; k < route.Length / 2; k += 2) way.Add(new Vector2Int((int)route[2 * k], (int)route[2 * k + 1]));
@@ -452,7 +458,7 @@ namespace AreArpg.PlayMode.Tests
                 for (long s = 0; s <= length; s += 250)
                 {
                     long x = ax + (bx - ax) * s / Math.Max(1, length), z = az + (bz - az) * s / Math.Max(1, length);
-                    if (_court ? !CourtLayout.CanStand(x, z) : !Open(Index(x), Index(z))) return false;
+                    if (_court ? !CourtLayout.CanStand(x, z) || (_avoid && Distance2(x, z, _avoidX, _avoidZ) <= AvoidMm * AvoidMm) : !Open(Index(x), Index(z))) return false;
                 }
                 return true;
             }

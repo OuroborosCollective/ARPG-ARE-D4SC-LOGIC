@@ -58,7 +58,13 @@ namespace AreArpg.Core
         /// millimetres, x and z alternating; empty when either end is blocked or no way exists. Breadth-first in a fixed
         /// neighbour order, so the same question always gets the same way.
         /// </summary>
-        public static long[] Route(long fromX, long fromZ, long toX, long toZ)
+        public static long[] Route(long fromX, long fromZ, long toX, long toZ) { return Route(fromX, fromZ, toX, toZ, 0, 0, 0); }
+
+        /// <summary>
+        /// The same way, keeping every cell centre further than <paramref name="avoidMm"/> from a point (the Aschbeter, who
+        /// strikes from 2.12 m); the start and goal cells may lie inside that circle.
+        /// </summary>
+        public static long[] Route(long fromX, long fromZ, long toX, long toZ, long avoidX, long avoidZ, long avoidMm)
         {
             if (!CanStand(fromX, fromZ) || !CanStand(toX, toZ)) return new long[0];
             int start = Index(fromX, fromZ), goal = Index(toX, toZ);
@@ -76,6 +82,11 @@ namespace AreArpg.Core
                     if (r < 0 || c < 0 || r >= RowCount || c >= Columns) continue;
                     int next = r * Columns + c;
                     if (!Walk[next] || previous[next] >= 0) continue;
+                    if (avoidMm > 0 && next != goal)
+                    {
+                        long dx = MinXmm + c * CellMm + CellMm / 2 - avoidX, dz = MinZmm + r * CellMm + CellMm / 2 - avoidZ;
+                        if (dx * dx + dz * dz <= avoidMm * avoidMm) continue;
+                    }
                     previous[next] = cell; queue[tail++] = next;
                 }
             }
@@ -361,16 +372,16 @@ namespace AreArpg.Core
             "15#34.2#25.9#15.5#111.8#53.8#48.15#",
             "15#62.7#19.1#111.10#51.10#47.15#",
             "15#65.3#132.10#51.10#47.15#",
-            "15#158.2#40.10#51.10#47.15#",
-            "15#157.4#39.11#50.10#47.15#",
-            "15#156.6#38.11#50.10#47.15#",
-            "15#155.8#37.10#51.10#47.15#",
-            "15#81.3#70.10#37.8#53.8#48.15#",
-            "15#80.5#69.10#38.6#18.1#36.6#49.15#",
-            "15#79.7#23.1#45.8#42.1#19.4#37.1#51.15#",
-            "15#79.7#22.5#43.6#62.7#87.15#",
-            "15#78.8#21.8#25.1#16.4#16.1#46.8#86.15#",
-            "15#78.8#21.9#22.4#16.2#16.4#43.10#17.5#63.15#",
+            "15#200.10#51.10#47.15#",
+            "15#200.11#50.10#47.15#",
+            "15#200.11#50.10#47.15#",
+            "15#200.10#51.10#47.15#",
+            "15#81.3#117.8#53.8#48.15#",
+            "15#80.5#117.6#18.1#36.6#49.15#",
+            "15#79.7#23.1#95.1#19.4#37.1#51.15#",
+            "15#79.7#22.5#111.7#87.15#",
+            "15#78.8#21.8#25.1#36.1#46.8#86.15#",
+            "15#78.8#21.9#22.4#34.4#43.10#17.5#63.15#",
             "15#78.9#20.10#20.6#32.6#43.9#16.7#62.15#",
             "15#77.9#22.9#19.8#30.8#43.7#16.9#61.15#",
             "15#77.9#22.9#19.9#28.9#24.3#17.5#17.9#61.15#",
