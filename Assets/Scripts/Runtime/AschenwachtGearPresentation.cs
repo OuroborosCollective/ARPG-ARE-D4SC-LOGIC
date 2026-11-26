@@ -8,10 +8,10 @@ namespace AreArpg.UnityClient
     public sealed partial class ArenaRuntime
     {
         private readonly List<GameObject> _bakedArmor = new List<GameObject>();
-        private readonly List<(Transform bone, Vector3 scale)> _tuckedHair = new List<(Transform, Vector3)>();
+        private HairUnderHelm _hairUnderHelm;
         /// <summary>The hero's two hair bones, and how far his hair is drawn in under a helm (it then lies inside the helm's shell).</summary>
         private static readonly string[] HairRoots = { "FrontHair", "BackHair" };
-        private const float HairUnderHelm = .7f;
+        private const float HairUnderHelmFactor = .7f;
 
         private static bool IsBakedArmor(RegionalRelic id)
         {
@@ -22,8 +22,7 @@ namespace AreArpg.UnityClient
         {
             foreach (var piece in _bakedArmor) if (piece) { piece.SetActive(false); Destroy(piece); }
             _bakedArmor.Clear();
-            foreach (var (bone, scale) in _tuckedHair) if (bone) bone.localScale = scale;
-            _tuckedHair.Clear();
+            if (_hairUnderHelm) _hairUnderHelm.Release();
         }
 
         /// <summary>
@@ -69,12 +68,10 @@ namespace AreArpg.UnityClient
         private void TuckHair(Transform head)
         {
             if (!head) return;
+            if (!_hairUnderHelm || _hairUnderHelm.transform != head)
+                _hairUnderHelm = head.TryGetComponent(out HairUnderHelm held) ? held : head.gameObject.AddComponent<HairUnderHelm>();
             foreach (var bone in head.GetComponentsInChildren<Transform>(true))
-            {
-                if (Array.IndexOf(HairRoots, bone.name) < 0 || _tuckedHair.Exists(t => t.bone == bone)) continue;
-                _tuckedHair.Add((bone, bone.localScale));
-                bone.localScale *= HairUnderHelm;
-            }
+                if (Array.IndexOf(HairRoots, bone.name) >= 0) _hairUnderHelm.Tuck(bone, HairUnderHelmFactor);
         }
     }
 }
