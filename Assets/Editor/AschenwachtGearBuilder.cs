@@ -57,7 +57,7 @@ namespace AreArpg.EditorTools
         {
             public readonly Dictionary<HumanBodyBones, Vector3> Pivot = new Dictionary<HumanBodyBones, Vector3>();
             public Vector3 Up, Front;
-            public float Torso;
+            public float Torso, HeadWidth;
             public Vector3 Axis(HumanBodyBones b)
             {
                 if (Distal.TryGetValue(b, out var d) && Pivot.ContainsKey(d)) return (Pivot[d] - Pivot[b]).normalized;
@@ -94,7 +94,9 @@ namespace AreArpg.EditorTools
                 var animator = heroInstance.GetComponentsInChildren<Animator>(true).First(a => a.isHuman);
                 var heroSkin = heroInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true).OrderByDescending(s => s.sharedMesh ? s.sharedMesh.vertexCount : 0).First();
                 var heroBody = HeroBody(animator, heroSkin, out var heroIndex);
-                foreach (var (model, id) in Armour) BuildArmour(model, id, heroSkin, heroBody, heroIndex);
+                heroBody.HeadWidth = HeadWidth(heroSkin.sharedMesh, heroIndex[HumanBodyBones.Head], heroBody);
+                float guardHead = GuardHeadWidth();
+                foreach (var (model, id) in Armour) BuildArmour(model, id, heroSkin, heroBody, heroIndex, guardHead);
             }
             finally { UnityEngine.Object.DestroyImmediate(heroInstance); }
             AssetDatabase.SaveAssets();
@@ -183,7 +185,39 @@ namespace AreArpg.EditorTools
             return b;
         }
 
-        private static void BuildArmour(string model, RegionalRelic id, SkinnedMeshRenderer heroSkin, Body hero, Dictionary<HumanBodyBones, int> heroIndex)
+        /// <summary>
+        /// How wide a head is across the body: the points mostly weighted to the head bone, measured along the body's right.
+        /// The hero's stylized head is far larger for his torso than the Glockenwacht's, so the helm follows the heads.
+        /// </summary>
+        private static float HeadWidth(Mesh mesh, int head, Body body)
+        {
+            var right = Vector3.Cross(body.Up, body.Front).normalized;
+            var vertices = mesh.vertices; var weights = mesh.boneWeights;
+            float min = float.MaxValue, max = float.MinValue;
+            for (int v = 0; v < vertices.Length; v++)
+            {
+                var w = weights[v];
+                if (w.boneIndex0 != head || w.weight0 < .6f) continue;
+                float x = Vector3.Dot(vertices[v], right);
+                min = Mathf.Min(min, x); max = Mathf.Max(max, x);
+            }
+            if (min > max) throw new InvalidOperationException("No head points to measure");
+            return max - min;
+        }
+
+        /// <summary>The Glockenwacht's own head width, from its figure in the first archive.</summary>
+        private static float GuardHeadWidth()
+        {
+            string path = AschenwachtCourtBuilder.CourtModels + "Glockenwacht.fbx";
+            var importer = (ModelImporter)AssetImporter.GetAtPath(path);
+            if (!importer.isReadable) { importer.isReadable = true; importer.SaveAndReimport(); }
+            var skin = AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponentInChildren<SkinnedMeshRenderer>(true);
+            var body = ArmourBody(skin, out var joint);
+            int head = joint.First(kv => kv.Value == HumanBodyBones.Head).Key;
+            return HeadWidth(skin.sharedMesh, head, body);
+        }
+
+        private static void BuildArmour(string model, RegionalRelic id, SkinnedMeshRenderer heroSkin, Body hero, Dictionary<HumanBodyBones, int> heroIndex, float guardHead)
         {
             string path = AschenwachtCourtBuilder.CourtModels + model + ".fbx";
             var importer = (ModelImporter)AssetImporter.GetAtPath(path);
@@ -193,6 +227,7 @@ namespace AreArpg.EditorTools
             var mesh = skin.sharedMesh;
             var gw = ArmourBody(skin, out var joint);
             float bodyScale = hero.Torso / gw.Torso;
+            float headScale = hero.HeadWidth / guardHead;
 
             var vertices = mesh.vertices; var normals = mesh.normals; var weights = mesh.boneWeights;
             var outVertices = new Vector3[vertices.Length]; var outNormals = new Vector3[vertices.Length];
@@ -214,8 +249,10 @@ namespace AreArpg.EditorTools
                     var toFrame = hero.Pivot.ContainsKey(human) ? hero.Frame(human) : hero.Frame(target);
                     var toPivot = hero.Pivot.ContainsKey(human) ? hero.Pivot[human] : hero.Pivot[target] + toFrame * (Quaternion.Inverse(gw.Frame(target)) * (gw.Pivot[human] - gw.Pivot[target]) * bodyScale);
                     var local = Quaternion.Inverse(fromFrame) * (vertices[v] - gw.Pivot[human]);
-                    float along = gw.Length(human) > 1e-5f && hero.Length(human) > 1e-5f ? hero.Length(human) / gw.Length(human) : bodyScale;
-                    local = new Vector3(local.x * bodyScale, local.y * along, local.z * bodyScale);
+                    bool head = human == HumanBodyBones.Head || human == HumanBodyBones.Neck;
+                    float across = head ? headScale : bodyScale;
+                    float along = gw.Length(human) > 1e-5f && hero.Length(human) > 1e-5f ? hero.Length(human) / gw.Length(human) : across;
+                    local = new Vector3(local.x * across, local.y * along, local.z * across);
                     p += weight * (toPivot + toFrame * local);
                     n += weight * (toFrame * (Quaternion.Inverse(fromFrame) * normals[v]));
                     total += weight;
@@ -283,7 +320,9 @@ namespace AreArpg.EditorTools
             {
                 var art = new GameObject(id + "_Art");
                 art.transform.SetParent(root.transform, false);
-                Matrix4x4 local = source.transform.worldToLocalMatrix * filter.transform.localToWorldMatrix;
+                // The model asset's root stands at the origin; its own scale (the file's units) belongs to the piece, so the
+                // mesh's full matrix is taken, not the one relative to that root (which would drop the root's scale).
+                Matrix4x4 local = filter.transform.localToWorldMatrix;
                 art.transform.localPosition = local.GetColumn(3);
                 art.transform.localRotation = local.rotation;
                 art.transform.localScale = local.lossyScale;
