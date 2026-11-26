@@ -54,16 +54,33 @@ namespace AreArpg.PlayMode.Tests
                         box.max.z < cz - hd || box.min.z > cz + hd) continue;
                     ReadRenderedFaces(soil, (a, b, c) => surfaces.Add(new HouseFloorFace(a, b, c)));
                 }
+                // This smithy is L-shaped. Its NE bounding-box corner is open air.
+                // Measure the exposed outer and return-wall feet on both real wings.
+                var smithy = Array.Find(home.GetComponentsInChildren<MeshFilter>(),
+                    f => f.sharedMesh != null && f.sharedMesh.name == "Preset_Blacksmith_01_LOD0");
+                var smithyFeet = new[] { new Vector2(-2.85f, -2.85f), new Vector2(2.83f, -2.85f),
+                    new Vector2(-2.85f, 2.05f), new Vector2(3.01f, -1.06f) };
+                var smithyLabels = new[] { "west outer wall", "east outer wall", "north wing end", "east wing return" };
                 var gaps = new[] { float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity };
                 var anchors = new Vector3[4];
                 var missingSoil = new bool[4];
                 void CheckFoot(Vector3 point)
                 {
                     float x = point.x - cx, z = point.z - cz;
-                    // A central post cannot stand in for all four parts of the house.
-                    if (Mathf.Abs(x) < .15f * hw || Mathf.Abs(z) < .15f * hd ||
-                        Mathf.Abs(x) > hw + .02f || Mathf.Abs(z) > hd + .02f) return;
-                    int sector = (x > 0f ? 1 : 0) + (z > 0f ? 2 : 0);
+                    int sector;
+                    if (smithy != null)
+                    {
+                        var offset = new Vector2(x, z);
+                        sector = Array.FindIndex(smithyFeet, foot => (foot - offset).sqrMagnitude <= .24f * .24f);
+                        if (sector < 0) return;
+                    }
+                    else
+                    {
+                        // A central post cannot stand in for all four parts of the house.
+                        if (Mathf.Abs(x) < .15f * hw || Mathf.Abs(z) < .15f * hd ||
+                            Mathf.Abs(x) > hw + .02f || Mathf.Abs(z) > hd + .02f) return;
+                        sector = (x > 0f ? 1 : 0) + (z > 0f ? 2 : 0);
+                    }
                     float floor = float.NegativeInfinity;
                     foreach (var face in surfaces)
                         if (face.TryHeight(point, out float y)) floor = Mathf.Max(floor, y);
@@ -97,8 +114,8 @@ namespace AreArpg.PlayMode.Tests
                 }
                 for (int sector = 0; sector < gaps.Length; ++sector)
                 {
-                    string label = footprint.Id + " " + ((sector & 1) == 0 ? "west" : "east") +
-                        "/" + ((sector & 2) == 0 ? "south" : "north");
+                    string label = footprint.Id + " " + (smithy != null ? smithyLabels[sector] :
+                        ((sector & 1) == 0 ? "west" : "east") + "/" + ((sector & 2) == 0 ? "south" : "north"));
                     float gap = gaps[sector];
                     if (float.IsPositiveInfinity(gap))
                         failures.Add(label + " has no measurable load-bearing foot over the visible ground.");
@@ -109,10 +126,43 @@ namespace AreArpg.PlayMode.Tests
                         if (!HouseFootTouchesGround(gap)) failures.Add(contact);
                     }
                 }
+                if (footprint.Id == "home-west-south")
+                    VerifyTavernWallSeat(home, new Vector2(cx, cz));
                 ++homes;
             }
             Assert.GreaterOrEqual(homes, VillagePlaceLayout.PlaceCount, "The village must expose its canonical houses.");
             Assert.IsEmpty(failures, string.Join("\n", failures));
+        }
+
+        private static void VerifyTavernWallSeat(Transform home, Vector2 centre)
+        {
+            var shell = Array.Find(home.GetComponentsInChildren<MeshFilter>(),
+                f => f.sharedMesh != null && f.sharedMesh.name == "Preset_Tavern_01_LOD0");
+            if (shell == null) return;
+            var masonry = home.Find("Tavern masonry foundation");
+            Assert.IsNotNull(masonry, "The steps and the wall feet sit at different levels.");
+            var faces = new List<HouseFloorFace>();
+            ReadRenderedFaces(masonry.GetComponent<MeshRenderer>(), (a, b, c) => faces.Add(new HouseFloorFace(a, b, c)));
+            var corners = new[] { new Vector2(-1.97f, -2.53f), new Vector2(2.11f, -2.53f),
+                new Vector2(-1.97f, 1.37f), new Vector2(2.11f, 1.37f) };
+            var feet = new Vector3?[corners.Length];
+            void ReadFoot(Vector3 p)
+            {
+                var offset = new Vector2(p.x, p.z) - centre;
+                for (int i = 0; i < corners.Length; ++i)
+                    if ((corners[i] - offset).sqrMagnitude < .01f && (!feet[i].HasValue || p.y < feet[i].Value.y))
+                        feet[i] = p;
+            }
+            ReadRenderedFaces(shell.GetComponent<MeshRenderer>(), (a, b, c) => { ReadFoot(a); ReadFoot(b); ReadFoot(c); });
+            for (int i = 0; i < feet.Length; ++i)
+            {
+                Assert.IsTrue(feet[i].HasValue, "Missing original tavern wall corner " + corners[i]);
+                Vector3 foot = feet[i].Value;
+                float top = float.NegativeInfinity;
+                foreach (var face in faces)
+                    if (face.TryHeight(foot, out float y)) top = Mathf.Max(top, y);
+                Assert.That(Mathf.Abs(foot.y - top), Is.LessThan(.04f), "Wall-to-masonry joint at " + foot);
+            }
         }
 
         // Horizontal coordinates select the actual point on a rendered triangle, including
