@@ -98,7 +98,7 @@ namespace AreArpg.EditorTools
                 var heroSkin = heroInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true).OrderByDescending(s => s.sharedMesh ? s.sharedMesh.vertexCount : 0).First();
                 var heroBody = HeroBody(animator, heroSkin, out var heroIndex);
                 heroBody.HeadWidth = HeadWidth(heroSkin.sharedMesh, heroIndex[HumanBodyBones.Head], heroBody);
-                heroBody.HeadPoints = HeadPoints(heroSkin.sharedMesh, heroIndex[HumanBodyBones.Head]);
+                heroBody.HeadPoints = HeadPoints(heroSkin, animator.GetBoneTransform(HumanBodyBones.Head));
                 heroBody.HeadBox = new Bounds(heroBody.HeadPoints[0], Vector3.zero);
                 foreach (var p in heroBody.HeadPoints) heroBody.HeadBox.Encapsulate(p);
                 float guardHead = GuardHeadWidth();
@@ -211,23 +211,37 @@ namespace AreArpg.EditorTools
             return max - min;
         }
 
-        private static Vector3[] HeadPoints(Mesh mesh, int head)
+        /// <summary>
+        /// The points of the hero's head and face: weighted mostly to the head bone or a bone below it (jaw, brows, eyes,
+        /// nose, ears), but not to his hair, which a worn helm hides (AschenwachtGearPresentation).
+        /// </summary>
+        private static Vector3[] HeadPoints(SkinnedMeshRenderer skin, Transform head)
         {
-            var vertices = mesh.vertices; var weights = mesh.boneWeights;
+            var bones = skin.bones;
+            var face = new bool[bones.Length];
+            for (int b = 0; b < bones.Length; b++)
+            {
+                var bone = bones[b];
+                if (!bone || (bone != head && !bone.IsChildOf(head))) continue;
+                bool hair = false;
+                for (var t = bone; t && t != head; t = t.parent) hair |= t.name.IndexOf("Hair", StringComparison.OrdinalIgnoreCase) >= 0;
+                face[b] = !hair;
+            }
+            var vertices = skin.sharedMesh.vertices; var weights = skin.sharedMesh.boneWeights;
             var points = new List<Vector3>();
-            for (int v = 0; v < vertices.Length; v++)
-                if (weights[v].boneIndex0 == head && weights[v].weight0 >= .6f) points.Add(vertices[v]);
+            for (int v = 0; v < vertices.Length; v++) if (face[weights[v].boneIndex0]) points.Add(vertices[v]);
             if (points.Count == 0) throw new InvalidOperationException("No head points to measure");
             return points.ToArray();
         }
 
         /// <summary>
-        /// A piece worn only on the head (the visored helm) goes over the whole head. The hero's stylized head with its hair
-        /// is as wide as the Glockenwacht's helm itself, so the helm is centred on that head and scaled evenly until nearly
-        /// all of the head (<see cref="HelmHolds"/>) lies inside its shell with a little room: each head point is compared
-        /// with the farthest helm point in about its direction from the centre. The rare stray hair tip may still show.
+        /// A piece worn only on the head (the visored helm) goes over the whole head and face. Its box is first laid on the
+        /// box of the hero's head; then it is moved by up to two centimetres up, down, forward and back to where the head
+        /// sticks out of it least, and scaled evenly until every head point lies inside its shell with a little room. A head
+        /// point is compared with the farthest helm point in about its direction from the centre.
         /// </summary>
-        private const float HelmHolds = .99f, HelmRoom = .97f, HelmCone = .97f;
+        private const float HelmRoom = .98f, HelmCone = .97f, HelmShiftStepMm = 5f;
+        private const int HelmShiftSteps = 4, HelmShellPoints = 2500, HelmProbePoints = 1600;
         private static void FitOverHead(Vector3[] points, Body hero)
         {
             var box = new Bounds(points[0], Vector3.zero);
@@ -237,21 +251,43 @@ namespace AreArpg.EditorTools
             for (int a = 0; a < 3; a++) if (box.extents[a] > 1e-5f) scale = Mathf.Max(scale, head.extents[a] / box.extents[a]);
             for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - box.center) * scale;
 
-            var shell = new List<Vector3>(points.Length);
-            foreach (var p in points) { var d = p - head.center; if (d.sqrMagnitude > 1e-8f) shell.Add(d); }
-            var reach = new List<float>(hero.HeadPoints.Length);
-            foreach (var p in hero.HeadPoints)
+            var shellDirection = new List<Vector3>(); var shellLength = new List<float>();
+            for (int i = 0; i < points.Length; i += Math.Max(1, points.Length / HelmShellPoints))
             {
-                var d = p - head.center; float length = d.magnitude;
-                if (length < 1e-4f) continue;
-                var direction = d / length; float farthest = 0f;
-                foreach (var s in shell) { float m = s.magnitude; if (Vector3.Dot(s / m, direction) > HelmCone) farthest = Mathf.Max(farthest, m); }
-                if (farthest > 0f) reach.Add(length / farthest);
+                var d = points[i] - head.center; float m = d.magnitude;
+                if (m > 1e-4f) { shellDirection.Add(d / m); shellLength.Add(m); }
             }
-            reach.Sort();
-            float needed = reach.Count > 0 ? reach[(int)(HelmHolds * (reach.Count - 1))] / HelmRoom : 1f;
-            if (needed <= 1f) return;
-            for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - head.center) * needed;
+            var probe = new List<Vector3>();
+            for (int i = 0; i < hero.HeadPoints.Length; i += Math.Max(1, hero.HeadPoints.Length / HelmProbePoints)) probe.Add(hero.HeadPoints[i]);
+            float Worst(Vector3 shift)
+            {
+                float worst = 0f;
+                foreach (var p in probe)
+                {
+                    var d = p - head.center - shift; float length = d.magnitude;
+                    if (length < 1e-4f) continue;
+                    var direction = d / length; float farthest = 0f;
+                    for (int j = 0; j < shellDirection.Count; j++)
+                        if (Vector3.Dot(shellDirection[j], direction) > HelmCone && shellLength[j] > farthest) farthest = shellLength[j];
+                    if (farthest > 0f) worst = Mathf.Max(worst, length / farthest);
+                }
+                return worst;
+            }
+            Vector3 bestShift = Vector3.zero; float best = Worst(Vector3.zero);
+            for (int up = -HelmShiftSteps; up <= HelmShiftSteps; up++)
+                for (int forward = -HelmShiftSteps; forward <= HelmShiftSteps; forward++)
+                {
+                    var shift = (hero.Up * up + hero.Front * forward) * (HelmShiftStepMm * .001f);
+                    float worst = Worst(shift);
+                    if (worst < best - 1e-5f) { best = worst; bestShift = shift; }
+                }
+            float needed = best / HelmRoom;
+            var centre = head.center + bestShift;
+            for (int i = 0; i < points.Length; i++)
+            {
+                var moved = points[i] + bestShift;
+                points[i] = needed > 1f ? centre + (moved - centre) * needed : moved;
+            }
         }
 
         /// <summary>The Glockenwacht's own head width, from its figure in the first archive.</summary>
