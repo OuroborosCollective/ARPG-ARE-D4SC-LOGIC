@@ -45,6 +45,12 @@ namespace AreArpg.Core
 
     public sealed partial class CharacterProgression
     {
+        public const int NordwechselAct = 13; // 11 and 12 identify the optional journey and its cave.
+        internal bool HasNordwechselEvidence => Woodland.ReachedAschenzoll && Rattler.Active &&
+            Rattler.BrandExamined && Rattler.Reported && Freight.EvidenceReady && Freight.Reported;
+        internal bool HasNordwechselCheckpoint => HasNordwechselEvidence && !UnlockedCryptDepth.IsOne &&
+            Journey.Location == 0 && Regions.IsVisited(RegionNetwork.Glutklamm);
+
         public FreightState Freight { get; private set; } = new FreightState();
         private string FreightPayload()
         {
@@ -79,6 +85,21 @@ namespace AreArpg.Core
     public sealed partial class ArenaSimulation
     {
         public bool InAschenzoll => !InJourney && Progression.EntryAct==10 && Progression.Woodland.Active;
+        public const long NordwechselXmm = -9500, NordwechselZmm = 18000;
+        public bool InNordwechselRift => Progression.EntryAct == CharacterProgression.NordwechselAct;
+        public bool AtNordwechsel => InAschenzoll && Near(NordwechselXmm, NordwechselZmm);
+        public bool NordwechselOpen => InAschenzoll && !GameOver && !LootOnGround &&
+            CryptDepth.IsOne && Progression.UnlockedCryptDepth.IsOne && Progression.HasNordwechselEvidence;
+
+        private ArenaSimulation EnterNordwechsel()
+        {
+            if (!NordwechselOpen || !CharacterProgression.TryLoad(Progression.SaveString(), _journeyMaps, out var next) ||
+                !next.TryUnlockNextCryptDepth(CryptDepth)) return null;
+            next.TravelHunger(CharacterProgression.NordwechselAct, false);
+            next.Regions.Enter(RegionNetwork.Glutklamm, next.EntryAct);
+            return new ArenaSimulation(_runSeed, next, next.UnlockedCryptDepth, _lootCatalog, _journeyMaps);
+        }
+
         private void StepFreight()
         {
             var f=Progression.Freight;
@@ -123,7 +144,8 @@ namespace AreArpg.Core
             get
             {
                 var f=Progression.Freight;
-                if(f.Reported) return f.OriginalCollected ? "Originalbeleg an Ilyan gemeldet. Die Spur führt zum Nordwechsel; im Norden führt jetzt der Waldweg weiter." : "Überprüfte Weitergabe an Ilyan gemeldet. Die Spur führt zum Nordwechsel; im Norden führt jetzt der Waldweg weiter.";
+                if(f.Reported) return (f.OriginalCollected ? "Originalbeleg" : "Überprüfte Weitergabe") +
+                    " an Ilyan gemeldet. In Aschenzoll führt der westliche Nordbogen am Nordwechsel zur Glutklamm. Geradeaus liegt der Waldweg.";
                 if(f.EvidenceReady) return "Bringe Ilyan persönlich die Transportspur. Rückweg: Wald → Mühle → Aschestraße → Dorf.";
                 if(f.Choice==FreightChoice.Secured) return "Die Fracht ist festgesetzt. Sichere den Originalbeleg am Pult; die Weiterfahrt kann nicht mehr beobachtet werden.";
                 if(f.Choice==FreightChoice.Released) return f.MotionTicks<FreightState.JourneyTicks ? "Der leere Käfig fährt zur oberen Rampe. Folge dem freien Fußweg; der Originalbeleg bleibt bei der Fracht." : "Prüfe Sendungsnummer und Abladezeichen am Käfig an der oberen Rampe. Ankunft allein ist noch kein Beweis.";

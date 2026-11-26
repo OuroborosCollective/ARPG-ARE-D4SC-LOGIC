@@ -45,6 +45,7 @@ namespace AreArpg.UnityClient
             {
                 if(_shieldVisual!=null)Destroy(_shieldVisual.gameObject);
                 _shieldVisual=shield==null?null:EquipmentVisual(shield.Definition.VisualKey,Hand(true),"Equipped_"+off);_shownShield=off;
+                _chainGrip?.FitShield(_shieldVisual);
             }
             if(_game.Progression.Woodland.ArmorCrafted&&_peltMantle==null)
             {

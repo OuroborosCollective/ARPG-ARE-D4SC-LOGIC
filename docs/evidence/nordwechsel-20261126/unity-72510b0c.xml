@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="16" result="Passed" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-26 18:48:10Z" end-time="2026-11-26 18:48:19Z" duration="8.9069211">
+  <test-suite type="TestSuite" id="1263" name="ARE Ashen Crypt" fullname="ARE Ashen Crypt" runstate="Runnable" testcasecount="232" result="Passed" start-time="2026-11-26 18:48:10Z" end-time="2026-11-26 18:48:19Z" duration="8.906921" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1249" name="AreArpg.PlayMode.Tests.dll" fullname="/var/lib/unityarpg/workspaces/nordwechsel-qc-20261126-2zvzkG/project/Library/ScriptAssemblies/AreArpg.PlayMode.Tests.dll" runstate="Runnable" testcasecount="229" result="Passed" start-time="2026-11-26 18:48:10Z" end-time="2026-11-26 18:48:19Z" duration="8.880910" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2618083" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1250" name="AreArpg" fullname="AreArpg" runstate="Runnable" testcasecount="229" result="Passed" start-time="2026-11-26 18:48:10Z" end-time="2026-11-26 18:48:19Z" duration="8.878632" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1251" name="PlayMode" fullname="AreArpg.PlayMode" runstate="Runnable" testcasecount="229" result="Passed" start-time="2026-11-26 18:48:10Z" end-time="2026-11-26 18:48:19Z" duration="8.876622" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1252" name="Tests" fullname="AreArpg.PlayMode.Tests" runstate="Runnable" testcasecount="229" result="Passed" start-time="2026-11-26 18:48:10Z" end-time="2026-11-26 18:48:19Z" duration="8.874636" total="16" passed="16" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1008" name="ArenaCameraRigTests" fullname="AreArpg.PlayMode.Tests.ArenaCameraRigTests" classname="AreArpg.PlayMode.Tests.ArenaCameraRigTests" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-11-26 18:48:10Z" end-time="2026-11-26 18:48:11Z" duration="0.131657" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1011" name="ContextFramesIdleMotionAndDangerWithoutOverridingManualZoom" fullname="AreArpg.PlayMode.Tests.ArenaCameraRigTests.ContextFramesIdleMotionAndDangerWithoutOverridingManualZoom" methodname="ContextFramesIdleMotionAndDangerWithoutOverridingManualZoom" classname="AreArpg.PlayMode.Tests.ArenaCameraRigTests" runstate="Runnable" seed="1798653783" result="Passed" start-time="2026-11-26 18:48:11Z" end-time="2026-11-26 18:48:11Z" duration="0.042799" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1014" name="WardenFramingKeepsBothFightersInViewAndRespectsZoom" fullname="AreArpg.PlayMode.Tests.ArenaCameraRigTests.WardenFramingKeepsBothFightersInViewAndRespectsZoom" classname="AreArpg.PlayMode.Tests.ArenaCameraRigTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-11-26 18:48:11Z" end-time="2026-11-26 18:48:11Z" duration="0.019545" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1012" name="WardenFramingKeepsBothFightersInViewAndRespectsZoom(True)" fullname="AreArpg.PlayMode.Tests.ArenaCameraRigTests.WardenFramingKeepsBothFightersInViewAndRespectsZoom(True)" methodname="WardenFramingKeepsBothFightersInViewAndRespectsZoom" classname="AreArpg.PlayMode.Tests.ArenaCameraRigTests" runstate="Runnable" seed="840019754" result="Passed" start-time="2026-11-26 18:48:11Z" end-time="2026-11-26 18:48:11Z" duration="0.011354" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1013" name="WardenFramingKeepsBothFightersInViewAndRespectsZoom(False)" fullname="AreArpg.PlayMode.Tests.ArenaCameraRigTests.WardenFramingKeepsBothFightersInViewAndRespectsZoom(False)" methodname="WardenFramingKeepsBothFightersInViewAndRespectsZoom" classname="AreArpg.PlayMode.Tests.ArenaCameraRigTests" runstate="Runnable" seed="1694039738" result="Passed" start-time="2026-11-26 18:48:11Z" end-time="2026-11-26 18:48:11Z" duration="0.001879" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="1048" name="EntryJourneyRuntimeTests" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" testcasecount="139" result="Passed" start-time="2026-11-26 18:48:11Z" end-time="2026-11-26 18:48:19Z" duration="8.683333" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1052" name="AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport" methodname="AschenzollOriginalEvidenceSurvivesNativeSaveAndPersonalReport" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="1316780895" result="Passed" start-time="2026-11-26 18:48:11Z" end-time="2026-11-26 18:48:14Z" duration="2.647595" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Ashen Crypt: Arbeitsmontur oder Humanoid fehlt für ARE_Glockentraegerin
+]]></output>
+              </test-case>
+              <test-case id="1053" name="AschenzollReleasedCargoRequiresActualUpperRampInspection" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.AschenzollReleasedCargoRequiresActualUpperRampInspection" methodname="AschenzollReleasedCargoRequiresActualUpperRampInspection" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="31504553" result="Passed" start-time="2026-11-26 18:48:14Z" end-time="2026-11-26 18:48:16Z" duration="2.051641" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Ashen Crypt: Arbeitsmontur oder Humanoid fehlt für ARE_Glockentraegerin
+]]></output>
+              </test-case>
+              <test-case id="1098" name="CameraZoomChangesProjectionWithoutChangingTheCore" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.CameraZoomChangesProjectionWithoutChangingTheCore" methodname="CameraZoomChangesProjectionWithoutChangingTheCore" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="1258918185" result="Passed" start-time="2026-11-26 18:48:16Z" end-time="2026-11-26 18:48:16Z" duration="0.210819" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1142" name="ChapterChangeRegradesTheExistingVolume" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ChapterChangeRegradesTheExistingVolume" methodname="ChapterChangeRegradesTheExistingVolume" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="3217595" result="Passed" start-time="2026-11-26 18:48:16Z" end-time="2026-11-26 18:48:16Z" duration="0.137468" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1129" name="CorruptedJourneyCheckpointRecoversOnlyFromAMatchingJourneyBackup" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.CorruptedJourneyCheckpointRecoversOnlyFromAMatchingJourneyBackup" methodname="CorruptedJourneyCheckpointRecoversOnlyFromAMatchingJourneyBackup" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="969076836" result="Passed" start-time="2026-11-26 18:48:16Z" end-time="2026-11-26 18:48:16Z" duration="0.274609" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1143" name="ImageFinishIsOneMobileSafeVolumeAndObeysReducedEffects" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.ImageFinishIsOneMobileSafeVolumeAndObeysReducedEffects" methodname="ImageFinishIsOneMobileSafeVolumeAndObeysReducedEffects" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="1980217024" result="Passed" start-time="2026-11-26 18:48:16Z" end-time="2026-11-26 18:48:16Z" duration="0.120619" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1128" name="MissingAuthoredJourneyMapDoesNotLoadOlderBackupOrOverwritePrimary" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.MissingAuthoredJourneyMapDoesNotLoadOlderBackupOrOverwritePrimary" methodname="MissingAuthoredJourneyMapDoesNotLoadOlderBackupOrOverwritePrimary" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="1080560655" result="Passed" start-time="2026-11-26 18:48:16Z" end-time="2026-11-26 18:48:17Z" duration="0.218963" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1123" name="NordbogenCameraSeesThroughOpeningAndStopsAtStone" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.NordbogenCameraSeesThroughOpeningAndStopsAtStone" methodname="NordbogenCameraSeesThroughOpeningAndStopsAtStone" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="818217105" result="Passed" start-time="2026-11-26 18:48:17Z" end-time="2026-11-26 18:48:17Z" duration="0.165747" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1054" name="NordwechselCommitsChapterTwoBeforeSwitchAndRestoresItInAshenEntry" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.NordwechselCommitsChapterTwoBeforeSwitchAndRestoresItInAshenEntry" methodname="NordwechselCommitsChapterTwoBeforeSwitchAndRestoresItInAshenEntry" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="352559228" result="Passed" start-time="2026-11-26 18:48:17Z" end-time="2026-11-26 18:48:19Z" duration="2.215471" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1055" name="NordwechselReadbackFailureKeepsTheStationWorldActive" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.NordwechselReadbackFailureKeepsTheStationWorldActive" methodname="NordwechselReadbackFailureKeepsTheStationWorldActive" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="106367327" result="Passed" start-time="2026-11-26 18:48:19Z" end-time="2026-11-26 18:48:19Z" duration="0.367902" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[ARPG character save readback failed; no further overwrites allowed.
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1223" name="WorldSurfacePresentationTests" fullname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests" classname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests" runstate="Runnable" testcasecount="22" result="Passed" start-time="2026-11-26 18:48:19Z" end-time="2026-11-26 18:48:19Z" duration="0.028904" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="1248" name="RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate" fullname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests.RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate" classname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-11-26 18:48:19Z" end-time="2026-11-26 18:48:19Z" duration="0.021550" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1245" name="RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate(&quot;Ember_Rift_Ground&quot;,&quot;BasaltGround&quot;,5.4f)" fullname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests.RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate(&quot;Ember_Rift_Ground&quot;,&quot;BasaltGround&quot;,5.4f)" methodname="RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate" classname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests" runstate="Runnable" seed="470241216" result="Passed" start-time="2026-11-26 18:48:19Z" end-time="2026-11-26 18:48:19Z" duration="0.001770" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1246" name="RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate(&quot;Ember_Rift_Causeway&quot;,&quot;BasaltRoad&quot;,1.65f)" fullname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests.RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate(&quot;Ember_Rift_Causeway&quot;,&quot;BasaltRoad&quot;,1.65f)" methodname="RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate" classname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests" runstate="Runnable" seed="563573440" result="Passed" start-time="2026-11-26 18:48:19Z" end-time="2026-11-26 18:48:19Z" duration="0.000270" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1247" name="RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate(&quot;Ember_Rift_Basalt_7_7&quot;,&quot;BasaltStructure&quot;,2.8f)" fullname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests.RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate(&quot;Ember_Rift_Basalt_7_7&quot;,&quot;BasaltStructure&quot;,2.8f)" methodname="RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate" classname="AreArpg.PlayMode.Tests.WorldSurfacePresentationTests" runstate="Runnable" seed="616971543" result="Passed" start-time="2026-11-26 18:48:19Z" end-time="2026-11-26 18:48:19Z" duration="0.000185" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -1,0 +1,35 @@
+schema_version: 1
+run_id: NORD-001
+producer: pm
+revision: 2
+facts:
+  - id: FACT-001
+    subject: nordwechsel.route
+    relation: equals
+    value: {origin: Aschenzoll, gate: Nordbogen, destination: Ember Rift}
+    status: approved
+  - id: FACT-002
+    subject: nordwechsel.progression
+    relation: equals
+    value: {victory: true, all_loot_collected: true}
+    status: approved
+  - id: FACT-003
+    subject: nordwechsel.checkpoint
+    relation: equals
+    value: {readback_before_world_swap: true, persisted_depth: true, correct_core_hash: true}
+    status: approved
+  - id: FACT-004
+    subject: glutklamm.presentation
+    relation: equals
+    value: {basalt: true, fissures: true, ritual_dais: true, causeway: true, mobile_friendly: true, combat_camera: true, urp_volume: true, new_engine_dependencies: false}
+    status: approved
+  - id: FACT-005
+    subject: glutklamm.boss
+    relation: equals
+    value: {name: Ember Warden, telegraph_ticks_at_10_hz: 8}
+    status: approved
+  - id: FACT-006
+    subject: glutklamm.assets
+    relation: equals
+    value: {reuse_existing: true, build_missing_details_only: true}
+    status: approved

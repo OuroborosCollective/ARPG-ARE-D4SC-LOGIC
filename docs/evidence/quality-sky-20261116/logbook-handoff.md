@@ -610,3 +610,30 @@ Code `c8671ad41533b57908c9122fd650b60d4537017f`, Tree `4bbcf4da739f0a68c59637b97
 | AreArpg.EditMode.Tests | 48 | `19fd3aec94e48ac043c2dc84f3e1a9ca001dd00f0bc0a041d09fe4ff65a0689d` |
 
 Der Lizenz-Workflow [PlayMode](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45775186213) wurde übersprungen. Ein nativer Spieltest, die visuelle Anprobe und ein Gerätelauf auf dieser Revision wurden in dieser Runde nicht durchgeführt. Die registrierte DOCX war bei der Suche und beim direkten Zugriff über die hinterlegte Identität nicht verfügbar. Die Ergebnisse sind hier für den späteren Nachtrag gesichert.
+
+## Ruhige Hand und Feldnaht (#149)
+
+Am 26. November 2026 gab der Owner die Varianten R1 und K1 aus dem Vergleich zu #145 frei. Basis `44afb984259c3c12f7492b0efade636fd2cdb8b4`, Code `aa9cafbc6ed14ca56b6f9ae8722fdb96a9d2fe5d`, Tree `05d18244fcdefad9671bc1b0015cdc4ca16aa601`. Beide Effekte lesen die angelegten Rüstungsteile und die geführte Setwaffe. Im Kampf V2 verwendet die Rolle denselben Ausdauerpreis für Start, Abbuchung und HUD. Wundschluss liest Ausrüstung und Stab beim Eintreffen der Heilung.
+
+Die neue Präzisionsprobe schlug auf dem bisherigen Core bei acht Teilen fehl. Auf dem Codetree bestanden 23.563 Assertions mit den versionierten World-Forge-Karten. Seed 102 liefert beim normalen und schweren Bogenschuss mit drei Teilen einen Fehlschuss, mit acht Teilen einen Treffer und bei Wiederholung denselben Welthash. Die Gegenprobe mit 23 Ausdauer sperrt die Rolle bei sieben Teilen und lässt bei acht genau null Ausdauer übrig. Beide Stäbe wurden bei drei, vier, sieben und acht Teilen am Heilungstick geprüft. Der Stabwechsel während der Vorbereitung entfernt den Bonus. An der alten Mühle heilt der Kurzstab bei acht Teilen die 160-LP-Wunde. [GitHub-CI](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45827467713) erfolgreich. SHA-256 des lokalen Core-Protokolls `3c152e3a1ccccec9887492c33b0c399b921dd1ccc532622dcd7c25da523e7fbc`.
+
+Der PlayMode-Workflow wurde übersprungen. Ein Spieltest im Unity-Editor und auf dem Tab A9 steht aus. Die registrierte DOCX-Identität war per Titelsuche und direktem Zugriff nicht verfügbar.
+
+Auf dem VPS kompilierte Roslyn aus Unity 6000.6.8f1 die 76 Core- und 79 Runtime-Quellen dieses Commits in einem isolierten Verzeichnis mit den Unity-Referenzen. Die Runtime referenzierte die frisch gebaute Core-Assembly. DLL-SHA-256 für Core `f890b40c6587aaeeebc36b5fbfb90cbab6695c7d7bdb8627190f8e15a8764d9e`, für Runtime `801c531988dc20069b5b90b1994512794cb778782513b7c33fe527de635b1cb5`.
+
+## Schlagfolgen im Stand (#150)
+
+Basis `5069ca697f0f235b8e57e14872218856b5ce47c3`, geprüfter Code `cf3c4b3d8469d257ad24ccb6a1a803d4aee73338`, Tree `f456f94fbbc8319f4e2b1a3f2350efd8d18ecc69`. Der reguläre Fähigkeitspfad nimmt jeden Angriff einzeln an. Die Eingabe merkt sich in den letzten zwei Erholungsticks einen passenden Folgedruck und verarbeitet ihn vor späteren Angriffseingaben. Bewegungswechsel, andere Aktionen, Ausrüstungswechsel und ein abgelaufenes Anschlussfenster unterbrechen die Folge. Die Humanoid-Projektion interpoliert Hände, Waffenwinkel, Hüfte und Gewichtsverlagerung anhand des vorhandenen Aktionstakts.
+
+Der erste Durchlauf mit Wehrsäbel belegte die Begrenzung auf Einhandschwerter. Der Katalog führt diesen Säbel als Zweihänder. Am privaten Heldenrig wurden anschließend die Lotklinge, die Lotklinge mit Rippenschild und das Scharrbeil über die normale Angriffswarteschlange geprüft. Bei der visuellen Kontrolle lag der Schild anfangs flach. Nach der Korrektur steht er aufrecht. Die Laufprobe fand zunächst 53 cm Abweichung am Handgelenk. Der bestehende Lauftest besteht nach Übergabe an den Laufgriff wieder mit seiner ursprünglichen 4-cm-Grenze.
+
+| Unity 6000.6.8f1, nativer Editor-PlayMode | Ergebnis |
+| --- | --- |
+| StandingWeaponChainsMoveTheEquippedHero | 4 / 3 / 3 akzeptierte Schläge, unterscheidbare Waffenrichtungen, maximale Hüftdrehung gegenüber dem Stand 56,7° / 42,9° / 46,7° |
+| ArmedRunKeepsTheReviewedGrip | Bestanden |
+| MeleeAnimationRequiresAnAcceptedCoreStrike | Bestanden |
+| StrikeReleasesGripAndResumesRunning | Bestanden |
+
+Die geänderten Runtime-Quellen, die Core-Datei mit dem Timingzugriff und der neue PlayMode-Test waren im isolierten Lauf bytegleich mit dem Codestand. Das Editorprojekt verwendete den privaten Avatar und die Ausrüstungsmodelle. Das aktivierte Android-JNI-Modul wird vom bestehenden Android-Updatepfad benötigt. NUnit-XML SHA-256 `ee3c0effac5adc41f600c34df426fc98a264bd120547656ffae8d059f6560e26`. Die deterministische Suite bestand mit 23.602 Prüfungen, Protokoll SHA-256 `fa9bee8c12b9dcfa20788db1f55a7bb75f01537d4c8fcb7367eab65360b2f35e`. [Core-CI](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45836700530). Die Videoaufnahme zeigt die drei Waffen aus einer eigenen Prüfkamera mit Aufhelllicht. Der Gerätetest auf dem Tab A9 steht aus. Die registrierte DOCX war beim direkten Zugriff und bei der Titelsuche nicht sichtbar. Der Nachtrag ist hier für dieselbe Dokumentidentität gesichert.
+
+Beim erneuten Registrieren des Helden übernimmt die neu angelegte Handsteuerung nun die Ausrichtung des bereits getragenen Schildmodells. Die erweiterte Probe hält die Lotklinge mit Rippenschild, registriert dieselbe Figur wie beim Gebietswechsel erneut und vergleicht die Schildrichtung davor und danach. Auf `8420b149a281642c4bef23dd4a684885acaae7b3` bestanden alle vier PlayMode-Tests erneut. NUnit-XML SHA-256 `24663b315c97fc163652535d56995a32344eef7142381a37f7273ff4e28bb7fc`. Die neunsekündige Aufnahme der Schlagfolgen stammt aus dem vorherigen dokumentierten Lauf auf `cf3c4b3`, Video-SHA-256 `6782110215b37802429cd58adefca205b1e7f9481688fe2bc767b8a3978ee45e`.

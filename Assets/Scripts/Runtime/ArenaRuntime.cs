@@ -27,8 +27,12 @@ namespace AreArpg.UnityClient
         // Read-only projection index; SocialLedger exclusively owns the stock.
         private readonly List<Transform> _campRationVisuals = new List<Transform>();
         private Light _sun;
-        private Transform _bossWarning;
-        private bool _bossWarningVisible;
+        private LineRenderer _bossWarning;
+        private Material _bossWarningMaterial;
+        private const float DaisZ = 12f;
+        private const float DaisRadius = 2.25f;
+        private const float DaisCenterHeight = .22f;
+        private const float DaisHalfHeight = .33f;
         private readonly Dictionary<int, Transform> _monsterVisuals = new Dictionary<int, Transform>();
         private readonly Dictionary<int, Transform> _lootVisuals = new Dictionary<int, Transform>();
         private readonly HashSet<int> _stationaryLootVisuals = new HashSet<int>();
@@ -36,6 +40,8 @@ namespace AreArpg.UnityClient
         private readonly Dictionary<Transform, Animator[]> _actorAnimations = new Dictionary<Transform, Animator[]>();
         private readonly Queue<KeyValuePair<int, NpcAction>> _pendingNpcActions = new Queue<KeyValuePair<int, NpcAction>>();
         private Animator[] _heroMeleeAnimations = new Animator[0];
+        private readonly StandingMeleeChain _meleeChain = new StandingMeleeChain();
+        private EntryWeaponGrip _chainGrip;
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
         // Combat v2 (issue #127): dodge and flask are queued like skills; SCHUTZ is held by a finger, a mouse or key 3.
@@ -163,21 +169,34 @@ namespace AreArpg.UnityClient
         private void SaveCharacter(CharacterProgression progress)
         {
             if (_storageFault || progress == null) return;
-            _savedWeaponLevels = WeaponLevelSum(progress);
             string primary = PlayerPrefs.GetString(CharacterSaveKey, "");
-            CharacterProgression previous;
-            if (CharacterProgression.TryLoad(primary, _journeyMaps, out previous))
+            string backup = PlayerPrefs.GetString(CharacterBackupKey, "");
+            bool rotate = CharacterProgression.TryLoad(primary, _journeyMaps, out _);
+            if (rotate)
                 PlayerPrefs.SetString(CharacterBackupKey, primary);
             string next = progress.SaveString();
             PlayerPrefs.SetString(CharacterSaveKey, next);
             PlayerPrefs.Save();
-            CharacterProgression verified;
-            if (!CharacterProgression.TryLoad(PlayerPrefs.GetString(CharacterSaveKey, ""), _journeyMaps, out verified) ||
+            string persisted = PlayerPrefs.GetString(CharacterSaveKey, "");
+            if (!string.Equals(persisted, next, StringComparison.Ordinal) ||
+                !CharacterProgression.TryLoad(persisted, _journeyMaps, out var verified) ||
                 verified.StableHash != progress.StableHash)
             {
                 _storageFault = true;
+                // A later restart must not enter a destination that this transition failed to verify.
+                RestoreCheckpointSlot(CharacterSaveKey, primary);
+                if (rotate) RestoreCheckpointSlot(CharacterBackupKey, backup);
+                PlayerPrefs.Save();
                 Debug.LogError("ARPG character save readback failed; no further overwrites allowed.");
+                return;
             }
+            _savedWeaponLevels = WeaponLevelSum(progress);
+        }
+
+        private static void RestoreCheckpointSlot(string key, string checkpoint)
+        {
+            if (string.IsNullOrEmpty(checkpoint)) PlayerPrefs.DeleteKey(key);
+            else PlayerPrefs.SetString(key, checkpoint);
         }
 
         private void OnApplicationPause(bool paused)
@@ -203,6 +222,7 @@ namespace AreArpg.UnityClient
         /// <summary>Discard interrupted gestures without changing chosen zoom or character progression.</summary>
         private void ReleasePresentationTouches()
         {
+            _meleeChain.Clear();
             _movementTouch.Reset();
             _orbitMouseHeld = false;
             if (_cameraRig != null) _cameraRig.ClearTouches();
@@ -320,7 +340,20 @@ namespace AreArpg.UnityClient
         /// <summary>Lighting is presentation only, with a warm village and readable cool vault.</summary>
         private void ApplyEntryLighting()
         {
-            if (!_entryProfile || _sun == null) return;
+            if (_sun == null) return;
+            if (_game.ChapterId == 2)
+            {
+                _sun.color = new Color(1f, .52f, .31f);
+                _sun.intensity = 1.35f;
+                if (_entryProfile) _sun.shadows = LightShadows.Soft;
+                return;
+            }
+            if (!_entryProfile)
+            {
+                _sun.color = new Color(.65f, .76f, 1f);
+                _sun.intensity = 1.15f;
+                return;
+            }
             bool warm = _game.IsVillage || _game.Progression.EntryAct == 5;
             _sun.color = warm ? new Color(1f, .91f, .76f) : new Color(.63f, .73f, 1f);
             _sun.intensity = _game.IsVillage ? 1.6f : _game.Progression.EntryAct >= 5 ? 1.2f : .9f;
@@ -345,7 +378,10 @@ namespace AreArpg.UnityClient
                         if (parameter.name == "Melee" && parameter.type == AnimatorControllerParameterType.Trigger)
                         { melee.Add(animator); break; }
                 _heroMeleeAnimations = melee.ToArray();
-                foreach (var animator in _heroMeleeAnimations) EntryWeaponGrip.TryAttach(animator);
+                _chainGrip = null;
+                foreach (var animator in _heroMeleeAnimations)
+                    if (EntryWeaponGrip.TryAttach(animator)) _chainGrip = animator.GetComponent<EntryWeaponGrip>();
+                if (_shieldVisual != null) _chainGrip?.FitShield(_shieldVisual);
             }
             RegisterFace(root);
         }
@@ -396,8 +432,10 @@ namespace AreArpg.UnityClient
             _woodlandFallbackMaterial=null;
             _woodlandChunks.Clear(); _woodlandPortals.Clear();
             _campRationVisuals.Clear();
+            _worldPassage = null;
             _returnPassage = null;
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
+            if (_game.ChapterId == 2) { BuildArenaScenery(); return; }
             // Inside a village house nothing of the village is shown: the room itself is put up with the village economy.
             if (_game.InsidePlace != VillagePlace.None) { BuildVillageRoomScenery(); return; }
             // Aschenwacht brings its own distant slate ridge; the village's backdrop ring would cut through its walls.
@@ -413,17 +451,24 @@ namespace AreArpg.UnityClient
             if (_game.Progression.EntryAct == 2) { BuildEntryVillageFallback(); return; }
             if (_game.InKilnYard) { BuildKilnFallback(); return; }
             if (_game.InCourt) { BuildCourtFallback(); return; }
+            BuildArenaScenery();
+        }
+
+        private void BuildArenaScenery()
+        {
+            bool ember = _game.ChapterId == 2;
             _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
                 new Vector3(ArenaSimulation.PassageXmm / 1000f, 0.02f, ArenaSimulation.PassageZmm / 1000f),
                 new Vector3(3.6f, 0.02f, 3.6f), new Color(0.25f, 0.68f, 0.72f));
             _worldPassage.gameObject.SetActive(false);
-            ChapterShape(PrimitiveType.Cube, "Passage_Arch", new Vector3(0f, 3.2f, 24f),
-                new Vector3(5.2f, 0.55f, 0.65f), new Color(0.27f, 0.29f, 0.30f));
-            foreach (int side in new[] { -1, 1 })
-                ChapterShape(PrimitiveType.Cube, "Passage_Stone", new Vector3(side * 2.6f, 1.5f, 24f),
-                    new Vector3(0.65f, 3f, 0.65f), new Color(0.27f, 0.29f, 0.30f));
-
-            bool ember = _game.ChapterId == 2;
+            if (!ember)
+            {
+                ChapterShape(PrimitiveType.Cube, "Passage_Arch", new Vector3(0f, 3.2f, 24f),
+                    new Vector3(5.2f, 0.55f, 0.65f), new Color(0.27f, 0.29f, 0.30f));
+                foreach (int side in new[] { -1, 1 })
+                    ChapterShape(PrimitiveType.Cube, "Passage_Stone", new Vector3(side * 2.6f, 1.5f, 24f),
+                        new Vector3(0.65f, 3f, 0.65f), new Color(0.27f, 0.29f, 0.30f));
+            }
             if (_game.IsVillage) ChapterShape(PrimitiveType.Cube, "ARE_Camp_Supply", new Vector3(ArenaSimulation.CampXmm / 1000f, 0.4f, ArenaSimulation.CampZmm / 1000f),
                 new Vector3(1.1f, 0.8f, 0.8f), new Color(0.44f, 0.31f, 0.18f));
             if (_game.IsVillage)
@@ -441,11 +486,6 @@ namespace AreArpg.UnityClient
             RenderSettings.fogColor = ember ? new Color(0.21f, 0.07f, 0.055f) :
                 new Color(0.055f, 0.067f, 0.09f);
             RenderSettings.fogDensity = ember ? 0.022f : 0.014f;
-            if (_sun != null)
-            {
-                _sun.color = ember ? new Color(1f, 0.52f, 0.31f) : new Color(0.65f, 0.76f, 1f);
-                _sun.intensity = ember ? 1.35f : 1.15f;
-            }
 
             if (!ember)
             {
@@ -497,7 +537,7 @@ namespace AreArpg.UnityClient
                         new Color(1f, 0.31f, 0.09f));
                 }
             ChapterShape(PrimitiveType.Cylinder, "Ember_Rift_Boss_Dais",
-                new Vector3(0f, 0.22f, 12f), new Vector3(4.5f, 0.33f, 4.5f),
+                new Vector3(0f, DaisCenterHeight, DaisZ), new Vector3(2f * DaisRadius, DaisHalfHeight, 2f * DaisRadius),
                 new Color(0.38f, 0.15f, 0.13f));
             ChapterShape(PrimitiveType.Cube, "Ember_Rift_Gate",
                 new Vector3(0f, 3.2f, 24f), new Vector3(7f, 0.8f, 0.9f),
@@ -508,6 +548,63 @@ namespace AreArpg.UnityClient
             ChapterShape(PrimitiveType.Cube, "Ember_Rift_Gate_Right",
                 new Vector3(3.5f, 1.4f, 24f), new Vector3(0.85f, 3.6f, 0.85f),
                 new Color(0.24f, 0.20f, 0.19f));
+            BuildEmberRiftRim();
+        }
+
+        // The authored cylinder uses unit radius .5 and extends one unit above its centre.
+        private static float EmberSurfaceHeight(float x, float z)
+        {
+            float dz = z - DaisZ;
+            if (x * x + dz * dz <= DaisRadius * DaisRadius) return DaisCenterHeight + DaisHalfHeight;
+            return Mathf.Abs(x) <= 5f && Mathf.Abs(z) <= 26f ? -.04f : -.12f;
+        }
+
+        private void ProjectBossWarning(MonsterState warden)
+        {
+            if (warden == null)
+            {
+                if (_bossWarning != null && _bossWarning.gameObject.activeSelf) _bossWarning.gameObject.SetActive(false);
+                return;
+            }
+            const int segments = 64;
+            if (_bossWarning == null)
+            {
+                _bossWarning = new GameObject("Ember_Warden_Telegraph").AddComponent<LineRenderer>();
+                _bossWarning.loop = true;
+                _bossWarning.positionCount = segments;
+                _bossWarning.widthMultiplier = .18f;
+                _bossWarning.generateLightingData = true;
+                _bossWarning.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                _bossWarning.receiveShadows = false;
+                _bossWarningMaterial = Material(new Color(1f, .52f, .12f));
+                if (_bossWarningMaterial.HasProperty("_EmissionColor"))
+                {
+                    _bossWarningMaterial.EnableKeyword("_EMISSION");
+                    _bossWarningMaterial.SetColor("_EmissionColor", new Color(1f, .25f, .035f));
+                }
+                _bossWarning.sharedMaterial = _bossWarningMaterial;
+                _bossWarning.useWorldSpace = false;
+                _bossWarning.gameObject.SetActive(false);
+            }
+            Vector3 center = new Vector3(warden.Xmm * .001f, 0f, warden.Zmm * .001f);
+            if (_bossWarning.gameObject.activeSelf && _bossWarning.transform.position == center) return;
+            _bossWarning.transform.position = center;
+            float radius = ArenaSimulation.EmberPulseRadiusMm * .001f;
+            for (int i = 0; i < segments; i++)
+            {
+                float angle = 2f * Mathf.PI * i / segments;
+                float x = radius * Mathf.Cos(angle), z = radius * Mathf.Sin(angle);
+                _bossWarning.SetPosition(i, new Vector3(x, EmberSurfaceHeight(center.x + x, center.z + z) + .12f, z));
+            }
+            _bossWarning.gameObject.SetActive(true);
+        }
+
+        private void ClearBossWarning()
+        {
+            if (_bossWarning != null) Destroy(_bossWarning.gameObject);
+            if (_bossWarningMaterial != null) Destroy(_bossWarningMaterial);
+            _bossWarning = null;
+            _bossWarningMaterial = null;
         }
 
         /// <summary>
@@ -1018,6 +1115,11 @@ namespace AreArpg.UnityClient
                 _message = "Deine Beute liegt noch hier. Sichere sie vor dem Durchgang.";
                 return;
             }
+            if (_game.AtNordwechsel && !_game.NordwechselOpen)
+            {
+                _message = _game.HungerObjective;
+                return;
+            }
             ArenaSimulation next = _game.TryTraversePassage();
             if (next == null) return;
             // Commit and read back the new checkpoint before changing the active world.
@@ -1066,9 +1168,7 @@ namespace AreArpg.UnityClient
             _hungerJournalOpen = false;
             ReleasePresentationTouches();
             _accumulator = 0f;
-            if (_bossWarning != null) Destroy(_bossWarning.gameObject);
-            _bossWarning = null;
-            _bossWarningVisible = false;
+            ClearBossWarning();
             foreach (Transform t in _monsterVisuals.Values) if (t != null) Destroy(t.gameObject);
             foreach (Transform t in _lootVisuals.Values) if (t != null) Destroy(t.gameObject);
             _monsterVisuals.Clear();
@@ -1079,8 +1179,9 @@ namespace AreArpg.UnityClient
             _shownLevel = System.Numerics.BigInteger.MinusOne;
             foreach (MonsterState monster in _game.Monsters) SpawnMonster(monster);
             BuildNpcVisuals();
-            _message = message + " / " + next.ChapterName;
+            _message = message + " / " + DisplayChapterName(next);
             RebuildAtmosphere();
+            RefreshPostProcessing();
         }
 
         /// <summary>Consume ordered player requests on the established 100-ms tick, then interpolate presentation.</summary>
@@ -1092,6 +1193,7 @@ namespace AreArpg.UnityClient
             _regionFade = Mathf.Max(0f, _regionFade - Time.deltaTime / 0.75f);
             PollInputs();
             // The modal menu pauses the deterministic simulation; no ticks accumulate while it is open.
+            if (SimulationPaused) _meleeChain.Clear();
             if (!SimulationPaused) _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
             int steps = 0;
             while (!SimulationPaused && _accumulator >= TickSeconds && steps < CatchUpLimit)
@@ -1161,9 +1263,14 @@ namespace AreArpg.UnityClient
                     _message = spent ? "Meisterschaft verteilt: " + MasteryName(path) : "Keine Meisterschaftspunkte frei.";
                     if (spent) SaveCharacter();
                 }
-                while (_pendingSkills.Count > 0)
+                bool moving = _moveWorldX != 0 || _moveWorldZ != 0;
+                _meleeChain.Observe(_game, moving || _pendingDodge || _pendingHeal || _pendingFlask);
+                int followUp = _meleeChain.TakeReady(_game);
+                while (followUp >= 0 || _pendingSkills.Count > 0)
                 {
-                    int slot = _pendingSkills.Dequeue();
+                    int slot = followUp >= 0 ? followUp : _pendingSkills.Dequeue();
+                    followUp = -1;
+                    if (_meleeChain.Buffer(_game, slot)) continue;
                     System.Numerics.BigInteger previousRank = _game.Progression.PracticeLevel(slot);
                     SkillResult outcome = _game.ActivateSkill(slot);
                     _atmosphere.Skill(outcome, slot, _game);
@@ -1178,7 +1285,7 @@ namespace AreArpg.UnityClient
                 {
                     _pendingDodge = false;
                     if (_game.StartDodge(_moveWorldX, _moveWorldZ)) PresentDodge();
-                    else _message = _game.Stamina < CombatV2Rules.Dodge.Stamina ? "Zu erschöpft zum Ausweichen." : "Erst die laufende Bewegung beenden.";
+                    else _message = _game.Stamina < _game.DodgeStaminaCost ? "Zu erschöpft zum Ausweichen." : "Erst die laufende Bewegung beenden.";
                 }
                 if (_pendingFlask)
                 {
@@ -1269,6 +1376,8 @@ namespace AreArpg.UnityClient
             UpdateCombatFeel();
             UpdateFaceLife();
             UpdateHeroClips();
+            if (_chainGrip != null)
+                _chainGrip.ProjectChain(_game, alpha, _moveWorldX != 0 || _moveWorldZ != 0, SimulationPaused);
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
                 Transform ration = _campRationVisuals[index];
@@ -1304,7 +1413,7 @@ namespace AreArpg.UnityClient
             UpdateEquipmentPresentation();
             if (_worldPassage != null)
                 _worldPassage.gameObject.SetActive((_game.Progression.EntryAct >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && !_game.LootOnGround);
-            if (_game.Progression.EntryAct < 2 && _game.CryptCleared && !_passageAnnounced)
+            if ((_game.Progression.EntryAct < 2 || _game.InNordwechselRift) && _game.CryptCleared && !_passageAnnounced)
             {
                 _passageAnnounced = true;
                 _message = !_game.LootOnGround ? "Ein Luftzug streicht durch den Nordbogen. Folge dem Weg." :
@@ -1319,26 +1428,11 @@ namespace AreArpg.UnityClient
                 HoldTargetFacing();
             }
             UpdateHeroCameraContext();
+            MonsterState windingWarden = null;
             foreach (MonsterState enemy in _game.Monsters)
             {
-                // The warning ring is presentation of real BossWindupTicks, not client-owned damage.
-                if (enemy.Kind == 3 && enemy.BossWindupTicks > 0)
-                {
-                    if (!_bossWarningVisible)
-                    {
-                        if (_bossWarning == null)
-                            _bossWarning = Shape(PrimitiveType.Cylinder, "Ember_Warden_Telegraph",
-                                new Vector3(enemy.Xmm / 1000f, 0.025f, enemy.Zmm / 1000f),
-                                new Vector3(8f, 0.015f, 8f), new Color(0.95f, 0.12f, 0.05f));
-                        _bossWarningVisible = true;
-                    }
-                    if (_bossWarning != null)
-                    {
-                        _bossWarning.gameObject.SetActive(true);
-                        _bossWarning.position = new Vector3(enemy.Xmm / 1000f, 0.025f, enemy.Zmm / 1000f);
-                    }
-                }
-                else if (_bossWarning != null) _bossWarning.gameObject.SetActive(false);
+                if (_game.ChapterId == 2 && enemy.Kind == 3 && !enemy.IsDead && enemy.BossWindupTicks > 0)
+                    windingWarden = enemy;
                 Transform visual;
                 if (!_monsterVisuals.TryGetValue(enemy.Id, out visual) || visual == null) continue;
                 if (enemy.IsDead)
@@ -1357,6 +1451,7 @@ namespace AreArpg.UnityClient
                     UpdateEnemyClips(enemy, visual);
                 }
             }
+            ProjectBossWarning(windingWarden);
             UpdateLootPresentation();
             foreach (LootState item in _game.GroundLoot)
             {
@@ -1412,6 +1507,7 @@ namespace AreArpg.UnityClient
         public static string DisplayChapterName(ArenaSimulation game)
         {
             if (game == null) throw new ArgumentNullException(nameof(game));
+            if (game.InNordwechselRift) return "Glutklamm";
             // In a house of the village the Core names the room; out in the village the display keeps its short name.
             return game.IsVillage && game.InsidePlace == VillagePlace.None ? "Die Aschengrenze" : game.ChapterName;
         }

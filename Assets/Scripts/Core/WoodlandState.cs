@@ -61,8 +61,9 @@ namespace AreArpg.Core
                 !BigInteger.TryParse(f[2],NumberStyles.None,CultureInfo.InvariantCulture,out var run)||run<1||run.ToString(CultureInfo.InvariantCulture)!=f[2]) return false;
             for(int i=4;i<=11;i++) if(!N(f[i],0,i==7?2:1,out _)) return false;
             var w=new WoodlandState(seed) { Active=true,Run=run,Tick=tick,NeedsNewRun=f[4]=="1",HasRun=f[5]=="1",ReachedAschenzoll=f[6]=="1",Choice=(CubChoice)int.Parse(f[7],CultureInfo.InvariantCulture),CubsInspected=f[8]=="1",CubsReported=f[9]=="1",ProtectionOrganized=f[10]=="1",ArmorCrafted=f[11]=="1" };
-            if((act>=8&&(!w.HasRun||(act!=10&&w.NeedsNewRun)))||(!w.HasRun&&(w.NeedsNewRun||run!=1||tick!=0||w.ReachedAschenzoll||w.CubsInspected))||
-                (w.Choice!=CubChoice.Undecided&&!w.CubsInspected)||(w.CubsReported&&w.Choice!=CubChoice.Spared)||(w.ProtectionOrganized&&!w.CubsReported)||(w.ArmorCrafted&&w.Choice!=CubChoice.Skinned)||(act==10&&!w.ReachedAschenzoll)) return false;
+            bool pastForest = act == 10 || act == CharacterProgression.NordwechselAct;
+            if((act>=8&&(!w.HasRun||(!pastForest&&w.NeedsNewRun)))||(!w.HasRun&&(w.NeedsNewRun||run!=1||tick!=0||w.ReachedAschenzoll||w.CubsInspected))||
+                (w.Choice!=CubChoice.Undecided&&!w.CubsInspected)||(w.CubsReported&&w.Choice!=CubChoice.Spared)||(w.ProtectionOrganized&&!w.CubsReported)||(w.ArmorCrafted&&w.Choice!=CubChoice.Skinned)||(pastForest&&!w.ReachedAschenzoll)) return false;
             var c=f[12].Split(','); if(c.Length!=11) return false; var v=new long[9];
             for(int i=0;i<9;i++) if(!N(c[i],i==1||i==2?-53000:0,i==1||i==2?53000:i==0?10:i==3?int.MaxValue:i==4?100:300,out v[i])) return false;
             if(!U(c[9],out w.Rng0)||!U(c[10],out w.Rng1)||(v[0]!=0&&(v[0]!=act||act<8||(w.Rng0|w.Rng1)==0||!ArenaSimulation.CanStandInWoodland(act,w.Layout,v[1],v[2])))) return false;

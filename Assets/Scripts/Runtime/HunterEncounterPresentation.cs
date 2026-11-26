@@ -66,7 +66,7 @@ namespace AreArpg.UnityClient
             return host;
         }
 
-        private void OnDestroy() { UnhookBuildLive(); DisposeWorldSky(); ClearRoadVisuals(); ClearCompanionVisuals(); ClearRattlerVisuals(); ClearPortraitVisuals(); }
+        private void OnDestroy() { UnhookBuildLive(); DisposeWorldSky(); ClearRoadVisuals(); ClearCompanionVisuals(); ClearRattlerVisuals(); ClearPortraitVisuals(); ClearBossWarning(); }
 
         private void ClearRoadVisuals()
         {

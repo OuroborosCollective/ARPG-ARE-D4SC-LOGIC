@@ -261,8 +261,10 @@ namespace AreArpg.UnityClient
                 var count = gear.ArmourSetProgress(pieces);
                 return $" ({count.Worn}/{count.Total} angelegt)";
             }
-            if (RotfaehrteSet.IsPiece(id)) return place + " · Leder · Set Rotfährte" + Progress(RotfaehrteSet.Pieces);
-            if (RusskantorSet.IsPiece(id)) return place + " · Leinen · Set Rußkantor" + Progress(RusskantorSet.Pieces);
+            if (RotfaehrteSet.IsPiece(id)) return place + " · Leder · Set Rotfährte" + Progress(RotfaehrteSet.Pieces) +
+                "\nRuhige Hand mit Setbogen: ab 4 Teilen +2 Prozentpunkte Trefferchance, bei 8 Teilen +4 und Ausweichen für 23 Ausdauer.";
+            if (RusskantorSet.IsPiece(id)) return place + " · Leinen · Set Rußkantor" + Progress(RusskantorSet.Pieces) +
+                "\nFeldnaht mit einem Setstab: ab 4 Teilen +10 Wundschluss-Basisheilung, bei 8 Teilen +20.";
             if (!NachtvesperSet.IsPiece(id)) return place + " · Platte";
             int worn = _game.Progression.NachtvesperPiecesWorn;
             return place + " · Platte · Set Nachtvesper (" + worn + "/" + NachtvesperSet.Pieces.Length + " angelegt)" +

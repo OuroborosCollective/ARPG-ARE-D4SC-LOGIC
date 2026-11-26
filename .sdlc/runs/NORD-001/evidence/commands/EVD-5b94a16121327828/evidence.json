@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "EVD-5b94a16121327828",
+  "run_id": "NORD-001",
+  "task_id": "QC-001",
+  "command_id": "foundation_verify",
+  "executable": "python3",
+  "args": [
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "Tools/Director",
+    "-v"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-26T18:59:25.087Z",
+  "completed_at": "2026-11-26T18:59:25.289Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-5b94a16121327828/evidence.json",
+  "stdout_path": "evidence/commands/EVD-5b94a16121327828/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-5b94a16121327828/stderr.txt"
+}

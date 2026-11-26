@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "EVD-88d3dc381968f171",
+  "run_id": "NORD-001",
+  "task_id": "MOB-001",
+  "command_id": "sdlc_test",
+  "executable": "dotnet",
+  "args": [
+    "run",
+    "--project",
+    "Tests/CoreVerification/CoreVerification.csproj",
+    "--configuration",
+    "Release"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-26T18:42:50.414Z",
+  "completed_at": "2026-11-26T18:43:01.323Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-88d3dc381968f171/evidence.json",
+  "stdout_path": "evidence/commands/EVD-88d3dc381968f171/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-88d3dc381968f171/stderr.txt"
+}

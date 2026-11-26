@@ -21,7 +21,16 @@ namespace AreArpg.UnityClient
             _chapterScenery.Add(owner.transform);
             return _woodlandFallbackMaterial;
         }
-        private float GroundHeight(float x,float z) => _game.InKilnYard?KilnLayout.HeightMm((long)(x*1000),(long)(z*1000))/1000f:_game.InCourt?CourtLayout.HeightMm((long)(x*1000),(long)(z*1000))/1000f:_game.InJourney?_game.JourneyGeometry.HeightMm((long)(x*1000),(long)(z*1000))/1000f:_game.InForest?_game.Progression.Woodland.Layout.HeightMm((long)(x*1000),(long)(z*1000))/1000f:0f;
+        private float GroundHeight(float x, float z)
+        {
+            if (_game.ChapterId == 2) return EmberSurfaceHeight(x, z);
+            long xMm = (long)(x * 1000), zMm = (long)(z * 1000);
+            if (_game.InKilnYard) return KilnLayout.HeightMm(xMm, zMm) / 1000f;
+            if (_game.InCourt) return CourtLayout.HeightMm(xMm, zMm) / 1000f;
+            if (_game.InJourney) return _game.JourneyGeometry.HeightMm(xMm, zMm) / 1000f;
+            if (_game.InForest) return _game.Progression.Woodland.Layout.HeightMm(xMm, zMm) / 1000f;
+            return 0f;
+        }
         private HungerAction[] WoodlandActions()
         {
             var w=_game.Progression.Woodland; int act=_game.Progression.EntryAct;

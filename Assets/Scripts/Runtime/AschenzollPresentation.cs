@@ -83,6 +83,7 @@ namespace AreArpg.UnityClient
             FreightSign("Freight_DeskSign","Frachtpult",new Vector3(-5,1.2f,-1));
             FreightSign("Freight_CageSign","Rückfracht 17",new Vector3(17.5f,1.2f,-4));
             FreightSign("Freight_UpperSign","Obere Rampe",new Vector3(17.5f,1.2f,16.5f));
+            BuildNordbogen();
             UpdateFreightPresentation();
         }
         private static void FreightGroundMaterial(Transform floor,string key,Vector2 tiling)

@@ -80,7 +80,7 @@ namespace AreArpg.UnityClient
             Shader.SetGlobalTexture("_AREAshVeins", null);
         }
 
-        /// <summary>Use a persistent imported material if present; a missing private overlay preserves existing art.</summary>
+        /// <summary>Keep authored regional surfaces first, with the bundled slate for the Ember Rift blockout.</summary>
         public static bool TryApply(Renderer renderer, string label)
         {
             string key = KeyFor(label);
@@ -91,6 +91,26 @@ namespace AreArpg.UnityClient
                 "OutdoorGround" or "GrassVerge" => AshSnow ?? Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key),
                 _ => Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key)
             };
+            if (material == null && (key is "BasaltGround" or "BasaltRoad" or "BasaltStructure"))
+            {
+                material = Resources.Load<Material>("ARE/Borderland/RoughSlate");
+                if (material != null)
+                {
+                    // The quarry floor is coarse, the warm causeway cut finer, and the
+                    // pillar faces are lighter. All three sample the same world-space rock texture.
+                    var block = new MaterialPropertyBlock();
+                    renderer.GetPropertyBlock(block);
+                    Vector4 tone = key switch
+                    {
+                        "BasaltGround" => new Vector4(.22f, .26f, .31f, 1f),
+                        "BasaltRoad" => new Vector4(.43f, .39f, .35f, 1f),
+                        _ => new Vector4(.57f, .52f, .49f, 1f)
+                    };
+                    block.SetVector("_StoneTint", tone);
+                    block.SetFloat("_Metres", key == "BasaltGround" ? 5.4f : key == "BasaltRoad" ? 1.65f : 2.8f);
+                    renderer.SetPropertyBlock(block);
+                }
+            }
             if (material == null) return false;
             renderer.sharedMaterial = material;
             return true;

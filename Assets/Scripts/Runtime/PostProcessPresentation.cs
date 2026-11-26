@@ -14,7 +14,7 @@ namespace AreArpg.UnityClient
         public const string PostProcessVolumeName = "ARE_Image_Finish";
         private Volume _imageVolume;
         private VolumeProfile _imageProfile;
-        private bool _imageFinishOn;
+        private bool _imageFinishOn, _imageEmber;
 
         private void InitializePostProcessing()
         {
@@ -27,19 +27,13 @@ namespace AreArpg.UnityClient
 
             var bloom = _imageProfile.Add<Bloom>();
             bloom.threshold.overrideState = true; bloom.threshold.value = UniversalRenderPipeline.asset.supportsHDR ? 1.0f : .85f;
-            bloom.intensity.overrideState = true; bloom.intensity.value = .55f;
             bloom.scatter.overrideState = true; bloom.scatter.value = .62f;
-            bloom.tint.overrideState = true; bloom.tint.value = new Color(1f, .93f, .84f);
             bloom.highQualityFiltering.overrideState = true; bloom.highQualityFiltering.value = false;
             bloom.maxIterations.overrideState = true; bloom.maxIterations.value = 3;
             bloom.downscale.overrideState = true; bloom.downscale.value = BloomDownscaleMode.Quarter;
 
-            var colour = _imageProfile.Add<ColorAdjustments>();
-            colour.contrast.overrideState = true; colour.contrast.value = 9f;
-            colour.saturation.overrideState = true; colour.saturation.value = 7f;
-
+            _imageProfile.Add<ColorAdjustments>();
             var vignette = _imageProfile.Add<Vignette>();
-            vignette.intensity.overrideState = true; vignette.intensity.value = .24f;
             vignette.smoothness.overrideState = true; vignette.smoothness.value = .42f;
 
             var go = new GameObject(PostProcessVolumeName);
@@ -54,6 +48,21 @@ namespace AreArpg.UnityClient
         private void RefreshPostProcessing(bool force = false)
         {
             if (_imageVolume == null || _camera == null) return;
+            bool ember = _game != null && _game.ChapterId == 2;
+            if (force || _imageEmber != ember)
+            {
+                _imageEmber = ember;
+                // The fissures and the Warden's warning remain distinct from the basalt
+                // under the warm chapter light. Regrade the same mobile pass on travel.
+                _imageProfile.TryGet(out Bloom bloom);
+                _imageProfile.TryGet(out ColorAdjustments colour);
+                _imageProfile.TryGet(out Vignette vignette);
+                bloom.intensity.Override(ember ? .36f : .55f);
+                bloom.tint.Override(ember ? new Color(1f, .78f, .58f) : new Color(1f, .93f, .84f));
+                colour.contrast.Override(ember ? 12f : 9f);
+                colour.saturation.Override(ember ? -4f : 7f);
+                vignette.intensity.Override(ember ? .16f : .24f);
+            }
             bool on = _atmosphere == null || !_atmosphere.ReducedEffects;
             if (!force && on == _imageFinishOn) return;
             _imageFinishOn = on;

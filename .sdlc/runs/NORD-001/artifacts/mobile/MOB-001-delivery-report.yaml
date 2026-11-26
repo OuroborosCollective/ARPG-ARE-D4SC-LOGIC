@@ -1,0 +1,136 @@
+schema_version: 1
+kind: delivery_report
+assignment_id: ASN-1355996841954753628
+assignment_revision: 6
+run_id: NORD-001
+task_id: MOB-001
+revision: 6
+role: frontend
+producer: frontend
+target: mobile
+stage: mobile_implementation
+scenario: full_task
+disposition: proceed
+transition_request:
+  from: running
+  to: awaiting_review
+artifacts:
+  - path: .sdlc/runs/NORD-001/artifacts/mobile/implementation-summary.md
+    artifact_kind: implementation_summary
+    producer: frontend
+    status: produced
+    revision: 3
+    sha256: bef3681909b638d95359e7d49938d45a905ff81afd32cf4e9dc145aa2a02b5c0
+writes:
+  - path: Assets/Resources/BorderlandGround.shader
+    type: source
+  - path: Assets/Scripts/Core/ArpgSimulation.cs
+    type: source
+  - path: Assets/Scripts/Core/AschenzollFreight.cs
+    type: source
+  - path: Assets/Scripts/Core/CharacterProgression.cs
+    type: source
+  - path: Assets/Scripts/Core/HungerJourney.cs
+    type: source
+  - path: Assets/Scripts/Core/JourneyState.cs
+    type: source
+  - path: Assets/Scripts/Core/NpcForgeCompanion.cs
+    type: source
+  - path: Assets/Scripts/Core/RegionNetwork.cs
+    type: source
+  - path: Assets/Scripts/Core/WoodlandState.cs
+    type: source
+  - path: Assets/Scripts/Runtime/ArenaCameraRig.cs
+    type: source
+  - path: Assets/Scripts/Runtime/ArenaRuntime.cs
+    type: source
+  - path: Assets/Scripts/Runtime/AschenzollPresentation.cs
+    type: source
+  - path: Assets/Scripts/Runtime/HeroCameraPresentation.cs
+    type: source
+  - path: Assets/Scripts/Runtime/HungerJourneyPresentation.cs
+    type: source
+  - path: Assets/Scripts/Runtime/HunterEncounterPresentation.cs
+    type: source
+  - path: Assets/Scripts/Runtime/NordwechselPresentation.cs
+    type: source
+  - path: Assets/Scripts/Runtime/NordwechselPresentation.cs.meta
+    type: generated
+  - path: Assets/Scripts/Runtime/PostProcessPresentation.cs
+    type: source
+  - path: Assets/Scripts/Runtime/WoodlandPresentation.cs
+    type: source
+  - path: Assets/Scripts/Runtime/WorldSurfacePresentation.cs
+    type: source
+  - path: Assets/Tests/PlayMode/ArenaCameraRigTests.cs
+    type: test
+  - path: Assets/Tests/PlayMode/AschenzollRuntimeTests.cs
+    type: test
+  - path: Assets/Tests/PlayMode/HeroFramingRuntimeTests.cs
+    type: test
+  - path: Assets/Tests/PlayMode/PostProcessPlayModeTests.cs
+    type: test
+  - path: Assets/Tests/PlayMode/WorldSurfacePresentationTests.cs
+    type: test
+  - path: Tests/CoreVerification/AschenzollTests.cs
+    type: test
+  - path: Tests/CoreVerification/NordwechselTests.cs
+    type: test
+  - path: Tests/CoreVerification/Program.cs
+    type: test
+  - path: .sdlc/runs/NORD-001/artifacts/mobile/implementation-summary.md
+    type: artifact
+evidence:
+  - evidence_id: EVD-bf6a1fea18c3b5be
+    command_key: sdlc_test
+    owner: runtime_collector
+    reference: evidence/commands/EVD-bf6a1fea18c3b5be/evidence.json
+    document_sha256: 99dd75027603e658840e1bbdc49e94e087372b4112131dc23eb7dc67995cc043
+    status: passed
+  - evidence_id: EVD-ecd8f8dfab83a53b
+    command_key: sdlc_typecheck
+    owner: runtime_collector
+    reference: evidence/commands/EVD-ecd8f8dfab83a53b/evidence.json
+    document_sha256: afed7a8a72d47059c7a80476e52d4d94d84ee8fb254bef45ab3a5c50a14b2203
+    status: passed
+  - evidence_id: EVD-38afec9a1bd91137
+    command_key: mobile_analyze
+    owner: runtime_collector
+    reference: evidence/commands/EVD-38afec9a1bd91137/evidence.json
+    document_sha256: eeb6b85078a9cef27a4bae3a388188e42db90f9f5030cddf2bcfd92780794f71
+    status: passed
+  - evidence_id: EVD-2c653fee80f69a30
+    command_key: foundation_verify
+    owner: runtime_collector
+    reference: evidence/commands/EVD-2c653fee80f69a30/evidence.json
+    document_sha256: b7ab964bf1b211099cb28fddf4cc2569072b3520347f736b07ef3fe68df2d353
+    status: passed
+observations:
+  api_contract_status: approved
+  gaps: []
+  questions: []
+  requirement_results:
+    - requirement_id: REQ-001
+      capability: ascenzoll_nordbogen
+      required: true
+      status: implemented
+    - requirement_id: REQ-002
+      capability: victory_and_all_loot
+      required: true
+      status: implemented
+    - requirement_id: REQ-003
+      capability: readback_depth_and_replay
+      required: true
+      status: implemented
+    - requirement_id: REQ-004
+      capability: mobile_rift_presentation
+      required: true
+      status: implemented
+    - requirement_id: REQ-005
+      capability: ember_warden_combat
+      required: true
+      status: implemented
+    - requirement_id: REQ-006
+      capability: reuse_existing_area
+      required: true
+      status: implemented
