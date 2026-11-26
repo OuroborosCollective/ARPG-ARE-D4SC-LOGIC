@@ -10,6 +10,7 @@ public static class CombatV2Tests
 {
     public static void Run(Action<bool, string> check)
     {
+        StandingChainInputs(check);
         LegacyWorldsKeepInstantCombat(check);
         StrikeLandsOnItsImpactTickOnce(check);
         ImpactsDoNotRepeatAfterDefeat(check);
@@ -25,6 +26,59 @@ public static class CombatV2Tests
         CombatAndArmorSurviveTheSave(check);
         EnemiesWindUpBeforeTheyHit(check);
         SameInputsGiveTheSameWorld(check);
+    }
+
+    private static void StandingChainInputs(Action<bool, string> check)
+    {
+        var w = V2World(891, out var p);
+        var chain = new AreArpg.UnityClient.StandingMeleeChain();
+        for (int swing = 0; swing < 5; swing++)
+        {
+            chain.Observe(w, false);
+            check(w.ActivateSkill(0).Activated, "standing-chain-real-attack-" + swing);
+            check(chain.Accept(w, 0, false) == swing % 4, "standing-chain-stage-" + swing);
+            int duration = w.CurrentActionTiming.Total;
+            while (w.ActionTick < duration - 3) w.Step();
+            check(!chain.Buffer(w, 0), "standing-chain-too-early-" + swing);
+            w.Step();
+            check(chain.Buffer(w, 0) && chain.Buffer(w, 0), "standing-chain-window-" + swing);
+            w.Step(); check(chain.TakeReady(w) < 0, "standing-chain-no-early-hit-" + swing);
+            w.Step(); check(chain.TakeReady(w) == 0 && chain.TakeReady(w) < 0, "standing-chain-only-one-" + swing);
+        }
+        chain.Observe(w, true);
+        check(w.ActivateSkill(0).Activated && chain.Accept(w, 0, false) == 0, "standing-chain-move-resets");
+        while (w.ActionTick < w.CurrentActionTiming.Total - 1) w.Step();
+        check(chain.Buffer(w, 0), "standing-chain-last-tick");
+        chain.Observe(w, true);
+        w.Step();
+        check(chain.TakeReady(w) < 0, "standing-chain-move-clears-buffer");
+
+        var equipped = V2World(891, out var equippedProgression);
+        var gear = equippedProgression.Equipment;
+        foreach (var id in new[] { RegionalRelic.M_Wehrsaebel, RegionalRelic.M_Lotklinge,
+            RegionalRelic.R_Rippenschild, RegionalRelic.R_Scharrbeil })
+            gear.ClaimRegionalRelic(equippedProgression, id);
+        equipped.TrySetRegionalRelicEquipped(RegionalRelic.M_Wehrsaebel, true);
+        check(AreArpg.UnityClient.StandingMeleeChain.Form(gear) == AreArpg.UnityClient.MeleeForm.None,
+            "standing-chain-two-handed-sabre-excluded");
+        equipped.TrySetRegionalRelicEquipped(RegionalRelic.M_Lotklinge, true);
+        check(AreArpg.UnityClient.StandingMeleeChain.Form(gear) == AreArpg.UnityClient.MeleeForm.Sword,
+            "standing-chain-single-hand-lotklinge");
+        chain.Observe(equipped, false);
+        check(equipped.ActivateSkill(0).Activated && chain.Accept(equipped, 0, false) == 0,
+            "standing-chain-new-world-start");
+        while (equipped.ActionTick < equipped.CurrentActionTiming.Total - 1) equipped.Step();
+        check(!chain.Buffer(equipped, 1) && chain.Buffer(equipped, 0), "standing-chain-matching-button");
+        equipped.TrySetRegionalRelicEquipped(RegionalRelic.R_Rippenschild, true);
+        chain.Observe(equipped, false);
+        equipped.Step();
+        check(chain.TakeReady(equipped) < 0 &&
+            AreArpg.UnityClient.StandingMeleeChain.Form(gear) == AreArpg.UnityClient.MeleeForm.SwordShield,
+            "standing-chain-equip-shield-clears-buffer");
+        equipped.TrySetRegionalRelicEquipped(RegionalRelic.R_Rippenschild, false);
+        equipped.TrySetRegionalRelicEquipped(RegionalRelic.R_Scharrbeil, true);
+        check(AreArpg.UnityClient.StandingMeleeChain.Form(gear) == AreArpg.UnityClient.MeleeForm.GreatAxe,
+            "standing-chain-two-handed-scharrbeil");
     }
 
     private static ArenaSimulation V2World(ulong seed, out CharacterProgression p)
