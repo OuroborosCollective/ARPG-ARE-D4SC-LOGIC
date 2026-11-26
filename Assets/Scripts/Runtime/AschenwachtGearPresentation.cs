@@ -9,9 +9,12 @@ namespace AreArpg.UnityClient
     {
         private readonly List<GameObject> _bakedArmor = new List<GameObject>();
         private HairUnderHelm _hairUnderHelm;
-        /// <summary>The hero's two hair bones, and how far his hair is drawn in under a helm (it then lies inside the helm's shell).</summary>
+        /// <summary>
+        /// The hero's two hair bones. Under a worn helm his hair is hidden like a model taken off (owner 2026-11-26): the two
+        /// bones shrink to nearly nothing, so all hair hanging on them collapses into its roots inside the head.
+        /// </summary>
         private static readonly string[] HairRoots = { "FrontHair", "BackHair" };
-        private const float HairUnderHelmFactor = .7f;
+        private const float HiddenHairSize = .001f;
 
         private static bool IsBakedArmor(RegionalRelic id)
         {
@@ -58,21 +61,21 @@ namespace AreArpg.UnityClient
                 skin.updateWhenOffscreen = true;
             }
             _bakedArmor.Add(holder.gameObject);
-            if (RegionalRelics.Slot(id) == RegionalRelicSlot.Head) TuckHair(avatar.GetBoneTransform(HumanBodyBones.Head));
+            if (RegionalRelics.Slot(id) == RegionalRelicSlot.Head) HideHair(avatar.GetBoneTransform(HumanBodyBones.Head));
             return true;
         }
 
         /// <summary>
-        /// Under a helm the hero's hair is drawn in toward its roots: his stylized hair stands far out from his head, and a
-        /// helm large enough to cover it would sit on him like a bucket. Taking the helm off gives the hair back its size.
+        /// A worn helm hides the hero's hair: his stylized hair stands far out from his head, and a helm large enough to
+        /// cover it would sit on him like a bucket. Taking the helm off brings the hair back.
         /// </summary>
-        private void TuckHair(Transform head)
+        private void HideHair(Transform head)
         {
             if (!head) return;
             if (!_hairUnderHelm || _hairUnderHelm.transform != head)
                 _hairUnderHelm = head.TryGetComponent(out HairUnderHelm held) ? held : head.gameObject.AddComponent<HairUnderHelm>();
             foreach (var bone in head.GetComponentsInChildren<Transform>(true))
-                if (Array.IndexOf(HairRoots, bone.name) >= 0) _hairUnderHelm.Tuck(bone, HairUnderHelmFactor);
+                if (Array.IndexOf(HairRoots, bone.name) >= 0) _hairUnderHelm.Tuck(bone, HiddenHairSize);
         }
     }
 }
