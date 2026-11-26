@@ -296,13 +296,15 @@ namespace AreArpg.EditorTools
         /// A piece worn only on the head (the visored helm) goes over the whole head and face. Its box is first laid on the
         /// box of the hero's head; then it is moved by up to two centimetres up, down, forward and back to where the head
         /// sticks out of it least, and scaled evenly until every head point lies inside its shell with a little room. A head
-        /// point is compared with the farthest helm point in about its direction from the centre.
+        /// point counts as inside when a ray from the head's centre through it meets the piece's surface beyond it; a ray
+        /// that meets no surface passes an opening (a visor slit, the face of a hood) and does not count. A smooth dome has
+        /// few corners and large faces, so the faces themselves are measured, not their corners.
         /// </summary>
-        private const float HelmRoom = .98f, HelmCone = .97f, HelmShiftStepMm = 5f;
-        private const int HelmShiftSteps = 4, HelmShellPoints = 2500, HelmProbePoints = 1600;
+        private const float HelmRoom = .98f, HelmShiftStepMm = 10f;
+        private const int HelmShiftSteps = 2, HelmProbePoints = 1200;
         /// <summary>A hood open at the face holds only the head behind the face: points this far forward are left out.</summary>
         private const float OpenFaceCone = .4f;
-        private static void FitOverHead(Vector3[] points, Body hero, bool openFace)
+        private static void FitOverHead(Vector3[] points, int[] triangles, Body hero, bool openFace)
         {
             var head = hero.HeadBox;
             if (!openFace)
@@ -316,26 +318,20 @@ namespace AreArpg.EditorTools
                 for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - box.center) * scale;
             }
 
-            var shellDirection = new List<Vector3>(); var shellLength = new List<float>();
-            for (int i = 0; i < points.Length; i += Math.Max(1, points.Length / HelmShellPoints))
-            {
-                var d = points[i] - head.center; float m = d.magnitude;
-                if (m > 1e-4f) { shellDirection.Add(d / m); shellLength.Add(m); }
-            }
             var probe = new List<Vector3>();
             for (int i = 0; i < hero.HeadPoints.Length; i += Math.Max(1, hero.HeadPoints.Length / HelmProbePoints))
                 if (!openFace || Vector3.Dot((hero.HeadPoints[i] - head.center).normalized, hero.Front) <= OpenFaceCone) probe.Add(hero.HeadPoints[i]);
+            // Moving the piece by a shift is measuring from a centre moved by the same shift.
             float Worst(Vector3 shift)
             {
+                var origin = head.center + shift;
                 float worst = 0f;
                 foreach (var p in probe)
                 {
-                    var d = p - head.center - shift; float length = d.magnitude;
+                    var d = p - origin; float length = d.magnitude;
                     if (length < 1e-4f) continue;
-                    var direction = d / length; float farthest = 0f;
-                    for (int j = 0; j < shellDirection.Count; j++)
-                        if (Vector3.Dot(shellDirection[j], direction) > HelmCone && shellLength[j] > farthest) farthest = shellLength[j];
-                    if (farthest > 0f) worst = Mathf.Max(worst, length / farthest);
+                    float surface = NearestHit(origin, d / length, points, triangles);
+                    if (surface < float.PositiveInfinity) worst = Mathf.Max(worst, length / surface);
                 }
                 return worst;
             }
@@ -480,6 +476,25 @@ namespace AreArpg.EditorTools
             AssetDatabase.CreateAsset(mesh, path);
         }
 
+        /// <summary>The distance along a ray to the nearest face of a mesh (Möller–Trumbore), or infinity when it meets none.</summary>
+        private static float NearestHit(Vector3 origin, Vector3 direction, Vector3[] points, int[] triangles)
+        {
+            float nearest = float.PositiveInfinity;
+            for (int t = 0; t + 2 < triangles.Length; t += 3)
+            {
+                Vector3 a = points[triangles[t]], e1 = points[triangles[t + 1]] - a, e2 = points[triangles[t + 2]] - a;
+                var h = Vector3.Cross(direction, e2); float det = Vector3.Dot(e1, h);
+                if (det > -1e-9f && det < 1e-9f) continue;
+                float inv = 1f / det; var s = origin - a; float u = Vector3.Dot(s, h) * inv;
+                if (u < 0f || u > 1f) continue;
+                var q = Vector3.Cross(s, e1); float v = Vector3.Dot(direction, q) * inv;
+                if (v < 0f || u + v > 1f) continue;
+                float distance = Vector3.Dot(e2, q) * inv;
+                if (distance > 1e-4f && distance < nearest) nearest = distance;
+            }
+            return nearest;
+        }
+
         /// <summary>The Glockenwacht's own head width, from its figure in the first archive.</summary>
         private static float GuardHeadWidth()
         {
@@ -559,7 +574,7 @@ namespace AreArpg.EditorTools
                 }
             }
             var points = outVertices.ToArray();
-            if (piece.Head != HeadFit.None) FitOverHead(points, hero, piece.Head == HeadFit.Open);
+            if (piece.Head != HeadFit.None) FitOverHead(points, groups.SelectMany(g => g.triangles).ToArray(), hero, piece.Head == HeadFit.Open);
             else if (piece.LayOver) LayOverHero(points, outWeights.Select(w => used[w.boneIndex0]).ToArray(), groups.SelectMany(g => g.triangles).ToArray(), fit);
 
             string meshPath = meshFolder + id + ".asset";
