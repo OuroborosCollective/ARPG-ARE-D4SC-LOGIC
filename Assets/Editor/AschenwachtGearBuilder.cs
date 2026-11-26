@@ -112,6 +112,8 @@ namespace AreArpg.EditorTools
             public Body Body;
             public Dictionary<HumanBodyBones, int> Index;
             public float GuardHead;
+            /// <summary>The hero's surface in bind space without his hair: clothes are laid over it.</summary>
+            public Vector3[] Surface;
         }
 
         /// <summary>
@@ -120,6 +122,26 @@ namespace AreArpg.EditorTools
         /// material, and as an arsenal prefab named after its regional piece. Used for Aschenwacht's armour and the Nachtvesper.
         /// </summary>
         internal static bool FitToHero(IList<(RegionalRelic id, SkinnedMeshRenderer[] skins)> pieces, string meshFolder)
+        {
+            return FitToHero(pieces.Select(p => new FitPiece(p.id.ToString(), p.skins,
+                RegionalRelics.Slot(p.id) == RegionalRelicSlot.Head ? HeadFit.Closed : HeadFit.None)).ToList(), meshFolder);
+        }
+
+        /// <summary>How a piece sits on the head: not at all, closed over the whole head and face (a helm), or open at the face (a hood).</summary>
+        public enum HeadFit { None, Closed, Open }
+
+        /// <summary>One piece to fit: the name of its mesh and prefab, its meshes, and how it sits on the head.</summary>
+        internal sealed class FitPiece
+        {
+            public readonly string Name;
+            public readonly SkinnedMeshRenderer[] Skins;
+            public readonly HeadFit Head;
+            /// <summary>Soft clothes (leather, linen) are laid over the hero's own armour; plate keeps its fitted shape.</summary>
+            public readonly bool LayOver;
+            public FitPiece(string name, SkinnedMeshRenderer[] skins, HeadFit head, bool layOver = false) { Name = name; Skins = skins; Head = head; LayOver = layOver; }
+        }
+
+        internal static bool FitToHero(IList<FitPiece> pieces, string meshFolder)
         {
             var hero = AssetDatabase.LoadAssetAtPath<GameObject>(Hero);
             if (hero == null) return false;
@@ -135,7 +157,9 @@ namespace AreArpg.EditorTools
                 fit.Body.HeadBox = new Bounds(fit.Body.HeadPoints[0], Vector3.zero);
                 foreach (var p in fit.Body.HeadPoints) fit.Body.HeadBox.Encapsulate(p);
                 fit.GuardHead = GuardHeadWidth();
-                foreach (var (id, skins) in pieces) BuildArmour(id, skins, meshFolder, fit);
+                fit.Surface = Surface(fit.Skin);
+                foreach (var piece in pieces) BuildArmour(piece, meshFolder, fit);
+                BuildHairlessHero(fit.Skin);
             }
             finally { UnityEngine.Object.DestroyImmediate(heroInstance); }
             AssetDatabase.SaveAssets();
@@ -272,38 +296,45 @@ namespace AreArpg.EditorTools
         /// A piece worn only on the head (the visored helm) goes over the whole head and face. Its box is first laid on the
         /// box of the hero's head; then it is moved by up to two centimetres up, down, forward and back to where the head
         /// sticks out of it least, and scaled evenly until every head point lies inside its shell with a little room. A head
-        /// point is compared with the farthest helm point in about its direction from the centre.
+        /// point counts as inside when a ray from the head's centre through it meets the piece's surface beyond it; a ray
+        /// that meets no surface passes an opening (a visor slit, the face of a hood) and does not count. A smooth dome has
+        /// few corners and large faces, so the faces themselves are measured, not their corners.
         /// </summary>
-        private const float HelmRoom = .98f, HelmCone = .97f, HelmShiftStepMm = 5f;
-        private const int HelmShiftSteps = 4, HelmShellPoints = 2500, HelmProbePoints = 1600;
-        private static void FitOverHead(Vector3[] points, Body hero)
+        private const float HelmRoom = .98f, HelmShiftStepMm = 10f;
+        private const int HelmShiftSteps = 2, HelmProbePoints = 1200;
+        /// <summary>A hood open at the face holds only the head behind the face: points this far forward are left out.</summary>
+        private const float OpenFaceCone = .4f;
+        private static void FitOverHead(Vector3[] points, int[] triangles, Body hero, bool openFace)
         {
-            var box = new Bounds(points[0], Vector3.zero);
-            foreach (var p in points) box.Encapsulate(p);
             var head = hero.HeadBox;
-            float scale = 0f;
-            for (int a = 0; a < 3; a++) if (box.extents[a] > 1e-5f) scale = Mathf.Max(scale, head.extents[a] / box.extents[a]);
-            for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - box.center) * scale;
-
-            var shellDirection = new List<Vector3>(); var shellLength = new List<float>();
-            for (int i = 0; i < points.Length; i += Math.Max(1, points.Length / HelmShellPoints))
+            if (!openFace)
             {
-                var d = points[i] - head.center; float m = d.magnitude;
-                if (m > 1e-4f) { shellDirection.Add(d / m); shellLength.Add(m); }
+                // A helm's box is first laid on the head's box. A hood keeps the place its joints gave it (it hangs down
+                // the back, so its box does not stand for the head).
+                var box = new Bounds(points[0], Vector3.zero);
+                foreach (var p in points) box.Encapsulate(p);
+                float scale = 0f;
+                for (int a = 0; a < 3; a++) if (box.extents[a] > 1e-5f) scale = Mathf.Max(scale, head.extents[a] / box.extents[a]);
+                for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - box.center) * scale;
             }
+
+            var covered = openFace
+                ? hero.HeadPoints.Where(point => Vector3.Dot((point - head.center).normalized, hero.Front) <= OpenFaceCone).ToArray()
+                : hero.HeadPoints;
             var probe = new List<Vector3>();
-            for (int i = 0; i < hero.HeadPoints.Length; i += Math.Max(1, hero.HeadPoints.Length / HelmProbePoints)) probe.Add(hero.HeadPoints[i]);
+            for (int i = 0; i < covered.Length; i += Math.Max(1, covered.Length / HelmProbePoints)) probe.Add(covered[i]);
+
+            // Intersect the original mesh with the head point translated back by the candidate offset.
             float Worst(Vector3 shift, IEnumerable<Vector3> headPoints)
             {
+                var origin = head.center;
                 float worst = 0f;
                 foreach (var p in headPoints)
                 {
-                    var d = p - head.center - shift; float length = d.magnitude;
+                    var d = p - shift - origin; float length = d.magnitude;
                     if (length < 1e-4f) continue;
-                    var direction = d / length; float farthest = 0f;
-                    for (int j = 0; j < shellDirection.Count; j++)
-                        if (Vector3.Dot(shellDirection[j], direction) > HelmCone && shellLength[j] > farthest) farthest = shellLength[j];
-                    if (farthest > 0f) worst = Mathf.Max(worst, length / farthest);
+                    float surface = NearestHit(origin, d / length, points, triangles);
+                    if (surface < float.PositiveInfinity) worst = Mathf.Max(worst, length / surface);
                 }
                 return worst;
             }
@@ -315,13 +346,156 @@ namespace AreArpg.EditorTools
                     float worst = Worst(shift, probe);
                     if (worst < best - 1e-5f) { best = worst; bestShift = shift; }
                 }
-            float needed = Worst(bestShift, hero.HeadPoints) / HelmRoom;
+            float needed = Worst(bestShift, covered) / HelmRoom;
             var centre = head.center + bestShift;
             for (int i = 0; i < points.Length; i++)
             {
                 var moved = points[i] + bestShift;
                 points[i] = needed > 1f ? centre + (moved - centre) * needed : moved;
             }
+        }
+
+        /// <summary>The hero's points in bind space, without those of his hair (a worn head piece hides it).</summary>
+        private static Vector3[] Surface(SkinnedMeshRenderer skin)
+        {
+            var bones = skin.bones;
+            var hair = new bool[bones.Length];
+            for (int b = 0; b < bones.Length; b++)
+                for (var t = bones[b]; t; t = t.parent) if (t.name.IndexOf("Hair", StringComparison.OrdinalIgnoreCase) >= 0) { hair[b] = true; break; }
+            var vertices = skin.sharedMesh.vertices; var weights = skin.sharedMesh.boneWeights;
+            var surface = new List<Vector3>(vertices.Length);
+            for (int v = 0; v < vertices.Length; v++) if (!hair[weights[v].boneIndex0]) surface.Add(vertices[v]);
+            return surface.ToArray();
+        }
+
+        /// <summary>
+        /// Soft clothes lie over the hero's own clothes. The archives' sets were cut for the slim Glockenwacht; the hero
+        /// wears armour of his own (his shoulder plates stand far out), and thin leather or linen fitted to his frame would
+        /// vanish under it. Every point of a piece is moved straight away from its bone until the hero's surface in that
+        /// direction lies <see cref="GarmentGapMm"/> behind it, by at most <see cref="GarmentReachMm"/>; the moves are
+        /// smoothed over neighbouring points so the cloth stays whole. Points already outside stay where they are. The
+        /// direction comes from the bone, not from each face, so points that share a place move together and nothing tears.
+        /// </summary>
+        private const float GarmentGapMm = 6f, GarmentReachMm = 70f, GarmentSideMm = 25f, GarmentCellMm = 30f;
+        private const int GarmentSmoothing = 4;
+        private static void LayOverHero(Vector3[] points, HumanBodyBones[] bone, int[] triangles, HeroFit fit)
+        {
+            float cell = GarmentCellMm * .001f, reach = GarmentReachMm * .001f, side = GarmentSideMm * .001f, gap = GarmentGapMm * .001f;
+            (int, int, int) Key(Vector3 v) => (Mathf.FloorToInt(v.x / cell), Mathf.FloorToInt(v.y / cell), Mathf.FloorToInt(v.z / cell));
+            var grid = new Dictionary<(int, int, int), List<Vector3>>();
+            foreach (var h in fit.Surface)
+            {
+                var k = Key(h);
+                if (!grid.TryGetValue(k, out var list)) grid[k] = list = new List<Vector3>();
+                list.Add(h);
+            }
+            int span = Mathf.CeilToInt(reach / cell);
+            var push = new float[points.Length];
+            var outward = new Vector3[points.Length];
+            for (int i = 0; i < points.Length; i++)
+            {
+                var b = fit.Body; var pivot = b.Pivot.ContainsKey(bone[i]) ? b.Pivot[bone[i]] : b.Pivot[HumanBodyBones.Hips];
+                var radial = Vector3.ProjectOnPlane(points[i] - pivot, b.Axis(bone[i]));
+                if (radial.sqrMagnitude < 1e-8f) continue;
+                var n = radial.normalized;
+                outward[i] = n;
+                float depth = float.NegativeInfinity;
+                var c = Key(points[i]);
+                for (int x = -span; x <= span; x++)
+                    for (int y = -span; y <= span; y++)
+                        for (int z = -span; z <= span; z++)
+                        {
+                            if (!grid.TryGetValue((c.Item1 + x, c.Item2 + y, c.Item3 + z), out var list)) continue;
+                            foreach (var h in list)
+                            {
+                                var d = h - points[i]; float t = Vector3.Dot(d, n);
+                                if (t < -gap || t > reach || d.sqrMagnitude - t * t > side * side) continue;
+                                if (t > depth) depth = t;
+                            }
+                        }
+                if (depth > -gap) push[i] = Mathf.Min(reach, depth + gap);
+            }
+            // Neighbours by the triangles; a smoothed move never falls below the move a point needs itself.
+            var near = new List<int>[points.Length];
+            for (int i = 0; i < near.Length; i++) near[i] = new List<int>(6);
+            for (int t = 0; t + 2 < triangles.Length; t += 3)
+                for (int a = 0; a < 3; a++) { int u = triangles[t + a], v = triangles[t + (a + 1) % 3]; near[u].Add(v); near[v].Add(u); }
+            var need = (float[])push.Clone();
+            for (int round = 0; round < GarmentSmoothing; round++)
+            {
+                var next = new float[push.Length];
+                for (int i = 0; i < push.Length; i++)
+                {
+                    float sum = push[i]; int count = 1;
+                    foreach (int j in near[i]) { sum += push[j]; count++; }
+                    next[i] = Mathf.Max(need[i], sum / count);
+                }
+                push = next;
+            }
+            for (int i = 0; i < points.Length; i++) points[i] += outward[i] * push[i];
+        }
+
+        /// <summary>Where the hero's figure without hair lies, for the runtime to swap in under a head piece (private art).</summary>
+        public const string HeroHairFolder = "Assets/Resources/ARE/Visuals/HeroHair/";
+
+        /// <summary>
+        /// Owner 2026-11-26: under a helm the hero's hair disappears like a model taken off. His figure is one mesh, so
+        /// two copies of it are saved without hair triangles: "Hairless" for helms (every triangle touching his hair
+        /// bones gone) and "Hooded" for open hoods (only the back hair gone; the fringe frames the face). The runtime swaps
+        /// the figure's mesh while such a piece is worn.
+        /// </summary>
+        private static void BuildHairlessHero(SkinnedMeshRenderer skin)
+        {
+            Directory.CreateDirectory(HeroHairFolder);
+            SaveWithoutHair(skin, "Hairless", new[] { "FrontHair", "BackHair" });
+            SaveWithoutHair(skin, "Hooded", new[] { "BackHair" });
+        }
+
+        private static void SaveWithoutHair(SkinnedMeshRenderer skin, string name, string[] roots)
+        {
+            var bones = skin.bones;
+            var hair = new bool[bones.Length];
+            for (int b = 0; b < bones.Length; b++)
+                for (var t = bones[b]; t; t = t.parent) if (Array.IndexOf(roots, t.name) >= 0) { hair[b] = true; break; }
+            var source = skin.sharedMesh; var weights = source.boneWeights;
+            bool Hair(int v)
+            {
+                var w = weights[v];
+                return (w.weight0 > 0f && hair[w.boneIndex0]) || (w.weight1 > 0f && hair[w.boneIndex1]) ||
+                    (w.weight2 > 0f && hair[w.boneIndex2]) || (w.weight3 > 0f && hair[w.boneIndex3]);
+            }
+            var mesh = UnityEngine.Object.Instantiate(source);
+            mesh.name = "Hero_" + name;
+            for (int s = 0; s < source.subMeshCount; s++)
+            {
+                var triangles = source.GetTriangles(s);
+                var kept = new List<int>(triangles.Length);
+                for (int t = 0; t + 2 < triangles.Length; t += 3)
+                    if (!Hair(triangles[t]) && !Hair(triangles[t + 1]) && !Hair(triangles[t + 2])) kept.AddRange(new[] { triangles[t], triangles[t + 1], triangles[t + 2] });
+                mesh.SetTriangles(kept, s, false);
+            }
+            string path = HeroHairFolder + name + ".asset";
+            if (AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(mesh, path);
+        }
+
+        /// <summary>The distance along a ray to the nearest face of a mesh (Möller–Trumbore), or infinity when it meets none.</summary>
+        private static float NearestHit(Vector3 origin, Vector3 direction, Vector3[] points, int[] triangles)
+        {
+            float nearest = float.PositiveInfinity;
+            for (int t = 0; t + 2 < triangles.Length; t += 3)
+            {
+                Vector3 a = points[triangles[t]], e1 = points[triangles[t + 1]] - a, e2 = points[triangles[t + 2]] - a;
+                var h = Vector3.Cross(direction, e2); float det = Vector3.Dot(e1, h);
+                if (det > -1e-9f && det < 1e-9f) continue;
+                float inv = 1f / det; var s = origin - a; float u = Vector3.Dot(s, h) * inv;
+                if (u < 0f || u > 1f) continue;
+                var q = Vector3.Cross(s, e1); float v = Vector3.Dot(direction, q) * inv;
+                if (v < 0f || u + v > 1f) continue;
+                float distance = Vector3.Dot(e2, q) * inv;
+                if (distance > 1e-4f && distance < nearest) nearest = distance;
+            }
+            return nearest;
         }
 
         /// <summary>The Glockenwacht's own head width, from its figure in the first archive.</summary>
@@ -336,8 +510,9 @@ namespace AreArpg.EditorTools
             return HeadWidth(skin.sharedMesh, head, body);
         }
 
-        private static void BuildArmour(RegionalRelic id, SkinnedMeshRenderer[] skins, string meshFolder, HeroFit fit)
+        private static void BuildArmour(FitPiece piece, string meshFolder, HeroFit fit)
         {
+            string id = piece.Name; var skins = piece.Skins;
             var hero = fit.Body;
             float headScale = hero.HeadWidth / fit.GuardHead;
             var used = new List<HumanBodyBones>();
@@ -402,14 +577,15 @@ namespace AreArpg.EditorTools
                 }
             }
             var points = outVertices.ToArray();
-            if (RegionalRelics.Slot(id) == RegionalRelicSlot.Head) FitOverHead(points, hero);
+            if (piece.Head != HeadFit.None) FitOverHead(points, groups.SelectMany(g => g.triangles).ToArray(), hero, piece.Head == HeadFit.Open);
+            else if (piece.LayOver) LayOverHero(points, outWeights.Select(w => used[w.boneIndex0]).ToArray(), groups.SelectMany(g => g.triangles).ToArray(), fit);
 
             string meshPath = meshFolder + id + ".asset";
             var fitted = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
             bool fresh = fitted == null;
             if (fresh) fitted = new Mesh();
             fitted.Clear();
-            fitted.name = id.ToString();
+            fitted.name = id;
             fitted.indexFormat = points.Length > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
             fitted.vertices = points;
             fitted.normals = outNormals.ToArray();
@@ -423,7 +599,7 @@ namespace AreArpg.EditorTools
             fitted.RecalculateBounds();
             if (fresh) AssetDatabase.CreateAsset(fitted, meshPath); else EditorUtility.SetDirty(fitted);
 
-            var root = new GameObject(id.ToString());
+            var root = new GameObject(id);
             try
             {
                 var bones = new GameObject("Bones").transform;
@@ -442,10 +618,13 @@ namespace AreArpg.EditorTools
             finally { UnityEngine.Object.DestroyImmediate(root); }
         }
 
-        private static void BuildStaff(string model, RegionalRelic id)
+        private static void BuildStaff(string model, RegionalRelic id) { BuildHandPiece(AschenwachtCourtBuilder.ForecourtModels + model + ".fbx", id); }
+
+        /// <summary>A weapon from a static model becomes an arsenal piece: its file's own scale and its grip at the origin kept.</summary>
+        internal static void BuildHandPiece(string path, RegionalRelic id)
         {
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>(AschenwachtCourtBuilder.ForecourtModels + model + ".fbx");
-            if (source == null) throw new InvalidOperationException("Staff missing: " + model);
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (source == null) throw new InvalidOperationException("Weapon model missing: " + path);
             var filter = source.GetComponentInChildren<MeshFilter>(true);
             var root = new GameObject(id.ToString());
             try

@@ -969,6 +969,7 @@ namespace AreArpg.Core
                     {
                         FindAschenwachtGear(item.Item);
                         if (LastGearFind == RegionalRelic.None) FindNachtvesper(item.Item);
+                        if (LastGearFind == RegionalRelic.None) FindHunterAndCantorSets(item.Item);
                     }
                 }
                 else Progression.AddWeaponUpgrade(item.WeaponBonus);

@@ -110,7 +110,7 @@ internal static class RegionalRelicTests
             return !WeaponEquipment.TryRead(string.Join(",",f),p,out _);
         }
         require(Invalid(owned|lantern,wear) && Invalid(owned,wear|guard) && Invalid(owned,wear|lantern) &&
-            Invalid(owned|(1L<<40),wear) && Invalid(0,0),"regional-reject-unreached-boss-two-outfits-unowned-unknown-and-empty-save");
+            Invalid(owned|(1L<<62),wear) && Invalid(0,0),"regional-reject-unreached-boss-two-outfits-unowned-unknown-and-empty-save");
         var invalid=(string[])parts.Clone();invalid[4]="0";invalid[5]="1";
         require(!WeaponEquipment.TryRead(string.Join(",",invalid),p,out _) &&
             !WeaponEquipment.TryRead(token.Replace(","+parts[6]+",",",0"+parts[6]+","),p,out _),"regional-reject-unowned-pauldron-and-noncanonical-number");

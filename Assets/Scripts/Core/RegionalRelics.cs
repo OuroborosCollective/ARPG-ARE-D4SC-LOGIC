@@ -14,7 +14,10 @@ namespace AreArpg.Core
         G_Ziegelschild, M_Handglocke, G_Schuerhaken, M_Heilerstab,
         B_Brennerspeer, B_Scherbenhellebarde,
         A_Visierhelm, A_Kuerass, A_Schulterplatten, A_Gliedpanzer, A_KlauenstabEinhand, A_KlauenstabZweihand,
-        N_Schaller, N_Kuerass, N_Schulterstuecke, N_Armschienen, N_Handschuhe, N_Guertung, N_Beinzeug, N_Panzerschuhe
+        N_Schaller, N_Kuerass, N_Schulterstuecke, N_Armschienen, N_Handschuhe, N_Guertung, N_Beinzeug, N_Panzerschuhe,
+        F_Gugel, F_Wams, F_Wetterkragen, F_Aermel, F_Handschuhe, F_Koppel, F_Beinkleid, F_Stiefel, F_Langbogen,
+        K_Kapuze, K_Kittel, K_Pelerine, K_Aermel, K_Handschuhe, K_Gurt, K_Beinkleid, K_Stiefel, K_Kurzstab, K_Langstab
+        // 59 pieces: the 64-bit masks hold 63. A piece beyond that needs a new save format.
     }
 
     /// <summary>
@@ -122,8 +125,33 @@ namespace AreArpg.Core
             new Source(RegionalRelic.N_Handschuhe, "Panzerhandschuhe der Nachtvesper", RegionalRelicSlot.Hands, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
             new Source(RegionalRelic.N_Guertung, "Gürtung der Nachtvesper", RegionalRelicSlot.Waist, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
             new Source(RegionalRelic.N_Beinzeug, "Beinzeug der Nachtvesper", RegionalRelicSlot.Legs, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
-            new Source(RegionalRelic.N_Panzerschuhe, "Panzerschuhe der Nachtvesper", RegionalRelicSlot.Feet, 0, 0, 0, Unlock.Loot, NachtvesperLocation)
+            new Source(RegionalRelic.N_Panzerschuhe, "Panzerschuhe der Nachtvesper", RegionalRelicSlot.Feet, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
+            // Owner request 2026-11-26: the hunter's leather set Rotfährte and the sorcerer's linen set Rußkantor (RotfaehrteSet, RusskantorSet).
+            new Source(RegionalRelic.F_Gugel, "Fährtengugel der Rotfährte", RegionalRelicSlot.Head, 0, 0, 0, Unlock.Loot, RotfaehrteLocation),
+            new Source(RegionalRelic.F_Wams, "Lederwams der Rotfährte", RegionalRelicSlot.Body, 0, 0, 0, Unlock.Loot, RotfaehrteLocation),
+            new Source(RegionalRelic.F_Wetterkragen, "Wetterkragen der Rotfährte", RegionalRelicSlot.Shoulders, 0, 0, 0, Unlock.Loot, RotfaehrteLocation),
+            new Source(RegionalRelic.F_Aermel, "Lederärmel der Rotfährte", RegionalRelicSlot.Arms, 0, 0, 0, Unlock.Loot, RotfaehrteLocation),
+            new Source(RegionalRelic.F_Handschuhe, "Jagdhandschuhe der Rotfährte", RegionalRelicSlot.Hands, 0, 0, 0, Unlock.Loot, RotfaehrteLocation),
+            new Source(RegionalRelic.F_Koppel, "Feldkoppel der Rotfährte", RegionalRelicSlot.Waist, 0, 0, 0, Unlock.Loot, RotfaehrteLocation),
+            new Source(RegionalRelic.F_Beinkleid, "Beinkleid der Rotfährte", RegionalRelicSlot.Legs, 0, 0, 0, Unlock.Loot, RotfaehrteLocation),
+            new Source(RegionalRelic.F_Stiefel, "Jagdstiefel der Rotfährte", RegionalRelicSlot.Feet, 0, 0, 0, Unlock.Loot, RotfaehrteLocation),
+            new Source(RegionalRelic.F_Langbogen, "Schwarzschiefer-Langbogen", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, RotfaehrteLocation,
+                WeaponFamily.Bow, 205, 6, 12000, true),
+            new Source(RegionalRelic.K_Kapuze, "Kantorenkapuze des Rußkantors", RegionalRelicSlot.Head, 0, 0, 0, Unlock.Loot, RusskantorLocation),
+            new Source(RegionalRelic.K_Kittel, "Leinenkittel des Rußkantors", RegionalRelicSlot.Body, 0, 0, 0, Unlock.Loot, RusskantorLocation),
+            new Source(RegionalRelic.K_Pelerine, "Aschenpelerine des Rußkantors", RegionalRelicSlot.Shoulders, 0, 0, 0, Unlock.Loot, RusskantorLocation),
+            new Source(RegionalRelic.K_Aermel, "Leinenärmel des Rußkantors", RegionalRelicSlot.Arms, 0, 0, 0, Unlock.Loot, RusskantorLocation),
+            new Source(RegionalRelic.K_Handschuhe, "Leinenhandschuhe des Rußkantors", RegionalRelicSlot.Hands, 0, 0, 0, Unlock.Loot, RusskantorLocation),
+            new Source(RegionalRelic.K_Gurt, "Knotengurt des Rußkantors", RegionalRelicSlot.Waist, 0, 0, 0, Unlock.Loot, RusskantorLocation),
+            new Source(RegionalRelic.K_Beinkleid, "Leinenbeinkleid des Rußkantors", RegionalRelicSlot.Legs, 0, 0, 0, Unlock.Loot, RusskantorLocation),
+            new Source(RegionalRelic.K_Stiefel, "Kantorenstiefel des Rußkantors", RegionalRelicSlot.Feet, 0, 0, 0, Unlock.Loot, RusskantorLocation),
+            new Source(RegionalRelic.K_Kurzstab, "Schwarzschieferholz-Kurzstab", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, RusskantorLocation,
+                WeaponFamily.Staff, 160, 6, 8000, false),
+            new Source(RegionalRelic.K_Langstab, "Dunkelbuchen-Langstab", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, RusskantorLocation,
+                WeaponFamily.Staff, 215, 7, 9000, true)
         };
+        private const string RotfaehrteLocation = "Seltene Beute · oft in den Wäldern";
+        private const string RusskantorLocation = "Seltene Beute · oft bei Ghulen";
         private const string NachtvesperLocation = "Seltene Beute · oft bei Rittern";
 
         public static readonly IReadOnlyList<RegionalRelic> All = Array.AsReadOnly(Array.ConvertAll(

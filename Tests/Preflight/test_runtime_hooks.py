@@ -22,10 +22,11 @@ def _method_body(text, signature):
 
 
 class RuntimeHookTests(unittest.TestCase):
-    def test_entry_art_build_includes_the_optional_armour_builder(self):
+    def test_entry_art_build_includes_the_optional_armour_builders(self):
         path = ROOT / "Assets/Editor/EntryWorldArtBuilder.cs"
         body = _method_body(path.read_text(encoding="utf-8"), "public static void Build()")
         self.assertIn("NachtvesperBuilder.TryBuild();", body)
+        self.assertIn("HunterCantorBuilder.TryBuild();", body)
 
     def test_every_region_input_poll_runs_in_poll_inputs(self):
         sources = _sources()

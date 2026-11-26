@@ -592,3 +592,21 @@ PR-Quelle `e91d33d101a3c596f6aad645693945d149faebc5` auf Brennerhof-Merge `0d8f6
 ## 2026-11-26 · Nachtvesper (#144)
 
 PR-Quelle `8a3cd358dcc0e1fc9750584f170ede3058d9c58b`, Aschbeter-Merge `cdc98445c7b147250bbc8003a8c767b3b8218de8`. Drei MonoImporter ergänzt. Der neue Test für den regulären Art-Build schlug beim fehlenden Aufruf fehl und bestand nach Anschluss von NachtvesperBuilder. Zwei echte Core-Gegenproben bestätigten den vorhandenen Welthash-Vertrag beim An-/Ablegen. Ein deterministisch erzeugter überlappender Beleg liefert genau ein Setstück. 2 % und 25 % sind die Würfelchancen unter den für Nachtvesper verfügbaren Funden. Auf Codetree `905bc8cbec1c21b94981f38458c43a61893ac0e9` bestanden 23.419 Core-Assertions und 63 Preflights. Neue native Ausführung des gesamten Art-Builds und Tab-A9-Abnahme offen. DOCX-Nachtrag weiterhin ausstehend.
+
+## 2026-11-26 · Rotfährte, Rußkantor und Abschluss der gestapelten Integration (#145)
+
+Auf Nachtvesper-Merge `a386d47f6e778775c8071a747e7da6696c181f74` wurde PR-Quelle `86234ea8172dc72f3a672893fcc6115bffda4e6f` integriert. Drei weitere Unity-Skript-GUIDs beibehalten und ihre MonoImporter ergänzt. Der Standard-Build ruft beide Archiv-Sets auf. Der HUD-Zähler verwendet acht Rüstungsteile, unabhängig von Bogen oder alternativem Stab. Beim Helm und bei offenen Kapuzen wird der Prüfpunkt in den unverschobenen Mesh-Raum zurücktransformiert. Am gewählten Versatz prüft der Builder alle bedeckten Kopfvertices.
+
+Vor der Korrektur konnten Ghul und Ork dieselbe erhöhte Rußkantor-Chance erhalten. Bei der Abholung verbindet der Core die vorhandene Gegner-ID des Belegs mit dem besiegten Gegner der Region. Der tiefere Aschenjäger gehört zur gewöhnlichen Chance. Die Gegenproben erzeugen echte Belege durch Kampftreffer und prüfen Ghul, Ork und Aschenjäger jeweils gegen beide Rollvarianten. Die persistierte Belegstruktur bleibt kompatibel.
+
+Code `c8671ad41533b57908c9122fd650b60d4537017f`, Tree `4bbcf4da739f0a68c59637b9736fb99c035cfabd`, [Core-CI](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45775186206). 23.469 Core-Assertions und 63 Preflight-Tests bestanden. Ein isolierter Checkout derselben Revision wurde mit Roslyn aus Unity 6000.6.8f1 sowie den installierten Unity- und Paket-Referenzen kompiliert. Alle 314 versionierten C#-Quelldateien der fünf geprüften Assemblies wurden aus dem gepinnten Git-Tree gelesen.
+
+| Kompilierte Assembly | Quelldateien | SHA-256 der erzeugten DLL |
+| --- | ---: | --- |
+| AreArpg.Core | 76 | `286f544cf87c68d54d70634cd3dcfd97f31178fa7bd7e69f274d055327850c62` |
+| AreArpg.Runtime | 73 | `a785f65399d090ca5ddc799214e89d040c66ba666b8132135a19c9773fa0b8d3` |
+| Assembly-CSharp-Editor | 53 | `f9bfdf050a5a7172e6b34271676b667e41017556c3decc3e0f0e0d0a21b59ab9` |
+| AreArpg.PlayMode.Tests | 64 | `6a1812706db3d8305b05174e1463e5bdb04730a1a1806cdfabd38426bb3fa675` |
+| AreArpg.EditMode.Tests | 48 | `19fd3aec94e48ac043c2dc84f3e1a9ca001dd00f0bc0a041d09fe4ff65a0689d` |
+
+Der Lizenz-Workflow [PlayMode](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45775186213) wurde übersprungen. Ein nativer Spieltest, die visuelle Anprobe und ein Gerätelauf auf dieser Revision wurden in dieser Runde nicht durchgeführt. Die registrierte DOCX war bei der Suche und beim direkten Zugriff über die hinterlegte Identität nicht verfügbar. Die Ergebnisse sind hier für den späteren Nachtrag gesichert.

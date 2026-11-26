@@ -9,6 +9,10 @@ namespace AreArpg.UnityClient
     {
         private readonly List<GameObject> _bakedArmor = new List<GameObject>();
         private HairUnderHelm _hairUnderHelm;
+        /// <summary>The hero's figure while a head piece is worn, and its own mesh to give back (AschenwachtGearBuilder.BuildHairlessHero).</summary>
+        private SkinnedMeshRenderer _hairSkin;
+        private Mesh _hairOriginal;
+        private const string HelmFigure = "ARE/Visuals/HeroHair/Hairless", HoodFigure = "ARE/Visuals/HeroHair/Hooded";
         /// <summary>
         /// The hero's two hair bones. Under a worn helm his hair is hidden like a model taken off (owner 2026-11-26): the two
         /// bones shrink to nearly nothing, so all hair hanging on them collapses into its roots inside the head.
@@ -19,7 +23,7 @@ namespace AreArpg.UnityClient
         private static bool IsBakedArmor(RegionalRelic id)
         {
             return id == RegionalRelic.A_Visierhelm || id == RegionalRelic.A_Kuerass || id == RegionalRelic.A_Schulterplatten || id == RegionalRelic.A_Gliedpanzer ||
-                NachtvesperSet.IsPiece(id);
+                NachtvesperSet.IsPiece(id) || ((RotfaehrteSet.IsPiece(id) || RusskantorSet.IsPiece(id)) && RegionalRelics.HandDefinition(id) == null);
         }
 
         private void ClearBakedArmor()
@@ -27,6 +31,8 @@ namespace AreArpg.UnityClient
             foreach (var piece in _bakedArmor) if (piece) { piece.SetActive(false); Destroy(piece); }
             _bakedArmor.Clear();
             if (_hairUnderHelm) _hairUnderHelm.Release();
+            if (_hairSkin) _hairSkin.sharedMesh = _hairOriginal;
+            _hairSkin = null; _hairOriginal = null;
         }
 
         /// <summary>
@@ -37,12 +43,24 @@ namespace AreArpg.UnityClient
         /// </summary>
         private bool MountBakedArmor(RegionalRelic id)
         {
-            var prefab = RegionalSourcePrefab(id);
+            var head = RegionalRelics.Slot(id) != RegionalRelicSlot.Head ? HeadWear.None :
+                id == RegionalRelic.F_Gugel || id == RegionalRelic.K_Kapuze ? HeadWear.Hood : HeadWear.Helm;
+            return MountBakedPrefab(RegionalSourcePrefab(id), id.ToString(), head);
+        }
+
+        /// <summary>The hunter's back quiver, worn while the slate longbow is in hand (HunterCantorBuilder.Quiver).</summary>
+        private const string HunterQuiver = "Werkarsenal/F_Koecher";
+
+        /// <summary>What a piece does to the hair: nothing, hide it under a closed helm, or keep the fringe in an open hood.</summary>
+        private enum HeadWear { None, Helm, Hood }
+
+        private bool MountBakedPrefab(GameObject prefab, string label, HeadWear head)
+        {
             Animator avatar = null;
             if (_hero) foreach (var candidate in _hero.GetComponentsInChildren<Animator>(true))
                 if (candidate.isHuman && candidate.avatar && candidate.avatar.isValid) { avatar = candidate; break; }
             if (!prefab || !avatar) return false;
-            var holder = new GameObject("Equipped_" + id).transform;
+            var holder = new GameObject("Equipped_" + label).transform;
             holder.SetParent(avatar.transform, false);
             if (!PassiveArtVisuals.TryBindPrefab(holder, prefab)) { Destroy(holder.gameObject); return false; }
             foreach (var skin in holder.GetComponentsInChildren<SkinnedMeshRenderer>(true))
@@ -61,21 +79,38 @@ namespace AreArpg.UnityClient
                 skin.updateWhenOffscreen = true;
             }
             _bakedArmor.Add(holder.gameObject);
-            if (RegionalRelics.Slot(id) == RegionalRelicSlot.Head) HideHair(avatar.GetBoneTransform(HumanBodyBones.Head));
+            if (head != HeadWear.None) HideHair(avatar.GetBoneTransform(HumanBodyBones.Head), head == HeadWear.Hood);
             return true;
         }
 
         /// <summary>
         /// A worn helm hides the hero's hair: his stylized hair stands far out from his head, and a helm large enough to
-        /// cover it would sit on him like a bucket. Taking the helm off brings the hair back.
+        /// cover it would sit on him like a bucket. An open hood hides the hair at the back and keeps the front hair, drawn
+        /// in to <see cref="HoodFringeSize"/>, framing the face. Taking the piece off brings the hair back.
         /// </summary>
-        private void HideHair(Transform head)
+        private const float HoodFringeSize = .75f;
+        private void HideHair(Transform head, bool hood)
         {
             if (!head) return;
+            // The hair is taken off like a model: the figure without hair triangles is swapped in (built in the editor;
+            // the mesh is not readable on the device). Without it, the hair bones are shrunk instead.
+            SkinnedMeshRenderer figure = null;
+            foreach (var skin in _hero.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                if (skin.sharedMesh && Array.IndexOf(skin.bones, head) >= 0 && (!figure || skin.sharedMesh.vertexCount > figure.sharedMesh.vertexCount)) figure = skin;
+            var bare = Resources.Load<Mesh>(hood ? HoodFigure : HelmFigure);
+            bool swapped = false;
+            if (figure && bare && !_hairSkin && bare.vertexCount == figure.sharedMesh.vertexCount)
+            {
+                _hairSkin = figure; _hairOriginal = figure.sharedMesh; figure.sharedMesh = bare; swapped = true;
+            }
             if (!_hairUnderHelm || _hairUnderHelm.transform != head)
                 _hairUnderHelm = head.TryGetComponent(out HairUnderHelm held) ? held : head.gameObject.AddComponent<HairUnderHelm>();
             foreach (var bone in head.GetComponentsInChildren<Transform>(true))
-                if (Array.IndexOf(HairRoots, bone.name) >= 0) _hairUnderHelm.Tuck(bone, HiddenHairSize);
+            {
+                if (Array.IndexOf(HairRoots, bone.name) < 0) continue;
+                if (hood && bone.name == "FrontHair") _hairUnderHelm.Tuck(bone, HoodFringeSize);
+                else if (!swapped) _hairUnderHelm.Tuck(bone, HiddenHairSize);
+            }
         }
     }
 }
