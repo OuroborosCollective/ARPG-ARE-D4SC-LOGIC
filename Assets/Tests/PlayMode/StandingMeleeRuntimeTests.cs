@@ -51,7 +51,11 @@ namespace AreArpg.PlayMode.Tests
                 }
                 Assert.NotNull(Find("Equipped_" + gear.Weapon.Definition.Id), "Visible equipped weapon");
                 if (gear.Shield != null)
-                    Assert.NotNull(Find("Equipped_" + gear.Shield.Definition.Id), "Visible equipped shield");
+                {
+                    var shield = Find("Equipped_" + gear.Shield.Definition.Id);
+                    Assert.NotNull(shield, "Visible equipped shield");
+                    Assert.Greater(Vector3.Dot(shield.transform.up, Vector3.up), .85f, "Shield stands upright at rest");
+                }
                 if (weapon == RegionalRelic.M_Lotklinge)
                 {
                     var left = hero.GetBoneTransform(HumanBodyBones.LeftHand);

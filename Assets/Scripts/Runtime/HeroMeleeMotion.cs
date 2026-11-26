@@ -74,6 +74,19 @@ namespace AreArpg.UnityClient
         private ulong _sequence, _endTick;
         private bool _swing;
         private float _weight;
+        private bool _actionPose, _shieldFacesBack;
+        private static readonly int MoveMagnitude = Animator.StringToHash("MoveMagnitude");
+
+        internal void FitShield(Transform model)
+        {
+            // Regional shields are upright in their authored frame. The boss projects away from the handle.
+            var mesh = model != null ? model.GetComponentInChildren<MeshFilter>() : null;
+            if (mesh != null && mesh.sharedMesh != null)
+            {
+                Vector3 center = mesh.transform.TransformPoint(mesh.sharedMesh.bounds.center);
+                _shieldFacesBack = model.InverseTransformPoint(center).z < 0f;
+            }
+        }
 
         internal HeroMeleeMotion(Animator rig, Transform socket)
         {
@@ -109,6 +122,7 @@ namespace AreArpg.UnityClient
             bool striking = _swing && (w.ActionKind == CombatActionKind.Strike || w.ActionKind == CombatActionKind.HeavyStrike);
             bool hold = _swing && !moving && w.ActionKind == CombatActionKind.None && w.CurrentTick >= _endTick &&
                 w.CurrentTick - _endTick < StandingMeleeChain.HoldTicks;
+            _actionPose = striking || hold;
             _weight = Mathf.MoveTowards(_weight, striking || hold || idle ? 1f : 0f, Time.deltaTime * 12f);
             _form = form;
             if (striking || hold)
@@ -139,9 +153,10 @@ namespace AreArpg.UnityClient
             }
         }
 
-        internal void Solve(Quaternion boneToGoal)
+        internal void Solve(Quaternion boneToGoal, Quaternion leftBoneToGoal)
         {
-            if (_weight <= 0f) return;
+            // Locomotion owns the running grip as soon as the animator evaluates a moving pose.
+            if (_weight <= 0f || (!_actionPose && _rig.GetFloat(MoveMagnitude) > .01f)) return;
             Transform frame = _rig.transform;
             Vector3 origin = _hips.position;
             Quaternion facing = frame.rotation;
@@ -162,6 +177,14 @@ namespace AreArpg.UnityClient
             _rig.SetIKPositionWeight(AvatarIKGoal.LeftHand,_weight);
             _rig.SetIKPosition(AvatarIKGoal.RightHand,right);
             _rig.SetIKPosition(AvatarIKGoal.LeftHand,left);
+            if (_form == MeleeForm.SwordShield)
+            {
+                float forward = Mathf.InverseLerp(.1f, .5f, _pose.Left.z);
+                Quaternion shield = facing * Quaternion.Euler(-6f, Mathf.Lerp(-52f, -10f, forward), 5f);
+                if (_shieldFacesBack) shield *= Quaternion.Euler(0f, 180f, 0f);
+                _rig.SetIKRotationWeight(AvatarIKGoal.LeftHand, _weight);
+                _rig.SetIKRotation(AvatarIKGoal.LeftHand, shield * leftBoneToGoal);
+            }
             _rig.SetIKRotationWeight(AvatarIKGoal.RightHand,_weight);
             // The baked weapon socket's local Y is the length of the blade.
             _rig.SetIKRotation(AvatarIKGoal.RightHand,blade * Quaternion.Euler(90,0,0) * Quaternion.Inverse(_socket.localRotation) * boneToGoal);
