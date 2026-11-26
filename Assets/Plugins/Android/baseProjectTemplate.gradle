@@ -14,19 +14,10 @@ plugins {
 
 allprojects {
     repositories {
-        // Unity normally supplies Google and Maven Central centrally via PREFER_SETTINGS.
-        // Declare project-local repositories only when the settings explicitly prefer them.
-        if (gradle.settings.dependencyResolutionManagement.repositoriesMode.get() == RepositoriesMode.PREFER_PROJECT) {
+        // Unity keeps its settings-level repositories authoritative under PREFER_SETTINGS.
+        if (gradle.settings.dependencyResolutionManagement.repositoriesMode.get() != RepositoriesMode.FAIL_ON_PROJECT_REPOS) {
             google()
             mavenCentral()
-        }
-    }
-}
-
-project(':unityLibrary') {
-    pluginManager.withPlugin('com.android.library') {
-        dependencies {
-            implementation "com.google.android.gms:play-services-games-v2:+"
         }
     }
 }
