@@ -441,7 +441,7 @@ namespace AreArpg.UnityClient
             if (combatV2)
             {
                 _hudStaminaFill.fillAmount = Mathf.Clamp01(_game.Stamina / (float)_game.MaxStamina);
-                _hudDodgeFace.color = _game.Stamina >= CombatV2Rules.Dodge.Stamina ? Color.white : new Color(0.55f, 0.55f, 0.65f, 1f);
+                _hudDodgeFace.color = _game.Stamina >= _game.DodgeStaminaCost ? Color.white : new Color(0.55f, 0.55f, 0.65f, 1f);
                 _hudFlaskText.text = (Application.isMobilePlatform ? "TRANK\n" : "TRANK (Q)\n") + p.Crafting.PotionCount(PotionType.Heal);
             }
             _hudXpFill.fillAmount = ExperienceFraction(p);

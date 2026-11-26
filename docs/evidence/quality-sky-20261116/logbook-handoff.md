@@ -610,3 +610,13 @@ Code `c8671ad41533b57908c9122fd650b60d4537017f`, Tree `4bbcf4da739f0a68c59637b97
 | AreArpg.EditMode.Tests | 48 | `19fd3aec94e48ac043c2dc84f3e1a9ca001dd00f0bc0a041d09fe4ff65a0689d` |
 
 Der Lizenz-Workflow [PlayMode](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45775186213) wurde übersprungen. Ein nativer Spieltest, die visuelle Anprobe und ein Gerätelauf auf dieser Revision wurden in dieser Runde nicht durchgeführt. Die registrierte DOCX war bei der Suche und beim direkten Zugriff über die hinterlegte Identität nicht verfügbar. Die Ergebnisse sind hier für den späteren Nachtrag gesichert.
+
+## Ruhige Hand und Feldnaht (#149)
+
+Am 26. November 2026 gab der Owner die Varianten R1 und K1 aus dem Vergleich zu #145 frei. Basis `44afb984259c3c12f7492b0efade636fd2cdb8b4`, Code `aa9cafbc6ed14ca56b6f9ae8722fdb96a9d2fe5d`, Tree `05d18244fcdefad9671bc1b0015cdc4ca16aa601`. Beide Effekte lesen die angelegten Rüstungsteile und die geführte Setwaffe. Im Kampf V2 verwendet die Rolle denselben Ausdauerpreis für Start, Abbuchung und HUD. Wundschluss liest Ausrüstung und Stab beim Eintreffen der Heilung.
+
+Die neue Präzisionsprobe schlug auf dem bisherigen Core bei acht Teilen fehl. Auf dem Codetree bestanden 23.563 Assertions mit den versionierten World-Forge-Karten. Seed 102 liefert beim normalen und schweren Bogenschuss mit drei Teilen einen Fehlschuss, mit acht Teilen einen Treffer und bei Wiederholung denselben Welthash. Die Gegenprobe mit 23 Ausdauer sperrt die Rolle bei sieben Teilen und lässt bei acht genau null Ausdauer übrig. Beide Stäbe wurden bei drei, vier, sieben und acht Teilen am Heilungstick geprüft. Der Stabwechsel während der Vorbereitung entfernt den Bonus. An der alten Mühle heilt der Kurzstab bei acht Teilen die 160-LP-Wunde. [GitHub-CI](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45827467713) erfolgreich. SHA-256 des lokalen Core-Protokolls `3c152e3a1ccccec9887492c33b0c399b921dd1ccc532622dcd7c25da523e7fbc`.
+
+Der PlayMode-Workflow wurde übersprungen. Ein Spieltest im Unity-Editor und auf dem Tab A9 steht aus. Die registrierte DOCX-Identität war per Titelsuche und direktem Zugriff nicht verfügbar.
+
+Auf dem VPS kompilierte Roslyn aus Unity 6000.6.8f1 die 76 Core- und 79 Runtime-Quellen dieses Commits in einem isolierten Verzeichnis mit den Unity-Referenzen. Die Runtime referenzierte die frisch gebaute Core-Assembly. DLL-SHA-256 für Core `f890b40c6587aaeeebc36b5fbfb90cbab6695c7d7bdb8627190f8e15a8764d9e`, für Runtime `801c531988dc20069b5b90b1994512794cb778782513b7c33fe527de635b1cb5`.

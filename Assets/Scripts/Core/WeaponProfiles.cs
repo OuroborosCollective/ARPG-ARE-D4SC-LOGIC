@@ -94,7 +94,9 @@ namespace AreArpg.Core
             get
             {
                 var weapon = Equipment.Weapon;
-                return weapon == null ? 10000 : WeaponProfiles.For(weapon.Definition).Accuracy(WeaponMastery.Level(weapon.Definition.TrainingFamily));
+                if (weapon == null) return 10000;
+                int accuracy = WeaponProfiles.For(weapon.Definition).Accuracy(WeaponMastery.Level(weapon.Definition.TrainingFamily));
+                return CombatVersion >= 2 ? Math.Min(10000, accuracy + Equipment.SteadyHandTier * 200) : accuracy;
             }
         }
 
