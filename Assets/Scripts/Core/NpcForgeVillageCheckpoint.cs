@@ -58,7 +58,7 @@ namespace AreArpg.Core
             if(Progression.EntryAct==2&&ForgeVillageCheckpoint.TryRead(forge.Checkpoint,out var c)&&c!=null&&c.Seed==_runSeed)
             {
                 CurrentTick=c.Tick;_rng.Restore(c.Rng0,c.Rng1);PlayerXmm=c.X;PlayerZmm=c.Z;PrevPlayerXmm=c.PreviousX;PrevPlayerZmm=c.PreviousZ;
-                _directionXbp=c.DirectionX;_directionZbp=c.DirectionZ;PlayerHealth=c.Health;Resource=c.Resource;Array.Copy(c.Cooldowns,Cooldowns,4);
+                _directionXbp=c.DirectionX;_directionZbp=c.DirectionZ;PlayerHealth=Math.Min(MaxPlayerHealth,c.Health);Resource=c.Resource;Array.Copy(c.Cooldowns,Cooldowns,4);
                 foreach(var npc in Npcs)
                 {
                     var n=c.People[npc.Id];npc.Xmm=n[0];npc.Zmm=n[1];npc.PreviousXmm=n[2];npc.PreviousZmm=n[3];npc.AttackCooldownTicks=(int)n[4];npc.InteractionCooldownTicks=(int)n[5];npc.PatrolIndex=(int)n[6];npc.Behavior=(NpcBehavior)n[7];

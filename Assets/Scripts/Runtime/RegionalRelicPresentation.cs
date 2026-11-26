@@ -147,8 +147,9 @@ namespace AreArpg.UnityClient
             var utility = gear.WornRegionalRelic(RegionalRelicSlot.Utility);
             var shoulders = gear.WornRegionalRelic(RegionalRelicSlot.Shoulders);
             var limbs = gear.WornRegionalRelic(RegionalRelicSlot.Limbs);
-            // Aschenwacht's armour is skinned to the hero's own bones (AschenwachtGearBuilder), not hung on sockets.
-            foreach (var piece in new[] { outfit, head, shoulders, limbs })
+            // Aschenwacht's armour and the Nachtvesper are skinned to the hero's own bones (AschenwachtGearBuilder), not hung on sockets.
+            foreach (var piece in new[] { outfit, head, shoulders, limbs, gear.WornRegionalRelic(RegionalRelicSlot.Arms), gear.WornRegionalRelic(RegionalRelicSlot.Hands),
+                gear.WornRegionalRelic(RegionalRelicSlot.Waist), gear.WornRegionalRelic(RegionalRelicSlot.Legs), gear.WornRegionalRelic(RegionalRelicSlot.Feet) })
                 if (IsBakedArmor(piece) && !MountBakedArmor(piece)) Debug.LogWarning("Ashen Crypt: Rüstung konnte nicht angelegt werden: " + piece);
             if (IsBakedArmor(outfit)) outfit = RegionalRelic.None;
             if (IsBakedArmor(head)) head = RegionalRelic.None;
@@ -234,6 +235,29 @@ namespace AreArpg.UnityClient
             }
         }
 
+        /// <summary>Where a piece of armour is worn, and for the Nachtvesper how far the set is complete and what it gives.</summary>
+        private string ArmourDescription(RegionalRelic id)
+        {
+            string place;
+            switch (RegionalRelics.Slot(id))
+            {
+                case RegionalRelicSlot.Head: place = "Helm"; break;
+                case RegionalRelicSlot.Body: place = "Brustpanzer"; break;
+                case RegionalRelicSlot.Shoulders: place = "Schulterschutz"; break;
+                case RegionalRelicSlot.Limbs: place = "Arm- und Beinschutz"; break;
+                case RegionalRelicSlot.Arms: place = "Armschutz"; break;
+                case RegionalRelicSlot.Hands: place = "Handschutz"; break;
+                case RegionalRelicSlot.Waist: place = "Gürtung"; break;
+                case RegionalRelicSlot.Legs: place = "Beinschutz"; break;
+                case RegionalRelicSlot.Feet: place = "Fußschutz"; break;
+                default: place = "Rüstung"; break;
+            }
+            if (!NachtvesperSet.IsPiece(id)) return place + " · Platte";
+            int worn = _game.Progression.NachtvesperPiecesWorn;
+            return place + " · Set Nachtvesper (" + worn + "/" + NachtvesperSet.Pieces.Length + " angelegt)" +
+                "\nJedes angelegte Teil: +1 % Lebenspunkte\nAlle " + NachtvesperSet.Pieces.Length + " Teile: +25 % Ausdauer";
+        }
+
         private void RegionalInventoryDetail(RectTransform panel, Text info, Vector2 size, float width, RegionalRelic id)
         {
             bool equipped = _game.Progression.Equipment.IsRegionalRelicEquipped(id);
@@ -246,6 +270,7 @@ namespace AreArpg.UnityClient
                     definition.FamilyName + " · " + (definition.TwoHanded ? "Zweihand" : "Einhand") +
                     "\nGrundschaden " + definition.BasePower + " · Reichweite " + (definition.RangeMm / 1000f).ToString("0.0") + " m";
             }
+            else if (IsBakedArmor(id)) description = ArmourDescription(id);
             else
             {
                 var slot = RegionalRelics.Slot(id);

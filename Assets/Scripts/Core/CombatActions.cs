@@ -266,7 +266,7 @@ namespace AreArpg.Core
             if (ActionKind == CombatActionKind.Guard && _guardReleased && ActionTick >= _timing.Recovery) EndAction();
             else if (ActionKind != CombatActionKind.None && ActionKind != CombatActionKind.Guard && ActionTick >= _timing.Total) EndAction();
             bool rested = !_staminaSpent || CurrentTick > _staminaSpentTick + CombatV2Rules.StaminaRegenDelayTicks;
-            if (rested && Stamina < CombatV2Rules.StaminaMax && !GuardRaised) Stamina = Math.Min(CombatV2Rules.StaminaMax, Stamina + CombatV2Rules.StaminaRegenPerTick);
+            if (rested && Stamina < MaxStamina && !GuardRaised) Stamina = Math.Min(MaxStamina, Stamina + CombatV2Rules.StaminaRegenPerTick);
         }
 
         /// <summary>The player's movement this tick under v2: slower in a fight, guided by the action phase.</summary>

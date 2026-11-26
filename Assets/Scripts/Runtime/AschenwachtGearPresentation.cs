@@ -18,7 +18,8 @@ namespace AreArpg.UnityClient
 
         private static bool IsBakedArmor(RegionalRelic id)
         {
-            return id == RegionalRelic.A_Visierhelm || id == RegionalRelic.A_Kuerass || id == RegionalRelic.A_Schulterplatten || id == RegionalRelic.A_Gliedpanzer;
+            return id == RegionalRelic.A_Visierhelm || id == RegionalRelic.A_Kuerass || id == RegionalRelic.A_Schulterplatten || id == RegionalRelic.A_Gliedpanzer ||
+                NachtvesperSet.IsPiece(id);
         }
 
         private void ClearBakedArmor()

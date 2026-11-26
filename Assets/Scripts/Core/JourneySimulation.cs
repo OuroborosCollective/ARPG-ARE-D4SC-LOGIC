@@ -36,7 +36,7 @@ namespace AreArpg.Core
                 SaveJourneyPlayer();return;
             }
             CurrentTick=f.Tick;PlayerXmm=f.X;PlayerZmm=f.Z;PrevPlayerXmm=f.PreviousX;PrevPlayerZmm=f.PreviousZ;
-            PlayerHealth=f.Health;Resource=f.Resource;Kills=f.Kills;_directionXbp=f.DirectionX;_directionZbp=f.DirectionZ;
+            PlayerHealth=Math.Min(MaxPlayerHealth,f.Health);Resource=f.Resource;Kills=f.Kills;_directionXbp=f.DirectionX;_directionZbp=f.DirectionZ;
             _rng.Restore(f.Rng0,f.Rng1);for(int i=0;i<4;i++)Cooldowns[i]=f.Cooldowns[i];
         }
         private void SaveJourneyPlayer()

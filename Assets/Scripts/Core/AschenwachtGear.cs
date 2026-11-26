@@ -57,7 +57,7 @@ namespace AreArpg.Core
 
     public sealed partial class CharacterProgression
     {
-        /// <summary>What is worn in the five weighted armour slots: crafted pieces, with Aschenwacht's plate in front of them.</summary>
+        /// <summary>What is worn in the five weighted armour slots: crafted pieces, with Aschenwacht's and the Nachtvesper's plate in front of them.</summary>
         private ArmorPiece[] EffectiveArmor()
         {
             var worn = new ArmorPiece[ArmorRules.SlotCount];
@@ -67,6 +67,11 @@ namespace AreArpg.Core
             if (gear.IsRegionalRelicEquipped(RegionalRelic.A_Kuerass)) worn[(int)ArmorSlot.Chest] = AschenwachtGear.Cuirass;
             if (gear.IsRegionalRelicEquipped(RegionalRelic.A_Schulterplatten)) worn[(int)ArmorSlot.Hands] = AschenwachtGear.Shoulders;
             if (gear.IsRegionalRelicEquipped(RegionalRelic.A_Gliedpanzer)) worn[(int)ArmorSlot.Legs] = AschenwachtGear.Limbs;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.N_Schaller)) worn[(int)ArmorSlot.Head] = NachtvesperSet.Helm;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.N_Kuerass)) worn[(int)ArmorSlot.Chest] = NachtvesperSet.Cuirass;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.N_Handschuhe)) worn[(int)ArmorSlot.Hands] = NachtvesperSet.Gauntlets;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.N_Beinzeug)) worn[(int)ArmorSlot.Legs] = NachtvesperSet.Greaves;
+            if (gear.IsRegionalRelicEquipped(RegionalRelic.N_Panzerschuhe)) worn[(int)ArmorSlot.Feet] = NachtvesperSet.Sabatons;
             return worn;
         }
 

@@ -86,27 +86,59 @@ namespace AreArpg.EditorTools
 
         public static bool TryBuild()
         {
-            var hero = AssetDatabase.LoadAssetAtPath<GameObject>(Hero);
-            if (hero == null || Armour.Any(a => AssetDatabase.LoadAssetAtPath<GameObject>(AschenwachtCourtBuilder.CourtModels + a.model + ".fbx") == null)) return false;
-            Directory.CreateDirectory(MeshFolder);
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(Hero) == null ||
+                Armour.Any(a => AssetDatabase.LoadAssetAtPath<GameObject>(AschenwachtCourtBuilder.CourtModels + a.model + ".fbx") == null)) return false;
             BuildStaff("Klauenstab_Einhand", RegionalRelic.A_KlauenstabEinhand);
             BuildStaff("Klauenstab_Zweihand", RegionalRelic.A_KlauenstabZweihand);
+            var pieces = Armour.Select(a => (a.id, ReadableSkins(AschenwachtCourtBuilder.CourtModels + a.model + ".fbx"))).ToList();
+            if (!FitToHero(pieces, MeshFolder)) return false;
+            Debug.Log("ARE_ASCHENWACHT_GEAR_BUILT armour=" + Armour.Length + " staffs=2");
+            return true;
+        }
+
+        /// <summary>The skinned meshes of a model file on the Glockenwacht's skeleton, made readable for fitting.</summary>
+        internal static SkinnedMeshRenderer[] ReadableSkins(string path)
+        {
+            var importer = (ModelImporter)AssetImporter.GetAtPath(path);
+            if (importer == null) throw new InvalidOperationException("Model missing: " + path);
+            if (!importer.isReadable) { importer.isReadable = true; importer.SaveAndReimport(); }
+            return AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        }
+
+        /// <summary>The hero as the target of fitting: his skin, his body, his bones' places in the skin, and the guard's head width.</summary>
+        private sealed class HeroFit
+        {
+            public SkinnedMeshRenderer Skin;
+            public Body Body;
+            public Dictionary<HumanBodyBones, int> Index;
+            public float GuardHead;
+        }
+
+        /// <summary>
+        /// Fit pieces made on the Glockenwacht's skeleton to the hero. A piece is one or more skinned meshes (the Nachtvesper's
+        /// cuirass is its mail, plate and gorget); it is saved as one mesh in <paramref name="meshFolder"/>, one submesh per
+        /// material, and as an arsenal prefab named after its regional piece. Used for Aschenwacht's armour and the Nachtvesper.
+        /// </summary>
+        internal static bool FitToHero(IList<(RegionalRelic id, SkinnedMeshRenderer[] skins)> pieces, string meshFolder)
+        {
+            var hero = AssetDatabase.LoadAssetAtPath<GameObject>(Hero);
+            if (hero == null) return false;
+            Directory.CreateDirectory(meshFolder);
             var heroInstance = UnityEngine.Object.Instantiate(hero);
             try
             {
                 var animator = heroInstance.GetComponentsInChildren<Animator>(true).First(a => a.isHuman);
-                var heroSkin = heroInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true).OrderByDescending(s => s.sharedMesh ? s.sharedMesh.vertexCount : 0).First();
-                var heroBody = HeroBody(animator, heroSkin, out var heroIndex);
-                heroBody.HeadWidth = HeadWidth(heroSkin.sharedMesh, heroIndex[HumanBodyBones.Head], heroBody);
-                heroBody.HeadPoints = HeadPoints(heroSkin, animator.GetBoneTransform(HumanBodyBones.Head));
-                heroBody.HeadBox = new Bounds(heroBody.HeadPoints[0], Vector3.zero);
-                foreach (var p in heroBody.HeadPoints) heroBody.HeadBox.Encapsulate(p);
-                float guardHead = GuardHeadWidth();
-                foreach (var (model, id) in Armour) BuildArmour(model, id, heroSkin, heroBody, heroIndex, guardHead);
+                var fit = new HeroFit { Skin = heroInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true).OrderByDescending(s => s.sharedMesh ? s.sharedMesh.vertexCount : 0).First() };
+                fit.Body = HeroBody(animator, fit.Skin, out fit.Index);
+                fit.Body.HeadWidth = HeadWidth(fit.Skin.sharedMesh, fit.Index[HumanBodyBones.Head], fit.Body);
+                fit.Body.HeadPoints = HeadPoints(fit.Skin, animator.GetBoneTransform(HumanBodyBones.Head));
+                fit.Body.HeadBox = new Bounds(fit.Body.HeadPoints[0], Vector3.zero);
+                foreach (var p in fit.Body.HeadPoints) fit.Body.HeadBox.Encapsulate(p);
+                fit.GuardHead = GuardHeadWidth();
+                foreach (var (id, skins) in pieces) BuildArmour(id, skins, meshFolder, fit);
             }
             finally { UnityEngine.Object.DestroyImmediate(heroInstance); }
             AssetDatabase.SaveAssets();
-            Debug.Log("ARE_ASCHENWACHT_GEAR_BUILT armour=" + Armour.Length + " staffs=2");
             return true;
         }
 
@@ -144,9 +176,14 @@ namespace AreArpg.EditorTools
         /// </summary>
         private static Body ArmourBody(SkinnedMeshRenderer skin, out Dictionary<int, HumanBodyBones> joint)
         {
+            // A mesh lists only the joints it is weighted to; the skeleton is read from every mesh of the same model.
             var named = new Dictionary<string, Vector3>(StringComparer.Ordinal);
-            var bind = skin.sharedMesh.bindposes;
-            for (int i = 0; i < skin.bones.Length; i++) named[skin.bones[i].name] = bind[i].inverse.MultiplyPoint3x4(Vector3.zero);
+            foreach (var family in skin.transform.root.GetComponentsInChildren<SkinnedMeshRenderer>(true).Prepend(skin))
+            {
+                var poses = family.sharedMesh.bindposes;
+                for (int i = 0; i < family.bones.Length; i++)
+                    if (family.bones[i] && !named.ContainsKey(family.bones[i].name)) named[family.bones[i].name] = poses[i].inverse.MultiplyPoint3x4(Vector3.zero);
+            }
             var hips = named["Hips"];
             var up = (named["Neck"] - hips).normalized;
             Vector3 Knee(string s) => named["Shin." + s] - (named["Thigh." + s] + named["Foot." + s]) * .5f;
@@ -155,14 +192,11 @@ namespace AreArpg.EditorTools
             bool swapped = Vector3.Dot(named["UpperArm.L"] - named["Chest"], right) > 0f; // the ".L" side lies on the body's right
             var body = new Body();
             joint = new Dictionary<int, HumanBodyBones>();
+            HumanBodyBones Side(HumanBodyBones human) => swapped ? Mirror(human) : human;
+            foreach (var pair in named)
+                if (Joints.TryGetValue(pair.Key, out var human)) body.Pivot[Side(human)] = pair.Value;
             for (int i = 0; i < skin.bones.Length; i++)
-            {
-                string name = skin.bones[i].name;
-                if (!Joints.TryGetValue(name, out var human)) continue;
-                if (swapped) human = Mirror(human);
-                joint[i] = human;
-                body.Pivot[human] = named[name];
-            }
+                if (skin.bones[i] && Joints.TryGetValue(skin.bones[i].name, out var human)) joint[i] = Side(human);
             Orient(body, swapped);
             return body;
         }
@@ -302,77 +336,89 @@ namespace AreArpg.EditorTools
             return HeadWidth(skin.sharedMesh, head, body);
         }
 
-        private static void BuildArmour(string model, RegionalRelic id, SkinnedMeshRenderer heroSkin, Body hero, Dictionary<HumanBodyBones, int> heroIndex, float guardHead)
+        private static void BuildArmour(RegionalRelic id, SkinnedMeshRenderer[] skins, string meshFolder, HeroFit fit)
         {
-            string path = AschenwachtCourtBuilder.CourtModels + model + ".fbx";
-            var importer = (ModelImporter)AssetImporter.GetAtPath(path);
-            if (!importer.isReadable) { importer.isReadable = true; importer.SaveAndReimport(); }
-            var source = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            var skin = source.GetComponentInChildren<SkinnedMeshRenderer>(true);
-            var mesh = skin.sharedMesh;
-            var gw = ArmourBody(skin, out var joint);
-            float bodyScale = hero.Torso / gw.Torso;
-            float headScale = hero.HeadWidth / guardHead;
-
-            var vertices = mesh.vertices; var normals = mesh.normals; var weights = mesh.boneWeights;
-            var outVertices = new Vector3[vertices.Length]; var outNormals = new Vector3[vertices.Length];
+            var hero = fit.Body;
+            float headScale = hero.HeadWidth / fit.GuardHead;
             var used = new List<HumanBodyBones>();
             int Slot(HumanBodyBones b) { int s = used.IndexOf(b); if (s < 0) { used.Add(b); s = used.Count - 1; } return s; }
-            var outWeights = new BoneWeight[vertices.Length];
-            for (int v = 0; v < vertices.Length; v++)
-            {
-                var w = weights[v];
-                var influences = new[] { (w.boneIndex0, w.weight0), (w.boneIndex1, w.weight1), (w.boneIndex2, w.weight2), (w.boneIndex3, w.weight3) };
-                Vector3 p = Vector3.zero, n = Vector3.zero; float total = 0f;
-                var mapped = new Dictionary<int, float>();
-                foreach (var (bone, weight) in influences)
-                {
-                    if (weight <= 0f || !joint.TryGetValue(bone, out var human)) continue;
-                    var target = Target(human, heroIndex);
-                    // Each joint's own frame on both bodies; a joint the hero lacks keeps its own frame and moves with its parent.
-                    var fromFrame = gw.Frame(human);
-                    var toFrame = hero.Pivot.ContainsKey(human) ? hero.Frame(human) : hero.Frame(target);
-                    var toPivot = hero.Pivot.ContainsKey(human) ? hero.Pivot[human] : hero.Pivot[target] + toFrame * (Quaternion.Inverse(gw.Frame(target)) * (gw.Pivot[human] - gw.Pivot[target]) * bodyScale);
-                    var local = Quaternion.Inverse(fromFrame) * (vertices[v] - gw.Pivot[human]);
-                    bool head = human == HumanBodyBones.Head || human == HumanBodyBones.Neck;
-                    float across = head ? headScale : bodyScale;
-                    float along = gw.Length(human) > 1e-5f && hero.Length(human) > 1e-5f ? hero.Length(human) / gw.Length(human) : across;
-                    local = new Vector3(local.x * across, local.y * along, local.z * across);
-                    p += weight * (toPivot + toFrame * local);
-                    n += weight * (toFrame * (Quaternion.Inverse(fromFrame) * normals[v]));
-                    total += weight;
-                    int slot = Slot(target);
-                    mapped[slot] = (mapped.TryGetValue(slot, out float sum) ? sum : 0f) + weight;
-                }
-                if (total <= 0f) throw new InvalidOperationException(model + ": a point without weights");
-                outVertices[v] = p / total;
-                outNormals[v] = n.normalized;
-                var top = mapped.OrderByDescending(kv => kv.Value).Take(4).ToArray();
-                float norm = top.Sum(kv => kv.Value);
-                var bw = new BoneWeight();
-                if (top.Length > 0) { bw.boneIndex0 = top[0].Key; bw.weight0 = top[0].Value / norm; }
-                if (top.Length > 1) { bw.boneIndex1 = top[1].Key; bw.weight1 = top[1].Value / norm; }
-                if (top.Length > 2) { bw.boneIndex2 = top[2].Key; bw.weight2 = top[2].Value / norm; }
-                if (top.Length > 3) { bw.boneIndex3 = top[3].Key; bw.weight3 = top[3].Value / norm; }
-                outWeights[v] = bw;
-            }
-            if (used.Count == 1 && used[0] == HumanBodyBones.Head) FitOverHead(outVertices, hero);
+            var outVertices = new List<Vector3>(); var outNormals = new List<Vector3>(); var outUv = new List<Vector2>();
+            var outWeights = new List<BoneWeight>();
+            var groups = new List<(Material material, List<int> triangles)>();
 
-            string meshPath = MeshFolder + id + ".asset";
+            foreach (var skin in skins)
+            {
+                var mesh = skin.sharedMesh;
+                var gw = ArmourBody(skin, out var joint);
+                float bodyScale = hero.Torso / gw.Torso;
+                var vertices = mesh.vertices; var normals = mesh.normals; var weights = mesh.boneWeights; var uv = mesh.uv;
+                int offset = outVertices.Count;
+                for (int v = 0; v < vertices.Length; v++)
+                {
+                    var w = weights[v];
+                    var influences = new[] { (w.boneIndex0, w.weight0), (w.boneIndex1, w.weight1), (w.boneIndex2, w.weight2), (w.boneIndex3, w.weight3) };
+                    Vector3 p = Vector3.zero, n = Vector3.zero; float total = 0f;
+                    var mapped = new Dictionary<int, float>();
+                    foreach (var (bone, weight) in influences)
+                    {
+                        if (weight <= 0f || !joint.TryGetValue(bone, out var human)) continue;
+                        var target = Target(human, fit.Index);
+                        // Each joint's own frame on both bodies; a joint the hero lacks keeps its own frame and moves with its parent.
+                        var fromFrame = gw.Frame(human);
+                        var toFrame = hero.Pivot.ContainsKey(human) ? hero.Frame(human) : hero.Frame(target);
+                        var toPivot = hero.Pivot.ContainsKey(human) ? hero.Pivot[human] : hero.Pivot[target] + toFrame * (Quaternion.Inverse(gw.Frame(target)) * (gw.Pivot[human] - gw.Pivot[target]) * bodyScale);
+                        var local = Quaternion.Inverse(fromFrame) * (vertices[v] - gw.Pivot[human]);
+                        bool head = human == HumanBodyBones.Head || human == HumanBodyBones.Neck;
+                        float across = head ? headScale : bodyScale;
+                        float along = gw.Length(human) > 1e-5f && hero.Length(human) > 1e-5f ? hero.Length(human) / gw.Length(human) : across;
+                        local = new Vector3(local.x * across, local.y * along, local.z * across);
+                        p += weight * (toPivot + toFrame * local);
+                        n += weight * (toFrame * (Quaternion.Inverse(fromFrame) * normals[v]));
+                        total += weight;
+                        int slot = Slot(target);
+                        mapped[slot] = (mapped.TryGetValue(slot, out float sum) ? sum : 0f) + weight;
+                    }
+                    if (total <= 0f) throw new InvalidOperationException(id + " (" + skin.name + "): a point without weights");
+                    outVertices.Add(p / total);
+                    outNormals.Add(n.normalized);
+                    outUv.Add(uv.Length == vertices.Length ? uv[v] : Vector2.zero);
+                    var top = mapped.OrderByDescending(kv => kv.Value).Take(4).ToArray();
+                    float norm = top.Sum(kv => kv.Value);
+                    var bw = new BoneWeight();
+                    if (top.Length > 0) { bw.boneIndex0 = top[0].Key; bw.weight0 = top[0].Value / norm; }
+                    if (top.Length > 1) { bw.boneIndex1 = top[1].Key; bw.weight1 = top[1].Value / norm; }
+                    if (top.Length > 2) { bw.boneIndex2 = top[2].Key; bw.weight2 = top[2].Value / norm; }
+                    if (top.Length > 3) { bw.boneIndex3 = top[3].Key; bw.weight3 = top[3].Value / norm; }
+                    outWeights.Add(bw);
+                }
+                // Submeshes of the same material, from whichever mesh, become one.
+                var materials = skin.sharedMaterials;
+                for (int s = 0; s < mesh.subMeshCount; s++)
+                {
+                    var material = materials.Length > 0 ? materials[Math.Min(s, materials.Length - 1)] : null;
+                    int g = groups.FindIndex(x => x.material == material);
+                    if (g < 0) { groups.Add((material, new List<int>())); g = groups.Count - 1; }
+                    foreach (int index in mesh.GetTriangles(s)) groups[g].triangles.Add(index + offset);
+                }
+            }
+            var points = outVertices.ToArray();
+            if (RegionalRelics.Slot(id) == RegionalRelicSlot.Head) FitOverHead(points, hero);
+
+            string meshPath = meshFolder + id + ".asset";
             var fitted = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
             bool fresh = fitted == null;
             if (fresh) fitted = new Mesh();
             fitted.Clear();
             fitted.name = id.ToString();
-            fitted.indexFormat = mesh.indexFormat;
-            fitted.vertices = outVertices;
-            fitted.normals = outNormals;
-            fitted.uv = mesh.uv;
-            fitted.subMeshCount = mesh.subMeshCount;
-            for (int s = 0; s < mesh.subMeshCount; s++) fitted.SetTriangles(mesh.GetTriangles(s), s);
-            fitted.boneWeights = outWeights;
-            var heroBind = heroSkin.sharedMesh.bindposes;
-            fitted.bindposes = used.Select(b => heroBind[heroIndex[b]]).ToArray();
+            fitted.indexFormat = points.Length > 65535 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
+            fitted.vertices = points;
+            fitted.normals = outNormals.ToArray();
+            fitted.uv = outUv.ToArray();
+            fitted.subMeshCount = groups.Count;
+            for (int g = 0; g < groups.Count; g++) fitted.SetTriangles(groups[g].triangles, g);
+            fitted.boneWeights = outWeights.ToArray();
+            var heroBind = fit.Skin.sharedMesh.bindposes;
+            fitted.bindposes = used.Select(b => heroBind[fit.Index[b]]).ToArray();
             fitted.RecalculateTangents();
             fitted.RecalculateBounds();
             if (fresh) AssetDatabase.CreateAsset(fitted, meshPath); else EditorUtility.SetDirty(fitted);
@@ -387,7 +433,7 @@ namespace AreArpg.EditorTools
                 part.transform.SetParent(root.transform, false);
                 var renderer = part.AddComponent<SkinnedMeshRenderer>();
                 renderer.sharedMesh = fitted;
-                renderer.sharedMaterials = skin.sharedMaterials;
+                renderer.sharedMaterials = groups.Select(x => x.material).ToArray();
                 renderer.bones = list;
                 renderer.rootBone = list[0];
                 PrefabUtility.SaveAsPrefabAsset(root, Arsenal + id + ".prefab", out bool ok);

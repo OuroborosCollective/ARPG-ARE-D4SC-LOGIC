@@ -188,7 +188,7 @@ namespace AreArpg.EditorTools
             return set;
         }
 
-        private static Texture2D Texture(string path, TextureImporterType type, bool colour)
+        internal static Texture2D Texture(string path, TextureImporterType type, bool colour)
         {
             var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer == null) return null;

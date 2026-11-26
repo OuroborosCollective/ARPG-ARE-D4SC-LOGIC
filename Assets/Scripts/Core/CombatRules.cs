@@ -56,7 +56,18 @@ namespace AreArpg.Core
         public static int MaximumHealth(CharacterProgression progression)
         {
             if (progression == null) throw new ArgumentNullException(nameof(progression));
-            return 1200 + progression.VitalityHealthBonus;
+            return NachtvesperSet.WithHealthBonus(1200 + progression.VitalityHealthBonus, progression.NachtvesperPiecesWorn);
+        }
+
+        /// <summary>
+        /// The highest maximum health the character could have with the whole Nachtvesper on. A save checks health it kept
+        /// against this before its equipment is read back (the equipment rides in an envelope around the base checkpoint);
+        /// every place that resumes from such health keeps it within the real maximum.
+        /// </summary>
+        public static int HealthCeiling(CharacterProgression progression)
+        {
+            if (progression == null) throw new ArgumentNullException(nameof(progression));
+            return NachtvesperSet.WithHealthBonus(1200 + progression.VitalityHealthBonus, NachtvesperSet.Pieces.Length);
         }
 
         /// <summary>Use the existing FixedMath order and caller-owned PRNG, preserving ordinary replay outcomes.</summary>

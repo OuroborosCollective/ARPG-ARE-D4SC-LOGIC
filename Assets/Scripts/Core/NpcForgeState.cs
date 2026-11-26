@@ -87,7 +87,7 @@ namespace AreArpg.Core
                 if(Convert.ToBase64String(innerBytes)!=f[1]||Convert.ToBase64String(forgeBytes)!=f[2])return false;
                 var utf8=new UTF8Encoding(false,true);string inner=utf8.GetString(innerBytes);
                 if(inner.StartsWith("AC17|",StringComparison.Ordinal)||inner.StartsWith("AC18|",StringComparison.Ordinal)||inner.StartsWith("AC19|",StringComparison.Ordinal)||!TryLoadRestoring(inner,restoring,out var p)||!NpcForgeState.TryRead(utf8.GetString(forgeBytes),out var forge))return false;
-                if(!ForgeVillageCheckpoint.TryRead(forge.Checkpoint,out var checkpoint)||checkpoint!=null&&checkpoint.Health>CombatRules.MaximumHealth(p))return false;
+                if(!ForgeVillageCheckpoint.TryRead(forge.Checkpoint,out var checkpoint)||checkpoint!=null&&checkpoint.Health>CombatRules.HealthCeiling(p))return false;
                 p.Social.Forge=forge;progress=p;return true;
             }
             catch(Exception e) when(e is FormatException||e is ArgumentException||e is OverflowException){return false;}

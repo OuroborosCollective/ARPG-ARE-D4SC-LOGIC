@@ -39,6 +39,7 @@ internal static class Program
             KilnYardTests.Run(Require);
             AschbeterTests.Run(Require);
             AschenwachtGearTests.Run(Require);
+            NachtvesperTests.Run(Require);
             CampDecisionTests.Run(Require);
             CausalCampSliceTests.Run(Require);
             CausalKnowledgeGraphTests.Run(Require);

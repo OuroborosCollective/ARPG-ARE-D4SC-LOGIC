@@ -167,8 +167,12 @@ namespace AreArpg.Core
     }
     public sealed partial class ArenaSimulation
     {
-        public bool TrySetFieldPauldronEquipped(bool equipped) =>
-            !GameOver && Progression.Equipment.SetFieldPauldronEquipped(equipped);
+        public bool TrySetFieldPauldronEquipped(bool equipped)
+        {
+            if (GameOver || !Progression.Equipment.SetFieldPauldronEquipped(equipped)) return false;
+            KeepWithinPools(); // the field pauldron takes the place of a worn cuirass or shoulder pieces
+            return true;
+        }
 
         public bool TryEquipWeapon(BigInteger ordinal)
         {
