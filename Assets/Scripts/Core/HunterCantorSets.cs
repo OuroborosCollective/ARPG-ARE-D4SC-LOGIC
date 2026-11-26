@@ -72,7 +72,10 @@ namespace AreArpg.Core
         private const ulong Salt = 0xB5297A4D3F81C6E9UL;
 
         public static int ChanceBpFor(LootItem item) { return item != null && item.EnemyKind == GhoulKind ? GhoulChanceBp : LootChanceBp; }
-        public static RegionalRelic Roll(LootItem item, WeaponEquipment gear) { return LootSetRoll.Roll(item, gear, Pieces, Salt, ChanceBpFor(item)); }
+        // The two-argument overload is the legacy kind table. The pickup path also knows the source monster.
+        public static RegionalRelic Roll(LootItem item, WeaponEquipment gear) => Roll(item, gear, true);
+        public static RegionalRelic Roll(LootItem item, WeaponEquipment gear, bool ghoulSource) =>
+            LootSetRoll.Roll(item, gear, Pieces, Salt, ghoulSource ? ChanceBpFor(item) : LootChanceBp);
         public static bool IsPiece(RegionalRelic id) { return System.Array.IndexOf(Pieces, id) >= 0; }
 
         internal static readonly ArmorPiece Hood = new ArmorPiece("russkantor.cloth.kapuze", "Kantorenkapuze des Rußkantors", ArmorSlot.Head, ArmorMaterial.Cloth);
@@ -80,6 +83,21 @@ namespace AreArpg.Core
         internal static readonly ArmorPiece Gloves = new ArmorPiece("russkantor.cloth.handschuhe", "Leinenhandschuhe des Rußkantors", ArmorSlot.Hands, ArmorMaterial.Cloth);
         internal static readonly ArmorPiece Breeches = new ArmorPiece("russkantor.cloth.beinkleid", "Leinenbeinkleid des Rußkantors", ArmorSlot.Legs, ArmorMaterial.Cloth);
         internal static readonly ArmorPiece Boots = new ArmorPiece("russkantor.cloth.stiefel", "Kantorenstiefel des Rußkantors", ArmorSlot.Feet, ArmorMaterial.Cloth);
+    }
+
+    public sealed partial class WeaponEquipment
+    {
+        public (int Worn, int Total) ArmourSetProgress(RegionalRelic[] pieces)
+        {
+            int worn = 0, total = 0;
+            foreach (var piece in pieces)
+            {
+                if (RegionalRelics.HandDefinition(piece) != null) continue;
+                total++;
+                if (IsRegionalRelicEquipped(piece)) worn++;
+            }
+            return (worn, total);
+        }
     }
 
     public sealed partial class ArenaSimulation
@@ -93,7 +111,16 @@ namespace AreArpg.Core
             if (!Progression.Equipment.Active) return;
             var gear = Progression.Equipment;
             var id = RotfaehrteSet.Roll(item, gear, InHuntingGrounds);
-            if (id == RegionalRelic.None) id = RusskantorSet.Roll(item, gear);
+            if (id == RegionalRelic.None)
+            {
+                // Receipts already persist the source ID. Generated areas restore those same monsters with the ground loot.
+                // The fixed second chapter uses an ash hunter for its kind-zero slot.
+                bool legacyGhouls = ChapterId == 1 || InDungeon || InWoodlandRegion || InJourney;
+                int sourceId = item.SourceEnemyId;
+                bool ghoul = legacyGhouls && item.EnemyKind == RusskantorSet.GhoulKind &&
+                    Monsters.Exists(m => m.Id == sourceId && m.IsDead && m.Family == MonsterFamily.Legacy && m.Kind == RusskantorSet.GhoulKind);
+                id = RusskantorSet.Roll(item, gear, ghoul);
+            }
             if (id != RegionalRelic.None && gear.ClaimRegionalRelic(Progression, id)) LastGearFind = id;
         }
     }

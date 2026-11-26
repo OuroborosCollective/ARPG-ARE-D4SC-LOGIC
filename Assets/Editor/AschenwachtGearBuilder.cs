@@ -318,32 +318,35 @@ namespace AreArpg.EditorTools
                 for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - box.center) * scale;
             }
 
+            var covered = openFace
+                ? hero.HeadPoints.Where(point => Vector3.Dot((point - head.center).normalized, hero.Front) <= OpenFaceCone).ToArray()
+                : hero.HeadPoints;
             var probe = new List<Vector3>();
-            for (int i = 0; i < hero.HeadPoints.Length; i += Math.Max(1, hero.HeadPoints.Length / HelmProbePoints))
-                if (!openFace || Vector3.Dot((hero.HeadPoints[i] - head.center).normalized, hero.Front) <= OpenFaceCone) probe.Add(hero.HeadPoints[i]);
-            // Moving the piece by a shift is measuring from a centre moved by the same shift.
-            float Worst(Vector3 shift)
+            for (int i = 0; i < covered.Length; i += Math.Max(1, covered.Length / HelmProbePoints)) probe.Add(covered[i]);
+
+            // Intersect the original mesh with the head point translated back by the candidate offset.
+            float Worst(Vector3 shift, IEnumerable<Vector3> headPoints)
             {
-                var origin = head.center + shift;
+                var origin = head.center;
                 float worst = 0f;
-                foreach (var p in probe)
+                foreach (var p in headPoints)
                 {
-                    var d = p - origin; float length = d.magnitude;
+                    var d = p - shift - origin; float length = d.magnitude;
                     if (length < 1e-4f) continue;
                     float surface = NearestHit(origin, d / length, points, triangles);
                     if (surface < float.PositiveInfinity) worst = Mathf.Max(worst, length / surface);
                 }
                 return worst;
             }
-            Vector3 bestShift = Vector3.zero; float best = Worst(Vector3.zero);
+            Vector3 bestShift = Vector3.zero; float best = Worst(Vector3.zero, probe);
             for (int up = -HelmShiftSteps; up <= HelmShiftSteps; up++)
                 for (int forward = -HelmShiftSteps; forward <= HelmShiftSteps; forward++)
                 {
                     var shift = (hero.Up * up + hero.Front * forward) * (HelmShiftStepMm * .001f);
-                    float worst = Worst(shift);
+                    float worst = Worst(shift, probe);
                     if (worst < best - 1e-5f) { best = worst; bestShift = shift; }
                 }
-            float needed = best / HelmRoom;
+            float needed = Worst(bestShift, covered) / HelmRoom;
             var centre = head.center + bestShift;
             for (int i = 0; i < points.Length; i++)
             {

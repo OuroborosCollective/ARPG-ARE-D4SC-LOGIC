@@ -256,9 +256,13 @@ namespace AreArpg.UnityClient
                 default: place = "Rüstung"; break;
             }
             var gear = _game.Progression.Equipment;
-            int Worn(RegionalRelic[] set) { int n = 0; foreach (var piece in set) if (gear.IsRegionalRelicEquipped(piece)) n++; return n; }
-            if (RotfaehrteSet.IsPiece(id)) return place + " · Leder · Set Rotfährte (" + Worn(RotfaehrteSet.Pieces) + "/" + RotfaehrteSet.Pieces.Length + " angelegt)";
-            if (RusskantorSet.IsPiece(id)) return place + " · Leinen · Set Rußkantor (" + Worn(RusskantorSet.Pieces) + "/" + RusskantorSet.Pieces.Length + " angelegt)";
+            string Progress(RegionalRelic[] pieces)
+            {
+                var count = gear.ArmourSetProgress(pieces);
+                return $" ({count.Worn}/{count.Total} angelegt)";
+            }
+            if (RotfaehrteSet.IsPiece(id)) return place + " · Leder · Set Rotfährte" + Progress(RotfaehrteSet.Pieces);
+            if (RusskantorSet.IsPiece(id)) return place + " · Leinen · Set Rußkantor" + Progress(RusskantorSet.Pieces);
             if (!NachtvesperSet.IsPiece(id)) return place + " · Platte";
             int worn = _game.Progression.NachtvesperPiecesWorn;
             return place + " · Platte · Set Nachtvesper (" + worn + "/" + NachtvesperSet.Pieces.Length + " angelegt)" +
@@ -282,6 +286,7 @@ namespace AreArpg.UnityClient
             {
                 var slot = RegionalRelics.Slot(id);
                 description = slot == RegionalRelicSlot.Body ? "Montur" : slot == RegionalRelicSlot.Head ? "Kopfschmuck" :
+                    slot == RegionalRelicSlot.Shoulders ? "Schulterrüstung" : slot == RegionalRelicSlot.Limbs ? "Gliedpanzer" :
                     slot == RegionalRelicSlot.Belt ? "Gürtellicht" : "Werkzeug für die Nebenhand";
             }
             info.text = "<size=18><b>" + RegionalRelics.Name(id) + "</b></size>\n" + description + "\n\n" +
