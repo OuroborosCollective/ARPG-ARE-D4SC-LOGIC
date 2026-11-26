@@ -75,6 +75,7 @@ namespace AreArpg.UnityClient
         {
             _entryProfile = gameObject.scene.name == "AshenEntry";
             Application.targetFrameRate = 60;
+            ApplyAndroidHints();
             try { _journeyMaps=LoadJourneyMaps(); }
             catch (Exception e) when(e is FormatException || e is ArgumentException) { Debug.LogError("Journey map validation failed: "+e.Message); }
             CharacterProgression saved;
@@ -195,6 +196,7 @@ namespace AreArpg.UnityClient
             _appUnfocused = !focused;
             if (_atmosphere != null) _atmosphere.Suspend(_appPaused || _appUnfocused);
             if (!focused) { ReleasePresentationTouches(); ReleaseVillageBoardScroll(false); }
+            else ReapplyAndroidGameMode();
         }
 
         /// <summary>Discard interrupted gestures without changing chosen zoom or character progression.</summary>
@@ -918,7 +920,8 @@ namespace AreArpg.UnityClient
             if (_cameraRig != null) _cameraRig.EndTouchFrame();
             if (MenuOpen) { _game.SetMoveInput(0, 0); return; }
 
-            CameraRelativeMove(ref x, ref z);
+            if (_scriptedMove.HasValue) { x = _scriptedMove.Value.x; z = _scriptedMove.Value.z; }
+            else CameraRelativeMove(ref x, ref z);
             _game.SetMoveInput(x, z);
             _moveWorldX = x; _moveWorldZ = z;
             if (_game.CombatV2)
@@ -1222,7 +1225,9 @@ namespace AreArpg.UnityClient
                 int potionsBefore = _game.Progression.Crafting.PotionCount(PotionType.Heal), blockedBefore = _game.BlockedAttacks;
                 bool guardBefore = _game.GuardRaised;
                 for (int slot = 0; slot < _practiceBefore.Length; slot++) _practiceBefore[slot] = _game.Progression.PracticeLevel(slot);
+                long stepStart = BeginStepTiming();
                 _game.Step();
+                EndStepTiming(stepStart);
                 if (_game.CombatV2) PresentCombatTick(oldHealth, potionsBefore, blockedBefore, guardBefore);
                 _atmosphere.ObserveTick(_game, oldX, oldZ, oldHealth);
                 SaveWeaponLevelUps(); // a shield trains on incoming attacks inside the step
@@ -1256,6 +1261,9 @@ namespace AreArpg.UnityClient
             UpdateRegionalSources();
             UpdateKilnYard();
             UpdateAschbeter();
+            UpdateMemorySnapshots();
+            UpdatePerformanceProbes();
+            ReportFullyDrawnWhenPlayable();
             UpdateOrselFigure();
             UpdateCombatFeel();
             UpdateFaceLife();
