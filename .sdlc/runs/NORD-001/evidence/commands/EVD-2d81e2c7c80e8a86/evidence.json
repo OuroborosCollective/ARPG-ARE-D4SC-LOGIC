@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "id": "EVD-2d81e2c7c80e8a86",
+  "run_id": "NORD-001",
+  "task_id": "INT-001",
+  "command_id": "mobile_analyze",
+  "executable": "python3",
+  "args": [
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "Tests/Preflight",
+    "-v"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-26T18:57:34.490Z",
+  "completed_at": "2026-11-26T18:57:35.014Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-2d81e2c7c80e8a86/evidence.json",
+  "stdout_path": "evidence/commands/EVD-2d81e2c7c80e8a86/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-2d81e2c7c80e8a86/stderr.txt"
+}

@@ -1,3 +1,4 @@
+using AreArpg.Core;
 using AreArpg.UnityClient;
 using NUnit.Framework;
 using UnityEngine;
@@ -66,6 +67,49 @@ namespace AreArpg.PlayMode.Tests
             for (int i = 0; i < 15; i++) _rig.AdvancePresentation(.1f);
             Assert.AreEqual(HeroFraming.Travel, _rig.Framing, "Walking exits the cinematic even while speech continues.");
             Assert.AreEqual(4.2f, Vector3.Distance(_camera.transform.position, _rig.FocusPoint), .01f);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void WardenFramingKeepsBothFightersInViewAndRespectsZoom(bool entryProfile)
+        {
+            _hero.transform.position = Vector3.up * 1.05f;
+            _rig.Configure(_hero.transform, entryProfile);
+            var lens = _camera.GetComponent<Camera>();
+            lens.aspect = 16f / 9f;
+            lens.fieldOfView = 48f;
+            float radius = ArenaSimulation.EmberPulseRadiusMm * .001f;
+
+            foreach (Vector3 direction in new[] { Vector3.right, Vector3.back, Vector3.forward })
+            {
+                Vector3 floor = direction * 9.5f;
+                _rig.SetContext(false, true, false, Vector3.zero, new Bounds(floor, new Vector3(2f * radius, 0f, 2f * radius)));
+                for (int i = 0; i < 30; i++) _rig.AdvancePresentation(.1f);
+                Assert.AreEqual(HeroFraming.Combat, _rig.Framing);
+                Assert.AreEqual(0f, _rig.Yaw, .001f, "Framing must preserve camera-relative controls.");
+                AssertInViewport(lens, _hero.transform.position + Vector3.up);
+                AssertInViewport(lens, _hero.transform.position + Vector3.down);
+                AssertInViewport(lens, floor + Vector3.up * 2f);
+                for (int i = 0; i < 16; i++)
+                    AssertInViewport(lens, floor + Quaternion.Euler(0f, i * 22.5f, 0f) * Vector3.forward * radius);
+            }
+            float automatic = Vector3.Distance(_camera.transform.position, _rig.FocusPoint);
+            _rig.ZoomSteps(1);
+            float chosen = _rig.Distance;
+            Assert.Less(chosen, automatic);
+            for (int i = 0; i < 30; i++) _rig.AdvancePresentation(.1f);
+            Assert.AreEqual(HeroFraming.Manual, _rig.Framing);
+            Assert.AreEqual(chosen, Vector3.Distance(_camera.transform.position, _rig.FocusPoint), .01f);
+            _rig.SnapToTarget();
+            Assert.AreEqual(chosen, _rig.Distance, .001f);
+        }
+
+        private static void AssertInViewport(Camera lens, Vector3 world)
+        {
+            Vector3 screen = lens.WorldToViewportPoint(world);
+            Assert.Greater(screen.z, 0f, world.ToString());
+            Assert.That(screen.x, Is.InRange(.01f, .99f), world.ToString());
+            Assert.That(screen.y, Is.InRange(.01f, .99f), world.ToString());
         }
 
         /// <summary>The entry camera stands low behind the hero and looks at the head, not down from above.</summary>

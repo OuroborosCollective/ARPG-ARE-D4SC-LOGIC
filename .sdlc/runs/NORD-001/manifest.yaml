@@ -1,0 +1,1501 @@
+schema_version: 1
+run:
+  id: NORD-001
+  title: Nordwechsel von Aschenzoll in die Glutklamm
+  workflow: feature-development
+  status: product_owner_review
+  current_stage: product_owner_review
+  created_at: 2026-11-26T18:19:31.326Z
+  updated_at: 2026-11-26T19:02:57.344Z
+  created_by: product-owner
+  current_owner: product-owner
+  branch: null
+  framework_version: 1.0.1
+request:
+  source: product-owner-prompt
+  file: request.md
+scope:
+  status: draft
+  approved: false
+  approval_reference: null
+affected_applications:
+  backend: false
+  web: false
+  mobile: true
+  database: false
+  shared_packages: false
+design:
+  provided: false
+  references: []
+assumptions: []
+open_questions: []
+decisions:
+  - id: DEC-FINALIZE-df96e275b3
+    topic: Product Owner delivery package
+    status: pending
+    decision: Delivery package prepared for Product Owner review
+    requested_by: pm
+    approved_by: null
+    affected_tasks:
+      - PM-001
+      - BA-001
+      - PM-002
+      - MOB-001
+      - INT-001
+      - QC-001
+      - PM-004
+    action: product-owner-review
+    requested_at: 2026-11-26T19:02:57.344Z
+    decided_at: null
+    consumed_at: null
+    consumed_by_transition: null
+    transition:
+      from: qc
+      to: product_owner_review
+      actor: pm
+      at: 2026-11-26T19:02:57.344Z
+blockers: []
+tasks:
+  - id: PM-001
+    title: Intake and discovery
+    stage: intake
+    role: pm
+    target: null
+    status: completed
+    dependencies: []
+    required_inputs: []
+    required_outputs:
+      - request.md
+      - manifest.yaml
+      - scope.md
+      - assumptions.md
+      - facts.yaml
+      - artifacts/pm/discovery-report.md
+    outputs:
+      - request.md
+      - manifest.yaml
+      - scope.md
+      - assumptions.md
+      - facts.yaml
+      - artifacts/pm/discovery-report.md
+    evidence: []
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: Initial task has no dependencies
+        at: 2026-11-26T18:19:31.326Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Private und getrackte Gebiets-, Checkpoint- und Renderingpfade
+          vergleichen
+        at: 2026-11-26T18:19:45.013Z
+      - from: running
+        to: awaiting_review
+        actor: pm
+        reason: Geprüfte bestehende Inhalte und fachlicher Auftrag in vier
+          Intake-Artefakten
+        at: 2026-11-26T18:20:16.262Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Intake deckt Route, Sicherung, Boss und Bildanforderungen ab
+        at: 2026-11-26T18:20:18.177Z
+    started_at: 2026-11-26T18:19:45.013Z
+    completed_at: 2026-11-26T18:20:18.177Z
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+  - id: BA-001
+    title: Business requirements
+    stage: requirements
+    role: ba
+    target: null
+    status: completed
+    dependencies:
+      - PM-001
+    required_inputs:
+      - request.md
+      - manifest.yaml
+      - scope.md
+      - assumptions.md
+      - facts.yaml
+      - artifacts/pm/discovery-report.md
+    required_outputs:
+      - artifacts/ba/user-stories.md
+      - artifacts/ba/acceptance-criteria.md
+      - artifacts/ba/business-rules.md
+      - artifacts/ba/validation-rules.md
+      - artifacts/ba/edge-cases.md
+      - artifacts/ba/traceability.md
+      - artifacts/ba/semantic-claims.yaml
+    outputs:
+      - artifacts/ba/user-stories.md
+      - artifacts/ba/acceptance-criteria.md
+      - artifacts/ba/business-rules.md
+      - artifacts/ba/validation-rules.md
+      - artifacts/ba/edge-cases.md
+      - artifacts/ba/traceability.md
+      - artifacts/ba/semantic-claims.yaml
+    evidence:
+      - evidence/commands/EVD-5718d1489d86fc62/evidence.json
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: "Dependencies completed: PM-001"
+        at: 2026-11-26T18:20:18.177Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Unabhängige Fachanalyse des Eigentümerauftrags zugewiesen
+        at: 2026-11-26T18:20:20.504Z
+      - from: running
+        to: awaiting_review
+        actor: ba
+        reason: Sechs Anforderungen mit acht beobachtbaren Abnahmen und sieben
+          Artefakten
+        at: 2026-11-26T18:22:49.386Z
+      - from: awaiting_review
+        to: running
+        actor: pm
+        reason: Die freigegebenen Fakten benötigen vor Abnahme zusätzlich den echten
+          Collector-Lauf
+        at: 2026-11-26T18:23:03.992Z
+      - from: running
+        to: awaiting_review
+        actor: ba
+        reason: Vollständige BA und aktuelle Validierung zum PM-Review
+        at: 2026-11-26T18:23:15.844Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Alle sieben Artefakte und ihre fachliche Nachverfolgbarkeit geprüft
+        at: 2026-11-26T18:23:16.681Z
+    started_at: 2026-11-26T18:20:20.504Z
+    completed_at: 2026-11-26T18:23:16.681Z
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+  - id: PM-002
+    title: Requirements review
+    stage: requirements_review
+    role: pm
+    target: null
+    status: completed
+    dependencies:
+      - BA-001
+    required_inputs:
+      - artifacts/ba/user-stories.md
+      - artifacts/ba/acceptance-criteria.md
+      - artifacts/ba/business-rules.md
+      - artifacts/ba/validation-rules.md
+      - artifacts/ba/edge-cases.md
+      - artifacts/ba/traceability.md
+      - artifacts/ba/semantic-claims.yaml
+    required_outputs:
+      - artifacts/pm/requirements-review.md
+    outputs:
+      - artifacts/pm/requirements-review.md
+    evidence: []
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: "Dependencies completed: BA-001"
+        at: 2026-11-26T18:23:16.681Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Freigabe des lokalen Anwendungsauftrags und der acht Kriterien
+        at: 2026-11-26T18:23:18.353Z
+      - from: running
+        to: awaiting_review
+        actor: pm
+        reason: Anforderungen mit sechs bestätigten Grundfakten und acht prüfbaren
+          Kriterien freigegeben
+        at: 2026-11-26T18:23:35.726Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Gameplay und Projektion sind einer aktiven Mobilanwendung zugewiesen
+        at: 2026-11-26T18:23:36.606Z
+    started_at: 2026-11-26T18:23:18.353Z
+    completed_at: 2026-11-26T18:23:36.606Z
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+  - id: MOB-001
+    title: Mobile implementation
+    stage: mobile_implementation
+    role: frontend
+    target: mobile
+    status: completed
+    dependencies:
+      - PM-002
+    required_inputs:
+      - artifacts/pm/requirements-review.md
+      - tasks/MOB-001.assignment.yaml
+    required_outputs:
+      - artifacts/mobile/implementation-summary.md
+      - artifacts/mobile/MOB-001-delivery-report.yaml
+    outputs:
+      - artifacts/mobile/implementation-summary.md
+      - artifacts/mobile/MOB-001-delivery-report.yaml
+    evidence:
+      - evidence/commands/EVD-bf6a1fea18c3b5be/evidence.json
+      - evidence/commands/EVD-ecd8f8dfab83a53b/evidence.json
+      - evidence/commands/EVD-38afec9a1bd91137/evidence.json
+      - evidence/commands/EVD-2c653fee80f69a30/evidence.json
+    transitions:
+      - from: pending
+        to: ready
+        actor: pm
+        reason: "RPR-002: Bei der Bildprüfung von AC-006 zeigte der öffentliche
+          Produktstand 4d7fe150 untexturierte Kapiteloberflächen bei fehlendem
+          regionalem Overlay. Review und neue Prüfung für ausgeliefertes
+          Schiefermaterial."
+        at: 2026-11-26T18:47:21.845Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Schieferauslieferung und unabhängige Bild- und Materialprüfung in
+          RPR-002 an die weiterhin eingesetzte Fachrolle übergeben.
+        at: 2026-11-26T18:47:25.267Z
+      - from: running
+        to: awaiting_review
+        actor: frontend
+        reason: File-backed delivery handoff prepared for independent review
+        at: 2026-11-26T18:57:14.817Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Schiefersurface und mobile Lieferung auf dem endgültigen Produktbaum
+          verifiziert.
+        at: 2026-11-26T18:57:18.574Z
+    started_at: 2026-11-26T18:47:25.267Z
+    completed_at: 2026-11-26T18:57:18.574Z
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+    agent_dispatches:
+      - plan:
+          schema_version: 1
+          run_id: NORD-001
+          task_id: MOB-001
+          role: frontend
+          task_revision: 1
+          activation: 3
+          policy_sha256: e3d787e6dd23b327b61a2d8ee5eee30815e6abf453971f8262e98331851dc77f
+          requested: null
+          selected: null
+          fallback_used: false
+          skill: sdlc-frontend
+          execution: spawn
+          context: task-only
+          capabilities:
+            source: Available models and efforts in collaboration.spawn_agent on this active
+              host
+            model_selection: true
+            reasoning_selection: true
+            omitted_reasoning_effort: inherit-parent
+            models:
+              - id: gpt-6.2-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6.2-astra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6.1-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6.1-terra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6-astra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6-luna
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-5.6-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-5.6-terra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-5.6-luna
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-5.5
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+        agent_id: /root/core
+        actual_model: null
+        actual_reasoning_effort: null
+        observation_source: Existing mobile integrator /root/core reactivated by the
+          real collaboration.followup_task for RPR-002; model and effort
+          unreported by host.
+        recorded_at: 2026-11-26T18:47:25.267Z
+    activation_offset: 2
+  - id: INT-001
+    title: Integration review
+    stage: integration
+    role: pm
+    target: integration
+    status: completed
+    dependencies:
+      - MOB-001
+    required_inputs:
+      - artifacts/mobile/implementation-summary.md
+      - artifacts/mobile/MOB-001-delivery-report.yaml
+    required_outputs:
+      - artifacts/integration/integration-report.md
+    outputs:
+      - artifacts/integration/integration-report.md
+    evidence:
+      - evidence/commands/EVD-239b6c76eae11a35/evidence.json
+      - evidence/commands/EVD-2d81e2c7c80e8a86/evidence.json
+      - evidence/commands/EVD-601a899ee8a3f19e/evidence.json
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: "Dependencies completed: MOB-001"
+        at: 2026-11-26T18:57:18.574Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Komplettes Endprodukt gegen gespeicherte XML- und SDK-Belege
+          integrieren.
+        at: 2026-11-26T18:57:19.985Z
+      - from: running
+        to: awaiting_review
+        actor: pm
+        reason: Integration nach zwei Reparaturzyklen auf das vollständige Endprodukt
+          geführt. Originale PlayMode-XMLs eigenständig nach SHA und Fallstatus
+          gelesen.
+        at: 2026-11-26T18:58:14.545Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Revisionsgebundener Integrationsbericht, fortgeschriebene Reparaturen
+          und Rohbelege entsprechen AC-001 bis AC-008.
+        at: 2026-11-26T18:58:17.696Z
+    started_at: 2026-11-26T18:57:19.985Z
+    completed_at: 2026-11-26T18:58:17.696Z
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+    activation_offset: 2
+    agent_dispatches: []
+  - id: QC-001
+    title: Independent QC
+    stage: qc
+    role: qc
+    target: qc
+    status: completed
+    dependencies:
+      - INT-001
+    required_inputs:
+      - artifacts/integration/integration-report.md
+    required_outputs:
+      - artifacts/qc/test-plan.md
+      - artifacts/qc/test-cases.md
+      - artifacts/qc/execution-results.md
+      - artifacts/qc/requirement-coverage.md
+      - artifacts/qc/defects.md
+      - artifacts/qc/qc-recommendation.md
+    outputs:
+      - artifacts/qc/test-plan.md
+      - artifacts/qc/test-cases.md
+      - artifacts/qc/execution-results.md
+      - artifacts/qc/requirement-coverage.md
+      - artifacts/qc/defects.md
+      - artifacts/qc/qc-recommendation.md
+    evidence:
+      - evidence/commands/EVD-3dbba544d962f987/evidence.json
+      - evidence/commands/EVD-a88a90e75eccd378/evidence.json
+      - evidence/commands/EVD-5b94a16121327828/evidence.json
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: "Dependencies completed: INT-001"
+        at: 2026-11-26T18:58:17.696Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Unabhängige Qualitätssicherung mit bestätigtem eigenen Host-Agenten
+          starten.
+        at: 2026-11-26T18:58:19.863Z
+      - from: running
+        to: awaiting_review
+        actor: qc
+        reason: Acht genehmigte Abnahmekriterien unabhängig geprüft. Drei eigene
+          Collector-Records, finales Original-XML mit 16 bestandenen Fällen und
+          drei sichtgeprüfte Kamerabilder. Beide früheren Reparaturbefunde mit
+          Retest geschlossen.
+        at: 2026-11-26T19:02:09.306Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Sechs unabhängige QC-Artefakte, vollständige Kriterienabdeckung, direkte
+          Originaldaten, zwei geschlossene Befunde und explizite Gerätegrenze
+          nachvollzogen.
+        at: 2026-11-26T19:02:37.008Z
+    started_at: 2026-11-26T18:58:19.863Z
+    completed_at: 2026-11-26T19:02:37.008Z
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+    activation_offset: 0
+    agent_dispatches:
+      - plan:
+          schema_version: 1
+          run_id: NORD-001
+          task_id: QC-001
+          role: qc
+          task_revision: 1
+          activation: 1
+          policy_sha256: e3d787e6dd23b327b61a2d8ee5eee30815e6abf453971f8262e98331851dc77f
+          requested: null
+          selected: null
+          fallback_used: false
+          skill: sdlc-qc
+          execution: spawn
+          context: task-only
+          capabilities:
+            source: Available models and efforts in collaboration.spawn_agent on this active
+              host
+            model_selection: true
+            reasoning_selection: true
+            omitted_reasoning_effort: inherit-parent
+            models:
+              - id: gpt-6.2-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6.2-astra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6.1-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6.1-terra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6-astra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-6-luna
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-5.6-sol
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-5.6-terra
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-5.6-luna
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+              - id: gpt-5.5
+                reasoning_efforts:
+                  - low
+                  - medium
+                  - high
+                  - xhigh
+                  - max
+                  - ultra
+        agent_id: /root/delivery/quality
+        actual_model: null
+        actual_reasoning_effort: null
+        observation_source: Host collaboration.spawn_agent returned
+          /root/delivery/quality; collaboration.followup_task resumed that exact
+          independent agent after interruption. No actual model/effort was
+          returned.
+        recorded_at: 2026-11-26T18:58:19.863Z
+  - id: PM-004
+    title: Product Owner delivery package
+    stage: product_owner_review
+    role: pm
+    target: null
+    status: completed
+    dependencies:
+      - QC-001
+    required_inputs:
+      - artifacts/qc/test-plan.md
+      - artifacts/qc/test-cases.md
+      - artifacts/qc/execution-results.md
+      - artifacts/qc/requirement-coverage.md
+      - artifacts/qc/defects.md
+      - artifacts/qc/qc-recommendation.md
+    required_outputs:
+      - final-report.md
+    outputs:
+      - final-report.md
+    evidence: []
+    transitions:
+      - from: pending
+        to: ready
+        actor: system
+        reason: "Dependencies completed: QC-001"
+        at: 2026-11-26T19:02:37.008Z
+      - from: ready
+        to: running
+        actor: pm
+        reason: Technischen Review-Stand zur Übergabe an den Auftraggeber bündeln.
+        at: 2026-11-26T19:02:38.598Z
+      - from: running
+        to: awaiting_review
+        actor: pm
+        reason: Technischer Lieferbericht mit acht geprüften Kriterien, tatsächlichen
+          Belegen und Grenzen für die persönliche Abnahme liegt vor.
+        at: 2026-11-26T19:02:53.353Z
+      - from: awaiting_review
+        to: completed
+        actor: pm
+        reason: Lieferpaket geprüft. Auftraggeberentscheidung über die fertige Lieferung
+          nicht vorweggenommen.
+        at: 2026-11-26T19:02:54.976Z
+    started_at: 2026-11-26T19:02:38.598Z
+    completed_at: 2026-11-26T19:02:54.976Z
+    commit: null
+    blocker_reason: null
+    failure_reason: null
+    activation_offset: 0
+    agent_dispatches: []
+quality_gates:
+  requirements:
+    status: passed
+    evidence:
+      - evidence/commands/EVD-5718d1489d86fc62/evidence.json
+    history:
+      - status: passed
+        evidence:
+          - evidence/commands/EVD-5718d1489d86fc62/evidence.json
+        actor: pm
+        reason: Sechs Claims geprüft gegen Faktenrevision 2, acht Kriterien decken die
+          echte Route, Sperren, Wiederaufnahme und Darstellung ab.
+        at: 2026-11-26T18:23:15.011Z
+  api_contract:
+    status: not_applicable
+    evidence: []
+  backend:
+    status: not_applicable
+    evidence: []
+  web:
+    status: not_applicable
+    evidence: []
+  mobile:
+    status: passed
+    evidence:
+      - evidence/commands/EVD-bf6a1fea18c3b5be/evidence.json
+      - evidence/commands/EVD-ecd8f8dfab83a53b/evidence.json
+      - evidence/commands/EVD-38afec9a1bd91137/evidence.json
+      - evidence/commands/EVD-2c653fee80f69a30/evidence.json
+    history:
+      - status: passed
+        evidence:
+          - evidence/commands/EVD-dc27c47e7597a838/evidence.json
+          - evidence/commands/EVD-9bd85cf6fbea9a15/evidence.json
+          - evidence/commands/EVD-18761f1ecaf3e147/evidence.json
+          - evidence/commands/EVD-6884418a2c058e24/evidence.json
+        actor: pm
+        reason: Handoff, alle 24 Produktdateien, sechs Outcomes, Seed-71-Quell-/Zielhash
+          sowie Testergebnis, Build, Projekt- und Director-Prüfung mit dem
+          Produktabzug 4300ee5 abgeglichen.
+        at: 2026-11-26T18:39:27.619Z
+      - status: pending
+        evidence: []
+        actor: pm
+        reason: "Invalidated by RPR-001: Unity 6000.6.8f1 auf Produkt 4300ee5: nativer
+          Kaltstart-Hash weicht nach erfolgreichem Portalübergang ab (11/12).
+          AC-003 und AC-005 separat nachprüfen."
+        at: 2026-11-26T18:40:51.677Z
+      - status: passed
+        evidence:
+          - evidence/commands/EVD-88d3dc381968f171/evidence.json
+          - evidence/commands/EVD-50f4d3caea320d7d/evidence.json
+          - evidence/commands/EVD-d5709f7bdb2bb3eb/evidence.json
+          - evidence/commands/EVD-ad3d884f80101fad/evidence.json
+        actor: pm
+        reason: "RPR-001: Fachbericht Revision 2, 25 vollständige und bytegleiche
+          Produktpfade sowie vier neue Collector-Belege auf 4d7fe150 geprüft.
+          Natives Vergleichs-XML 13/13 und vollständige Speicherbytes decken den
+          Kaltstartbefund ab."
+        at: 2026-11-26T18:46:12.523Z
+      - status: pending
+        evidence: []
+        actor: pm
+        reason: "Invalidated by RPR-002: Bei der Bildprüfung von AC-006 zeigte der
+          öffentliche Produktstand 4d7fe150 untexturierte Kapiteloberflächen bei
+          fehlendem regionalem Overlay. Review und neue Prüfung für
+          ausgeliefertes Schiefermaterial."
+        at: 2026-11-26T18:47:21.845Z
+      - status: passed
+        evidence:
+          - evidence/commands/EVD-bf6a1fea18c3b5be/evidence.json
+          - evidence/commands/EVD-ecd8f8dfab83a53b/evidence.json
+          - evidence/commands/EVD-38afec9a1bd91137/evidence.json
+          - evidence/commands/EVD-2c653fee80f69a30/evidence.json
+        actor: pm
+        reason: "RPR-002: Revision 3 des Fachberichts, 28 Produktpfade und vier neue
+          Prüfprotokolle auf 72510b0 abgeglichen. Die drei
+          Unity-Oberflächenfälle sind im unabhängigen Abschlusslauf enthalten."
+        at: 2026-11-26T18:57:17.141Z
+  integration:
+    status: passed
+    evidence:
+      - evidence/commands/EVD-239b6c76eae11a35/evidence.json
+      - evidence/commands/EVD-2d81e2c7c80e8a86/evidence.json
+      - evidence/commands/EVD-601a899ee8a3f19e/evidence.json
+    history:
+      - status: pending
+        evidence: []
+        actor: pm
+        reason: "Invalidated by RPR-001: Unity 6000.6.8f1 auf Produkt 4300ee5: nativer
+          Kaltstart-Hash weicht nach erfolgreichem Portalübergang ab (11/12).
+          AC-003 und AC-005 separat nachprüfen."
+        at: 2026-11-26T18:40:51.677Z
+      - status: pending
+        evidence: []
+        actor: pm
+        reason: "Invalidated by RPR-002: Bei der Bildprüfung von AC-006 zeigte der
+          öffentliche Produktstand 4d7fe150 untexturierte Kapiteloberflächen bei
+          fehlendem regionalem Overlay. Review und neue Prüfung für
+          ausgeliefertes Schiefermaterial."
+        at: 2026-11-26T18:47:21.845Z
+      - status: passed
+        evidence:
+          - evidence/commands/EVD-239b6c76eae11a35/evidence.json
+          - evidence/commands/EVD-2d81e2c7c80e8a86/evidence.json
+          - evidence/commands/EVD-601a899ee8a3f19e/evidence.json
+        actor: pm
+        reason: 28 verifizierte Produktpfade, 23.657 Core, 64 Preflight, 76 Director, 16
+          echte native Unity-Fälle einschließlich beider Speicherpfade,
+          Kamerasicht und dreier Texturpfade.
+        at: 2026-11-26T18:58:16.194Z
+  qc:
+    status: passed
+    evidence:
+      - evidence/commands/EVD-3dbba544d962f987/evidence.json
+      - evidence/commands/EVD-a88a90e75eccd378/evidence.json
+      - evidence/commands/EVD-5b94a16121327828/evidence.json
+    history:
+      - status: pending
+        evidence: []
+        actor: pm
+        reason: "Invalidated by RPR-001: Unity 6000.6.8f1 auf Produkt 4300ee5: nativer
+          Kaltstart-Hash weicht nach erfolgreichem Portalübergang ab (11/12).
+          AC-003 und AC-005 separat nachprüfen."
+        at: 2026-11-26T18:40:51.677Z
+      - status: pending
+        evidence: []
+        actor: pm
+        reason: "Invalidated by RPR-002: Bei der Bildprüfung von AC-006 zeigte der
+          öffentliche Produktstand 4d7fe150 untexturierte Kapiteloberflächen bei
+          fehlendem regionalem Overlay. Review und neue Prüfung für
+          ausgeliefertes Schiefermaterial."
+        at: 2026-11-26T18:47:21.845Z
+      - status: passed
+        evidence:
+          - evidence/commands/EVD-3dbba544d962f987/evidence.json
+          - evidence/commands/EVD-a88a90e75eccd378/evidence.json
+          - evidence/commands/EVD-5b94a16121327828/evidence.json
+        actor: pm
+        reason: Eigenständige QC mit neuer .NET-, Preflight- und Director-Ausführung,
+          eigener SHA- und Bildprüfung, 16/16 nativen Fällen und vollständiger
+          Abdeckung der acht Kriterien. RPR-001 und RPR-002 durch direkte
+          Retests belegt.
+        at: 2026-11-26T19:02:35.259Z
+defects:
+  blocker: 0
+  critical: 0
+  major: 0
+  minor: 0
+product_owner_review:
+  status: ready
+  decision: null
+  comments: null
+  decided_at: null
+final_result:
+  status: ready
+  completed_at: null
+  report: final-report.md
+repair_history:
+  - id: RPR-001
+    task_id: MOB-001
+    defect_id: DEF-NORD-001
+    reason: "Unity 6000.6.8f1 auf Produkt 4300ee5: nativer Kaltstart-Hash weicht
+      nach erfolgreichem Portalübergang ab (11/12). AC-003 und AC-005 separat
+      nachprüfen."
+    actor: pm
+    at: 2026-11-26T18:40:51.677Z
+    affected_task_ids:
+      - MOB-001
+      - INT-001
+      - QC-001
+      - PM-004
+    tasks:
+      - id: MOB-001
+        title: Mobile implementation
+        stage: mobile_implementation
+        role: frontend
+        target: mobile
+        status: completed
+        dependencies:
+          - PM-002
+        required_inputs:
+          - artifacts/pm/requirements-review.md
+          - tasks/MOB-001.assignment.yaml
+        required_outputs:
+          - artifacts/mobile/implementation-summary.md
+          - artifacts/mobile/MOB-001-delivery-report.yaml
+        outputs:
+          - artifacts/mobile/implementation-summary.md
+          - artifacts/mobile/MOB-001-delivery-report.yaml
+        evidence:
+          - evidence/commands/EVD-dc27c47e7597a838/evidence.json
+          - evidence/commands/EVD-9bd85cf6fbea9a15/evidence.json
+          - evidence/commands/EVD-18761f1ecaf3e147/evidence.json
+          - evidence/commands/EVD-6884418a2c058e24/evidence.json
+        transitions:
+          - from: pending
+            to: ready
+            actor: system
+            reason: "Dependencies completed: PM-002"
+            at: 2026-11-26T18:23:36.606Z
+          - from: ready
+            to: running
+            actor: pm
+            reason: The prepared mobile owner /root/core was launched by the project
+              dispatcher and will integrate the Core, art and Unity
+              contributions.
+            at: 2026-11-26T18:24:45.524Z
+          - from: running
+            to: awaiting_review
+            actor: frontend
+            reason: File-backed delivery handoff prepared for independent review
+            at: 2026-11-26T18:38:54.015Z
+          - from: awaiting_review
+            to: completed
+            actor: pm
+            reason: Vollständiger Fachreport, bytegleicher Produktabzug und vier
+              reproduzierte Checks geprüft.
+            at: 2026-11-26T18:39:28.865Z
+        started_at: 2026-11-26T18:24:45.524Z
+        completed_at: 2026-11-26T18:39:28.865Z
+        commit: null
+        blocker_reason: null
+        failure_reason: null
+        agent_dispatches:
+          - plan:
+              schema_version: 1
+              run_id: NORD-001
+              task_id: MOB-001
+              role: frontend
+              task_revision: 1
+              activation: 1
+              policy_sha256: e3d787e6dd23b327b61a2d8ee5eee30815e6abf453971f8262e98331851dc77f
+              requested: null
+              selected: null
+              fallback_used: false
+              skill: sdlc-frontend
+              execution: spawn
+              context: task-only
+              capabilities:
+                source: Available models and efforts in collaboration.spawn_agent on this active
+                  host
+                model_selection: true
+                reasoning_selection: true
+                omitted_reasoning_effort: inherit-parent
+                models:
+                  - id: gpt-6.2-sol
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6.2-astra
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6.1-sol
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6.1-terra
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6-astra
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6-sol
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6-luna
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-5.6-sol
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-5.6-terra
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-5.6-luna
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-5.5
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+            agent_id: /root/core
+            actual_model: null
+            actual_reasoning_effort: null
+            observation_source: Current collaboration.list_agents and root dispatch to
+              prepared /root/core; host returned identity only.
+            recorded_at: 2026-11-26T18:24:45.524Z
+      - id: INT-001
+        title: Integration review
+        stage: integration
+        role: pm
+        target: integration
+        status: running
+        dependencies:
+          - MOB-001
+        required_inputs:
+          - artifacts/mobile/implementation-summary.md
+          - artifacts/mobile/MOB-001-delivery-report.yaml
+        required_outputs:
+          - artifacts/integration/integration-report.md
+        outputs: []
+        evidence:
+          - evidence/commands/EVD-c03cee5e16726a0f/evidence.json
+          - evidence/commands/EVD-2050daef6dc88a19/evidence.json
+          - evidence/commands/EVD-004b029c920c055a/evidence.json
+        transitions:
+          - from: pending
+            to: ready
+            actor: system
+            reason: "Dependencies completed: MOB-001"
+            at: 2026-11-26T18:39:28.865Z
+          - from: ready
+            to: running
+            actor: pm
+            reason: Kumulierten Produktstand und native Laufzeitbelege auf die acht
+              Kriterien zurückführen.
+            at: 2026-11-26T18:39:30.020Z
+        started_at: 2026-11-26T18:39:30.020Z
+        completed_at: null
+        commit: null
+        blocker_reason: null
+        failure_reason: null
+      - id: QC-001
+        title: Independent QC
+        stage: qc
+        role: qc
+        target: qc
+        status: pending
+        dependencies:
+          - INT-001
+        required_inputs:
+          - artifacts/integration/integration-report.md
+        required_outputs:
+          - artifacts/qc/test-plan.md
+          - artifacts/qc/test-cases.md
+          - artifacts/qc/execution-results.md
+          - artifacts/qc/requirement-coverage.md
+          - artifacts/qc/defects.md
+          - artifacts/qc/qc-recommendation.md
+        outputs: []
+        evidence: []
+        transitions: []
+        started_at: null
+        completed_at: null
+        commit: null
+        blocker_reason: null
+        failure_reason: null
+      - id: PM-004
+        title: Product Owner delivery package
+        stage: product_owner_review
+        role: pm
+        target: null
+        status: pending
+        dependencies:
+          - QC-001
+        required_inputs:
+          - artifacts/qc/test-plan.md
+          - artifacts/qc/test-cases.md
+          - artifacts/qc/execution-results.md
+          - artifacts/qc/requirement-coverage.md
+          - artifacts/qc/defects.md
+          - artifacts/qc/qc-recommendation.md
+        required_outputs:
+          - final-report.md
+        outputs: []
+        evidence: []
+        transitions: []
+        started_at: null
+        completed_at: null
+        commit: null
+        blocker_reason: null
+        failure_reason: null
+    quality_gates:
+      mobile:
+        status: passed
+        evidence:
+          - evidence/commands/EVD-dc27c47e7597a838/evidence.json
+          - evidence/commands/EVD-9bd85cf6fbea9a15/evidence.json
+          - evidence/commands/EVD-18761f1ecaf3e147/evidence.json
+          - evidence/commands/EVD-6884418a2c058e24/evidence.json
+        history:
+          - status: passed
+            evidence:
+              - evidence/commands/EVD-dc27c47e7597a838/evidence.json
+              - evidence/commands/EVD-9bd85cf6fbea9a15/evidence.json
+              - evidence/commands/EVD-18761f1ecaf3e147/evidence.json
+              - evidence/commands/EVD-6884418a2c058e24/evidence.json
+            actor: pm
+            reason: Handoff, alle 24 Produktdateien, sechs Outcomes, Seed-71-Quell-/Zielhash
+              sowie Testergebnis, Build, Projekt- und Director-Prüfung mit dem
+              Produktabzug 4300ee5 abgeglichen.
+            at: 2026-11-26T18:39:27.619Z
+      integration:
+        status: pending
+        evidence: []
+      qc:
+        status: pending
+        evidence: []
+    archives:
+      - path: artifacts/mobile/implementation-summary.md
+        archive_path: repairs/RPR-001/artifacts/mobile/implementation-summary.md
+        sha256: 99008bfe6a19c1116fdab6d1212fcb726028d5608df68cb7cf8f95ae9f73ea09
+      - path: artifacts/mobile/MOB-001-delivery-report.yaml
+        archive_path: repairs/RPR-001/artifacts/mobile/MOB-001-delivery-report.yaml
+        sha256: 1dcb31e014a65391e876001fca6efe3d3d7c0571800e64d334ec754f2fffd361
+      - path: tasks/MOB-001.assignment.yaml
+        archive_path: repairs/RPR-001/tasks/MOB-001.assignment.yaml
+        sha256: 0bcd61c70fbfa33233a59914a2019a2aeece3a543d301ad6f3e1c6958187fd70
+      - path: tasks/MOB-001.handoff.json
+        archive_path: repairs/RPR-001/tasks/MOB-001.handoff.json
+        sha256: d14e9a3a372b4fed2e919621b1f311bba22cdda3858ace047adcf4296c5fda2d
+      - path: evidence/diffs/changed-files.json
+        archive_path: repairs/RPR-001/evidence/diffs/changed-files.json
+        sha256: 06fd9d7bc10c6cfb3c2db4b883e3af17a95afb172eb03840b9b5bc3ae353d2e6
+  - id: RPR-002
+    task_id: MOB-001
+    defect_id: DEF-NORD-002
+    reason: Bei der Bildprüfung von AC-006 zeigte der öffentliche Produktstand
+      4d7fe150 untexturierte Kapiteloberflächen bei fehlendem regionalem
+      Overlay. Review und neue Prüfung für ausgeliefertes Schiefermaterial.
+    actor: pm
+    at: 2026-11-26T18:47:21.845Z
+    affected_task_ids:
+      - MOB-001
+      - INT-001
+      - QC-001
+      - PM-004
+    tasks:
+      - id: MOB-001
+        title: Mobile implementation
+        stage: mobile_implementation
+        role: frontend
+        target: mobile
+        status: completed
+        dependencies:
+          - PM-002
+        required_inputs:
+          - artifacts/pm/requirements-review.md
+          - tasks/MOB-001.assignment.yaml
+        required_outputs:
+          - artifacts/mobile/implementation-summary.md
+          - artifacts/mobile/MOB-001-delivery-report.yaml
+        outputs:
+          - artifacts/mobile/implementation-summary.md
+          - artifacts/mobile/MOB-001-delivery-report.yaml
+        evidence:
+          - evidence/commands/EVD-8de45fce650428be/evidence.json
+          - evidence/commands/EVD-8e8225559a094a30/evidence.json
+          - evidence/commands/EVD-be91c9dcbb841fd7/evidence.json
+          - evidence/commands/EVD-7411ec45a991f3ad/evidence.json
+          - evidence/commands/EVD-88d3dc381968f171/evidence.json
+          - evidence/commands/EVD-50f4d3caea320d7d/evidence.json
+          - evidence/commands/EVD-d5709f7bdb2bb3eb/evidence.json
+          - evidence/commands/EVD-ad3d884f80101fad/evidence.json
+        transitions:
+          - from: pending
+            to: ready
+            actor: pm
+            reason: "RPR-001: Unity 6000.6.8f1 auf Produkt 4300ee5: nativer Kaltstart-Hash
+              weicht nach erfolgreichem Portalübergang ab (11/12). AC-003 und
+              AC-005 separat nachprüfen."
+            at: 2026-11-26T18:40:51.677Z
+          - from: ready
+            to: running
+            actor: pm
+            reason: RPR-001 wurde der bereits eingesetzten Fachrolle erneut zugewiesen.
+            at: 2026-11-26T18:41:30.045Z
+          - from: running
+            to: awaiting_review
+            actor: frontend
+            reason: File-backed delivery handoff prepared for independent review
+            at: 2026-11-26T18:46:10.293Z
+          - from: awaiting_review
+            to: completed
+            actor: pm
+            reason: Vollständige Reparaturlieferung und erneute Collector-Prüfung auf
+              4d7fe150 reconciliert.
+            at: 2026-11-26T18:46:13.880Z
+        started_at: 2026-11-26T18:41:30.045Z
+        completed_at: 2026-11-26T18:46:13.880Z
+        commit: null
+        blocker_reason: null
+        failure_reason: null
+        agent_dispatches:
+          - plan:
+              schema_version: 1
+              run_id: NORD-001
+              task_id: MOB-001
+              role: frontend
+              task_revision: 1
+              activation: 2
+              policy_sha256: e3d787e6dd23b327b61a2d8ee5eee30815e6abf453971f8262e98331851dc77f
+              requested: null
+              selected: null
+              fallback_used: false
+              skill: sdlc-frontend
+              execution: spawn
+              context: task-only
+              capabilities:
+                source: Available models and efforts in collaboration.spawn_agent on this active
+                  host
+                model_selection: true
+                reasoning_selection: true
+                omitted_reasoning_effort: inherit-parent
+                models:
+                  - id: gpt-6.2-sol
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6.2-astra
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6.1-sol
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6.1-terra
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6-astra
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6-sol
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-6-luna
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-5.6-sol
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-5.6-terra
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-5.6-luna
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+                  - id: gpt-5.5
+                    reasoning_efforts:
+                      - low
+                      - medium
+                      - high
+                      - xhigh
+                      - max
+                      - ultra
+            agent_id: /root/core
+            actual_model: null
+            actual_reasoning_effort: null
+            observation_source: Real host collaboration.followup_task reactivated the
+              previously assigned /root/core role for RPR-001. Host reports no
+              observer model or effort.
+            recorded_at: 2026-11-26T18:41:30.045Z
+        activation_offset: 1
+      - id: INT-001
+        title: Integration review
+        stage: integration
+        role: pm
+        target: integration
+        status: running
+        dependencies:
+          - MOB-001
+        required_inputs:
+          - artifacts/mobile/implementation-summary.md
+          - artifacts/mobile/MOB-001-delivery-report.yaml
+        required_outputs:
+          - artifacts/integration/integration-report.md
+        outputs: []
+        evidence:
+          - evidence/commands/EVD-10ac5da49e4ae68a/evidence.json
+          - evidence/commands/EVD-a9d2f78a208e3cc9/evidence.json
+          - evidence/commands/EVD-fbaff8054e8dc688/evidence.json
+        transitions:
+          - from: pending
+            to: ready
+            actor: system
+            reason: "Dependencies completed: MOB-001"
+            at: 2026-11-26T18:46:13.880Z
+          - from: ready
+            to: running
+            actor: pm
+            reason: Integrierte vier Revisionsstände anhand originaler Unity-XMLs und
+              Endstand zusätzlich am SDK prüfen.
+            at: 2026-11-26T18:46:15.159Z
+        started_at: 2026-11-26T18:46:15.159Z
+        completed_at: null
+        commit: null
+        blocker_reason: null
+        failure_reason: null
+        activation_offset: 1
+        agent_dispatches: []
+      - id: QC-001
+        title: Independent QC
+        stage: qc
+        role: qc
+        target: qc
+        status: pending
+        dependencies:
+          - INT-001
+        required_inputs:
+          - artifacts/integration/integration-report.md
+        required_outputs:
+          - artifacts/qc/test-plan.md
+          - artifacts/qc/test-cases.md
+          - artifacts/qc/execution-results.md
+          - artifacts/qc/requirement-coverage.md
+          - artifacts/qc/defects.md
+          - artifacts/qc/qc-recommendation.md
+        outputs: []
+        evidence: []
+        transitions: []
+        started_at: null
+        completed_at: null
+        commit: null
+        blocker_reason: null
+        failure_reason: null
+        activation_offset: 0
+        agent_dispatches: []
+      - id: PM-004
+        title: Product Owner delivery package
+        stage: product_owner_review
+        role: pm
+        target: null
+        status: pending
+        dependencies:
+          - QC-001
+        required_inputs:
+          - artifacts/qc/test-plan.md
+          - artifacts/qc/test-cases.md
+          - artifacts/qc/execution-results.md
+          - artifacts/qc/requirement-coverage.md
+          - artifacts/qc/defects.md
+          - artifacts/qc/qc-recommendation.md
+        required_outputs:
+          - final-report.md
+        outputs: []
+        evidence: []
+        transitions: []
+        started_at: null
+        completed_at: null
+        commit: null
+        blocker_reason: null
+        failure_reason: null
+        activation_offset: 0
+        agent_dispatches: []
+    quality_gates:
+      mobile:
+        status: passed
+        evidence:
+          - evidence/commands/EVD-88d3dc381968f171/evidence.json
+          - evidence/commands/EVD-50f4d3caea320d7d/evidence.json
+          - evidence/commands/EVD-d5709f7bdb2bb3eb/evidence.json
+          - evidence/commands/EVD-ad3d884f80101fad/evidence.json
+        history:
+          - status: passed
+            evidence:
+              - evidence/commands/EVD-dc27c47e7597a838/evidence.json
+              - evidence/commands/EVD-9bd85cf6fbea9a15/evidence.json
+              - evidence/commands/EVD-18761f1ecaf3e147/evidence.json
+              - evidence/commands/EVD-6884418a2c058e24/evidence.json
+            actor: pm
+            reason: Handoff, alle 24 Produktdateien, sechs Outcomes, Seed-71-Quell-/Zielhash
+              sowie Testergebnis, Build, Projekt- und Director-Prüfung mit dem
+              Produktabzug 4300ee5 abgeglichen.
+            at: 2026-11-26T18:39:27.619Z
+          - status: pending
+            evidence: []
+            actor: pm
+            reason: "Invalidated by RPR-001: Unity 6000.6.8f1 auf Produkt 4300ee5: nativer
+              Kaltstart-Hash weicht nach erfolgreichem Portalübergang ab
+              (11/12). AC-003 und AC-005 separat nachprüfen."
+            at: 2026-11-26T18:40:51.677Z
+          - status: passed
+            evidence:
+              - evidence/commands/EVD-88d3dc381968f171/evidence.json
+              - evidence/commands/EVD-50f4d3caea320d7d/evidence.json
+              - evidence/commands/EVD-d5709f7bdb2bb3eb/evidence.json
+              - evidence/commands/EVD-ad3d884f80101fad/evidence.json
+            actor: pm
+            reason: "RPR-001: Fachbericht Revision 2, 25 vollständige und bytegleiche
+              Produktpfade sowie vier neue Collector-Belege auf 4d7fe150
+              geprüft. Natives Vergleichs-XML 13/13 und vollständige
+              Speicherbytes decken den Kaltstartbefund ab."
+            at: 2026-11-26T18:46:12.523Z
+      integration:
+        status: pending
+        evidence: []
+        history:
+          - status: pending
+            evidence: []
+            actor: pm
+            reason: "Invalidated by RPR-001: Unity 6000.6.8f1 auf Produkt 4300ee5: nativer
+              Kaltstart-Hash weicht nach erfolgreichem Portalübergang ab
+              (11/12). AC-003 und AC-005 separat nachprüfen."
+            at: 2026-11-26T18:40:51.677Z
+      qc:
+        status: pending
+        evidence: []
+        history:
+          - status: pending
+            evidence: []
+            actor: pm
+            reason: "Invalidated by RPR-001: Unity 6000.6.8f1 auf Produkt 4300ee5: nativer
+              Kaltstart-Hash weicht nach erfolgreichem Portalübergang ab
+              (11/12). AC-003 und AC-005 separat nachprüfen."
+            at: 2026-11-26T18:40:51.677Z
+    archives:
+      - path: artifacts/mobile/implementation-summary.md
+        archive_path: repairs/RPR-002/artifacts/mobile/implementation-summary.md
+        sha256: 9fef20b9c80e7f4ebf80d7915ad0ec8ef261ed0a2010a7162645c888e3cdd1f0
+      - path: artifacts/mobile/MOB-001-delivery-report.yaml
+        archive_path: repairs/RPR-002/artifacts/mobile/MOB-001-delivery-report.yaml
+        sha256: d5cf2992cd62272f9176612df1e73e09eb6ce60b5072ff2e10b4aef4a4d6b89b
+      - path: tasks/MOB-001.assignment.yaml
+        archive_path: repairs/RPR-002/tasks/MOB-001.assignment.yaml
+        sha256: 8e46f8d307a694eca565b9cb0900258b6b36eda1f1c3878740dc67f3a79553a1
+      - path: tasks/MOB-001.handoff.json
+        archive_path: repairs/RPR-002/tasks/MOB-001.handoff.json
+        sha256: 871436d09b4b82f126c43a54e9b35b48c7d33b6cc0cccbf2ea58e9a629055a2c
+      - path: evidence/diffs/changed-files.json
+        archive_path: repairs/RPR-002/evidence/diffs/changed-files.json
+        sha256: a40224655b3b2b04d651359bf054744471b0e57131650f969a51cf65b9353283

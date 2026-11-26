@@ -34,10 +34,14 @@ namespace AreArpg.Core
         {
             act = 0; north = false; stage = 0; choice = HungerChoice.Undecided;
             string[] f = text.Split(',');
-            if (f.Length != 5 || f[0] != "1" || (f[1].Length != 1 && !(woodland && f[1] == "10")) || f[2].Length != 1 ||
-                f[3].Length != 1 || f[4].Length != 1) return false;
-            act = f[1] == "10" ? 10 : f[1][0] - '0'; stage = f[3][0] - '0'; int decision = f[4][0] - '0';
-            if (act < 2 || act > (woodland ? 10 : rattler ? 7 : extended ? 6 : 4) || (f[2] != "0" && f[2] != "1") || stage < 1 || stage > 4 ||
+            if (f.Length != 5 || f[0] != "1" || f[2].Length != 1 || f[3].Length != 1 || f[4].Length != 1) return false;
+            bool rift = woodland && f[1] == NordwechselAct.ToString(CultureInfo.InvariantCulture);
+            if (rift) act = NordwechselAct;
+            else if (woodland && f[1] == "10") act = 10;
+            else if (f[1].Length == 1 && f[1][0] >= '2' && f[1][0] <= '9') act = f[1][0] - '0';
+            else return false;
+            stage = f[3][0] - '0'; int decision = f[4][0] - '0';
+            if ((!rift && act > (woodland ? 10 : rattler ? 7 : extended ? 6 : 4)) || (rift && f[2] != "0") || (f[2] != "0" && f[2] != "1") || stage < 1 || stage > 4 ||
                 decision < 0 || decision > 3 || (act == 4 && (stage < 2 || (f[2] == "1" && (!extended || stage != 4)))) ||
                 (act >= 5 && stage != 4) || ((act == 7 || (act == 6 && !rattler)) && f[2] == "1") ||
                 (stage < 3 && decision != 0) || (stage == 4 && decision == 0)) return false;
@@ -49,13 +53,13 @@ namespace AreArpg.Core
     public sealed partial class ArenaSimulation
     {
         public const long ReturnPassageZmm = -24000L;
-        public bool AtReturnPassage { get { return !InJourney && !InWoodlandRegion && Progression.EntryAct >= 3 &&
+        public bool AtReturnPassage { get { return !InJourney && !InWoodlandRegion && !InNordwechselRift && Progression.EntryAct >= 3 &&
             DistanceSquared(PlayerXmm, PlayerZmm, 0, ReturnPassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
-        public bool AtAnyPassage { get { return AtJourneyPassage || AtWoodlandPassage || AtWorldPassage || AtReturnPassage; } }
+        public bool AtAnyPassage { get { return AtNordwechsel || AtJourneyPassage || AtWoodlandPassage || AtWorldPassage || AtReturnPassage; } }
         /// <summary>Authored shelter encounter: one patient is missing on the return visit, on every supply branch.</summary>
         public int HungerShelterPatients { get { return Progression.EntryAct != 4 ? 0 :
             Progression.SupplyChoice == HungerChoice.Undecided ? 3 : 2; } }
-        public bool HungerForwardOpen { get { return InJourney ? JourneyForwardOpen : InWoodlandRegion ? false : InDungeon ? DungeonForwardOpen : Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
+        public bool HungerForwardOpen { get { return InNordwechselRift ? CryptCleared && !LootOnGround : InJourney ? JourneyForwardOpen : InWoodlandRegion ? false : InDungeon ? DungeonForwardOpen : Progression.EntryAct == 2 ? Progression.HungerStage >= 1 :
             Progression.EntryAct == 3 ? Progression.HungerStage >= 2 :
             Progression.EntryAct == 4 ? Progression.HungerStage == 4 :
             Progression.EntryAct == 5 ? Progression.Investigation.Approach != SealApproach.Undecided :
@@ -212,6 +216,9 @@ namespace AreArpg.Core
         {
             get
             {
+                if (InNordwechselRift)
+                    return !CryptCleared ? "Besiege den Ember Warden und seine Wächter in der Glutklamm." :
+                        LootOnGround ? "Sammle die Beute in der Glutklamm ein." : "Der nördliche Ausgang führt in die nächste Tiefe.";
                 if (InDungeon) return DungeonObjective;
                 if (InJourney) return JourneyObjective;
                 if (Progression.Woodland.Active && Progression.EntryAct != 5 && Progression.EntryAct != 6 && Progression.EntryAct != 7) return WoodlandObjective;

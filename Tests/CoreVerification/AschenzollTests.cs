@@ -90,6 +90,13 @@ internal static class AschenzollTests
             check(w.HungerObjective.StartsWith(w.FreightObjective,StringComparison.Ordinal)&&w.HungerObjective.Contains("Mara"),"freight-and-cub-journal-priority-survives-restore-"+release);
             check(w.Progression.Freight.Reported&&w.Progression.Social.Forge.Archive.Get("ilyan").Known.Count==1,"freight-report-and-memory-restore-together-"+release);
             check(w.Progression.TotalExperience==experience,"freight-investigation-does-not-invent-xp-"+release);
+
+            // Return the reported branch to the authored station fixture, then walk and use the real passage.
+            w.Progression.TravelHunger(10,false);
+            w=new ArenaSimulation(71,w.Progression,1,LootCatalog.Version1);
+            HunterEncounterTests.Move(w,-9500,18000);
+            var rift=w.TryTraversePassage();
+            check(rift!=null&&rift.ChapterId==2,"nordwechsel-reported-freight-opens-ember-rift-"+release);
         }
         foreach(string invalid in new[]{"1,7,0,1,0,0,0","1,7,1,0,0,1,0","1,7,2,99,0,1,0","1,7,2,100,1,1,1","1,3,1,0,1,0,0","1,0,0,0,0,0,0","1,7,0,0,0,0,1","1,7,2,-1,0,0,0"})
             check(!FreightState.TryRead(invalid,out _),"freight-impossible-state-rejected-"+invalid);

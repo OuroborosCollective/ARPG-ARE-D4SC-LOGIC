@@ -27,6 +27,34 @@ namespace AreArpg.PlayMode.Tests
         }
 
         [UnityTest]
+        public IEnumerator NordbogenCameraSeesThroughOpeningAndStopsAtStone()
+        {
+            InstallJourneyStationFixture();
+            yield return null;
+            var gate = Find("Aschenzoll_Nordbogen");
+            Assert.IsNotNull(gate.transform.Find("CryptArch").GetComponentInChildren<LODGroup>());
+            long x = ArenaSimulation.NordwechselXmm, z = ArenaSimulation.NordwechselZmm;
+            MoveStory(x, z - 4000);
+            MoveStory(x, z + 2000);
+            ProjectCameraFrame();
+            var camera = Camera.main;
+            var rig = camera.GetComponent<ArenaCameraRig>();
+            rig.ResetZoom();
+            typeof(ArenaRuntime).GetMethod("RefreshCameraOccluders", Flags).Invoke(_runtime, null);
+            rig.SnapToTarget();
+            Assert.AreEqual(0f, Mathf.DeltaAngle(0f, rig.Yaw), .1f, "The hero walked north through the actual arch.");
+            Assert.AreEqual(rig.Distance, Vector3.Distance(camera.transform.position, rig.FocusPoint), .02f,
+                "The open shaft of the arch must preserve the chosen camera distance.");
+
+            // Step sideways behind the east pier at the same depth, retaining the camera heading.
+            MoveStory(x + 2150, z + 2000);
+            ProjectCameraFrame();
+            rig.SnapToTarget();
+            Assert.Less(Vector3.Distance(camera.transform.position, rig.FocusPoint), rig.Distance - .5f,
+                "Solid stone still brings the camera forward.");
+        }
+
+        [UnityTest]
         public IEnumerator MovingHeroKeepsTheCloserTravelFraming()
         {
             ReachQuietVillage(); Game.SetMoveInput(10000, 0); Game.Step(); ProjectCameraFrame();

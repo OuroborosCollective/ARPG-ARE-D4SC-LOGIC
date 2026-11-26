@@ -151,6 +151,7 @@ namespace AreArpg.Core
         public const long PassageXmm = 0L;
         public const long PassageZmm = 24000L;
         public const long PassageRadiusMm = 1800L;
+        public const long EmberPulseRadiusMm = 4000L;
         public const long CampXmm = -4500L;
         public const long CampZmm = -6000L;
         public const long NpcInteractionRadiusMm = 2400L;
@@ -176,7 +177,9 @@ namespace AreArpg.Core
             if (AtJourneyPassage) return TraverseJourney();
             if (AtWoodlandPassage) return TraverseWoodland();
             if (!AtAnyPassage || GameOver) return null;
-            ArenaSimulation next = Progression.EntryAct >= 2 ? TraverseHunger(AtReturnPassage)
+            ArenaSimulation next = AtNordwechsel ? EnterNordwechsel()
+                : InNordwechselRift ? TryAdvanceCrypt()
+                : Progression.EntryAct >= 2 ? TraverseHunger(AtReturnPassage)
                 : InKilnYard ? TryLeaveKilnYard()
                 : InCourt && AtKilnSideGate ? TryEnterKilnYard()
                 : Progression.EntryAct == 1 && !InCourt ? TryEnterCourt() : TryAdvanceCrypt();
@@ -195,7 +198,7 @@ namespace AreArpg.Core
                 next.PlayerZmm = next.PrevPlayerZmm = KilnYard.CourtReturnZmm;
             }
             else
-                next.PlayerZmm = next.PrevPlayerZmm = next.InCourt ? CourtLayout.SpawnZmm : next.Progression.HungerStage > 0 ?
+                next.PlayerZmm = next.PrevPlayerZmm = next.InCourt ? CourtLayout.SpawnZmm : next.Progression.HungerStage > 0 && !next.InNordwechselRift ?
                     (next.Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
             next.BindCompanion(true);
             next.SaveRoadPlayer(); next.SaveInvestigationPlayer(); next.SaveDungeonPlayer();
@@ -236,7 +239,8 @@ namespace AreArpg.Core
         public readonly int[] Cooldowns = new int[4];
 
         public ArenaSimulation(ulong seed, CharacterProgression progression = null)
-            : this(seed, progression, System.Numerics.BigInteger.One) { }
+            : this(seed, progression, progression?.EntryAct == CharacterProgression.NordwechselAct ?
+                  progression.UnlockedCryptDepth : System.Numerics.BigInteger.One) { }
 
         public ArenaSimulation(ulong seed, CharacterProgression progression,
             System.Numerics.BigInteger cryptDepth)
@@ -257,11 +261,16 @@ namespace AreArpg.Core
             _journeyMaps = journeyMaps;
             CryptDepth = cryptDepth;
             Progression = progression ?? new CharacterProgression();
-            Progression.Supplies.EnterArea(SupplyArea);
             if (Progression.Journey.Active && journeyMaps?.Resolve(Progression.Journey.MapHash) == null)
                 throw new InvalidOperationException("Exact authored journey map unavailable");
-            if (Progression.EntryAct > 0 && !cryptDepth.IsOne)
-                throw new ArgumentOutOfRangeException(nameof(cryptDepth), "Entry revision 1 uses its own two-act checkpoint.");
+            if (InNordwechselRift)
+            {
+                if (cryptDepth != Progression.UnlockedCryptDepth || !Progression.HasNordwechselCheckpoint)
+                    throw new ArgumentException("Nordwechsel requires the reported station and its unlocked depth.", nameof(progression));
+            }
+            else if (Progression.EntryAct > 0 && !cryptDepth.IsOne)
+                throw new ArgumentOutOfRangeException(nameof(cryptDepth), "The prologue requires its depth-one checkpoint.");
+            Progression.Supplies.EnterArea(SupplyArea);
             PlayerHealth = MaxPlayerHealth;
             _rng = new DeterministicRng(InJourney ? JourneySeed : InForest ? Progression.Woodland.Seed : InDungeon ? Progression.Dungeon.Seed : seed);
             if (InJourney) { InitializeJourney(); Progression.JourneyCapture = SaveJourneyPlayer; BindForge(); return; }
@@ -273,7 +282,7 @@ namespace AreArpg.Core
                 Npcs.Add(new NpcAgent(2, Progression.Social.GetMemory(2), -6500, -3500));
             }
             else if (Progression.EntryAct == 0) Npcs.Add(new NpcAgent(0, Progression.Social.GetMemory(0), -2000, -21000));
-            if (Progression.EntryAct >= 2)
+            if (Progression.EntryAct >= 2 && !InNordwechselRift)
             {
                 PlayerZmm = PrevPlayerZmm = Progression.HungerStage > 0 ? (Progression.EntryFromNorth ? 21000L : -21000L) : -23000L;
                 if (InWoodlandRegion) { InitializeWoodland(); BindForge(); return; }
@@ -307,6 +316,7 @@ namespace AreArpg.Core
                 BindForge();
                 return;
             }
+            if (InNordwechselRift) PlayerZmm = PrevPlayerZmm = -23000L;
             // Fixed bounds preserve finite combat arithmetic even for astronomical depth.
             int depthScale = (int)System.Numerics.BigInteger.Min(cryptDepth - 1, 10000);
             if (ChapterId == 1)
@@ -342,8 +352,8 @@ namespace AreArpg.Core
         /// <summary>Advance only after victory and all loot pickup; permanent character is reused.</summary>
         public ArenaSimulation TryAdvanceCrypt()
         {
-            if (Progression.EntryAct >= 2) return null; // Story travel uses adjacent, location-gated passages instead.
-            if (!CryptCleared || LootOnGround ||
+            if (Progression.EntryAct >= 2 && !InNordwechselRift) return null;
+            if (!CryptCleared || LootOnGround || (InNordwechselRift && !AtWorldPassage) ||
                 CryptDepth != Progression.UnlockedCryptDepth) return null;
             CharacterProgression nextProgress;
             if (!CharacterProgression.TryLoad(Progression.SaveString(), _journeyMaps, out nextProgress)) return null;
@@ -353,6 +363,11 @@ namespace AreArpg.Core
                 return new ArenaSimulation(_runSeed, nextProgress, CryptDepth, _lootCatalog, _journeyMaps);
             }
             if (!nextProgress.TryUnlockNextCryptDepth(CryptDepth)) return null;
+            if (InNordwechselRift)
+            {
+                nextProgress.Regions.Clear(RegionNetwork.Glutklamm);
+                nextProgress.Regions.Enter(RegionNetwork.Glutklamm, nextProgress.EntryAct);
+            }
             return new ArenaSimulation(_runSeed, nextProgress,
                 nextProgress.UnlockedCryptDepth, _lootCatalog, _journeyMaps);
         }
@@ -646,8 +661,8 @@ namespace AreArpg.Core
             if (x < -ArenaLimitMm || x > ArenaLimitMm || z < -ArenaLimitMm || z > ArenaLimitMm) return false;
             if (InDungeon) return Progression.Dungeon.Current.Layout.CanStand(x, z) && (z <= 21000 || DungeonForwardOpen);
             if (Progression.EntryAct == 2) return EntryWorldLayout.CanStand(x, z);
-            if (Progression.EntryAct >= 5) return CanStandInInvestigation(Progression.EntryAct, Progression.Investigation.Approach, x, z, Progression.Rattler.Active);
-            if (Progression.EntryAct >= 3) return CanStandInHungerRegion(Progression.EntryAct, x, z);
+            if (!InNordwechselRift && Progression.EntryAct >= 5) return CanStandInInvestigation(Progression.EntryAct, Progression.Investigation.Approach, x, z, Progression.Rattler.Active);
+            if (!InNordwechselRift && Progression.EntryAct >= 3) return CanStandInHungerRegion(Progression.EntryAct, x, z);
             long[] coordinates = { -7000, 7000 };
             foreach (long px in coordinates)
                 foreach (long pz in coordinates)
@@ -737,30 +752,25 @@ namespace AreArpg.Core
                         ReceiveCreatureHit(enemy, MonsterRoles.AttackDamage(enemy.Role), committed: true);
                     continue;
                 }
-                // A committed pulse already has a target and saved decision. Do not
-                // replace its frame or start another attack before the outcome settles.
-                bool committedPulse=ChapterId==2 && enemy.Kind==3 && enemy.BossWindupTicks>0;
-                if(!committedPulse && StepMonsterAgainstCompanion(enemy))continue;
                 long distance2 = DistanceSquared(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm);
-                if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
-                if(!committedPulse && !ForgeCreatureMayAttack(enemy,PlayerXmm,PlayerZmm))continue;
-                if (ChapterId == 2 && enemy.Kind == 3)
+                bool emberWarden = ChapterId == 2 && enemy.Kind == 3;
+                if (emberWarden && enemy.BossWindupTicks > 0)
                 {
-                    // Explicit 8-tick warning (800 ms) before an avoidable fire shockwave.
-                    if (enemy.BossWindupTicks > 0)
-                    {
-                        enemy.BossWindupTicks--;
-                        if (enemy.BossWindupTicks == 0 &&
-                            DistanceSquared(PlayerXmm, PlayerZmm, enemy.Xmm, enemy.Zmm) <= FixedMath.Square(4000))
-                            ReceiveCreatureHit(enemy, 190, committed: true);
-                        continue;
-                    }
-                    if (enemy.BossPulseCooldownTicks == 0 && distance2 <= FixedMath.Square(10000))
-                    {
-                        enemy.BossWindupTicks = 8;
-                        enemy.BossPulseCooldownTicks = 55;
-                        continue;
-                    }
+                    // A committed pulse resolves after eight ticks even if its target has left aggro range.
+                    enemy.BossWindupTicks--;
+                    if (enemy.BossWindupTicks == 0 && distance2 <= FixedMath.Square(EmberPulseRadiusMm) &&
+                        CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm))
+                        ReceiveCreatureHit(enemy, 190, committed: true);
+                    continue;
+                }
+                if (StepMonsterAgainstCompanion(enemy)) continue;
+                if (distance2 > FixedMath.Square(14000) || !CombatSight(enemy.Xmm, enemy.Zmm, PlayerXmm, PlayerZmm)) continue;
+                if (!ForgeCreatureMayAttack(enemy,PlayerXmm,PlayerZmm)) continue;
+                if (emberWarden && enemy.BossPulseCooldownTicks == 0 && distance2 <= FixedMath.Square(10000))
+                {
+                    enemy.BossWindupTicks = 8;
+                    enemy.BossPulseCooldownTicks = 55;
+                    continue;
                 }
                 if (distance2 > FixedMath.Square(MonsterRoles.AttackRangeMm(enemy.Role)))
                 {

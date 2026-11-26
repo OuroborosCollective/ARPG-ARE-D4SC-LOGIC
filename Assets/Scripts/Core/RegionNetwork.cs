@@ -23,6 +23,7 @@ namespace AreArpg.Core
         public const string Waldweg = "region.waldweg.v1";
         public const string Baerenhoehle = "region.baerenhoehle.v1";
         public const string Aschenzoll = "region.aschenzoll.v1";
+        public const string Glutklamm = "region.glutklamm.v1";
         public const string Reise = "region.reise-jenseits-aschenzoll.v1";
 
         private sealed class Node
@@ -35,14 +36,15 @@ namespace AreArpg.Core
         private static readonly string[] Ordered =
         {
             Aschengrenze, Aschenstrasse, AlteMuehle, AlterSpeicher, VerborgeneKrypta,
-            Rattlernest, Waldweg, Baerenhoehle, Aschenzoll, Reise
+            Rattlernest, Waldweg, Baerenhoehle, Aschenzoll, Reise, Glutklamm
         };
 
         // Story act that first unlocks a region. Reise is special: it unlocks only once the onward travel is active.
         private static readonly Dictionary<string, int> UnlockAct = new Dictionary<string, int>(StringComparer.Ordinal)
         {
             { Aschengrenze, 0 }, { Aschenstrasse, 3 }, { AlteMuehle, 4 }, { AlterSpeicher, 5 },
-            { VerborgeneKrypta, 6 }, { Rattlernest, 7 }, { Waldweg, 8 }, { Baerenhoehle, 9 }, { Aschenzoll, 10 }
+            { VerborgeneKrypta, 6 }, { Rattlernest, 7 }, { Waldweg, 8 }, { Baerenhoehle, 9 }, { Aschenzoll, 10 },
+            { Glutklamm, CharacterProgression.NordwechselAct }
         };
 
         // Undirected chain of neighbouring regions; the hub reaches every unlocked region without an edge.
@@ -50,7 +52,7 @@ namespace AreArpg.Core
         {
             (Aschengrenze, Aschenstrasse), (Aschenstrasse, AlteMuehle), (AlteMuehle, AlterSpeicher),
             (AlterSpeicher, VerborgeneKrypta), (VerborgeneKrypta, Rattlernest), (AlteMuehle, Waldweg),
-            (Waldweg, Baerenhoehle), (Waldweg, Aschenzoll), (Aschenzoll, Reise)
+            (Waldweg, Baerenhoehle), (Waldweg, Aschenzoll), (Aschenzoll, Reise), (Aschenzoll, Glutklamm)
         };
 
         private readonly SortedDictionary<string, Node> _nodes = new SortedDictionary<string, Node>(StringComparer.Ordinal);
@@ -73,6 +75,7 @@ namespace AreArpg.Core
                 case 8: return Waldweg;
                 case 9: return Baerenhoehle;
                 case 10: return Aschenzoll;
+                case CharacterProgression.NordwechselAct: return Glutklamm;
                 default: return Aschengrenze;
             }
         }
@@ -87,7 +90,7 @@ namespace AreArpg.Core
         public IEnumerable<string> UnlockedRegions(int act) { return Ordered.Where(r => IsUnlocked(r, act)); }
 
         /// <summary>The region the story act currently places the player in; the journey overrides act 10.</summary>
-        public string CurrentRegion(int act) { return JourneyActive ? Reise : RegionForAct(act); }
+        public string CurrentRegion(int act) { return JourneyActive && act != CharacterProgression.NordwechselAct ? Reise : RegionForAct(act); }
 
         private static bool IsEdge(string a, string b)
         {
@@ -100,6 +103,7 @@ namespace AreArpg.Core
         {
             if (string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to) || from == to) return false;
             if (!IsUnlocked(from, act) || !IsUnlocked(to, act)) return false;
+            if (from == Glutklamm || to == Glutklamm) return IsEdge(from, to);
             if (from == Aschengrenze || to == Aschengrenze) return true;
             return IsEdge(from, to);
         }

@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "run_id": "NORD-001",
+  "task_id": "MOB-001",
+  "assignment_revision": 4,
+  "assignment_sha256": "8e46f8d307a694eca565b9cb0900258b6b36eda1f1c3878740dc67f3a79553a1",
+  "report_sha256": "d5cf2992cd62272f9176612df1e73e09eb6ce60b5072ff2e10b4aef4a4d6b89b",
+  "files": [
+    {
+      "path": "Assets/Scripts/Core/ArpgSimulation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "497b337ee909c61ad021b85b6dcdfce391e5c890674c1d0ff5e56ec096622b1e"
+    },
+    {
+      "path": "Assets/Scripts/Core/AschenzollFreight.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "2616d6d40cf01276ad17cd59015dd63cece63c8240ef9bed826ea76941c01922"
+    },
+    {
+      "path": "Assets/Scripts/Core/CharacterProgression.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "0e6026db81890f7b94398d1ee8de66b6872c260691d558d4bf6578138c61734a"
+    },
+    {
+      "path": "Assets/Scripts/Core/HungerJourney.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "1ea43eaba1b635817987234cd561887593de41412d4871b7393bf98ff011e418"
+    },
+    {
+      "path": "Assets/Scripts/Core/JourneyState.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "e5b33d601692277c5e4d034d5e350b7a11873762c839aa1424308144f79fd769"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeCompanion.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "6d7bb74b564516612951b449d796358881a4b90a34a2270a4e8932862c099071"
+    },
+    {
+      "path": "Assets/Scripts/Core/RegionNetwork.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "5792b7a04531a198fdabd5c9922c05f81c79e5fc32cd20dccb6a9366c6d86438"
+    },
+    {
+      "path": "Assets/Scripts/Core/WoodlandState.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "c0e7ce236794363b9cdeaefe0750b07593302acd18d3e0d0090454631dfcc4dc"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/ArenaCameraRig.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "b9f7b6799620a26de83603bfb21b8613923d17e664f904c15769f47c7564288f"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/ArenaRuntime.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "c0aa4178c9fdeff29ca25b3d5803ddb2834ea0061dddc9d8e8d60645b0bd5bb6"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/AschenzollPresentation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "1c2211e8233140cc50468ee9f429123b755182b4e61bd15e091bfd8c671124be"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/HeroCameraPresentation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "3e5df95a5bb820a6cdcb94fad8302ca7b2277c4608d45ca5c4ee6f84fddfa08d"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/HungerJourneyPresentation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "c198dd4889da484d6ef5675a68688899d13fa8374e599db8c2ad40637762fc77"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/HunterEncounterPresentation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "8c529448241b5d451f54236a8af64502c183c02ce3715c5347752c850dab4682"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/NordwechselPresentation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "5f68b3c4472e11714418c27fb423492e55fc08f1553fc60b6908e00705675f2c"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/NordwechselPresentation.cs.meta",
+      "repository": "coordinator",
+      "type": "generated",
+      "sha256": "d30e79dd3703bb36712e7fa3ba8ee7afdaff8dca8acb730457694e8c2d3c6d36"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/PostProcessPresentation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "5b6a098c1b148654460e2f99124d6490afaae646dab13638c604d4ffab911e27"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/WoodlandPresentation.cs",
+      "repository": "coordinator",
+      "type": "source",
+      "sha256": "ea01ba99c794a9ef8b54bb43220620fb5b8be14ad87aa42a458842ac7ec04775"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/ArenaCameraRigTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "fef178f7b8608ac13c6c4c32a80ac61deb1323831af090fd3efd3903c08b33bd"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/AschenzollRuntimeTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "1413802e91ab9aa018f64995f3d25d93fbfe840b2cedc3b659908e75704d1907"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HeroFramingRuntimeTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "9bc268f4a7f8a772585823d73d9fe5e195d8d6cc0c0a1eb806fe7687a0ab30b0"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/PostProcessPlayModeTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "bd966fdcc29fa5992989766424a4c576d1037d1b40fac5d4cde70a19c67dd14d"
+    },
+    {
+      "path": "Tests/CoreVerification/AschenzollTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "b9da7e715f63f2096306cb86d8f99dceb42abaec5b11fb7efe40b64bb16dd75d"
+    },
+    {
+      "path": "Tests/CoreVerification/NordwechselTests.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "4b7ce5ebeb2dc172d7a96da9fea28f129c05b00d466e6da96583e1af68dfa049"
+    },
+    {
+      "path": "Tests/CoreVerification/Program.cs",
+      "repository": "coordinator",
+      "type": "test",
+      "sha256": "9d0da5e9313fcc994ac8b136f26c31bff2a2277ae8797c6ea0e5131d34ba6fd8"
+    }
+  ]
+}

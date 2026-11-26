@@ -19,11 +19,13 @@ namespace AreArpg.UnityClient
         private const float YawPerUnit = 0.32f, PitchPerUnit = 0.2f, FollowDegreesPerSecond = 36f;
 
         private Transform _target;
+        private Camera _lens;
         private float _defaultDistance, _framingDistance, _pitch, _idleSeconds, _dangerHold;
         private float _yaw, _pitchOffset, _followHold, _pullIn;
         private bool _entryProfile, _manual, _moving, _danger, _speaking;
         private bool _lateralInput;
         private Vector3 _focus, _speakerPosition;
+        private Bounds? _wardenPulse;
         private Bounds[] _occluders = new Bounds[0];
         public HeroFraming Framing { get; private set; }
         public bool Automatic { get { return !_manual; } }
@@ -32,7 +34,17 @@ namespace AreArpg.UnityClient
         /// <summary>The smoothed world point the camera looks at.</summary>
         public Vector3 FocusPoint { get { return _focus; } }
         private float MinimumDistance { get { return _entryProfile ? 2.2f : 7f; } }
-        private float MaximumDistance { get { return _entryProfile ? 9f : 22f; } }
+        // A wheel/pinch may start at the wider boss framing. Retain a deliberately chosen
+        // distance when leaving the fight without changing the normal entry zoom range.
+        private float MaximumDistance
+        {
+            get
+            {
+                float limit = _entryProfile ? 9f : 22f;
+                if (_wardenPulse.HasValue) limit = Mathf.Max(22f, _framingDistance);
+                return Mathf.Max(limit, Distance);
+            }
+        }
         private float RestPitch { get { return _entryProfile ? 12f : 52f; } }
         private Vector3 TargetFocus { get { return _target.position + Vector3.up * (_entryProfile ? HeadHeight : 0f); } }
         private struct Finger
@@ -52,6 +64,7 @@ namespace AreArpg.UnityClient
         public void Configure(Transform target, bool entryProfile)
         {
             _target = target;
+            _lens = GetComponent<Camera>();
             _entryProfile = entryProfile;
             _defaultDistance = entryProfile ? 4.2f : 22f;
             ResetZoom();
@@ -177,10 +190,11 @@ namespace AreArpg.UnityClient
         private void OnDisable() { ClearTouches(); }
 
         /// <summary>Read-only context supplied by the existing runtime projection.</summary>
-        public void SetContext(bool moving, bool danger, bool speaking, Vector3 speakerPosition)
+        public void SetContext(bool moving, bool danger, bool speaking, Vector3 speakerPosition, Bounds? wardenPulse = null)
         {
             _moving = moving; _danger = danger; _speaking = speaking;
             _speakerPosition = speakerPosition;
+            _wardenPulse = wardenPulse;
         }
 
         /// <summary>Travel clears old cinematic context while preserving a deliberate manual zoom and heading.</summary>
@@ -188,6 +202,7 @@ namespace AreArpg.UnityClient
         {
             if (_target == null) return;
             _moving = _danger = _speaking = false; _idleSeconds = _dangerHold = 0;
+            _wardenPulse = null;
             _framingDistance = Distance; _pitch = ClampPitch(RestPitch + _pitchOffset); _focus = TargetFocus;
             Framing = _manual ? HeroFraming.Manual : HeroFraming.Travel;
             _pullIn = _framingDistance - ClearDistance();
@@ -251,6 +266,23 @@ namespace AreArpg.UnityClient
 
         private void LateUpdate() { AdvancePresentation(Time.deltaTime); }
 
+        // Find the nearest unobstructed view that fits both the floor disc and the hero
+        // at the current heading. The inset keeps their silhouettes off the screen edge.
+        private float WardenFrameDistance(Bounds pulse, Vector3 focus, float pitch)
+        {
+            var toView = Quaternion.Inverse(Quaternion.Euler(pitch, _yaw, 0f));
+            float tanV = Mathf.Tan(_lens.fieldOfView * .5f * Mathf.Deg2Rad) * .9f;
+            float tanH = tanV * _lens.aspect;
+            Vector3 centre = toView * (pulse.center - focus);
+            float angle = pitch * Mathf.Deg2Rad, radius = pulse.extents.x;
+            float discWidth = (Mathf.Abs(centre.x) + radius) / tanH;
+            float discHeight = (Mathf.Abs(centre.y) + radius * Mathf.Abs(Mathf.Sin(angle))) / tanV;
+            float floorDistance = Mathf.Max(discWidth, discHeight) - centre.z + radius * Mathf.Cos(angle);
+            Vector3 hero = toView * (_target.position - focus);
+            float heroDistance = Mathf.Max((Mathf.Abs(hero.x) + .5f) / tanH, (Mathf.Abs(hero.y) + 1.2f) / tanV) - hero.z + 1f;
+            return Mathf.Max(floorDistance, heroDistance);
+        }
+
         /// <summary>Advance cosmetic interpolation only; explicit delta also permits bounded native checks.</summary>
         public void AdvancePresentation(float seconds)
         {
@@ -265,7 +297,7 @@ namespace AreArpg.UnityClient
             }
             _dangerHold = _danger ? 1.5f : Mathf.Max(0, _dangerHold - dt);
             _idleSeconds = _moving || _dangerHold > 0 || _speaking ? 0 : _idleSeconds + dt;
-            Framing = _manual ? HeroFraming.Manual : !_entryProfile ? HeroFraming.Travel :
+            Framing = _manual ? HeroFraming.Manual : _wardenPulse.HasValue ? HeroFraming.Combat : !_entryProfile ? HeroFraming.Travel :
                 _dangerHold > 0 ? HeroFraming.Combat : _moving ? HeroFraming.Travel :
                 _speaking ? HeroFraming.Dialogue : _idleSeconds >= 1.1f ? HeroFraming.Idle : HeroFraming.Travel;
             float distance = Distance, pitch = RestPitch;
@@ -283,7 +315,7 @@ namespace AreArpg.UnityClient
                 }
                 // Zooming out by hand also rises towards an overview.
                 if (Framing == HeroFraming.Manual)
-                    pitch = Mathf.Lerp(8f, 30f, Mathf.InverseLerp(MinimumDistance, MaximumDistance, distance));
+                    pitch = Mathf.Lerp(8f, 30f, Mathf.InverseLerp(MinimumDistance, 9f, distance));
                 // A walking hero pulls the view back behind them. The pull fades out towards the
                 // opposite heading, so walking at the camera does not spin it around.
                 _followHold = Mathf.Max(0, _followHold - dt);
@@ -295,6 +327,14 @@ namespace AreArpg.UnityClient
             }
             else if (Framing == HeroFraming.Manual)
                 pitch = Mathf.Lerp(20f, 52f, Mathf.InverseLerp(MinimumDistance, 9f, distance));
+            if (Framing == HeroFraming.Combat && _wardenPulse.HasValue)
+            {
+                Bounds pulse = _wardenPulse.Value;
+                focus = Vector3.Lerp(_target.position, pulse.center + Vector3.up, .55f);
+                pitch = _entryProfile ? 32f : RestPitch;
+                float fit = WardenFrameDistance(pulse, focus, ClampPitch(pitch + _pitchOffset));
+                distance = Mathf.Max(_entryProfile ? 8.4f : _defaultDistance, fit);
+            }
             float blend = 1f - Mathf.Exp(-8f * dt);
             _framingDistance = Mathf.Lerp(_framingDistance, distance, blend);
             _pitch = Mathf.Lerp(_pitch, ClampPitch(pitch + _pitchOffset), blend);
