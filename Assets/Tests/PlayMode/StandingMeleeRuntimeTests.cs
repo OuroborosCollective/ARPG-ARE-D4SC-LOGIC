@@ -55,6 +55,13 @@ namespace AreArpg.PlayMode.Tests
                     var shield = Find("Equipped_" + gear.Shield.Definition.Id);
                     Assert.NotNull(shield, "Visible equipped shield");
                     Assert.Greater(Vector3.Dot(shield.transform.up, Vector3.up), .85f, "Shield stands upright at rest");
+                    var oldFace = shield.transform.forward;
+                    // Region transitions re-register the same hero without equipping the shield again.
+                    typeof(ArenaRuntime).GetMethod("RegisterActorMotion", Flags)
+                        .Invoke(_runtime, new object[] { Find("Wanderer").transform });
+                    for (int i = 0; i < 30; i++) yield return null;
+                    Assert.Greater(Vector3.Dot(oldFace, shield.transform.forward), .92f,
+                        "Re-registering the hero preserves the exposed side of the shield");
                 }
                 if (weapon == RegionalRelic.M_Lotklinge)
                 {

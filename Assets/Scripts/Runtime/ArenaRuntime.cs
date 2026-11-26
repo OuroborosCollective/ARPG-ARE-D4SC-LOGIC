@@ -351,6 +351,7 @@ namespace AreArpg.UnityClient
                 _chainGrip = null;
                 foreach (var animator in _heroMeleeAnimations)
                     if (EntryWeaponGrip.TryAttach(animator)) _chainGrip = animator.GetComponent<EntryWeaponGrip>();
+                if (_shieldVisual != null) _chainGrip?.FitShield(_shieldVisual);
             }
             RegisterFace(root);
         }
