@@ -4,9 +4,9 @@ using UnityEngine;
 namespace AreArpg.UnityClient
 {
     /// <summary>
-    /// Keeps the hero's hair drawn in under a worn helm (AschenwachtGearPresentation). His animations may write the hair
-    /// bones every frame, so the smaller size is set again after the Animator has run; releasing the hair gives it back
-    /// its own size.
+    /// Keeps the hero's hair hidden under a worn helm (AschenwachtGearPresentation) by holding his hair bones at a tiny
+    /// size. His animations may write those bones every frame, so the size is set again after the Animator has run;
+    /// releasing the hair gives it back its own size.
     /// </summary>
     public sealed class HairUnderHelm : MonoBehaviour
     {
