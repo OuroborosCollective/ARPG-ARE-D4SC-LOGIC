@@ -36,6 +36,17 @@ jobs:
           unityVersion: '6000.6.8f1'
           testMode: playmode
           artifactsPath: artifacts
+      - name: Read village and crypt verdicts
+        if: ${{ !cancelled() }}
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: python3 scripts/events/scene.py
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: ashen-scene-readback
+          path: scene-readback.json
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         if: always()
         with:
