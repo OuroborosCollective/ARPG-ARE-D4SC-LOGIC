@@ -8,6 +8,7 @@ namespace AreArpg.UnityClient
 {
     public sealed partial class ArenaRuntime
     {
+        private bool StoryJournalAvailable => _game.Progression.EntryAct >= 2 || _game.InCourt || _game.InKilnYard;
         private bool _hungerJournalOpen;
         private bool _chroniclePageOpen;
         private int _chroniclePage;
@@ -130,7 +131,7 @@ namespace AreArpg.UnityClient
         /// <summary>Capture the whole open modal so story taps cannot also trigger attacks, movement or camera pinches.</summary>
         private bool PollHungerInput(ArenaHudLayout layout)
         {
-            if (_game.Progression.EntryAct < 2) return false;
+            if (!StoryJournalAvailable) return false;
             bool consumed = false;
             if (Input.GetKeyDown(KeyCode.J) || (_hungerJournalOpen && Input.GetKeyDown(KeyCode.Escape)))
             { _hungerJournalOpen = !_hungerJournalOpen; consumed = true; }
@@ -165,7 +166,7 @@ namespace AreArpg.UnityClient
         /// <summary>Render the current Core objective and decision result; no UI-owned quest state is saved.</summary>
         private bool DrawHungerJournal(ArenaHudLayout layout)
         {
-            if (_game.Progression.EntryAct < 2) return false;
+            if (!StoryJournalAvailable) return false;
             string toggle = _hungerJournalOpen ? "SCHLIESSEN" : (Application.isMobilePlatform ? "SPUREN" : "SPUREN (J)");
             if (Application.isMobilePlatform) GUI.Box(HungerToggleRect(layout), toggle);
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;

@@ -34,6 +34,8 @@ internal static class KilnYardTests
         check(yard.Progression.KilnState == (KilnYard.InsideBit | KilnYard.VisitedBit) && !yard.AtWorldPassage && yard.TryTraversePassage() == null,
             "kiln-arrival-state-and-no-instant-return");
 
+        check(yard.TryLeaveKilnYard() == null, "kiln-direct-exit-requires-the-south-gate");
+
         // Save and load in the yard: ",b" plus the yard's state after the court's traces; malformed states are refused.
         string save = yard.Progression.SaveString();
         check(save.Contains("|1,1,c,b3"), "kiln-save-names-the-yard");
@@ -66,6 +68,13 @@ internal static class KilnYardTests
         var locked = yard.ActOnHunger(HungerAction.OpenKilnGate);
         check(!locked.Accepted && locked.Text == KilnYard.GateLocked && !yard.Progression.KilnGateOpen, "kiln-gate-bolted-from-the-other-side");
         check(!WalkTo(yard, LatchStand[0], LatchStand[1], 60, 300, true) && yard.PlayerZmm < KilnYard.GateZmm, "kiln-gate-cannot-be-walked-through");
+
+        // This reachable cell is within arm's reach of the halberd, across the west kiln wall.
+        check(Way(false, KilnLayout.SpawnXmm, KilnLayout.SpawnZmm, -1375, 20375).Count > 0, "kiln-opposite-wall-reachable");
+        typeof(ArenaSimulation).GetProperty(nameof(resumed.PlayerXmm)).SetValue(resumed, -1375L);
+        typeof(ArenaSimulation).GetProperty(nameof(resumed.PlayerZmm)).SetValue(resumed, 20375L);
+        check(!resumed.ActOnHunger(HungerAction.ClaimRegionalRelic).Accepted && !resumed.Progression.Equipment.OwnsRegionalRelic(RegionalRelic.B_Scherbenhellebarde),
+            "kiln-wall-blocks-taking-the-hidden-halberd");
 
         // The secret: the Scherbenschlupf behind the west kiln, where the halberd lies, and on into the kiln passage.
         check(WalkTo(yard, KilnYard.HalberdXmm, KilnYard.HalberdZmm, 900, 400) && yard.CanClaimRegionalRelic, "kiln-scherbenschlupf-reachable");

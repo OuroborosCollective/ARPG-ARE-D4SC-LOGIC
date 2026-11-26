@@ -464,7 +464,7 @@ namespace AreArpg.UnityClient
             var where = AshenUiTheme.Label("Where", active.transform, 13, AshenUiTheme.Muted, TextAnchor.UpperLeft);
             AshenUiTheme.Place(where.rectTransform, new Rect(18f, 134f, leftW - 36f, Mathf.Max(60f, size.y - 210f)));
             where.text = "Gebiet: " + DisplayChapterName(_game) + "\nLetzte Nachricht: " + _message;
-            if (p.EntryAct >= 2)
+            if (StoryJournalAvailable)
                 AshenUiTheme.MenuButton("Journal", active.transform, new Rect(18f, size.y - 60f, leftW - 36f, 42f),
                     "SPUREN UND ENTSCHEIDUNGEN ÖFFNEN", () => { CloseMenu(); _hungerJournalOpen = true; },
                     new Color(0.55f, 0.32f, 0.12f, 1f), 15);

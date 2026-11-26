@@ -15,6 +15,7 @@ internal static class HunterCantorTests
     {
         Rolls(check);
         Finds(check);
+        SharedLootKind(check);
         Wearing(check);
         Saves(check);
     }
@@ -100,6 +101,37 @@ internal static class HunterCantorTests
         throw new Exception("no lucky loot found");
     }
 
+    private static void SharedLootKind(Action<bool, string> check)
+    {
+        // Compare both rates against the same generated receipt. A source counts only if its rates disagree.
+        foreach (var source in new[] { (Depth: 1, Ork: false), (Depth: 1, Ork: true), (Depth: 2, Ork: false) })
+        {
+            bool witnessed = false;
+            for (ulong seed = 1; seed <= 80 && !witnessed; seed++)
+            {
+                var profile = source.Depth == 1 ? CharacterProgression.CreateEntryProfile() : new CharacterProgression();
+                profile.Equipment.Enable(profile);
+                var world = new ArenaSimulation(seed, profile, new BigInteger(source.Depth), LootCatalog.Version1);
+                var enemy = source.Ork ? MonsterCatalog.Spawn("ork.grunt", 1, 1000, 0, 1) : world.Monsters[0];
+                world.Monsters.Clear();
+                enemy.Xmm = 1000; enemy.Zmm = 0; enemy.Health = 1;
+                world.Monsters.Add(enemy);
+                world.ActivateSkill(3);
+                var item = world.GroundLoot.Single().Item;
+                if (!enemy.IsDead || item == null) throw new Exception("expected a kill and its receipt");
+                var gear = profile.Equipment;
+                if (NachtvesperSet.Roll(item, gear) != RegionalRelic.None || RotfaehrteSet.Roll(item, gear, false) != RegionalRelic.None) continue;
+                var ordinary = RusskantorSet.Roll(item, gear, false);
+                var ghoul = RusskantorSet.Roll(item, gear, true);
+                if (ordinary == ghoul) continue;
+                var expected = source.Depth == 1 && !source.Ork ? ghoul : ordinary;
+                check(world.TryCollectLoot() && world.LastGearFind == expected, "russkantor-matches-actual-source-" + source);
+                witnessed = true;
+            }
+            check(witnessed, "russkantor-found-distinguishing-receipt-" + source);
+        }
+    }
+
     private static CharacterProgression Dressed(RegionalRelic[] set)
     {
         var p = CharacterProgression.CreateEntryProfile();
@@ -114,6 +146,8 @@ internal static class HunterCantorTests
         var hunter = Dressed(RotfaehrteSet.Pieces);
         check(hunter.WornProtectionBp == 1500 && hunter.WornHealingEfficiencyBp == 7500, "rotfaehrte-is-leather");
         var cantor = Dressed(RusskantorSet.Pieces);
+        check(hunter.Equipment.ArmourSetProgress(RotfaehrteSet.Pieces) == (8, 8) &&
+            cantor.Equipment.ArmourSetProgress(RusskantorSet.Pieces) == (8, 8), "armour-progress-excludes-bow-and-alternative-staffs");
         check(cantor.WornProtectionBp == 0 && cantor.WornHealingEfficiencyBp == 10000, "russkantor-is-cloth");
         check(CombatRules.MaximumHealth(hunter) == CombatRules.MaximumHealth(CharacterProgression.CreateEntryProfile()) &&
             hunter.NachtvesperPiecesWorn == 0, "hunter-cantor-no-set-bonus-yet");

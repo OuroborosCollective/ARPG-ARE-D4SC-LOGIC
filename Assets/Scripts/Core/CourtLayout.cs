@@ -85,7 +85,14 @@ namespace AreArpg.Core
                     if (avoidMm > 0 && next != goal)
                     {
                         long dx = MinXmm + c * CellMm + CellMm / 2 - avoidX, dz = MinZmm + r * CellMm + CellMm / 2 - avoidZ;
-                        if (dx * dx + dz * dz <= avoidMm * avoidMm) continue;
+                        long nextDistance = dx * dx + dz * dz;
+                        if (nextDistance <= avoidMm * avoidMm)
+                        {
+                            long currentX = MinXmm + column * CellMm + CellMm / 2 - avoidX;
+                            long currentZ = MinZmm + row * CellMm + CellMm / 2 - avoidZ;
+                            // A player already inside can walk out. A path outside cannot cut back into the circle.
+                            if (nextDistance <= currentX * currentX + currentZ * currentZ) continue;
+                        }
                     }
                     previous[next] = cell; queue[tail++] = next;
                 }

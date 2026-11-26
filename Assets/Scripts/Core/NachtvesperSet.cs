@@ -20,7 +20,7 @@ namespace AreArpg.Core
             RegionalRelic.N_Handschuhe, RegionalRelic.N_Guertung, RegionalRelic.N_Beinzeug, RegionalRelic.N_Panzerschuhe
         };
 
-        /// <summary>Chance of a piece under loot from anything but a knight, and under a knight's loot, in basis points.</summary>
+        /// <summary>Roll chances in basis points for ordinary and knight loot. A field pauldron or earlier Glockenwacht award reserves the drop.</summary>
         public const int LootChanceBp = 200, KnightChanceBp = 2500;
         /// <summary>Maximum health added by every worn piece, and stamina added by the whole set, in basis points.</summary>
         public const int HealthPerPieceBp = 100, FullSetStaminaBp = 2500;
