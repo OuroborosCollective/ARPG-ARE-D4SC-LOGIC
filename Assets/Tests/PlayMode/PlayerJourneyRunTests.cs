@@ -52,8 +52,13 @@ namespace AreArpg.PlayMode.Tests
                 yield return player.Settle();
                 yield return player.FightAll("crypt");
                 yield return player.PickUpAll();
-                yield return player.Travel("crypt passage", ArenaSimulation.PassageZmm, 2);
-                yield return ReopenApp(player, "crypt to village");
+                yield return player.Travel("crypt passage", ArenaSimulation.PassageZmm, 1);
+                Assert.IsTrue(player.Game.InCourt, "the cleared crypt opens into Aschenwacht");
+                yield return ReopenApp(player, "crypt to Aschenwacht");
+
+                // Aschenwacht: walk the forecourt and the bell court on foot and leave through the bell tower's door.
+                yield return player.Travel("bell tower door", CourtLayout.ExitXmm, CourtLayout.ExitZmm, 2);
+                yield return ReopenApp(player, "Aschenwacht to village");
 
                 // Act II: listen to the arrival, then ask Ilyan about his secret.
                 yield return player.Settle();

@@ -305,13 +305,16 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>Walk into a passage and let the game travel, save and rebuild the next area on its own.</summary>
-        public IEnumerator Travel(string what, long z, int expectedAct)
+        public IEnumerator Travel(string what, long z, int expectedAct) { return Travel(what, 0, z, expectedAct); }
+
+        /// <summary>Walk into the passage at (<paramref name="x"/>, <paramref name="z"/>), as Aschenwacht's bell tower door.</summary>
+        public IEnumerator Travel(string what, long x, long z, int expectedAct)
         {
             ArenaSimulation world = Game;
             for (int attempt = 0; attempt < 4 && ReferenceEquals(Game, world); attempt++)
             {
                 yield return Settle();
-                yield return WalkTo(what, () => new Vector2Int(0, (int)z), 400, () => !ReferenceEquals(Game, world));
+                yield return WalkTo(what, () => new Vector2Int((int)x, (int)z), 400, () => !ReferenceEquals(Game, world));
                 for (int i = 0; i < 6 && ReferenceEquals(Game, world); i++) yield return Frame();
                 if (!ReferenceEquals(Game, world) && Game.GameOver) { yield return Settle(); world = Game; }
             }
@@ -342,7 +345,10 @@ namespace AreArpg.PlayMode.Tests
             Note("hunter rescued and thanked: " + Message);
         }
 
-        /// <summary>A* over the area's own collision (Core CanStand) on a half-metre grid; house doors count as walls.</summary>
+        /// <summary>
+        /// A* over the area's own collision (Core CanStand) on a half-metre grid; house doors count as walls. Aschenwacht
+        /// reaches far beyond the arena: there the route is the place's own (CourtLayout.Route).
+        /// </summary>
         private sealed class Navigator
         {
             private const long Cell = 500, Limit = ArenaSimulation.ArenaLimitMm;
@@ -350,6 +356,7 @@ namespace AreArpg.PlayMode.Tests
             private ArenaSimulation _world;
             private VillagePlace _place;
             private bool[] _open;
+            private bool _court;
 
             private static long Coord(int i) { return -Limit + i * Cell; }
             private static int Index(long v) { return (int)Math.Max(0, Math.Min(Size - 1, (v + Limit + Cell / 2) / Cell)); }
@@ -389,6 +396,16 @@ namespace AreArpg.PlayMode.Tests
 
             public List<Vector2Int> Plan(ArenaSimulation g, long fromX, long fromZ, long toX, long toZ)
             {
+                _court = g.InCourt;
+                if (_court)
+                {
+                    long[] route = CourtLayout.Route(fromX, fromZ, toX, toZ);
+                    if (route.Length == 0) return null;
+                    var way = new List<Vector2Int>();
+                    for (int k = 0; k < route.Length / 2; k += 2) way.Add(new Vector2Int((int)route[2 * k], (int)route[2 * k + 1]));
+                    way.Add(new Vector2Int((int)route[route.Length - 2], (int)route[route.Length - 1]));
+                    return way;
+                }
                 Prepare(g);
                 int start = Nearest(Index(fromX), Index(fromZ)), goal = Nearest(Index(toX), Index(toZ));
                 if (start < 0 || goal < 0) return null;
@@ -435,7 +452,7 @@ namespace AreArpg.PlayMode.Tests
                 for (long s = 0; s <= length; s += 250)
                 {
                     long x = ax + (bx - ax) * s / Math.Max(1, length), z = az + (bz - az) * s / Math.Max(1, length);
-                    if (!Open(Index(x), Index(z))) return false;
+                    if (_court ? !CourtLayout.CanStand(x, z) : !Open(Index(x), Index(z))) return false;
                 }
                 return true;
             }

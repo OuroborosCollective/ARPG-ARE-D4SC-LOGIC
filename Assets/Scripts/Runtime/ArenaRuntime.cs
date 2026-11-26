@@ -96,7 +96,7 @@ namespace AreArpg.UnityClient
             if (_game.IsVillage)
                 _message = "Aschengrenze: Lager, Wache und Nordpass. Deine Taten bleiben in Erinnerung.";
             if (_game.Progression.EntryAct == 1)
-                _message = "AKT I: Verlasse die Krypta. Besiege ihre Waechter und sichere die Beute.";
+                _message = CourtLore.Prologue;
             if (_game.Progression.EntryAct == 2)
                 _message = "AKT II: Folge dem Dorfweg. Ilyan hungert; Mara und Dorn erwarten dich.";
             if (_game.Progression.HungerStage > 0) _message = _game.HungerObjective;
@@ -397,6 +397,7 @@ namespace AreArpg.UnityClient
             _investigationGate = _innerGate = _cryptWarning = _cryptDebris = null;
             // Inside a village house nothing of the village is shown: the room itself is put up with the village economy.
             if (_game.InsidePlace != VillagePlace.None) { BuildVillageRoomScenery(); return; }
+            // Aschenwacht brings its own distant slate ridge; the village's backdrop ring would cut through its walls.
             if (_entryProfile && _game.Progression.EntryAct >= 2 && _game.Progression.EntryAct <= 4)
                 _chapterScenery.Add(OutdoorBackdrop.Create(_game.Progression.EntryAct));
             if (_game.InJourney) { BuildJourneyScenery(); return; }
@@ -407,6 +408,8 @@ namespace AreArpg.UnityClient
             if (_game.Progression.EntryAct >= 3) { BuildHungerScenery(); if (_game.Progression.EntryAct == 4 && _game.Progression.Woodland.Active) WoodlandPortal("Wald nach Aschenzoll",-20,18); return; }
             if (_game.Progression.EntryAct > 0 && BuildEntryArt()) return;
             if (_game.Progression.EntryAct == 2) { BuildEntryVillageFallback(); return; }
+            if (_game.InKilnYard) { BuildKilnFallback(); return; }
+            if (_game.InCourt) { BuildCourtFallback(); return; }
             _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
                 new Vector3(ArenaSimulation.PassageXmm / 1000f, 0.02f, ArenaSimulation.PassageZmm / 1000f),
                 new Vector3(3.6f, 0.02f, 3.6f), new Color(0.25f, 0.68f, 0.72f));
@@ -630,10 +633,13 @@ namespace AreArpg.UnityClient
         /// <summary>Install privately composed real meshes; the Core still owns all walkability and resources.</summary>
         private bool BuildEntryArt()
         {
-            var root = new GameObject(_game.IsVillage ? AschengrenzeArt.BackdropLabel : "AshenCrypt_Architecture");
-            string key = _game.IsVillage ? "EntryVillageWorld" : "EntryCryptWorld";
+            var root = new GameObject(_game.IsVillage ? AschengrenzeArt.BackdropLabel : _game.InKilnYard ? "AshenCrypt_KilnYard" :
+                _game.InCourt ? "AshenCrypt_BellCourt" : "AshenCrypt_Architecture");
+            string key = _game.IsVillage ? "EntryVillageWorld" : _game.InKilnYard ? "EntryKilnWorld" : _game.InCourt ? "EntryCourtWorld" : "EntryCryptWorld";
             if (!PassiveArtVisuals.TryBind(root.transform, key)) { Destroy(root); return false; }
             _chapterScenery.Add(root.transform);
+            if (_game.InCourt) { AddCourtFireLights(root.transform); AddCourtAshPlain(root.transform); AddKilnSideGate(root.transform); }
+            if (_game.InKilnYard) { AddCourtAshPlain(root.transform); AddKilnYard(root.transform); }
             if (_game.IsVillage)
             {
                 var floor = root.transform.Find("Art_EntryVillageWorld/Ground");
@@ -642,17 +648,20 @@ namespace AreArpg.UnityClient
             }
             else _walkSurfaces.Clear();
             var passage = new GameObject("ARE_World_Passage");
-            passage.transform.position = new Vector3(0f, 1.5f, 24f);
+            passage.transform.position = _game.InKilnYard
+                ? new Vector3(KilnLayout.ExitXmm / 1000f, 1.5f + KilnLayout.HeightMm(KilnLayout.ExitXmm, KilnLayout.ExitZmm) / 1000f, KilnLayout.ExitZmm / 1000f)
+                : _game.InCourt ? new Vector3(CourtLayout.ExitXmm / 1000f,
+                    1.5f + CourtLayout.HeightMm(CourtLayout.ExitXmm, CourtLayout.ExitZmm) / 1000f, CourtLayout.ExitZmm / 1000f) : new Vector3(0f, 1.5f, 24f);
             var light = passage.AddComponent<Light>();
             light.type = LightType.Point; light.range = 6f; light.intensity = 2.5f;
             light.color = new Color(1f, 0.64f, 0.3f);
             _worldPassage = passage.transform;
             _chapterScenery.Add(_worldPassage);
             passage.SetActive(false);
-            RenderSettings.ambientLight = _game.IsVillage ? new Color(0.47f, 0.48f, 0.5f) : new Color(0.26f, 0.30f, 0.36f);
+            RenderSettings.ambientLight = _game.IsVillage || _game.InCourt || _game.InKilnYard ? new Color(0.47f, 0.48f, 0.5f) : new Color(0.26f, 0.30f, 0.36f);
             RenderSettings.fogColor = _game.IsVillage ? new Color(0.24f, 0.28f, 0.29f) : new Color(0.045f, 0.055f, 0.07f);
             RenderSettings.fogDensity = _game.IsVillage ? 0.007f : 0.012f;
-            if (!_game.IsVillage)
+            if (!_game.IsVillage && !_game.InKilnYard)
                 foreach (int x in new[] { -7, 7 })
                     foreach (int z in new[] { -7, 7 })
                     {
@@ -672,6 +681,16 @@ namespace AreArpg.UnityClient
         }
 
         /// <summary>Visible development-only geometry follows every Core footprint; it is not finished world art.</summary>
+        /// <summary>Without the private sets: a plain floor under Aschenwacht's walkable area and the passage at the tower door.</summary>
+        private void BuildCourtFallback()
+        {
+            ChapterShape(PrimitiveType.Cube, "Aschenwacht_FallbackFloor", new Vector3(0f, -.05f, 12f), new Vector3(86f, .1f, 120f), new Color(.30f, .30f, .32f));
+            _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
+                new Vector3(CourtLayout.ExitXmm / 1000f, .03f, CourtLayout.ExitZmm / 1000f), new Vector3(3.6f, .02f, 3.6f), new Color(.25f, .68f, .72f));
+            _worldPassage.gameObject.SetActive(false);
+            RenderSettings.ambientLight = new Color(0.47f, 0.48f, 0.5f);
+        }
+
         private void BuildEntryVillageFallback()
         {
             ChapterShape(PrimitiveType.Cube, "Aschengrenze_FallbackSoil", new Vector3(0f, -.05f, 0f),
@@ -1000,7 +1019,9 @@ namespace AreArpg.UnityClient
             // Commit and read back the new checkpoint before changing the active world.
             SaveCharacter(next.Progression);
             if (_storageFault) return;
-            InstallNewRun(next, next.Progression.HungerStage > 0 ? next.HungerObjective : next.Progression.EntryAct == 2 ?
+            InstallNewRun(next, next.InKilnYard ? KilnYard.Arrival : next.InCourt && _game.InKilnYard ? "Zurück im Vorhof von Aschenwacht." :
+                next.InCourt ? CourtLore.Arrival :
+                next.Progression.HungerStage > 0 ? next.HungerObjective : next.Progression.EntryAct == 2 ?
                 "AKT II: Folge dem Dorfweg zu Ilyan, Mara und Dorn. Zwei Rationen fehlen." :
                 "Du betrittst " + next.ChapterName + ". Der Weg fuehrt tiefer.");
             _regionFade = 1f;
@@ -1224,6 +1245,7 @@ namespace AreArpg.UnityClient
             FollowHeroLight();
             AnimateDungeonLights();
             UpdateRegionalSources();
+            UpdateKilnYard();
             UpdateOrselFigure();
             UpdateCombatFeel();
             UpdateFaceLife();

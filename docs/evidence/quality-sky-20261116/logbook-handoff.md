@@ -557,3 +557,30 @@ Historischer Werkstattvermerk vom 24. November, PR #138
 - Source `0a0533ad6a0472a0149c2cf32a9ebe26a15ea9a0`, art-router SHA-256 `736bd7adeed7abc23be1b25f525f3c0d52c9c3a7890385108d82e217c5f90c47`. The actual `art_work.py route` CLI on the Unity host selected Astra for creature, human, environment, equipment, level and prop, and Sol for surface, shader, FX and review. All 10 routes returned checked local technique sources and the exact project revision. Evidence receipt `a63585333e884d6087e6f527fcb4001f`.
 - The result is an advisory model recommendation. An agent model launch, Unity Editor run and Android playtest are separate execution evidence. The source Core/Director CI is [45617102761](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45617102761).
 - The registered DOCX identity returned HTTP 404 during lookup. This handoff records the round until the same document becomes accessible again.
+
+### 2026-11-25 · Aschenwacht I und II im Haupteditor
+
+Glockenhof unter `Assets/Aschenwacht/Scenes/Glockenhof.unity`, Vorhof unter `Assets/PrivateArt/Aschenwacht_II/Szene/Aschenwacht_II_Gesamtszene.glb`. Im getrennten Unity-Vorschaukontext wurden alle Modelle geprüft. Aktive Arbeitsszene `AshenEntry`, lokaler Projektstand `460cb1722e34e15e7e18e468f2497f2dd82bf341`. Abnahme `aschenwacht-haupteditor-import-20261125`, Nachweisarchiv `Aschenwacht_I_II_Unity_Importnachweis_2026-11-25.zip`. Nächster Arbeitsschritt ist die gemeinsame Szenenplatzierung.
+
+## 25. November 2026 · Aschenwacht und der Anfang der Geschichte
+
+- Neu im Spiel: Nach der Krypta steht der Held im entweihten Vorhof von Aschenwacht, geht durch das Tor in den Glockenhof und durch die Tür des Glockenturms ins Dorf. Unterwegs kann er acht Spuren lesen, die seine Vorgeschichte erzählen: Er ist der letzte Läuter des Glockenordens, im Aschenschlaf gelegt, und erwacht, weil die Glocke verstummt ist.
+- Evidence auf `39cd6cd63cf592c016c5179159d2ab89e6371d57`: Core ALL PASS, 23,200 checks (57 of them for Aschenwacht); volle EditMode-Reihe 371 tests: 343 passed, 0 failed, 28 skipped; volle PlayMode-Reihe mit Overlay 215 tests: 210 passed, 1 failed, 4 skipped (the long journey run, see below).
+- Grenzen: Tablet-Bildrate ungemessen; der Aschbeter kämpft noch nicht; die Geschichte kann der Owner noch ändern.
+- Offene Owner-Fragen: Wird der Aschbeter ein Gegner? Werden Rüstung und Klauenstäbe der Sets zu Beute?
+- Nächste Schritte: Antworten einbauen; danach der Dorf-Umbau (Entscheidung A) und die Häuser aus dem Bausatz (B) nach dem Editor-Sync.
+- [Technische Abnahme](../aschenwacht-20261125/acceptance.md)
+
+## 25. November 2026 · Der Brennerhof
+
+- Neu im Spiel: In der Ostmauer des Vorhofs von Aschenwacht steht ein Seitentor. Dahinter liegt der verschleierte Brennerhof des Glockenordens mit Öfen, Gassen, Nebel und Glut, am Horizont Abtei, Aquädukt und Berge. Acht Vasen lassen sich zerschlagen. Das Gitter des Ofengangs ist von innen verriegelt (Rätsel). Der Scherbenschlupf hinter dem Westofen ist der Geheimweg zur Scherbenhellebarde. Der Brennerspeer liegt an der Waffenbank. Durch das Südtor geht es zurück.
+- Evidence auf `50e97348588ee4c90abdb5dce5ce49beee75e4b4`: Core ALL PASS, 23,297 checks (97 of them for the Brennerhof); volle EditMode-Reihe 372 tests: 336 passed, 8 failed, 28 skipped (the 8: the editor was still busy, see the table); volle PlayMode-Reihe mit Overlay 216 tests: 209 passed, 3 failed, 4 skipped (fixed, see the table).
+- Grenzen: Tablet-Bildrate ungemessen; Vasen geben keine Beute.
+- Nächste Schritte: Owner-Antworten zu Aschenwacht (Aschbeter, Beute der Sets); danach der Dorf-Umbau.
+- [Technische Abnahme](../brennerhof-20261125/acceptance.md)
+
+## 2026-11-26 · Brennerhof (#142)
+
+PR-Quelle `1eda646ed2880eb8cd59b9d3ab11d553cbaa42c7`, Main `68f943656e4922d5ec0b49f6e3ee56fb7ea95626`. Sechs im Repository fehlende Skript-GUIDs wurden lesend mit dem Unity-Projekt abgeglichen. Sechs weitere GUIDs waren im Branch vorhanden. Alle zwölf verwenden jetzt die versionierten MonoImporter-Einstellungen. Die Metadaten-Korrektur auf `820e5736c1658bcbafaf8cbdce7a79bca160efb0` bestand [GitHub Actions](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45773320524).
+
+Die echte C#-Simulation reproduzierte den Ausgang aus der Ferne und die Hellebardenaufnahme durch die Wand bei (−1375, 20375) mm. Der öffentliche Ausgang prüft jetzt dieselbe Südtor-Bedingung wie die Reiseaktion, und die Fundprüfung berücksichtigt die durchquerten Zellen. Touch-Eingabe, Journalzeichnung und Questmenü sind im Hof und Brennerhof erreichbar. Das Licht an der Turmtür berücksichtigt die Geländehöhe. Auf Codetree `d566ce2f084baa2fe49e1f5cede0a8fe9cf8b053` bestanden lokal 23.300 Core-Assertions und 62 Preflight-Tests. Der erweiterte PlayMode-Fall drückt die Journal- und Aktionsflächen. Ein neuer nativer Lauf und Gerätetest stehen aus. Die registrierte DOCX ist unter ihrer bestehenden Identität nicht zugänglich.

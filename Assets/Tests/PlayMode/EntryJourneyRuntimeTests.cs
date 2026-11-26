@@ -139,6 +139,8 @@ namespace AreArpg.PlayMode.Tests
             for (int tick = 0; tick < 50 && !Game.AtWorldPassage; tick++) Game.Step();
             Assert.IsTrue(Game.AtWorldPassage);
             typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
+            Assert.IsTrue(Game.InCourt, "the crypt opens into Aschenwacht");
+            CrossCourt();
             Assert.AreEqual(2, Game.Progression.EntryAct);
             // This checkpoint test models a player who watched the arrival scene; its playback has its own test.
             Assert.IsTrue(Game.CompleteArrivalScene());
@@ -931,13 +933,58 @@ namespace AreArpg.PlayMode.Tests
         private void TravelStory()
         {
             typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
+            CrossCourt();
             // Story tests model a player who already watched the first-arrival scene; its own test covers playback.
             if (Game.ArrivalScenePending) Assert.IsTrue(Game.CompleteArrivalScene());
         }
 
         /// <summary>Travel like <see cref="TravelStory"/> but leave the first-arrival scene to the runtime.</summary>
         private void TravelStoryWithArrivalScene()
-        { typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null); }
+        { typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null); CrossCourt(); }
+
+        /// <summary>
+        /// Between the old crypt and the village lies the bell court: walk out of the nave, west past the two figures
+        /// on the path and north to the path's end, then take the passage to the village.
+        /// </summary>
+        private void CrossCourt()
+        {
+            if (!Game.InCourt) return;
+            Assert.IsTrue(WalkCourt(CourtLayout.ExitXmm, CourtLayout.ExitZmm, 1500), "the bell tower's door is reachable on foot: " + Game.PlayerXmm + "," + Game.PlayerZmm);
+            Assert.IsTrue(Game.AtWorldPassage, "the passage waits at the bell tower's door: " + Game.PlayerXmm + "," + Game.PlayerZmm);
+            typeof(ArenaRuntime).GetMethod("AdvanceCrypt", Flags).Invoke(_runtime, null);
+        }
+
+        /// <summary>
+        /// Walk Aschenwacht's own route with the stick, one Core tick at a time, as the Core checks do (CourtTests.WalkTo):
+        /// aim a little ahead on the way and let the rules decide every move.
+        /// </summary>
+        private bool WalkCourt(long x, long z, long stopMm = 650, int limit = 600)
+        {
+            long[] route = CourtLayout.Route(Game.PlayerXmm, Game.PlayerZmm, x, z);
+            if (route.Length == 0) return false;
+            int points = route.Length / 2, index = 0, stuck = 0;
+            long lastX = Game.PlayerXmm, lastZ = Game.PlayerZmm;
+            for (int tick = 0; tick < limit; tick++)
+            {
+                long ex = x - Game.PlayerXmm, ez = z - Game.PlayerZmm;
+                if (ex * ex + ez * ez <= stopMm * stopMm) { Game.SetMoveInput(0, 0); return true; }
+                while (index < points - 1)
+                {
+                    long px = route[2 * index] - Game.PlayerXmm, pz = route[2 * index + 1] - Game.PlayerZmm;
+                    if (px * px + pz * pz >= 700L * 700L) break;
+                    index++;
+                }
+                int aim = System.Math.Min(points - 1, index + (stuck > 2 ? 0 : 2));
+                long dx = route[2 * aim] - Game.PlayerXmm, dz = route[2 * aim + 1] - Game.PlayerZmm;
+                long scale = System.Math.Max(1, System.Math.Max(System.Math.Abs(dx), System.Math.Abs(dz)));
+                Game.SetMoveInput(dx * 10000 / scale, dz * 10000 / scale);
+                Game.Step();
+                stuck = Game.PlayerXmm == lastX && Game.PlayerZmm == lastZ ? stuck + 1 : 0;
+                lastX = Game.PlayerXmm; lastZ = Game.PlayerZmm;
+            }
+            Game.SetMoveInput(0, 0);
+            return false;
+        }
 
         /// <summary>Feed the same request queue used by touch/GUI, then wait for an actual Unity tick and save.</summary>
         private IEnumerator StoryAction(HungerAction action)

@@ -47,6 +47,10 @@
     <Compile Include="../../Assets/Scripts/Core/CombatRules.cs" Link="CombatRules.cs" />
     <Compile Include="../../Assets/Scripts/Core/PracticeRules.cs" Link="PracticeRules.cs" />
     <Compile Include="../../Assets/Scripts/Core/EntryWorldLayout.cs" Link="EntryWorldLayout.cs" />
+    <Compile Include="../../Assets/Scripts/Core/CourtLayout.cs" Link="CourtLayout.cs" />
+    <Compile Include="../../Assets/Scripts/Core/CourtLore.cs" Link="CourtLore.cs" />
+    <Compile Include="../../Assets/Scripts/Core/KilnLayout.cs" Link="KilnLayout.cs" />
+    <Compile Include="../../Assets/Scripts/Core/KilnYard.cs" Link="KilnYard.cs" />
     <Compile Include="../../Assets/Scripts/Core/HungerJourney.cs" Link="HungerJourney.cs" />
     <Compile Include="../../Assets/Scripts/Core/HunterEncounter.cs" Link="HunterEncounter.cs" />
     <Compile Include="../../Assets/Scripts/Core/CryptDungeon.cs" Link="CryptDungeon.cs" />

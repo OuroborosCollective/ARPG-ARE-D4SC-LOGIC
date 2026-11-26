@@ -8,6 +8,7 @@ namespace AreArpg.UnityClient
 {
     public sealed partial class ArenaRuntime
     {
+        private bool StoryJournalAvailable => _game.Progression.EntryAct >= 2 || _game.InCourt || _game.InKilnYard;
         private bool _hungerJournalOpen;
         private bool _chroniclePageOpen;
         private int _chroniclePage;
@@ -54,6 +55,10 @@ namespace AreArpg.UnityClient
         private HungerAction[] StoryActions()
         {
             var p = _game.Progression;
+            if (_game.InCourt) return _game.NearCourtTrace.HasValue ? new[] { HungerAction.ReadCourtTrace } : new HungerAction[0];
+            if (_game.InKilnYard)
+                return _game.NearKilnGate ? new[] { HungerAction.OpenKilnGate } :
+                    _game.NearKilnVase.HasValue ? new[] { HungerAction.BreakKilnVase } : new HungerAction[0];
             if (_game.InJourney) return JourneyActions();
             if (_game.InDungeon) return DungeonActions();
             var freight=FreightActions(); if(freight!=null)return freight;
@@ -89,6 +94,9 @@ namespace AreArpg.UnityClient
                 case HungerAction.StoreBandage: return "AM WESTLICHEN VERBAND: Stoff und Knoten untersuchen";
                 case HungerAction.StoreTracks: return "AN DER SCHLEIFSPUR: Fugen und Staub untersuchen";
                 case HungerAction.InspectSeal: return "AM SIEGEL: Mechanismus und Gefahr untersuchen";
+                case HungerAction.ReadCourtTrace: return "SPUR: " + (_game.NearCourtTrace.HasValue ? _game.NearCourtTrace.Value.Title : "Untersuchen");
+                case HungerAction.OpenKilnGate: return KilnYard.OnLatchSide(_game.PlayerXmm, _game.PlayerZmm) ? "AM GITTER: Riegel zurückziehen" : "AM GITTER: Untersuchen";
+                case HungerAction.BreakKilnVase: return "VASE: Zerschlagen";
                 case HungerAction.OpenDungeonSeal: return "SIEGEL ENTLASTEN: Drei Kryptaebenen erkunden";
                 case HungerAction.BeginDungeonRun: return "AM OFFENEN SIEGEL: Neuen Dungeon-Run beginnen";
                 case HungerAction.BreakDungeonSeal: return "SIEGEL BRECHEN: Krypta betreten - Steinschlaggefahr!";
@@ -123,7 +131,7 @@ namespace AreArpg.UnityClient
         /// <summary>Capture the whole open modal so story taps cannot also trigger attacks, movement or camera pinches.</summary>
         private bool PollHungerInput(ArenaHudLayout layout)
         {
-            if (_game.Progression.EntryAct < 2) return false;
+            if (!StoryJournalAvailable) return false;
             bool consumed = false;
             if (Input.GetKeyDown(KeyCode.J) || (_hungerJournalOpen && Input.GetKeyDown(KeyCode.Escape)))
             { _hungerJournalOpen = !_hungerJournalOpen; consumed = true; }
@@ -158,7 +166,7 @@ namespace AreArpg.UnityClient
         /// <summary>Render the current Core objective and decision result; no UI-owned quest state is saved.</summary>
         private bool DrawHungerJournal(ArenaHudLayout layout)
         {
-            if (_game.Progression.EntryAct < 2) return false;
+            if (!StoryJournalAvailable) return false;
             string toggle = _hungerJournalOpen ? "SCHLIESSEN" : (Application.isMobilePlatform ? "SPUREN" : "SPUREN (J)");
             if (Application.isMobilePlatform) GUI.Box(HungerToggleRect(layout), toggle);
             else if (GUI.Button(HungerToggleRect(layout), toggle)) _hungerJournalOpen = !_hungerJournalOpen;
