@@ -152,7 +152,7 @@ namespace AreArpg.UnityClient
                 gear.WornRegionalRelic(RegionalRelicSlot.Waist), gear.WornRegionalRelic(RegionalRelicSlot.Legs), gear.WornRegionalRelic(RegionalRelicSlot.Feet) })
                 if (IsBakedArmor(piece) && !MountBakedArmor(piece)) Debug.LogWarning("Ashen Crypt: Rüstung konnte nicht angelegt werden: " + piece);
             if (gear.WornRegionalRelic(RegionalRelicSlot.Weapon) == RegionalRelic.F_Langbogen &&
-                !MountBakedPrefab(Resources.Load<GameObject>("ARE/Visuals/" + HunterQuiver), "F_Koecher", false))
+                !MountBakedPrefab(Resources.Load<GameObject>("ARE/Visuals/" + HunterQuiver), "F_Koecher", HeadWear.None))
                 Debug.LogWarning("Ashen Crypt: Köcher konnte nicht angelegt werden");
             if (IsBakedArmor(outfit)) outfit = RegionalRelic.None;
             if (IsBakedArmor(head)) head = RegionalRelic.None;

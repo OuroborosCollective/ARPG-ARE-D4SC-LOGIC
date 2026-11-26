@@ -12,7 +12,7 @@ namespace AreArpg.UnityClient
     {
         private readonly List<Transform> _bones = new List<Transform>();
         private readonly List<Vector3> _sizes = new List<Vector3>();
-        private float _factor = 1f;
+        private readonly List<float> _factors = new List<float>();
 
         public int Count => _bones.Count;
 
@@ -21,7 +21,7 @@ namespace AreArpg.UnityClient
             if (!bone || _bones.Contains(bone)) return;
             _bones.Add(bone);
             _sizes.Add(bone.localScale);
-            _factor = factor;
+            _factors.Add(factor);
             bone.localScale *= factor;
         }
 
@@ -30,11 +30,12 @@ namespace AreArpg.UnityClient
             for (int i = 0; i < _bones.Count; i++) if (_bones[i]) _bones[i].localScale = _sizes[i];
             _bones.Clear();
             _sizes.Clear();
+            _factors.Clear();
         }
 
         private void LateUpdate()
         {
-            for (int i = 0; i < _bones.Count; i++) if (_bones[i]) _bones[i].localScale = _sizes[i] * _factor;
+            for (int i = 0; i < _bones.Count; i++) if (_bones[i]) _bones[i].localScale = _sizes[i] * _factors[i];
         }
 
         private void OnDestroy() { Release(); }
