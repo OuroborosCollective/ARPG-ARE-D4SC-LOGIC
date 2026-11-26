@@ -106,6 +106,9 @@ internal static class AschbeterTests
         var a = court.Aschbeter;
         check(a != null && a.Xmm == AschbeterState.StartXmm && a.Zmm == AschbeterState.StartZmm && a.Heading == AschbeterState.StartHeading &&
             court.Monsters.Count == 0, "aschbeter-stands-on-the-procession-path-facing-the-portal");
+        var escape = CourtLayout.Route(CourtLayout.SpawnXmm, CourtLayout.SpawnZmm, CourtLayout.ExitXmm, CourtLayout.ExitZmm,
+            CourtLayout.SpawnXmm, CourtLayout.SpawnZmm, 2400);
+        check(escape.Length > 2, "aschbeter-escape-when-starting-inside-avoidance-circle");
         string before = court.Progression.SaveString();
 
         // From the front his claw kills an unprotected wanderer.
@@ -119,6 +122,7 @@ internal static class AschbeterTests
         bool struck = Approach(quick, 0, AschbeterState.StartZmm - 3500, 900) &&
             WaitFor(quick, () => quick.Aschbeter.Mode == AschbeterMode.Strike && quick.Aschbeter.ModeTicks == 3, 200);
         int health = quick.PlayerHealth; // the crypt's guardians may have scratched him on the way out
+        check(struck && quick.InCombat, "aschbeter-active-pursuer-counts-as-combat");
         bool dodged = struck && quick.StartDodge(10000, 0);
         for (int i = 0; i < 12; i++) quick.Step();
         check(dodged && !quick.GameOver && quick.PlayerHealth == health && quick.DodgedAttacks > 0, "aschbeter-claw-can-be-dodged");

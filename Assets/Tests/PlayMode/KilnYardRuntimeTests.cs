@@ -43,7 +43,34 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(WalkKiln(vase.Xmm + 1100, vase.Zmm - 200, 300, 500), "the first vase is reachable");
             Assert.IsTrue(Game.NearKilnVase.HasValue && Game.NearKilnVase.Value.Id == 0);
             if (kit) Assert.IsTrue(Find("Brennerhof_Vase_0").activeSelf, "the vase stands whole");
-            yield return StoryAction(HungerAction.BreakKilnVase);
+            var previousDevice = PlayerDevice.Scripted;
+            try
+            {
+                var phone = new ScriptedPhone();
+                PlayerDevice.Scripted = phone;
+                var layout = (ArenaHudLayout)typeof(ArenaRuntime).GetMethod("CurrentHudLayout", Flags).Invoke(_runtime, null);
+                var poll = typeof(ArenaRuntime).GetMethod("PollHungerInput", Flags);
+                void Tap(Vector2 position)
+                {
+                    phone.Tap(layout, position);
+                    phone.Commit();
+                    Assert.IsTrue((bool)poll.Invoke(_runtime, new object[] { layout }), "the journal consumed the touch");
+                    phone.Commit();
+                    poll.Invoke(_runtime, new object[] { layout });
+                }
+                Tap(ArenaRuntime.HungerToggleRect(layout).center);
+                Assert.IsTrue((bool)typeof(ArenaRuntime).GetField("_hungerJournalOpen", Flags).GetValue(_runtime));
+                var offered = (HungerAction[])typeof(ArenaRuntime).GetMethod("HungerActions", Flags).Invoke(_runtime, null);
+                int index = System.Array.IndexOf(offered, HungerAction.BreakKilnVase);
+                Assert.GreaterOrEqual(index, 0);
+                var rect = (Rect)typeof(ArenaRuntime).GetMethod("HungerActionRect",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, new object[] { layout, index });
+                Tap(rect.center);
+                Tap(ArenaRuntime.HungerToggleRect(layout).center);
+                _runtime.enabled = true;
+                for (int frame = 0; frame < 120 && !Game.Progression.KilnVaseBroken(0); frame++) yield return null;
+            }
+            finally { PlayerDevice.Scripted = previousDevice; }
             Assert.IsTrue(Game.Progression.KilnVaseBroken(0), "the rules know the vase is broken");
             _runtime.enabled = true; // the presentation follows the rules frame by frame
             yield return null; yield return null;

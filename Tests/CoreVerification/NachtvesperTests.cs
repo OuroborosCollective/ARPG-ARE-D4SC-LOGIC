@@ -68,6 +68,17 @@ internal static class NachtvesperTests
             NachtvesperSet.IsPiece(piece), "nachtvesper-found-under-a-knights-loot");
         check(!Pick(crypt, loot) || crypt.LastGearFind == RegionalRelic.None, "nachtvesper-same-loot-not-twice");
 
+        var court = Crypt(109, true).TryEnterCourt();
+        court.Progression.RecordKill();
+        var gear = court.Progression.Equipment;
+        var overlap = Enumerable.Range(1, 20000)
+            .Select(seed => LootCatalog.Version1.GenerateFlagged((ulong)seed, BigInteger.One, (ulong)seed, 2, NachtvesperSet.KnightKind, court.Progression.LootOrdinal, 0))
+            .First(item => item != null && AschenwachtGear.Roll(item, gear) != RegionalRelic.None && NachtvesperSet.Roll(item, gear) != RegionalRelic.None);
+        var first = AschenwachtGear.Roll(overlap, gear);
+        var second = NachtvesperSet.Roll(overlap, gear);
+        check(Pick(court, overlap) && court.LastGearFind == first && !gear.OwnsRegionalRelic(second),
+            "nachtvesper-overlapping-roll-awards-only-the-prior-glockenwacht-piece");
+
         var plain = Crypt(102, false);
         var plainLoot = Lucky(plain, NachtvesperSet.KnightKind, out _);
         check(!Pick(plain, plainLoot) && plain.LastLoot == plainLoot && !plain.Progression.Equipment.Active, "nachtvesper-needs-equipment-on");
@@ -108,6 +119,13 @@ internal static class NachtvesperTests
             var p = Armoured(worn, false);
             check(p.NachtvesperPiecesWorn == worn && CombatRules.MaximumHealth(p) == plain + plain * worn / 100, "nachtvesper-health-" + worn + "-pieces");
         }
+        var changing = new ArenaSimulation(105, Armoured(0, false), BigInteger.One, LootCatalog.Version1);
+        ulong bareHash = changing.ComputeWorldHash();
+        int healthBefore = changing.PlayerHealth;
+        check(changing.TrySetRegionalRelicEquipped(RegionalRelic.N_Kuerass, true) && changing.PlayerHealth == healthBefore &&
+            changing.ComputeWorldHash() != bareHash, "nachtvesper-worn-state-distinguishes-equal-health-worlds");
+        check(changing.TrySetRegionalRelicEquipped(RegionalRelic.N_Kuerass, false) && changing.ComputeWorldHash() == bareHash,
+            "nachtvesper-unequip-restores-the-original-hash");
         var seven = new ArenaSimulation(103, Armoured(7, true), BigInteger.One, LootCatalog.Version1);
         var all = new ArenaSimulation(104, Armoured(8, true), BigInteger.One, LootCatalog.Version1);
         check(seven.MaxStamina == CombatV2Rules.StaminaMax && all.MaxStamina == CombatV2Rules.StaminaMax * 125 / 100, "nachtvesper-full-set-stamina");

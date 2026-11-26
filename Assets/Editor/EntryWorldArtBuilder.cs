@@ -72,6 +72,7 @@ namespace AreArpg.EditorTools
             AschenwachtCourtBuilder.TryBuild();
             // Its side yard, the Brennerhof, from the private pack where it is installed.
             BrennerhofBuilder.TryBuild();
+            NachtvesperBuilder.TryBuild();
             EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
             AssetDatabase.SaveAssets();
             AuditInputs();
