@@ -69,6 +69,7 @@ internal static class Program
             NpcForgeIntegrationTests.Run(Require);
             CompanionForgeTests.Run(Require);
             AschenzollTests.Run(Require);
+            NordwechselTests.Run(Require);
             ForgePolicyTests.Run(Require);
             CausalPolicyTests.Run(Require);
             ForgePopulationTests.Run(Require);

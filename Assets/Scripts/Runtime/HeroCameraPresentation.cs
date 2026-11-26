@@ -114,8 +114,18 @@ namespace AreArpg.UnityClient
             if (_occluderRefresh <= 0f) { _occluderRefresh = 1.5f; RefreshCameraOccluders(); }
             bool moving = _game.PlayerXmm != _game.PrevPlayerXmm || _game.PlayerZmm != _game.PrevPlayerZmm;
             bool danger = _game.GameOver;
+            Bounds? wardenPulse = null;
             foreach (var enemy in _game.Monsters)
-                if (!enemy.IsDead && CameraDangerNear(enemy.Xmm, enemy.Zmm)) { danger = true; break; }
+            {
+                if (enemy.IsDead || !CameraDangerNear(enemy.Xmm, enemy.Zmm)) continue;
+                danger = true;
+                if (_game.ChapterId != 2) break;
+                if (enemy.Kind != 3) continue;
+                float x = enemy.Xmm * .001f, z = enemy.Zmm * .001f;
+                float diameter = ArenaSimulation.EmberPulseRadiusMm * .002f;
+                wardenPulse = new Bounds(new Vector3(x, GroundHeight(x, z), z), new Vector3(diameter, 0f, diameter));
+                break;
+            }
             var road = _game.Progression.Road;
             if (_game.Progression.EntryAct == 3 && road.Started && !road.Bear.IsDead && CameraDangerNear(road.Bear.Xmm, road.Bear.Zmm)) danger = true;
             foreach (var npc in _game.Npcs)
@@ -128,7 +138,7 @@ namespace AreArpg.UnityClient
                 if (id == 3) speaker = new Vector3(HunterEncounter.HunterX / 1000f, 1, HunterEncounter.HunterZ / 1000f);
                 else if (_npcVisuals.TryGetValue(id, out var actor) && actor != null) speaker = actor.position;
             }
-            _cameraRig.SetContext(moving, danger, speaking, speaker);
+            _cameraRig.SetContext(moving, danger, speaking, speaker, wardenPulse);
         }
     }
 }

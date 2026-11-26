@@ -159,7 +159,14 @@ namespace AreArpg.Core
         }
         private static string EncodeJourney(string s)=>Convert.ToBase64String(Encoding.UTF8.GetBytes(s));
         private static string DecodeJourney(string s){var bytes=Convert.FromBase64String(s);if(Convert.ToBase64String(bytes)!=s)throw new FormatException();return new UTF8Encoding(false,true).GetString(bytes);}
-        public static bool TryLoad(string saved,JourneyMapCatalog maps,out CharacterProgression progress)=>TryLoadJourney(saved,maps,null,out progress);
+        public static bool TryLoad(string saved, JourneyMapCatalog maps, out CharacterProgression progress)
+        {
+            if (!TryLoadJourney(saved, maps, null, out progress)) return false;
+            // The freight and region evidence live outside the nested AC15 story record.
+            if (progress.EntryAct != NordwechselAct || progress.HasNordwechselCheckpoint) return true;
+            progress = null;
+            return false;
+        }
         private static bool TryLoadJourney(string saved,JourneyMapCatalog maps,WeaponMasteryState restoring,out CharacterProgression progress)
         {
             progress=null;if(saved!=null&&saved.StartsWith("AC22|",StringComparison.Ordinal))return restoring==null&&TryLoadSectionContainer(saved,maps,out progress);

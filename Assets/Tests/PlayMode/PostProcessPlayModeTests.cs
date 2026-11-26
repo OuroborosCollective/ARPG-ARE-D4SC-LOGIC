@@ -1,4 +1,5 @@
 using System.Collections;
+using AreArpg.Core;
 using AreArpg.UnityClient;
 using NUnit.Framework;
 using UnityEngine;
@@ -10,6 +11,36 @@ namespace AreArpg.PlayMode.Tests
 {
     public sealed partial class EntryJourneyRuntimeTests
     {
+        [UnityTest]
+        public IEnumerator ChapterChangeRegradesTheExistingVolume()
+        {
+            _runtime.enabled = false;
+            ArenaSimulation previous = Game;
+            var volume = Find(ArenaRuntime.PostProcessVolumeName).GetComponent<Volume>();
+            var profile = volume.sharedProfile;
+            Assert.IsTrue(profile.TryGet(out Bloom bloom));
+            Assert.IsTrue(profile.TryGet(out ColorAdjustments colour));
+            Assert.IsTrue(profile.TryGet(out Vignette vignette));
+            float normalBloom = bloom.intensity.value, normalColour = colour.saturation.value, normalVignette = vignette.intensity.value;
+            var install = typeof(ArenaRuntime).GetMethod("InstallNewRun", Flags);
+            var rift = new ArenaSimulation(71, new CharacterProgression(), 2, LootCatalog.Version1);
+            ulong hash = rift.ComputeWorldHash();
+            install.Invoke(_runtime, new object[] { rift, "Glutklamm" });
+            yield return null;
+            Assert.AreSame(profile, volume.sharedProfile);
+            Assert.AreEqual(1, Object.FindObjectsByType<Volume>(FindObjectsSortMode.None).Length);
+            Assert.Less(bloom.intensity.value, normalBloom, "Hot fissures leave headroom for the Warden's pulse.");
+            Assert.Less(colour.saturation.value, normalColour);
+            Assert.Less(vignette.intensity.value, normalVignette);
+            Assert.AreEqual(hash, rift.ComputeWorldHash(), "Scene and camera projections do not run a Core tick.");
+            install.Invoke(_runtime, new object[] { previous, "Rückkehr" });
+            yield return null;
+            Assert.AreSame(volume, Find(ArenaRuntime.PostProcessVolumeName).GetComponent<Volume>());
+            Assert.AreEqual(normalBloom, bloom.intensity.value);
+            Assert.AreEqual(normalColour, colour.saturation.value);
+            Assert.AreEqual(normalVignette, vignette.intensity.value);
+        }
+
         [UnityTest]
         public IEnumerator ImageFinishIsOneMobileSafeVolumeAndObeysReducedEffects()
         {

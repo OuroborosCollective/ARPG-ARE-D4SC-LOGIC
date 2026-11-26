@@ -47,6 +47,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNotNull(Find("Ember_Rift_Boss_Dais"));
             Assert.That(ArenaRuntime.DisplayChapterName(Game), Does.Contain("Glutklamm"));
             Assert.IsNull(Find("Aschenzoll_EmptyFreightCart"));
+            DungeonProject();
+            CaptureNordwechselFrame("glutklamm-causeway");
 
             // Recreate the actual entry runtime and let Awake read PlayerPrefs again.
             Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_previous));
@@ -69,6 +71,14 @@ namespace AreArpg.PlayMode.Tests
             var warning = Find("Ember_Warden_Telegraph");
             Assert.IsNotNull(warning);
             Assert.IsTrue(warning.activeInHierarchy);
+            var ring = warning.GetComponent<LineRenderer>();
+            Assert.IsTrue(ring.loop);
+            for (int i = 0; i < ring.positionCount; i++)
+            {
+                var vertex = ring.GetPosition(i);
+                Assert.That(new Vector2(vertex.x, vertex.z).magnitude,
+                    Is.EqualTo(ArenaSimulation.EmberPulseRadiusMm * .001f).Within(.005f));
+            }
             CaptureNordwechselFrame("glutklamm-warden");
             int health = warden.Health;
             for (int i = 0; i < 120 && !Game.GameOver && warden.Health == health; i++)
@@ -94,6 +104,8 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(Game.InAschenzoll);
             MoveStory(-9500, 18000);
             var station = Game;
+            string previousCheckpoint = PlayerPrefs.GetString(_keys[0]);
+            string previousBackup = PlayerPrefs.GetString(_keys[1]);
             var field = typeof(ArenaRuntime).GetField("_journeyMaps", Flags);
             var maps = field.GetValue(_runtime);
             try
@@ -104,6 +116,8 @@ namespace AreArpg.PlayMode.Tests
                 TravelStory();
                 Assert.AreSame(station, Game);
                 Assert.AreEqual("1", Game.CryptDepth.ToString());
+                Assert.AreEqual(previousCheckpoint, PlayerPrefs.GetString(_keys[0]));
+                Assert.AreEqual(previousBackup, PlayerPrefs.GetString(_keys[1]));
                 Assert.IsTrue((bool)typeof(ArenaRuntime).GetField("_storageFault", Flags).GetValue(_runtime));
             }
             finally { field.SetValue(_runtime, maps); }

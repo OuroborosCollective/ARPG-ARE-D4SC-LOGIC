@@ -55,6 +55,7 @@ namespace AreArpg.UnityClient
         private HungerAction[] StoryActions()
         {
             var p = _game.Progression;
+            if (_game.InNordwechselRift) return Array.Empty<HungerAction>();
             if (_game.InCourt) return _game.NearCourtTrace.HasValue ? new[] { HungerAction.ReadCourtTrace } : new HungerAction[0];
             if (_game.InKilnYard)
                 return _game.NearKilnGate ? new[] { HungerAction.OpenKilnGate } :
@@ -177,7 +178,10 @@ namespace AreArpg.UnityClient
                 DrawChroniclePage(layout, panel);
                 return true;
             }
-            GUI.Box(panel, _game.InJourney ? _game.ChapterName : _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth : _game.InAschenzoll ? "ASCHENZOLL — DIE TRANSPORTSPUR" : (AuthoredHunger!=null?AuthoredHunger.title:"HUNGER HINTER DEN MAUERN"));
+            string title = _game.InNordwechselRift ? "GLUTKLAMM · TIEFE " + _game.CryptDepth :
+                _game.InJourney ? _game.ChapterName : _game.InDungeon ? "KRYPTA - RUN " + _game.Progression.Dungeon.Run + " / EBENE " + _game.Progression.Dungeon.Depth :
+                _game.InAschenzoll ? "ASCHENZOLL — DIE TRANSPORTSPUR" : (AuthoredHunger!=null?AuthoredHunger.title:"HUNGER HINTER DEN MAUERN");
+            GUI.Box(panel, title);
             if (Application.isMobilePlatform) GUI.Box(ChronicleTabRect(layout), "CHRONIK");
             else if (GUI.Button(ChronicleTabRect(layout), "CHRONIK")) _chroniclePageOpen = true;
             GUI.Label(new Rect(panel.x + 15, panel.y + 30, 530, 70), PresentedHungerObjective(), _smallStyle);

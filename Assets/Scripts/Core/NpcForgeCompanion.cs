@@ -44,17 +44,19 @@ namespace AreArpg.Core
         internal string Token()
         {
             object[] values={2,(int)Status,Health,Hunger,Fatigue,Area,AreaSeed,Xmm,Zmm,PreviousXmm,PreviousZmm,AttackCooldown,AttackFlash,TargetId,TotalExperience,_practice[0],_practice[1],_practice[2],_practice[3],WeaponOrdinal,ShieldOrdinal,LastPracticeTick,AreaDepth};
-            if(LifetimeKills>0||Area>10){values[0]=Area>10?4:3;values=values.Concat(new object[]{LifetimeKills}).ToArray();}
+            if(LifetimeKills>0||Area>10){values[0]=Area==CharacterProgression.NordwechselAct?5:Area>10?4:3;values=values.Concat(new object[]{LifetimeKills}).ToArray();}
             return string.Join(",",values.Select(x=>Convert.ToString(x,CultureInfo.InvariantCulture)));
         }
         internal static bool TryRead(string token,CharacterProgression p,out CompanionState state)
         {
             state=null;var f=token.Split(',');bool legacy=f.Length==22&&f[0]=="1";
             bool journey=f.Length==24&&f[0]=="4"&&p.Journey.Active;
-            bool attributed=f.Length==24&&(f[0]=="3"||journey);
+            bool rift=f.Length==24 && f[0]=="5" && p.EntryAct==CharacterProgression.NordwechselAct;
+            bool attributed=f.Length==24&&(f[0]=="3"||journey||rift);
             if(!legacy&&!attributed&&(f.Length!=23||f[0]!="2")||p.Social.Forge==null||!p.Road.Rescued)return false;
             var n=new BigInteger[f.Length];for(int i=0;i<n.Length;i++)if(!BigInteger.TryParse(f[i],NumberStyles.AllowLeadingSign,CultureInfo.InvariantCulture,out n[i])||n[i].ToString(CultureInfo.InvariantCulture)!=f[i])return false;
-            if(n[1]<1||n[1]>3||n[2]<0||n[2]>MaximumHealth||(n[1]==3)!=(n[2]==0)||n[3]<0||n[3]>1000||n[4]<0||n[4]>1000||n[5]<2||n[5]>(journey?12:10)||n[6]<0||n[6]>ulong.MaxValue)return false;
+            if(n[1]<1||n[1]>3||n[2]<0||n[2]>MaximumHealth||(n[1]==3)!=(n[2]==0)||n[3]<0||n[3]>1000||n[4]<0||n[4]>1000||n[5]<2||n[5]>(rift?CharacterProgression.NordwechselAct:journey?12:10)||n[6]<0||n[6]>ulong.MaxValue)return false;
+            if(rift && (n[5]!=CharacterProgression.NordwechselAct || n[6]!=0)) return false;
             for(int i=7;i<=10;i++)if(n[i]<-(journey?70000:60000)||n[i]>(journey?70000:60000))return false;
             if(n[11]<0||n[11]>100||n[12]<0||n[12]>3||n[13]<-1||n[13]>int.MaxValue)return false;
             for(int i=14;i<=21;i++)if(n[i]<0)return false;
@@ -67,7 +69,7 @@ namespace AreArpg.Core
                 c.AreaSeed=p.Dungeon.Seed;c.AreaDepth=p.Dungeon.Depth;
             }
             else if(!legacy){if(n[22]<0||n[22]>(journey?6:3))return false;c.AreaDepth=(int)n[22];}
-            if(attributed){if(n[23]<(journey?0:1)||n[23]>p.LootOrdinal)return false;c.LifetimeKills=n[23];}
+            if(attributed){if(n[23]<(journey||rift?0:1)||n[23]>p.LootOrdinal)return false;c.LifetimeKills=n[23];}
             if(c.AreaDepth>0&&c.Area!=6&&c.Area!=7&&!(journey&&c.Area==12))return false;
             if(journey&&(c.Area<11||c.Area==11&&c.AreaDepth!=0||c.Area==12&&(c.AreaDepth<1||c.AreaDepth>p.Journey.FloorCount)))return false;
             foreach(var ordinal in new[]{c.WeaponOrdinal,c.ShieldOrdinal})if(ordinal>0&&(!p.Items.Any(x=>x.KillOrdinal==ordinal)||ordinal==p.Equipment.Weapon?.Ordinal||ordinal==p.Equipment.Shield?.Ordinal))return false;

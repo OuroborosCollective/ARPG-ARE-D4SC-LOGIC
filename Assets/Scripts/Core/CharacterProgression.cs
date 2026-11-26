@@ -228,7 +228,7 @@ namespace AreArpg.Core
         }
 
         /// <summary>Validate checkpoint version, checksum, entry revision and item invariants; AC6 remains reserved.</summary>
-        public static bool TryLoad(string saved, out CharacterProgression progress) => TryLoadRestoring(saved, null, out progress);
+        public static bool TryLoad(string saved, out CharacterProgression progress) => TryLoad(saved, null, out progress);
 
         /// <summary>restoring carries the weapon skills of an enclosing AC21 checkpoint into the progression this chain
         /// creates, so every saved-health check below already uses the final maximum health.</summary>
@@ -285,7 +285,8 @@ namespace AreArpg.Core
             bool aschbeterFallen = false;
             bool entryFromNorth = false;
             HungerChoice supplyChoice = HungerChoice.Undecided;
-            if (ac9 && (!unlockedDepth.IsOne || !ReadHungerToken(parts[15], out entryAct, out entryFromNorth, out hungerStage, out supplyChoice, ac11, ac12 || ac14, ac15))) return false;
+            if (ac9 && (!ReadHungerToken(parts[15], out entryAct, out entryFromNorth, out hungerStage, out supplyChoice, ac11, ac12 || ac14, ac15) ||
+                (entryAct == NordwechselAct ? unlockedDepth.IsOne : !unlockedDepth.IsOne))) return false;
             if (ac8)
             {
                 if (!unlockedDepth.IsOne) return false;
