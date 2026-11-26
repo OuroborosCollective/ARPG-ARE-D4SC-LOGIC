@@ -75,6 +75,7 @@ namespace AreArpg.UnityClient
         {
             _entryProfile = gameObject.scene.name == "AshenEntry";
             Application.targetFrameRate = 60;
+            ApplyAndroidHints();
             try { _journeyMaps=LoadJourneyMaps(); }
             catch (Exception e) when(e is FormatException || e is ArgumentException) { Debug.LogError("Journey map validation failed: "+e.Message); }
             CharacterProgression saved;
@@ -1259,6 +1260,7 @@ namespace AreArpg.UnityClient
             UpdateAschbeter();
             UpdateMemorySnapshots();
             UpdatePerformanceProbes();
+            ReportFullyDrawnWhenPlayable();
             UpdateOrselFigure();
             UpdateCombatFeel();
             UpdateFaceLife();
