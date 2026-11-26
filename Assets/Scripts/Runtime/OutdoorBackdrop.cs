@@ -11,6 +11,7 @@ namespace AreArpg.UnityClient
         /// <summary>Edge of the walked outdoor ground (a cube built by the journey scenery), in metres.</summary>
         private const float GroundMetres = 57f;
         private readonly List<Mesh> _meshes = new List<Mesh>();
+        private readonly List<MeshRenderer> _distantRidges = new List<MeshRenderer>(3);
         private Material _land, _sky;
         private MeshRenderer _skyRenderer;
         private bool _groundTextured;
@@ -57,6 +58,11 @@ namespace AreArpg.UnityClient
         public void SetSkyDomeVisible(bool visible)
         {
             if (_skyRenderer != null) _skyRenderer.enabled = visible;
+        }
+
+        internal void SetDistantRidgesVisible(bool visible)
+        {
+            foreach (var renderer in _distantRidges) renderer.enabled = visible;
         }
 
         public static Transform Create(int act)
@@ -158,7 +164,10 @@ namespace AreArpg.UnityClient
                 vertices[i * 2 + 1] = RingPoint(outer, angle, act);
                 colors[i * 2] = innerColor; colors[i * 2 + 1] = outerColor;
             }
-            AddMesh(label, vertices, colors, StripTriangles(Segments), _land);
+            var renderer = AddMesh(label, vertices, colors, StripTriangles(Segments), _land);
+            // The first strip continues the floor at the playable edge. The authored horizon
+            // substitutes only the three distant generic slopes beyond it.
+            if (inner > 0) _distantRidges.Add(renderer);
         }
 
         private static int[] StripTriangles(int segments)
@@ -195,7 +204,7 @@ namespace AreArpg.UnityClient
             AddMesh("Outdoor_Sky", vertices.ToArray(), colors.ToArray(), triangles.ToArray(), _sky);
         }
 
-        private void AddMesh(string label, Vector3[] vertices, Color[] colors, int[] triangles, Material material)
+        private MeshRenderer AddMesh(string label, Vector3[] vertices, Color[] colors, int[] triangles, Material material)
         {
             var mesh = new Mesh { name = label, vertices = vertices, colors = colors, triangles = triangles };
             mesh.RecalculateBounds(); _meshes.Add(mesh);
@@ -204,6 +213,7 @@ namespace AreArpg.UnityClient
             var renderer = part.AddComponent<MeshRenderer>(); renderer.sharedMaterial = material;
             if (label == "Outdoor_Sky") _skyRenderer = renderer;
             renderer.shadowCastingMode = ShadowCastingMode.Off; renderer.receiveShadows = false;
+            return renderer;
         }
 
         private void OnDestroy()

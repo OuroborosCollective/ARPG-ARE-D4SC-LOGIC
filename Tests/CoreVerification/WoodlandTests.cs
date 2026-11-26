@@ -51,7 +51,7 @@ internal static class WoodlandTests
         }
         throw new Exception("Forest route blocked");
     }
-    private static void Collect(ArenaSimulation w)
+    internal static void Collect(ArenaSimulation w)
     { while(w.GroundLoot.Count>0){var l=w.GroundLoot[0];Walk(w,l.Xmm,l.Zmm);if(!w.TryCollectLoot()&&w.GroundLoot.Contains(l))throw new Exception("Forest loot unreachable");} }
     public static void Run(Action<bool,string> require)
     {

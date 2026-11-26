@@ -1,0 +1,50 @@
+{
+  "bellcourt": {
+    "surfaceTriangles": 13288,
+    "member": {
+      "kind": "village",
+      "bearing": 4,
+      "distance": 72.0,
+      "originalDistance": 72.0,
+      "scale": 1.17,
+      "turn": 0,
+      "x": 5.022466109577022,
+      "y": 71.82461161870734,
+      "originZ": -0.4846831308373097,
+      "firstTriangle": 18822,
+      "triangleCount": 3584
+    }
+  },
+  "ash_road": {
+    "surfaceTriangles": 13034,
+    "member": {
+      "kind": "granary",
+      "bearing": 20,
+      "distance": 120.0,
+      "originalDistance": 120.0,
+      "scale": 0.69,
+      "turn": 0,
+      "x": 41.04241719908025,
+      "y": 112.76311449430901,
+      "originZ": 5.197356814479845,
+      "firstTriangle": 25843,
+      "triangleCount": 2028
+    }
+  },
+  "freight": {
+    "surfaceTriangles": 11848,
+    "member": {
+      "kind": "village",
+      "bearing": 83,
+      "distance": 128.0,
+      "originalDistance": 118.0,
+      "scale": 0.64,
+      "turn": 0,
+      "x": 127.04590741008921,
+      "y": 15.599275955858879,
+      "originZ": 14.443480577199253,
+      "firstTriangle": 24965,
+      "triangleCount": 3584
+    }
+  }
+}

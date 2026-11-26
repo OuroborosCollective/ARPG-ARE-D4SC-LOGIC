@@ -74,6 +74,7 @@ internal static class Program
             ForgePopulationTests.Run(Require);
             JourneyPilotTests.Run(Require);
             WorldSkyClockTests.Run(Require);
+            WorldHorizonSiteTests.Run(Require);
             VillageHeroLayoutTests.Run(Require);
             SaveSectionTests.Run(Require);
             RegionNetworkTests.Run(Require);

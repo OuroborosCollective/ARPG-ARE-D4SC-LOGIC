@@ -157,12 +157,29 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsNull(Find(ArenaRuntime.HouseSignPrefix + smithy));
             Assert.IsTrue(smith.activeSelf, "The smith is still at his lot");
 
-            // The player comes to the village again. The Core raises the house on arrival (its own tests travel for
-            // real); here the arrival is called by hand and the picture is put up as after a change of area.
-            typeof(CharacterProgression).GetMethod("ArriveInVillage", Flags).Invoke(Game.Progression, null);
-            Assert.IsTrue(VillageHouses.Built(smithy));
-            RebuildVillagePicture();
-            yield return RunFrames(1);
+            TouchSite(layout, ArenaRuntime.VillageSiteCloseRect(layout).center);
+            var ilyan = Game.Npcs.Find(npc => npc.Id == 0);
+            Assert.IsNotNull(ilyan);
+            for (int attempt = 0; attempt < 6; ++attempt)
+            {
+                long dx = ilyan.Xmm - Game.PlayerXmm, dz = ilyan.Zmm - Game.PlayerZmm;
+                if (dx * dx + dz * dz <= 1800L * 1800L) break;
+                WalkPlayerTo(ilyan.Xmm, ilyan.Zmm);
+            }
+            yield return StoryAction(HungerAction.HearIlyan);
+            Assert.IsTrue(Game.HungerForwardOpen);
+            WalkPlayerTo(ArenaSimulation.PassageXmm, ArenaSimulation.PassageZmm);
+            TravelStory();
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            Assert.AreEqual(BuildStage.Raising, VillageHouses.Stage(smithy));
+            yield return WaitForVillageJourneyHorizon("ash_road");
+            WalkPlayerTo(0, ArenaSimulation.ReturnPassageZmm);
+            TravelStory();
+            Assert.IsTrue(Game.IsVillage && VillageHouses.Built(smithy));
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), NativeJourneyMaps, out saved));
+            Assert.IsTrue(saved.Houses.Built(smithy));
+            Assert.AreEqual(3, saved.Crafting.MaterialCount(MaterialKind.Holz));
+            yield return WaitForVillageJourneyHorizon("village");
             Assert.IsNull(Find(ArenaRuntime.BuildSitePrefix + smithy), "The lot is gone");
             Assert.IsNull(Find(ArenaRuntime.SiteAskerPrefix + smithy), "Nobody asks at a house that stands");
             Assert.IsNotEmpty(DrawnOnTheGroundOf(smithy), "The smithy stands");
@@ -171,9 +188,32 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(farmer != null && farmer.activeSelf, "Now the farmer asks for the barn");
             Assert.IsEmpty(DrawnOnTheGroundOf(VillagePlace.Barn), "The barn is still a lot");
             Assert.IsNull(_runtime.VillageSiteHint, "Coming out of the picture of the lot, nothing is offered at the smithy");
+            // Approach the measured door from the road, then walk through in both directions.
+            WalkPlayerTo(0, 20000);
             EnterHouse(smithy);
-            yield return RunFrames(1);
+            yield return WaitForVillageJourneyHorizon(null);
             Assert.IsNotNull(Find(ArenaRuntime.VillageRoomRoot), "The finished smithy has its room");
+            LeaveHouse();
+            yield return WaitForVillageJourneyHorizon("village");
+            WalkPlayerTo(VillageBuildRules.AskerXmm(VillagePlace.Barn) + 900, VillageBuildRules.AskerZmm(VillagePlace.Barn) + 500);
+            Assert.AreEqual(VillagePlace.Barn, Game.SiteInReach);
+        }
+
+        private IEnumerator WaitForVillageJourneyHorizon(string site)
+        {
+            _runtime.enabled = true;
+            yield return null;
+            var horizon = _runtime.GetComponentInChildren<WorldHorizon>();
+            Assert.IsNotNull(horizon);
+            var filter = horizon.GetComponent<MeshFilter>();
+            string expected = site == null ? null : "Weltferne/" + site;
+            float deadline = Time.realtimeSinceStartup + 60f;
+            while ((filter.sharedMesh == null ? null : filter.sharedMesh.name) != expected &&
+                   Time.realtimeSinceStartup < deadline)
+                yield return null;
+            Assert.AreEqual(expected, filter.sharedMesh == null ? null : filter.sharedMesh.name);
+            if (site != null) Assert.IsTrue(filter.GetComponent<MeshRenderer>().enabled);
+            _runtime.enabled = false;
         }
     }
 }
