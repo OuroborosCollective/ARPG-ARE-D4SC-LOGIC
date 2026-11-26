@@ -8,6 +8,12 @@ import sys
 
 DEFAULT_LAB = Path.home()/".local/share/unity-game-director/art-lab/20261120"
 CATALOG = Path(__file__).resolve().parents[1]/"references/art-sources.json"
+MODELING_LANES = frozenset({"creature", "human", "environment", "equipment", "level", "prop"})
+
+
+def recommended_model(lane):
+    """Pick an authoring model for the lane at the start of the job."""
+    return "gpt-6.2-astra" if lane in MODELING_LANES else "gpt-6.2-sol"
 
 def read_skill(catalog, lab, key):
     item = catalog["skills"][key]
@@ -52,7 +58,10 @@ def main():
             raise ValueError("Neural Director did not select a department: "+str(neural)[:700])
         pin=subprocess.check_output(["git","-C",str(args.project),"rev-parse","HEAD"],text=True).strip()
         print(json.dumps({"projectRevision":pin,"lane":args.lane,"director":neural,
-                          "techniques":[read_skill(cat,args.lab,k)[0] for k in lane["skills"]]},
+                          "techniques":[read_skill(cat,args.lab,k)[0] for k in lane["skills"]],
+                          "modelRecommendation": {"model": recommended_model(args.lane),
+                                                  "reasoningEffort": "medium",
+                                                  "status": "ADVISORY_ONLY"}},
                          ensure_ascii=False,sort_keys=True))
 if __name__=="__main__":
     main()
