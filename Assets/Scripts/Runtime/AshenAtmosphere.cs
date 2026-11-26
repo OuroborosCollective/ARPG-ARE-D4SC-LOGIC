@@ -23,7 +23,8 @@ namespace AreArpg.UnityClient
         private Texture2D _particleTexture;
         private MaterialPropertyBlock _regionGlow;
         private Transform _hero;
-        private int _act = -1, _effectIndex, _stepVariant, _speaker = -1;
+        private int _act = -1, _effectIndex, _stepVariant, _swordSwing, _swordImpact, _speaker = -1;
+        private readonly Dictionary<string, int> _variants = new Dictionary<string, int>();
         private float _walked, _subtitleLeft, _fade = 1f;
         private ulong _lastStepTick;
         private bool _suspended;
@@ -74,6 +75,30 @@ namespace AreArpg.UnityClient
         }
 
         private AudioClip Clip(string key) { _clips.TryGetValue(key, out var clip); return clip; }
+
+        /// <summary>How many clips are numbered after a key (key0, key1, ...): recorded footsteps and sword sounds come in several takes.</summary>
+        private int Variants(string prefix)
+        {
+            if (_variants.TryGetValue(prefix, out int count)) return count;
+            while (_clips.ContainsKey(prefix + count)) count++;
+            _variants[prefix] = count;
+            return count;
+        }
+
+        /// <summary>
+        /// Swords sound like swords (SwordSoundPack, owner 2026-11-26): their swing and hit come from the recorded takes;
+        /// every other weapon, the staffs among them, keeps the existing swing and hit, so the two can be heard side by side.
+        /// </summary>
+        private string WeaponSound(string kind, ArenaSimulation game)
+        {
+            var weapon = game?.Progression?.Equipment?.Weapon;
+            if (weapon == null || weapon.Definition.Family != WeaponFamily.Sword) return kind;
+            int takes = Variants(kind + "_sword_");
+            if (takes == 0) return kind;
+            // Swings and hits go through their takes each on their own, so a hit after every swing hears them all.
+            int take = kind == "swing" ? _swordSwing++ : _swordImpact++;
+            return kind + "_sword_" + (take % takes);
+        }
         private void Loop(AudioSource source, AudioClip clip)
         { source.Stop(); source.clip = clip; if (clip != null && !_suspended) source.Play(); }
 
@@ -142,7 +167,10 @@ namespace AreArpg.UnityClient
             {
                 _walked %= 1.45f; _lastStepTick = game.CurrentTick;
                 string surface = AtmosphereSurfaces.At(_act, game.PlayerXmm, game.PlayerZmm).ToString().ToLowerInvariant();
-                Effect("step_" + surface + "_" + (_stepVariant++ % 2), Position(game), .7f); FootstepCount++;
+                // Every recorded take of the surface is used in turn (Footsteps - Essentials, owner 2026-11-26).
+                int takes = Variants("step_" + surface + "_");
+                if (takes > 0) Effect("step_" + surface + "_" + (_stepVariant++ % takes), Position(game), .7f);
+                FootstepCount++;
             }
         }
 
@@ -151,15 +179,15 @@ namespace AreArpg.UnityClient
         public void Skill(SkillResult result, int slot, ArenaSimulation game)
         {
             if (!result.Activated || _suspended) return;
-            Effect(slot <= 1 ? "swing" : "spell", Position(game), .8f);
-            if (result.Hits > 0) { Effect("impact", Position(game), .8f); _sparks.transform.position = Position(game); _sparks.Emit(ReducedEffects ? 3 : 9); }
+            Effect(slot <= 1 ? WeaponSound("swing", game) : "spell", Position(game), .8f);
+            if (result.Hits > 0) { Effect(WeaponSound("impact", game), Position(game), .8f); _sparks.transform.position = Position(game); _sparks.Emit(ReducedEffects ? 3 : 9); }
         }
 
         /// <summary>Combat v2: the swing was heard at the windup; on the impact tick only the hit sounds.</summary>
         public void Impact(SkillResult result, ArenaSimulation game)
         {
             if (!result.Activated || _suspended || result.Hits <= 0) return;
-            Effect("impact", Position(game), .8f); _sparks.transform.position = Position(game); _sparks.Emit(ReducedEffects ? 3 : 9);
+            Effect(WeaponSound("impact", game), Position(game), .8f); _sparks.transform.position = Position(game); _sparks.Emit(ReducedEffects ? 3 : 9);
         }
 
         public void Effect(string key, Vector3 position, float volume)
