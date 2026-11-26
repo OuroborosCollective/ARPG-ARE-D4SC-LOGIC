@@ -1,0 +1,54 @@
+schema_version: 1
+run_id: NORD-001
+task_id: BA-001
+producer: ba
+revision: 2
+claims:
+  - id: CLAIM-001
+    source_fact_id: FACT-001
+    subject: nordwechsel.route
+    relation: equals
+    value: {origin: Aschenzoll, gate: Nordbogen, destination: Ember Rift}
+    status: approved
+    requirement_ids: [REQ-001]
+    question_ids: []
+  - id: CLAIM-002
+    source_fact_id: FACT-002
+    subject: nordwechsel.progression
+    relation: equals
+    value: {victory: true, all_loot_collected: true}
+    status: approved
+    requirement_ids: [REQ-002]
+    question_ids: []
+  - id: CLAIM-003
+    source_fact_id: FACT-003
+    subject: nordwechsel.checkpoint
+    relation: equals
+    value: {readback_before_world_swap: true, persisted_depth: true, correct_core_hash: true}
+    status: approved
+    requirement_ids: [REQ-003]
+    question_ids: []
+  - id: CLAIM-004
+    source_fact_id: FACT-004
+    subject: glutklamm.presentation
+    relation: equals
+    value: {basalt: true, fissures: true, ritual_dais: true, causeway: true, mobile_friendly: true, combat_camera: true, urp_volume: true, new_engine_dependencies: false}
+    status: approved
+    requirement_ids: [REQ-004]
+    question_ids: []
+  - id: CLAIM-005
+    source_fact_id: FACT-005
+    subject: glutklamm.boss
+    relation: equals
+    value: {name: Ember Warden, telegraph_ticks_at_10_hz: 8}
+    status: approved
+    requirement_ids: [REQ-005]
+    question_ids: []
+  - id: CLAIM-006
+    source_fact_id: FACT-006
+    subject: glutklamm.assets
+    relation: equals
+    value: {reuse_existing: true, build_missing_details_only: true}
+    status: approved
+    requirement_ids: [REQ-006]
+    question_ids: []

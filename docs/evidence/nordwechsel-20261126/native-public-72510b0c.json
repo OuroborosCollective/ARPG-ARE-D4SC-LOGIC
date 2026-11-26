@@ -1,0 +1,51 @@
+{
+  "source_revision": "72510b0c3b4325f3a8928e51bedfdb64262bf7fc",
+  "published_source_revision": "2d027d58aee729e537072f4d667a4bee0272b54d",
+  "source_git_tree": "0407a314e9c77df9aefdcbaed8a3e3cf29ef0a04",
+  "unity_version": "6000.6.8f1 (237b6593792b)",
+  "playmode": "Isolated Linux Editor in PlayMode, Android active build target, Xvfb, OpenGLCore Mesa llvmpipe, 960x600 game-camera readbacks. The prior freight report is arranged by a fixture. Gate walk, interaction, readback, both cold starts, telegraph and damaging hit use the runtime.",
+  "unity_tests": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0,
+    "exit": 0,
+    "seconds": 8.9069211
+  },
+  "dotnet": {
+    "version": "8.0.428",
+    "mode": "Release",
+    "project": "Tests/CoreVerification/CoreVerification.csproj",
+    "assertions": 23657,
+    "exit": 0,
+    "full_log_sha256": "c4a6e96ceb568db79d5147ba8e409ae8e8cc570a8147238d5fe4dc63eea6ea18"
+  },
+  "art": "Public repository. Uses the repository fallback meshes for absent private character visuals.",
+  "files": [
+    {
+      "name": "unity-72510b0c.xml",
+      "bytes": 18107,
+      "sha256": "1d3492733c681f9ff1dcdc36f4c94ab76b380db0f5e3cf72fe1df9434cd07821"
+    },
+    {
+      "name": "core-72510b0c.log.gz",
+      "bytes": 97945,
+      "sha256": "082150369b99f56222c1dd952214f872b53bce7e7089f2369c92a10a225464f9"
+    },
+    {
+      "name": "aschenzoll-nordbogen-72510b0c.png",
+      "bytes": 394753,
+      "sha256": "9cbaf3db86fcf042dd8649190f845a1c5468d784b5ff0d3f6216b0d5241bda9b"
+    },
+    {
+      "name": "glutklamm-causeway-72510b0c.png",
+      "bytes": 374742,
+      "sha256": "581c3f691108e4b0cca0ba1eb0b4882b9e3767fafeba13f73743cc414df1bd77"
+    },
+    {
+      "name": "glutklamm-warden-72510b0c.png",
+      "bytes": 508968,
+      "sha256": "16883fbc440e70150209e748a27734a17ec245e8eb2b3788b67a0fef356b4038"
+    }
+  ]
+}

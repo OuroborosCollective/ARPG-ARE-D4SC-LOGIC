@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "id": "EVD-5718d1489d86fc62",
+  "run_id": "NORD-001",
+  "task_id": "BA-001",
+  "command_id": "sdlc_validate",
+  "executable": "node",
+  "args": [
+    ".sdlc/runtime.cjs",
+    "validate-config"
+  ],
+  "cwd": ".",
+  "started_at": "2026-11-26T18:23:05.648Z",
+  "completed_at": "2026-11-26T18:23:06.398Z",
+  "exit_code": 0,
+  "result_status": "passed",
+  "evidence_path": "evidence/commands/EVD-5718d1489d86fc62/evidence.json",
+  "stdout_path": "evidence/commands/EVD-5718d1489d86fc62/stdout.txt",
+  "stderr_path": "evidence/commands/EVD-5718d1489d86fc62/stderr.txt"
+}

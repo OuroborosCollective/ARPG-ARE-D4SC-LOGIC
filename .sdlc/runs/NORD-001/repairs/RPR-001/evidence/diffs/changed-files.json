@@ -1,0 +1,131 @@
+{
+  "files": [
+    "Assets/Scripts/Core/ArpgSimulation.cs",
+    "Assets/Scripts/Core/AschenzollFreight.cs",
+    "Assets/Scripts/Core/CharacterProgression.cs",
+    "Assets/Scripts/Core/HungerJourney.cs",
+    "Assets/Scripts/Core/JourneyState.cs",
+    "Assets/Scripts/Core/NpcForgeCompanion.cs",
+    "Assets/Scripts/Core/RegionNetwork.cs",
+    "Assets/Scripts/Core/WoodlandState.cs",
+    "Assets/Scripts/Runtime/ArenaCameraRig.cs",
+    "Assets/Scripts/Runtime/ArenaRuntime.cs",
+    "Assets/Scripts/Runtime/AschenzollPresentation.cs",
+    "Assets/Scripts/Runtime/HeroCameraPresentation.cs",
+    "Assets/Scripts/Runtime/HungerJourneyPresentation.cs",
+    "Assets/Scripts/Runtime/HunterEncounterPresentation.cs",
+    "Assets/Scripts/Runtime/NordwechselPresentation.cs",
+    "Assets/Scripts/Runtime/NordwechselPresentation.cs.meta",
+    "Assets/Scripts/Runtime/PostProcessPresentation.cs",
+    "Assets/Scripts/Runtime/WoodlandPresentation.cs",
+    "Assets/Tests/PlayMode/ArenaCameraRigTests.cs",
+    "Assets/Tests/PlayMode/AschenzollRuntimeTests.cs",
+    "Assets/Tests/PlayMode/PostProcessPlayModeTests.cs",
+    "Tests/CoreVerification/AschenzollTests.cs",
+    "Tests/CoreVerification/NordwechselTests.cs",
+    "Tests/CoreVerification/Program.cs",
+    ".sdlc/runs/NORD-001/artifacts/mobile/implementation-summary.md"
+  ],
+  "ownership": [
+    {
+      "path": "Assets/Scripts/Core/ArpgSimulation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/AschenzollFreight.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/CharacterProgression.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/HungerJourney.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/JourneyState.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/NpcForgeCompanion.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/RegionNetwork.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Core/WoodlandState.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/ArenaCameraRig.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/ArenaRuntime.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/AschenzollPresentation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/HeroCameraPresentation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/HungerJourneyPresentation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/HunterEncounterPresentation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/NordwechselPresentation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/NordwechselPresentation.cs.meta",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/PostProcessPresentation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Scripts/Runtime/WoodlandPresentation.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/ArenaCameraRigTests.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/AschenzollRuntimeTests.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Assets/Tests/PlayMode/PostProcessPlayModeTests.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/AschenzollTests.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/NordwechselTests.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": "Tests/CoreVerification/Program.cs",
+      "task_id": "MOB-001"
+    },
+    {
+      "path": ".sdlc/runs/NORD-001/artifacts/mobile/implementation-summary.md",
+      "task_id": "MOB-001"
+    }
+  ]
+}

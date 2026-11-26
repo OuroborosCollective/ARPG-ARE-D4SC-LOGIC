@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Failed(Child)" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-11-26 18:31:07Z" end-time="2026-11-26 18:31:13Z" duration="6.1649262">
+  <test-suite type="TestSuite" id="1254" name="ARE Ashen Crypt" fullname="ARE Ashen Crypt" runstate="Runnable" testcasecount="225" result="Failed" site="Child" start-time="2026-11-26 18:31:07Z" end-time="2026-11-26 18:31:13Z" duration="6.164926" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1240" name="AreArpg.PlayMode.Tests.dll" fullname="/var/lib/unityarpg/workspaces/nordwechsel-qc-20261126-2zvzkG/project/Library/ScriptAssemblies/AreArpg.PlayMode.Tests.dll" runstate="Runnable" testcasecount="222" result="Failed" site="Child" start-time="2026-11-26 18:31:07Z" end-time="2026-11-26 18:31:13Z" duration="6.149568" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="2573333" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1241" name="AreArpg" fullname="AreArpg" runstate="Runnable" testcasecount="222" result="Failed" site="Child" start-time="2026-11-26 18:31:07Z" end-time="2026-11-26 18:31:13Z" duration="6.146693" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1242" name="PlayMode" fullname="AreArpg.PlayMode" runstate="Runnable" testcasecount="222" result="Failed" site="Child" start-time="2026-11-26 18:31:07Z" end-time="2026-11-26 18:31:13Z" duration="6.131962" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1243" name="Tests" fullname="AreArpg.PlayMode.Tests" runstate="Runnable" testcasecount="222" result="Failed" site="Child" start-time="2026-11-26 18:31:07Z" end-time="2026-11-26 18:31:13Z" duration="6.129724" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1045" name="EntryJourneyRuntimeTests" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" testcasecount="137" result="Failed" site="Child" start-time="2026-11-26 18:31:07Z" end-time="2026-11-26 18:31:13Z" duration="6.122744" total="2" passed="0" failed="2" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1051" name="NordwechselCommitsChapterTwoBeforeSwitchAndRestoresItInAshenEntry" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.NordwechselCommitsChapterTwoBeforeSwitchAndRestoresItInAshenEntry" methodname="NordwechselCommitsChapterTwoBeforeSwitchAndRestoresItInAshenEntry" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="227246329" result="Failed" start-time="2026-11-26 18:31:07Z" end-time="2026-11-26 18:31:12Z" duration="5.424137" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  The second, spatially distinct northern arch must lead to Ember Rift.
+  Expected: 2
+  But was:  1
+]]></message>
+                  <stack-trace><![CDATA[at AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests+<NordwechselCommitsChapterTwoBeforeSwitchAndRestoresItInAshenEntry>d__7.MoveNext () [0x000c0] in /var/lib/unityarpg/workspaces/nordwechsel-qc-20261126-2zvzkG/project/Assets/Tests/PlayMode/AschenzollRuntimeTests.cs:34
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__8.MoveNext () [0x0003a] in ./Library/PackageCache/com.unity.test-framework@ba1d06c8c02f/UnityEngine.TestRunner/NUnitExtensions/Attributes/TestEnumerator.cs:52
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1052" name="NordwechselReadbackFailureKeepsTheStationWorldActive" fullname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests.NordwechselReadbackFailureKeepsTheStationWorldActive" methodname="NordwechselReadbackFailureKeepsTheStationWorldActive" classname="AreArpg.PlayMode.Tests.EntryJourneyRuntimeTests" runstate="Runnable" seed="2125337961" result="Failed" start-time="2026-11-26 18:31:12Z" end-time="2026-11-26 18:31:13Z" duration="0.641035" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[Expected log did not appear: [Error] ARPG character save readback failed; no further overwrites allowed.]]></message>
+                </failure>
+                <output><![CDATA[Saving results to: /var/lib/unityarpg/.config/unity3d/OuroborosCollective/ARE Ashen Crypt/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

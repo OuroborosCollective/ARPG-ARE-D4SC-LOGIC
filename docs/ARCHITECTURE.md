@@ -49,6 +49,8 @@ The immutable run identity is the explicit positive `BigInteger CryptDepth`, inc
 
 `CharacterProgression` now owns a positive arbitrary-precision unlocked chapter depth, included as field 9 (before the checksum) in AC3 records; AC1/AC2 load with depth 1. The chapter transition deep-copies canonical character state, checks consecutive depth and writes the next checkpoint through Unity's existing validated PlayerPrefs path *before* swapping the active world. Prior world receipts are left unchanged. This is a local checkpoint, not an online account, atomic filesystem transaction or entire simulation snapshot. Android cold-start persistence remains unverified.
 
+The Aschenzoll Nordwechsel uses this boundary with the current story, catalog and equipment save wrappers. In the station, the western arch leads to Ember Rift after the reported Rattler victory, either personally reported freight outcome and collection of outstanding loot. The central arch still leads to the forest road. The client reads back the exact saved text, parses it with the bound map catalog and compares its progression hash before installing the destination. If this verification fails, it restores the prior checkpoint slots and keeps the active world. A successful entry stores story act 13 and depth 2. Later depths reuse the same Warden rules and require a cleared encounter and collected loot at the northern exit.
+
 ---
 
 ## Neural Game Director: gemeinsame Architektur für 28 Fachberater
