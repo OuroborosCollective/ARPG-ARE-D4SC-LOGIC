@@ -8,6 +8,10 @@ namespace AreArpg.UnityClient
     public sealed partial class ArenaRuntime
     {
         private readonly List<GameObject> _bakedArmor = new List<GameObject>();
+        private readonly List<(Transform bone, Vector3 scale)> _tuckedHair = new List<(Transform, Vector3)>();
+        /// <summary>The hero's two hair bones, and how far his hair is drawn in under a helm (it then lies inside the helm's shell).</summary>
+        private static readonly string[] HairRoots = { "FrontHair", "BackHair" };
+        private const float HairUnderHelm = .7f;
 
         private static bool IsBakedArmor(RegionalRelic id)
         {
@@ -18,6 +22,8 @@ namespace AreArpg.UnityClient
         {
             foreach (var piece in _bakedArmor) if (piece) { piece.SetActive(false); Destroy(piece); }
             _bakedArmor.Clear();
+            foreach (var (bone, scale) in _tuckedHair) if (bone) bone.localScale = scale;
+            _tuckedHair.Clear();
         }
 
         /// <summary>
@@ -52,7 +58,23 @@ namespace AreArpg.UnityClient
                 skin.updateWhenOffscreen = true;
             }
             _bakedArmor.Add(holder.gameObject);
+            if (RegionalRelics.Slot(id) == RegionalRelicSlot.Head) TuckHair(avatar.GetBoneTransform(HumanBodyBones.Head));
             return true;
+        }
+
+        /// <summary>
+        /// Under a helm the hero's hair is drawn in toward its roots: his stylized hair stands far out from his head, and a
+        /// helm large enough to cover it would sit on him like a bucket. Taking the helm off gives the hair back its size.
+        /// </summary>
+        private void TuckHair(Transform head)
+        {
+            if (!head) return;
+            foreach (var bone in head.GetComponentsInChildren<Transform>(true))
+            {
+                if (Array.IndexOf(HairRoots, bone.name) < 0 || _tuckedHair.Exists(t => t.bone == bone)) continue;
+                _tuckedHair.Add((bone, bone.localScale));
+                bone.localScale *= HairUnderHelm;
+            }
         }
     }
 }
