@@ -5,6 +5,7 @@ Shader "ARE/World/Schneeasche"
         [NoScaleOffset] _Mask ("Asche, Ablagerung, Glutriss", 2D) = "gray" {}
         _VillageEarth ("Getretene Dorferde", 2D) = "gray" {}
         _Metres ("Kachelbreite in Metern", Float) = 5.2
+        _StoneTint ("Schieferton", Color) = (1,1,1,1)
         [HideInInspector] _Cull ("Cull", Float) = 2
     }
     SubShader
@@ -34,6 +35,7 @@ Shader "ARE/World/Schneeasche"
             SAMPLER(sampler_AREAshPainting);
             CBUFFER_START(UnityPerMaterial)
                 float _Metres;
+                half4 _StoneTint;
                 float4 _VillageEarth_ST;
             CBUFFER_END
             // The existing Core solar phase and the accessibility preference own these two inputs.
@@ -86,7 +88,7 @@ Shader "ARE/World/Schneeasche"
                     half face = SAMPLE_TEXTURE2D(_Mask, sampler_Mask, edgeUV).r;
                     half cap = smoothstep(.32h,.86h,n.y);
                     half3 rock = lerp(half3(.043,.054,.069), half3(.365,.392,.425), face);
-                    half3 albedo = lerp(rock, lerp(slate,powder,.56h + .36h*ground.g),cap);
+                    half3 albedo = lerp(rock, lerp(slate,powder,.56h + .36h*ground.g),cap) * _StoneTint.rgb;
                     half core = 0;
                 #elif defined(ARE_BORDERLAND_PAINT)
                     // The director's 57 m square has 3.5625 repeats. Local meshes, outer relief

@@ -1,5 +1,6 @@
 using AreArpg.UnityClient;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace AreArpg.PlayMode.Tests
 {
@@ -33,6 +34,31 @@ namespace AreArpg.PlayMode.Tests
         public void ExistingSceneryHasExplicitSurfaceIdentity(string label, string expected)
         {
             Assert.AreEqual(expected, WorldSurfacePresentation.KeyFor(label));
+        }
+
+        [TestCase("Ember_Rift_Ground", "BasaltGround", 5.4f)]
+        [TestCase("Ember_Rift_Causeway", "BasaltRoad", 1.65f)]
+        [TestCase("Ember_Rift_Basalt_7_7", "BasaltStructure", 2.8f)]
+        public void RiftBasaltKeepsAuthoredSurfacesOrUsesTexturedPublicSlate(string label, string key, float metres)
+        {
+            var shape = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                var renderer = shape.GetComponent<Renderer>();
+                Assert.IsTrue(WorldSurfacePresentation.TryApply(renderer, label));
+                var authored = Resources.Load<Material>("ARE/Visuals/WorldSurfaces/" + key);
+                if (authored != null) Assert.AreSame(authored, renderer.sharedMaterial);
+                else
+                {
+                    Assert.AreSame(Resources.Load<Material>("ARE/Borderland/RoughSlate"), renderer.sharedMaterial);
+                    Assert.IsNotNull(renderer.sharedMaterial.GetTexture("_Mask"));
+                    var properties = new MaterialPropertyBlock();
+                    renderer.GetPropertyBlock(properties);
+                    Assert.AreEqual(metres, properties.GetFloat("_Metres"), .001f);
+                    Assert.That(properties.GetVector("_StoneTint").x, Is.InRange(.1f, .8f));
+                }
+            }
+            finally { Object.DestroyImmediate(shape); }
         }
     }
 }
