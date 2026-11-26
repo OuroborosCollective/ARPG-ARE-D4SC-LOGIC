@@ -963,8 +963,13 @@ namespace AreArpg.Core
                 {
                     if (!Progression.CollectItem(item.Item)) return false;
                     LastLoot = item.Item;
+                    // One find per loot: the drop that carries the field pauldron carries nothing else.
                     if (item.HasFieldPauldron) Progression.Equipment.CollectFieldPauldron(item.Item);
-                    FindAschenwachtGear(item.Item);
+                    else
+                    {
+                        FindAschenwachtGear(item.Item);
+                        if (LastGearFind == RegionalRelic.None) FindNachtvesper(item.Item);
+                    }
                 }
                 else Progression.AddWeaponUpgrade(item.WeaponBonus);
                 GroundLoot.RemoveAt(i);

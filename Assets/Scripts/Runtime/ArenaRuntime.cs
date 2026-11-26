@@ -1201,9 +1201,9 @@ namespace AreArpg.UnityClient
                     }
                     if (pickedUp && _game.LastGearFind != RegionalRelic.None)
                     {
-                        // Aschenwacht's rare gear rides on ordinary loot (owner 2026-11-26).
+                        // Aschenwacht's rare gear and the Nachtvesper ride on ordinary loot (owner 2026-11-26).
                         var found = _game.LastGearFind;
-                        _message = "Unter der Beute: " + RegionalRelics.Name(found) + "! Du kannst es in der Tasche anlegen.";
+                        _message = "Unter der Beute: " + RegionalRelics.Name(found) + "! Anlegen kannst du es in der Tasche.";
                         int index = OwnedRegionalRelics().IndexOf(found);
                         _selectedItem = _game.Progression.Items.Count + (_game.Progression.Equipment.FieldPauldronOwned ? 1 : 0) + index;
                         _inventoryPage = _selectedItem / InventoryPageSize;

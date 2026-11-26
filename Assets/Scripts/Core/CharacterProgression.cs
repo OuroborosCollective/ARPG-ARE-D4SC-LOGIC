@@ -345,9 +345,9 @@ namespace AreArpg.Core
                 HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland,
                 WeaponMastery = restoring ?? new WeaponMasteryState(), _restoringWeaponMastery = restoring != null
             };
-            if (ac15 && woodland.SavedHealth > CombatRules.MaximumHealth(progress)) { progress=null; return false; }
-            if (ac11 && investigation.SavedHealth > CombatRules.MaximumHealth(progress)) { progress = null; return false; }
-            if (ac10 && (road.SavedHealth > CombatRules.MaximumHealth(progress) ||
+            if (ac15 && woodland.SavedHealth > CombatRules.HealthCeiling(progress)) { progress=null; return false; }
+            if (ac11 && investigation.SavedHealth > CombatRules.HealthCeiling(progress)) { progress = null; return false; }
+            if (ac10 && (road.SavedHealth > CombatRules.HealthCeiling(progress) ||
                 (social.RoadEventId(RoadFact.Rescue) > 0) != road.Rescued ||
                 (social.RoadEventId(RoadFact.Death) > 0) != (road.HunterHealth == 0) ||
                 (social.RoadEventId(RoadFact.RefusedHelp) > 0 && (road.HunterHealth > 0 || road.WitnessOpportunity < 30)) ||

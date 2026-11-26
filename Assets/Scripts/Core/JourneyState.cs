@@ -136,11 +136,11 @@ namespace AreArpg.Core
             var j=new JourneyState{Active=true,Maps=maps,Location=(int)n[1],Depth=(int)n[2],UnlockedDepth=(int)n[3],FloorCount=(int)n[4],MapHash=(ulong)n[5],RouteSeed=(ulong)n[6],CaveSeed=(ulong)n[7],RouteRun=n[8],CaveRun=n[9],RouteNeedsNewRun=n[10]==1,CaveNeedsNewRun=n[11]==1};j.Build();
             var ordinals=new HashSet<BigInteger>(p.Items.Select(i=>i.KillOrdinal));
             foreach(var loot in p.Woodland.Loot.Concat(Enumerable.Range(1,3).SelectMany(d=>p.Dungeon.Floor(d).Loot)))if(loot.Item!=null)ordinals.Add(loot.Item.KillOrdinal);
-            if(!j.Route.Read(f[1],CombatRules.MaximumHealth(p),j.RouteSeed,0,p,ordinals))return false;
+            if(!j.Route.Read(f[1],CombatRules.HealthCeiling(p),j.RouteSeed,0,p,ordinals))return false;
             for(int d=1;d<=j.FloorCount;d++)
             {
                 var floor=j.CaveFloor(d);
-                if(!floor.Read(f[d+1],CombatRules.MaximumHealth(p),j.CaveSeed,d,p,ordinals)||(d>j.UnlockedDepth&&floor.Visited)||(d<j.UnlockedDepth&&!floor.Cleared))return false;
+                if(!floor.Read(f[d+1],CombatRules.HealthCeiling(p),j.CaveSeed,d,p,ordinals)||(d>j.UnlockedDepth&&floor.Visited)||(d<j.UnlockedDepth&&!floor.Cleared))return false;
             }
             if(j.Location>0&&!j.Current.Visited)return false;
             state=j;return true;

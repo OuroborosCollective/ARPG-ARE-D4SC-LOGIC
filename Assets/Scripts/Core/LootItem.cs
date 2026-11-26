@@ -19,6 +19,8 @@ namespace AreArpg.Core
         public string AffixId { get { return "weapon.upgrade"; } }
         public int AffixValue { get; }
         public BigInteger KillOrdinal { get; }
+        /// <summary>The kind of enemy whose kill made this receipt (0 ghoul, 1 knight, 2 boss, 3 ember warden).</summary>
+        public int EnemyKind { get { return int.Parse(_context.Split(',')[5], CultureInfo.InvariantCulture); } }
         internal LootItem(string context, string definitionId, ItemRarity rarity, int value, BigInteger killOrdinal, int revision = 1, int flags = 0)
         { _context = context; DefinitionId = definitionId; Rarity = rarity; AffixValue = value; KillOrdinal = killOrdinal; CatalogRevision = revision; Flags = flags; }
         // Only used when restoring an explicit equipment award. An old iron shard never grants it on load.

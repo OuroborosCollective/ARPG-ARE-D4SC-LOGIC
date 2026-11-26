@@ -13,10 +13,15 @@ namespace AreArpg.Core
         M_Wehrsaebel, M_Lotklinge, M_Jochbeil, M_Wehrschild, M_Glockenring,
         G_Ziegelschild, M_Handglocke, G_Schuerhaken, M_Heilerstab,
         B_Brennerspeer, B_Scherbenhellebarde,
-        A_Visierhelm, A_Kuerass, A_Schulterplatten, A_Gliedpanzer, A_KlauenstabEinhand, A_KlauenstabZweihand
+        A_Visierhelm, A_Kuerass, A_Schulterplatten, A_Gliedpanzer, A_KlauenstabEinhand, A_KlauenstabZweihand,
+        N_Schaller, N_Kuerass, N_Schulterstuecke, N_Armschienen, N_Handschuhe, N_Guertung, N_Beinzeug, N_Panzerschuhe
     }
 
-    public enum RegionalRelicSlot { Body, Belt, Weapon, Shield, Utility, Head, Shoulders, Limbs }
+    /// <summary>
+    /// One worn piece per place. Since the Nachtvesper (2026-11-26) arms, hands, waist, legs and feet have places of their
+    /// own; Aschenwacht's limb armour covers arms and legs at once, so it and an arm or leg piece take each other's place.
+    /// </summary>
+    public enum RegionalRelicSlot { Body, Belt, Weapon, Shield, Utility, Head, Shoulders, Limbs, Arms, Hands, Waist, Legs, Feet }
 
     /// <summary>Fixed sources for the regional gear. Version-one random weapon rolls have their own frozen catalog.</summary>
     public static class RegionalRelics
@@ -57,7 +62,8 @@ namespace AreArpg.Core
                     case Unlock.Toll: return p.Woodland.ReachedAschenzoll;
                     // The Brennerhof lies in Aschenwacht, which the wanderer passes once on his way to the village.
                     case Unlock.Kiln: return p.EntryAct >= 2 || p.InCourt;
-                    // Aschenwacht's gear is found under ordinary loot (AschenwachtGear): it never lies anywhere by itself.
+                    // Aschenwacht's gear and the Nachtvesper are found under ordinary loot (AschenwachtGear, NachtvesperSet):
+                    // they never lie anywhere by themselves.
                     case Unlock.Loot: return true;
                     default: return false;
                 }
@@ -108,8 +114,17 @@ namespace AreArpg.Core
             new Source(RegionalRelic.A_KlauenstabEinhand, "Klauenstab", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, "Seltene Beute",
                 WeaponFamily.Mace, 150, 4, 2600, false),
             new Source(RegionalRelic.A_KlauenstabZweihand, "Langer Klauenstab", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, "Seltene Beute",
-                WeaponFamily.Spear, 185, 5, 3300, true)
+                WeaponFamily.Spear, 185, 5, 3300, true),
+            new Source(RegionalRelic.N_Schaller, "Schaller der Nachtvesper", RegionalRelicSlot.Head, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
+            new Source(RegionalRelic.N_Kuerass, "Kürass der Nachtvesper", RegionalRelicSlot.Body, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
+            new Source(RegionalRelic.N_Schulterstuecke, "Schulterstücke der Nachtvesper", RegionalRelicSlot.Shoulders, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
+            new Source(RegionalRelic.N_Armschienen, "Armschienen der Nachtvesper", RegionalRelicSlot.Arms, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
+            new Source(RegionalRelic.N_Handschuhe, "Panzerhandschuhe der Nachtvesper", RegionalRelicSlot.Hands, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
+            new Source(RegionalRelic.N_Guertung, "Gürtung der Nachtvesper", RegionalRelicSlot.Waist, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
+            new Source(RegionalRelic.N_Beinzeug, "Beinzeug der Nachtvesper", RegionalRelicSlot.Legs, 0, 0, 0, Unlock.Loot, NachtvesperLocation),
+            new Source(RegionalRelic.N_Panzerschuhe, "Panzerschuhe der Nachtvesper", RegionalRelicSlot.Feet, 0, 0, 0, Unlock.Loot, NachtvesperLocation)
         };
+        private const string NachtvesperLocation = "Seltene Beute · oft bei Rittern";
 
         public static readonly IReadOnlyList<RegionalRelic> All = Array.AsReadOnly(Array.ConvertAll(
             Array.FindAll(Sources, source => source != null), source => source.Id));
@@ -169,6 +184,8 @@ namespace AreArpg.Core
                     ((source.Slot == RegionalRelicSlot.Shield || source.Slot == RegionalRelicSlot.Utility) &&
                         Weapon != null && Weapon.Definition.TwoHanded)) return false;
                 if (source.Slot == RegionalRelicSlot.Body || source.Slot == RegionalRelicSlot.Shoulders) FieldPauldronEquipped = false;
+                if (source.Slot == RegionalRelicSlot.Limbs) { ClearRegionalSlot(RegionalRelicSlot.Arms); ClearRegionalSlot(RegionalRelicSlot.Legs); }
+                if (source.Slot == RegionalRelicSlot.Arms || source.Slot == RegionalRelicSlot.Legs) ClearRegionalSlot(RegionalRelicSlot.Limbs);
                 if (source.Slot == RegionalRelicSlot.Shield) ClearRegionalSlot(RegionalRelicSlot.Utility);
                 if (source.Slot == RegionalRelicSlot.Utility)
                 {
@@ -261,7 +278,11 @@ namespace AreArpg.Core
                 return new SocialResult { Text = "Hier ist kein Fundstück in Reichweite." };
             return new SocialResult { Accepted = true, Text = RegionalRelics.Name(id) + " erhalten." };
         }
-        public bool TrySetRegionalRelicEquipped(RegionalRelic id, bool equipped) =>
-            !GameOver && Progression.Equipment.SetRegionalRelicEquipped(id, equipped);
+        public bool TrySetRegionalRelicEquipped(RegionalRelic id, bool equipped)
+        {
+            if (GameOver || !Progression.Equipment.SetRegionalRelicEquipped(id, equipped)) return false;
+            KeepWithinPools();
+            return true;
+        }
     }
 }

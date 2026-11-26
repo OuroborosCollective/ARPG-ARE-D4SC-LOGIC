@@ -86,7 +86,7 @@ internal static class AschenwachtGearTests
         for (ulong seed = 1; seed < 20000; seed++)
         {
             var item = LootCatalog.Version1.GenerateFlagged(seed, BigInteger.One, seed, 1, 0, w.Progression.LootOrdinal, 0);
-            if (item == null) continue;
+            if (item == null || NachtvesperSet.Roll(item, gear) != RegionalRelic.None) continue; // only Aschenwacht's find
             piece = AschenwachtGear.Roll(item, gear);
             if (piece != RegionalRelic.None) return item;
         }
