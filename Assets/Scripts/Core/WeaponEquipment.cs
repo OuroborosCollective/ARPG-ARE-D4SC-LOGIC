@@ -72,7 +72,7 @@ namespace AreArpg.Core
         internal bool SetFieldPauldronEquipped(bool equipped)
         {
             if (!FieldPauldronOwned || equipped == FieldPauldronEquipped) return false;
-            if (equipped) ClearRegionalSlot(RegionalRelicSlot.Body);
+            if (equipped) { ClearRegionalSlot(RegionalRelicSlot.Body); ClearRegionalSlot(RegionalRelicSlot.Shoulders); }
             FieldPauldronEquipped = equipped;
             return true;
         }

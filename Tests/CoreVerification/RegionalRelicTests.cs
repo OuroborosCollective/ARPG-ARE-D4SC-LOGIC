@@ -101,16 +101,16 @@ internal static class RegionalRelicTests
     private static void CheckCorruptStates(ArenaSimulation w,Action<bool,string> require)
     {
         var p=w.Progression; var gear=p.Equipment; string token=gear.Token();
-        var parts=token.Split(',');int owned=int.Parse(parts[6]),wear=int.Parse(parts[7]);
+        var parts=token.Split(',');long owned=long.Parse(parts[6]),wear=long.Parse(parts[7]);
         var guard=RegionalRelics.Bit(RegionalRelic.Schlackengarde);
         var lantern=RegionalRelics.Bit(RegionalRelic.Grubenlicht);
-        bool Invalid(int o,int e)
+        bool Invalid(long o,long e)
         {
             var f=(string[])parts.Clone();f[6]=o.ToString();f[7]=e.ToString();
             return !WeaponEquipment.TryRead(string.Join(",",f),p,out _);
         }
         require(Invalid(owned|lantern,wear) && Invalid(owned,wear|guard) && Invalid(owned,wear|lantern) &&
-            Invalid(owned|(1<<27),wear) && Invalid(0,0),"regional-reject-unreached-boss-two-outfits-unowned-unknown-and-empty-save");
+            Invalid(owned|(1L<<40),wear) && Invalid(0,0),"regional-reject-unreached-boss-two-outfits-unowned-unknown-and-empty-save");
         var invalid=(string[])parts.Clone();invalid[4]="0";invalid[5]="1";
         require(!WeaponEquipment.TryRead(string.Join(",",invalid),p,out _) &&
             !WeaponEquipment.TryRead(token.Replace(","+parts[6]+",",",0"+parts[6]+","),p,out _),"regional-reject-unowned-pauldron-and-noncanonical-number");
@@ -149,6 +149,12 @@ internal static class RegionalRelicTests
             {
                 // Handed over by a person, never lying in the world (Orsel's staff: HealingCourseTests).
                 require(!world.TryGetRegionalRelicSource(id,out _,out _),"regional-granted-piece-has-no-world-source-"+id);
+                continue;
+            }
+            if (src.Required == RegionalRelics.Unlock.Loot)
+            {
+                // Aschenwacht's gear turns up under loot (owner 2026-11-26); AschenwachtGearTests find and wear it.
+                require(!world.TryGetRegionalRelicSource(id,out _,out _),"regional-loot-piece-has-no-world-source-"+id);
                 continue;
             }
             if (src.Required == RegionalRelics.Unlock.Kiln)

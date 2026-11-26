@@ -12,15 +12,16 @@ namespace AreArpg.Core
         G_Ofengabel, G_Zollmesser, G_Hammerbeil, G_Zollbuckler, G_Zunderpfanne,
         M_Wehrsaebel, M_Lotklinge, M_Jochbeil, M_Wehrschild, M_Glockenring,
         G_Ziegelschild, M_Handglocke, G_Schuerhaken, M_Heilerstab,
-        B_Brennerspeer, B_Scherbenhellebarde
+        B_Brennerspeer, B_Scherbenhellebarde,
+        A_Visierhelm, A_Kuerass, A_Schulterplatten, A_Gliedpanzer, A_KlauenstabEinhand, A_KlauenstabZweihand
     }
 
-    public enum RegionalRelicSlot { Body, Belt, Weapon, Shield, Utility, Head }
+    public enum RegionalRelicSlot { Body, Belt, Weapon, Shield, Utility, Head, Shoulders, Limbs }
 
     /// <summary>Fixed sources for the regional gear. Version-one random weapon rolls have their own frozen catalog.</summary>
     public static class RegionalRelics
     {
-        internal enum Unlock { Trail, Shelter, Beds, Trace, Brand, Toll, Kiln }
+        internal enum Unlock { Trail, Shelter, Beds, Trace, Brand, Toll, Kiln, Loot }
         internal sealed class Source
         {
             public readonly RegionalRelic Id;
@@ -56,6 +57,8 @@ namespace AreArpg.Core
                     case Unlock.Toll: return p.Woodland.ReachedAschenzoll;
                     // The Brennerhof lies in Aschenwacht, which the wanderer passes once on his way to the village.
                     case Unlock.Kiln: return p.EntryAct >= 2 || p.InCourt;
+                    // Aschenwacht's gear is found under ordinary loot (AschenwachtGear): it never lies anywhere by itself.
+                    case Unlock.Loot: return true;
                     default: return false;
                 }
             }
@@ -96,14 +99,25 @@ namespace AreArpg.Core
             new Source(RegionalRelic.B_Brennerspeer, "Brennerspeer", RegionalRelicSlot.Weapon, 1, KilnYard.SpearXmm, KilnYard.SpearZmm,
                 Unlock.Kiln, "Brennerhof · an der Waffenbank", WeaponFamily.Spear, 140, 4, 4600, true, WeaponFamily.Staff),
             new Source(RegionalRelic.B_Scherbenhellebarde, "Scherbenhellebarde", RegionalRelicSlot.Weapon, 1, KilnYard.HalberdXmm, KilnYard.HalberdZmm,
-                Unlock.Kiln, "Brennerhof · im Scherbenschlupf", WeaponFamily.Spear, 175, 5, 4800, true, WeaponFamily.Axe)
+                Unlock.Kiln, "Brennerhof · im Scherbenschlupf", WeaponFamily.Spear, 175, 5, 4800, true, WeaponFamily.Axe),
+            // Owner decision 2026-11-26: the Glockenwacht's armour and the Aschbeter's two claw staffs are rare loot, fitted to the hero.
+            new Source(RegionalRelic.A_Visierhelm, "Visierhelm der Glockenwacht", RegionalRelicSlot.Head, 0, 0, 0, Unlock.Loot, "Seltene Beute"),
+            new Source(RegionalRelic.A_Kuerass, "Kürass der Glockenwacht", RegionalRelicSlot.Body, 0, 0, 0, Unlock.Loot, "Seltene Beute"),
+            new Source(RegionalRelic.A_Schulterplatten, "Schulterplatten der Glockenwacht", RegionalRelicSlot.Shoulders, 0, 0, 0, Unlock.Loot, "Seltene Beute"),
+            new Source(RegionalRelic.A_Gliedpanzer, "Gliedpanzer der Glockenwacht", RegionalRelicSlot.Limbs, 0, 0, 0, Unlock.Loot, "Seltene Beute"),
+            new Source(RegionalRelic.A_KlauenstabEinhand, "Klauenstab", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, "Seltene Beute",
+                WeaponFamily.Mace, 150, 4, 2600, false),
+            new Source(RegionalRelic.A_KlauenstabZweihand, "Langer Klauenstab", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, "Seltene Beute",
+                WeaponFamily.Spear, 185, 5, 3300, true)
         };
 
         public static readonly IReadOnlyList<RegionalRelic> All = Array.AsReadOnly(Array.ConvertAll(
             Array.FindAll(Sources, source => source != null), source => source.Id));
-        internal static int AllMask => (1 << (Sources.Length - 1)) - 1;
+        // Owned and worn pieces are bit masks in the save. Since the Aschenwacht gear (2026-11-26) there are more than 31 pieces:
+        // the masks are 64-bit; older saves wrote smaller numbers, which read the same.
+        internal static long AllMask => (1L << (Sources.Length - 1)) - 1;
         internal static bool Valid(RegionalRelic id) => (int)id > 0 && (int)id < Sources.Length;
-        internal static int Bit(RegionalRelic id) => 1 << ((int)id - 1);
+        internal static long Bit(RegionalRelic id) => 1L << ((int)id - 1);
         internal static Source Get(RegionalRelic id) => Valid(id) ? Sources[(int)id] : throw new ArgumentOutOfRangeException(nameof(id));
         public static string Name(RegionalRelic id) => Get(id).Name;
         public static string Location(RegionalRelic id) => Get(id).Location;
@@ -115,8 +129,8 @@ namespace AreArpg.Core
 
     public sealed partial class WeaponEquipment
     {
-        private int _ownedRelics, _wornRelics;
-        public int RegionalWearMask => _wornRelics;
+        private long _ownedRelics, _wornRelics;
+        public long RegionalWearMask => _wornRelics;
         public bool OwnsRegionalRelic(RegionalRelic id) =>
             RegionalRelics.Valid(id) && (_ownedRelics & RegionalRelics.Bit(id)) != 0;
         public bool IsRegionalRelicEquipped(RegionalRelic id) =>
@@ -154,7 +168,7 @@ namespace AreArpg.Core
                         (Shield != null || WornRegionalRelic(RegionalRelicSlot.Utility) != RegionalRelic.None)) ||
                     ((source.Slot == RegionalRelicSlot.Shield || source.Slot == RegionalRelicSlot.Utility) &&
                         Weapon != null && Weapon.Definition.TwoHanded)) return false;
-                if (source.Slot == RegionalRelicSlot.Body) FieldPauldronEquipped = false;
+                if (source.Slot == RegionalRelicSlot.Body || source.Slot == RegionalRelicSlot.Shoulders) FieldPauldronEquipped = false;
                 if (source.Slot == RegionalRelicSlot.Shield) ClearRegionalSlot(RegionalRelicSlot.Utility);
                 if (source.Slot == RegionalRelicSlot.Utility)
                 {
@@ -174,8 +188,8 @@ namespace AreArpg.Core
 
         private bool RestoreRegionalSlots(CharacterProgression p, string owned, string worn)
         {
-            if (!int.TryParse(owned, NumberStyles.None, CultureInfo.InvariantCulture, out int o) ||
-                !int.TryParse(worn, NumberStyles.None, CultureInfo.InvariantCulture, out int w) ||
+            if (!long.TryParse(owned, NumberStyles.None, CultureInfo.InvariantCulture, out long o) ||
+                !long.TryParse(worn, NumberStyles.None, CultureInfo.InvariantCulture, out long w) ||
                 o.ToString(CultureInfo.InvariantCulture) != owned || w.ToString(CultureInfo.InvariantCulture) != worn ||
                 o == 0 || (o & ~RegionalRelics.AllMask) != 0 || (w & ~o) != 0) return false;
             _ownedRelics = o;
@@ -188,7 +202,7 @@ namespace AreArpg.Core
                 if ((w & RegionalRelics.Bit(id)) == 0) continue;
                 var slot = source.Slot;
                 int slotBit = 1 << (int)slot;
-                if ((occupied & slotBit) != 0 || (slot == RegionalRelicSlot.Body && FieldPauldronEquipped) ||
+                if ((occupied & slotBit) != 0 || ((slot == RegionalRelicSlot.Body || slot == RegionalRelicSlot.Shoulders) && FieldPauldronEquipped) ||
                     (slot == RegionalRelicSlot.Weapon && Weapon != null) ||
                     ((slot == RegionalRelicSlot.Shield || slot == RegionalRelicSlot.Utility) && Shield != null))
                     return false;
@@ -208,6 +222,7 @@ namespace AreArpg.Core
             var source = RegionalRelics.Get(id);
             if (source.Granted || source.Act != Progression.EntryAct || !source.HistoricalSource(Progression)) return false;
             if ((source.Required == RegionalRelics.Unlock.Kiln) != InKilnYard) return false; // the yard's finds lie only there
+            if (source.Required == RegionalRelics.Unlock.Loot) return false; // found under loot, never lying in the world
             if (id == RegionalRelic.Grubenlicht)
             {
                 var rattler = Progression.Rattler;

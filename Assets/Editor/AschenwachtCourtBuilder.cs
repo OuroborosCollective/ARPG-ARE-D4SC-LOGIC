@@ -69,7 +69,10 @@ namespace AreArpg.EditorTools
                 { { "Fernkulisse", new Dictionary<string, Material>(StringComparer.Ordinal) { { "WetStone", RidgeMaterial(forecourt["WetStone"]) } } } };
             PrepareModels(ForecourtModels, forecourt, ridge);
             PrepareModels(CourtModels, court, null);
-            RuntimeAnimatorController idle = AschbeterIdle();
+            // Aschenwacht's rare gear (owner 2026-11-26): the armour fitted to the hero, the two claw staffs as arsenal pieces.
+            AschenwachtGearBuilder.TryBuild();
+            RuntimeAnimatorController moves = AschbeterMoves();
+            BuildAschbeterFigure(moves);
 
             var root = new GameObject("EntryCourtWorld");
             var groups = new Dictionary<string, Transform>(StringComparer.Ordinal);
@@ -93,18 +96,9 @@ namespace AreArpg.EditorTools
                     holder.localRotation = p.Rotation;
                     holder.localScale = p.Scale;
                     var instance = (GameObject)PrefabUtility.InstantiatePrefab(model, holder);
-                    if (p.Group == FigureGroup && p.Model == "Aschbeter")
-                    {
-                        Animator animator = instance.GetComponent<Animator>() ?? instance.AddComponent<Animator>();
-                        animator.runtimeAnimatorController = idle;
-                        animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
-                        animator.applyRootMotion = false;
-                    }
-                    else
-                    {
-                        // Scenery and the bell court's two still figures stand as they were placed.
-                        foreach (Animator animator in instance.GetComponentsInChildren<Animator>(true)) UnityEngine.Object.DestroyImmediate(animator);
-                    }
+                    // Scenery and the bell court's two still figures stand as they were placed. The Aschbeter is no longer
+                    // part of this still picture: since 2026-11-26 he is an enemy the runtime shows (BuildAschbeterFigure).
+                    foreach (Animator animator in instance.GetComponentsInChildren<Animator>(true)) UnityEngine.Object.DestroyImmediate(animator);
                     // Grass, leaves, candles, embers, ash drifts and the distant ridge cast no shadow on the tablet.
                     // URP's material validation re-enables a material's shadow pass, so this is decided per renderer.
                     foreach (Renderer renderer in instance.GetComponentsInChildren<Renderer>(true))
@@ -300,20 +294,53 @@ namespace AreArpg.EditorTools
             return names;
         }
 
-        /// <summary>The Aschbeter stands in his covered rest pose: one looping Idle state.</summary>
-        private static RuntimeAnimatorController AschbeterIdle()
+        /// <summary>The archive's seven clips, one state each; the runtime cross-fades between them as the rules' mode changes.</summary>
+        public static readonly string[] AschbeterClips = { "Idle", "Shuffle", "TurnLeft", "TurnRight", "ClawStrike", "Fall", "DeathStay" };
+        public const string AschbeterFigure = "Assets/Resources/ARE/Visuals/Aschbeter.prefab";
+
+        private static RuntimeAnimatorController AschbeterMoves()
         {
-            AnimationClip clip = AssetDatabase.LoadAllAssetsAtPath(ForecourtModels + "Aschbeter@Idle.fbx").OfType<AnimationClip>().FirstOrDefault(c => !c.name.StartsWith("__preview", StringComparison.Ordinal));
-            if (clip == null) throw new InvalidOperationException("Aschbeter idle clip missing");
             var controller = AssetDatabase.LoadAssetAtPath<AnimatorController>(AschbeterController);
             if (controller == null) controller = AnimatorController.CreateAnimatorControllerAtPath(AschbeterController);
             AnimatorStateMachine machine = controller.layers[0].stateMachine;
-            AnimatorState idle = machine.states.Select(s => s.state).FirstOrDefault(s => s.name == "Idle") ?? machine.AddState("Idle");
-            idle.motion = clip;
-            machine.defaultState = idle;
+            foreach (string name in AschbeterClips)
+            {
+                AnimationClip clip = AssetDatabase.LoadAllAssetsAtPath(ForecourtModels + "Aschbeter@" + name + ".fbx").OfType<AnimationClip>()
+                    .FirstOrDefault(c => !c.name.StartsWith("__preview", StringComparison.Ordinal));
+                if (clip == null) throw new InvalidOperationException("Aschbeter clip missing: " + name);
+                AnimatorState state = machine.states.Select(s => s.state).FirstOrDefault(s => s.name == name) ?? machine.AddState(name);
+                state.motion = clip;
+                if (name == "Idle") machine.defaultState = state;
+            }
             EditorUtility.SetDirty(controller);
             AssetDatabase.SaveAssets();
             return controller;
+        }
+
+        /// <summary>
+        /// The Aschbeter as an enemy figure: his model with the seven clips, root at his feet, facing the prefab's +Z (the model
+        /// itself faces -Z of the game frame, so it is turned half a turn). Passive like every picture: an Animator, no script.
+        /// </summary>
+        private static void BuildAschbeterFigure(RuntimeAnimatorController moves)
+        {
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(ForecourtModels + "Aschbeter.fbx");
+            if (model == null) throw new InvalidOperationException("Aschbeter model missing");
+            var root = new GameObject("Aschbeter");
+            try
+            {
+                var turn = new GameObject("Aschbeter_Facing").transform;
+                turn.SetParent(root.transform, false);
+                turn.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                var instance = (GameObject)PrefabUtility.InstantiatePrefab(model, turn);
+                PrefabUtility.UnpackPrefabInstance(instance, PrefabUnpackMode.Completely, InteractionMode.AutomatedAction);
+                Animator animator = instance.GetComponent<Animator>() ?? instance.AddComponent<Animator>();
+                animator.runtimeAnimatorController = moves;
+                animator.applyRootMotion = false;
+                animator.cullingMode = AnimatorCullingMode.CullUpdateTransforms;
+                PrefabUtility.SaveAsPrefabAsset(root, AschbeterFigure, out bool ok);
+                if (!ok) throw new InvalidOperationException("Saving the Aschbeter figure failed");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
         }
     }
 }

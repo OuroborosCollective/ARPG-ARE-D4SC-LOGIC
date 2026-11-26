@@ -1200,6 +1200,15 @@ namespace AreArpg.UnityClient
                         _selectedItem = _game.Progression.Items.Count;
                         _inventoryPage = _selectedItem / InventoryPageSize;
                     }
+                    if (pickedUp && _game.LastGearFind != RegionalRelic.None)
+                    {
+                        // Aschenwacht's rare gear rides on ordinary loot (owner 2026-11-26).
+                        var found = _game.LastGearFind;
+                        _message = "Unter der Beute: " + RegionalRelics.Name(found) + "! Du kannst es in der Tasche anlegen.";
+                        int index = OwnedRegionalRelics().IndexOf(found);
+                        _selectedItem = _game.Progression.Items.Count + (_game.Progression.Equipment.FieldPauldronOwned ? 1 : 0) + index;
+                        _inventoryPage = _selectedItem / InventoryPageSize;
+                    }
                     if (!pickedUp && _game.CanClaimRegionalRelic)
                     {
                         var regional = TakeRegionalRelic();
@@ -1246,6 +1255,7 @@ namespace AreArpg.UnityClient
             AnimateDungeonLights();
             UpdateRegionalSources();
             UpdateKilnYard();
+            UpdateAschbeter();
             UpdateOrselFigure();
             UpdateCombatFeel();
             UpdateFaceLife();

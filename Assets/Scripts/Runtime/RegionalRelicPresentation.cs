@@ -15,7 +15,7 @@ namespace AreArpg.UnityClient
         private ArenaSimulation _regionalSourceWorld;
         private ulong _regionalSourceTick = ulong.MaxValue;
         private WeaponEquipment _regionalWornOwner;
-        private int _regionalWearMask = -1;
+        private long _regionalWearMask = -1;
         private RegionalWearableRig _regionalWornRig;
 
         private void ClearRegionalWorld()
@@ -132,6 +132,7 @@ namespace AreArpg.UnityClient
             if (!changed) return false;
             if (_regionalWornRig != null) _regionalWornRig.Clear();
             _regionalWornRig = null;
+            ClearBakedArmor();
             _regionalWornOwner = gear;
             _regionalWearMask = gear.RegionalWearMask;
             return true;
@@ -144,6 +145,13 @@ namespace AreArpg.UnityClient
             var head = gear.WornRegionalRelic(RegionalRelicSlot.Head);
             var belt = gear.WornRegionalRelic(RegionalRelicSlot.Belt);
             var utility = gear.WornRegionalRelic(RegionalRelicSlot.Utility);
+            var shoulders = gear.WornRegionalRelic(RegionalRelicSlot.Shoulders);
+            var limbs = gear.WornRegionalRelic(RegionalRelicSlot.Limbs);
+            // Aschenwacht's armour is skinned to the hero's own bones (AschenwachtGearBuilder), not hung on sockets.
+            foreach (var piece in new[] { outfit, head, shoulders, limbs })
+                if (IsBakedArmor(piece) && !MountBakedArmor(piece)) Debug.LogWarning("Ashen Crypt: Rüstung konnte nicht angelegt werden: " + piece);
+            if (IsBakedArmor(outfit)) outfit = RegionalRelic.None;
+            if (IsBakedArmor(head)) head = RegionalRelic.None;
             if (outfit == RegionalRelic.None && head == RegionalRelic.None && belt == RegionalRelic.None && utility == RegionalRelic.None) return;
             _regionalWornRig = RegionalWearableRig.Find(_hero);
             if (_regionalWornRig == null) return;
@@ -242,6 +250,7 @@ namespace AreArpg.UnityClient
             {
                 var slot = RegionalRelics.Slot(id);
                 description = slot == RegionalRelicSlot.Body ? "Montur" : slot == RegionalRelicSlot.Head ? "Kopfschmuck" :
+                    slot == RegionalRelicSlot.Shoulders ? "Schulterrüstung" : slot == RegionalRelicSlot.Limbs ? "Gliedpanzer" :
                     slot == RegionalRelicSlot.Belt ? "Gürtellicht" : "Werkzeug für die Nebenhand";
             }
             info.text = "<size=18><b>" + RegionalRelics.Name(id) + "</b></size>\n" + description + "\n\n" +

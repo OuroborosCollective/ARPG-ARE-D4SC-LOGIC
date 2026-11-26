@@ -60,6 +60,7 @@ namespace AreArpg.Core
             InCourt = false;
             CourtTraces = 0;
             KilnState = 0;
+            AschbeterFallen = false;
             return true;
         }
 
@@ -281,6 +282,7 @@ namespace AreArpg.Core
             int entryAct = 0, hungerStage = 0;
             bool inCourt = false;
             int courtTraces = 0, kilnState = 0;
+            bool aschbeterFallen = false;
             bool entryFromNorth = false;
             HungerChoice supplyChoice = HungerChoice.Undecided;
             if (ac9 && (!unlockedDepth.IsOne || !ReadHungerToken(parts[15], out entryAct, out entryFromNorth, out hungerStage, out supplyChoice, ac11, ac12 || ac14, ac15))) return false;
@@ -288,7 +290,7 @@ namespace AreArpg.Core
             {
                 if (!unlockedDepth.IsOne) return false;
                 if (parts[15] == "1,1" || parts[15] == "1,2") entryAct = parts[15] == "1,1" ? 1 : 2;
-                else if (parts[15].StartsWith("1,1,c", StringComparison.Ordinal) && ReadCourtToken(parts[15].Substring(5), out courtTraces, out kilnState)) { entryAct = 1; inCourt = true; }
+                else if (parts[15].StartsWith("1,1,c", StringComparison.Ordinal) && ReadCourtToken(parts[15].Substring(5), out courtTraces, out kilnState, out aschbeterFallen)) { entryAct = 1; inCourt = true; }
                 else return false;
             }
             HunterEncounter road = new HunterEncounter();
@@ -339,7 +341,7 @@ namespace AreArpg.Core
                 TotalExperience = xp, WeaponBonus = (int)weapon,
                 LootCollected = loot, LootOrdinal = kills,
                 MightRank = might, VitalityRank = vitality, ResolveRank = resolve,
-                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct, InCourt = inCourt, CourtTraces = courtTraces, KilnState = kilnState,
+                UnlockedCryptDepth = unlockedDepth, Social = social, EntryAct = entryAct, InCourt = inCourt, CourtTraces = courtTraces, KilnState = kilnState, AschbeterFallen = aschbeterFallen,
                 HungerStage = hungerStage, SupplyChoice = supplyChoice, EntryFromNorth = entryFromNorth, Road = road, Investigation = investigation, Rattler = rattler, Dungeon = dungeon, Woodland = woodland,
                 WeaponMastery = restoring ?? new WeaponMasteryState(), _restoringWeaponMastery = restoring != null
             };

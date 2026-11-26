@@ -76,8 +76,7 @@ def main():
     rows.append(row("Boden", "II", "Hofboden_84x92", np.zeros(3), F @ np.eye(3) @ M_INV, (1, 1, 1)))
     rows.append(row("Anschluss", "II", "Anschluss_Glockenhof", F @ np.array([0.0, 1.195, 46.0]), F @ np.eye(3) @ M_INV, (1, 1, 1)))
     rows.append(row("Fernkulisse", "II", "Fernkulisse", np.zeros(3), F @ np.eye(3) @ M_INV, (1, 1, 1)))
-    # The Aschbeter keeps his place on the procession path but faces the crypt portal he guards.
-    rows.append(row("Figuren", "II", "Aschbeter", F @ np.array([0.0, 0.06, 8.0]), np.eye(3), (1, 1, 1)))
+    # The Aschbeter is an enemy since 2026-11-26 (Core AschbeterState); the runtime shows him, the still picture leaves him out.
     data = pathlib.Path(court).read_bytes()
     size, _ = struct.unpack_from("<I4s", data, 12)
     g = json.loads(data[20:20 + size])

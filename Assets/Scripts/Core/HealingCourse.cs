@@ -452,7 +452,7 @@ namespace AreArpg.Core
                 return;
             }
             int baseHealing = HealingRules.WundschlussHealing + Progression.ResolveHealBonus + Progression.PracticeHealingBonus;
-            int amount = HealingRules.Healing(baseHealing, staff, Progression.Armor.HealingEfficiencyBp);
+            int amount = HealingRules.Healing(baseHealing, staff, Progression.WornHealingEfficiencyBp);
             int restored = 0;
             if (target == HealTargetKind.Self)
             {

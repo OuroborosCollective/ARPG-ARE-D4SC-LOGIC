@@ -32,10 +32,16 @@ namespace AreArpg.EditMode.Tests
             Assert.IsEmpty(prefab.GetComponentsInChildren<Collider>(true), "the rules decide the walk, not physics");
             Assert.IsEmpty(prefab.GetComponentsInChildren<Light>(true), "the art binding rejects lights; the runtime lights the fire baskets");
             Assert.IsEmpty(prefab.GetComponentsInChildren<MonoBehaviour>(true), "no behaviour runs in the picture");
-            Animator[] animators = prefab.GetComponentsInChildren<Animator>(true);
-            Assert.AreEqual(1, animators.Length, "only the Aschbeter moves");
-            Assert.IsNotNull(animators[0].runtimeAnimatorController);
-            CollectionAssert.Contains(animators[0].runtimeAnimatorController.animationClips.Select(c => c.name).ToArray(), "Idle");
+            Assert.IsEmpty(prefab.GetComponentsInChildren<Animator>(true), "nothing moves in the still picture: the Aschbeter is an enemy the runtime shows");
+            // His own figure carries the archive's seven clips.
+            var figure = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/ARE/Visuals/Aschbeter.prefab");
+            Assert.IsNotNull(figure, "the Aschbeter's figure is built");
+            Animator moves = figure.GetComponentInChildren<Animator>(true);
+            Assert.IsNotNull(moves != null ? moves.runtimeAnimatorController : null, "his figure moves");
+            CollectionAssert.IsSubsetOf(new[] { "Idle", "Shuffle", "TurnLeft", "TurnRight", "ClawStrike", "Fall", "DeathStay" },
+                moves.runtimeAnimatorController.animationClips.Select(c => c.name).ToArray(), "all seven clips of the archive");
+            Assert.IsTrue(figure.GetComponentsInChildren<Component>(true).All(c => c is Transform || c is Animator || c is Renderer || c is MeshFilter),
+                "his figure stays passive: no script, no collider");
 
             var renderers = prefab.GetComponentsInChildren<Renderer>(true);
             long triangles = 0;

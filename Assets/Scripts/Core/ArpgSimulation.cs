@@ -303,6 +303,7 @@ namespace AreArpg.Core
                 // Brennerhof, the side gate he last came out of is where he resumes.
                 PlayerXmm = PrevPlayerXmm = Progression.KilnVisited ? KilnYard.CourtReturnXmm : CourtLayout.SpawnXmm;
                 PlayerZmm = PrevPlayerZmm = Progression.KilnVisited ? KilnYard.CourtReturnZmm : CourtLayout.SpawnZmm;
+                PlaceAschbeter();
                 BindForge();
                 return;
             }
@@ -707,6 +708,7 @@ namespace AreArpg.Core
             StepCompanion();
             StepRattler();
             StepInvestigation();
+            StepAschbeter();
             if (GameOver) { SaveDungeonPlayer(); SaveWoodlandPlayer(); return; }
 
             foreach (MonsterState enemy in Monsters)
@@ -909,6 +911,16 @@ namespace AreArpg.Core
             }
             long range = AttackRange(slot);
             MonsterState nearest = NearestMonster(range);
+            if (nearest == null && AschbeterInReach(range))
+            {
+                // The Aschbeter is no creature of the crypt: his own rules decide the swing on his next tick.
+                Resource = Math.Min(100, Resource - skill.FocusCost + skill.FocusGain);
+                Cooldowns[slot] = AttackCooldown(slot);
+                SwingAtAschbeter(range);
+                result.Activated = true; result.HasTarget = true; result.TargetXmm = Aschbeter.Xmm; result.TargetZmm = Aschbeter.Zmm;
+                result.Message = skill.DisplayName + ": gegen den Aschbeter";
+                return result;
+            }
             if (nearest == null) { result.Message = "No enemy within reach"; return result; }
             Resource = Math.Min(100, Resource - skill.FocusCost + skill.FocusGain);
             Cooldowns[slot] = AttackCooldown(slot);
@@ -941,7 +953,7 @@ namespace AreArpg.Core
         /// <summary>Collect reachable drops through the canonical progression owner, preserving legacy rewards.</summary>
         public bool TryCollectLoot()
         {
-            LastSupply = null; LastLoot = null;
+            LastSupply = null; LastLoot = null; LastGearFind = RegionalRelic.None;
             if (GameOver) return false;
             for (int i = 0; i < GroundLoot.Count; i++)
             {
@@ -952,6 +964,7 @@ namespace AreArpg.Core
                     if (!Progression.CollectItem(item.Item)) return false;
                     LastLoot = item.Item;
                     if (item.HasFieldPauldron) Progression.Equipment.CollectFieldPauldron(item.Item);
+                    FindAschenwachtGear(item.Item);
                 }
                 else Progression.AddWeaponUpgrade(item.WeaponBonus);
                 GroundLoot.RemoveAt(i);
@@ -1018,6 +1031,7 @@ namespace AreArpg.Core
             MixCombatV2(ref h); // armor and combat v2 only when present: legacy worlds keep their golden hashes
             MixHealing(ref h); // Orsel's course only when present
             MixSupplies(ref h); // supply bags only while some lie on the ground
+            MixAschbeter(ref h); // the Aschbeter only while he stands in Aschenwacht
             return h;
         }
 

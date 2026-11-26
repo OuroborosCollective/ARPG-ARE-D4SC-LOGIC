@@ -550,6 +550,8 @@ namespace AreArpg.UnityClient
                 PlaceDot(ref used, bag.Xmm, bag.Zmm, new Color(1f, 0.95f, 0.55f), 6f, PerMetre, Radius);
             if (_worldPassage != null)
                 PlaceDot(ref used, (long)(_worldPassage.position.x*1000), (long)(_worldPassage.position.z*1000), new Color(0.35f, 0.85f, 1f), 12f, PerMetre, Radius);
+            if (_game.InCourt && _game.Aschbeter != null && !_game.Aschbeter.IsDead) // the Aschbeter, red like every foe
+                PlaceDot(ref used, _game.Aschbeter.Xmm, _game.Aschbeter.Zmm, new Color(0.9f, 0.18f, 0.12f), 11f, PerMetre, Radius);
             if (_game.InCourt) // the side gate to the Brennerhof, a way of its own beside the pilgrim path
                 PlaceDot(ref used, KilnYard.SideGateXmm, KilnYard.SideGateZmm, new Color(1f, 0.62f, 0.3f), 10f, PerMetre, Radius);
             if (_returnPassage != null)

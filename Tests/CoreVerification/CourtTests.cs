@@ -121,6 +121,8 @@ internal static class CourtTests
                 long cz = z - ((z - CourtLayout.MinZmm) % CourtLayout.CellMm + CourtLayout.CellMm) % CourtLayout.CellMm + CourtLayout.CellMm / 2;
                 long d = DistanceSquared(cx, cz, trace.Xmm, trace.Zmm);
                 if (d >= best || d > (trace.RadiusMm - 300) * (trace.RadiusMm - 300) || !CourtLayout.CanStand(cx, cz)) continue;
+                // Never within the Aschbeter's strike: his trace is read from a few steps away.
+                if (DistanceSquared(cx, cz, AschbeterState.StartXmm, AschbeterState.StartZmm) < AschbeterSafeMm * AschbeterSafeMm) continue;
                 if (CourtLayout.Route(CourtLayout.SpawnXmm, CourtLayout.SpawnZmm, cx, cz).Length == 0) continue;
                 best = d; found = new[] { cx, cz };
             }
@@ -132,15 +134,34 @@ internal static class CourtTests
     /// time and let the rules decide every move. True once within <paramref name="stopMm"/> of the goal; the default is one
     /// step of 620 mm, because a goal next to an obstacle cannot be overshot and approached from the far side.
     /// </summary>
+    /// <summary>How far the walkers keep from the living Aschbeter: beyond his strike (2.12 m) with a step to spare.</summary>
+    internal const long AschbeterSafeMm = 2800;
+    /// <summary>How far a way keeps from him while it passes: still beyond his strike, a little closer than a place to stand.</summary>
+    internal const long AschbeterPassMm = 2400;
+
+    /// <summary>The layout's way, round the living Aschbeter where he stands now.</summary>
+    internal static long[] RouteFor(ArenaSimulation w, long x, long z)
+    {
+        var a = w.Aschbeter;
+        return a == null || a.Down ? CourtLayout.Route(w.PlayerXmm, w.PlayerZmm, x, z)
+            : CourtLayout.Route(w.PlayerXmm, w.PlayerZmm, x, z, a.Xmm, a.Zmm, AschbeterPassMm);
+    }
+
     internal static bool WalkTo(ArenaSimulation w, long x, long z, int limit, long stopMm = 650)
     {
-        long[] route = CourtLayout.Route(w.PlayerXmm, w.PlayerZmm, x, z);
+        long[] route = RouteFor(w, x, z);
         if (route.Length == 0) return false;
         int points = route.Length / 2, index = 0, stuck = 0;
         long lastX = w.PlayerXmm, lastZ = w.PlayerZmm;
         for (int tick = 0; tick < limit; tick++)
         {
             if (DistanceSquared(w.PlayerXmm, w.PlayerZmm, x, z) <= stopMm * stopMm) { w.SetMoveInput(0, 0); return true; }
+            // He shuffles after the wanderer: the way is planned round him again every few steps.
+            if (tick > 0 && tick % 8 == 0 && w.Aschbeter != null && !w.Aschbeter.Down)
+            {
+                long[] again = RouteFor(w, x, z);
+                if (again.Length > 0) { route = again; points = route.Length / 2; index = 0; }
+            }
             while (index < points - 1 && DistanceSquared(w.PlayerXmm, w.PlayerZmm, route[2 * index], route[2 * index + 1]) < 700L * 700L) index++;
             int aim = Math.Min(points - 1, index + (stuck > 2 ? 0 : 2));
             long dx = route[2 * aim] - w.PlayerXmm, dz = route[2 * aim + 1] - w.PlayerZmm;
