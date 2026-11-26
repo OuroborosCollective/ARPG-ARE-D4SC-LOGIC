@@ -650,7 +650,8 @@ namespace AreArpg.UnityClient
             var passage = new GameObject("ARE_World_Passage");
             passage.transform.position = _game.InKilnYard
                 ? new Vector3(KilnLayout.ExitXmm / 1000f, 1.5f + KilnLayout.HeightMm(KilnLayout.ExitXmm, KilnLayout.ExitZmm) / 1000f, KilnLayout.ExitZmm / 1000f)
-                : _game.InCourt ? new Vector3(CourtLayout.ExitXmm / 1000f, 1.5f, CourtLayout.ExitZmm / 1000f) : new Vector3(0f, 1.5f, 24f);
+                : _game.InCourt ? new Vector3(CourtLayout.ExitXmm / 1000f,
+                    1.5f + CourtLayout.HeightMm(CourtLayout.ExitXmm, CourtLayout.ExitZmm) / 1000f, CourtLayout.ExitZmm / 1000f) : new Vector3(0f, 1.5f, 24f);
             var light = passage.AddComponent<Light>();
             light.type = LightType.Point; light.range = 6f; light.intensity = 2.5f;
             light.color = new Color(1f, 0.64f, 0.3f);

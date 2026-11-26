@@ -578,3 +578,9 @@ Glockenhof unter `Assets/Aschenwacht/Scenes/Glockenhof.unity`, Vorhof unter `Ass
 - Grenzen: Tablet-Bildrate ungemessen; Vasen geben keine Beute.
 - Nächste Schritte: Owner-Antworten zu Aschenwacht (Aschbeter, Beute der Sets); danach der Dorf-Umbau.
 - [Technische Abnahme](../brennerhof-20261125/acceptance.md)
+
+## 2026-11-26 · Brennerhof (#142)
+
+PR-Quelle `1eda646ed2880eb8cd59b9d3ab11d553cbaa42c7`, Main `68f943656e4922d5ec0b49f6e3ee56fb7ea95626`. Sechs im Repository fehlende Skript-GUIDs wurden lesend mit dem Unity-Projekt abgeglichen. Sechs weitere GUIDs waren im Branch vorhanden. Alle zwölf verwenden jetzt die versionierten MonoImporter-Einstellungen. Die Metadaten-Korrektur auf `820e5736c1658bcbafaf8cbdce7a79bca160efb0` bestand [GitHub Actions](https://github.com/OuroborosCollective/ARPG-ARE-D4SC-LOGIC/actions/runs/45773320524).
+
+Die echte C#-Simulation reproduzierte den Ausgang aus der Ferne und die Hellebardenaufnahme durch die Wand bei (−1375, 20375) mm. Der öffentliche Ausgang prüft jetzt dieselbe Südtor-Bedingung wie die Reiseaktion, und die Fundprüfung berücksichtigt die durchquerten Zellen. Touch-Eingabe, Journalzeichnung und Questmenü sind im Hof und Brennerhof erreichbar. Das Licht an der Turmtür berücksichtigt die Geländehöhe. Auf Codetree `d566ce2f084baa2fe49e1f5cede0a8fe9cf8b053` bestanden lokal 23.300 Core-Assertions und 62 Preflight-Tests. Der erweiterte PlayMode-Fall drückt die Journal- und Aktionsflächen. Ein neuer nativer Lauf und Gerätetest stehen aus. Die registrierte DOCX ist unter ihrer bestehenden Identität nicht zugänglich.
