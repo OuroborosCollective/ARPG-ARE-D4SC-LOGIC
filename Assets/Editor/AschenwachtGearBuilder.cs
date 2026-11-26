@@ -58,6 +58,8 @@ namespace AreArpg.EditorTools
             public readonly Dictionary<HumanBodyBones, Vector3> Pivot = new Dictionary<HumanBodyBones, Vector3>();
             public Vector3 Up, Front;
             public float Torso, HeadWidth;
+            /// <summary>The box around the points mostly weighted to the head (face and hair), in bind space.</summary>
+            public Bounds HeadBox;
             public Vector3 Axis(HumanBodyBones b)
             {
                 if (Distal.TryGetValue(b, out var d) && Pivot.ContainsKey(d)) return (Pivot[d] - Pivot[b]).normalized;
@@ -95,6 +97,7 @@ namespace AreArpg.EditorTools
                 var heroSkin = heroInstance.GetComponentsInChildren<SkinnedMeshRenderer>(true).OrderByDescending(s => s.sharedMesh ? s.sharedMesh.vertexCount : 0).First();
                 var heroBody = HeroBody(animator, heroSkin, out var heroIndex);
                 heroBody.HeadWidth = HeadWidth(heroSkin.sharedMesh, heroIndex[HumanBodyBones.Head], heroBody);
+                heroBody.HeadBox = HeadBox(heroSkin.sharedMesh, heroIndex[HumanBodyBones.Head]);
                 float guardHead = GuardHeadWidth();
                 foreach (var (model, id) in Armour) BuildArmour(model, id, heroSkin, heroBody, heroIndex, guardHead);
             }
@@ -205,6 +208,34 @@ namespace AreArpg.EditorTools
             return max - min;
         }
 
+        private static Bounds HeadBox(Mesh mesh, int head)
+        {
+            var vertices = mesh.vertices; var weights = mesh.boneWeights;
+            bool any = false; var box = new Bounds();
+            for (int v = 0; v < vertices.Length; v++)
+            {
+                if (weights[v].boneIndex0 != head || weights[v].weight0 < .6f) continue;
+                if (!any) { box = new Bounds(vertices[v], Vector3.zero); any = true; } else box.Encapsulate(vertices[v]);
+            }
+            if (!any) throw new InvalidOperationException("No head points to measure");
+            return box;
+        }
+
+        /// <summary>
+        /// A piece worn only on the head (the visored helm) goes over the whole head: the hero's stylized head with its hair
+        /// is as wide as the Glockenwacht's helm itself, so the helm is scaled evenly until it holds that head with a little
+        /// room on every side, and centred on it.
+        /// </summary>
+        private const float HelmRoom = 1.12f;
+        private static void FitOverHead(Vector3[] points, Bounds head)
+        {
+            var box = new Bounds(points[0], Vector3.zero);
+            foreach (var p in points) box.Encapsulate(p);
+            float scale = 0f;
+            for (int a = 0; a < 3; a++) if (box.extents[a] > 1e-5f) scale = Mathf.Max(scale, head.extents[a] * HelmRoom / box.extents[a]);
+            for (int i = 0; i < points.Length; i++) points[i] = head.center + (points[i] - box.center) * scale;
+        }
+
         /// <summary>The Glockenwacht's own head width, from its figure in the first archive.</summary>
         private static float GuardHeadWidth()
         {
@@ -271,6 +302,7 @@ namespace AreArpg.EditorTools
                 if (top.Length > 3) { bw.boneIndex3 = top[3].Key; bw.weight3 = top[3].Value / norm; }
                 outWeights[v] = bw;
             }
+            if (used.Count == 1 && used[0] == HumanBodyBones.Head) FitOverHead(outVertices, hero.HeadBox);
 
             string meshPath = MeshFolder + id + ".asset";
             var fitted = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
