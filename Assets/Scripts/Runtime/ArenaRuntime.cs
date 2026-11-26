@@ -36,6 +36,8 @@ namespace AreArpg.UnityClient
         private readonly Dictionary<Transform, Animator[]> _actorAnimations = new Dictionary<Transform, Animator[]>();
         private readonly Queue<KeyValuePair<int, NpcAction>> _pendingNpcActions = new Queue<KeyValuePair<int, NpcAction>>();
         private Animator[] _heroMeleeAnimations = new Animator[0];
+        private readonly StandingMeleeChain _meleeChain = new StandingMeleeChain();
+        private EntryWeaponGrip _chainGrip;
         private readonly Queue<int> _pendingSkills = new Queue<int>();
         private bool _pendingPickup;
         // Combat v2 (issue #127): dodge and flask are queued like skills; SCHUTZ is held by a finger, a mouse or key 3.
@@ -203,6 +205,7 @@ namespace AreArpg.UnityClient
         /// <summary>Discard interrupted gestures without changing chosen zoom or character progression.</summary>
         private void ReleasePresentationTouches()
         {
+            _meleeChain.Clear();
             _movementTouch.Reset();
             _orbitMouseHeld = false;
             if (_cameraRig != null) _cameraRig.ClearTouches();
@@ -345,7 +348,9 @@ namespace AreArpg.UnityClient
                         if (parameter.name == "Melee" && parameter.type == AnimatorControllerParameterType.Trigger)
                         { melee.Add(animator); break; }
                 _heroMeleeAnimations = melee.ToArray();
-                foreach (var animator in _heroMeleeAnimations) EntryWeaponGrip.TryAttach(animator);
+                _chainGrip = null;
+                foreach (var animator in _heroMeleeAnimations)
+                    if (EntryWeaponGrip.TryAttach(animator)) _chainGrip = animator.GetComponent<EntryWeaponGrip>();
             }
             RegisterFace(root);
         }
@@ -1092,6 +1097,7 @@ namespace AreArpg.UnityClient
             _regionFade = Mathf.Max(0f, _regionFade - Time.deltaTime / 0.75f);
             PollInputs();
             // The modal menu pauses the deterministic simulation; no ticks accumulate while it is open.
+            if (SimulationPaused) _meleeChain.Clear();
             if (!SimulationPaused) _accumulator += Mathf.Min(Time.deltaTime, 0.25f);
             int steps = 0;
             while (!SimulationPaused && _accumulator >= TickSeconds && steps < CatchUpLimit)
@@ -1161,9 +1167,14 @@ namespace AreArpg.UnityClient
                     _message = spent ? "Meisterschaft verteilt: " + MasteryName(path) : "Keine Meisterschaftspunkte frei.";
                     if (spent) SaveCharacter();
                 }
+                bool moving = _moveWorldX != 0 || _moveWorldZ != 0;
+                _meleeChain.Observe(_game, moving || _pendingDodge || _pendingHeal || _pendingFlask);
+                int followUp = _meleeChain.TakeReady(_game);
+                if (followUp >= 0) _pendingSkills.Enqueue(followUp);
                 while (_pendingSkills.Count > 0)
                 {
                     int slot = _pendingSkills.Dequeue();
+                    if (_meleeChain.Buffer(_game, slot)) continue;
                     System.Numerics.BigInteger previousRank = _game.Progression.PracticeLevel(slot);
                     SkillResult outcome = _game.ActivateSkill(slot);
                     _atmosphere.Skill(outcome, slot, _game);
@@ -1269,6 +1280,8 @@ namespace AreArpg.UnityClient
             UpdateCombatFeel();
             UpdateFaceLife();
             UpdateHeroClips();
+            if (_chainGrip != null)
+                _chainGrip.ProjectChain(_game, alpha, _moveWorldX != 0 || _moveWorldZ != 0, SimulationPaused);
             for (int index = 0; index < _campRationVisuals.Count; index++)
             {
                 Transform ration = _campRationVisuals[index];

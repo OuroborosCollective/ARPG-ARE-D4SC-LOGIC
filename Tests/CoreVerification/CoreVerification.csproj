@@ -18,6 +18,7 @@
     <Compile Include="../../Assets/Scripts/Core/NpcForge*.cs" LinkBase="Core" />
     <Compile Include="../../Assets/Scripts/Core/Chronicle*.cs" LinkBase="Core" />
     <Compile Include="../../Assets/Scripts/Core/ArpgSimulation.cs" Link="ArpgSimulation.cs" />
+    <Compile Include="../../Assets/Scripts/Runtime/StandingMeleeChain.cs" Link="Presentation/StandingMeleeChain.cs" />
     <Compile Include="../../Assets/Scripts/Core/CombatActions.cs" Link="CombatActions.cs" />
     <Compile Include="../../Assets/Scripts/Core/ArmorRules.cs" Link="ArmorRules.cs" />
     <Compile Include="../../Assets/Scripts/Core/HealingCourse.cs" Link="HealingCourse.cs" />

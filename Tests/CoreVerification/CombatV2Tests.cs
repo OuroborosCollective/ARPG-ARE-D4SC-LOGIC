@@ -10,6 +10,7 @@ public static class CombatV2Tests
 {
     public static void Run(Action<bool, string> check)
     {
+        StandingChainInputs(check);
         LegacyWorldsKeepInstantCombat(check);
         StrikeLandsOnItsImpactTickOnce(check);
         ImpactsDoNotRepeatAfterDefeat(check);
@@ -25,6 +26,32 @@ public static class CombatV2Tests
         CombatAndArmorSurviveTheSave(check);
         EnemiesWindUpBeforeTheyHit(check);
         SameInputsGiveTheSameWorld(check);
+    }
+
+    private static void StandingChainInputs(Action<bool, string> check)
+    {
+        var w = V2World(891, out var p);
+        var chain = new AreArpg.UnityClient.StandingMeleeChain();
+        for (int swing = 0; swing < 5; swing++)
+        {
+            chain.Observe(w, false);
+            check(w.ActivateSkill(0).Activated, "standing-chain-real-attack-" + swing);
+            check(chain.Accept(w, 0, false) == swing % 4, "standing-chain-stage-" + swing);
+            int duration = w.CurrentActionTiming.Total;
+            while (w.ActionTick < duration - 3) w.Step();
+            check(!chain.Buffer(w, 0), "standing-chain-too-early-" + swing);
+            w.Step();
+            check(chain.Buffer(w, 0) && chain.Buffer(w, 0), "standing-chain-window-" + swing);
+            w.Step(); check(chain.TakeReady(w) < 0, "standing-chain-no-early-hit-" + swing);
+            w.Step(); check(chain.TakeReady(w) == 0 && chain.TakeReady(w) < 0, "standing-chain-only-one-" + swing);
+        }
+        chain.Observe(w, true);
+        check(w.ActivateSkill(0).Activated && chain.Accept(w, 0, false) == 0, "standing-chain-move-resets");
+        while (w.ActionTick < w.CurrentActionTiming.Total - 1) w.Step();
+        check(chain.Buffer(w, 0), "standing-chain-last-tick");
+        chain.Observe(w, true);
+        w.Step();
+        check(chain.TakeReady(w) < 0, "standing-chain-move-clears-buffer");
     }
 
     private static ArenaSimulation V2World(ulong seed, out CharacterProgression p)

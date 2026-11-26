@@ -12,6 +12,13 @@ namespace AreArpg.UnityClient
         private Transform _grip, _elbow, _hand;
         private Quaternion _boneToGoal;
         private bool _calibrated;
+        private HeroMeleeMotion _chain;
+        internal void BeginChain(AreArpg.Core.ArenaSimulation world, int stage)
+        {
+            _chain?.Begin(world, stage);
+        }
+        internal void ProjectChain(AreArpg.Core.ArenaSimulation world, float fraction, bool moving, bool paused)
+            => _chain?.Project(world,fraction,moving,paused);
 
         /// <summary>Attach only after the passive prefab has passed validation and exposes the opt-in rig contract.</summary>
         public static bool TryAttach(Animator animator)
@@ -41,6 +48,8 @@ namespace AreArpg.UnityClient
             projection._animator = animator; projection._grip = grip; projection._elbow = elbow;
             projection._hand = hand;
             projection._calibrated = false;
+            var socket = hand.Find("EntryWeaponSocket");
+            if (socket != null) projection._chain = new HeroMeleeMotion(animator,socket);
             return true;
         }
 
@@ -59,10 +68,13 @@ namespace AreArpg.UnityClient
             _animator.SetIKPositionWeight(AvatarIKGoal.RightHand, weight);
             _animator.SetIKRotationWeight(AvatarIKGoal.RightHand, weight);
             _animator.SetIKHintPositionWeight(AvatarIKHint.RightElbow, weight);
-            if (weight <= 0f) return;
-            _animator.SetIKPosition(AvatarIKGoal.RightHand, _grip.position);
-            _animator.SetIKRotation(AvatarIKGoal.RightHand, _grip.rotation * _boneToGoal);
-            _animator.SetIKHintPosition(AvatarIKHint.RightElbow, _elbow.position);
+            if (weight > 0f)
+            {
+                _animator.SetIKPosition(AvatarIKGoal.RightHand, _grip.position);
+                _animator.SetIKRotation(AvatarIKGoal.RightHand, _grip.rotation * _boneToGoal);
+                _animator.SetIKHintPosition(AvatarIKHint.RightElbow, _elbow.position);
+            }
+            _chain?.Solve(_boneToGoal);
         }
     }
 }

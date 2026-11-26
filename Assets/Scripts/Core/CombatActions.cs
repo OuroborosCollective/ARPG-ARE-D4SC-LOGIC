@@ -109,6 +109,7 @@ namespace AreArpg.Core
         public int DodgedAttacks { get; private set; }
         /// <summary>Strike results that landed during the last <see cref="Step"/>; the presentation reads them after the tick.</summary>
         public readonly List<SkillResult> Impacts = new List<SkillResult>();
+        public ActionTiming CurrentActionTiming => _timing;
         private ActionTiming _timing;
         private long _dodgeXbp, _dodgeZbp;
         private PotionType _drinkType;
