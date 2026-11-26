@@ -1170,10 +1170,10 @@ namespace AreArpg.UnityClient
                 bool moving = _moveWorldX != 0 || _moveWorldZ != 0;
                 _meleeChain.Observe(_game, moving || _pendingDodge || _pendingHeal || _pendingFlask);
                 int followUp = _meleeChain.TakeReady(_game);
-                if (followUp >= 0) _pendingSkills.Enqueue(followUp);
-                while (_pendingSkills.Count > 0)
+                while (followUp >= 0 || _pendingSkills.Count > 0)
                 {
-                    int slot = _pendingSkills.Dequeue();
+                    int slot = followUp >= 0 ? followUp : _pendingSkills.Dequeue();
+                    followUp = -1;
                     if (_meleeChain.Buffer(_game, slot)) continue;
                     System.Numerics.BigInteger previousRank = _game.Progression.PracticeLevel(slot);
                     SkillResult outcome = _game.ActivateSkill(slot);
