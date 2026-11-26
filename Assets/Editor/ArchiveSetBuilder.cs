@@ -30,6 +30,8 @@ namespace AreArpg.EditorTools
             public (string name, string[] meshes, AschenwachtGearBuilder.HeadFit head)[] Pieces = new (string, string[], AschenwachtGearBuilder.HeadFit)[0];
             /// <summary>Meshes of the model that are not worn (weapons the archive also shows in the hands).</summary>
             public string[] Unused = new string[0];
+            /// <summary>Soft clothes (leather, linen) are laid over the hero's own armour; plate keeps its fitted shape.</summary>
+            public bool LayOver;
             /// <summary>Weapons from their own static models in the set's Models folder.</summary>
             public (RegionalRelic id, string model)[] Weapons = new (RegionalRelic, string)[0];
         }
@@ -51,7 +53,7 @@ namespace AreArpg.EditorTools
             var expected = worn.Concat(spec.Unused).OrderBy(n => n, StringComparer.Ordinal).ToList();
             if (worn.Distinct().Count() != worn.Count || !expected.SequenceEqual(skins.Keys.OrderBy(k => k, StringComparer.Ordinal)))
                 throw new InvalidOperationException(spec.Label + " meshes do not match: model has " + string.Join(",", skins.Keys.OrderBy(k => k, StringComparer.Ordinal)));
-            var pieces = spec.Pieces.Select(p => new AschenwachtGearBuilder.FitPiece(p.name, p.meshes.Select(m => skins[m]).ToArray(), p.head)).ToList();
+            var pieces = spec.Pieces.Select(p => new AschenwachtGearBuilder.FitPiece(p.name, p.meshes.Select(m => skins[m]).ToArray(), p.head, spec.LayOver)).ToList();
             if (!AschenwachtGearBuilder.FitToHero(pieces, spec.Root + "Armor/")) return false;
             foreach (var (id, weapon) in spec.Weapons) AschenwachtGearBuilder.BuildHandPiece(Models(spec) + weapon, id);
             AssetDatabase.SaveAssets();

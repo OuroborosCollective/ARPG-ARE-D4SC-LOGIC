@@ -136,7 +136,9 @@ namespace AreArpg.EditorTools
             public readonly string Name;
             public readonly SkinnedMeshRenderer[] Skins;
             public readonly HeadFit Head;
-            public FitPiece(string name, SkinnedMeshRenderer[] skins, HeadFit head) { Name = name; Skins = skins; Head = head; }
+            /// <summary>Soft clothes (leather, linen) are laid over the hero's own armour; plate keeps its fitted shape.</summary>
+            public readonly bool LayOver;
+            public FitPiece(string name, SkinnedMeshRenderer[] skins, HeadFit head, bool layOver = false) { Name = name; Skins = skins; Head = head; LayOver = layOver; }
         }
 
         internal static bool FitToHero(IList<FitPiece> pieces, string meshFolder)
@@ -157,6 +159,7 @@ namespace AreArpg.EditorTools
                 fit.GuardHead = GuardHeadWidth();
                 fit.Surface = Surface(fit.Skin);
                 foreach (var piece in pieces) BuildArmour(piece, meshFolder, fit);
+                BuildHairlessHero(fit.Skin);
             }
             finally { UnityEngine.Object.DestroyImmediate(heroInstance); }
             AssetDatabase.SaveAssets();
@@ -367,15 +370,16 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>
-        /// Clothes lie over the hero's own clothes. The archives' sets were cut for the slim Glockenwacht; the hero wears
-        /// armour of his own (his shoulder plates stand far out), and thin leather or linen fitted to his frame would vanish
-        /// under it. Every point of a piece is moved outward along its normal (turned away from its bone) until the hero's
-        /// surface in front of it lies <see cref="GarmentGapMm"/> behind it, by at most <see cref="GarmentReachMm"/>; the
-        /// moves are smoothed over neighbouring points so the cloth stays whole. Points already outside stay where they are.
+        /// Soft clothes lie over the hero's own clothes. The archives' sets were cut for the slim Glockenwacht; the hero
+        /// wears armour of his own (his shoulder plates stand far out), and thin leather or linen fitted to his frame would
+        /// vanish under it. Every point of a piece is moved straight away from its bone until the hero's surface in that
+        /// direction lies <see cref="GarmentGapMm"/> behind it, by at most <see cref="GarmentReachMm"/>; the moves are
+        /// smoothed over neighbouring points so the cloth stays whole. Points already outside stay where they are. The
+        /// direction comes from the bone, not from each face, so points that share a place move together and nothing tears.
         /// </summary>
         private const float GarmentGapMm = 6f, GarmentReachMm = 70f, GarmentSideMm = 25f, GarmentCellMm = 30f;
         private const int GarmentSmoothing = 4;
-        private static void LayOverHero(Vector3[] points, List<Vector3> normals, HumanBodyBones[] bone, int[] triangles, HeroFit fit)
+        private static void LayOverHero(Vector3[] points, HumanBodyBones[] bone, int[] triangles, HeroFit fit)
         {
             float cell = GarmentCellMm * .001f, reach = GarmentReachMm * .001f, side = GarmentSideMm * .001f, gap = GarmentGapMm * .001f;
             (int, int, int) Key(Vector3 v) => (Mathf.FloorToInt(v.x / cell), Mathf.FloorToInt(v.y / cell), Mathf.FloorToInt(v.z / cell));
@@ -391,12 +395,10 @@ namespace AreArpg.EditorTools
             var outward = new Vector3[points.Length];
             for (int i = 0; i < points.Length; i++)
             {
-                var n = normals[i];
-                if (n.sqrMagnitude < 1e-8f) continue;
                 var b = fit.Body; var pivot = b.Pivot.ContainsKey(bone[i]) ? b.Pivot[bone[i]] : b.Pivot[HumanBodyBones.Hips];
-                var axis = b.Axis(bone[i]);
-                var radial = Vector3.ProjectOnPlane(points[i] - pivot, axis);
-                if (Vector3.Dot(n, radial) < 0f) n = -n;
+                var radial = Vector3.ProjectOnPlane(points[i] - pivot, b.Axis(bone[i]));
+                if (radial.sqrMagnitude < 1e-8f) continue;
+                var n = radial.normalized;
                 outward[i] = n;
                 float depth = float.NegativeInfinity;
                 var c = Key(points[i]);
@@ -432,6 +434,50 @@ namespace AreArpg.EditorTools
                 push = next;
             }
             for (int i = 0; i < points.Length; i++) points[i] += outward[i] * push[i];
+        }
+
+        /// <summary>Where the hero's figure without hair lies, for the runtime to swap in under a head piece (private art).</summary>
+        public const string HeroHairFolder = "Assets/Resources/ARE/Visuals/HeroHair/";
+
+        /// <summary>
+        /// Owner 2026-11-26: under a helm the hero's hair disappears like a model taken off. His figure is one mesh, so
+        /// two copies of it are saved without hair triangles: "Hairless" for helms (every triangle touching his hair
+        /// bones gone) and "Hooded" for open hoods (only the back hair gone; the fringe frames the face). The runtime swaps
+        /// the figure's mesh while such a piece is worn.
+        /// </summary>
+        private static void BuildHairlessHero(SkinnedMeshRenderer skin)
+        {
+            Directory.CreateDirectory(HeroHairFolder);
+            SaveWithoutHair(skin, "Hairless", new[] { "FrontHair", "BackHair" });
+            SaveWithoutHair(skin, "Hooded", new[] { "BackHair" });
+        }
+
+        private static void SaveWithoutHair(SkinnedMeshRenderer skin, string name, string[] roots)
+        {
+            var bones = skin.bones;
+            var hair = new bool[bones.Length];
+            for (int b = 0; b < bones.Length; b++)
+                for (var t = bones[b]; t; t = t.parent) if (Array.IndexOf(roots, t.name) >= 0) { hair[b] = true; break; }
+            var source = skin.sharedMesh; var weights = source.boneWeights;
+            bool Hair(int v)
+            {
+                var w = weights[v];
+                return (w.weight0 > 0f && hair[w.boneIndex0]) || (w.weight1 > 0f && hair[w.boneIndex1]) ||
+                    (w.weight2 > 0f && hair[w.boneIndex2]) || (w.weight3 > 0f && hair[w.boneIndex3]);
+            }
+            var mesh = UnityEngine.Object.Instantiate(source);
+            mesh.name = "Hero_" + name;
+            for (int s = 0; s < source.subMeshCount; s++)
+            {
+                var triangles = source.GetTriangles(s);
+                var kept = new List<int>(triangles.Length);
+                for (int t = 0; t + 2 < triangles.Length; t += 3)
+                    if (!Hair(triangles[t]) && !Hair(triangles[t + 1]) && !Hair(triangles[t + 2])) kept.AddRange(new[] { triangles[t], triangles[t + 1], triangles[t + 2] });
+                mesh.SetTriangles(kept, s, false);
+            }
+            string path = HeroHairFolder + name + ".asset";
+            if (AssetDatabase.LoadAssetAtPath<Mesh>(path) != null) AssetDatabase.DeleteAsset(path);
+            AssetDatabase.CreateAsset(mesh, path);
         }
 
         /// <summary>The Glockenwacht's own head width, from its figure in the first archive.</summary>
@@ -514,7 +560,7 @@ namespace AreArpg.EditorTools
             }
             var points = outVertices.ToArray();
             if (piece.Head != HeadFit.None) FitOverHead(points, hero, piece.Head == HeadFit.Open);
-            else LayOverHero(points, outNormals, outWeights.Select(w => used[w.boneIndex0]).ToArray(), groups.SelectMany(g => g.triangles).ToArray(), fit);
+            else if (piece.LayOver) LayOverHero(points, outWeights.Select(w => used[w.boneIndex0]).ToArray(), groups.SelectMany(g => g.triangles).ToArray(), fit);
 
             string meshPath = meshFolder + id + ".asset";
             var fitted = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);

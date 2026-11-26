@@ -9,6 +9,10 @@ namespace AreArpg.UnityClient
     {
         private readonly List<GameObject> _bakedArmor = new List<GameObject>();
         private HairUnderHelm _hairUnderHelm;
+        /// <summary>The hero's figure while a head piece is worn, and its own mesh to give back (AschenwachtGearBuilder.BuildHairlessHero).</summary>
+        private SkinnedMeshRenderer _hairSkin;
+        private Mesh _hairOriginal;
+        private const string HelmFigure = "ARE/Visuals/HeroHair/Hairless", HoodFigure = "ARE/Visuals/HeroHair/Hooded";
         /// <summary>
         /// The hero's two hair bones. Under a worn helm his hair is hidden like a model taken off (owner 2026-11-26): the two
         /// bones shrink to nearly nothing, so all hair hanging on them collapses into its roots inside the head.
@@ -27,6 +31,8 @@ namespace AreArpg.UnityClient
             foreach (var piece in _bakedArmor) if (piece) { piece.SetActive(false); Destroy(piece); }
             _bakedArmor.Clear();
             if (_hairUnderHelm) _hairUnderHelm.Release();
+            if (_hairSkin) _hairSkin.sharedMesh = _hairOriginal;
+            _hairSkin = null; _hairOriginal = null;
         }
 
         /// <summary>
@@ -86,10 +92,25 @@ namespace AreArpg.UnityClient
         private void HideHair(Transform head, bool hood)
         {
             if (!head) return;
+            // The hair is taken off like a model: the figure without hair triangles is swapped in (built in the editor;
+            // the mesh is not readable on the device). Without it, the hair bones are shrunk instead.
+            SkinnedMeshRenderer figure = null;
+            foreach (var skin in _hero.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                if (skin.sharedMesh && Array.IndexOf(skin.bones, head) >= 0 && (!figure || skin.sharedMesh.vertexCount > figure.sharedMesh.vertexCount)) figure = skin;
+            var bare = Resources.Load<Mesh>(hood ? HoodFigure : HelmFigure);
+            bool swapped = false;
+            if (figure && bare && !_hairSkin && bare.vertexCount == figure.sharedMesh.vertexCount)
+            {
+                _hairSkin = figure; _hairOriginal = figure.sharedMesh; figure.sharedMesh = bare; swapped = true;
+            }
             if (!_hairUnderHelm || _hairUnderHelm.transform != head)
                 _hairUnderHelm = head.TryGetComponent(out HairUnderHelm held) ? held : head.gameObject.AddComponent<HairUnderHelm>();
             foreach (var bone in head.GetComponentsInChildren<Transform>(true))
-                if (Array.IndexOf(HairRoots, bone.name) >= 0) _hairUnderHelm.Tuck(bone, hood && bone.name == "FrontHair" ? HoodFringeSize : HiddenHairSize);
+            {
+                if (Array.IndexOf(HairRoots, bone.name) < 0) continue;
+                if (hood && bone.name == "FrontHair") _hairUnderHelm.Tuck(bone, HoodFringeSize);
+                else if (!swapped) _hairUnderHelm.Tuck(bone, HiddenHairSize);
+            }
         }
     }
 }

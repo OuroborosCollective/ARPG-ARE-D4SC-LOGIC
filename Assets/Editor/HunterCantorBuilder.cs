@@ -18,6 +18,7 @@ namespace AreArpg.EditorTools
         public static readonly ArchiveSetBuilder.Spec Rotfaehrte = new ArchiveSetBuilder.Spec
         {
             Label = "Rotfaehrte",
+            LayOver = true,
             Root = "Assets/PrivateArt/Rotfaehrte/",
             Model = "Rotfaehrte.fbx",
             Textured = new[] { "Feder", "Filz", "Holz", "Krapp", "Messing", "Moorleder", "Rauchleder", "Riemen", "Schiefer" },
@@ -42,6 +43,7 @@ namespace AreArpg.EditorTools
         public static readonly ArchiveSetBuilder.Spec Russkantor = new ArchiveSetBuilder.Spec
         {
             Label = "Russkantor",
+            LayOver = true,
             Root = "Assets/PrivateArt/Russkantor/",
             Model = "Russkantor.fbx",
             Textured = new[] { "Borte", "Dunkelbuche", "Flachs", "Kohleinen", "Krapp", "Messing", "Riemen", "Schieferholz" },
