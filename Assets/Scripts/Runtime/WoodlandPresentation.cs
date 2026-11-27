@@ -76,6 +76,8 @@ namespace AreArpg.UnityClient
             var ground=WorldSurfacePresentation.AshSnow ?? Resources.Load<Material>("ARE/Visuals/WoodlandGround");
             if(ground==null)ground=WoodlandFallbackMaterial();
             var rng=new DeterministicRng(map.Seed ^ 0xA47UL);
+            var grassRng = new DeterministicRng(map.Seed ^ 0x4752415353UL);
+            bool grassAvailable = PassiveArtVisuals.Has("AshFloraGrass");
             // Eight metre chunks share the exact same world-space height and UV field; shared materials and distance culling.
             for(int cz=-14;cz<14;cz+=2)for(int cx=-12;cx<12;cx+=2)
             {
@@ -103,6 +105,11 @@ namespace AreArpg.UnityClient
                     }
                     else
                     {
+                        if (grassAvailable && (x + z) % 2 == 0)
+                        {
+                            PlantWoodland(vegetation,"AshFloraGrass",wx-1.45f,wz-.9f,.32f,grassRng);
+                            PlantWoodland(vegetation,"AshFloraGrass",wx-1.1f,wz-1.55f,.24f,grassRng);
+                        }
                         // Low undergrowth stays out of the central combat lane.
                         if(rng.Next64()%3==0)PlantWoodland(vegetation,"WoodlandFern",wx+1.5f,wz+1.5f,.45f,rng);
                         if(rng.Next64()%5==0)PlantWoodland(vegetation,rng.Next64()%2==0?"WoodlandMushroomRed":"WoodlandMushroomMoon",wx-1.4f,wz+1.4f,.3f,rng);
@@ -149,8 +156,31 @@ namespace AreArpg.UnityClient
             WoodlandPortal("Zurück zum Wald",0,-18);
             if(cave)
             {
-                for(int side=-1;side<=1;side+=2)for(int z=-16;z<=12;z+=4)ChapterShape(PrimitiveType.Cube,"BearCave_RockWall",new Vector3(side*11,1.8f,z),new Vector3(3,3.6f,4.4f),new Color(.22f,.24f,.27f),"AshRocks");
-                ChapterShape(PrimitiveType.Cube,"BearCave_BackWall",new Vector3(0,1.7f,16),new Vector3(23,3.4f,4),new Color(.22f,.24f,.27f),"AshRocks");
+                var rock = Resources.Load<Texture2D>("ARE/Visuals/BearDenStone");
+                string key = rock != null && PassiveArtVisuals.Has("BearDenRockMobile") ? "BearDenRockMobile" : "AshRocks";
+                Material cliff = null;
+                if (key == "BearDenRockMobile")
+                {
+                    cliff = new Material(WoodlandFallbackMaterial()) { name = "Bear den weathered rock", color = Color.white, mainTexture = rock, enableInstancing = true };
+                    var owner = new GameObject("BearCave_Material").AddComponent<WoodlandMeshOwner>();
+                    owner.Material = cliff;
+                    _chapterScenery.Add(owner.transform);
+                }
+                void RockFace(string label,float x,float z,float width,float height,float depth,float yaw)
+                {
+                    var wall = ChapterShape(PrimitiveType.Cube,label,new Vector3(x,height*.5f-.12f,z),
+                        new Vector3(width,height,depth),new Color(.22f,.24f,.27f),key);
+                    if (cliff != null && wall.childCount > 0)
+                        foreach (var renderer in wall.GetChild(wall.childCount-1).GetComponentsInChildren<MeshRenderer>())
+                            renderer.sharedMaterial = cliff;
+                    wall.rotation = Quaternion.Euler(0,yaw,0);
+                }
+                for (int side=-1;side<=1;side+=2)
+                    for (int i=0;i<8;i++)
+                        RockFace("BearCave_RockWall",side*11,-16+i*4,3.2f,3.8f+.35f*(i%3),5.2f,(i%2)*180+side*6);
+                for (int i=0;i<5;i++)
+                    RockFace("BearCave_BackWall",-9.2f+i*4.6f,16,5.6f,4.2f+.35f*(i%2),4f,(i%2)*180-5);
+
                 var nest = new GameObject("BearCave_Nest").transform;
                 nest.position = new Vector3(0, .012f, 5);
                 _chapterScenery.Add(nest);

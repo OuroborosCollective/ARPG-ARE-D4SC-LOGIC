@@ -7,7 +7,7 @@ namespace AreArpg.UnityClient
     {
         private static readonly string[] Areas =
         {
-            null, "old_crypt", "village", "ash_road", "mill", "granary", "hidden_crypt",
+            null, null, "village", "ash_road", "mill", "granary", "hidden_crypt",
             "nest", "west_forest", "bear", "freight", "forest_road"
         };
         private static readonly string[] UnderMill = { null, "under_1", "under_2", "under_3" };

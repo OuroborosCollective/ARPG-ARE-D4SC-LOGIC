@@ -93,6 +93,8 @@ namespace AreArpg.UnityClient
                 }
             // A separate bounded cosmetic stream scatters low plants beyond the clear walking lane.
             var undergrowth=new DeterministicRng(_game.Progression.Journey.RouteSeed^0x554E44455247524FUL);
+            var grassRng = new DeterministicRng(_game.Progression.Journey.RouteSeed ^ 0x4752415353UL);
+            bool grassAvailable = PassiveArtVisuals.Has("AshFloraGrass");
             int planted=0;
             for(int attempt=0;attempt<1200&&planted<160;attempt++)
             {
@@ -104,6 +106,8 @@ namespace AreArpg.UnityClient
                 long wx=geometry.Centre(x)+(long)(undergrowth.Next64()%801)-400,wz=geometry.Centre(z)+(long)(undergrowth.Next64()%801)-400;
                 if(!map.CanStand(wx,wz,450))continue;
                 int kind=planted%3;string key=kind==0?"WoodlandMushroomRed":kind==1?"WoodlandFern":"WoodlandShrub";
+                if (grassAvailable && planted%3==0)
+                    PlantWoodland(Chunk(wx/1000f,wz/1000f),"AshFloraGrass",wx/1000f+.30f,wz/1000f+.35f,.34f,grassRng);
                 PlantWoodland(Chunk(wx/1000f,wz/1000f),key,wx/1000f,wz/1000f,kind==0?.25f:kind==1?.45f:.7f,undergrowth);planted++;
             }
             WoodlandPortal("Zurück nach Aschenzoll",geometry.ReturnX/1000f,geometry.ReturnZ/1000f);
