@@ -50,6 +50,47 @@ namespace AreArpg.EditorTools
                 BuildTarget.Android, BuildOptions.None));
         }
 
+        // Independent sideload identity permits installation beside Google's differently signed Play build.
+        public static void BuildDirectArmoryApk()
+        {
+            PrepareEntryScene();
+            ApplyAndroidPlayerSettings();
+            PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android, PlayPackageName + ".direct");
+            EditorUserBuildSettings.buildAppBundle = false;
+            PlayerSettings.Android.splitApplicationBinary = false;
+            PlayerSettings.Android.useCustomKeystore = false;
+            Directory.CreateDirectory("Builds");
+            var required = new System.Collections.Generic.List<string>();
+            foreach (var family in new[] { "Glut", "Schwarz" })
+            {
+                string prefix = family == "Glut" ? "glut" : "schwarz";
+                foreach (int id in new[] {1,2,3,4,5,6,7,8,9,10,11,12,15,16,17,20,21,24,28,29,30})
+                {
+                    string stem = prefix + "." + id.ToString("D2", System.Globalization.CultureInfo.InvariantCulture);
+                    required.Add("Assets/Resources/ARE/Visuals/" + family + "/" + stem + ".obj");
+                    required.Add("Assets/Resources/ARE/" + family + "Icons/" + stem + ".png");
+                }
+                required.Add("Assets/Resources/ARE/GearBanks/" + prefix + ".json");
+            }
+            const string bank = "Assets/Resources/ARE/Hcap/";
+            foreach (var family in new[] {"straight_sword","greatsword","dagger","axe","greataxe","hammer","great_hammer","spear","bow","staff"})
+                for (int stroke=1;stroke<=4;stroke++) required.Add(bank + family + "__attack_0" + stroke + ".hcap");
+            required.Add(bank + "dodge_forward.hcap");
+            required.Add(bank + "index.json");
+            required.Add("Assets/Resources/ARE/Visuals/EntryHero.prefab");
+            foreach (string path in required)
+                if (AssetDatabase.LoadMainAssetAtPath(path) == null) throw new InvalidDataException("Required asset missing: " + path);
+            var result = BuildPipeline.BuildPlayer(new[] { EntryScenePath, ScenePath }, "Builds/Ashen-Crypt-Schwarzschleier.apk",
+                BuildTarget.Android, BuildOptions.DetailedBuildReport);
+            BuildReportGuard(result);
+            var packed = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var archive in result.packedAssets)
+                foreach (var item in archive.contents) packed.Add(item.sourceAssetPath);
+            foreach (string path in required)
+                if (!packed.Contains(path)) throw new InvalidDataException("Asset missing in Android build report: " + path);
+            File.WriteAllLines("Builds/armory-packed.txt", required);
+        }
+
         private static void ApplyAndroidPlayerSettings()
         {
             PlayerSettings.companyName = "OuroborosCollective";

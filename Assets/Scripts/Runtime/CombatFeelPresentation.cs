@@ -67,6 +67,9 @@ namespace AreArpg.UnityClient
             // One visible action per executed ability, even when two abilities resolve in the same tick.
             int stage = _meleeChain.Accept(_game, slot, _moveWorldX != 0 || _moveWorldZ != 0);
             if (stage >= 0 && _chainGrip != null) _chainGrip.BeginChain(_game, stage);
+            if (stage >= 0)
+                foreach (var rig in _heroMeleeAnimations)
+                    HcapHeroProjection.Bind(rig)?.Accept(_game.ActionSequence, stage);
             _heroActions.Enqueue(slot == 2 ? "Guard" : slot == 3 ? "Cast" : "Melee");
             PumpHeroActions();
         }

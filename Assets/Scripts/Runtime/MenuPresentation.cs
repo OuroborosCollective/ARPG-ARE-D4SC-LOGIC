@@ -393,9 +393,19 @@ namespace AreArpg.UnityClient
                 else
                 {
                     var gear = p.Equipment.ForItem(item);
-                    var t = AshenUiTheme.Label("Glyph", s.transform, Mathf.RoundToInt(cell * 0.36f), rc, TextAnchor.MiddleCenter, FontStyle.Bold);
-                    AshenUiTheme.Stretch(t.rectTransform);
-                    t.text = gear == null ? "◆" : gear.Definition.Family == WeaponFamily.Shield ? "◈" : "⚔";
+                    if (gear?.Definition.InventoryIconKey != null)
+                    {
+                        var icon = AshenUiTheme.Node("GlutIcon", s.transform).gameObject.AddComponent<RawImage>();
+                        icon.raycastTarget = false;
+                        icon.texture = Resources.Load<Texture2D>("ARE/" + gear.Definition.InventoryIconKey);
+                        AshenUiTheme.Stretch(icon.rectTransform, 3f);
+                    }
+                    else
+                    {
+                        var t = AshenUiTheme.Label("Glyph", s.transform, Mathf.RoundToInt(cell * 0.36f), rc, TextAnchor.MiddleCenter, FontStyle.Bold);
+                        AshenUiTheme.Stretch(t.rectTransform);
+                        t.text = gear == null ? "◆" : gear.Definition.Family == WeaponFamily.Shield ? "◈" : "⚔";
+                    }
                     var v = AshenUiTheme.Label("Value", s.transform, 11, AshenUiTheme.Parchment, TextAnchor.LowerRight, FontStyle.Bold);
                     AshenUiTheme.Stretch(v.rectTransform, 5f); v.text = "+" + item.AffixValue;
                 }

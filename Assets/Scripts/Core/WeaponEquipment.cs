@@ -16,6 +16,9 @@ namespace AreArpg.Core
         public readonly int BasePower,StrikeCooldown;
         public readonly long RangeMm;
         public readonly bool TwoHanded;
+        public bool IsSchwarzArmory => _visualFolder == "Schwarz/";
+        public string InventoryIconKey => IsSchwarzArmory ? "SchwarzIcons/" + Id : IsGlutArmory ? "GlutIcons/" + Id : null;
+        public bool IsGlutArmory => _visualFolder == "Glut/";
         public string FamilyName => new[]{"Schwert","Dolch","Axt","Keule","Stab","Bogen","Speer","Schild"}[(int)Family];
         /// <summary>The model shown for it; a piece without its own model may borrow an existing one.</summary>
         public string VisualKey => _visualKey ?? _visualFolder + Id;
@@ -40,11 +43,12 @@ namespace AreArpg.Core
         internal WeaponItem(LootItem receipt)
         {
             var rng=new DeterministicRng(receipt.StableHash ^ 0xE0111UL);
-            Definition=WeaponCatalog.Get((int)(rng.Next64()%(ulong)WeaponCatalog.Count));Ordinal=receipt.KillOrdinal;Rarity=receipt.Rarity;
+            Definition = receipt.CatalogRevision == 4 ? WeaponCatalog.RollFinalCrypt(receipt, rng) : receipt.CatalogRevision == 3 ? WeaponCatalog.RollGlutCatalog(rng) : WeaponCatalog.Get((int)(rng.Next64()%(ulong)WeaponCatalog.Count));
+            Ordinal=receipt.KillOrdinal;Rarity=receipt.Rarity;
             Affix=(WeaponAffix)(rng.Next64()%4);Value=Roll(rng,Affix);
             SecondAffix=(WeaponAffix)(((int)Affix+1+(int)(rng.Next64()%3))%4);SecondValue=Rarity>=ItemRarity.Rare?Roll(rng,SecondAffix):0;
             // Loot revision 2: a white weapon has no affix, a legendary one rolls half again as high.
-            if(Rarity==ItemRarity.Normal)Value=0;
+            if(Rarity==ItemRarity.Normal)Value=(Definition.IsGlutArmory || Definition.IsSchwarzArmory) ? Value / 4 : 0;
             if(Rarity==ItemRarity.Legendary){Value=Value*3/2;SecondValue=SecondValue*3/2;}
         }
         private static int Roll(DeterministicRng rng,WeaponAffix affix) => affix==WeaponAffix.Power?200+(int)(rng.Next64()%601):affix==WeaponAffix.Haste?500+(int)(rng.Next64()%1001):affix==WeaponAffix.Ward?200+(int)(rng.Next64()%401):100+(int)(rng.Next64()%301);

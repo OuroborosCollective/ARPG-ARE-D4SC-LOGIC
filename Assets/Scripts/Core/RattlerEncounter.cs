@@ -135,7 +135,7 @@ namespace AreArpg.Core
             {
                 // Under loot revision 2 the rattler drops like a boss: always a weapon and a full bag.
                 GroundLoot.Add(new LootState { Id=42,Xmm=m.Xmm,Zmm=m.Zmm,WeaponBonus=34,
-                    Item=LootRevisionTwo ? _lootCatalog.GenerateFlagged(Progression.Dungeon.Seed,Progression.Dungeon.Depth,CurrentTick,42,2,Progression.LootOrdinal,LootCatalog.BossFlag)
+                    Item=LootRevisionTwo ? _lootCatalog.GenerateFlagged(Progression.Dungeon.Seed,Progression.Dungeon.Depth,CurrentTick,42,2,Progression.LootOrdinal,LootCatalog.BossFlag | (LootRevision == 4 && Progression.Dungeon.Depth == LootCatalog.FinalCryptDepth ? LootCatalog.FinalCryptFlag : 0))
                         : LootCatalog.Version1.Generate(Progression.Dungeon.Seed,CryptDepth,CurrentTick,42,2,Progression.LootOrdinal) });
                 if (LootRevisionTwo) DropSupply(Progression.Dungeon.Seed,Progression.Dungeon.Depth,42,2,LootCatalog.BossFlag,m.Xmm,m.Zmm);
             }

@@ -884,6 +884,8 @@ namespace AreArpg.Core
                     !Progression.Equipment.FieldPauldronOwned && !GroundLoot.Exists(l => l.HasFieldPauldron);
                 // The knight who carries the field pauldron always drops under revision 2: the piece rides on his drop.
                 int flags = second && pauldron ? LootCatalog.GuaranteedFlag : 0;
+                if (LootRevision == 4 && InDungeon && Progression.Dungeon.Depth == LootCatalog.FinalCryptDepth)
+                    flags |= LootCatalog.FinalCryptFlag;
                 LootItem item = catalog == null ? null : catalog.GenerateFlagged(lootSeed, lootDepth, CurrentTick, enemy.Id, enemy.Kind, Progression.LootOrdinal, flags);
                 if (!second || item != null)
                 {

@@ -66,3 +66,21 @@ Tests/**/obj/
 # Purchased dark fantasy dungeon pack stays private (never redistributed through this public repo)
 /Assets/Stylized Dark Fantasy Asset/
 /Assets/Stylized Dark Fantasy Asset.meta
+
+# Private EntryHero animation bank and generated Unity metadata
+/Assets/Resources/ARE/Hcap/
+/Assets/Resources/ARE/Hcap.meta
+/Assets/PrivateArt/HcapAuthoring/
+/Assets/PrivateArt/HcapAuthoring.meta
+
+# Studio-only armory materials, inventory renders and installed-catalog markers.
+/Assets/AshenCrypt/GlutArmory/
+/Assets/AshenCrypt/GlutArmory.meta
+/Assets/AshenCrypt/SchwarzArmory/
+/Assets/AshenCrypt/SchwarzArmory.meta
+/Assets/Resources/ARE/GlutIcons/
+/Assets/Resources/ARE/GlutIcons.meta
+/Assets/Resources/ARE/SchwarzIcons/
+/Assets/Resources/ARE/SchwarzIcons.meta
+/Assets/Resources/ARE/GearBanks/
+/Assets/Resources/ARE/GearBanks.meta
