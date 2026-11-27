@@ -20,7 +20,7 @@ internal static class WorldHorizonSiteTests
         }
 
         var oldCrypt = new ArenaSimulation(93, CharacterProgression.CreateEntryProfile(), 1, LootCatalog.Version1);
-        At(oldCrypt, "old_crypt");
+        At(oldCrypt, null);
         var court = KilnYardTests.Court(93);
         At(court, "forecourt");
         var sideGate = KilnYardTests.SideGateStand;
@@ -86,6 +86,6 @@ internal static class WorldHorizonSiteTests
             JourneyPilotTests.Walk(journey, journey.JourneyGeometry.ForwardX, journey.JourneyGeometry.ForwardZ);
             journey = journey.TryTraversePassage();
         }
-        require(sites.Count == 21, "horizon-covers-sixteen-sites-and-all-seven-underground-floors");
+        require(sites.Count == 20, "twenty-distinct-horizons-outside-the-opening-crypt");
     }
 }

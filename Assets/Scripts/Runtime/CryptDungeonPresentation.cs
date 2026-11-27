@@ -71,7 +71,7 @@ namespace AreArpg.UnityClient
                 _chapterScenery.Add(lamp.transform);
                 _dungeonLights.Add(light);
             }
-            DungeonTiles("Dungeon_",-6,6,map.IsFloor,index=>index*CryptDungeonDressing.TileMetres,seed,reserved,calm,dressed);
+            DungeonTiles("Dungeon_",-6,6,map.IsFloor,index=>index*CryptDungeonDressing.TileMetres,seed,reserved,calm,dressed,d.Depth);
             for(int i=0;i<2;i++)
             {
                 _dungeonLids[i]=null; if(!map.HasChest(i)) continue;
@@ -111,7 +111,7 @@ namespace AreArpg.UnityClient
         /// break the wall line. The previous art has arbitrary pivots and is centred by its bounds as before.
         /// Returns the bound module, or null when the blockout stands in.
         /// </summary>
-        private Transform DungeonModule(string label,string key,Vector3 at,float yaw,bool floor,bool authored)
+        private Transform DungeonModule(string label,string key,Vector3 at,float yaw,bool floor,bool authored,Texture2D masonry=null)
         {
             var holder=new GameObject(label).transform;
             if(PassiveArtVisuals.TryBind(holder,key))
@@ -124,6 +124,7 @@ namespace AreArpg.UnityClient
                     art.localPosition-=new Vector3(bounds.center.x,bounds.min.y,bounds.center.z);
                     holder.position=at+Vector3.down*(floor?bounds.size.y:0);
                 }
+                ApplyCryptMasonry(holder, masonry, floor);
                 holder.rotation=Quaternion.Euler(0,yaw,0);
                 _chapterScenery.Add(holder);
                 return holder;
@@ -133,6 +134,7 @@ namespace AreArpg.UnityClient
             if(authored && !floor && !key.StartsWith("DungeonWall",System.StringComparison.Ordinal)) return null;
             var shape=ChapterShape(PrimitiveType.Cube,label,at+Vector3.up*(floor?-.08f:1.5f),
                 floor?new Vector3(4,.16f,4):new Vector3(4,3,.3f),new Color(.27f,.29f,.31f),floor?"AshStoneFloor":"AshStoneWall");
+            ApplyCryptMasonry(shape, masonry, floor);
             shape.rotation=Quaternion.Euler(0,yaw,0);
             return null;
         }
@@ -144,8 +146,11 @@ namespace AreArpg.UnityClient
         /// story marks) and the walls named in calm stay plain, tiles named in reserved stay free of props.
         /// </summary>
         private void DungeonTiles(string prefix,int min,int max,System.Func<int,int,bool> isFloor,System.Func<int,float> centre,ulong seed,
-            HashSet<long> reserved,HashSet<long> calm,bool dressed)
+            HashSet<long> reserved,HashSet<long> calm,bool dressed,int cryptDepth=0)
         {
+            string stone = cryptDepth == 1 ? "Moss" : cryptDepth == 2 ? "Limestone" : cryptDepth == 3 ? "Slate" : null;
+            Texture2D wallTexture = stone == null ? null : Resources.Load<Texture2D>("ARE/Visuals/CryptMasonry/" + stone);
+            Texture2D floorTexture = cryptDepth == 3 ? Resources.Load<Texture2D>("ARE/Visuals/CryptMasonry/Marble") : null;
             int decorated=0; while(dressed && decorated<3 && PassiveArtVisuals.Has("DungeonWall"+(char)('B'+decorated))) decorated++;
             int props=0; while(dressed && props<16 && PassiveArtVisuals.Has("DungeonProp"+props)) props++;
             float half=CryptDungeonDressing.TileMetres*.5f;
@@ -153,7 +158,7 @@ namespace AreArpg.UnityClient
             {
                 if(!isFloor(x,z)) continue;
                 var tile=new Vector3(centre(x),0,centre(z));
-                DungeonModule(prefix+"Floor_"+x+"_"+z,"DungeonFloor",tile,0,true,dressed);
+                DungeonModule(prefix+"Floor_"+x+"_"+z,"DungeonFloor",tile,0,true,dressed,floorTexture);
                 for(int side=CryptDungeonDressing.West;side<=CryptDungeonDressing.North;side++)
                 {
                     Vector3 inward=CryptDungeonDressing.Inward(side);
@@ -161,7 +166,7 @@ namespace AreArpg.UnityClient
                     bool quiet=Mathf.Abs(tile.x)<half || (calm!=null && calm.Contains(DungeonTileKey(x,z)*4+side));
                     int variant=quiet?0:CryptDungeonDressing.WallVariant(CryptDungeonDressing.Hash(x,z,side,seed),decorated);
                     var wall=DungeonModule(prefix+"Wall_"+"WESN"[side]+"_"+x+"_"+z,variant==0?"DungeonWall":"DungeonWall"+(char)('A'+variant),
-                        tile-inward*half,dressed?CryptDungeonDressing.WallYaw(side):side<CryptDungeonDressing.South?90:0,false,dressed);
+                        tile-inward*half,dressed?CryptDungeonDressing.WallYaw(side):side<CryptDungeonDressing.South?90:0,false,dressed,wallTexture);
                     if(!dressed) continue;
                     if(variant!=0) { DungeonFlames(wall); continue; }
                     if(quiet || (reserved!=null && reserved.Contains(DungeonTileKey(x,z)))) continue;
@@ -176,6 +181,25 @@ namespace AreArpg.UnityClient
             for(int z=min;z<=max+1;z++) for(int x=min;x<=max+1;x++)
                 if(CryptDungeonDressing.CornerPillar(isFloor(x-1,z-1),isFloor(x,z-1),isFloor(x-1,z),isFloor(x,z)))
                     DungeonModule(prefix+"Corner_"+x+"_"+z,"DungeonCorner",new Vector3(centre(x)-half,0,centre(z)-half),0,false,true);
+        }
+
+        private static void ApplyCryptMasonry(Transform module, Texture2D texture, bool floor)
+        {
+            if (texture == null) return;
+            string surface = floor ? "Floor_Metric" : "Wall_Basic_Metric";
+            var block = new MaterialPropertyBlock();
+            foreach (var renderer in module.GetComponentsInChildren<MeshRenderer>())
+            {
+                var slots = renderer.sharedMaterials;
+                for (int i = 0; i < slots.Length; i++)
+                {
+                    var material = slots[i];
+                    if (material == null || material.name != surface || !material.HasProperty("_BaseMap")) continue;
+                    renderer.GetPropertyBlock(block, i);
+                    block.SetTexture("_BaseMap", texture);
+                    renderer.SetPropertyBlock(block, i);
+                }
+            }
         }
 
         private const float DungeonCandleLight=24f;

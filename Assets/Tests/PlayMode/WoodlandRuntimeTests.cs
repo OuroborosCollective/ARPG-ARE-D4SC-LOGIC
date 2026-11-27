@@ -13,6 +13,14 @@ namespace AreArpg.PlayMode.Tests
 {
     public sealed partial class EntryJourneyRuntimeTests
     {
+        [UnityTest]
+        public IEnumerator OpeningCryptKeepsTheHorizonEmpty()
+        {
+            Assert.AreEqual(1,Game.CurrentAreaId);
+            Assert.IsNull(WorldHorizonSite.For(Game));
+            yield return WaitForVillageJourneyHorizon(null);
+        }
+
         private void InstallWoodlandFixture()
         {
             _runtime.enabled=false;var p=CharacterProgression.CreateEntryProfile();
@@ -59,6 +67,9 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(Game.InForest);Assert.AreEqual(16,Game.Monsters.Count);
             foreach(string key in new[]{"WoodlandTreeA","WoodlandTreeB","WoodlandShrub","WoodlandFern","WoodlandMushroomRed","WoodlandMushroomMoon","WoodlandRock"})Assert.IsNotNull(Resources.Load<GameObject>("ARE/Visuals/"+key),key);
             var chunks=(List<Transform>)typeof(ArenaRuntime).GetField("_woodlandChunks",Flags).GetValue(_runtime);
+            if (PassiveArtVisuals.Has("AshFloraGrass"))
+                Assert.Greater(chunks.SelectMany(c=>c.GetComponentsInChildren<Transform>(true)).Count(t=>t.name=="AshFloraGrass"),0);
+            Assert.AreEqual("west_forest",WorldHorizonSite.For(Game));
             Assert.Greater(chunks.Count,100);Assert.IsTrue(chunks.Any(c=>!c.Find("Forest_Vegetation").gameObject.activeSelf),"Vegetation distance culling active");
             Assert.IsTrue(chunks.SelectMany(c=>c.GetComponent<MeshFilter>().sharedMesh.vertices).Any(v=>Mathf.Abs(v.y)>.4f),"Actual hill geometry");
             var trees=chunks.SelectMany(c=>c.GetComponentsInChildren<Transform>(true)).Where(t=>t.name=="WoodlandTreeA"||t.name=="WoodlandTreeB").ToArray();
@@ -78,6 +89,17 @@ namespace AreArpg.PlayMode.Tests
             yield return StoryAction(HungerAction.InspectCubs);yield return StoryAction(HungerAction.SpareCubs);
             Assert.IsFalse(Game.Progression.Woodland.WarBearEligibility);DungeonProject();
             Assert.IsTrue(Find("BearCub_0").activeSelf);
+            if (PassiveArtVisuals.Has("BearDenRockMobile"))
+            {
+                var faces = UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None)
+                    .Where(r=>r.sharedMaterial!=null && r.sharedMaterial.name=="Bear den weathered rock").ToArray();
+                Assert.AreEqual(21,faces.Length);
+                foreach(var face in faces)
+                {
+                    Assert.That(face.bounds.min.y,Is.EqualTo(-.12f).Within(.025f));
+                    Assert.AreEqual("BearDenStone",face.sharedMaterial.mainTexture.name);
+                }
+            }
             Assert.IsNotNull(Find("BearCave_Nest").GetComponentInChildren<LODGroup>(), "The cubs rest on the authored den floor.");
             var caveArt = Find("ARE_BuildLayer_baerenhoehle");
             Assert.IsNotNull(caveArt);
