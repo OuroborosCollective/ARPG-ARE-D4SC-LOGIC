@@ -13,6 +13,12 @@ namespace AreArpg.UnityClient
         public ArenaSimulation Simulation => _game;
         private const ulong DemoSeed = 0xA11CE2026UL;
         private bool _entryProfile;
+        // Licensed resource packs are installed independently of the public source checkout.
+        internal static LootCatalog InstalledEquipmentCatalog()
+        {
+            if (Resources.Load<TextAsset>("ARE/GearBanks/glut") == null) return LootCatalog.Version2;
+            return Resources.Load<TextAsset>("ARE/GearBanks/schwarz") != null ? LootCatalog.Version4 : LootCatalog.Version3;
+        }
         private string CharacterSaveKey { get { return _entryProfile ? "ARE_ARPG_entry_v1" : "ARE_ARPG_character_ac1"; } }
         private string CharacterBackupKey { get { return CharacterSaveKey + "_backup"; } }
         private const int CatchUpLimit = 5;
@@ -97,7 +103,7 @@ namespace AreArpg.UnityClient
             // Combat v2 (issue #127, owner 2026-11-23): new games start with it; an older save moves over once, explicitly.
             bool combatMoved = !_storageFault && saved != null && _entryProfile && saved.UseCombatV2() && hadSave;
             _game = new ArenaSimulation(DemoSeed, saved,
-                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, LootCatalog.Version2, _journeyMaps);
+                saved != null ? saved.UnlockedCryptDepth : System.Numerics.BigInteger.One, InstalledEquipmentCatalog(), _journeyMaps);
             if (!_storageFault) _game.Progression.Equipment.Enable(_game.Progression);
             _savedWeaponLevels = WeaponLevelSum(_game.Progression);
             if (_game.IsVillage)
@@ -1101,7 +1107,7 @@ namespace AreArpg.UnityClient
             }
             SaveCharacter();
             if (_storageFault) return;
-            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, LootCatalog.Version2, _journeyMaps),
+            InstallNewRun(new ArenaSimulation(DemoSeed, _game.Progression, _game.CryptDepth, InstalledEquipmentCatalog(), _journeyMaps),
                 "Crypt restarted - character progression retained.");
         }
 
@@ -1376,6 +1382,8 @@ namespace AreArpg.UnityClient
             UpdateCombatFeel();
             UpdateFaceLife();
             UpdateHeroClips();
+            foreach (var rig in _heroMeleeAnimations)
+                HcapHeroProjection.Bind(rig)?.Project(_game, alpha, SimulationPaused);
             if (_chainGrip != null)
                 _chainGrip.ProjectChain(_game, alpha, _moveWorldX != 0 || _moveWorldZ != 0, SimulationPaused);
             for (int index = 0; index < _campRationVisuals.Count; index++)

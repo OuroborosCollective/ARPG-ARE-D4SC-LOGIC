@@ -97,6 +97,24 @@ namespace AreArpg.Core
         /// white, blue, yellow and orange improve with depth and bosses, and supply bags are a drop of their own.
         /// </summary>
         public static LootCatalog Version2 { get; } = new LootCatalog(2);
+        public static LootCatalog Version3 { get; } = new LootCatalog(3);
+        public static LootCatalog Version4 { get; } = new LootCatalog(4);
+        internal const int FinalCryptFlag = 4;
+        internal const int FinalCryptDepth = 3;
+
+        internal static bool ValidFinalCryptKill(ulong seed, BigInteger depth, int enemyId, int kind, int flags)
+        {
+            if (depth != FinalCryptDepth) return false;
+            if (flags == (FinalCryptFlag | BossFlag)) return enemyId == RattlerEnemyId && kind == 2;
+            if (flags != FinalCryptFlag) return false;
+            var layout = new CryptDungeonLayout(seed, FinalCryptDepth);
+            for (int i = 0; i < layout.MonsterCount; i++)
+            {
+                var member = layout.Monster(i);
+                if (member.Id == enemyId) return member.Kind == kind;
+            }
+            return false;
+        }
         public int Revision { get; }
         public ulong StableHash { get; }
         private readonly LootDropTable _table;
@@ -124,7 +142,7 @@ namespace AreArpg.Core
                 entries[kind * 2 + 1] = new LootDropDefinition(prefix + ".rare", kind, id, ItemRarity.Rare, 25, points);
             }
             _table = new LootDropTable(entries);
-            StableHash = revision == 1 ? HashText("loot.v1;affix.weapon.upgrade.v1;" + _table.Token()) : HashText(RulesToken());
+            StableHash = revision == 1 ? HashText("loot.v1;affix.weapon.upgrade.v1;" + _table.Token()) : revision == 4 ? HashText("loot.v4;terminal-crypt;royal.v1;pool=21;regular=1/8;boss=1/3;" + RulesToken()) : HashText(revision == 2 ? RulesToken() : RulesToken() + ";weapon.glut.v1;pool=36+21;normal-affix=quarter");
         }
 
         /// <summary>Every number of revision 2 in one stable text: changing a number changes the catalog hash.</summary>
@@ -212,7 +230,12 @@ namespace AreArpg.Core
                 var selected = _table.Select(kind, Roll(legacyRng, _table.TotalWeight(kind)));
                 return new LootItem(legacy, selected.ItemId, selected.Rarity, selected.WeaponPoints, killOrdinal);
             }
-            RequireKill(depth, enemyId, kind, killOrdinal, flags);
+            if (Revision == 4)
+            {
+                if ((flags & FinalCryptFlag) == 0) return Version3.GenerateFlagged(seed, depth, tick, enemyId, kind, killOrdinal, flags);
+                if (!ValidFinalCryptKill(seed, depth, enemyId, kind, flags)) throw new ArgumentException("Invalid final crypt origin");
+            }
+            RequireKill(depth, enemyId, kind, killOrdinal, flags & (Revision == 4 ? ~FinalCryptFlag : -1));
             string context = LootItem.Context(Revision, seed, depth, tick, enemyId, kind, killOrdinal);
             var rng = new DeterministicRng(HashText(context + "," + flags.ToString(CultureInfo.InvariantCulture)) ^ StableHash);
             bool boss = IsBoss(kind, flags);
@@ -241,7 +264,9 @@ namespace AreArpg.Core
         internal SupplyBag Supply(ulong seed, BigInteger depth, ulong tick, int enemyId, int kind, BigInteger killOrdinal, int flags = 0)
         {
             if (Revision < 2) return null;
+            if (Revision == 4) return Version2.Supply(seed, depth, tick, enemyId, kind, killOrdinal, flags & ~FinalCryptFlag);
             RequireKill(depth, enemyId, kind, killOrdinal, flags);
+            if (Revision == 3) return Version2.Supply(seed, depth, tick, enemyId, kind, killOrdinal, flags);
             string context = LootItem.Context(Revision, seed, depth, tick, enemyId, kind, killOrdinal);
             var rng = new DeterministicRng(HashText("supply;" + context + "," + flags.ToString(CultureInfo.InvariantCulture)) ^ StableHash);
             bool boss = IsBoss(kind, flags), always = boss || killOrdinal <= AlwaysSupplyKills;

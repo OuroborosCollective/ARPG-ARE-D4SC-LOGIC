@@ -63,7 +63,7 @@ namespace AreArpg.Core
             item = null;
             if (string.IsNullOrEmpty(token)) return false;
             string[] p = token.Split(',');
-            bool second = p.Length == 12 && p[0] == "2";
+            bool second = p.Length == 12 && (p[0] == "2" || p[0] == "3" || p[0] == "4");
             if ((!second && (p.Length != 11 || p[0] != "1")) ||
                 !ulong.TryParse(p[1], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var seed) ||
                 !BigInteger.TryParse(p[2], NumberStyles.None, CultureInfo.InvariantCulture, out var depth) || depth < 1 ||
@@ -73,8 +73,8 @@ namespace AreArpg.Core
                 !BigInteger.TryParse(p[6], NumberStyles.None, CultureInfo.InvariantCulture, out var ordinal) || ordinal < 1) return false;
             int flags = 0;
             if (second && (!int.TryParse(p[11], NumberStyles.None, CultureInfo.InvariantCulture, out flags) ||
-                !LootCatalog.FlagsFit(flags, kind, enemyId, depth))) return false;
-            var generated = second ? LootCatalog.Version2.GenerateFlagged(seed, depth, tick, enemyId, kind, ordinal, flags)
+                !(p[0] == "4" ? LootCatalog.ValidFinalCryptKill(seed, depth, enemyId, kind, flags) : LootCatalog.FlagsFit(flags, kind, enemyId, depth)))) return false;
+            var generated = second ? (p[0] == "4" ? LootCatalog.Version4 : p[0] == "3" ? LootCatalog.Version3 : LootCatalog.Version2).GenerateFlagged(seed, depth, tick, enemyId, kind, ordinal, flags)
                 : LootCatalog.Version1.Generate(seed, depth, tick, enemyId, kind, ordinal);
             // Replay the exact shipped definition: rejects unknown IDs, values, rarity and noncanonical numbers.
             if (generated == null || generated.Token() != token) return false;

@@ -63,7 +63,7 @@ namespace AreArpg.PlayMode.Tests
         }
 
         /// <summary>
-        /// Drive the real client input queue, projection and PlayerPrefs save adapter under loot revision 2 (issue #48):
+        /// Drive the real client input queue, projection and PlayerPrefs save adapter under the active loot catalog:
         /// a character's first kill always leaves a supply bag, a weapon only sometimes. Whatever fell is shown, glints
         /// within the particle limit, is taken through the real pickup input, and is kept by the save.
         /// </summary>
@@ -82,11 +82,11 @@ namespace AreArpg.PlayMode.Tests
             atmosphere.SetPreferences(atmosphere.MusicVolume, atmosphere.VoiceVolume, atmosphere.EffectsVolume, atmosphere.Muted, false);
             game.Monsters[0].Xmm = 1000; game.Monsters[0].Zmm = 0; game.Monsters[0].Health = 1;
             Assert.AreEqual(1, game.ActivateSkill(0).Kills);
-            Assert.AreEqual(2, game.LootRevision, "Client must bind loot revision 2");
+            Assert.AreEqual(Resources.Load<TextAsset>("ARE/GearBanks/glut") == null ? 2 : Resources.Load<TextAsset>("ARE/GearBanks/schwarz") == null ? 3 : 4, game.LootRevision, "Client selects the installed catalog");
             Assert.AreEqual(1, game.GroundSupplies.Count, "The first kill leaves a supply bag");
             SupplyBag bag = game.GroundSupplies[0].Bag;
             LootItem item = game.GroundLoot.Count > 0 ? game.GroundLoot[0].Item : null;
-            if (game.GroundLoot.Count > 0) Assert.AreEqual(2, item.CatalogRevision, "A weapon that falls carries revision 2");
+            if (game.GroundLoot.Count > 0) Assert.AreEqual(game.LootRevision >= 3 ? 3 : 2, item.CatalogRevision, "Surface retains its catalog");
             var coins = game.Progression.Social.Coins; var rations = game.Progression.Social.Provisions;
             yield return null;
             yield return null;

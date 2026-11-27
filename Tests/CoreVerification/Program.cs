@@ -51,6 +51,8 @@ internal static class Program
             SupplyTheftTests.Run(Require);
             LootAffixTests.Run(Require);
             LootV2Tests.Run(Require);
+            GlutLootTests.Run(Require);
+            SchwarzLootTests.Run(Require);
             SkillContractTests.Run(Require);
             CombatStatsTests.Run(Require);
             PracticeRuleTests.Run(Require);
