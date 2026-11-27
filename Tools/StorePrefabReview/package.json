@@ -1,0 +1,7 @@
+{
+  "name": "com.ouroboros.store-prefab-review",
+  "version": "1.0.0",
+  "displayName": "Store Prefab Root Review",
+  "description": "Audit prefab roots and repair static assets in an isolated package copy.",
+  "unity": "6000.0"
+}

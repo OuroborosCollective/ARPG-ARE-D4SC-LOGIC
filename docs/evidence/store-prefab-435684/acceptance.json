@@ -1,0 +1,108 @@
+{
+  "gitBase": "9abf93f065ed7e0dad661d19a7b07a7b18593f63",
+  "unity": "6000.6.8f1",
+  "unityRevision": "237b6593792b",
+  "productId": 435684,
+  "supportCase": 3690139,
+  "rejectionUtc": "2026-11-26T12:36:31Z",
+  "original": {
+    "name": "Aschenwacht-URP-1.0.0.unitypackage",
+    "sha256": "7aab0cdeebdf6a833d059175fa2b58e5f0c8171875113508ce42661d822d7b67"
+  },
+  "candidate": {
+    "name": "Aschenwacht-Bell-Court-1.0.1-RC1.unitypackage",
+    "sha256": "434526f41615dd916c07f17066892a80aef7f54dba3ac81d7692c2974061dfb3",
+    "sizeBytes": 97590624
+  },
+  "publisherBinarySha256": null,
+  "publisherReadback": "Isolated batch editor had no authenticated Unity cloud session. Support and submission emails confirm package ID/name and submitted version 1.0.0. No current portal status or remote upload checksum verified.",
+  "toolDelivery": "Opt-in local UPM Editor package under Tools/StorePrefabReview. Separate from the sale.",
+  "qualifiedArchives": {
+    "bell": {
+      "preparedDraftSha256": "7aab0cdeebdf6a833d059175fa2b58e5f0c8171875113508ce42661d822d7b67",
+      "otherNativeExportSha256": "aa97898285441057b602e13ae1279e9f48447a65df27ea5869d88bdf959c779d",
+      "canonicalPathGuidAssetAndMetaManifestSha256": "faeba40f2faa07964e58bd95433d030789260fefb9f1c67a545c770c2d845620"
+    },
+    "forecourt": {
+      "draftZipInnerSha256": "8a80201c9e4f34d16d6e47296f9b15548fc08658660b4c97b326046864d2c4d3",
+      "freshImportedVpsExportSha256": "a5619ba746aaa5456681549306362ca346b33f8564e382adb4426dbb7df209c9",
+      "identicalPathGuidAssetAndMetaCount": 1155,
+      "canonicalManifestSha256": "4ac9da10c86add0ccbb421b17d5211c30abb3fa7a558b0c2af0f34ad0bc6fecc"
+    },
+    "kiln": {
+      "draftZipInnerAndFreshImportedExportSha256": "6942e6f33b6cd11c7b18d2251ecf5b4c3f997835a2e4a390e234759adec61bdc"
+    }
+  },
+  "validator": {
+    "toolVersion": "12.0.0",
+    "category": "3D/Environments/Fantasy",
+    "stockBuildOn6000_6": "CS0103/CS0619",
+    "isolatedAdapterFiles": 3,
+    "prefabTransformRuleUnmodifiedSha256": "17a06354016cff5bc9e64e592f78d01926b4f4792cfb9d70947229af81845d0e",
+    "outcomes": {
+      "bell-original-before": {
+        "Pass": 30,
+        "Warning": 3,
+        "Fail": 1
+      },
+      "bell-clean-after": {
+        "Pass": 31,
+        "Warning": 3
+      },
+      "forecourt-before": {
+        "Pass": 33,
+        "Warning": 1
+      },
+      "kiln-before": {
+        "Pass": 33,
+        "Warning": 1
+      }
+    },
+    "candidateWarnings": {
+      "Check Mesh Prefabs": [
+        "Assets/Aschenwacht/Models/Glockenhof.fbx"
+      ],
+      "Check Model Orientation": [
+        "Assets/Aschenwacht/Models/Glockenhof.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Bauwerke/Chorkapelle.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Bauwerke/Glockenturm.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Natur/Rispengras.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Natur/Schieferfindling.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Natur/Schiefergrat.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Natur/Witwengras.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Ruestung/Gliedpanzer.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Ruestung/Kuerass.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Ruestung/Schulterplatten.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Ruestung/Visierhelm.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Wege/Pilgerweg_Abzweig.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Wege/Pilgerweg_Gerade.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Wege/Pilgerweg_Halbstueck.fbx",
+        "Assets/Aschenwacht/Models/Modelle/Wege/Pilgerweg_Kurve.fbx"
+      ],
+      "Check Documentation": [
+        "Assets/Aschenwacht/Documentation/MODEL-CATALOG.md",
+        "Assets/Aschenwacht/Documentation/README.md"
+      ]
+    }
+  },
+  "regression": {
+    "unityEditModeCasesPassed": 9,
+    "skipped": 0,
+    "repeatRepairCount": 0,
+    "existingCoreAssertionsPassed": 23657,
+    "correctedPrefabs": 10,
+    "comparedAssetPathsGuidsAndMetaFiles": 107,
+    "comparedPrefabPayloads": 16,
+    "unchangedSceneReadbackSha256": "93f6a617765907c3a7e3eb6bba610a7c7ea9bdb05237da5c493aa77017f94bd3",
+    "sampledAnimationClips": 4,
+    "sampledAnimationPoses": 16,
+    "matchingAnimationTableSha256": "7b8d716dd1a46da6d295588cbb53e16d49d86d6126ecf4131c923be9da101811",
+    "forecourtRoots": 2,
+    "kilnRoots": 34
+  },
+  "limits": [
+    "Native Editor and clean archive imports only. No device/Android build, GPU pixel comparison, or compatibility test with external customer scenes.",
+    "Automatic repair declines previously referenced, scripted, animated or unsupported dirty prefabs. Existing assets in this sale are compared after import.",
+    "There was no push, main editor change, resubmission or support reply."
+  ]
+}
