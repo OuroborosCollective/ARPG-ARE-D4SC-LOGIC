@@ -1,0 +1,6 @@
+{
+  "name":"Ouroboros.StorePrefabReview.Tests",
+  "references":["Ouroboros.StorePrefabReview.Editor"],
+  "optionalUnityReferences":["TestAssemblies"],
+  "includePlatforms":["Editor"]
+}
