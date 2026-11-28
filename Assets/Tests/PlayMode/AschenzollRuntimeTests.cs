@@ -23,7 +23,7 @@ namespace AreArpg.PlayMode.Tests
             Game.Progression.UseCombatV2();
             typeof(ArenaRuntime).GetMethod("SaveCharacter", Flags, null, System.Type.EmptyTypes, null).Invoke(_runtime, null);
             // Both ends use the entry scene's real seed, loot catalog and Forge population binding.
-            yield return ReloadNordwechselEntry();
+            yield return ReloadEntryCheckpoint();
             Assert.IsTrue(Game.InAschenzoll);
             MoveStory(-9500, 12500);
             DungeonProject();
@@ -55,7 +55,7 @@ namespace AreArpg.PlayMode.Tests
             CaptureNordwechselFrame("glutklamm-causeway");
 
             // Recreate the actual entry runtime and let Awake read PlayerPrefs again.
-            yield return ReloadNordwechselEntry();
+            yield return ReloadEntryCheckpoint();
             Assert.AreEqual(2, Game.ChapterId);
             Assert.AreEqual(saved.StableHash, Game.Progression.StableHash);
             Assert.AreEqual(destination, Game.Progression.SaveString());
@@ -124,13 +124,13 @@ namespace AreArpg.PlayMode.Tests
             yield return null;
         }
 
-        private IEnumerator ReloadNordwechselEntry()
+        private IEnumerator ReloadEntryCheckpoint()
         {
             Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_previous));
             yield return UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(_scene);
             _scene = UnityEngine.SceneManagement.SceneManager.CreateScene("AshenEntry");
             Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.SetActiveScene(_scene));
-            _runtime = new GameObject("Nordwechsel_Checkpoint").AddComponent<ArenaRuntime>();
+            _runtime = new GameObject("Entry_Checkpoint").AddComponent<ArenaRuntime>();
             _runtime.enabled = false;
         }
 

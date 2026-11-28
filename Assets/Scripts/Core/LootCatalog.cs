@@ -168,10 +168,8 @@ namespace AreArpg.Core
         private static bool IsBoss(int kind, int flags) { return kind >= 3 || (flags & BossFlag) != 0; }
 
         /// <summary>
-        /// Whether the flags of a persisted receipt or bag can be true for its kill. The kill path sets them in two
-        /// places only: the guaranteed drop for a knight who may carry the field pauldron (an elite at depth 1, the entry
-        /// crypt's knight or a creature of the wood), and the boss flag for the rattler. Anything else is a forgery
-        /// (review on #134).
+        /// Shared flag rules for a supply bag or an ordinary weapon drop: the guaranteed knight drop at depth one
+        /// and the boss flag for the rattler.
         /// </summary>
         internal static bool FlagsFit(int flags, int kind, int enemyId, BigInteger depth)
         {
@@ -181,6 +179,11 @@ namespace AreArpg.Core
             if ((flags & BossFlag) != 0 && (kind != 2 || enemyId != RattlerEnemyId)) return false;
             return true;
         }
+
+        /// <summary>The Aschbeter guarantees a weapon in the forecourt at depth one and never drops a supply bag.</summary>
+        internal static bool WeaponFlagsFit(int flags, int kind, int enemyId, BigInteger depth) =>
+            (flags == GuaranteedFlag && kind == 2 && enemyId == ArenaSimulation.AschbeterLootId && depth.IsOne) ||
+            FlagsFit(flags, kind, enemyId, depth);
 
         private static void RequireKill(BigInteger depth, int enemyId, int kind, BigInteger killOrdinal, int flags)
         {
