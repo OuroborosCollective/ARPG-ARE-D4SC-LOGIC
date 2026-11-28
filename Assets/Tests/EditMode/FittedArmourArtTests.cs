@@ -36,6 +36,61 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
+        public void ThreeOrderPiecesFitThePrivateHero()
+        {
+            if (ThreeOrderSet.All.SelectMany(set => set.Pieces)
+                .All(id => AssetDatabase.LoadAssetAtPath<GameObject>(Arsenal + id + ".prefab") == null))
+                Assert.Ignore("Requires the private Three Orders armour overlay");
+            foreach (var set in ThreeOrderSet.All)
+            {
+                foreach (var id in set.Pieces)
+                    Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<GameObject>(Arsenal + id + ".prefab"), id.ToString());
+                CheckSet(set.Pieces.Select(id => id.ToString()).ToArray(), 30000);
+                CheckOrderHead(set);
+            }
+        }
+
+        private static void CheckOrderHead(ThreeOrderSet set)
+        {
+            var hero = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/ARE/Visuals/EntryHero.prefab");
+            var animator = hero.GetComponentsInChildren<Animator>(true).First(a => a.isHuman);
+            var figure = hero.GetComponentsInChildren<SkinnedMeshRenderer>(true).OrderByDescending(s => s.sharedMesh.vertexCount).First();
+            var head = animator.GetBoneTransform(HumanBodyBones.Head);
+            bool CoversFace(Transform t)
+            {
+                for (; t && t != head; t = t.parent)
+                    if (t.name.IndexOf("Hair", StringComparison.OrdinalIgnoreCase) >= 0) return false;
+                return t == head;
+            }
+            var faces = figure.bones.Select(CoversFace).ToArray();
+            var weights = figure.sharedMesh.boneWeights;
+            var vertices = figure.sharedMesh.vertices.Where((v, i) => faces[weights[i].boneIndex0]).ToArray();
+            Assert.IsNotEmpty(vertices);
+            var face = new Bounds(vertices[0], Vector3.zero);
+            foreach (var v in vertices) face.Encapsulate(v);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(Arsenal + set.Pieces[0] + ".prefab");
+            var mesh = prefab.GetComponentInChildren<SkinnedMeshRenderer>(true).sharedMesh;
+            var garment = mesh.bounds;
+            Vector3 delta = garment.center - face.center;
+            Assert.Less(Mathf.Abs(delta.x), face.size.x * .23f, set.Name + " is centred left/right");
+            Assert.Less(Mathf.Abs(delta.y), face.size.y * .26f, set.Name + " sits on the head");
+            Assert.Less(Mathf.Abs(delta.z), face.size.z * .34f, set.Name + " follows the face plane");
+            float width = garment.size.x / face.size.x, height = garment.size.y / face.size.y, depth = garment.size.z / face.size.z;
+            if (set == ThreeOrderSet.Moorvogt)
+            {
+                Assert.That(width, Is.InRange(1.75f, 2.30f), "wide hat brim");
+                Assert.That(depth, Is.InRange(1.50f, 2.16f), "hat front and back brim");
+            }
+            else
+            {
+                Assert.That(width, Is.InRange(1.09f, 1.65f), set.Name + " width");
+                Assert.That(depth, Is.InRange(.98f, 1.62f), set.Name + " depth");
+            }
+            Assert.That(height, Is.InRange(.95f, 1.68f), set.Name + " head height");
+            Debug.Log("THREE_ORDER_HEAD " + set.Name + " face=" + face + " garment=" + garment);
+        }
+
+        [Test]
         public void TheBowAndTheStaffsArePassiveArsenalPieces()
         {
             foreach (var id in new[] { RegionalRelic.F_Langbogen, RegionalRelic.K_Kurzstab, RegionalRelic.K_Langstab })

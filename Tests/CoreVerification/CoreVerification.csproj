@@ -57,6 +57,7 @@
     <Compile Include="../../Assets/Scripts/Core/AschenwachtGear.cs" Link="AschenwachtGear.cs" />
     <Compile Include="../../Assets/Scripts/Core/NachtvesperSet.cs" Link="NachtvesperSet.cs" />
     <Compile Include="../../Assets/Scripts/Core/HunterCantorSets.cs" Link="HunterCantorSets.cs" />
+    <Compile Include="../../Assets/Scripts/Core/ThreeOrderSet.cs" Link="ThreeOrderSet.cs" />
     <Compile Include="../../Assets/Scripts/Core/HungerJourney.cs" Link="HungerJourney.cs" />
     <Compile Include="../../Assets/Scripts/Core/HunterEncounter.cs" Link="HunterEncounter.cs" />
     <Compile Include="../../Assets/Scripts/Core/CryptDungeon.cs" Link="CryptDungeon.cs" />

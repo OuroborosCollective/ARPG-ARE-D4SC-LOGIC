@@ -15,7 +15,7 @@ namespace AreArpg.UnityClient
         private ArenaSimulation _regionalSourceWorld;
         private ulong _regionalSourceTick = ulong.MaxValue;
         private WeaponEquipment _regionalWornOwner;
-        private long _regionalWearMask = -1;
+        private System.Numerics.BigInteger _regionalWearMask = -1;
         private RegionalWearableRig _regionalWornRig;
 
         private void ClearRegionalWorld()
@@ -128,13 +128,13 @@ namespace AreArpg.UnityClient
 
         private bool RefreshRegionalWear(WeaponEquipment gear)
         {
-            bool changed = _regionalWornOwner != gear || gear.RegionalWearMask != _regionalWearMask;
+            bool changed = _regionalWornOwner != gear || gear.RegionalWearBits != _regionalWearMask;
             if (!changed) return false;
             if (_regionalWornRig != null) _regionalWornRig.Clear();
             _regionalWornRig = null;
             ClearBakedArmor();
             _regionalWornOwner = gear;
-            _regionalWearMask = gear.RegionalWearMask;
+            _regionalWearMask = gear.RegionalWearBits;
             return true;
         }
 
@@ -260,6 +260,17 @@ namespace AreArpg.UnityClient
             {
                 var count = gear.ArmourSetProgress(pieces);
                 return $" ({count.Worn}/{count.Total} angelegt)";
+            }
+            var order = ThreeOrderSet.For(id);
+            if (order != null)
+            {
+                var armor = order.Armor(id);
+                int weight = ArmorRules.SlotWeight(armor.Slot);
+                decimal protection = weight * ArmorRules.MaterialProtection(armor.Material) / 1000000m;
+                decimal penalty = weight * (10000 - ArmorRules.MaterialHealing(armor.Material)) / 1000000m;
+                return place + " · " + order.Name + " (" + order.Worn(gear) + "/5 angelegt)" +
+                    $"\nSchutz +{protection:0.##} % · Heilwirkung −{penalty:0.##} Prozentpunkte" +
+                    "\n3 / 5 Teile: " + order.BonusText;
             }
             if (RotfaehrteSet.IsPiece(id)) return place + " · Leder · Set Rotfährte" + Progress(RotfaehrteSet.Pieces) +
                 "\nRuhige Hand mit Setbogen: ab 4 Teilen +2 Prozentpunkte Trefferchance, bei 8 Teilen +4 und Ausweichen für 23 Ausdauer.";

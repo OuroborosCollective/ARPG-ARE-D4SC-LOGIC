@@ -178,7 +178,8 @@ namespace AreArpg.Core
             return result;
         }
 
-        public int DodgeStaminaCost => CombatV2Rules.Dodge.Stamina - (CombatV2 && Progression.Equipment.SteadyHandTier == 2 ? 2 : 0);
+        public int DodgeStaminaCost => CombatV2Rules.Dodge.Stamina - (CombatV2 && Progression.Equipment.SteadyHandTier == 2 ? 2 : 0)
+            - (CombatV2 ? ThreeOrderSet.Moorvogt.Tier(Progression.Equipment) : 0);
 
         /// <summary>Dodge toward a direction (or step back without one): 2.8 m over 8 ticks, ticks 2–4 untouchable.</summary>
         public bool StartDodge(long directionXbp, long directionZbp)

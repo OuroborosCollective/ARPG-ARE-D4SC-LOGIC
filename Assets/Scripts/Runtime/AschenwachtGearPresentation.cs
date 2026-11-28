@@ -22,7 +22,7 @@ namespace AreArpg.UnityClient
 
         private static bool IsBakedArmor(RegionalRelic id)
         {
-            return id == RegionalRelic.A_Visierhelm || id == RegionalRelic.A_Kuerass || id == RegionalRelic.A_Schulterplatten || id == RegionalRelic.A_Gliedpanzer ||
+            return ThreeOrderSet.For(id) != null || id == RegionalRelic.A_Visierhelm || id == RegionalRelic.A_Kuerass || id == RegionalRelic.A_Schulterplatten || id == RegionalRelic.A_Gliedpanzer ||
                 NachtvesperSet.IsPiece(id) || ((RotfaehrteSet.IsPiece(id) || RusskantorSet.IsPiece(id)) && RegionalRelics.HandDefinition(id) == null);
         }
 
@@ -44,7 +44,8 @@ namespace AreArpg.UnityClient
         private bool MountBakedArmor(RegionalRelic id)
         {
             var head = RegionalRelics.Slot(id) != RegionalRelicSlot.Head ? HeadWear.None :
-                id == RegionalRelic.F_Gugel || id == RegionalRelic.K_Kapuze ? HeadWear.Hood : HeadWear.Helm;
+                id == RegionalRelic.F_Gugel || id == RegionalRelic.K_Kapuze ||
+                id == RegionalRelic.Konvent_Kopf || id == RegionalRelic.Moorvogt_Kopf ? HeadWear.Hood : HeadWear.Helm;
             return MountBakedPrefab(RegionalSourcePrefab(id), id.ToString(), head);
         }
 

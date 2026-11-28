@@ -41,6 +41,7 @@ internal static class Program
             AschenwachtGearTests.Run(Require);
             NachtvesperTests.Run(Require);
             HunterCantorTests.Run(Require);
+            ThreeOrderSetTests.Run(Require);
             CampDecisionTests.Run(Require);
             CausalCampSliceTests.Run(Require);
             CausalKnowledgeGraphTests.Run(Require);

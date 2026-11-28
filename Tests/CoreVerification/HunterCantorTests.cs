@@ -245,7 +245,7 @@ internal static class HunterCantorTests
             RotfaehrteSet.Pieces.Concat(RusskantorSet.Pieces).All(loaded.Equipment.OwnsRegionalRelic) &&
             loaded.Equipment.IsRegionalRelicEquipped(RegionalRelic.K_Langstab) && loaded.Equipment.IsRegionalRelicEquipped(RegionalRelic.K_Stiefel),
             "hunter-cantor-kept-in-the-save");
-        check(RegionalRelics.All.Count <= 63 && RegionalRelics.Bit(RegionalRelic.K_Langstab) == 1L << 58, "hunter-cantor-mask-fits-63-bits");
+        check(RegionalRelics.LegacyMask == (BigInteger.One << 59) - 1 && RegionalRelics.Bit(RegionalRelic.K_Langstab) == 1L << 58, "hunter-cantor-legacy-mask-frozen");
     }
 
     private static bool Pick(ArenaSimulation w, LootItem item)
