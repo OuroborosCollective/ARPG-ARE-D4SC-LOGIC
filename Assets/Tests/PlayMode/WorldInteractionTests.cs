@@ -136,6 +136,7 @@ namespace AreArpg.PlayMode.Tests
             CallWorldInteraction("UpdateHud");
             var message = (UnityEngine.UI.Text)WorldRuntimeField("_hudMessage");
             StringAssert.Contains("Verband am Wegzeichen", message.text);
+            CollectionAssert.DoesNotContain((HungerAction[])CallWorldInteraction("StoryActions"), HungerAction.InspectTrail);
             string lockedSave = PlayerPrefs.GetString(_keys[0]);
             Assert.IsTrue(Game.AtWorldPassage);
             CallWorldInteraction("AdvanceCrypt");
@@ -146,6 +147,7 @@ namespace AreArpg.PlayMode.Tests
             CallWorldInteraction("UpdatePresentation", 1f);
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
             Assert.IsTrue(Game.TryGetWorldStorySite(HungerAction.InspectTrail, out long x, out long z, out _));
+            CollectionAssert.Contains((HungerAction[])CallWorldInteraction("StoryActions"), HungerAction.InspectTrail);
             Vector3 bandage = Find("AshRoad_Bandage").transform.position;
             Assert.AreEqual(bandage.x, x * .001f, .001f);
             Assert.AreEqual(bandage.z, z * .001f, .001f);

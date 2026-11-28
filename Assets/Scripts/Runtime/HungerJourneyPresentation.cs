@@ -66,7 +66,8 @@ namespace AreArpg.UnityClient
             var woodland=WoodlandActions(); if(woodland!=null)return woodland;
             if (p.Investigation.Active) return InvestigationActions();
             if (p.EntryAct == 2 && p.HungerStage == 0) return new[] { HungerAction.HearIlyan };
-            if (p.EntryAct == 3 && p.HungerStage == 1) return new[] { HungerAction.InspectTrail };
+            if (_game.TryGetWorldStorySite(HungerAction.InspectTrail, out _, out _, out _))
+                return new[] { HungerAction.InspectTrail };
             if (p.EntryAct == 4 && p.HungerStage == 2) return new[] { HungerAction.InspectShelter };
             if (p.EntryAct == 2 && p.HungerStage == 3 && p.SupplyChoice == HungerChoice.Undecided)
                 return new[] { HungerAction.Reveal, HungerAction.Protect, HungerAction.Replace };
