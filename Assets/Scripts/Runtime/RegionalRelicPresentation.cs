@@ -173,7 +173,12 @@ namespace AreArpg.UnityClient
         private SocialResult TakeRegionalRelic()
         {
             _game.TryGetClaimableRegionalRelic(out var id);
-            var result = _game.ActOnHunger(HungerAction.ClaimRegionalRelic);
+            return TakeRegionalRelic(id);
+        }
+
+        private SocialResult TakeRegionalRelic(RegionalRelic id)
+        {
+            var result = _game.ClaimWorldRelic(id);
             if (result.Accepted)
             {
                 var owned = OwnedRegionalRelics();

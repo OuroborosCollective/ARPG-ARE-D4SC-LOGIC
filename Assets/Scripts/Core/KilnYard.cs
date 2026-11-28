@@ -243,8 +243,8 @@ namespace AreArpg.Core
         private SocialResult BreakKilnVase()
         {
             KilnVase? vase = NearKilnVase;
-            if (vase == null || !Progression.BreakKilnVase(vase.Value.Id)) return new SocialResult { Text = "Hier steht keine Vase in Reichweite." };
-            return new SocialResult { Accepted = true, Text = KilnYard.VaseBroken };
+            if (vase == null) return new SocialResult { Text = "Hier steht keine Vase in Reichweite." };
+            return BreakWorldVase(vase.Value.Id);
         }
     }
 }

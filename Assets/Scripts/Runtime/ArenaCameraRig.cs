@@ -189,6 +189,15 @@ namespace AreArpg.UnityClient
         private static float ClampPitch(float pitch) { return Mathf.Clamp(pitch, -5f, 70f); }
         private void OnDisable() { ClearTouches(); }
 
+        private Vector3? _interactionFocus;
+        private bool _interactionDialogue;
+
+        public void SetInteractionFocus(Vector3? point, bool dialogue)
+        {
+            _interactionFocus = point;
+            _interactionDialogue = dialogue;
+        }
+
         /// <summary>Read-only context supplied by the existing runtime projection.</summary>
         public void SetContext(bool moving, bool danger, bool speaking, Vector3 speakerPosition, Bounds? wardenPulse = null)
         {
@@ -203,6 +212,7 @@ namespace AreArpg.UnityClient
             if (_target == null) return;
             _moving = _danger = _speaking = false; _idleSeconds = _dangerHold = 0;
             _wardenPulse = null;
+            SetInteractionFocus(null, false);
             _framingDistance = Distance; _pitch = ClampPitch(RestPitch + _pitchOffset); _focus = TargetFocus;
             Framing = _manual ? HeroFraming.Manual : HeroFraming.Travel;
             _pullIn = _framingDistance - ClearDistance();
@@ -335,6 +345,14 @@ namespace AreArpg.UnityClient
                 float fit = WardenFrameDistance(pulse, focus, ClampPitch(pitch + _pitchOffset));
                 distance = Mathf.Max(_entryProfile ? 8.4f : _defaultDistance, fit);
             }
+            if (_interactionFocus.HasValue && _interactionDialogue)
+            {
+                Framing = HeroFraming.Dialogue;
+                focus = Vector3.Lerp(focus, _interactionFocus.Value, .76f);
+                distance = Mathf.Max(distance, 3.7f);
+            }
+            else if (_interactionFocus.HasValue && !_manual && _dangerHold <= 0 && !_speaking)
+                focus += Vector3.ClampMagnitude((_interactionFocus.Value - focus) * .2f, .65f);
             float blend = 1f - Mathf.Exp(-8f * dt);
             _framingDistance = Mathf.Lerp(_framingDistance, distance, blend);
             _pitch = Mathf.Lerp(_pitch, ClampPitch(pitch + _pitchOffset), blend);

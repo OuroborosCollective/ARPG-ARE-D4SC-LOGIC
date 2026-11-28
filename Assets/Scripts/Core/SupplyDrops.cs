@@ -221,12 +221,17 @@ namespace AreArpg.Core
             for (int i = 0; i < ground.Count; i++)
             {
                 if (DistanceSquared(PlayerXmm, PlayerZmm, ground[i].Xmm, ground[i].Zmm) > FixedMath.Square(PickupRadiusMm)) continue;
-                LastSupply = Progression.Supplies.TakeAt(i);
-                Progression.Social.TakeSupplies(LastSupply.Coins, LastSupply.Rations);
-                SaveWoodlandPlayer();
-                return true;
+                return CollectSupply(i);
             }
             return false;
+        }
+
+        private bool CollectSupply(int index)
+        {
+            LastSupply = Progression.Supplies.TakeAt(index);
+            Progression.Social.TakeSupplies(LastSupply.Coins, LastSupply.Rations);
+            SaveWoodlandPlayer();
+            return true;
         }
 
         private void MixSupplies(ref ulong h)

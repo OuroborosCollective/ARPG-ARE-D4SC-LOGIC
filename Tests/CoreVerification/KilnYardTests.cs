@@ -88,6 +88,16 @@ internal static class KilnYardTests
         check(!yard.ActOnHunger(HungerAction.OpenKilnGate).Accepted, "kiln-gate-opens-once");
         check(WalkTo(yard, LockedStand[0], LockedStand[1], 60, 650), "kiln-gate-is-a-way-once-open");
 
+        var selection = new ArenaSimulation(93, loaded, BigInteger.One, LootCatalog.Version1);
+        typeof(ArenaSimulation).GetProperty(nameof(selection.PlayerXmm)).SetValue(selection, -3950L);
+        typeof(ArenaSimulation).GetProperty(nameof(selection.PlayerZmm)).SetValue(selection, -5700L);
+        check(selection.NearKilnVase?.Id == 0 && selection.CanBreakWorldVase(1), "world-tap-two-vases-reachable");
+        check(selection.BreakWorldVase(1).Accepted && selection.Progression.KilnVaseBroken(1) &&
+            !selection.Progression.KilnVaseBroken(0), "world-tap-breaks-selected-vase-not-nearest");
+        check(!selection.BreakWorldVase(1).Accepted && !selection.CanBreakWorldVase(1), "world-tap-vase-does-not-repeat");
+        check(CharacterProgression.TryLoad(selection.Progression.SaveString(), out var selectionReload) &&
+            selectionReload.KilnVaseBroken(1) && !selectionReload.KilnVaseBroken(0), "world-tap-vase-reloads-selected-bit");
+
         // The vases: the story action breaks the nearest whole one; each breaks once and stays broken.
         int vaseBits = KilnYard.AllState & ~((1 << KilnYard.VaseShift) - 1), broken = 0;
         for (int pass = 0; pass < 3 && broken != vaseBits; pass++)

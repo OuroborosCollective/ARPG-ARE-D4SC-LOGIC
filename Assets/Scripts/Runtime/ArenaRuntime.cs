@@ -914,6 +914,7 @@ namespace AreArpg.UnityClient
             if (_game.CombatV2) _game.SetGuard(false); // any panel or scene that takes the input lowers the guard
             if (_game.GameOver)
             {
+                ResetWorldInteractions();
                 ReleasePresentationTouches();
                 for (int i = 0; i < Input.touchCount; i++)
                 {
@@ -938,6 +939,7 @@ namespace AreArpg.UnityClient
             if (_villageBoardOpen && PollVillageBoardInput(layout)) return;
             if (_sitePanelOpen && PollVillageSiteInput(layout)) return;
             if (_orselPanelOpen && PollOrselInput(layout)) return;
+            if (PollWorldConversation(layout)) return;
             if (PollMenuInput()) return;
             if (PollRoadInput(layout)) { ReleasePresentationTouches(); return; }
             if (PollHungerInput(layout)) { ReleasePresentationTouches(); return; }
@@ -980,6 +982,14 @@ namespace AreArpg.UnityClient
                         nearNpc, campOpen, hasMastery, canTakeRation, canDonate)
                     : ArenaHudControl.None;
 
+                if (control == ArenaHudControl.None && touch.phase == TouchPhase.Began && insideSafeArea &&
+                    !layout.BlocksCameraGesture(guiPoint, false, nearNpc, campOpen, hasMastery, canTakeRation, canDonate) &&
+                    TryTapWorldTarget(touch.position, guiPoint))
+                {
+                    if (_worldConversation != null) break;
+                    continue;
+                }
+
                 if (_cameraRig != null)
                     _cameraRig.ObserveTouch(touch.fingerId, touch.phase, guiPoint,
                         insideSafeArea && !layout.BlocksCameraGesture(guiPoint, false,
@@ -1013,6 +1023,9 @@ namespace AreArpg.UnityClient
             {
                 ArenaHudControl clicked = layout.HitTest(layout.ToGuiTouch(Input.mousePosition), false,
                     nearNpc, campOpen, hasMastery, canTakeRation, canDonate);
+                if (clicked == ArenaHudControl.None &&
+                    !layout.BlocksCameraGesture(layout.ToGuiTouch(Input.mousePosition), false, nearNpc, campOpen, hasMastery, canTakeRation, canDonate))
+                    TryTapWorldTarget(Input.mousePosition, layout.ToGuiTouch(Input.mousePosition));
                 if (_game.CombatV2 && clicked == ArenaHudControl.Skill2) _guardMouse = true;
                 else if (clicked != ArenaHudControl.Move) RouteHudControl(clicked);
             }
@@ -1022,7 +1035,7 @@ namespace AreArpg.UnityClient
             // Release if the OS dropped the tracked finger without Ended/Canceled.
             if (_movementTouch.IsCaptured && !capturedFingerPresent) _movementTouch.Reset();
             if (_cameraRig != null) _cameraRig.EndTouchFrame();
-            if (MenuOpen) { _game.SetMoveInput(0, 0); return; }
+            if (MenuOpen || _worldConversation != null) { _game.SetMoveInput(0, 0); return; }
 
             if (_scriptedMove.HasValue) { x = _scriptedMove.Value.x; z = _scriptedMove.Value.z; }
             else CameraRelativeMove(ref x, ref z);
@@ -1145,6 +1158,7 @@ namespace AreArpg.UnityClient
         /// <summary>Install an already-created Core world, discard queued old-world inputs and rebuild projections.</summary>
         private void InstallNewRun(ArenaSimulation next, string message)
         {
+            ResetWorldInteractions();
             _game = next;
             _actorAnimations.Clear();
             RegisterActorMotion(_hero);
@@ -1190,6 +1204,35 @@ namespace AreArpg.UnityClient
             RefreshPostProcessing();
         }
 
+        private void ProcessPickup(Func<bool> collect = null)
+        {
+            bool hadFieldPauldron = _game.Progression.Equipment.FieldPauldronOwned;
+            bool pickedUp = collect == null ? _game.TryCollectLoot() : collect();
+            _message = pickedUp ? PickupMessage() : "Keine Beute in Reichweite.";
+            if (!hadFieldPauldron && _game.Progression.Equipment.FieldPauldronOwned)
+            {
+                _message = "Feldschulter der Heilerin geborgen. Du kannst sie in der Tasche anlegen.";
+                _selectedItem = _game.Progression.Items.Count;
+                _inventoryPage = _selectedItem / InventoryPageSize;
+            }
+            if (pickedUp && _game.LastGearFind != RegionalRelic.None)
+            {
+                // Aschenwacht's rare gear and the Nachtvesper ride on ordinary loot (owner 2026-11-26).
+                var found = _game.LastGearFind;
+                _message = "Unter der Beute: " + RegionalRelics.Name(found) + "! Anlegen kannst du es in der Tasche.";
+                int index = OwnedRegionalRelics().IndexOf(found);
+                _selectedItem = _game.Progression.Items.Count + (_game.Progression.Equipment.FieldPauldronOwned ? 1 : 0) + index;
+                _inventoryPage = _selectedItem / InventoryPageSize;
+            }
+            if (collect == null && !pickedUp && _game.CanClaimRegionalRelic)
+            {
+                var regional = TakeRegionalRelic();
+                pickedUp = regional.Accepted;
+                _message = regional.Text;
+            }
+            if (pickedUp) SaveCharacter();
+        }
+
         /// <summary>Consume ordered player requests on the established 100-ms tick, then interpolate presentation.</summary>
         public void SaveNpcControllerChange() { SaveCharacter(); }
 
@@ -1206,6 +1249,10 @@ namespace AreArpg.UnityClient
             {
                 _accumulator -= TickSeconds;
                 steps++;
+                var worldInteraction = _pendingWorldInteraction;
+                _pendingWorldInteraction = null;
+                worldInteraction?.Invoke();
+                if (_storageFault) break;
                 ProcessCompanionAction();
                 if (_storageFault) break;
                 ProcessVillageGift();
@@ -1308,32 +1355,8 @@ namespace AreArpg.UnityClient
                 }
                 if (_pendingPickup)
                 {
-                    bool hadFieldPauldron = _game.Progression.Equipment.FieldPauldronOwned;
-                    bool pickedUp = _game.TryCollectLoot();
-                    _message = pickedUp ? PickupMessage() : "Keine Beute in Reichweite.";
-                    if (!hadFieldPauldron && _game.Progression.Equipment.FieldPauldronOwned)
-                    {
-                        _message = "Feldschulter der Heilerin geborgen. Du kannst sie in der Tasche anlegen.";
-                        _selectedItem = _game.Progression.Items.Count;
-                        _inventoryPage = _selectedItem / InventoryPageSize;
-                    }
-                    if (pickedUp && _game.LastGearFind != RegionalRelic.None)
-                    {
-                        // Aschenwacht's rare gear and the Nachtvesper ride on ordinary loot (owner 2026-11-26).
-                        var found = _game.LastGearFind;
-                        _message = "Unter der Beute: " + RegionalRelics.Name(found) + "! Anlegen kannst du es in der Tasche.";
-                        int index = OwnedRegionalRelics().IndexOf(found);
-                        _selectedItem = _game.Progression.Items.Count + (_game.Progression.Equipment.FieldPauldronOwned ? 1 : 0) + index;
-                        _inventoryPage = _selectedItem / InventoryPageSize;
-                    }
-                    if (!pickedUp && _game.CanClaimRegionalRelic)
-                    {
-                        var regional = TakeRegionalRelic();
-                        pickedUp = regional.Accepted;
-                        _message = regional.Text;
-                    }
-                    if (pickedUp) SaveCharacter();
                     _pendingPickup = false;
+                    ProcessPickup();
                 }
                 long oldX = _game.PlayerXmm, oldZ = _game.PlayerZmm; int oldHealth = _game.PlayerHealth;
                 int potionsBefore = _game.Progression.Crafting.PotionCount(PotionType.Heal), blockedBefore = _game.BlockedAttacks;
@@ -1359,6 +1382,8 @@ namespace AreArpg.UnityClient
             UpdateRattlerPresentation();
             UpdateVillageEconomy(SimulationPaused ? 0f : Time.deltaTime);
             UpdatePresentation(Mathf.Clamp01(_accumulator / TickSeconds));
+            RefreshWorldTargets(CurrentHudLayout());
+            UpdateWorldCamera();
             UpdateHud();
             UpdateMenu();
         }
@@ -1542,6 +1567,7 @@ namespace AreArpg.UnityClient
             GUI.skin = AshenGuiSkin();
             try
             {
+                if (DrawWorldConversation(layout)) return;
                 if (_villageBoardOpen && DrawVillageBoard(layout)) return;
                 if (_sitePanelOpen && DrawVillageSite(layout)) return;
                 if (_orselPanelOpen && DrawOrselPanel(layout)) return;
@@ -1552,6 +1578,7 @@ namespace AreArpg.UnityClient
                 if (DrawVillageSite(layout)) return;
                 if (DrawOrselPanel(layout)) return;
                 DrawVillageDoorHint(layout);
+                DrawWorldTargets();
                 DrawSpeechSubtitle(layout);
             }
             finally

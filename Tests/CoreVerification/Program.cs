@@ -5,6 +5,27 @@ internal static class Program
 {
     private static int _checks;
 
+    private static void TestSelectedWorldPickup()
+    {
+        var world = new ArenaSimulation(123, CharacterProgression.CreateEntryProfile(), 1, LootCatalog.Version2);
+        var first = new LootState { Id = 1001, Xmm = world.PlayerXmm, Zmm = world.PlayerZmm, WeaponBonus = 11 };
+        var second = new LootState { Id = 1002, Xmm = world.PlayerXmm, Zmm = world.PlayerZmm, WeaponBonus = 12 };
+        world.GroundLoot.Add(first);
+        world.GroundLoot.Add(second);
+        var firstBag = LootCatalog.Version2.Supply(123, 1, 1, 1, 0, 1);
+        var secondBag = LootCatalog.Version2.Supply(123, 1, 2, 2, 0, 2);
+        world.Progression.Supplies.Add(firstBag, world.PlayerXmm, world.PlayerZmm);
+        world.Progression.Supplies.Add(secondBag, world.PlayerXmm, world.PlayerZmm);
+        var selected = world.Progression.Supplies.Ground[1];
+        Require(world.TryTakeWorldSupply(selected) && world.LastSupply == secondBag &&
+            world.Progression.Supplies.Ground.Count == 1 && world.GroundLoot.Contains(first), "world-tap-selected-bag-not-weapon");
+        Require(!world.TryTakeWorldSupply(selected) && world.Progression.Supplies.Ground.Count == 1, "world-tap-stale-bag-does-not-take-another");
+        Require(world.TryTakeWorldLoot(second) && !world.GroundLoot.Contains(second) &&
+            world.GroundLoot.Contains(first), "world-tap-selected-loot-not-nearest");
+        Require(!world.TryTakeWorldLoot(second) && world.GroundLoot.Contains(first), "world-tap-stale-loot-does-not-take-another");
+    }
+
+
     private static void Require(bool expression, string name)
     {
         _checks++;
@@ -37,6 +58,7 @@ internal static class Program
             ArrivalSceneTests.Run(Require);
             CourtTests.Run(Require);
             KilnYardTests.Run(Require);
+            TestSelectedWorldPickup();
             AschbeterTests.Run(Require);
             AschenwachtGearTests.Run(Require);
             NachtvesperTests.Run(Require);
