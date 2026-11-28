@@ -90,7 +90,7 @@ namespace AreArpg.Core
                 case HungerAction.ReportCubs: speaker = SocialLedger.MaraNpcId; available = act == 2 && w.Active && w.Choice == CubChoice.Spared && !w.CubsReported; break;
                 case HungerAction.OrganizeCubProtection: speaker = SocialLedger.MaraNpcId; available = act == 2 && w.Active && w.CubsReported && !w.ProtectionOrganized; break;
                 case HungerAction.CraftPeltArmor: speaker = SocialLedger.MaraNpcId; available = act == 2 && w.Active && w.Pelts == 3; break;
-                case HungerAction.InspectTrail: z = -2000; available = act == 3 && stage == 1; break;
+                case HungerAction.InspectTrail: x = AshRoadBandageXmm; z = AshRoadBandageZmm; available = act == 3 && stage == 1; break;
                 case HungerAction.InspectShelter: x = -4000; z = -2000; available = act == 4 && stage == 2; break;
                 case HungerAction.InspectBeds: x = -4000; z = 5000; available = act == 4 && stage == 3 && p.SupplyChoice != HungerChoice.Undecided; break;
                 case HungerAction.StoreBandage: x = -6500; available = act == 5 && c.Active && stage == 4 && (c.Clues & 1) == 0; break;

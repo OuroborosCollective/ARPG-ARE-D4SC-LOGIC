@@ -38,9 +38,12 @@ internal static class HungerJourneyTests
                 !road.TryGetWorldStorySite(HungerAction.InspectTrail, out _, out _, out _), "hunger-clue-needs-proximity");
             Move(road, 0, 24000);
             check(road.TryTraversePassage() == null, "hunger-road-forward-gated-by-clue");
+            Move(road, -1500, -2000);
+            check(!road.TryGetWorldStorySite(HungerAction.InspectTrail, out _, out _, out _) &&
+                !road.ActOnHunger(HungerAction.InspectTrail).Accepted, "hunger-clue-range-is-centred-on-the-visible-bandage");
             Move(road, 0, -2000);
             check(road.TryGetWorldStorySite(HungerAction.InspectTrail, out var tx, out var tz, out var speaker) &&
-                tx == 0 && tz == -2000 && speaker == -1, "world-tap-waymark-anchor");
+                tx == 1650 && tz == -2000 && speaker == -1, "world-tap-waymark-anchor");
             check(road.ActOnHunger(HungerAction.InspectTrail).Accepted &&
                 !road.TryGetWorldStorySite(HungerAction.InspectTrail, out _, out _, out _), "hunger-trail-found");
             Move(road, 0, 24000);

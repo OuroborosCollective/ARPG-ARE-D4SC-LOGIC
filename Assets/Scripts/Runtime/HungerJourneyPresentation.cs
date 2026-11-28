@@ -330,8 +330,9 @@ namespace AreArpg.UnityClient
                 for (int z = -24; z <= 24; z += 8)
                     ProjectRoadStone(ChapterShape(PrimitiveType.Cube, "AshRoad_Boundary", new Vector3(side * 28.5f, 1.2f, z),
                         new Vector3(1, 2.4f, 8), new Color(.26f, .28f, .27f), "AshStoneWall"), slate);
-            _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage", new Vector3(0, .03f, 24),
-                new Vector3(3.6f, .02f, 3.6f), new Color(.25f, .68f, .72f));
+            _worldPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_World_Passage",
+                new Vector3(ArenaSimulation.PassageXmm * .001f, .03f, ArenaSimulation.PassageZmm * .001f),
+                new Vector3(3.6f, .02f, 3.6f), mill ? new Color(.25f, .68f, .72f) : new Color(.82f, .56f, .28f));
             _returnPassage = ChapterShape(PrimitiveType.Cylinder, "ARE_Return_Passage", new Vector3(0, .03f, -24),
                 new Vector3(3.6f, .02f, 3.6f), new Color(.58f, .62f, .69f));
             var roadside = RefugeScenery.Create(mill);
@@ -339,9 +340,11 @@ namespace AreArpg.UnityClient
             _refugeFlora = roadside.GetComponent<RefugeScenery>();
             if (!mill)
             {
-                ChapterShape(PrimitiveType.Cube, "AshRoad_Trail_Marker", new Vector3(1.7f, .8f, -2),
+                float bandageX = ArenaSimulation.AshRoadBandageXmm * .001f;
+                float bandageZ = ArenaSimulation.AshRoadBandageZmm * .001f;
+                ChapterShape(PrimitiveType.Cube, "AshRoad_Trail_Marker", new Vector3(bandageX + .05f, .8f, bandageZ),
                     new Vector3(.18f, 1.6f, .18f), new Color(.4f, .3f, .2f));
-                ChapterShape(PrimitiveType.Cube, "AshRoad_Bandage", new Vector3(1.65f, 1.1f, -2),
+                ChapterShape(PrimitiveType.Cube, "AshRoad_Bandage", new Vector3(bandageX, AshRoadBandageHeight, bandageZ),
                     new Vector3(.75f, .25f, .08f), new Color(.8f, .75f, .64f));
                 return;
             }

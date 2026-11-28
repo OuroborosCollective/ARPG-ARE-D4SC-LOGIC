@@ -29,6 +29,7 @@ namespace AreArpg.UnityClient
         private Texture2D _worldRing;
         private Vector3 _interactionGlance;
         private float _interactionGlanceSeconds;
+        private const float AshRoadBandageHeight = 1.1f;
 
         private static string WorldNpcName(int id) =>
             id == 0 ? "Ilyan" : id == SocialLedger.MaraNpcId ? "Mara" : id == 2 ? "Dorn" : "Jäger";
@@ -62,6 +63,7 @@ namespace AreArpg.UnityClient
         {
             switch (action)
             {
+                case HungerAction.InspectTrail: return "Verband\nuntersuchen";
                 case HungerAction.OpenWestChest: case HungerAction.OpenEastChest:
                 case HungerAction.ForestChest0: case HungerAction.ForestChest1:
                 case HungerAction.ForestChest2: case HungerAction.ForestChest3:
@@ -106,7 +108,8 @@ namespace AreArpg.UnityClient
                     }
                     target.Actions.Add(action);
                 }
-                else AddWorldTarget(WorldTargetKind.Story, i, x, z, WorldStoryVerb(action));
+                else AddWorldTarget(WorldTargetKind.Story, i, x, z, WorldStoryVerb(action),
+                    action == HungerAction.InspectTrail ? AshRoadBandageHeight : .65f);
             }
             if (_game.InCourt)
                 foreach (var trace in CourtLore.Traces)

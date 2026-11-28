@@ -128,15 +128,49 @@ namespace AreArpg.PlayMode.Tests
             SetWorldPosition(0, ArenaSimulation.PassageZmm);
             CallWorldInteraction("AdvanceCrypt");
             Assert.AreEqual(3, Game.Progression.EntryAct);
+            SetWorldPosition(0, 21000);
+            MoveStory(0, ArenaSimulation.PassageZmm);
+            CallWorldInteraction("UpdatePresentation", 1f);
+            var gate = ((Transform)WorldRuntimeField("_worldPassage")).gameObject;
+            Assert.IsTrue(gate.activeSelf, "The road to the mill needs a visible landmark before the clue is found");
+            CallWorldInteraction("UpdateHud");
+            var message = (UnityEngine.UI.Text)WorldRuntimeField("_hudMessage");
+            StringAssert.Contains("Verband am Wegzeichen", message.text);
+            string lockedSave = PlayerPrefs.GetString(_keys[0]);
+            Assert.IsTrue(Game.AtWorldPassage);
+            CallWorldInteraction("AdvanceCrypt");
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            Assert.AreEqual(lockedSave, PlayerPrefs.GetString(_keys[0]), "A locked passage cannot install a new checkpoint");
+
             SetWorldPosition(0, -3200);
             CallWorldInteraction("UpdatePresentation", 1f);
             Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            Assert.IsTrue(Game.TryGetWorldStorySite(HungerAction.InspectTrail, out long x, out long z, out _));
+            Vector3 bandage = Find("AshRoad_Bandage").transform.position;
+            Assert.AreEqual(bandage.x, x * .001f, .001f);
+            Assert.AreEqual(bandage.z, z * .001f, .001f);
             TapWorldLabel("Story", (int)HungerAction.InspectTrail);
             _runtime.enabled = true;
             for (int frame = 0; frame < 120 && Game.Progression.HungerStage == 1; frame++) yield return null;
             Assert.AreEqual(2, Game.Progression.HungerStage);
             Assert.IsFalse(Game.TryGetWorldStorySite(HungerAction.InspectTrail, out _, out _, out _));
             Assert.IsTrue(((GameObject)WorldRuntimeField("_hudGameplay")).activeSelf);
+
+            _runtime.enabled = false;
+            SetWorldPosition(0, 21000);
+            CallWorldInteraction("UpdateHud");
+            StringAssert.DoesNotContain("Verband am Wegzeichen", message.text);
+            Assert.IsTrue(gate.activeSelf, "The open road uses the same landmark");
+            MoveStory(0, ArenaSimulation.PassageZmm);
+            _runtime.enabled = true;
+            for (int frame = 0; frame < 120 && Game.Progression.EntryAct == 3; frame++) yield return null;
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), out var saved));
+            Assert.AreEqual(4, saved.EntryAct);
+            Assert.AreEqual(2, saved.HungerStage);
+            yield return ReloadEntryCheckpoint();
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            Assert.IsFalse(Game.TryGetWorldStorySite(HungerAction.InspectTrail, out _, out _, out _));
         }
 
         private void StandNearWorldNpc(NpcAgent npc)
