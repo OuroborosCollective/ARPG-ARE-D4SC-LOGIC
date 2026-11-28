@@ -34,11 +34,15 @@ internal static class HungerJourneyTests
             var road = w.TryTraversePassage();
             check(road != null && road.Progression.EntryAct == 3 && !road.AtAnyPassage, "hunger-road-without-immediate-bounce");
             check(w.Progression.EntryAct == 2, "hunger-old-checkpoint-immutable");
-            check(!road.ActOnHunger(HungerAction.InspectTrail).Accepted, "hunger-clue-needs-proximity");
+            check(!road.ActOnHunger(HungerAction.InspectTrail).Accepted &&
+                !road.TryGetWorldStorySite(HungerAction.InspectTrail, out _, out _, out _), "hunger-clue-needs-proximity");
             Move(road, 0, 24000);
             check(road.TryTraversePassage() == null, "hunger-road-forward-gated-by-clue");
             Move(road, 0, -2000);
-            check(road.ActOnHunger(HungerAction.InspectTrail).Accepted, "hunger-trail-found");
+            check(road.TryGetWorldStorySite(HungerAction.InspectTrail, out var tx, out var tz, out var speaker) &&
+                tx == 0 && tz == -2000 && speaker == -1, "world-tap-waymark-anchor");
+            check(road.ActOnHunger(HungerAction.InspectTrail).Accepted &&
+                !road.TryGetWorldStorySite(HungerAction.InspectTrail, out _, out _, out _), "hunger-trail-found");
             Move(road, 0, 24000);
             var mill = road.TryTraversePassage();
             check(mill != null && mill.Progression.EntryAct == 4 && mill.Monsters.Count == 0 && mill.Npcs.Count == 0, "hunger-no-duplicate-crypt-or-npc-at-mill");

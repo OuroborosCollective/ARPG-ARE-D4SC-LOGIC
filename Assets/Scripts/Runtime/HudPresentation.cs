@@ -414,9 +414,9 @@ namespace AreArpg.UnityClient
             bool over = _game.GameOver;
             bool menuOpen = MenuOpen;
             _hudDefeat.SetActive(!_storageFault && over);
-            _hudGameplay.SetActive(!_storageFault && !over && !menuOpen && !_hungerJournalOpen && !_sceneActive);
+            _hudGameplay.SetActive(!_storageFault && !over && !menuOpen && !_hungerJournalOpen && !_sceneActive && _worldConversation == null);
             var fade = _hudFade.color; fade.a = _regionFade; fade.r = fade.g = fade.b = 0f; _hudFade.color = fade;
-            if (_storageFault || over || menuOpen || _hungerJournalOpen || _sceneActive) return;
+            if (_storageFault || over || menuOpen || _hungerJournalOpen || _sceneActive || _worldConversation != null) return;
 
             var p = _game.Progression;
             _hudLevel.text = p.Level.ToString();

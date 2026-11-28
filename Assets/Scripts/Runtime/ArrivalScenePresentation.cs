@@ -20,7 +20,7 @@ namespace AreArpg.UnityClient
 
         /// <summary>True while the arrival scene owns input and pauses the simulation.</summary>
         public bool SceneOpen { get { return _sceneActive; } }
-        private bool SimulationPaused { get { return MenuOpen || _sceneActive; } }
+        private bool SimulationPaused { get { return MenuOpen || _sceneActive || _worldConversation != null; } }
         /// <summary>Index of the line on screen, for checks; -1 when no scene plays.</summary>
         public int SceneLineIndex { get { return _sceneActive ? _sceneIndex : -1; } }
 

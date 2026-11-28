@@ -963,14 +963,16 @@ namespace AreArpg.Core
         }
 
         /// <summary>Collect reachable drops through the canonical progression owner, preserving legacy rewards.</summary>
-        public bool TryCollectLoot()
+        public bool TryCollectLoot() => CollectLoot(null, null, true);
+
+        private bool CollectLoot(LootState selectedLoot, SupplyDrop selectedSupply, bool firstReachable)
         {
             LastSupply = null; LastLoot = null; LastGearFind = RegionalRelic.None;
             if (GameOver) return false;
             for (int i = 0; i < GroundLoot.Count; i++)
             {
                 LootState item = GroundLoot[i];
-                if (DistanceSquared(PlayerXmm, PlayerZmm, item.Xmm, item.Zmm) > FixedMath.Square(PickupRadiusMm)) continue;
+                if ((!firstReachable && !ReferenceEquals(item, selectedLoot)) || !Near(item.Xmm, item.Zmm, PickupRadiusMm)) continue;
                 if (item.Item != null)
                 {
                     if (!Progression.CollectItem(item.Item)) return false;
@@ -990,7 +992,9 @@ namespace AreArpg.Core
                 SaveWoodlandPlayer();
                 return true;
             }
-            return TryCollectSupply();
+            if (firstReachable) return TryCollectSupply();
+            int supplyIndex = SupplyIndex(selectedSupply);
+            return supplyIndex >= 0 && Near(selectedSupply.Xmm, selectedSupply.Zmm, PickupRadiusMm) && CollectSupply(supplyIndex);
         }
 
         // Stable FNV-1a over every field that currently affects future simulation outcomes.

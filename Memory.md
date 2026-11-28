@@ -1,5 +1,7 @@
 # ARPG-ARE-D4SC-LOGIC — Memory
 
+- 2026-11-28 [#158 / PR #160] Weltziele zeigen Ring und Verb, NPC-Gespräche warten auf eine bewusste Antwort. Der gewählte Fund oder die gewählte Vase bleibt bis zum Core-Tick eindeutig, auch bei überlappender Reichweite. Auf `1461c3b` bestanden 23.844 Core-Prüfungen, 70 Preflights und 3/3 Unity-PlayMode-Fälle. [Nachweise](docs/evidence/quality-sky-20261116/logbook-handoff.md). Physische Tab-A9-Abnahme offen.
+
 - 2026-11-28 [PR #159] Drei Ordenssets mit 15 Teilen, Beute- und Setregeln. Die 59 Legacy-Bits bleiben v3, v4 greift beim ersten neuen Besitzbit. Der Art-Build erzeugt die Prefabs und benennt ein fehlendes `Glockenwacht.fbx` vor der Anpassung. Auf `0501035` bestanden 23.833 Core-Prüfungen, vier gezielte Unity-EditMode-Ausführungen und ein PlayMode-Test. VPS-Core-Log SHA-256 `542daef82e91eb65d3d46bbd2d1d1d59738b33351f37e9f20b110494d80e79d5`. [Nachweise](docs/evidence/quality-sky-20261116/logbook-handoff.md). Android-APK und Tab A9 stehen aus.
 
 - 2026-11-27 [Store-Paket 435684, Prüfvorschlag] Zehn statische Glockenhof-Prefabs erhielten in einer Paketkopie neutrale Außenwurzeln. Gefälle und Modellachsen bleiben im Kind erhalten. Unity 6000.6.8f1 bestätigte 16/16 identische Nutzobjekte und 9/9 EditMode-Tests. Kandidat SHA-256 `434526f41615dd916c07f17066892a80aef7f54dba3ac81d7692c2974061dfb3`, [Nachweis](docs/evidence/store-prefab-435684/acceptance.json).
