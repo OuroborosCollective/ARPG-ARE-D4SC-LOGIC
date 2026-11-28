@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Numerics;
 
 namespace AreArpg.Core
 {
@@ -16,8 +17,10 @@ namespace AreArpg.Core
         A_Visierhelm, A_Kuerass, A_Schulterplatten, A_Gliedpanzer, A_KlauenstabEinhand, A_KlauenstabZweihand,
         N_Schaller, N_Kuerass, N_Schulterstuecke, N_Armschienen, N_Handschuhe, N_Guertung, N_Beinzeug, N_Panzerschuhe,
         F_Gugel, F_Wams, F_Wetterkragen, F_Aermel, F_Handschuhe, F_Koppel, F_Beinkleid, F_Stiefel, F_Langbogen,
-        K_Kapuze, K_Kittel, K_Pelerine, K_Aermel, K_Handschuhe, K_Gurt, K_Beinkleid, K_Stiefel, K_Kurzstab, K_Langstab
-        // 59 pieces: the 64-bit masks hold 63. A piece beyond that needs a new save format.
+        K_Kapuze, K_Kittel, K_Pelerine, K_Aermel, K_Handschuhe, K_Gurt, K_Beinkleid, K_Stiefel, K_Kurzstab, K_Langstab,
+        Rostkeil_Kopf, Rostkeil_Brust, Rostkeil_Haende, Rostkeil_Beine, Rostkeil_Fuesse,
+        Moorvogt_Kopf, Moorvogt_Brust, Moorvogt_Haende, Moorvogt_Beine, Moorvogt_Fuesse,
+        Konvent_Kopf, Konvent_Brust, Konvent_Haende, Konvent_Beine, Konvent_Fuesse
     }
 
     /// <summary>
@@ -148,7 +151,22 @@ namespace AreArpg.Core
             new Source(RegionalRelic.K_Kurzstab, "Schwarzschieferholz-Kurzstab", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, RusskantorLocation,
                 WeaponFamily.Staff, 160, 6, 8000, false),
             new Source(RegionalRelic.K_Langstab, "Dunkelbuchen-Langstab", RegionalRelicSlot.Weapon, 0, 0, 0, Unlock.Loot, RusskantorLocation,
-                WeaponFamily.Staff, 215, 7, 9000, true)
+                WeaponFamily.Staff, 215, 7, 9000, true),
+            new Source(RegionalRelic.Rostkeil_Kopf, "Keilhelm des Rostkeils", RegionalRelicSlot.Head, 0, 0, 0, Unlock.Loot, "Krypta I"),
+            new Source(RegionalRelic.Rostkeil_Brust, "Keilkürass des Rostkeils", RegionalRelicSlot.Body, 0, 0, 0, Unlock.Loot, "Krypta I"),
+            new Source(RegionalRelic.Rostkeil_Haende, "Panzerhandschuhe des Rostkeils", RegionalRelicSlot.Hands, 0, 0, 0, Unlock.Loot, "Krypta I"),
+            new Source(RegionalRelic.Rostkeil_Beine, "Beinzeug des Rostkeils", RegionalRelicSlot.Legs, 0, 0, 0, Unlock.Loot, "Krypta I"),
+            new Source(RegionalRelic.Rostkeil_Fuesse, "Eisenstiefel des Rostkeils", RegionalRelicSlot.Feet, 0, 0, 0, Unlock.Loot, "Krypta I"),
+            new Source(RegionalRelic.Moorvogt_Kopf, "Lederhut des Moorvogts", RegionalRelicSlot.Head, 0, 0, 0, Unlock.Loot, "Wald vor Aschenzoll"),
+            new Source(RegionalRelic.Moorvogt_Brust, "Lederwams des Moorvogts", RegionalRelicSlot.Body, 0, 0, 0, Unlock.Loot, "Wald vor Aschenzoll"),
+            new Source(RegionalRelic.Moorvogt_Haende, "Jagdhandschuhe des Moorvogts", RegionalRelicSlot.Hands, 0, 0, 0, Unlock.Loot, "Wald vor Aschenzoll"),
+            new Source(RegionalRelic.Moorvogt_Beine, "Beinzeug des Moorvogts", RegionalRelicSlot.Legs, 0, 0, 0, Unlock.Loot, "Wald vor Aschenzoll"),
+            new Source(RegionalRelic.Moorvogt_Fuesse, "Jagdstiefel des Moorvogts", RegionalRelicSlot.Feet, 0, 0, 0, Unlock.Loot, "Wald vor Aschenzoll"),
+            new Source(RegionalRelic.Konvent_Kopf, "Aschenkapuze des Konvents der Roten Glut", RegionalRelicSlot.Head, 0, 0, 0, Unlock.Loot, "Krypta III"),
+            new Source(RegionalRelic.Konvent_Brust, "Skapulier des Konvents der Roten Glut", RegionalRelicSlot.Body, 0, 0, 0, Unlock.Loot, "Krypta III"),
+            new Source(RegionalRelic.Konvent_Haende, "Leinenhandschuhe des Konvents der Roten Glut", RegionalRelicSlot.Hands, 0, 0, 0, Unlock.Loot, "Krypta III"),
+            new Source(RegionalRelic.Konvent_Beine, "Ordensrock des Konvents der Roten Glut", RegionalRelicSlot.Legs, 0, 0, 0, Unlock.Loot, "Krypta III"),
+            new Source(RegionalRelic.Konvent_Fuesse, "Ordensschuhe des Konvents der Roten Glut", RegionalRelicSlot.Feet, 0, 0, 0, Unlock.Loot, "Krypta III")
         };
         private const string RotfaehrteLocation = "Seltene Beute · oft in den Wäldern";
         private const string RusskantorLocation = "Seltene Beute · oft bei Ghulen";
@@ -156,11 +174,10 @@ namespace AreArpg.Core
 
         public static readonly IReadOnlyList<RegionalRelic> All = Array.AsReadOnly(Array.ConvertAll(
             Array.FindAll(Sources, source => source != null), source => source.Id));
-        // Owned and worn pieces are bit masks in the save. Since the Aschenwacht gear (2026-11-26) there are more than 31 pieces:
-        // the masks are 64-bit; older saves wrote smaller numbers, which read the same.
-        internal static long AllMask => (1L << (Sources.Length - 1)) - 1;
+        internal static readonly BigInteger LegacyMask = (BigInteger.One << (int)RegionalRelic.K_Langstab) - 1;
+        internal static readonly BigInteger AllMask = (BigInteger.One << (Sources.Length - 1)) - 1;
         internal static bool Valid(RegionalRelic id) => (int)id > 0 && (int)id < Sources.Length;
-        internal static long Bit(RegionalRelic id) => 1L << ((int)id - 1);
+        internal static BigInteger Bit(RegionalRelic id) => BigInteger.One << ((int)id - 1);
         internal static Source Get(RegionalRelic id) => Valid(id) ? Sources[(int)id] : throw new ArgumentOutOfRangeException(nameof(id));
         public static string Name(RegionalRelic id) => Get(id).Name;
         public static string Location(RegionalRelic id) => Get(id).Location;
@@ -172,8 +189,10 @@ namespace AreArpg.Core
 
     public sealed partial class WeaponEquipment
     {
-        private long _ownedRelics, _wornRelics;
-        public long RegionalWearMask => _wornRelics;
+        private BigInteger _ownedRelics, _wornRelics;
+        // Legacy callers see their original 59 positions. The renderer uses the full mask.
+        public long RegionalWearMask => (long)(_wornRelics & RegionalRelics.LegacyMask);
+        public BigInteger RegionalWearBits => _wornRelics;
         public bool OwnsRegionalRelic(RegionalRelic id) =>
             RegionalRelics.Valid(id) && (_ownedRelics & RegionalRelics.Bit(id)) != 0;
         public bool IsRegionalRelicEquipped(RegionalRelic id) =>
@@ -231,10 +250,13 @@ namespace AreArpg.Core
             return true;
         }
 
-        private bool RestoreRegionalSlots(CharacterProgression p, string owned, string worn)
+        private bool RestoreRegionalSlots(CharacterProgression p, string owned, string worn, bool extended)
         {
-            if (!long.TryParse(owned, NumberStyles.None, CultureInfo.InvariantCulture, out long o) ||
-                !long.TryParse(worn, NumberStyles.None, CultureInfo.InvariantCulture, out long w) ||
+            // Bound numeric parsing before allocation and accept exactly one canonical version per state.
+            if (owned.Length > RegionalRelics.AllMask.ToString(CultureInfo.InvariantCulture).Length || worn.Length > owned.Length ||
+                !BigInteger.TryParse(owned, NumberStyles.None, CultureInfo.InvariantCulture, out var o) ||
+                !BigInteger.TryParse(worn, NumberStyles.None, CultureInfo.InvariantCulture, out var w) ||
+                extended != (o > RegionalRelics.LegacyMask) ||
                 o.ToString(CultureInfo.InvariantCulture) != owned || w.ToString(CultureInfo.InvariantCulture) != worn ||
                 o == 0 || (o & ~RegionalRelics.AllMask) != 0 || (w & ~o) != 0) return false;
             _ownedRelics = o;

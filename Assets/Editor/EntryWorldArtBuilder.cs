@@ -74,6 +74,7 @@ namespace AreArpg.EditorTools
             BrennerhofBuilder.TryBuild();
             NachtvesperBuilder.TryBuild();
             HunterCantorBuilder.TryBuild();
+            ThreeOrderGearBuilder.TryBuild();
             EntryCombatArtBuilder.RemoveUnusedHeroMaterials();
             AssetDatabase.SaveAssets();
             AuditInputs();

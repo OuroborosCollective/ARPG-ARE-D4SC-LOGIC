@@ -117,12 +117,12 @@ namespace AreArpg.Core
             if (!FieldPauldronOwned && _ownedRelics == 0) return "1," + slots;
             slots += "," + FieldPauldronOrdinal.ToString(culture) + "," + (FieldPauldronEquipped ? "1" : "0");
             return _ownedRelics == 0 ? "2," + slots :
-                "3," + slots + "," + _ownedRelics.ToString(culture) + "," + _wornRelics.ToString(culture);
+                (_ownedRelics > RegionalRelics.LegacyMask ? "4," : "3,") + slots + "," + _ownedRelics.ToString(culture) + "," + _wornRelics.ToString(culture);
         }
         internal static bool TryRead(string text,CharacterProgression p,out WeaponEquipment equipment)
         {
             equipment=null;var f=text.Split(',');
-            bool regional = f.Length == 8 && f[0] == "3";
+            bool regional = f.Length == 8 && (f[0] == "3" || f[0] == "4");
             bool shoulder = f.Length == 6 && f[0] == "2";
             if (!regional && !shoulder && (f.Length != 4 || f[0] != "1")) return false;
             bool hasShoulder = shoulder || (regional && f[4] != "0");
@@ -146,7 +146,7 @@ namespace AreArpg.Core
                 e.FieldPauldronOrdinal = origin;
                 e.FieldPauldronEquipped = f[5] == "1";
             }
-            if (regional && !e.RestoreRegionalSlots(p,f[6],f[7])) return false;
+            if (regional && !e.RestoreRegionalSlots(p,f[6],f[7],f[0] == "4")) return false;
             equipment=e;return true;
         }
     }

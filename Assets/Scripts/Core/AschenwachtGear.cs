@@ -82,11 +82,18 @@ namespace AreArpg.Core
             if (gear.IsRegionalRelicEquipped(RegionalRelic.K_Handschuhe)) worn[(int)ArmorSlot.Hands] = RusskantorSet.Gloves;
             if (gear.IsRegionalRelicEquipped(RegionalRelic.K_Beinkleid)) worn[(int)ArmorSlot.Legs] = RusskantorSet.Breeches;
             if (gear.IsRegionalRelicEquipped(RegionalRelic.K_Stiefel)) worn[(int)ArmorSlot.Feet] = RusskantorSet.Boots;
+            foreach (var order in ThreeOrderSet.All)
+                foreach (var id in order.Pieces)
+                    if (gear.IsRegionalRelicEquipped(id))
+                    {
+                        var piece = order.Armor(id);
+                        worn[(int)piece.Slot] = piece;
+                    }
             return worn;
         }
 
         /// <summary>Physical protection of everything worn, in basis points.</summary>
-        public int WornProtectionBp { get { return ArmorRules.Protection(EffectiveArmor()); } }
+        public int WornProtectionBp { get { return ArmorRules.Protection(EffectiveArmor()) + 200 * ThreeOrderSet.Rostkeil.Tier(Equipment); } }
         /// <summary>Outgoing healing of everything worn, in basis points.</summary>
         public int WornHealingEfficiencyBp { get { return ArmorRules.HealingEfficiency(EffectiveArmor()); } }
     }

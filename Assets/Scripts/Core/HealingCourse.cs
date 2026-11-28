@@ -435,7 +435,8 @@ namespace AreArpg.Core
         }
 
         public int WundschlussBaseHealing => HealingRules.WundschlussHealing + Progression.ResolveHealBonus
-            + Progression.PracticeHealingBonus + Progression.Equipment.FieldSutureTier * 10;
+            + Progression.PracticeHealingBonus + Progression.Equipment.FieldSutureTier * 10
+            + 5 * ThreeOrderSet.Konvent.Tier(Progression.Equipment);
 
         /// <summary>The effect tick: the staff and armor in place now decide, overhealing is not counted.</summary>
         private void ResolveWundschluss()

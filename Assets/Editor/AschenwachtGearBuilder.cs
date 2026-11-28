@@ -26,6 +26,7 @@ namespace AreArpg.EditorTools
         private const string Arsenal = "Assets/Resources/ARE/Visuals/Werkarsenal/";
         private const string MeshFolder = "Assets/PrivateArt/Aschenwacht_II_Game/Armor/";
         private const string Hero = "Assets/Resources/ARE/Visuals/EntryHero.prefab";
+        internal const string GuardHeadModel = AschenwachtCourtBuilder.CourtModels + "Glockenwacht.fbx";
 
         private static readonly (string model, RegionalRelic id)[] Armour =
         {
@@ -128,7 +129,7 @@ namespace AreArpg.EditorTools
         }
 
         /// <summary>How a piece sits on the head: not at all, closed over the whole head and face (a helm), or open at the face (a hood).</summary>
-        public enum HeadFit { None, Closed, Open }
+        public enum HeadFit { None, Closed, Open, WedgeHelm, BrimmedHat, ConventHood }
 
         /// <summary>One piece to fit: the name of its mesh and prefab, its meshes, and how it sits on the head.</summary>
         internal sealed class FitPiece
@@ -355,6 +356,44 @@ namespace AreArpg.EditorTools
             }
         }
 
+        // The three-order archive has a common rest head. Both open coverings include cloth below the
+        // face; the wide hat also has a brim across the shell. An intersection with an inside fold
+        // cannot measure the head radius. Register the measured rest-space garment envelope to the
+        // hero's actual hairless head along his anatomical axes. Keep the original brim and hood ratios.
+        private static void FitOrderHead(Vector3[] points, List<Vector3> normals, Body hero, HeadFit kind)
+        {
+            var side = Vector3.Cross(hero.Up, hero.Front).normalized;
+            Vector3 Anatomy(Vector3 p) => new Vector3(Vector3.Dot(p, side), Vector3.Dot(p, hero.Up), Vector3.Dot(p, hero.Front));
+            Bounds Envelope(Vector3[] vertices)
+            {
+                var box = new Bounds(Anatomy(vertices[0]), Vector3.zero);
+                foreach (var p in vertices) box.Encapsulate(Anatomy(p));
+                return box;
+            }
+            var garment = Envelope(points);
+            var face = Envelope(hero.HeadPoints);
+            // The archives contain no nude donor head. This explicit fitting proxy in metres uses the
+            // 22.2 cm headwrap width and 23.6 cm depth, with a design chin-to-scalp height of 30 cm.
+            // The three full mesh envelopes were measured from the supplied Y-up GLB POSITION data.
+            var referenceHead = new Bounds(new Vector3(0f, 1.70f, 0f), new Vector3(.222f, .30f, .236f));
+            var source = kind == HeadFit.WedgeHelm
+                ? new Bounds(new Vector3(0f, 1.7300f, .0296f), new Vector3(.2780f, .4303f, .3024f))
+                : kind == HeadFit.BrimmedHat
+                ? new Bounds(new Vector3(-.0016f, 1.7302f, .0031f), new Vector3(.4501f, .3604f, .4421f))
+                : new Bounds(new Vector3(.0003f, 1.7132f, -.0236f), new Vector3(.2987f, .3378f, .2688f));
+            Vector3 Ratio(Vector3 a, Vector3 b) => new Vector3(a.x / b.x, a.y / b.y, a.z / b.z);
+            var bodyScale = Ratio(face.size, referenceHead.size);
+            var centre = face.center + Vector3.Scale(source.center - referenceHead.center, bodyScale);
+            var scale = Ratio(Vector3.Scale(source.size, bodyScale), garment.size);
+            for (int i = 0; i < points.Length; i++)
+            {
+                var p = centre + Vector3.Scale(Anatomy(points[i]) - garment.center, scale);
+                points[i] = side * p.x + hero.Up * p.y + hero.Front * p.z;
+                var n = Ratio(Anatomy(normals[i]), scale);
+                normals[i] = (side * n.x + hero.Up * n.y + hero.Front * n.z).normalized;
+            }
+        }
+
         /// <summary>The hero's points in bind space, without those of his hair (a worn head piece hides it).</summary>
         private static Vector3[] Surface(SkinnedMeshRenderer skin)
         {
@@ -501,7 +540,7 @@ namespace AreArpg.EditorTools
         /// <summary>The Glockenwacht's own head width, from its figure in the first archive.</summary>
         private static float GuardHeadWidth()
         {
-            string path = AschenwachtCourtBuilder.CourtModels + "Glockenwacht.fbx";
+            string path = GuardHeadModel;
             var importer = (ModelImporter)AssetImporter.GetAtPath(path);
             if (!importer.isReadable) { importer.isReadable = true; importer.SaveAndReimport(); }
             var skin = AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponentInChildren<SkinnedMeshRenderer>(true);
@@ -577,7 +616,9 @@ namespace AreArpg.EditorTools
                 }
             }
             var points = outVertices.ToArray();
-            if (piece.Head != HeadFit.None) FitOverHead(points, groups.SelectMany(g => g.triangles).ToArray(), hero, piece.Head == HeadFit.Open);
+            if (piece.Head == HeadFit.WedgeHelm || piece.Head == HeadFit.BrimmedHat || piece.Head == HeadFit.ConventHood)
+                FitOrderHead(points, outNormals, hero, piece.Head);
+            else if (piece.Head != HeadFit.None) FitOverHead(points, groups.SelectMany(g => g.triangles).ToArray(), hero, piece.Head == HeadFit.Open);
             else if (piece.LayOver) LayOverHero(points, outWeights.Select(w => used[w.boneIndex0]).ToArray(), groups.SelectMany(g => g.triangles).ToArray(), fit);
 
             string meshPath = meshFolder + id + ".asset";

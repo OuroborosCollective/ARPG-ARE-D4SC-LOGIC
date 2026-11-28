@@ -104,7 +104,7 @@ internal static class RegionalRelicTests
         var parts=token.Split(',');long owned=long.Parse(parts[6]),wear=long.Parse(parts[7]);
         var guard=RegionalRelics.Bit(RegionalRelic.Schlackengarde);
         var lantern=RegionalRelics.Bit(RegionalRelic.Grubenlicht);
-        bool Invalid(long o,long e)
+        bool Invalid(System.Numerics.BigInteger o,System.Numerics.BigInteger e)
         {
             var f=(string[])parts.Clone();f[6]=o.ToString();f[7]=e.ToString();
             return !WeaponEquipment.TryRead(string.Join(",",f),p,out _);
