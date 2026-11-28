@@ -13,6 +13,17 @@ namespace AreArpg.EditorTools
         // Each delivered mesh belongs to one wearable. The source's zero-padded prefixes survive FBX import.
         private static readonly int[][] Parts = { new[] { 1 }, new[] { 2, 3, 4, 6 }, new[] { 7, 8 }, new[] { 5, 9 }, new[] { 10 } };
 
+        private static string SourcePath(ThreeOrderSet set) =>
+            "Assets/PrivateArt/ThreeOrders/Sources/" + set.AssetName + "/" + set.AssetName;
+
+        internal static bool TryBuild()
+        {
+            if (!ThreeOrderSet.All.Any(set => AssetImporter.GetAtPath(SourcePath(set) + ".fbx") != null)) return false;
+            Build();
+            return true;
+        }
+
+        [MenuItem("ARE ARPG/Art/Build Three Orders Armour")]
         public static void Build()
         {
             if (!(AssetImporter.GetAtPath(AschenwachtGearBuilder.GuardHeadModel) is ModelImporter))
@@ -20,7 +31,7 @@ namespace AreArpg.EditorTools
 
             foreach (var set in ThreeOrderSet.All)
             {
-                string path = "Assets/PrivateArt/ThreeOrders/Sources/" + set.AssetName + "/" + set.AssetName;
+                string path = SourcePath(set);
                 var importer = AssetImporter.GetAtPath(path + ".fbx") as ModelImporter;
                 if (!importer) throw new InvalidOperationException("Missing rigged armour " + path);
                 bool wasReadable = importer.isReadable;

@@ -36,6 +36,13 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
+        public void ThreeOrderBuilderHasAnEditorMenuEntry()
+        {
+            var builder = Type.GetType("AreArpg.EditorTools.ThreeOrderGearBuilder, Assembly-CSharp-Editor", true);
+            Assert.IsTrue(builder.GetMethod("Build").IsDefined(typeof(MenuItem), false));
+        }
+
+        [Test]
         public void ThreeOrderBuilderReportsMissingGuardModelBeforeFitting()
         {
             const string model = "Assets/PrivateArt/Aschenwacht/Game/Glockenwacht.fbx";
@@ -51,7 +58,9 @@ namespace AreArpg.EditMode.Tests
         [Test]
         public void ThreeOrderPiecesFitThePrivateHero()
         {
-            if (ThreeOrderSet.All.SelectMany(set => set.Pieces)
+            bool sourcesInstalled = ThreeOrderSet.All.Any(set => AssetImporter.GetAtPath(
+                "Assets/PrivateArt/ThreeOrders/Sources/" + set.AssetName + "/" + set.AssetName + ".fbx") is ModelImporter);
+            if (!sourcesInstalled && ThreeOrderSet.All.SelectMany(set => set.Pieces)
                 .All(id => AssetDatabase.LoadAssetAtPath<GameObject>(Arsenal + id + ".prefab") == null))
                 Assert.Ignore("Requires the private Three Orders armour overlay");
             foreach (var set in ThreeOrderSet.All)
