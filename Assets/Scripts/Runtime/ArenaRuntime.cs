@@ -1445,7 +1445,11 @@ namespace AreArpg.UnityClient
             UpdateWoodlandPresentation();
             UpdateEquipmentPresentation();
             if (_worldPassage != null)
-                _worldPassage.gameObject.SetActive((_game.Progression.EntryAct >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && !_game.LootOnGround);
+            {
+                int act = _game.Progression.EntryAct;
+                bool open = (act >= 2 ? _game.HungerForwardOpen : _game.CryptCleared) && !_game.LootOnGround;
+                _worldPassage.gameObject.SetActive(act == 3 || open);
+            }
             if ((_game.Progression.EntryAct < 2 || _game.InNordwechselRift) && _game.CryptCleared && !_passageAnnounced)
             {
                 _passageAnnounced = true;

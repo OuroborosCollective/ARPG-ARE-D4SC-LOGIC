@@ -450,7 +450,8 @@ namespace AreArpg.UnityClient
             // Show the latest event line only when it adds something beyond the objective itself.
             string message = _message ?? "";
             bool redundant = message.Length > 12 && objective.Contains(message.Substring(message.IndexOf(':') + 1).Trim().Split('.')[0]);
-            _hudMessage.text = redundant ? "" : message;
+            bool millNeedsClue = p.EntryAct == 3 && _game.AtWorldPassage && !_game.HungerForwardOpen;
+            _hudMessage.text = millNeedsClue ? "Alte Mühle: Erst den Verband am Wegzeichen untersuchen." : redundant ? "" : message;
             _hudMenuBadge.SetActive(p.UnspentMasteryPoints > BigInteger.Zero);
 
             bool campOpen = _game.CampPanelVisible;

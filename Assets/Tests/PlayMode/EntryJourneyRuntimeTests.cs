@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using System.Reflection;
 using AreArpg.Core;
 using AreArpg.UnityClient;
@@ -884,6 +885,72 @@ namespace AreArpg.PlayMode.Tests
             _runtime = new GameObject("Reload_Hunter_Runtime").AddComponent<ArenaRuntime>(); yield return null; _runtime.enabled = false;
             Assert.IsTrue(Game.Progression.Road.Rescued && Game.Progression.Road.FavorClaimed);
             Assert.IsFalse(Game.InteractHunter(false).Accepted);
+            yield return VerifyHunterMillPassage();
+        }
+
+        private IEnumerator VerifyHunterMillPassage()
+        {
+            MoveStory(2000, 9000);
+            CallWorldInteraction("QueueCompanionAction", 0);
+            TickOnce();
+            Assert.IsTrue(Game.CompanionPresent);
+            Assert.AreEqual(CompanionStatus.Following, Game.Progression.Companion.Status);
+            var experience = Game.Progression.Companion.TotalExperience;
+
+            MoveStory(0, ArenaSimulation.PassageZmm);
+            Assert.IsTrue(Game.AtWorldPassage);
+            TickOnce();
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            Assert.IsTrue(Game.CompanionPresent, "A locked passage keeps the hunter on the road");
+
+            MoveStory(ArenaSimulation.AshRoadBandageXmm, ArenaSimulation.AshRoadBandageZmm - 1300);
+            CallWorldInteraction("UpdatePresentation", 1f);
+            Camera.main.GetComponent<ArenaCameraRig>().SnapToTarget();
+            TapWorldLabel("Story", (int)HungerAction.InspectTrail);
+            TickOnce();
+            Assert.AreEqual(2, Game.Progression.HungerStage);
+
+            MoveStory(0, ArenaSimulation.PassageZmm);
+            TickOnce();
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            Assert.IsTrue(Game.CompanionPresent);
+            Assert.AreEqual(CompanionStatus.Following, Game.Progression.Companion.Status);
+            Assert.AreEqual(experience, Game.Progression.Companion.TotalExperience, "Travel cannot award companion experience");
+            yield return null;
+            Assert.AreEqual(1, Object.FindObjectsByType<Transform>(FindObjectsSortMode.None)
+                .Count(t => t.name == "ARE_Companion_Hunter" && t.gameObject.scene == _scene));
+
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), NativeJourneyMaps, out var saved));
+            Assert.AreEqual(4, saved.EntryAct);
+            Assert.AreEqual(4, saved.Companion.Area);
+            Assert.AreEqual(CompanionStatus.Following, saved.Companion.Status);
+            yield return ReloadEntryCheckpoint();
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            Assert.IsTrue(Game.CompanionPresent);
+            Assert.AreEqual(saved.Companion.Health, Game.Progression.Companion.Health);
+            Assert.AreEqual(saved.Companion.Xmm, Game.Progression.Companion.Xmm);
+            Assert.AreEqual(saved.Companion.Zmm, Game.Progression.Companion.Zmm);
+            CallWorldInteraction("UpdateCompanionPresentation", 1f);
+            Assert.IsNotNull(Find("ARE_Companion_Hunter"));
+
+            MoveStory(0, ArenaSimulation.ReturnPassageZmm);
+            TickOnce();
+            Assert.AreEqual(3, Game.Progression.EntryAct);
+            Assert.IsTrue(Game.CompanionPresent, "A following hunter returns to the road with the player");
+            CallWorldInteraction("QueueCompanionAction", 1);
+            TickOnce();
+            Assert.AreEqual(CompanionStatus.Waiting, Game.Progression.Companion.Status);
+            long waitingX = Game.Progression.Companion.Xmm, waitingZ = Game.Progression.Companion.Zmm;
+
+            MoveStory(0, ArenaSimulation.PassageZmm);
+            TickOnce();
+            Assert.AreEqual(4, Game.Progression.EntryAct);
+            Assert.IsFalse(Game.CompanionPresent, "A waiting hunter stays on the road");
+            Assert.IsTrue(CharacterProgression.TryLoad(PlayerPrefs.GetString(_keys[0]), NativeJourneyMaps, out saved));
+            Assert.AreEqual(3, saved.Companion.Area);
+            Assert.AreEqual(CompanionStatus.Waiting, saved.Companion.Status);
+            Assert.AreEqual(waitingX, saved.Companion.Xmm);
+            Assert.AreEqual(waitingZ, saved.Companion.Zmm);
         }
 
         [UnityTest]

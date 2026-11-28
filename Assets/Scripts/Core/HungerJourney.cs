@@ -53,6 +53,8 @@ namespace AreArpg.Core
     public sealed partial class ArenaSimulation
     {
         public const long ReturnPassageZmm = -24000L;
+        public const long AshRoadBandageXmm = 1650L;
+        public const long AshRoadBandageZmm = -2000L;
         public bool AtReturnPassage { get { return !InJourney && !InWoodlandRegion && !InNordwechselRift && Progression.EntryAct >= 3 &&
             DistanceSquared(PlayerXmm, PlayerZmm, 0, ReturnPassageZmm) <= FixedMath.Square(PassageRadiusMm); } }
         public bool AtAnyPassage { get { return AtNordwechsel || AtJourneyPassage || AtWoodlandPassage || AtWorldPassage || AtReturnPassage; } }
@@ -145,8 +147,7 @@ namespace AreArpg.Core
                 Progression.DiscoverHungerClue();
                 result.Text = "Ilyan: Ich bringe Verwundeten heimlich Essen. Folge der Aschestrasse zur alten Muehle.";
             }
-            else if (action == HungerAction.InspectTrail && Progression.EntryAct == 3 && stage == 1 &&
-                DistanceSquared(PlayerXmm, PlayerZmm, 0, -2000) <= FixedMath.Square(NpcInteractionRadiusMm))
+            else if (action == HungerAction.InspectTrail && TryGetWorldStorySite(action, out _, out _, out _))
             {
                 Progression.DiscoverHungerClue();
                 result.Text = "Ein Verband haengt am Wegzeichen. Fussspuren fuehren nach Norden zur Muehle.";
