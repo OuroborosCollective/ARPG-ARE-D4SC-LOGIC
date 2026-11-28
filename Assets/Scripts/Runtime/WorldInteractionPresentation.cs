@@ -299,7 +299,8 @@ namespace AreArpg.UnityClient
                 var social = _game.Progression.Social;
                 if (social.CampRefilled) return "Dank deiner Rationen konnten wir das Lager wieder auffüllen.";
                 int missing = SocialLedger.CampCapacity - social.CampProvisions;
-                return missing > 0 ? "Uns fehlen noch " + missing + (missing == 1 ? " Ration." : " Rationen.") :
+                if (missing == 1) return "Uns fehlt noch eine Ration.";
+                return missing > 1 ? "Uns fehlen noch " + missing + " Rationen." :
                     "Die Vorräte sind im Lager. Was führt dich zu mir?";
             }
             if (target.Actions != null && target.Actions.Contains(HungerAction.HearIlyan))
