@@ -130,18 +130,8 @@ internal static class AschbeterTests
         // From behind, while he turns, one swing throws him down dead; he drops loot where he lies.
         var hunt = Court(97, false);
         int kills = hunt.Kills, loot = hunt.GroundLoot.Count;
-        bool behind = CourtTests.WalkTo(hunt, 0, AschbeterState.StartZmm + 2250, 900, 300);
+        check(ApproachFlank(hunt), "aschbeter-turns-to-the-wanderer-behind-him");
         var h = hunt.Aschbeter;
-        // The ways keep 2.4 m from him; the last steps close in while he is still turning (no strike without facing).
-        for (int i = 0; i < 4 && Sq(hunt.PlayerXmm - h.Xmm) + Sq(hunt.PlayerZmm - h.Zmm) > 1900L * 1900L; i++)
-        {
-            long dx = h.Xmm - hunt.PlayerXmm, dz = h.Zmm - hunt.PlayerZmm, scale = Math.Max(1, Math.Max(Math.Abs(dx), Math.Abs(dz)));
-            hunt.SetMoveInput(dx * 3000 / scale, dz * 3000 / scale); hunt.Step();
-        }
-        hunt.SetMoveInput(0, 0);
-        int error = Math.Abs(AschbeterState.AngleSteps(h.Heading, AschbeterState.LookAt(hunt.PlayerXmm - h.Xmm, hunt.PlayerZmm - h.Zmm, h.Heading)));
-        check(behind && (h.Mode == AschbeterMode.TurnPositive || h.Mode == AschbeterMode.TurnNegative) && error >= AschbeterState.FlankSteps,
-            "aschbeter-turns-to-the-wanderer-behind-him");
         var swing = hunt.ActivateSkill(0);
         hunt.Step();
         check(swing.Activated && h.LastSwing == AschbeterSwing.Fatal && h.Mode == AschbeterMode.Fall, "aschbeter-swing-from-behind-is-fatal");
@@ -168,6 +158,52 @@ internal static class AschbeterTests
         var past = Court(98, false);
         check(CourtTests.WalkTo(past, CourtLayout.ExitXmm, CourtLayout.ExitZmm, 1500, 400) && !past.GameOver && past.Aschbeter != null &&
             !past.Aschbeter.IsDead && past.TryTraversePassage()?.IsVillage == true, "aschbeter-can-be-avoided");
+
+        foreach (var catalog in new[] { LootCatalog.Version2, LootCatalog.Version3, LootCatalog.Version4 })
+        {
+            var progress = LoadOrThrow(before);
+            progress.Equipment.Enable(progress);
+            var greatsword = WeaponMasteryTests.Give(progress, WeaponFamily.Sword, true);
+            var world = new ArenaSimulation(95, progress, BigInteger.One, catalog);
+            check(progress.Level == 5 && world.TryEquipWeapon(greatsword.KillOrdinal), "aschbeter-checkpoint-equip-greatsword-v" + catalog.Revision);
+            check(ApproachFlank(world) && world.ActivateSkill(0).Activated &&
+                WaitFor(world, () => world.Aschbeter.IsDead, 24) && progress.Level == 6,
+                "aschbeter-checkpoint-level-six-v" + catalog.Revision);
+            check(progress.TrySpendMastery(MasteryPath.Vitality), "aschbeter-checkpoint-spend-vitality-v" + catalog.Revision);
+            check(CharacterProgression.TryLoad(progress.SaveString(), out _), "aschbeter-checkpoint-before-pickup-v" + catalog.Revision);
+            check(world.GroundLoot.Count == 1 && WalkAndCollect(world), "aschbeter-checkpoint-pickup-v" + catalog.Revision);
+            string checkpoint = progress.SaveString();
+            check(CharacterProgression.TryLoad(checkpoint, out var loaded) && loaded.SaveString() == checkpoint &&
+                loaded.StableHash == progress.StableHash && loaded.Equipment.Weapon.Ordinal == greatsword.KillOrdinal &&
+                loaded.VitalityRank == progress.VitalityRank && loaded.AschbeterFallen,
+                "aschbeter-checkpoint-after-pickup-v" + catalog.Revision);
+        }
+        int enemyId = ArenaSimulation.AschbeterLootId;
+        int guaranteed = LootCatalog.GuaranteedFlag;
+        check(!LootCatalog.FlagsFit(guaranteed, 2, enemyId, 1) &&
+            !LootCatalog.WeaponFlagsFit(guaranteed, 1, enemyId, 1) &&
+            !LootCatalog.WeaponFlagsFit(guaranteed, 2, enemyId, 2) &&
+            !LootCatalog.WeaponFlagsFit(guaranteed, 2, enemyId + 1, 1) &&
+            !LootCatalog.WeaponFlagsFit(guaranteed | LootCatalog.BossFlag, 2, enemyId, 1),
+            "aschbeter-guarantee-is-exclusive-to-the-forecourt-weapon");
+    }
+
+    private static bool ApproachFlank(ArenaSimulation world)
+    {
+        var enemy = world.Aschbeter;
+        bool behind = CourtTests.WalkTo(world, 0, AschbeterState.StartZmm + 2250, 900, 300);
+        // The route keeps 2.4 m clear. Close the final gap while the Aschbeter is still turning.
+        for (int i = 0; i < 4 && Sq(world.PlayerXmm - enemy.Xmm) + Sq(world.PlayerZmm - enemy.Zmm) > 1900L * 1900L; i++)
+        {
+            long dx = enemy.Xmm - world.PlayerXmm, dz = enemy.Zmm - world.PlayerZmm;
+            long scale = Math.Max(1, Math.Max(Math.Abs(dx), Math.Abs(dz)));
+            world.SetMoveInput(dx * 3000 / scale, dz * 3000 / scale);
+            world.Step();
+        }
+        world.SetMoveInput(0, 0);
+        int heading = AschbeterState.LookAt(world.PlayerXmm - enemy.Xmm, world.PlayerZmm - enemy.Zmm, enemy.Heading);
+        return behind && (enemy.Mode == AschbeterMode.TurnPositive || enemy.Mode == AschbeterMode.TurnNegative) &&
+            Math.Abs(AschbeterState.AngleSteps(enemy.Heading, heading)) >= AschbeterState.FlankSteps;
     }
 
     private static ArenaSimulation Court(ulong seed, bool combatV2)

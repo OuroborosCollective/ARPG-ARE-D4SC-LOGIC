@@ -61,6 +61,34 @@ namespace AreArpg.PlayMode.Tests
             Assert.IsTrue(a.IsDead && Game.Progression.AschbeterFallen, "he lies dead");
             Assert.AreEqual(loot + 1, Game.GroundLoot.Count, "his loot lies where he fell");
             if (figure) Assert.IsTrue(IsAny(animator, "DeathStay"), "he lies in the death pose");
+
+            Assert.AreEqual("6", Game.Progression.Level.ToString());
+            int previousMaximum = Game.MaxPlayerHealth;
+            typeof(ArenaRuntime).GetMethod("SpendMasteryFromMenu", Flags).Invoke(_runtime, new object[] { MasteryPath.Vitality });
+            Assert.AreEqual(previousMaximum + 20, Game.MaxPlayerHealth);
+            string beforePickup = PlayerPrefs.GetString(_keys[0]);
+            Assert.IsTrue(CharacterProgression.TryLoad(beforePickup, out var before));
+            Assert.IsTrue(before.AschbeterFallen);
+            Assert.AreEqual(Game.Progression.VitalityRank, before.VitalityRank);
+
+            var drop = Game.GroundLoot[0];
+            Assert.IsTrue(WalkCourt(drop.Xmm, drop.Zmm, 400));
+            int previousItems = Game.Progression.Items.Count;
+            typeof(ArenaRuntime).GetMethod("ProcessPickup", Flags).Invoke(_runtime, new object[] { null });
+            Assert.AreEqual(previousItems + 1, Game.Progression.Items.Count);
+            string afterPickup = PlayerPrefs.GetString(_keys[0]);
+            Assert.AreNotEqual(beforePickup, afterPickup, "pickup must advance the primary slot");
+            Assert.AreEqual(beforePickup, PlayerPrefs.GetString(_keys[1]), "backup is the verified pre-pickup checkpoint");
+            Assert.IsTrue(CharacterProgression.TryLoad(afterPickup, out var after));
+            Assert.AreEqual(Game.Progression.StableHash, after.StableHash);
+
+            yield return ReloadEntryCheckpoint();
+            Assert.IsTrue(Game.InCourt && Game.Progression.AschbeterFallen && Game.Aschbeter == null);
+            Assert.AreEqual(after.StableHash, Game.Progression.StableHash);
+            Assert.AreEqual(Game.MaxPlayerHealth, Game.PlayerHealth, "the forecourt resumes at maximum health");
+            typeof(ArenaRuntime).GetMethod("OnApplicationPause", Flags).Invoke(_runtime, new object[] { true });
+            Assert.AreEqual(afterPickup, PlayerPrefs.GetString(_keys[0]), "the reloaded session can still save");
+            Assert.AreEqual(afterPickup, PlayerPrefs.GetString(_keys[1]), "the next save can rotate the verified primary");
         }
 
         private static bool IsAny(Animator animator, params string[] states)

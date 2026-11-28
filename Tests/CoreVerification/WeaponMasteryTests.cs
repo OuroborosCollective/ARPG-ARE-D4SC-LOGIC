@@ -6,7 +6,7 @@ using AreArpg.Core;
 /// <summary>Owner order 2026-11-17: RuneScape-style learn-by-doing skill per droppable weapon type.</summary>
 internal static class WeaponMasteryTests
 {
-    private static LootItem Give(CharacterProgression p, WeaponFamily family, bool? two = null)
+    internal static LootItem Give(CharacterProgression p, WeaponFamily family, bool? two = null)
     {
         for (ulong seed = 0; seed < 10000; seed++)
         {
