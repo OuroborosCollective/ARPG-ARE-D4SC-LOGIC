@@ -15,6 +15,9 @@ namespace AreArpg.EditorTools
 
         public static void Build()
         {
+            if (!(AssetImporter.GetAtPath(AschenwachtGearBuilder.GuardHeadModel) is ModelImporter))
+                throw new InvalidOperationException("Missing armour fitting reference model: " + AschenwachtGearBuilder.GuardHeadModel);
+
             foreach (var set in ThreeOrderSet.All)
             {
                 string path = "Assets/PrivateArt/ThreeOrders/Sources/" + set.AssetName + "/" + set.AssetName;

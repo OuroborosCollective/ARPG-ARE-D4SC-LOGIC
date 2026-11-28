@@ -36,6 +36,19 @@ namespace AreArpg.EditMode.Tests
         }
 
         [Test]
+        public void ThreeOrderBuilderReportsMissingGuardModelBeforeFitting()
+        {
+            const string model = "Assets/PrivateArt/Aschenwacht/Game/Glockenwacht.fbx";
+            if (AssetImporter.GetAtPath(model) is ModelImporter)
+                Assert.Ignore("Requires a project without the Glockenwacht source model");
+
+            var builder = Type.GetType("AreArpg.EditorTools.ThreeOrderGearBuilder, Assembly-CSharp-Editor", true);
+            var error = Assert.Throws<System.Reflection.TargetInvocationException>(() => builder.GetMethod("Build").Invoke(null, null));
+            Assert.That(error.InnerException, Is.TypeOf<InvalidOperationException>());
+            Assert.That(error.InnerException.Message, Does.Contain(model));
+        }
+
+        [Test]
         public void ThreeOrderPiecesFitThePrivateHero()
         {
             if (ThreeOrderSet.All.SelectMany(set => set.Pieces)

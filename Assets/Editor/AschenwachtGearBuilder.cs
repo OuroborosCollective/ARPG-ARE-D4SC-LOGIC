@@ -26,6 +26,7 @@ namespace AreArpg.EditorTools
         private const string Arsenal = "Assets/Resources/ARE/Visuals/Werkarsenal/";
         private const string MeshFolder = "Assets/PrivateArt/Aschenwacht_II_Game/Armor/";
         private const string Hero = "Assets/Resources/ARE/Visuals/EntryHero.prefab";
+        internal const string GuardHeadModel = AschenwachtCourtBuilder.CourtModels + "Glockenwacht.fbx";
 
         private static readonly (string model, RegionalRelic id)[] Armour =
         {
@@ -539,7 +540,7 @@ namespace AreArpg.EditorTools
         /// <summary>The Glockenwacht's own head width, from its figure in the first archive.</summary>
         private static float GuardHeadWidth()
         {
-            string path = AschenwachtCourtBuilder.CourtModels + "Glockenwacht.fbx";
+            string path = GuardHeadModel;
             var importer = (ModelImporter)AssetImporter.GetAtPath(path);
             if (!importer.isReadable) { importer.isReadable = true; importer.SaveAndReimport(); }
             var skin = AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponentInChildren<SkinnedMeshRenderer>(true);
