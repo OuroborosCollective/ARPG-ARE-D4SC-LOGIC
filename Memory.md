@@ -1,5 +1,7 @@
 # ARPG-ARE-D4SC-LOGIC — Memory
 
+- 2026-11-28 [#70 / PR #162] Der nördliche Mühlenweg bleibt erkennbar und erklärt die fehlende Verband-Spur. Sichtbarer Verband, Ring, Journalaktion und Core prüfen denselben Ort. Auf `2b86afb8` bestanden 23.866 Core-Prüfungen, 70 Preflights und der native Unity-PlayMode-Ablauf bis zum gespeicherten Mühleneintritt. [Nachweise](docs/evidence/quality-sky-20261116/logbook-handoff.md).
+
 - 2026-11-28 [#157 / PR #161] Der Waffenleser akzeptiert den garantierten Aschbeter-Beleg aus dem Vorhof. Erst die Beuteaufnahme ließ den zuvor gültigen Stufe-6-Spielstand scheitern. Auf `11ccb655` bestanden 23.863 Core-Prüfungen, 70 Preflights und beide Unity-PlayMode-Gegenproben für Speichern, Neuladen und Slot-Schutz. [Nachweise](docs/evidence/quality-sky-20261116/logbook-handoff.md).
 
 - 2026-11-28 [#158 / PR #160] Weltziele zeigen Ring und Verb, NPC-Gespräche warten auf eine bewusste Antwort. Der gewählte Fund oder die gewählte Vase bleibt bis zum Core-Tick eindeutig, auch bei überlappender Reichweite. Auf `1461c3b` bestanden 23.844 Core-Prüfungen, 70 Preflights und 3/3 Unity-PlayMode-Fälle. [Nachweise](docs/evidence/quality-sky-20261116/logbook-handoff.md). Physische Tab-A9-Abnahme offen.
